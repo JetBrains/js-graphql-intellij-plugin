@@ -1,0 +1,20 @@
+query MyQuery {
+    __schema {
+        types {
+            ...FullType
+        }
+    }
+    first: node(id: 1234) { id }
+    second: node(id: "foo", option: true) { id }
+}
+
+fragment FullType on __Type {
+    # Note: __Type has a lot more fields than this
+    name
+}
+
+mutation MyMutation($input: MyInput!) {
+    # Payload
+}
+
+%invalid%

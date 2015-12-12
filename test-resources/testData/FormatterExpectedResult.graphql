@@ -1,0 +1,127 @@
+### --------- introspection.graphql --------- ####
+
+query IntrospectionQuery {
+
+    __schema {
+        queryType { name }
+        mutationType { name }
+        subscriptionType { name }
+        types {
+            ...FullType
+        }
+        directives {
+            name
+            description
+            args {
+                ...InputValue
+            }
+            onField
+            onFragment
+            onField
+        }
+    }
+}
+
+fragment FullType on __Type {
+    kind
+    name
+    description
+    fields {
+        name
+        description
+        args {
+            ...InputValue
+        }
+        type {
+            ...TypeRef
+        }
+        isDeprecated
+        deprecationReason
+    }
+    inputFields {
+        ...InputValue
+    }
+    interfaces {
+        ...TypeRef
+    }
+    enumValues {
+        name
+        description
+        isDeprecated
+        deprecationReason
+    }
+    possibleTypes {
+        ...TypeRef
+    }
+}
+
+fragment InputValue on __InputValue {
+    name
+    description
+    type { ...TypeRef }
+    defaultValue
+}
+
+fragment TypeRef on __Type {
+    kind
+    name
+    ofType {
+        kind
+        name
+        ofType {
+            kind
+            name
+            ofType {
+                kind
+                name
+            }
+        }
+    }
+}
+
+
+
+### --------- colors.graphql --------- ###
+
+query MyQuery {
+    __schema {
+        types {
+            ...FullType
+        }
+    }
+    first: node(id: 1234) { id }
+    second: node(id: "foo", option: true) { id }
+}
+
+fragment FullType on __Type {
+    # Note: __Type has a lot more fields than this
+    name
+}
+
+mutation MyMutation($input: MyInput!) {
+    # Payload
+}
+
+%invalid%
+
+### --------- kitchen-sink.graphql --------- ###
+
+query queryName($foo: TestInput, $site: TestEnum = RED) {
+    testAlias: hasArgs(string: "testString")
+    ... on Test {
+        hasArgs(
+        listEnum: [RED, GREEN, BLUE]
+        int: 1
+        listFloat: [1.23, 1.3e-1, -1.35384e+3]
+        boolean: true
+        id: 123
+        object: $foo
+        enum: $site
+        )
+    }
+    test @include(if: true) {
+        union {
+            __typename
+        }
+    }
+}

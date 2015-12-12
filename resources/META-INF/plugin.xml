@@ -1,0 +1,121 @@
+<!--
+/**
+ *  Copyright (c) 2015, Jim Kynde Meyer
+ *  All rights reserved.
+ *
+ *  This source code is licensed under the MIT license found in the
+ *  LICENSE file in the root directory of this source tree.
+ */
+-->
+<idea-plugin version="2">
+  <id>com.intellij.lang.jsgraphql</id>
+  <name>JS GraphQL</name>
+  <version>1.0.0</version>
+  <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
+
+  <description><![CDATA[
+      <p>GraphQL language support including Relay.QL tagged templates in JavaScript and TypeScript.</p>
+      <p>Provides the following features:</p>
+      <ul>
+        <li>Schema-aware completion and error highlighting</li>
+        <li>Syntax highlighting, code-formatting, folding, commenter, and brace-matching</li>
+        <li>Configurable GraphQL schema retrieval and reloading based on a local file or a url using 'then-request'</li>
+        <li>View and browse the schema documentation in-editor using Ctrl/Cmd+Click or the documentation tool window</li>
+        <li>Execute queries with variables against configurable endpoints</li>
+      </ul>
+    ]]></description>
+
+  <!--<change-notes><![CDATA[-->
+      <!--Add change notes here.<br>-->
+      <!--<em>most HTML tags may be used</em>-->
+    <!--]]>-->
+  <!--</change-notes>-->
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+  <idea-version since-build="143.0"/>
+
+  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+       on how to target different products -->
+
+  <depends>com.intellij.modules.lang</depends>
+  <depends>JavaScript</depends>
+  <depends>NodeJS</depends>
+
+
+  <extensions defaultExtensionNs="com.intellij">
+
+    <!-- Project Language service -->
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService" />
+
+    <!-- File type -->
+    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.JSGraphQLFileTypeFactory"/>
+    <internalFileTemplate name="GraphQL File"/>
+
+
+    <!-- Language -->
+    <lang.parserDefinition language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.JSGraphQLParserDefinition"/>
+    <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighterFactory"/>
+    <lang.commenter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLCommenter"/>
+    <lang.braceMatcher language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLBraceMatcher"  />
+
+
+    <!-- Completion -->
+    <completion.contributor language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.completion.JSGraphQLCompletionContributor"/>
+
+
+    <!-- Error highlighting and annotations -->
+    <externalAnnotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" />
+    <externalAnnotator language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" />
+    <externalAnnotator language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" /><!-- Own reg required -->
+    <annotator language="JSX Harmony" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLRelayTemplateAnnotator" />
+    <annotator language="TypeScript JSX" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLRelayTemplateAnnotator" />
+
+
+    <!-- Formatting -->
+    <lang.formatter language="GraphQL"    implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLFormattingModelBuilder"/>
+    <lang.formatter language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLInjectedFormattingModelBuilder" />
+    <lang.formatter language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLInjectedFormattingModelBuilder" /><!-- Own reg required -->
+    <lang.foldingBuilder language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLFoldingBuilder"/>
+    <lang.quoteHandler language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQuoteHandler" />
+    <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLEnterHandlerDelegate" />
+
+
+    <!-- Schema documentation -->
+    <lang.documentationProvider language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.documentation.JSGraphQLDocumentationProvider" />
+    <!-- Note: JSX/TSX documentation providers are registered in their base language (JS), so we do the same to not take over the entire doc impl -->
+    <lang.documentationProvider language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.documentation.JSGraphQLDocumentationProvider" />
+
+
+    <!-- Editor notification bars and markers -->
+    <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.JSGraphQLNodeInterpreterEditorNotificationProvider"/>
+    <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.JSGraphQLConfigEditorNotificationProvider"/>
+    <codeInsight.lineMarkerProvider language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLLineMarkerProvider" />
+
+
+    <!-- Language injection -->
+    <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.JSGraphQLTemplateFragmentLanguageInjector" order="first" />
+
+
+    <!-- Settings -->
+    <colorSettingsPage implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLColorSettingsPage" />
+
+    <!-- Query execution (see com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_SPLIT which is ctrl+enter by default) -->
+    <editorActionHandler action="EditorSplitLine" implementationClass="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLExecuteEditorActionHandler" order="first" />
+    <highlightErrorFilter implementation="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLVariablesHighlightErrorFilter" />
+  </extensions>
+
+  <actions>
+
+    <action id="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLNewFileAction" class="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLNewFileAction">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewTypeScriptFile"/>
+    </action>
+
+    <action class="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLExecuteEditorAction" id="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLExecuteEditorAction">
+      <keyboard-shortcut first-keystroke="control ENTER" keymap="$default"/>
+      <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X"/>
+      <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X 10.5+"/>
+    </action>
+    
+  </actions>
+
+</idea-plugin>
