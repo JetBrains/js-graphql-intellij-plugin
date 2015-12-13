@@ -1,3 +1,5 @@
+![](docs/js-graphql-logo.png)
+
 # JS GraphQL IntelliJ Plugin
 
 GraphQL language support including Relay.QL tagged templates in JavaScript and TypeScript.
