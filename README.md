@@ -18,6 +18,12 @@ It depends on [js-graphql-language-service](https://github.com/jimkyndemeyer/js-
 
 ## FAQ
 
+**Where can I get the plugin?**
+
+The plugin is available from the JetBrains Plugin Repository at https://plugins.jetbrains.com/plugin/8097?pr=
+
+To install it in IntelliJ IDEA or WebStorm, open "Settings", "Plugins", "Browse repositories..." and search for "JS GraphQL".
+
 **How do I reload a GraphQL Schema that was loaded from a URL?**
 
 In the the GraphQL tool window, select the "Current Errors" tab and click the "Restart JS GraphQL Language Service" button. 
