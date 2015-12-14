@@ -4,7 +4,7 @@
 
 GraphQL language support including Relay.QL tagged templates in JavaScript and TypeScript.
 
-It provides the following features in IntelliJ IDEA and WebStorm:
+It provides the following features in IntelliJ IDEA, WebStorm, RubyMine, PhpStorm, and PyCharm:
 
 - Schema-aware completion and error highlighting
 - Syntax highlighting, code-formatting, folding, commenter, and brace-matching
@@ -20,11 +20,17 @@ It depends on [js-graphql-language-service](https://github.com/jimkyndemeyer/js-
 
 ## FAQ
 
+**Which IDEs are compatible with the plugin?**
+
+The plugin is compatible with version 143+ of IntelliJ IDEA, WebStorm, RubyMine, PhpStorm, and PyCharm.
+
+PyCharm CE and Android studio is not supported since the plugin depends on two other plugins: NodeJS and JavaScript.
+
 **Where can I get the plugin?**
 
 The plugin is available from the JetBrains Plugin Repository at https://plugins.jetbrains.com/plugin/8097?pr=
 
-To install it in IntelliJ IDEA or WebStorm, open "Settings", "Plugins", "Browse repositories..." and search for "JS GraphQL".
+To install it, open "Settings", "Plugins", "Browse repositories..." and search for "JS GraphQL".
 
 **How do I reload a GraphQL Schema that was loaded from a URL?**
 
