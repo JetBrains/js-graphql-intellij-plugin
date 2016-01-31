@@ -18,7 +18,11 @@ It depends on [js-graphql-language-service](https://github.com/jimkyndemeyer/js-
 
 ## Features demo
 
+**Schema setup, completion, error highlighting, documentation**
 ![](docs/js-graphql-webstorm-demo.gif)
+
+**Find usages, schema viewer, structure view**
+![](docs/js-graphql-webstorm-usages-structure-demo.gif)
 
 ## FAQ
 
