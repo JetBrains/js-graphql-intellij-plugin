@@ -7,33 +7,37 @@
  */
 package com.intellij.lang.jsgraphql.ide.completion;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementWeigher;
-import com.intellij.icons.AllIcons;
+import com.intellij.lang.jsgraphql.JSGraphQLKeywords;
+import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.injection.JSGraphQLLanguageInjectionUtil;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.api.Hint;
 import com.intellij.lang.jsgraphql.languageservice.api.HintsResponse;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLFragmentDefinitionPsiElement;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedTypePsiElement;
+import com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaLanguageProjectService;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.project.Project;
 import com.intellij.patterns.PlatformPatterns;
-import com.intellij.util.PlatformIcons;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiRecursiveElementVisitor;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.util.Objects;
-import java.util.Set;
+import java.util.List;
 
 
 public class JSGraphQLCompletionContributor extends CompletionContributor {
-
-    private static Set<String> SCALAR_TYPES = Sets.newHashSet("String", "String!", "Boolean", "Boolean!", "Int", "Int!", "Float", "Float!", "ID", "ID!");
 
     public JSGraphQLCompletionContributor() {
 
@@ -53,6 +57,37 @@ public class JSGraphQLCompletionContributor extends CompletionContributor {
 
                     result = updateResult(parameters, result);
 
+                    if(hints.getHints().isEmpty()) {
+                        // temporary '...' completion for #4 until it's supported by codemirror-graphql -- https://github.com/graphql/codemirror-graphql/issues/7
+                        // we simply return the fragment names in the file without filtering on their applicability
+                        PsiElement originalPosition = parameters.getOriginalPosition();
+                        if(originalPosition != null) {
+                            if(originalPosition instanceof PsiWhiteSpace) {
+                                // this is the completion invoked right after '...'
+                                final PsiElement prevSibling = originalPosition.getPrevSibling();
+                                if(prevSibling != null) {
+                                    final boolean isKeyword = prevSibling.getNode().getElementType() == JSGraphQLTokenTypes.KEYWORD;
+                                    if(isKeyword && JSGraphQLKeywords.FRAGMENT_DOTS.equals(prevSibling.getText())) {
+                                        final PsiFile file = prevSibling.getContainingFile();
+                                        addFragmentCompletions(result, file);
+                                    }
+                                }
+                            } else if(originalPosition.getParent() instanceof JSGraphQLNamedTypePsiElement) {
+                                // completion inside the fragment name, e.g. after '...Fra'
+                                for (PsiElement child = originalPosition.getParent().getPrevSibling(); child != null; child = child.getPrevSibling()) {
+                                    if(child instanceof PsiWhiteSpace) {
+                                        continue;
+                                    }
+                                    final boolean isKeyword = child.getNode().getElementType() == JSGraphQLTokenTypes.KEYWORD;
+                                    if(isKeyword && JSGraphQLKeywords.FRAGMENT_DOTS.equals(child.getText())) {
+                                        addFragmentCompletions(result, child.getContainingFile());
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                     for (Hint hint : hints.getHints()) {
 
                         final String text = hint.getText();
@@ -68,7 +103,7 @@ public class JSGraphQLCompletionContributor extends CompletionContributor {
                             // fields with type or built-ins
                             Icon propertyIcon = JSGraphQLIcons.Schema.Field;
                             Icon typeIcon = hint.isRelay() ? JSGraphQLIcons.Logos.Relay : null;
-                            if(SCALAR_TYPES.contains(type)) {
+                            if(JSGraphQLSchemaLanguageProjectService.SCALAR_TYPES.contains(type)) {
                                 if(text.equals("true") || text.equals("false")) {
                                     propertyIcon = null;
                                     type = null;
@@ -111,6 +146,37 @@ public class JSGraphQLCompletionContributor extends CompletionContributor {
 
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(), provider);
 
+    }
+
+    private void addFragmentCompletions(@NotNull CompletionResultSet result, PsiFile file) {
+        final List<JSGraphQLFragmentDefinitionPsiElement> fragmentDefinitions = getFragmentDefinitions(file);
+        for (JSGraphQLFragmentDefinitionPsiElement fragmentDefinition : fragmentDefinitions) {
+            final String name = fragmentDefinition.getName();
+            if(name != null) {
+                LookupElementBuilder element = LookupElementBuilder.create(name).withBoldness(true);
+                element = element.withIcon(JSGraphQLIcons.Schema.Fragment);
+                final JSGraphQLNamedTypePsiElement fragmentOnType = fragmentDefinition.getFragmentOnType();
+                if(fragmentOnType != null) {
+                    element = element.withTypeText(fragmentOnType.getName());
+                }
+                result.addElement(element);
+            }
+        }
+    }
+
+    private List<JSGraphQLFragmentDefinitionPsiElement> getFragmentDefinitions(PsiFile file) {
+        List<JSGraphQLFragmentDefinitionPsiElement> ret = Lists.newArrayList();
+        file.accept(new PsiRecursiveElementVisitor() {
+            @Override
+            public void visitElement(PsiElement element) {
+                if(element instanceof JSGraphQLFragmentDefinitionPsiElement) {
+                    ret.add((JSGraphQLFragmentDefinitionPsiElement) element);
+                } else {
+                    super.visitElement(element);
+                }
+            }
+        });
+        return ret;
     }
 
     @NotNull

@@ -7,56 +7,49 @@
  */
 package com.intellij.lang.jsgraphql.ide.notifications;
 
+import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.lang.javascript.JavaScriptFileType;
 import com.intellij.lang.jsgraphql.JSGraphQLFileType;
 import com.intellij.lang.jsgraphql.JSGraphQLParserDefinition;
+import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
+import com.intellij.lang.jsgraphql.ide.findUsages.JSGraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService;
+import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceInstance;
+import com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaFileType;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.extensions.PluginAware;
-import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.EditorNotifications.Provider;
-import com.intellij.util.ui.UIUtil;
-import org.apache.commons.io.IOUtils;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.webcore.ui.ModuleSelectionDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
-public class JSGraphQLConfigEditorNotificationProvider extends Provider implements PluginAware {
+public class JSGraphQLConfigEditorNotificationProvider extends Provider {
 
-    private final static Logger log = Logger.getInstance(JSGraphQLConfigEditorNotificationProvider.class);
     private static final Key<EditorNotificationPanel> KEY = Key.create("JSGraphQLConfigEditorNotificationProvider");
     private static final ExtensionPointName EDITOR_NOTIFICATION_EP = ExtensionPointName.create("com.intellij.editorNotificationProvider");
     private static final String SHOW_JSGRAPHQL_SCHEMA_EDITOR_NOTIFICATION = "jsgraphql-schema-editor-notification";
 
-    public static final String GRAPHQL_CONFIG_JSON = "graphql.config.json";
-    public static final String GRAPHQL_DEFAULT_SCHEMA = "graphql.schema.json";
-
     protected final Project myProject;
     protected final EditorNotifications myNotifications;
-    private PluginDescriptor pluginDescriptor;
 
     @NotNull
     public Key getKey() {
@@ -99,31 +92,25 @@ public class JSGraphQLConfigEditorNotificationProvider extends Provider implemen
             // didn't configure node yet
             return false;
         }
-        if(hasGraphQLConfig()) {
+        if(JSGraphQLConfigurationProvider.getService(myProject).hasGraphQLConfig()) {
             // already has config
             return false;
+        }
+        if(file.getFileType() == JSGraphQLSchemaFileType.INSTANCE) {
+            return true;
         }
         return GlobalSearchScope.projectScope(myProject).accept(file);
     }
 
     protected boolean isGraphQLRelatedFile(VirtualFile file) {
-        if(file.getFileType() == JSGraphQLFileType.INSTANCE) {
+        if(file.getFileType() == JSGraphQLFileType.INSTANCE || file.getFileType() == JSGraphQLSchemaFileType.INSTANCE) {
             return true;
         }
-        if(JavaScriptFileType.getFileTypesCompilableToJavaScript().contains(file.getFileType())) {
+        if(JSGraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.contains(file.getFileType())) {
             return true;
         }
         return false;
     }
-
-    protected boolean hasGraphQLConfig() {
-        if(myProject.getBaseDir() != null) {
-            VirtualFile config = myProject.getBaseDir().findFileByRelativePath(GRAPHQL_CONFIG_JSON);
-            return config != null;
-        }
-        return false;
-    }
-
 
     @NotNull
     protected Runnable getDismissAction() {
@@ -141,49 +128,39 @@ public class JSGraphQLConfigEditorNotificationProvider extends Provider implemen
     @NotNull
     protected Runnable getConfigureAction() {
         return () -> {
-            final VirtualFile baseDir = myProject.getBaseDir();
-            if(baseDir != null) {
-                VirtualFile defaultSchema = createFile(baseDir, GRAPHQL_DEFAULT_SCHEMA, GRAPHQL_DEFAULT_SCHEMA);
-                VirtualFile config = createFile(baseDir, GRAPHQL_CONFIG_JSON, GRAPHQL_CONFIG_JSON);
-                if(config != null && defaultSchema != null) {
-                    JSGraphQLLanguageUIProjectService.showConsole(myProject);
-                    FileEditorManager.getInstance(myProject).openFile(defaultSchema, false, true);
-                    FileEditorManager.getInstance(myProject).openFile(config, true, true);
-                    Notifications.Bus.notify(new Notification("GraphQL", "Created " + GRAPHQL_CONFIG_JSON + " and " + GRAPHQL_DEFAULT_SCHEMA, "Edit to load your own GraphQL schema.", NotificationType.INFORMATION));
+            final JSGraphQLConfigurationProvider configurationProvider = JSGraphQLConfigurationProvider.getService(myProject);
+            boolean setProjectDir = false;
+            if(configurationProvider.getConfigurationBaseDir() == null) {
+                // couldn't detect the config dir automatically, so we have to ask which module to place the config in
+                final JSGraphQLConfigModuleDialog dialog = new JSGraphQLConfigModuleDialog(myProject);
+                if(dialog.showAndGet()) {
+                    final Module module = dialog.getSelectedModule();
+                    if(module != null) {
+                        configurationProvider.setConfigurationBasDirFromModule(module);
+                        // we should set the project dir when we've created the config files
+                        // since we couldn't detect it before
+                        setProjectDir = true;
+                    }
                 }
+            }
+            if(configurationProvider.getConfigurationBaseDir() == null) {
+                // didn't detect or select the base dir yet
+                return;
+            }
+            VirtualFile defaultSchema = configurationProvider.getOrCreateFile(JSGraphQLConfigurationProvider.GRAPHQL_DEFAULT_SCHEMA);
+            VirtualFile config = configurationProvider.getOrCreateFile(JSGraphQLConfigurationProvider.GRAPHQL_CONFIG_JSON);
+            if(config != null && defaultSchema != null) {
+                JSGraphQLLanguageUIProjectService.showConsole(myProject);
+                FileEditorManager.getInstance(myProject).openFile(defaultSchema, false, true);
+                FileEditorManager.getInstance(myProject).openFile(config, true, true);
+                if(setProjectDir) {
+                    // fetch tokens from the client to force it to set the project dir base on the module we picked
+                    JSGraphQLNodeLanguageServiceClient.getTokens("", myProject);
+                }
+                Notifications.Bus.notify(new Notification("GraphQL", "Created " + JSGraphQLConfigurationProvider.GRAPHQL_CONFIG_JSON + " and " + JSGraphQLConfigurationProvider.GRAPHQL_DEFAULT_SCHEMA, "Edit to load your own GraphQL schema.", NotificationType.INFORMATION));
             }
             myNotifications.updateAllNotifications();
         };
-    }
-
-    private VirtualFile createFile(VirtualFile baseDir, String name, String resourceName) {
-        VirtualFile file = baseDir.findFileByRelativePath(name);
-        if(file == null) {
-            Ref<VirtualFile> fileRef = new Ref<>();
-            ApplicationManager.getApplication().runWriteAction(() -> {
-                try {
-                    fileRef.set(baseDir.createChildData(this, name));
-                    try(OutputStream stream = fileRef.get().getOutputStream(this)) {
-                        try(InputStream inputStream = pluginDescriptor.getPluginClassLoader().getResourceAsStream("/META-INF/"+resourceName)) {
-                            if(inputStream != null) {
-                                IOUtils.copy(inputStream, stream);
-                            }
-                        }
-                    }
-                } catch (IOException e) {
-                    UIUtil.invokeLaterIfNeeded(() -> {
-                        Notifications.Bus.notify(new Notification("GraphQL", "JS GraphQL", "Unable to create file '" + name + "' in project directory '" + baseDir.getPath() + "': " + e.getMessage(), NotificationType.ERROR));
-                    });
-                }
-            });
-            return fileRef.get();
-        }
-        return file;
-    }
-
-    @Override
-    public void setPluginDescriptor(PluginDescriptor pluginDescriptor) {
-        this.pluginDescriptor = pluginDescriptor;
     }
 
     protected class SchemaConfigEditorNotificationPanel extends EditorNotificationPanel {

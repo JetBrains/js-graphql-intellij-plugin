@@ -41,6 +41,9 @@ import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Represents a js-graphql-language-service instance running as a Node.js process handler.
+ */
 public class JSGraphQLNodeLanguageServiceInstance implements ProjectManagerListener {
 
     public static final String JSGRAPHQL_INTELLIJ_PLUGIN_ID = "com.intellij.lang.jsgraphql";
@@ -130,10 +133,11 @@ public class JSGraphQLNodeLanguageServiceInstance implements ProjectManagerListe
 
             processHandler = new OSProcessHandler(commandLine);
             JSGraphQLLanguageUIProjectService languageService = JSGraphQLLanguageUIProjectService.getService(project);
-            languageService.connectToProcessHandler(processHandler);
+            final Runnable onInitialized = languageService.connectToProcessHandler(processHandler);
 
             if (waitForListeningNotification(processHandler, project)) {
                 url = new URL("http", NetUtils.getLocalHostString(), socketPort, JSGRAPHQL_LANGUAGE_SERVICE_MAPPING);
+                onInitialized.run();
             } else {
                 log.error("Unable to start JS GraphQL Language Service using Node.js with commandline " + commandLine.toString());
             }

@@ -10,8 +10,6 @@ package com.intellij.lang.jsgraphql.ide.highlighting;
 import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.lexer.JSGraphQLLexer;
 import com.intellij.lexer.Lexer;
-import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
-import com.intellij.openapi.editor.HighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.openapi.project.Project;
@@ -23,7 +21,10 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
 public class JSGraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
 
     public static final TextAttributesKey KEYWORD = createTextAttributesKey("JSGRAPHQL.KEYWORD", TextAttributesKey.find("JS.KEYWORD"));
-    public static final TextAttributesKey PUNCTUATION = createTextAttributesKey("JSGRAPHQL.PUNCTUATION", TextAttributesKey.find("JS.BRACKETS"));
+    public static final TextAttributesKey PUNCTUATION = createTextAttributesKey("JSGRAPHQL.PUNCTUATION", TextAttributesKey.find("JS.COMMA"));
+    public static final TextAttributesKey PAREN = createTextAttributesKey("JSGRAPHQL.PAREN", TextAttributesKey.find("JS.PARENTHS"));
+    public static final TextAttributesKey BRACE = createTextAttributesKey("JSGRAPHQL.BRACE", TextAttributesKey.find("JS.BRACES"));
+    public static final TextAttributesKey BRACKET = createTextAttributesKey("JSGRAPHQL.BRACKET", TextAttributesKey.find("JS.BRACKETS"));
     public static final TextAttributesKey PROPERTY = createTextAttributesKey("JSGRAPHQL.PROPERTY", TextAttributesKey.find("JS.INSTANCE_MEMBER_VARIABLE"));
     public static final TextAttributesKey DEF = createTextAttributesKey("JSGRAPHQL.DEF", TextAttributesKey.find("JS.GLOBAL_FUNCTION"));
     public static final TextAttributesKey ATTRIBUTE = createTextAttributesKey("JSGRAPHQL.ATTRIBUTE", TextAttributesKey.find("JS.PARAMETER"));
@@ -39,6 +40,9 @@ public class JSGraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
 
     private static final TextAttributesKey[] KEYWORD_KEYS = new TextAttributesKey[]{KEYWORD};
     private static final TextAttributesKey[] PUNCTUATION_KEYS = new TextAttributesKey[]{PUNCTUATION};
+    private static final TextAttributesKey[] PAREN_KEYS = new TextAttributesKey[]{PAREN};
+    private static final TextAttributesKey[] BRACE_KEYS = new TextAttributesKey[]{BRACE};
+    private static final TextAttributesKey[] BRACKET_KEYS = new TextAttributesKey[]{BRACKET};
     private static final TextAttributesKey[] PROPERTY_KEYS = new TextAttributesKey[]{PROPERTY};
     private static final TextAttributesKey[] DEF_KEYS = new TextAttributesKey[]{DEF};
     private static final TextAttributesKey[] ATTRIBUTE_KEYS = new TextAttributesKey[]{ATTRIBUTE};
@@ -53,45 +57,57 @@ public class JSGraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
     private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
     private final Project project;
+    private final boolean schema;
 
     public JSGraphQLSyntaxHighlighter(Project project) {
+        this(project, false);
+    }
+
+    public JSGraphQLSyntaxHighlighter(Project project, boolean schema) {
         this.project = project;
+        this.schema = schema;
     }
 
     @NotNull
     @Override
     public Lexer getHighlightingLexer() {
-        return new JSGraphQLLexer(project);
+        return new JSGraphQLLexer(project, schema);
     }
 
     @NotNull
     @Override
     public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
-        if (tokenType.equals(JSGraphQLTokenTypes.KEYWORD)) {
-            return KEYWORD_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.PUNCTUATION)) {
-            return PUNCTUATION_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.PROPERTY)) {
+        if (tokenType == JSGraphQLTokenTypes.PROPERTY) {
             return PROPERTY_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.DEF)) {
-            return DEF_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.ATTRIBUTE)) {
-            return ATTRIBUTE_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.VARIABLE)) {
-            return VARIABLE_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.QUALIFIER)) {
-            return QUALIFIER_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.NUMBER)) {
-            return NUMBER_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.STRING) || tokenType.equals(JSGraphQLTokenTypes.OPEN_QUOTE) || tokenType.equals(JSGraphQLTokenTypes.CLOSE_QUOTE)) {
-            return STRING_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.BUILTIN)) {
-            return BUILTIN_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.COMMENT)) {
-            return COMMENT_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.ATOM)) {
+        } else if (tokenType == JSGraphQLTokenTypes.KEYWORD) {
+            return KEYWORD_KEYS;
+        } else if(tokenType == JSGraphQLTokenTypes.LBRACE || tokenType == JSGraphQLTokenTypes.RBRACE) {
+            return BRACE_KEYS;
+        } else if(tokenType == JSGraphQLTokenTypes.LPAREN || tokenType == JSGraphQLTokenTypes.RPAREN) {
+            return PAREN_KEYS;
+        } else if(tokenType == JSGraphQLTokenTypes.LBRACKET || tokenType == JSGraphQLTokenTypes.RBRACKET) {
+            return BRACKET_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.PUNCTUATION) {
+            return PUNCTUATION_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.ATOM) {
             return ATOM_KEYS;
-        } else if (tokenType.equals(JSGraphQLTokenTypes.INVALIDCHAR)) {
+        } else if (tokenType == JSGraphQLTokenTypes.DEF) {
+            return DEF_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.ATTRIBUTE) {
+            return ATTRIBUTE_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.VARIABLE) {
+            return VARIABLE_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.QUALIFIER) {
+            return QUALIFIER_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.NUMBER) {
+            return NUMBER_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.STRING || tokenType == JSGraphQLTokenTypes.OPEN_QUOTE || tokenType == JSGraphQLTokenTypes.CLOSE_QUOTE) {
+            return STRING_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.BUILTIN) {
+            return BUILTIN_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.COMMENT) {
+            return COMMENT_KEYS;
+        } else if (tokenType == JSGraphQLTokenTypes.INVALIDCHAR) {
             return BAD_CHARACTER_KEYS;
         } else {
             return EMPTY_KEYS;

@@ -10,28 +10,32 @@ package com.intellij.lang.jsgraphql.ide.documentation;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.documentation.DocumentationManagerProtocol;
 import com.intellij.lang.documentation.DocumentationProviderEx;
-import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.ide.injection.JSGraphQLLanguageInjectionUtil;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.api.TokenDocumentationResponse;
 import com.intellij.lang.jsgraphql.languageservice.api.TypeDocumentationResponse;
-import com.intellij.openapi.editor.Editor;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLFragmentDefinitionPsiElement;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPropertyPsiElement;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPsiElement;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedTypePsiElement;
+import com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaLanguageProjectService;
+import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
-import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiEditorUtil;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.ui.GuiUtils;
 import com.intellij.util.containers.ContainerUtil;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
@@ -42,12 +46,12 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
     @Nullable
     @Override
     public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
-        return createQuickNavigateDocumentation(element, false);
+        return createQuickNavigateDocumentation(resolveDocumentationElement(element, originalElement), false);
     }
 
     @Override
     public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
-        return createQuickNavigateDocumentation(element, true);
+        return createQuickNavigateDocumentation(resolveDocumentationElement(element, originalElement), true);
     }
 
     @Override
@@ -58,6 +62,19 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
         return super.getDocumentationElementForLink(psiManager, link, context);
     }
 
+    // ensures that the built-in schema info that points to the schema file are sent to the doc methods as the originalElement
+    private PsiElement resolveDocumentationElement(PsiElement element, PsiElement originalElement) {
+        if(element instanceof JSGraphQLSchemaFile) {
+            if(originalElement instanceof JSGraphQLNamedPsiElement) {
+                return originalElement;
+            } else if(originalElement.getParent() instanceof JSGraphQLNamedPsiElement) {
+                // the doc can be invoked on the leaf node, so move up to the parent which contains the type/field name
+                return originalElement.getParent();
+            }
+        }
+        return element;
+    }
+
     @Nullable
     private String createQuickNavigateDocumentation(PsiElement element, boolean fullDocumentation) {
         if(element instanceof JSGraphQLDocumentationPsiElement) {
@@ -65,74 +82,108 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
             return getTypeDocumentation(docElement);
         }
 
-        final IElementType elementType = element.getNode().getElementType();
-        if(elementType == JSGraphQLTokenTypes.PROPERTY || elementType == JSGraphQLTokenTypes.ATOM) {
-            final Editor editor = resolveEditor(element);
-            if(editor != null) {
-                final String buffer = element.getContainingFile().getText();
-                final LogicalPosition pos = getTokenPos(buffer, element);
-                if(elementType == JSGraphQLTokenTypes.PROPERTY) {
-                    final boolean relay = JSGraphQLLanguageInjectionUtil.isRelayInjection(element.getContainingFile());
-                    final TokenDocumentationResponse tokenDocumentation = JSGraphQLNodeLanguageServiceClient.getTokenDocumentation(
-                            buffer,
-                            pos.line,
-                            pos.column,
-                            editor.getProject(),
-                            relay
-                    );
-                    if (tokenDocumentation != null) {
-                        String doc = "";
-                        if (tokenDocumentation.getDescription() != null) {
-                            doc += "<div style=\"margin-bottom: 4px\">" + tokenDocumentation.getDescription() + "</div>";
-                        }
-                        doc += "<code>" + element.getText() + ": " + getTypeHyperLink(tokenDocumentation.getType()) + "</code>";
-                        return getDocTemplate(fullDocumentation).replace("${body}", doc);
-                    }
-                } else if(elementType == JSGraphQLTokenTypes.ATOM) {
-                    if(fullDocumentation && editor.getProject() != null) {
-                        final PsiManager psiManager = PsiManager.getInstance(editor.getProject());
-                        final String link = GRAPHQL_DOC_PREFIX + "/" + GRAPHQL_DOC_TYPE + "/" + element.getText();
-                        final PsiElement documentationElement = getDocumentationElementForLink(psiManager, link, element);
-                        if(documentationElement instanceof JSGraphQLDocumentationPsiElement) {
-                            return getTypeDocumentation((JSGraphQLDocumentationPsiElement) documentationElement);
-                        }
-                    }
-                    TypeDocumentationResponse typeDocumentation = JSGraphQLNodeLanguageServiceClient.getTypeDocumentation(
-                            element.getText(),
-                            editor.getProject()
-                    );
-                    if(typeDocumentation != null) {
-                        String doc = "";
-                        if (typeDocumentation.description != null) {
-                            doc += "<div style=\"margin-bottom: 4px\">" + typeDocumentation.description + "</div>";
-                        }
-                        doc += "<code>" + element.getText();
-                        if(!ContainerUtil.isEmpty(typeDocumentation.interfaces)) {
-                            doc += ": ";
-                            for (int i = 0; i < typeDocumentation.interfaces.size(); i++) {
-                                if(i > 0)  {
-                                    doc += ", ";
+        if(element instanceof JSGraphQLNamedPsiElement) {
+
+            final Project project = element.getProject();
+
+            if(element instanceof JSGraphQLNamedPropertyPsiElement) {
+                final JSGraphQLNamedPropertyPsiElement propertyPsiElement = (JSGraphQLNamedPropertyPsiElement) element;
+                String typeName = JSGraphQLSchemaLanguageProjectService.getService(project).getTypeName(propertyPsiElement);
+                if(typeName == null) {
+                    // in structure view we don't get the schema psi element, so try to find it using the reference
+                    final PsiReference reference = propertyPsiElement.getReference();
+                    if(reference != null) {
+                        final PsiElement schemaReference = reference.resolve();
+                        if(schemaReference instanceof JSGraphQLNamedPropertyPsiElement) {
+                            typeName = JSGraphQLSchemaLanguageProjectService.getService(project).getTypeName((JSGraphQLNamedPropertyPsiElement) schemaReference);
+                        } else if(schemaReference instanceof JSGraphQLSchemaFile) {
+                            // field belongs to a built in type which isn't shown in the schema file
+                            // hence our reference to the file -- see JSGraphQLSchemaLanguageProjectService.getReference()
+                            final String buffer = element.getContainingFile().getText();
+                            final LogicalPosition pos = getTokenPos(buffer, element);
+                            final boolean relay = JSGraphQLLanguageInjectionUtil.isRelayInjection(element.getContainingFile());
+                            final TokenDocumentationResponse tokenDocumentation = JSGraphQLNodeLanguageServiceClient.getTokenDocumentation(
+                                    buffer,
+                                    pos.line,
+                                    pos.column,
+                                    project,
+                                    relay
+                            );
+                            if(tokenDocumentation != null) {
+                                String doc = "";
+                                if (tokenDocumentation.getDescription() != null) {
+                                    if(tokenDocumentation.getType() != null && !JSGraphQLSchemaLanguageProjectService.SCALAR_TYPES.contains(tokenDocumentation.getType())) {
+                                        doc += "<div style=\"margin-bottom: 4px\">" + tokenDocumentation.getDescription() + "</div>";
+                                    }
                                 }
-                                doc += getTypeHyperLink(typeDocumentation.interfaces.get(i));
+                                doc += "<code>" + element.getText() + ": " + getTypeHyperLink(tokenDocumentation.getType()) + "</code>";
+                                return getDocTemplate(fullDocumentation).replace("${body}", doc);
                             }
                         }
-                        doc += "</code>";
+                    }
+                }
+                if(typeName != null) {
+                    final TokenDocumentationResponse fieldDocumentation = JSGraphQLNodeLanguageServiceClient.getFieldDocumentation(typeName, propertyPsiElement.getName(), project);
+                    if (fieldDocumentation != null) {
+                        String doc = "";
+                        if (fieldDocumentation.getDescription() != null) {
+                            doc += "<div style=\"margin-bottom: 4px\">" + StringEscapeUtils.escapeHtml(fieldDocumentation.getDescription()) + "</div>";
+                        }
+                        String typeNameOrLink = fullDocumentation ? getTypeHyperLink(typeName) : typeName;
+                        doc += "<code>" + typeNameOrLink + " <b>" + element.getText() + "</b>: " + getTypeHyperLink(fieldDocumentation.getType()) + "</code>";
                         return getDocTemplate(fullDocumentation).replace("${body}", doc);
                     }
                 }
+            } else if(element instanceof JSGraphQLNamedTypePsiElement) {
+                if (((JSGraphQLNamedTypePsiElement) element).isDefinition()) {
+                    if (element.getParent() instanceof JSGraphQLFragmentDefinitionPsiElement) {
+                        // the named type represents the name of a fragment definition,
+                        // so return doc along the lines of 'fragment MyFrag on SomeType'
+                        final StringBuilder doc = new StringBuilder("<code>fragment ");
+                        doc.append("<b>").append(element.getText()).append("</b>");
+                        final JSGraphQLNamedTypePsiElement fragmentType = PsiTreeUtil.getNextSiblingOfType(element, JSGraphQLNamedTypePsiElement.class);
+                        if(fragmentType != null) {
+                            doc.append(" on ").append(getTypeHyperLink(fragmentType.getName()));
+                        }
+                        doc.append("</code>");
+                        return getDocTemplate(fullDocumentation).replace("${body}", doc);
+                    }
+                }
+                if(fullDocumentation) {
+                    final PsiManager psiManager = PsiManager.getInstance(project);
+                    final String link = GRAPHQL_DOC_PREFIX + "/" + GRAPHQL_DOC_TYPE + "/" + element.getText();
+                    final PsiElement documentationElement = getDocumentationElementForLink(psiManager, link, element);
+                    if(documentationElement instanceof JSGraphQLDocumentationPsiElement) {
+                        return getTypeDocumentation((JSGraphQLDocumentationPsiElement) documentationElement);
+                    }
+                }
+                TypeDocumentationResponse typeDocumentation = JSGraphQLNodeLanguageServiceClient.getTypeDocumentation(
+                        element.getText(),
+                        project
+                );
+                if(typeDocumentation != null) {
+                    String doc = "";
+                    if (typeDocumentation.description != null) {
+                        doc += "<div style=\"margin-bottom: 4px\">" + StringEscapeUtils.escapeHtml(typeDocumentation.description) + "</div>";
+                    }
+                    doc += "<code><b>" + element.getText() + "</b>";
+                    if(!ContainerUtil.isEmpty(typeDocumentation.interfaces)) {
+                        doc += ": ";
+                        for (int i = 0; i < typeDocumentation.interfaces.size(); i++) {
+                            if(i > 0)  {
+                                doc += ", ";
+                            }
+                            doc += getTypeHyperLink(typeDocumentation.interfaces.get(i));
+                        }
+                    }
+                    doc += "</code>";
+                    return getDocTemplate(fullDocumentation).replace("${body}", doc);
+                }
             }
+
         }
 
         return null;
-    }
-
-    private String getDocTemplate(boolean fullDocumentation) {
-        String doc = "<body style=\"margin: 0\">";
-        if (fullDocumentation) {
-            doc += createIndex(null);
-        }
-        doc += "<div style=\"margin: 4px 8px 4px 8px;\">${body}</div></body>";
-        return doc;
     }
 
     private LogicalPosition getTokenPos(String buffer, PsiElement element) {
@@ -155,22 +206,30 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
         return new LogicalPosition(line, column);
     }
 
+    private String getDocTemplate(boolean fullDocumentation) {
+        String doc = "<body style=\"margin: 0\">";
+        if (fullDocumentation) {
+            doc += createIndex(null);
+        }
+        doc += "<div style=\"margin: 4px 8px 4px 8px;\">${body}</div></body>";
+        return doc;
+    }
+
     private String getTypeDocumentation(JSGraphQLDocumentationPsiElement docElement) {
 
         final EditorColorsScheme globalScheme = EditorColorsManager.getInstance().getGlobalScheme();
         final Color borderColor = globalScheme.getDefaultForeground();
         //final TextAttributes attributes = EditorColorsManager.getInstance().getGlobalScheme().getAttributes(JSGraphQLSyntaxHighlighter.PROPERTY).clone();
 
-        final Editor editor = resolveEditor(docElement);
         final StringBuilder sb = new StringBuilder();
-        TypeDocumentationResponse typeDocumentation = JSGraphQLNodeLanguageServiceClient.getTypeDocumentation(docElement.getType(), editor.getProject());
+        TypeDocumentationResponse typeDocumentation = JSGraphQLNodeLanguageServiceClient.getTypeDocumentation(docElement.getType(), docElement.getProject());
         if(typeDocumentation != null) {
             sb.append("<html style=\"margin: 0;\"><body style=\"margin: 0;\">");
             sb.append(createIndex(borderColor));
             sb.append("<div style=\"margin: 4px 8px 4px 8px;\"");
             sb.append("<h1 style=\"margin: 0 0 8px 0; font-size: 200%\">").append(docElement.getType()).append("</h1>");
             if(typeDocumentation.description != null) {
-                sb.append("<div>").append(typeDocumentation.description).append("</div><br>");
+                sb.append("<div>").append(StringEscapeUtils.escapeHtml(typeDocumentation.description)).append("</div><br>");
             }
             if(typeDocumentation.implementations != null && !typeDocumentation.implementations.isEmpty()) {
                 sb.append(getSection(borderColor, "IMPLEMENTATIONS"));
@@ -201,7 +260,8 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
                     }
                     sb.append(": ").append(getTypeHyperLink(field.type));
                     if(field.description != null) {
-                        sb.append("<div style=\"margin-left: 8px; margin-top: 4px; margin-bottom: 4px;\">").append(field.description).append("</div>");
+                        sb.append("<div style=\"margin-left: 8px; margin-top: 4px; margin-bottom: 4px;\">");
+                        sb.append(StringEscapeUtils.escapeHtml(field.description)).append("</div>");
                     }
                     sb.append("</code></div>");
                 }
@@ -226,21 +286,6 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
     @NotNull
     private String getSection(Color borderColor, String label) {
         return "<div style=\"margin-bottom: 8px; border-bottom: 1px solid; padding-bottom: 4px; "+ GuiUtils.colorToHex(borderColor)+";\">"+label+"</div>";
-    }
-
-    private Editor resolveEditor(final PsiElement element) {
-        Ref<Editor> editorRef = new Ref<>();
-        Runnable runnable = () -> editorRef.set(PsiEditorUtil.Service.getInstance().findEditorByPsiElement(element));
-        if(EventQueue.isDispatchThread()) {
-            runnable.run();
-        } else {
-            try {
-                EventQueue.invokeAndWait(runnable);
-            } catch (InterruptedException | InvocationTargetException e) {
-                return null;
-            }
-        }
-        return editorRef.get();
     }
 
     private String getTypeHyperLink(String type) {

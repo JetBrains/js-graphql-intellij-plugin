@@ -13,6 +13,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiParser;
 import com.intellij.lang.impl.PsiBuilderImpl;
+import com.intellij.lang.jsgraphql.JSGraphQLKeywords;
 import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.lexer.JSGraphQLLexer;
 import com.intellij.lang.jsgraphql.lexer.JSGraphQLToken;
@@ -27,6 +28,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class JSGraphQLParser implements PsiParser {
+
+    private final boolean schema;
+
+    public JSGraphQLParser() {
+        this(false);
+    }
+
+    public JSGraphQLParser(boolean schema) {
+        this.schema = schema;
+    }
 
     private static class MarkerScope {
 
@@ -101,6 +112,9 @@ public class JSGraphQLParser implements PsiParser {
             } else if(currentToken.tokenType == JSGraphQLTokenTypes.ATOM) {
                 markCurrentToken(builder, tokenIndex, JSGraphQLElementType.ATOM_KIND);
                 continue;
+            } else if(currentToken.tokenType == JSGraphQLTokenTypes.DEF) {
+                markCurrentToken(builder, tokenIndex, JSGraphQLElementType.DEFINITION_KIND);
+                continue;
             }
 
             // ---- template fragment ----
@@ -165,7 +179,7 @@ public class JSGraphQLParser implements PsiParser {
             JSGraphQLToken token = astTokens.get(i);
             if(token.tokenType == JSGraphQLTokenTypes.KEYWORD) {
                 final String text = token.sourceToken.getText();
-                if(isPropertyScopeOperation(text, i, astTokens)) {
+                if(isPropertyScopeDefinition(text, i, astTokens)) {
                     PropertyScope propertyScope = new PropertyScope(token, getNextLBrace(astTokens, i, 2));
                     scopes.add(propertyScope); // optional name of operation so allow token before '{'
                     ret.add(propertyScope);
@@ -179,7 +193,7 @@ public class JSGraphQLParser implements PsiParser {
                 }
             } else if (token.tokenType == JSGraphQLTokenTypes.RBRACE) {
                 if(!scopes.isEmpty()) {
-                    if(JSGraphQLElementType.SELECTION_SET_KIND.equals(token.sourceToken.getKind()) || JSGraphQLElementType.DOCUMENT_KIND.equals(token.sourceToken.getKind())) {
+                    if(JSGraphQLElementType.SELECTION_SET_KIND.equals(token.sourceToken.getKind()) || JSGraphQLElementType.DOCUMENT_KIND.equals(token.sourceToken.getKind()) || schema) {
                         PropertyScope propertyScope = scopes.pop();
                         if(propertyScope.lbrace == null) {
                             // closing the parent scope
@@ -203,15 +217,34 @@ public class JSGraphQLParser implements PsiParser {
         return ret;
     }
 
-    private boolean isPropertyScopeOperation(String text, int tokenIndex, List<JSGraphQLToken> astTokens) {
-        if("query".equals(text) || "fragment".equals(text) || "mutation".equals(text) || "subscription".equals(text)) {
-            return true;
-        }
-        if("...".equals(text)) {
-            // possible anonymous fragment if no def of the fragment name right after
-            if(tokenIndex + 1 < astTokens.size()) {
-                final JSGraphQLToken nextToken = astTokens.get(tokenIndex + 1);
-                return nextToken.tokenType != JSGraphQLTokenTypes.DEF;
+    private boolean isPropertyScopeDefinition(String text, int tokenIndex, List<JSGraphQLToken> astTokens) {
+        if(schema) {
+            switch(text) {
+                case JSGraphQLKeywords.TYPE:
+                case JSGraphQLKeywords.INTERFACE:
+                case JSGraphQLKeywords.UNION:
+                case JSGraphQLKeywords.SCALAR:
+                case JSGraphQLKeywords.ENUM:
+                case JSGraphQLKeywords.INPUT:
+                case JSGraphQLKeywords.EXTEND:
+                    return true;
+                default:
+                    return false;
+            }
+        } else {
+            switch (text) {
+                case JSGraphQLKeywords.QUERY:
+                case JSGraphQLKeywords.FRAGMENT:
+                case JSGraphQLKeywords.MUTATION:
+                case JSGraphQLKeywords.SUBSCRIPTION:
+                    return true;
+            }
+            if (JSGraphQLKeywords.FRAGMENT_DOTS.equals(text)) {
+                // possible anonymous fragment if no def of the fragment name right after
+                if (tokenIndex + 1 < astTokens.size()) {
+                    final JSGraphQLToken nextToken = astTokens.get(tokenIndex + 1);
+                    return nextToken.tokenType != JSGraphQLTokenTypes.DEF;
+                }
             }
         }
         return false;
@@ -233,8 +266,10 @@ public class JSGraphQLParser implements PsiParser {
                             foundRParen = true;
                             index = i + 1;
                             break;
-                        } else if(lbrace.tokenType == JSGraphQLTokenTypes.LBRACE && JSGraphQLElementType.SELECTION_SET_KIND.equals(lbrace.sourceToken.getKind())) {
-                            return lbrace;
+                        } else if(lbrace.tokenType == JSGraphQLTokenTypes.LBRACE) {
+                            if(schema || JSGraphQLElementType.SELECTION_SET_KIND.equals(lbrace.sourceToken.getKind())) {
+                                return lbrace;
+                            }
                         }
                     }
                     if(foundRParen) {
@@ -250,7 +285,7 @@ public class JSGraphQLParser implements PsiParser {
     }
 
     private boolean isFragmentOnKeyword(JSGraphQLToken token) {
-        return token.tokenType == JSGraphQLTokenTypes.KEYWORD && "on".equals(token.sourceToken.getText());
+        return token.tokenType == JSGraphQLTokenTypes.KEYWORD && JSGraphQLKeywords.FRAGMENT_ON.equals(token.sourceToken.getText());
     }
 
     private static class PropertyScope {

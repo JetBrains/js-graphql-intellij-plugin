@@ -19,11 +19,16 @@ import java.util.Optional;
 
 public class JSGraphQLElementType extends IElementType {
 
+    public final static String QUERY_KIND = "Query";
     public final static String SELECTION_SET_KIND = "SelectionSet";
     public final static String DOCUMENT_KIND = "Document";
     public final static String PROPERTY_KIND = "Property";
+    public final static String FIELD_KIND = "Field";
     public final static String ATOM_KIND = "Atom";
+    public final static String DEFINITION_KIND = "Definition";
     public final static String TEMPLATE_FRAGMENT_KIND = "TemplateFragment";
+    public final static String FRAGMENT_DEFINITION_KIND = "FragmentDefinition";
+    public final static String INLINE_FRAGMENT_KIND = "InlineFragment";
 
     private final static Map<String, JSGraphQLElementType> knownElementTypes = Maps.newConcurrentMap();
 

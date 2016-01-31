@@ -4,6 +4,7 @@
 - Add all jars in `<intellij home>/plugins/JavaScriptLanguage`
 - Add the NodeNS.jar in `<user home>/.IntelliJIdea15/config/plugins/NodeJS/lib`
 - Add the IntelliLang.jar in `<user home>/.IntelliJIdea15/config/plugins/IntelliLang/lib`
+- Add the netty-all-*.jar in `<intellij home>/lib` 
 
 ## Setting up Intellij Community (OpenApi) sources:
 - https://github.com/JetBrains/intellij-plugins/tree/master/Dart

@@ -26,6 +26,9 @@ public class JSGraphQLColorSettingsPage implements ColorSettingsPage {
             new AttributesDescriptor("Keyword", JSGraphQLSyntaxHighlighter.KEYWORD),
             new AttributesDescriptor("Punctuation", JSGraphQLSyntaxHighlighter.PUNCTUATION),
             new AttributesDescriptor("Field", JSGraphQLSyntaxHighlighter.PROPERTY),
+            new AttributesDescriptor("Parenthesis", JSGraphQLSyntaxHighlighter.PAREN),
+            new AttributesDescriptor("Braces", JSGraphQLSyntaxHighlighter.BRACE),
+            new AttributesDescriptor("Brackets", JSGraphQLSyntaxHighlighter.BRACKET),
             new AttributesDescriptor("Definition", JSGraphQLSyntaxHighlighter.DEF),
             new AttributesDescriptor("Attribute", JSGraphQLSyntaxHighlighter.ATTRIBUTE),
             new AttributesDescriptor("Variable", JSGraphQLSyntaxHighlighter.VARIABLE),
@@ -59,7 +62,7 @@ public class JSGraphQLColorSettingsPage implements ColorSettingsPage {
                 "            ...FullType\n" +
                 "        }\n" +
                 "    }\n" +
-                "    first: node(id: 1234) { id }\n" +
+                "    first: node(id: 1234, attr: [1,2]) { id, title }\n" +
                 "    second: node(id: \"foo\", option: true) { id }\n" +
                 "}\n" +
                 "\n" +

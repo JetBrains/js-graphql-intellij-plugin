@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.languageservice;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.languageservice.api.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -47,6 +48,11 @@ public class JSGraphQLNodeLanguageServiceClient {
         return executeRequest(request, TypeDocumentationResponse.class, project);
     }
 
+    public static TokenDocumentationResponse getFieldDocumentation(String type, String field, Project project) {
+        final DocumentationRequest request = DocumentationRequest.getFieldDocumentation(type, field);
+        return executeRequest(request, TokenDocumentationResponse.class, project);
+    }
+
     public static AnnotationsResponse getAnnotations(String buffer, Project project, boolean relay) {
         final BufferRequest request = BufferRequest.getAnnotations(buffer, relay);
         return executeRequest(request, AnnotationsResponse.class, project);
@@ -55,6 +61,14 @@ public class JSGraphQLNodeLanguageServiceClient {
     public static ASTResponse getAST(String buffer, Project project, boolean relay) {
         final BufferRequest request = BufferRequest.getAST(buffer, relay);
         return executeRequest(request, ASTResponse.class, project);
+    }
+
+    public static SchemaTokensAndASTResponse getSchemaTokensAndAST(String buffer, Project project) {
+        return executeRequest(BufferRequest.getSchemaTokensAndAST(buffer, false), SchemaTokensAndASTResponse.class, project);
+    }
+
+    public static SchemaWithVersionResponse getSchemaWithVersion(Project project) {
+        return executeRequest(SchemaWithVersionRequest.INSTANCE, SchemaWithVersionResponse.class, project);
     }
 
     private static <R> R executeRequest(Request request, Class<R> responseClass, @NotNull Project project) {
@@ -112,10 +126,17 @@ public class JSGraphQLNodeLanguageServiceClient {
 
         final JSGraphQLNodeLanguageServiceInstance instance = languageServiceInstances.computeIfAbsent(project, JSGraphQLNodeLanguageServiceInstance::new);
 
-        final String projectBasePath = project.getBasePath();
-        if(instance.getSchemaProjectDir() == null && setProjectDir && projectBasePath != null) {
-            executeRequest(new SetProjectDirRequest(projectBasePath), null, project, false);
-            instance.setSchemaProjectDir(projectBasePath);
+        if(instance.getSchemaProjectDir() == null && setProjectDir) {
+            if(!project.isDisposed()) {
+                final JSGraphQLConfigurationProvider configurationProvider = JSGraphQLConfigurationProvider.getService(project);
+                if(configurationProvider != null) { // can be null during test
+                    final String projectDir = configurationProvider.getConfigurationBasePath();
+                    if(projectDir != null) {
+                        executeRequest(new SetProjectDirRequest(projectDir), null, project, false);
+                        instance.setSchemaProjectDir(projectDir);
+                    }
+                }
+            }
         }
 
         return instance.getUrl();
@@ -128,7 +149,7 @@ public class JSGraphQLNodeLanguageServiceClient {
 
 
     public static void onInstanceRestarted(@NotNull JSGraphQLNodeLanguageServiceInstance instance) {
-        final String projectDir = instance.getProject().getBasePath();
+        final String projectDir = JSGraphQLConfigurationProvider.getService(instance.getProject()).getConfigurationBasePath();
         if(projectDir != null) {
             executeRequest(new SetProjectDirRequest(projectDir), null, instance.getProject(), false);
         }

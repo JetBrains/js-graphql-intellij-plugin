@@ -19,22 +19,27 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.javascript.compiler.JSLanguageCompilerResult;
 import com.intellij.lang.javascript.compiler.ui.JSLanguageCompilerToolWindowManager;
 import com.intellij.lang.javascript.compiler.ui.JSLanguageErrorTreeViewPanel;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.lang.jsgraphql.JSGraphQLFileType;
+import com.intellij.lang.jsgraphql.JSGraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.actions.JSGraphQLEditEndpointsAction;
 import com.intellij.lang.jsgraphql.ide.actions.JSGraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.ide.actions.JSGraphQLToggleVariablesAction;
+import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpoint;
 import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceInstance;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLFile;
+import com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaDirectoryNode;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -42,7 +47,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.impl.EditorHeaderComponent;
@@ -53,7 +57,6 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
@@ -61,6 +64,7 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.SideBorder;
@@ -70,6 +74,7 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
@@ -94,9 +99,7 @@ import java.util.Map;
 /**
  * Provides the project-specific GraphQL tool window, including errors view, console, and query result editor.
  */
-public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditorManagerListener {
-
-    private final static Logger log = Logger.getInstance(JSGraphQLLanguageUIProjectService.class);
+public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditorManagerListener, JSGraphQLConfigurationListener {
 
     public final static String GRAPH_QL_TOOL_WINDOW_NAME = "GraphQL";
     public static final String GRAPH_QL_VARIABLES_JSON = "GraphQL.variables.json";
@@ -132,8 +135,6 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
     private final Object myLock = new Object();
 
-    private JSGraphQLConfigurationProvider configurationProvider;
-
     private FileEditor fileEditor;
     private JBLabel queryResultLabel;
     private JBLabel querySuccessLabel;
@@ -141,7 +142,8 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     public JSGraphQLLanguageUIProjectService(@NotNull final Project project) {
 
         myProject = project;
-        configurationProvider = new JSGraphQLConfigurationProvider(myProject, this::reloadEndpoints);
+
+        final MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
 
         // the restart action
         AnAction restartInstanceAction = new AnAction("Restart JS GraphQL Language Service", "Restarts the JS GraphQL Language Service Node.js process", AllIcons.Javaee.UpdateRunningApplication) {
@@ -155,11 +157,25 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         Disposer.register(this, this.myToolWindowManager);
 
         // listen for editor file tab changes to update the list of current errors
-        project.getMessageBus().connect(this).subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this);
+        messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this);
+
+        // listen for configuration changes
+        messageBusConnection.subscribe(JSGraphQLConfigurationListener.TOPIC, this);
 
         // finally init the tool window tabs
         initToolWindow();
 
+        // and notify to configure the schema
+        project.putUserData(JSGraphQLParserDefinition.JSGRAPHQL_ACTIVATED, true);
+        EditorNotifications.getInstance(project).updateAllNotifications();
+
+        // make sure the GraphQL schema is shown in the project tree if not already
+        if(!JSGraphQLSchemaDirectoryNode.isShownForProject(project)) {
+            final ProjectView projectView = ProjectView.getInstance(project);
+            if (projectView != null && projectView.getCurrentProjectViewPane() instanceof ProjectViewPane) {
+                projectView.refresh();
+            }
+        }
     }
 
 
@@ -195,19 +211,29 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         });
     }
 
-    public void connectToProcessHandler(OSProcessHandler processHandler) {
+    public Runnable connectToProcessHandler(OSProcessHandler processHandler) {
         UIUtil.invokeLaterIfNeeded(() -> {
             myToolWindowManager.connectToProcessHandler(processHandler);
             attachMessageFilter();
             processHandler.addProcessListener(new ProcessAdapter() {
                 public void onTextAvailable(ProcessEvent event, Key outputType) {
-                    if(outputType == ProcessOutputTypes.STDERR && !StringUtil.isEmpty(event.getText())) {
-                        showConsole(myProject);
+                    if(StringUtils.isNotEmpty(event.getText())) {
+                        if (outputType == ProcessOutputTypes.STDERR) {
+                            // show the console on errors during initialization
+                            showConsole(myProject);
+                        }
                     }
                 }
             });
         });
-
+        // callback for when the language service process has been fully initialized
+        return () -> processHandler.addProcessListener(new ProcessAdapter() {
+            public void onTextAvailable(ProcessEvent event, Key outputType) {
+                if(StringUtils.isNotEmpty(event.getText())) {
+                    myProject.getMessageBus().syncPublisher(JSGraphQLLanguageServiceListener.TOPIC).onProcessHandlerTextAvailable(event.getText());
+                }
+            }
+        });
     }
 
 
@@ -228,6 +254,14 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         if(file != null) {
             logErrorsForFile(file, false);
         }
+    }
+
+
+    // ---- configuration listener ----
+
+    @Override
+    public void onEndpointsChanged(List<JSGraphQLEndpoint> endpoints) {
+        reloadEndpoints(endpoints);
     }
 
 
@@ -291,7 +325,8 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         final JComponent queryToolbar = createToolbar(queryActions);
 
         // configured endpoints combo box
-        final JSGraphQLEndpointsModel endpointsModel = new JSGraphQLEndpointsModel(configurationProvider.getEndpoints());
+        final List<JSGraphQLEndpoint> endpoints = JSGraphQLConfigurationProvider.getService(myProject).getEndpoints();
+        final JSGraphQLEndpointsModel endpointsModel = new JSGraphQLEndpointsModel(endpoints);
         final ComboBox endpointComboBox = new ComboBox(endpointsModel);
         endpointComboBox.setToolTipText("GraphQL endpoint");
         editor.putUserData(JS_GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);

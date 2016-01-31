@@ -14,16 +14,10 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-
 public class JSGraphQLFile extends PsiFileBase {
+
     public JSGraphQLFile(@NotNull FileViewProvider viewProvider) {
         super(viewProvider, JSGraphQLLanguage.INSTANCE);
-    }
-
-    @Override
-    public String getText() {
-        return super.getText();
     }
 
     @NotNull
@@ -37,8 +31,4 @@ public class JSGraphQLFile extends PsiFileBase {
         return "GraphQL File";
     }
 
-    @Override
-    public Icon getIcon(int flags) {
-        return super.getIcon(flags);
-    }
 }

@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.lexer;
 
 import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.JSGraphQLDebugUtil;
+import com.intellij.lang.jsgraphql.JSGraphQLKeywords;
 import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.api.Token;
@@ -21,11 +22,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.BiFunction;
 
 
 public class JSGraphQLLexer extends LexerBase {
 
     private static final Logger log = Logger.getInstance(JSGraphQLLexer.class);
+
+    private final static BiFunction<String, Project, TokensResponse> getTokens = JSGraphQLNodeLanguageServiceClient::getTokens;
+    private final static BiFunction<String, Project, TokensResponse> getSchemaTokensAndAST = JSGraphQLNodeLanguageServiceClient::getSchemaTokensAndAST;
 
     private List<JSGraphQLToken> tokens = Lists.newArrayList();
     private JSGraphQLToken currentToken;
@@ -42,8 +47,15 @@ public class JSGraphQLLexer extends LexerBase {
 
     private final Project project;
 
+    private final boolean schema;
+
     public JSGraphQLLexer(Project project) {
+        this(project, false);
+    }
+
+    public JSGraphQLLexer(Project project, boolean schema) {
         this.project = project;
+        this.schema = schema;
     }
 
     @Override
@@ -72,7 +84,7 @@ public class JSGraphQLLexer extends LexerBase {
         }
 
         // get the response using the client
-        response = JSGraphQLNodeLanguageServiceClient.getTokens(bufferAsString, project);
+        response = schema ? getSchemaTokensAndAST.apply(bufferAsString, project) : getTokens.apply(bufferAsString, project);
 
         if(response == null) {
             // blank
@@ -107,7 +119,7 @@ public class JSGraphQLLexer extends LexerBase {
                     tokenType = JSGraphQLTokenTypes.LBRACKET;
                 } else if("]".equals(text)) {
                     tokenType = JSGraphQLTokenTypes.RBRACKET;
-                } else if("...".equals(text)) {
+                } else if(JSGraphQLKeywords.FRAGMENT_DOTS.equals(text)) {
                     // consider the "..." spread operator a keyword for highlighting
                     tokenType = JSGraphQLTokenTypes.KEYWORD;
                 }
