@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 public class DocumentationRequest extends Request {
 
     private String type;
+    private String field;
 
     protected DocumentationRequest(String command) {
         super(command, true);
@@ -20,6 +21,13 @@ public class DocumentationRequest extends Request {
     public static DocumentationRequest getTypeDocumentation(@NotNull String type) {
         DocumentationRequest req = new DocumentationRequest("getTypeDocumentation");
         req.type = type;
+        return req;
+    }
+
+    public static DocumentationRequest getFieldDocumentation(@NotNull String type, @NotNull String field) {
+        DocumentationRequest req = new DocumentationRequest("getFieldDocumentation");
+        req.type = type;
+        req.field = field;
         return req;
     }
 }

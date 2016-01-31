@@ -11,6 +11,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.javascript.DialectDetector;
 import com.intellij.lang.javascript.JSTokenTypes;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.ide.injection.JSGraphQLLanguageInjectionUtil;
@@ -28,7 +29,15 @@ public class JSGraphQLRelayTemplateAnnotator implements Annotator {
 
     @Override
     public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-
+        if(element.getParent() instanceof JSStringTemplateExpression) {
+            if(element.getNode().getElementType() == JSTokenTypes.STRING_TEMPLATE_PART) {
+                // when the annotator runs in non-typescript a JSStringTemplateExpression element is never
+                // passed as the element, so we have to resolve it manually here
+                if(!DialectDetector.isTypeScript(element)) {
+                    element = element.getParent();
+                }
+            }
+        }
         if(element instanceof JSStringTemplateExpression) {
             if(JSGraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
                 for (ASTNode astNode : element.getNode().getChildren(null)) {

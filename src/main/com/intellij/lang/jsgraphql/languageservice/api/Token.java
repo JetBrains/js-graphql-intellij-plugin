@@ -13,7 +13,6 @@ public class Token {
     String text;
     int start;
     int end;
-    int scope;
     String kind;
 
     public String getType() {
@@ -44,13 +43,6 @@ public class Token {
         this.end = end;
     }
 
-    public int getScope() {
-        return scope;
-    }
-    public void setScope(int scope) {
-        this.scope = scope;
-    }
-
     public String getKind() {
         return kind;
     }
@@ -65,7 +57,6 @@ public class Token {
                 ", text='" + text + '\'' +
                 ", start=" + start +
                 ", end=" + end +
-                ", scope=" + scope +
                 ", kind='" + kind + '\'' +
                 '}';
     }

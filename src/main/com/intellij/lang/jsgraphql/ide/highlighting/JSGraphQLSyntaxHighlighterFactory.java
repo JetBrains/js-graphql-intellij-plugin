@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.highlighting;
 
+import com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaFileType;
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
 import com.intellij.openapi.project.Project;
@@ -17,6 +18,7 @@ public class JSGraphQLSyntaxHighlighterFactory extends SyntaxHighlighterFactory 
     @NotNull
     @Override
     public SyntaxHighlighter getSyntaxHighlighter(Project project, VirtualFile virtualFile) {
-        return new JSGraphQLSyntaxHighlighter(project);
+        final boolean schema = virtualFile.getFileType() == JSGraphQLSchemaFileType.INSTANCE;
+        return new JSGraphQLSyntaxHighlighter(project, schema);
     }
 }

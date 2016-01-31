@@ -27,7 +27,6 @@ import com.intellij.util.text.CharArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * - Triggers GraphQL query execution on Cmd/Ctrl+Enter
  * - Indents inserted line on enter key inside injected GraphQL psi elements
  */
 public class JSGraphQLEnterHandlerDelegate extends EnterHandlerDelegateAdapter {
@@ -41,6 +40,7 @@ public class JSGraphQLEnterHandlerDelegate extends EnterHandlerDelegateAdapter {
 
             // only process if we're inside a JSFile that has GraphQL language injection on the current psi element
             boolean doProcess = false;
+            boolean injected = false;
             if(file instanceof JSFile) {
                 Integer caretOffset = caretOffsetRef.get();
                 final PsiElement psiAtOffset = PsiUtilCore.getElementAtOffset(file, caretOffset);
@@ -48,6 +48,7 @@ public class JSGraphQLEnterHandlerDelegate extends EnterHandlerDelegateAdapter {
                 while(psiToCheck != null) {
                     if (JSGraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(psiToCheck)) {
                         doProcess = true;
+                        injected = true;
                         break;
                     }
                     psiToCheck = psiToCheck.getParent();
@@ -66,14 +67,19 @@ public class JSGraphQLEnterHandlerDelegate extends EnterHandlerDelegateAdapter {
 
                 int prevCharOffset = CharArrayUtil.shiftBackward(text, caretOffset - 1, " \t");
                 int nextCharOffset = CharArrayUtil.shiftForward(text, caretOffset, " \t");
+                boolean withinText = prevCharOffset >= 0 && text.length() > nextCharOffset;
 
-                if(isBracePair(text.charAt(prevCharOffset), text.charAt(nextCharOffset))) {
-                    originalHandler.execute(editor, editor.getCaretModel().getCurrentCaret(), dataContext);
-                    PsiDocumentManager.getInstance(file.getProject()).commitDocument(document);
-                    try {
-                        CodeStyleManager.getInstance(file.getProject()).adjustLineIndent(file, editor.getCaretModel().getOffset());
-                    } catch (IncorrectOperationException e) {
-                        log.error(e);
+                if(withinText) {
+                    final char c1 = text.charAt(prevCharOffset);
+                    final char c2 = text.charAt(nextCharOffset);
+                    if(isBracePair(c1, c2) || (injected && isBackTickPair(c1, c2))) {
+                        originalHandler.execute(editor, editor.getCaretModel().getCurrentCaret(), dataContext);
+                        PsiDocumentManager.getInstance(file.getProject()).commitDocument(document);
+                        try {
+                            CodeStyleManager.getInstance(file.getProject()).adjustLineIndent(file, editor.getCaretModel().getOffset());
+                        } catch (IncorrectOperationException e) {
+                            log.error(e);
+                        }
                     }
                 }
 
@@ -89,5 +95,9 @@ public class JSGraphQLEnterHandlerDelegate extends EnterHandlerDelegateAdapter {
 
     protected boolean isBracePair(char c1, char c2) {
         return (c1 == '(' && c2 == ')') || (c1 == '{' && c2 == '}');
+    }
+
+    protected boolean isBackTickPair(char c1, char c2) {
+        return (c1 == '`' && c2 == '`');
     }
 }
