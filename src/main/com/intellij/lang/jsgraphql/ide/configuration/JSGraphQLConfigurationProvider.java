@@ -139,7 +139,7 @@ public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
     }
 
     public List<JSGraphQLEndpoint> getEndpoints() {
-        final VirtualFile configFile = myProject.getBaseDir().findChild(GRAPHQL_CONFIG_JSON);
+        final VirtualFile configFile = getGraphQLConfigFile();
         if(configFile != null) {
             final JSGraphQLConfiguration configuration = getConfiguration(configFile);
             if(configuration != null) {
