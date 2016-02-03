@@ -159,6 +159,12 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         // listen for editor file tab changes to update the list of current errors
         messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this);
 
+        // add editor headers to already open files since we've only just added the listener for fileOpened()
+        final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+        for (VirtualFile virtualFile : fileEditorManager.getOpenFiles()) {
+            insertEditorHeaderComponentIfApplicable(fileEditorManager, virtualFile);
+        }
+
         // listen for configuration changes
         messageBusConnection.subscribe(JSGraphQLConfigurationListener.TOPIC, this);
 

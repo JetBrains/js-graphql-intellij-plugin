@@ -10,7 +10,7 @@
 <idea-plugin version="2">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -27,11 +27,13 @@
       </ul>
     ]]></description>
 
-  <!--<change-notes><![CDATA[-->
-      <!--Add change notes here.<br>-->
-      <!--<em>most HTML tags may be used</em>-->
-    <!--]]>-->
-  <!--</change-notes>-->
+  <change-notes><![CDATA[
+    <ul>
+      <li>1.1.1: Completion after ... fragment spread operator. Language Service 1.1.1 based on graphql 0.4.16 and codemirror-graphql 0.2.2</li>
+      <li>1.1.0: Find usages, schema viewer, structure view</li>
+    </ul>
+    ]]>
+  </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
   <idea-version since-build="143.0"/>
