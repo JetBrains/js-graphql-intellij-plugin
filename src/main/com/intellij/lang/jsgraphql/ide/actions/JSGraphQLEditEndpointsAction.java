@@ -12,6 +12,7 @@ import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvi
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
@@ -48,6 +49,7 @@ public class JSGraphQLEditEndpointsAction extends AnAction {
                     final int endpointsIndex = textEditor.getEditor().getDocument().getText().indexOf("\"endpoints\"");
                     if(endpointsIndex != -1) {
                         textEditor.getEditor().getCaretModel().moveToOffset(endpointsIndex);
+                        textEditor.getEditor().getScrollingModel().scrollToCaret(ScrollType.CENTER);
                     }
                 }
             }
