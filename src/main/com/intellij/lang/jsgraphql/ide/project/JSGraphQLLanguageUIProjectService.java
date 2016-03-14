@@ -34,6 +34,8 @@ import com.intellij.lang.jsgraphql.ide.actions.JSGraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.ide.actions.JSGraphQLToggleVariablesAction;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
+import com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQueryContext;
+import com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpoint;
 import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
@@ -398,9 +400,9 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         if(endpointsModel != null) {
             final JSGraphQLEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
             if(selectedEndpoint != null && selectedEndpoint.url != null) {
-                final String buffer = editor.getDocument().getText();
+                final JSGraphQLQueryContext context = JSGraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
                 final Map<String, Object> requestData = Maps.newLinkedHashMap();
-                requestData.put("query", buffer);
+                requestData.put("query", context.query);
                 requestData.put("variables", getQueryVariables(editor));
                 final String requestJson = new Gson().toJson(requestData);
                 final HttpClient httpClient = new HttpClient(new HttpClientParams());
@@ -433,6 +435,9 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
                                         if(errorCount != null && errorCount > 0) {
                                             queryResultText.append(", ").append(errorCount).append(" error").append(errorCount > 1 ? "s" : "");
+                                            if(context.onError != null) {
+                                                context.onError.run();
+                                            }
                                         }
 
                                         queryResultLabel.setText(queryResultText.toString());

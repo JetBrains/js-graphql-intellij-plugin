@@ -166,7 +166,7 @@ public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
                 VirtualFileManager.getInstance().removeVirtualFileListener(this);
                 return;
             }
-            if(myProject.getBaseDir().equals(file.getParent())) {
+            if(file.equals(getGraphQLConfigFile())) {
                 final JSGraphQLConfiguration configuration = getConfiguration(file);
                 if(configuration != null && configuration.endpoints != null) {
                     synchronized (endpointsLock) {

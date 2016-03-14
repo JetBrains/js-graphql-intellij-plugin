@@ -39,5 +39,8 @@ public class JSGraphQLEndpointsModel extends ListComboBoxModel<JSGraphQLEndpoint
                 setSelectedItem(data.isEmpty() ? null : data.get(0));
             }
         }
+
+        // we have to let components that bind to the model know that the model has been changed
+        this.fireContentsChanged(this, -1, -1);
     }
 }
