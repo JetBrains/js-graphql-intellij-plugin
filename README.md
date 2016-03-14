@@ -30,13 +30,17 @@ It depends on [js-graphql-language-service](https://github.com/jimkyndemeyer/js-
 
 The plugin is compatible with version 143+ of IntelliJ IDEA, WebStorm, RubyMine, PhpStorm, and PyCharm.
 
-PyCharm CE and Android studio is not supported since the plugin depends on two other plugins: NodeJS and JavaScript.
+PyCharm CE is not supported since the plugin depends on two other plugins: NodeJS and JavaScript.
+
+Experimental support for Android Studio is available in the [`android-studio`](https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/tree/android-studio) branch. Download it from there.
 
 **Where can I get the plugin?**
 
 The plugin is available from the JetBrains Plugin Repository at https://plugins.jetbrains.com/plugin/8097?pr=
 
-To install it, open "Settings", "Plugins", "Browse repositories..." and search for "JS GraphQL".
+To install it, open "Settings", "Plugins", "Browse repositories..." and search for "GraphQL".
+
+**Note**: The experimental version in the `android-studio` branch is not available from the JetBrains Plugin Repository.
 
 **How do I reload a GraphQL Schema that was loaded from a URL?**
 
