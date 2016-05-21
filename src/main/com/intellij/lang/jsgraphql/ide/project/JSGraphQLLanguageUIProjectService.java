@@ -11,6 +11,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.execution.filters.UrlFilter;
 import com.intellij.execution.process.OSProcessHandler;
@@ -49,6 +50,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.impl.EditorHeaderComponent;
@@ -63,6 +65,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.testFramework.LightVirtualFile;
@@ -295,7 +298,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     // -- editor header component --
 
     private void insertEditorHeaderComponentIfApplicable(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        if(file.getFileType() == JSGraphQLFileType.INSTANCE) {
+        if(file.getFileType() == JSGraphQLFileType.INSTANCE || JSGraphQLFileType.isGraphQLScratchFile(source.getProject(), file)) {
             FileEditor fileEditor = source.getSelectedEditor(file);
             if (fileEditor instanceof TextEditor) {
                 final Editor editor = ((TextEditor) fileEditor).getEditor();
@@ -424,7 +427,14 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                                     final TextEditor textEditor = (TextEditor) fileEditor;
                                     UIUtil.invokeLaterIfNeeded(() -> {
                                         ApplicationManager.getApplication().runWriteAction(() -> {
-                                            textEditor.getEditor().getDocument().setText(responseJson);
+                                            final Document document = textEditor.getEditor().getDocument();
+                                            document.setText(responseJson);
+                                            if(requestJson.startsWith("{")) {
+                                                final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
+                                                if (psiFile != null) {
+                                                    new ReformatCodeProcessor(psiFile, false).run();
+                                                }
+                                            }
                                         });
                                         final StringBuilder queryResultText = new StringBuilder(virtualFile.getName()).
                                                 append(": ").

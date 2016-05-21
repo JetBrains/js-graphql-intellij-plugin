@@ -1,3 +1,10 @@
+## 1.3.0 (2016-05-21)
+
+Features:
+
+- Support for GraphQL scratch files
+- Invoke reformat code action on query result
+
 ## 1.2.0 (2016-03-14)
 
 Features:

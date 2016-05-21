@@ -43,8 +43,8 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
-        if(isQueryableFile(virtualFile)) {
-            final Project project = e.getData(CommonDataKeys.PROJECT);
+        final Project project = e.getData(CommonDataKeys.PROJECT);
+        if(isQueryableFile(project, virtualFile)) {
             Editor editor = e.getData(CommonDataKeys.EDITOR);
             if(project != null && editor instanceof EditorEx) {
                 final Boolean querying = Boolean.TRUE.equals(editor.getUserData(JSGraphQLLanguageUIProjectService.JS_GRAPH_QL_EDITOR_QUERYING));
@@ -63,9 +63,12 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
         }
     }
 
-    private boolean isQueryableFile(VirtualFile virtualFile) {
+    private boolean isQueryableFile(Project project, VirtualFile virtualFile) {
         if(virtualFile != null) {
             if(virtualFile.getFileType() == JSGraphQLFileType.INSTANCE) {
+                return true;
+            }
+            if(JSGraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
                 return true;
             }
             if(virtualFile.getFileType() == JsonFileType.INSTANCE && Boolean.TRUE.equals(virtualFile.getUserData(JSGraphQLLanguageUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE))) {

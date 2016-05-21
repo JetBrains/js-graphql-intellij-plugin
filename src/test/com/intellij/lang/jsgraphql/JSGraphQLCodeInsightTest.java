@@ -10,11 +10,8 @@ package com.intellij.lang.jsgraphql;
  import com.intellij.lang.jsgraphql.languageservice.CodeMirrorNodeLanguageServiceClientTest;
  import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceInstance;
  import com.intellij.openapi.command.WriteCommandAction;
- import com.intellij.openapi.module.impl.ModuleImpl;
- import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
  import com.intellij.psi.codeStyle.CodeStyleManager;
  import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
- import com.intellij.testFramework.PsiTestUtil;
  import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
  import org.junit.Test;
 
@@ -24,7 +21,6 @@ package com.intellij.lang.jsgraphql;
  public class JSGraphQLCodeInsightTest extends LightCodeInsightFixtureTestCase {
     @Override
     protected void setUp() throws Exception {
-        VfsRootAccess.SHOULD_PERFORM_ACCESS_CHECK = false; // TODO: a workaround for v15
 
         // TODO: This test depends on a running JS GraphQL Language service at http://localhost:3000
         // TODO: Fix: This test requires comments around <depends>JavaScript</depends> and <depends>NodeJS</depends> in plugin.xml as a work-around to IDEA's complaint about missing 'NodeJS' and 'JavaScriptDebugger' plugins
