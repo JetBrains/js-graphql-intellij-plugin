@@ -1,3 +1,10 @@
+## 1.3.1 (2016-06-09)
+
+Changes:
+
+- Closes #13 JSLanguageCompilerToolWindowManager: NoClassDefFoundError in WebStorm 2016.2 EAP
+- Language Service 1.1.2 increases maximum size of JSON schema from 100kb to 32mb
+
 ## 1.3.0 (2016-05-21)
 
 Features:

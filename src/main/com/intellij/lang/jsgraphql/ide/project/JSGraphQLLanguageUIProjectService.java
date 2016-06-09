@@ -23,9 +23,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.json.JsonFileType;
-import com.intellij.lang.javascript.compiler.JSLanguageCompilerResult;
-import com.intellij.lang.javascript.compiler.ui.JSLanguageCompilerToolWindowManager;
-import com.intellij.lang.javascript.compiler.ui.JSLanguageErrorTreeViewPanel;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.lang.jsgraphql.JSGraphQLFileType;
 import com.intellij.lang.jsgraphql.JSGraphQLParserDefinition;
@@ -39,6 +36,9 @@ import com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpoint;
 import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpointsModel;
+import com.intellij.lang.jsgraphql.ide.project.toolwindow.JSGraphQLErrorResult;
+import com.intellij.lang.jsgraphql.ide.project.toolwindow.JSGraphQLLanguageToolWindowManager;
+import com.intellij.lang.jsgraphql.ide.project.toolwindow.JSGraphQLErrorTreeViewPanel;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceInstance;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLFile;
@@ -130,13 +130,13 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
     private static final String FILE_URL_PROPERTY = "fileUrl";
 
-    private final JSLanguageCompilerToolWindowManager myToolWindowManager;
+    private final JSGraphQLLanguageToolWindowManager myToolWindowManager;
     private boolean myToolWindowManagerInitialized = false;
 
     @NotNull
     private final Project myProject;
 
-    private final Map<String, ImmutableList<JSLanguageCompilerResult>> fileUriToErrors = Maps.newConcurrentMap();
+    private final Map<String, ImmutableList<JSGraphQLErrorResult>> fileUriToErrors = Maps.newConcurrentMap();
 
     private final Object myLock = new Object();
 
@@ -158,7 +158,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         };
 
         // tool window
-        myToolWindowManager = new JSLanguageCompilerToolWindowManager(project, GRAPH_QL_TOOL_WINDOW_NAME, GRAPH_QL_TOOL_WINDOW_NAME, JSGraphQLIcons.UI.GraphQLNode, restartInstanceAction);
+        myToolWindowManager = new JSGraphQLLanguageToolWindowManager(project, GRAPH_QL_TOOL_WINDOW_NAME, GRAPH_QL_TOOL_WINDOW_NAME, JSGraphQLIcons.UI.GraphQLNode, restartInstanceAction);
         Disposer.register(this, this.myToolWindowManager);
 
         // listen for editor file tab changes to update the list of current errors
@@ -214,8 +214,8 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         });
     }
 
-    public void logErrorsInCurrentFile(@NotNull PsiFile file, List<JSLanguageCompilerResult> errors) {
-        final ImmutableList<JSLanguageCompilerResult> errorsList = ContainerUtil.immutableList(errors);
+    public void logErrorsInCurrentFile(@NotNull PsiFile file, List<JSGraphQLErrorResult> errors) {
+        final ImmutableList<JSGraphQLErrorResult> errorsList = ContainerUtil.immutableList(errors);
         fileUriToErrors.put(file.getVirtualFile().getUrl(), errorsList);
         UIUtil.invokeLaterIfNeeded(() -> {
             myToolWindowManager.logCurrentErrors(errorsList, false);
@@ -534,7 +534,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     // -- instance management --
 
     private void logErrorsForFile(VirtualFile file, boolean forceRefresh) {
-        ImmutableList<JSLanguageCompilerResult> currentErrors = fileUriToErrors.get(file.getUrl());
+        ImmutableList<JSGraphQLErrorResult> currentErrors = fileUriToErrors.get(file.getUrl());
         if(currentErrors != null) {
             if(forceRefresh) {
                 myToolWindowManager.logCurrentErrors(ContainerUtil.immutableList(Collections.emptyList()), false);
@@ -655,7 +655,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                 final ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(GRAPH_QL_TOOL_WINDOW_NAME);
                 if(toolWindow != null) {
                     for (Content content : toolWindow.getContentManager().getContents()) {
-                        if(content.isCloseable() && content.getComponent() instanceof JSLanguageErrorTreeViewPanel) {
+                        if(content.isCloseable() && content.getComponent() instanceof JSGraphQLErrorTreeViewPanel) {
                             toolWindow.getContentManager().removeContent(content, true);
                         }
                     }

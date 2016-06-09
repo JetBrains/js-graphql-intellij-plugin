@@ -11,11 +11,11 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.lang.javascript.compiler.JSLanguageCompilerResult;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService;
 import com.intellij.lang.jsgraphql.ide.injection.JSGraphQLLanguageInjectionUtil;
+import com.intellij.lang.jsgraphql.ide.project.toolwindow.JSGraphQLErrorResult;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.api.Annotation;
 import com.intellij.lang.jsgraphql.languageservice.api.AnnotationsResponse;
@@ -81,7 +81,7 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
                 if(annotationsReponse == null) {
                     return;
                 }
-                final List<JSLanguageCompilerResult> errors = Lists.newArrayList();
+                final List<JSGraphQLErrorResult> errors = Lists.newArrayList();
                 final String fileName = file.getVirtualFile().getPath();
                 for (Annotation annotation : annotationsReponse.getAnnotations()) {
                     LogicalPosition from = getLogicalPosition(annotation.getFrom());
@@ -92,7 +92,7 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
                     if (fromOffset < toOffset) {
                         final String message = StringUtils.substringBefore(annotation.getMessage(), "\n");
                         holder.createAnnotation(severity, TextRange.create(fromOffset, toOffset), message);
-                        errors.add(new JSLanguageCompilerResult(message, fileName, annotation.getSeverity(), from.line+1, from.column+1)); // +1 is for UI lines/columns
+                        errors.add(new JSGraphQLErrorResult(message, fileName, annotation.getSeverity(), from.line+1, from.column+1)); // +1 is for UI lines/columns
                     }
                 }
                 JSGraphQLLanguageUIProjectService jsGraphQLLanguageUIProjectService = JSGraphQLLanguageUIProjectService.getService(file.getProject());
