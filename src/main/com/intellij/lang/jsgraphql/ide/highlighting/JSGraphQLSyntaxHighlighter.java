@@ -38,23 +38,23 @@ public class JSGraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey BAD_CHARACTER = createTextAttributesKey("JSGRAPHQL.BADCHARACTER", TextAttributesKey.find("JS.BADCHARACTER"));
 
 
-    private static final TextAttributesKey[] KEYWORD_KEYS = new TextAttributesKey[]{KEYWORD};
-    private static final TextAttributesKey[] PUNCTUATION_KEYS = new TextAttributesKey[]{PUNCTUATION};
-    private static final TextAttributesKey[] PAREN_KEYS = new TextAttributesKey[]{PAREN};
-    private static final TextAttributesKey[] BRACE_KEYS = new TextAttributesKey[]{BRACE};
-    private static final TextAttributesKey[] BRACKET_KEYS = new TextAttributesKey[]{BRACKET};
-    private static final TextAttributesKey[] PROPERTY_KEYS = new TextAttributesKey[]{PROPERTY};
-    private static final TextAttributesKey[] DEF_KEYS = new TextAttributesKey[]{DEF};
-    private static final TextAttributesKey[] ATTRIBUTE_KEYS = new TextAttributesKey[]{ATTRIBUTE};
-    private static final TextAttributesKey[] VARIABLE_KEYS = new TextAttributesKey[]{VARIABLE};
-    private static final TextAttributesKey[] QUALIFIER_KEYS = new TextAttributesKey[]{QUALIFIER};
-    private static final TextAttributesKey[] NUMBER_KEYS = new TextAttributesKey[]{NUMBER};
-    private static final TextAttributesKey[] STRING_KEYS = new TextAttributesKey[]{STRING};
-    private static final TextAttributesKey[] BUILTIN_KEYS = new TextAttributesKey[]{BUILTIN};
-    private static final TextAttributesKey[] COMMENT_KEYS = new TextAttributesKey[]{COMMENT};
-    private static final TextAttributesKey[] ATOM_KEYS = new TextAttributesKey[]{ATOM};
-    private static final TextAttributesKey[] BAD_CHARACTER_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
-    private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
+    public static final TextAttributesKey[] KEYWORD_KEYS = new TextAttributesKey[]{KEYWORD};
+    public static final TextAttributesKey[] PUNCTUATION_KEYS = new TextAttributesKey[]{PUNCTUATION};
+    public static final TextAttributesKey[] PAREN_KEYS = new TextAttributesKey[]{PAREN};
+    public static final TextAttributesKey[] BRACE_KEYS = new TextAttributesKey[]{BRACE};
+    public static final TextAttributesKey[] BRACKET_KEYS = new TextAttributesKey[]{BRACKET};
+    public static final TextAttributesKey[] PROPERTY_KEYS = new TextAttributesKey[]{PROPERTY};
+    public static final TextAttributesKey[] DEF_KEYS = new TextAttributesKey[]{DEF};
+    public static final TextAttributesKey[] ATTRIBUTE_KEYS = new TextAttributesKey[]{ATTRIBUTE};
+    public static final TextAttributesKey[] VARIABLE_KEYS = new TextAttributesKey[]{VARIABLE};
+    public static final TextAttributesKey[] QUALIFIER_KEYS = new TextAttributesKey[]{QUALIFIER};
+    public static final TextAttributesKey[] NUMBER_KEYS = new TextAttributesKey[]{NUMBER};
+    public static final TextAttributesKey[] STRING_KEYS = new TextAttributesKey[]{STRING};
+    public static final TextAttributesKey[] BUILTIN_KEYS = new TextAttributesKey[]{BUILTIN};
+    public static final TextAttributesKey[] COMMENT_KEYS = new TextAttributesKey[]{COMMENT};
+    public static final TextAttributesKey[] ATOM_KEYS = new TextAttributesKey[]{ATOM};
+    public static final TextAttributesKey[] BAD_CHARACTER_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
+    public static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
     private final Project project;
     private final boolean schema;

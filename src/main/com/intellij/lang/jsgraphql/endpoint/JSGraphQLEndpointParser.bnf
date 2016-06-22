@@ -1,0 +1,145 @@
+/**
+ * Copyright (c) 2015-present, Jim Kynde Meyer
+ * All rights reserved.
+ * <p>
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+{
+
+    parserClass="com.intellij.lang.jsgraphql.endpoint.parser.JSGraphQLEndpointParser"
+
+    psiClassPrefix="JSGraphQLEndpoint"
+    psiImplClassSuffix="Impl"
+    psiPackage="com.intellij.lang.jsgraphql.endpoint.psi"
+    psiImplPackage="com.intellij.lang.jsgraphql.endpoint.psi.impl"
+
+    extends="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiElement"
+
+    elementTypeHolderClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes"
+    elementTypePrefix=""
+    elementTypeClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenType"
+    tokenTypeClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenType"
+
+    tokens=[
+
+        TYPE='type'
+        INTERFACE='interface'
+        IMPLEMENTS='implements'
+        INPUT='input'
+        ENUM='enum'
+        UNION='union'
+        SCHEMA='schema'
+        QUERY='query'
+        MUTATION='mutation'
+        SUBSCRIPTION='subscription'
+        LPAREN='('
+        RPAREN=')'
+        LBRACE='{'
+        RBRACE='}'
+        LBRACKET='['
+        RBRACKET=']'
+        COMMA=','
+        COLON=':'
+        EQUALS='='
+        PIPE='|'
+        AT='@'
+        TRUE='true'
+        FALSE='false'
+        REQUIRED='!'
+
+        IDENTIFIER='regexp:[_A-Za-z][_0-9A-Za-z]*'
+        AT_ANNOTATION='regexp:@[_A-Za-z][_0-9A-Za-z]*'
+        NUMBER='regexp:-?[0-9]+(\.[0-9+])?'
+        LINE_COMMENT="regexp:#.*"
+    ]
+}
+
+Document ::= Definition*
+
+private Definition ::=
+    ObjectTypeDefinition
+    |
+    InterfaceTypeDefinition
+    |
+    InputObjectTypeDefinition
+    |
+    EnumTypeDefinition
+    |
+    UnionTypeDefinition
+    |
+    ScalarTypeDefinition
+    |
+    ImportDeclaration
+    |
+    SchemaDefinition
+
+ObjectTypeDefinition ::= TYPE NamedTypeDef ImplementsInterfaces? FieldDefinitionSet {pin=1 recoverWhile=RecoverDefinition}
+
+private RecoverDefinition ::= !(TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA)
+
+ImplementsInterfaces ::= IMPLEMENTS NamedType (COMMA NamedType)*  {pin=1}
+
+FieldDefinitionSet ::= LBRACE FieldDefinition* RBRACE {pin=1}
+
+FieldDefinition ::= Annotations? Property ArgumentsDefinition? COLON CompositeType {pin=2}
+
+ArgumentsDefinition ::= LPAREN InputValueDefinitions RPAREN {pin=1 recoverWhile=RecoverArgumentsDefinition}
+
+private RecoverArgumentsDefinition ::= !(COLON)
+
+InputValueDefinitions ::= InputValueDefinition (COMMA InputValueDefinition)*
+
+InputValueDefinition ::= IDENTIFIER COLON CompositeType {pin=1}
+
+Annotations ::= Annotation+
+
+Annotation ::= AT_ANNOTATION AnnotationArguments? {pin=1}
+
+AnnotationArgumentValue ::= TRUE | FALSE | NUMBER | QuotedString
+
+AnnotationArguments ::= LPAREN (AnnotationArgumentValue | NamedAnnotationArguments) RPAREN {pin=1}
+
+NamedAnnotationArguments ::= NamedAnnotationArgument (COMMA NamedAnnotationArgument)*
+
+NamedAnnotationArgument ::= IDENTIFIER EQUALS AnnotationArgumentValue {pin=1}
+
+NamedType ::= IDENTIFIER
+
+NamedTypeDef ::= IDENTIFIER
+
+CompositeType ::= ListType | (NamedType REQUIRED?)
+
+ListType ::= LBRACKET NamedType RBRACKET {pin=1}
+
+Property ::= IDENTIFIER
+
+InterfaceTypeDefinition ::= INTERFACE NamedTypeDef FieldDefinitionSet {pin=1 recoverWhile=RecoverDefinition}
+
+InputObjectTypeDefinition ::= INPUT NamedTypeDef FieldDefinitionSet {pin=1}
+
+EnumTypeDefinition ::= ENUM NamedTypeDef EnumValueDefinitionSet {pin=1 recoverWhile=RecoverDefinition}
+
+EnumValueDefinitionSet ::= LBRACE EnumValueDefinition (COMMA EnumValueDefinition)* RBRACE
+
+EnumValueDefinition ::= IDENTIFIER
+
+UnionTypeDefinition ::= UNION NamedTypeDef EQUALS UnionMemberSet {pin=1 recoverWhile=RecoverDefinition}
+
+UnionMemberSet ::= UnionMember (PIPE UnionMember)
+
+UnionMember ::= IDENTIFIER
+
+ScalarTypeDefinition ::= SCALAR NamedTypeDef {pin=1 recoverWhile=RecoverDefinition}
+
+ImportDeclaration ::= IMPORT ImportFileReference {pin=1 recoverWhile=RecoverDefinition}
+
+ImportFileReference ::= QuotedString
+
+SchemaDefinition ::= SCHEMA OperationTypeDefinitionSet {pin=1 recoverWhile=RecoverDefinition}
+
+OperationTypeDefinitionSet ::= LBRACE OperationTypeDefinition* RBRACE
+
+OperationTypeDefinition ::= (QUERY | MUTATION | SUBSCRIPTION) COLON NamedType {pin=1}
+
+QuotedString ::= OPEN_QUOTE STRING_BODY? CLOSING_QUOTE {pin=1}

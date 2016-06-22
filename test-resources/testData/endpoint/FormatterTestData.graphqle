@@ -1,0 +1,39 @@
+import "foo"
+import "bar"
+
+interface Bar {
+bar1: String
+}
+
+type Foo implements Bar {
+
+# foo1
+@DataFetcher
+@DataFetcher(1)
+@DataFetcher(false)
+@DataFetcher("Bar")
+@DataFetcher(foo = "Bar")
+@DataFetcher(value = "foo", batched = true)
+foo1(foo: String!, bar: [Boolean]): String
+
+# foo2
+@DataFetcher("foo")
+foo: String
+
+}
+
+input Foo {
+bar: Base
+}
+
+enum Enum {
+A,
+B,
+C
+}
+
+union Foo = A | B
+
+scalar Date
+
+import "foo"
