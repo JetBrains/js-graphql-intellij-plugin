@@ -305,12 +305,14 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                 if(editor.getHeaderComponent() instanceof JSGraphQLEditorHeaderComponent) {
                     return;
                 }
-                final JComponent headerComponent = createHeaderComponent(fileEditor, editor);
-                editor.setHeaderComponent(headerComponent);
-                if(editor instanceof EditorEx) {
-                    ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
-                }
-                editor.getScrollingModel().scrollVertically(-1000);
+                UIUtil.invokeLaterIfNeeded(() -> { // ensure components are created on the swing thread
+                    final JComponent headerComponent = createHeaderComponent(fileEditor, editor);
+                    editor.setHeaderComponent(headerComponent);
+                    if(editor instanceof EditorEx) {
+                        ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
+                    }
+                    editor.getScrollingModel().scrollVertically(-1000);
+                });
             }
         }
     }

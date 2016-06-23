@@ -71,6 +71,12 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
         final MessageBusConnection connection = project.getMessageBus().connect(this);
         connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this);
         connection.subscribe(JSGraphQLLanguageServiceListener.TOPIC, this);
+
+        // mark restored schema files as viewers
+        final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
+        for (VirtualFile virtualFile : fileEditorManager.getOpenFiles()) {
+            markSchemaFileAsViewer(fileEditorManager, virtualFile);
+        }
     }
 
 
@@ -174,7 +180,24 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
 
     @Override
     public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        if(file.getFileType() == JSGraphQLSchemaFileType.INSTANCE) {
+        markSchemaFileAsViewer(source, file);
+    }
+
+    @Override
+    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {}
+
+    @Override
+    public void selectionChanged(@NotNull FileEditorManagerEvent event) {
+        if(event.getNewFile() != null) {
+            markSchemaFileAsViewer(event.getManager(), event.getNewFile());
+        }
+    }
+
+    @Override
+    public void dispose() {}
+
+    private void markSchemaFileAsViewer(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        if(file.getFileType() == JSGraphQLSchemaFileType.INSTANCE || JSGraphQLSchemaFileType.isGraphQLScratchFile(project, file)) {
             // mark the schema editor as viewer only
             final FileEditor fileEditor = source.getSelectedEditor(file);
             if (fileEditor instanceof TextEditor) {
@@ -185,16 +208,6 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
             }
         }
     }
-
-    @Override
-    public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {}
-
-    @Override
-    public void selectionChanged(@NotNull FileEditorManagerEvent event) {}
-
-    @Override
-    public void dispose() {}
-
 
     // ---- JSGraphQLLanguageServiceListener ----
 

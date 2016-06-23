@@ -1,3 +1,9 @@
+## 1.3.2 (2016-06-23)
+
+Changes:
+
+- Closes #14 Remove GraphQL schema from scratch file formats
+
 ## 1.3.1 (2016-06-09)
 
 Changes:
