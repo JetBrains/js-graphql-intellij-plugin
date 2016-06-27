@@ -136,13 +136,12 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // AT_ANNOTATION AnnotationArguments?
   public static boolean Annotation(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Annotation")) return false;
-    if (!nextTokenIs(b, AT_ANNOTATION)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ANNOTATION, null);
+    Marker m = enter_section_(b, l, _NONE_, ANNOTATION, "<annotation>");
     r = consumeToken(b, AT_ANNOTATION);
     p = r; // pin = 1
     r = r && Annotation_1(b, l + 1);
-    exit_section_(b, l, m, r, p, null);
+    exit_section_(b, l, m, r, p, RecoverAnnotation_parser_);
     return r || p;
   }
 
@@ -154,7 +153,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // TRUE | FALSE | NUMBER | QuotedString
+  // TRUE | FALSE | number | QuotedString
   public static boolean AnnotationArgumentValue(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "AnnotationArgumentValue")) return false;
     boolean r;
@@ -226,10 +225,49 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // COMMA EnumValueDefinition
+  static boolean CommaEnumValueDefinition(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "CommaEnumValueDefinition")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = consumeToken(b, COMMA);
+    p = r; // pin = 1
+    r = r && EnumValueDefinition(b, l + 1);
+    exit_section_(b, l, m, r, p, RecoverCommaEnumValueDefinition_parser_);
+    return r || p;
+  }
+
+  /* ********************************************************** */
+  // COMMA NamedAnnotationArgument
+  static boolean CommaNamedAnnotationArgument(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "CommaNamedAnnotationArgument")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = consumeToken(b, COMMA);
+    p = r; // pin = 1
+    r = r && NamedAnnotationArgument(b, l + 1);
+    exit_section_(b, l, m, r, p, RecoverNamedAnnotationArgument_parser_);
+    return r || p;
+  }
+
+  /* ********************************************************** */
+  // COMMA NamedType
+  static boolean CommaNamedType(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "CommaNamedType")) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = consumeToken(b, COMMA);
+    p = r; // pin = 1
+    r = r && NamedType(b, l + 1);
+    exit_section_(b, l, m, r, p, RecoverCommaNamedType_parser_);
+    return r || p;
+  }
+
+  /* ********************************************************** */
   // ListType | (NamedType REQUIRED?)
   public static boolean CompositeType(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "CompositeType")) return false;
-    if (!nextTokenIs(b, "<composite type>", IDENTIFIER, LBRACKET)) return false;
+    if (!nextTokenIs(b, "<composite type>", LBRACKET, IDENTIFIER)) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NONE_, COMPOSITE_TYPE, "<composite type>");
     r = ListType(b, l + 1);
@@ -275,7 +313,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   static boolean Definition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Definition")) return false;
     boolean r;
-    Marker m = enter_section_(b);
+    Marker m = enter_section_(b, l, _NONE_);
     r = ObjectTypeDefinition(b, l + 1);
     if (!r) r = InterfaceTypeDefinition(b, l + 1);
     if (!r) r = InputObjectTypeDefinition(b, l + 1);
@@ -284,7 +322,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     if (!r) r = ScalarTypeDefinition(b, l + 1);
     if (!r) r = ImportDeclaration(b, l + 1);
     if (!r) r = SchemaDefinition(b, l + 1);
-    exit_section_(b, m, null, r);
+    exit_section_(b, l, m, r, false, RecoverDefinition_parser_);
     return r;
   }
 
@@ -305,18 +343,19 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // ENUM NamedTypeDef EnumValueDefinitionSet
   public static boolean EnumTypeDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "EnumTypeDefinition")) return false;
+    if (!nextTokenIs(b, ENUM)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ENUM_TYPE_DEFINITION, "<enum type definition>");
+    Marker m = enter_section_(b, l, _NONE_, ENUM_TYPE_DEFINITION, null);
     r = consumeToken(b, ENUM);
     p = r; // pin = 1
     r = r && report_error_(b, NamedTypeDef(b, l + 1));
     r = p && EnumValueDefinitionSet(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, RecoverDefinition_parser_);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
   /* ********************************************************** */
-  // IDENTIFIER
+  // identifier
   public static boolean EnumValueDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "EnumValueDefinition")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
@@ -328,48 +367,37 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // LBRACE EnumValueDefinition (COMMA EnumValueDefinition)* RBRACE
+  // LBRACE EnumValueDefinition CommaEnumValueDefinition* RBRACE
   public static boolean EnumValueDefinitionSet(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "EnumValueDefinitionSet")) return false;
     if (!nextTokenIs(b, LBRACE)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, ENUM_VALUE_DEFINITION_SET, null);
     r = consumeToken(b, LBRACE);
-    r = r && EnumValueDefinition(b, l + 1);
-    r = r && EnumValueDefinitionSet_2(b, l + 1);
-    r = r && consumeToken(b, RBRACE);
-    exit_section_(b, m, ENUM_VALUE_DEFINITION_SET, r);
-    return r;
+    p = r; // pin = 1
+    r = r && report_error_(b, EnumValueDefinition(b, l + 1));
+    r = p && report_error_(b, EnumValueDefinitionSet_2(b, l + 1)) && r;
+    r = p && consumeToken(b, RBRACE) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
-  // (COMMA EnumValueDefinition)*
+  // CommaEnumValueDefinition*
   private static boolean EnumValueDefinitionSet_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "EnumValueDefinitionSet_2")) return false;
     int c = current_position_(b);
     while (true) {
-      if (!EnumValueDefinitionSet_2_0(b, l + 1)) break;
+      if (!CommaEnumValueDefinition(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "EnumValueDefinitionSet_2", c)) break;
       c = current_position_(b);
     }
     return true;
   }
 
-  // COMMA EnumValueDefinition
-  private static boolean EnumValueDefinitionSet_2_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "EnumValueDefinitionSet_2_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && EnumValueDefinition(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
   /* ********************************************************** */
   // Annotations? Property ArgumentsDefinition? COLON CompositeType
   public static boolean FieldDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "FieldDefinition")) return false;
-    if (!nextTokenIs(b, "<field definition>", AT_ANNOTATION, IDENTIFIER)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, FIELD_DEFINITION, "<field definition>");
     r = FieldDefinition_0(b, l + 1);
@@ -378,7 +406,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     r = r && report_error_(b, FieldDefinition_2(b, l + 1));
     r = p && report_error_(b, consumeToken(b, COLON)) && r;
     r = p && CompositeType(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
+    exit_section_(b, l, m, r, p, RecoverFieldDefinition_parser_);
     return r || p;
   }
 
@@ -424,7 +452,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // IMPLEMENTS NamedType (COMMA NamedType)*
+  // IMPLEMENTS NamedType CommaNamedType*
   public static boolean ImplementsInterfaces(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ImplementsInterfaces")) return false;
     if (!nextTokenIs(b, IMPLEMENTS)) return false;
@@ -438,39 +466,29 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // (COMMA NamedType)*
+  // CommaNamedType*
   private static boolean ImplementsInterfaces_2(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ImplementsInterfaces_2")) return false;
     int c = current_position_(b);
     while (true) {
-      if (!ImplementsInterfaces_2_0(b, l + 1)) break;
+      if (!CommaNamedType(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "ImplementsInterfaces_2", c)) break;
       c = current_position_(b);
     }
     return true;
   }
 
-  // COMMA NamedType
-  private static boolean ImplementsInterfaces_2_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ImplementsInterfaces_2_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && NamedType(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
   /* ********************************************************** */
   // IMPORT ImportFileReference
   public static boolean ImportDeclaration(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ImportDeclaration")) return false;
+    if (!nextTokenIs(b, IMPORT)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, IMPORT_DECLARATION, "<import declaration>");
+    Marker m = enter_section_(b, l, _NONE_, IMPORT_DECLARATION, null);
     r = consumeToken(b, IMPORT);
     p = r; // pin = 1
     r = r && ImportFileReference(b, l + 1);
-    exit_section_(b, l, m, r, p, RecoverDefinition_parser_);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -502,7 +520,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // IDENTIFIER COLON CompositeType
+  // identifier COLON CompositeType
   public static boolean InputValueDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "InputValueDefinition")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
@@ -555,13 +573,14 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // INTERFACE NamedTypeDef FieldDefinitionSet
   public static boolean InterfaceTypeDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "InterfaceTypeDefinition")) return false;
+    if (!nextTokenIs(b, INTERFACE)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, INTERFACE_TYPE_DEFINITION, "<interface type definition>");
+    Marker m = enter_section_(b, l, _NONE_, INTERFACE_TYPE_DEFINITION, null);
     r = consumeToken(b, INTERFACE);
     p = r; // pin = 1
     r = r && report_error_(b, NamedTypeDef(b, l + 1));
     r = p && FieldDefinitionSet(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, RecoverDefinition_parser_);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -581,21 +600,20 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // IDENTIFIER EQUALS AnnotationArgumentValue
+  // identifier EQUALS AnnotationArgumentValue
   public static boolean NamedAnnotationArgument(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "NamedAnnotationArgument")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, NAMED_ANNOTATION_ARGUMENT, null);
+    Marker m = enter_section_(b, l, _NONE_, NAMED_ANNOTATION_ARGUMENT, "<named annotation argument>");
     r = consumeTokens(b, 1, IDENTIFIER, EQUALS);
     p = r; // pin = 1
     r = r && AnnotationArgumentValue(b, l + 1);
-    exit_section_(b, l, m, r, p, null);
+    exit_section_(b, l, m, r, p, RecoverNamedAnnotationArgument_parser_);
     return r || p;
   }
 
   /* ********************************************************** */
-  // NamedAnnotationArgument (COMMA NamedAnnotationArgument)*
+  // NamedAnnotationArgument CommaNamedAnnotationArgument*
   public static boolean NamedAnnotationArguments(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "NamedAnnotationArguments")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
@@ -607,31 +625,20 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // (COMMA NamedAnnotationArgument)*
+  // CommaNamedAnnotationArgument*
   private static boolean NamedAnnotationArguments_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "NamedAnnotationArguments_1")) return false;
     int c = current_position_(b);
     while (true) {
-      if (!NamedAnnotationArguments_1_0(b, l + 1)) break;
+      if (!CommaNamedAnnotationArgument(b, l + 1)) break;
       if (!empty_element_parsed_guard_(b, "NamedAnnotationArguments_1", c)) break;
       c = current_position_(b);
     }
     return true;
   }
 
-  // COMMA NamedAnnotationArgument
-  private static boolean NamedAnnotationArguments_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "NamedAnnotationArguments_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && NamedAnnotationArgument(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
-  }
-
   /* ********************************************************** */
-  // IDENTIFIER
+  // identifier
   public static boolean NamedType(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "NamedType")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
@@ -643,7 +650,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // IDENTIFIER
+  // identifier
   public static boolean NamedTypeDef(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "NamedTypeDef")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
@@ -658,14 +665,15 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // TYPE NamedTypeDef ImplementsInterfaces? FieldDefinitionSet
   public static boolean ObjectTypeDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ObjectTypeDefinition")) return false;
+    if (!nextTokenIs(b, TYPE)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, OBJECT_TYPE_DEFINITION, "<object type definition>");
+    Marker m = enter_section_(b, l, _NONE_, OBJECT_TYPE_DEFINITION, null);
     r = consumeToken(b, TYPE);
     p = r; // pin = 1
     r = r && report_error_(b, NamedTypeDef(b, l + 1));
     r = p && report_error_(b, ObjectTypeDefinition_2(b, l + 1)) && r;
     r = p && FieldDefinitionSet(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, RecoverDefinition_parser_);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -686,7 +694,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     p = r; // pin = 1
     r = r && report_error_(b, consumeToken(b, COLON));
     r = p && NamedType(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
+    exit_section_(b, l, m, r, p, RecoverOperation_parser_);
     return r || p;
   }
 
@@ -707,13 +715,14 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   public static boolean OperationTypeDefinitionSet(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "OperationTypeDefinitionSet")) return false;
     if (!nextTokenIs(b, LBRACE)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_, OPERATION_TYPE_DEFINITION_SET, null);
     r = consumeToken(b, LBRACE);
-    r = r && OperationTypeDefinitionSet_1(b, l + 1);
-    r = r && consumeToken(b, RBRACE);
-    exit_section_(b, m, OPERATION_TYPE_DEFINITION_SET, r);
-    return r;
+    p = r; // pin = 1
+    r = r && report_error_(b, OperationTypeDefinitionSet_1(b, l + 1));
+    r = p && consumeToken(b, RBRACE) && r;
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
   }
 
   // OperationTypeDefinition*
@@ -729,7 +738,21 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // IDENTIFIER
+  // PIPE UnionMember
+  static boolean PipeUnionMember(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "PipeUnionMember")) return false;
+    if (!nextTokenIs(b, PIPE)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = consumeToken(b, PIPE);
+    p = r; // pin = 1
+    r = r && UnionMember(b, l + 1);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  /* ********************************************************** */
+  // identifier
   public static boolean Property(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "Property")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
@@ -763,13 +786,111 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !(COLON)
+  // !(RBRACE | AT_ANNOTATION | identifier)
+  static boolean RecoverAnnotation(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverAnnotation")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !RecoverAnnotation_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // RBRACE | AT_ANNOTATION | identifier
+  private static boolean RecoverAnnotation_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverAnnotation_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, RBRACE);
+    if (!r) r = consumeToken(b, AT_ANNOTATION);
+    if (!r) r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !(COLON | RBRACE | AT_ANNOTATION | identifier)
   static boolean RecoverArgumentsDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "RecoverArgumentsDefinition")) return false;
     boolean r;
     Marker m = enter_section_(b, l, _NOT_);
-    r = !consumeToken(b, COLON);
+    r = !RecoverArgumentsDefinition_0(b, l + 1);
     exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // COLON | RBRACE | AT_ANNOTATION | identifier
+  private static boolean RecoverArgumentsDefinition_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverArgumentsDefinition_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COLON);
+    if (!r) r = consumeToken(b, RBRACE);
+    if (!r) r = consumeToken(b, AT_ANNOTATION);
+    if (!r) r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !(RBRACE | COMMA | TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA | identifier)
+  static boolean RecoverCommaEnumValueDefinition(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverCommaEnumValueDefinition")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !RecoverCommaEnumValueDefinition_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // RBRACE | COMMA | TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA | identifier
+  private static boolean RecoverCommaEnumValueDefinition_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverCommaEnumValueDefinition_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, RBRACE);
+    if (!r) r = consumeToken(b, COMMA);
+    if (!r) r = consumeToken(b, TYPE);
+    if (!r) r = consumeToken(b, INTERFACE);
+    if (!r) r = consumeToken(b, INPUT);
+    if (!r) r = consumeToken(b, ENUM);
+    if (!r) r = consumeToken(b, UNION);
+    if (!r) r = consumeToken(b, SCALAR);
+    if (!r) r = consumeToken(b, IMPORT);
+    if (!r) r = consumeToken(b, SCHEMA);
+    if (!r) r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !(LBRACE | COMMA | TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA | identifier)
+  static boolean RecoverCommaNamedType(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverCommaNamedType")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !RecoverCommaNamedType_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // LBRACE | COMMA | TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA | identifier
+  private static boolean RecoverCommaNamedType_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverCommaNamedType_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, LBRACE);
+    if (!r) r = consumeToken(b, COMMA);
+    if (!r) r = consumeToken(b, TYPE);
+    if (!r) r = consumeToken(b, INTERFACE);
+    if (!r) r = consumeToken(b, INPUT);
+    if (!r) r = consumeToken(b, ENUM);
+    if (!r) r = consumeToken(b, UNION);
+    if (!r) r = consumeToken(b, SCALAR);
+    if (!r) r = consumeToken(b, IMPORT);
+    if (!r) r = consumeToken(b, SCHEMA);
+    if (!r) r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, null, r);
     return r;
   }
 
@@ -802,15 +923,85 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // !(RBRACE | AT_ANNOTATION | identifier)
+  static boolean RecoverFieldDefinition(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverFieldDefinition")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !RecoverFieldDefinition_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // RBRACE | AT_ANNOTATION | identifier
+  private static boolean RecoverFieldDefinition_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverFieldDefinition_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, RBRACE);
+    if (!r) r = consumeToken(b, AT_ANNOTATION);
+    if (!r) r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !(COMMA | RPAREN)
+  static boolean RecoverNamedAnnotationArgument(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverNamedAnnotationArgument")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !RecoverNamedAnnotationArgument_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // COMMA | RPAREN
+  private static boolean RecoverNamedAnnotationArgument_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverNamedAnnotationArgument_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, COMMA);
+    if (!r) r = consumeToken(b, RPAREN);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
+  // !(RBRACE | QUERY | MUTATION | SUBSCRIPTION)
+  static boolean RecoverOperation(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverOperation")) return false;
+    boolean r;
+    Marker m = enter_section_(b, l, _NOT_);
+    r = !RecoverOperation_0(b, l + 1);
+    exit_section_(b, l, m, r, false, null);
+    return r;
+  }
+
+  // RBRACE | QUERY | MUTATION | SUBSCRIPTION
+  private static boolean RecoverOperation_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "RecoverOperation_0")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, RBRACE);
+    if (!r) r = consumeToken(b, QUERY);
+    if (!r) r = consumeToken(b, MUTATION);
+    if (!r) r = consumeToken(b, SUBSCRIPTION);
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // SCALAR NamedTypeDef
   public static boolean ScalarTypeDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ScalarTypeDefinition")) return false;
+    if (!nextTokenIs(b, SCALAR)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, SCALAR_TYPE_DEFINITION, "<scalar type definition>");
+    Marker m = enter_section_(b, l, _NONE_, SCALAR_TYPE_DEFINITION, null);
     r = consumeToken(b, SCALAR);
     p = r; // pin = 1
     r = r && NamedTypeDef(b, l + 1);
-    exit_section_(b, l, m, r, p, RecoverDefinition_parser_);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
@@ -818,17 +1009,18 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // SCHEMA OperationTypeDefinitionSet
   public static boolean SchemaDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "SchemaDefinition")) return false;
+    if (!nextTokenIs(b, SCHEMA)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, SCHEMA_DEFINITION, "<schema definition>");
+    Marker m = enter_section_(b, l, _NONE_, SCHEMA_DEFINITION, null);
     r = consumeToken(b, SCHEMA);
     p = r; // pin = 1
     r = r && OperationTypeDefinitionSet(b, l + 1);
-    exit_section_(b, l, m, r, p, RecoverDefinition_parser_);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
   /* ********************************************************** */
-  // IDENTIFIER
+  // identifier
   public static boolean UnionMember(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "UnionMember")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
@@ -840,7 +1032,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // UnionMember (PIPE UnionMember)
+  // UnionMember PipeUnionMember*
   public static boolean UnionMemberSet(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "UnionMemberSet")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
@@ -852,40 +1044,72 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // PIPE UnionMember
+  // PipeUnionMember*
   private static boolean UnionMemberSet_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "UnionMemberSet_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, PIPE);
-    r = r && UnionMember(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+    int c = current_position_(b);
+    while (true) {
+      if (!PipeUnionMember(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "UnionMemberSet_1", c)) break;
+      c = current_position_(b);
+    }
+    return true;
   }
 
   /* ********************************************************** */
   // UNION NamedTypeDef EQUALS UnionMemberSet
   public static boolean UnionTypeDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "UnionTypeDefinition")) return false;
+    if (!nextTokenIs(b, UNION)) return false;
     boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, UNION_TYPE_DEFINITION, "<union type definition>");
+    Marker m = enter_section_(b, l, _NONE_, UNION_TYPE_DEFINITION, null);
     r = consumeToken(b, UNION);
     p = r; // pin = 1
     r = r && report_error_(b, NamedTypeDef(b, l + 1));
     r = p && report_error_(b, consumeToken(b, EQUALS)) && r;
     r = p && UnionMemberSet(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, RecoverDefinition_parser_);
+    exit_section_(b, l, m, r, p, null);
     return r || p;
   }
 
+  final static Parser RecoverAnnotation_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return RecoverAnnotation(b, l + 1);
+    }
+  };
   final static Parser RecoverArgumentsDefinition_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return RecoverArgumentsDefinition(b, l + 1);
     }
   };
+  final static Parser RecoverCommaEnumValueDefinition_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return RecoverCommaEnumValueDefinition(b, l + 1);
+    }
+  };
+  final static Parser RecoverCommaNamedType_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return RecoverCommaNamedType(b, l + 1);
+    }
+  };
   final static Parser RecoverDefinition_parser_ = new Parser() {
     public boolean parse(PsiBuilder b, int l) {
       return RecoverDefinition(b, l + 1);
+    }
+  };
+  final static Parser RecoverFieldDefinition_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return RecoverFieldDefinition(b, l + 1);
+    }
+  };
+  final static Parser RecoverNamedAnnotationArgument_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return RecoverNamedAnnotationArgument(b, l + 1);
+    }
+  };
+  final static Parser RecoverOperation_parser_ = new Parser() {
+    public boolean parse(PsiBuilder b, int l) {
+      return RecoverOperation(b, l + 1);
     }
   };
 }

@@ -44,7 +44,7 @@ LINE_WS=[\ \t\f]
 WHITE_SPACE=({LINE_WS}|{EOL})+
 
 IDENTIFIER=[_A-Za-z][_0-9A-Za-z]*
-AT_ANNOTATION=@[_A-Za-z][_0-9A-Za-z]*
+AT_ANNOTATION=@([_A-Za-z][_0-9A-Za-z]*)?
 NUMBER=-?[0-9]+(\.[0-9+])?
 LINE_COMMENT=#.*
 
@@ -70,7 +70,6 @@ LINE_COMMENT=#.*
   ":"                 { return COLON; }
   "="                 { return EQUALS; }
   "|"                 { return PIPE; }
-  "@"                 { return AT; }
   "true"              { return TRUE; }
   "false"             { return FALSE; }
   "!"                 { return REQUIRED; }

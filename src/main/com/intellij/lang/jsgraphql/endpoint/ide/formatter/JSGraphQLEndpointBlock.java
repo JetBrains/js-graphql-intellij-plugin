@@ -75,7 +75,10 @@ public class JSGraphQLEndpointBlock extends AbstractBlock {
 		if (parent == null) {
 			return Indent.getNoneIndent();
 		}
-		return Indent.getIndent(Indent.Type.NORMAL, false, false);
+		if (INDENT_PARENTS.contains(myNode.getElementType())) {
+			return Indent.getNormalIndent();
+		}
+		return Indent.getNoneIndent();
 	}
 
 	@Override

@@ -7,15 +7,14 @@
  */
 package com.intellij.lang.jsgraphql.ide.configuration;
 
-import com.google.common.collect.Lists;
-import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpoint;
-
 import java.util.List;
 
-public class JSGraphQLConfiguration {
+import com.google.common.collect.Lists;
 
-    public List<JSGraphQLEndpoint> endpoints = Lists.newArrayList();
+public class JSGraphQLSchemaEndpointAnnotation {
 
-    public JSGraphQLSchemaConfiguration schema;
+	public String name;
+	public String description;
+	public List<JSGraphQLSchemaEndpointAnnotationArgument> arguments = Lists.newArrayList();
 
 }

@@ -42,7 +42,6 @@ public interface JSGraphQLEndpointTokenTypes {
   IElementType UNION_MEMBER_SET = new JSGraphQLEndpointTokenType("UNION_MEMBER_SET");
   IElementType UNION_TYPE_DEFINITION = new JSGraphQLEndpointTokenType("UNION_TYPE_DEFINITION");
 
-  IElementType AT = new JSGraphQLEndpointTokenType("@");
   IElementType AT_ANNOTATION = new JSGraphQLEndpointTokenType("AT_ANNOTATION");
   IElementType CLOSING_QUOTE = new JSGraphQLEndpointTokenType("CLOSING_QUOTE");
   IElementType COLON = new JSGraphQLEndpointTokenType(":");
@@ -50,9 +49,9 @@ public interface JSGraphQLEndpointTokenTypes {
   IElementType ENUM = new JSGraphQLEndpointTokenType("enum");
   IElementType EQUALS = new JSGraphQLEndpointTokenType("=");
   IElementType FALSE = new JSGraphQLEndpointTokenType("false");
-  IElementType IDENTIFIER = new JSGraphQLEndpointTokenType("IDENTIFIER");
+  IElementType IDENTIFIER = new JSGraphQLEndpointTokenType("identifier");
   IElementType IMPLEMENTS = new JSGraphQLEndpointTokenType("implements");
-  IElementType IMPORT = new JSGraphQLEndpointTokenType("IMPORT");
+  IElementType IMPORT = new JSGraphQLEndpointTokenType("import");
   IElementType INPUT = new JSGraphQLEndpointTokenType("input");
   IElementType INTERFACE = new JSGraphQLEndpointTokenType("interface");
   IElementType LBRACE = new JSGraphQLEndpointTokenType("{");
@@ -60,7 +59,7 @@ public interface JSGraphQLEndpointTokenTypes {
   IElementType LINE_COMMENT = new JSGraphQLEndpointTokenType("LINE_COMMENT");
   IElementType LPAREN = new JSGraphQLEndpointTokenType("(");
   IElementType MUTATION = new JSGraphQLEndpointTokenType("mutation");
-  IElementType NUMBER = new JSGraphQLEndpointTokenType("NUMBER");
+  IElementType NUMBER = new JSGraphQLEndpointTokenType("number");
   IElementType OPEN_QUOTE = new JSGraphQLEndpointTokenType("OPEN_QUOTE");
   IElementType PIPE = new JSGraphQLEndpointTokenType("|");
   IElementType QUERY = new JSGraphQLEndpointTokenType("query");

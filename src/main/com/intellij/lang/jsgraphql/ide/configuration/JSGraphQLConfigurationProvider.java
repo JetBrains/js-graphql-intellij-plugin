@@ -154,6 +154,21 @@ public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
         return Lists.newArrayList(); // no config yet
     }
 
+    public List<JSGraphQLSchemaEndpointAnnotation> getEndpointAnnotations() {
+        final List<JSGraphQLSchemaEndpointAnnotation> annotations = Lists.newArrayList();
+        final VirtualFile configFile = getGraphQLConfigFile();
+        if(configFile != null) {
+            final JSGraphQLConfiguration configuration = getConfiguration(configFile);
+            if (configuration != null) {
+                if (configuration.schema != null && configuration.schema.endpoint != null) {
+                    if(configuration.schema.endpoint.annotations != null) {
+	                    annotations.addAll(configuration.schema.endpoint.annotations);
+                    }
+                }
+            }
+        }
+        return annotations;
+    }
 
     // ---- VirtualFileListener ----
 

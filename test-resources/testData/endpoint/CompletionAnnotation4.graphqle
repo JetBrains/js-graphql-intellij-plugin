@@ -1,0 +1,22 @@
+type KnownType {
+    k: String
+}
+
+interface KnownInterface {
+    i: Boolean
+}
+
+enum MyEnum {
+    A, B, C
+}
+
+union MyUnion = KnownType | KnownInterface
+
+type MyType {
+    @DataFetcher(value = "foo", batched = <caret>)
+    foo(arg: String)
+}
+
+input MyCompletionInputABC {
+    bas: Boolean
+}

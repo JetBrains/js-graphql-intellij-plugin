@@ -33,6 +33,7 @@
         QUERY='query'
         MUTATION='mutation'
         SUBSCRIPTION='subscription'
+        IMPORT='import'
         LPAREN='('
         RPAREN=')'
         LBRACE='{'
@@ -43,15 +44,14 @@
         COLON=':'
         EQUALS='='
         PIPE='|'
-        AT='@'
         TRUE='true'
         FALSE='false'
         REQUIRED='!'
-
-        IDENTIFIER='regexp:[_A-Za-z][_0-9A-Za-z]*'
-        AT_ANNOTATION='regexp:@[_A-Za-z][_0-9A-Za-z]*'
-        NUMBER='regexp:-?[0-9]+(\.[0-9+])?'
+        AT_ANNOTATION='regexp:@([_A-Za-z][_0-9A-Za-z]*)?'
         LINE_COMMENT="regexp:#.*"
+
+        identifier='regexp:[_A-Za-z][_0-9A-Za-z]*'
+        number='regexp:-?[0-9]+(\.[0-9+])?'
     ]
 }
 
@@ -73,73 +73,94 @@ private Definition ::=
     ImportDeclaration
     |
     SchemaDefinition
-
-ObjectTypeDefinition ::= TYPE NamedTypeDef ImplementsInterfaces? FieldDefinitionSet {pin=1 recoverWhile=RecoverDefinition}
+    {recoverWhile=RecoverDefinition}
 
 private RecoverDefinition ::= !(TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA)
 
-ImplementsInterfaces ::= IMPLEMENTS NamedType (COMMA NamedType)*  {pin=1}
+ObjectTypeDefinition ::= TYPE NamedTypeDef ImplementsInterfaces? FieldDefinitionSet {pin=1}
+
+ImplementsInterfaces ::= IMPLEMENTS NamedType CommaNamedType*  {pin=1}
+
+private CommaNamedType ::= COMMA NamedType {pin=1 recoverWhile=RecoverCommaNamedType}
+
+private RecoverCommaNamedType ::= !(LBRACE | COMMA | TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA | identifier)
 
 FieldDefinitionSet ::= LBRACE FieldDefinition* RBRACE {pin=1}
 
-FieldDefinition ::= Annotations? Property ArgumentsDefinition? COLON CompositeType {pin=2}
+FieldDefinition ::= Annotations? Property ArgumentsDefinition? COLON CompositeType {pin=2 recoverWhile=RecoverFieldDefinition}
+
+private RecoverFieldDefinition ::= !(RBRACE | AT_ANNOTATION | identifier)
 
 ArgumentsDefinition ::= LPAREN InputValueDefinitions RPAREN {pin=1 recoverWhile=RecoverArgumentsDefinition}
 
-private RecoverArgumentsDefinition ::= !(COLON)
+private RecoverArgumentsDefinition ::= !(COLON | RBRACE | AT_ANNOTATION | identifier)
 
 InputValueDefinitions ::= InputValueDefinition (COMMA InputValueDefinition)*
 
-InputValueDefinition ::= IDENTIFIER COLON CompositeType {pin=1}
+InputValueDefinition ::= identifier COLON CompositeType {pin=1}
 
 Annotations ::= Annotation+
 
-Annotation ::= AT_ANNOTATION AnnotationArguments? {pin=1}
+Annotation ::= AT_ANNOTATION AnnotationArguments? {pin=1 recoverWhile=RecoverAnnotation}
 
-AnnotationArgumentValue ::= TRUE | FALSE | NUMBER | QuotedString
+private RecoverAnnotation ::= !(RBRACE | AT_ANNOTATION | identifier)
+
+AnnotationArgumentValue ::= TRUE | FALSE | number | QuotedString
 
 AnnotationArguments ::= LPAREN (AnnotationArgumentValue | NamedAnnotationArguments) RPAREN {pin=1}
 
-NamedAnnotationArguments ::= NamedAnnotationArgument (COMMA NamedAnnotationArgument)*
+NamedAnnotationArguments ::= NamedAnnotationArgument CommaNamedAnnotationArgument*
 
-NamedAnnotationArgument ::= IDENTIFIER EQUALS AnnotationArgumentValue {pin=1}
+private CommaNamedAnnotationArgument ::= COMMA NamedAnnotationArgument {pin=1 recoverWhile=RecoverNamedAnnotationArgument}
 
-NamedType ::= IDENTIFIER
+NamedAnnotationArgument ::= identifier EQUALS AnnotationArgumentValue {pin=1 recoverWhile=RecoverNamedAnnotationArgument}
 
-NamedTypeDef ::= IDENTIFIER
+private RecoverNamedAnnotationArgument ::= !(COMMA | RPAREN)
+
+NamedType ::= identifier
+
+NamedTypeDef ::= identifier
 
 CompositeType ::= ListType | (NamedType REQUIRED?)
 
 ListType ::= LBRACKET NamedType RBRACKET {pin=1}
 
-Property ::= IDENTIFIER
+Property ::= identifier
 
-InterfaceTypeDefinition ::= INTERFACE NamedTypeDef FieldDefinitionSet {pin=1 recoverWhile=RecoverDefinition}
+InterfaceTypeDefinition ::= INTERFACE NamedTypeDef FieldDefinitionSet {pin=1}
 
 InputObjectTypeDefinition ::= INPUT NamedTypeDef FieldDefinitionSet {pin=1}
 
-EnumTypeDefinition ::= ENUM NamedTypeDef EnumValueDefinitionSet {pin=1 recoverWhile=RecoverDefinition}
+EnumTypeDefinition ::= ENUM NamedTypeDef EnumValueDefinitionSet {pin=1}
 
-EnumValueDefinitionSet ::= LBRACE EnumValueDefinition (COMMA EnumValueDefinition)* RBRACE
+EnumValueDefinitionSet ::= LBRACE EnumValueDefinition CommaEnumValueDefinition* RBRACE {pin=1}
 
-EnumValueDefinition ::= IDENTIFIER
+private CommaEnumValueDefinition ::= COMMA EnumValueDefinition {pin=1 recoverWhile=RecoverCommaEnumValueDefinition}
 
-UnionTypeDefinition ::= UNION NamedTypeDef EQUALS UnionMemberSet {pin=1 recoverWhile=RecoverDefinition}
+private RecoverCommaEnumValueDefinition ::= !(RBRACE | COMMA | TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA | identifier)
 
-UnionMemberSet ::= UnionMember (PIPE UnionMember)
+EnumValueDefinition ::= identifier
 
-UnionMember ::= IDENTIFIER
+UnionTypeDefinition ::= UNION NamedTypeDef EQUALS UnionMemberSet {pin=1}
 
-ScalarTypeDefinition ::= SCALAR NamedTypeDef {pin=1 recoverWhile=RecoverDefinition}
+UnionMemberSet ::= UnionMember PipeUnionMember*
 
-ImportDeclaration ::= IMPORT ImportFileReference {pin=1 recoverWhile=RecoverDefinition}
+private PipeUnionMember ::= PIPE UnionMember {pin=1}
+
+UnionMember ::= identifier
+
+ScalarTypeDefinition ::= SCALAR NamedTypeDef {pin=1}
+
+ImportDeclaration ::= IMPORT ImportFileReference {pin=1}
 
 ImportFileReference ::= QuotedString
 
-SchemaDefinition ::= SCHEMA OperationTypeDefinitionSet {pin=1 recoverWhile=RecoverDefinition}
+SchemaDefinition ::= SCHEMA OperationTypeDefinitionSet {pin=1}
 
-OperationTypeDefinitionSet ::= LBRACE OperationTypeDefinition* RBRACE
+OperationTypeDefinitionSet ::= LBRACE OperationTypeDefinition* RBRACE {pin=1}
 
-OperationTypeDefinition ::= (QUERY | MUTATION | SUBSCRIPTION) COLON NamedType {pin=1}
+OperationTypeDefinition ::= (QUERY | MUTATION | SUBSCRIPTION) COLON NamedType {pin=1 recoverWhile=RecoverOperation}
+
+private RecoverOperation ::= !(RBRACE | QUERY | MUTATION | SUBSCRIPTION)
 
 QuotedString ::= OPEN_QUOTE STRING_BODY? CLOSING_QUOTE {pin=1}

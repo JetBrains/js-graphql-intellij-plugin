@@ -85,6 +85,7 @@
 
     <!-- Completion -->
     <completion.contributor language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.completion.JSGraphQLCompletionContributor"/>
+    <completion.contributor language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.completion.JSGraphQLEndpointCompletionContributor"/>
 
 
     <!-- Error highlighting and annotations -->

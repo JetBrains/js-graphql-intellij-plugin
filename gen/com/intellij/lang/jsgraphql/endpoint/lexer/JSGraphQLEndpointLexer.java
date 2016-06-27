@@ -75,10 +75,10 @@ public class JSGraphQLEndpointLexer implements FlexLexer {
     "\2\0\1\1\1\2\1\3\1\4\1\5\1\1\1\6"+
     "\7\3\1\7\1\10\1\11\1\12\1\13\1\14\1\15"+
     "\1\16\1\17\1\20\1\21\1\3\1\22\1\23\1\24"+
-    "\1\25\1\0\1\26\13\3\1\4\15\3\1\27\1\30"+
-    "\1\31\14\3\1\32\2\3\1\33\4\3\1\34\1\35"+
-    "\2\3\1\36\1\3\1\37\1\40\7\3\1\41\1\3"+
-    "\1\42\2\3\1\43\2\3\1\44";
+    "\1\25\1\0\1\5\13\3\1\4\15\3\1\26\1\27"+
+    "\1\30\14\3\1\31\2\3\1\32\4\3\1\33\1\34"+
+    "\2\3\1\35\1\3\1\36\1\37\7\3\1\40\1\3"+
+    "\1\41\2\3\1\42\2\3\1\43";
 
   private static int [] zzUnpackAction() {
     int [] result = new int[106];
@@ -586,147 +586,143 @@ public class JSGraphQLEndpointLexer implements FlexLexer {
           case 1: 
             { return com.intellij.psi.TokenType.BAD_CHARACTER;
             }
-          case 37: break;
+          case 36: break;
           case 2: 
             { return com.intellij.psi.TokenType.WHITE_SPACE;
             }
-          case 38: break;
+          case 37: break;
           case 3: 
             { return IDENTIFIER;
             }
-          case 39: break;
+          case 38: break;
           case 4: 
             { return NUMBER;
             }
-          case 40: break;
+          case 39: break;
           case 5: 
-            { return AT;
+            { return AT_ANNOTATION;
             }
-          case 41: break;
+          case 40: break;
           case 6: 
             { return LINE_COMMENT;
             }
-          case 42: break;
+          case 41: break;
           case 7: 
             { return LPAREN;
             }
-          case 43: break;
+          case 42: break;
           case 8: 
             { return RPAREN;
             }
-          case 44: break;
+          case 43: break;
           case 9: 
             { return LBRACE;
             }
-          case 45: break;
+          case 44: break;
           case 10: 
             { return RBRACE;
             }
-          case 46: break;
+          case 45: break;
           case 11: 
             { return LBRACKET;
             }
-          case 47: break;
+          case 46: break;
           case 12: 
             { return RBRACKET;
             }
-          case 48: break;
+          case 47: break;
           case 13: 
             { return COMMA;
             }
-          case 49: break;
+          case 48: break;
           case 14: 
             { return COLON;
             }
-          case 50: break;
+          case 49: break;
           case 15: 
             { return EQUALS;
             }
-          case 51: break;
+          case 50: break;
           case 16: 
             { return PIPE;
             }
-          case 52: break;
+          case 51: break;
           case 17: 
             { return REQUIRED;
             }
-          case 53: break;
+          case 52: break;
           case 18: 
             { pushState(STRING); return OPEN_QUOTE;
             }
-          case 54: break;
+          case 53: break;
           case 19: 
             { return STRING_BODY;
             }
-          case 55: break;
+          case 54: break;
           case 20: 
             { popState(); return com.intellij.psi.TokenType.BAD_CHARACTER;
             }
-          case 56: break;
+          case 55: break;
           case 21: 
             { popState(); return CLOSING_QUOTE;
             }
-          case 57: break;
+          case 56: break;
           case 22: 
-            { return AT_ANNOTATION;
-            }
-          case 58: break;
-          case 23: 
             { return TYPE;
             }
-          case 59: break;
-          case 24: 
+          case 57: break;
+          case 23: 
             { return TRUE;
             }
-          case 60: break;
-          case 25: 
+          case 58: break;
+          case 24: 
             { return ENUM;
             }
-          case 61: break;
-          case 26: 
+          case 59: break;
+          case 25: 
             { return INPUT;
             }
-          case 62: break;
-          case 27: 
+          case 60: break;
+          case 26: 
             { return FALSE;
             }
-          case 63: break;
-          case 28: 
+          case 61: break;
+          case 27: 
             { return UNION;
             }
-          case 64: break;
-          case 29: 
+          case 62: break;
+          case 28: 
             { return QUERY;
             }
-          case 65: break;
-          case 30: 
+          case 63: break;
+          case 29: 
             { return IMPORT;
             }
-          case 66: break;
-          case 31: 
+          case 64: break;
+          case 30: 
             { return SCALAR;
             }
-          case 67: break;
-          case 32: 
+          case 65: break;
+          case 31: 
             { return SCHEMA;
             }
-          case 68: break;
-          case 33: 
+          case 66: break;
+          case 32: 
             { return MUTATION;
             }
-          case 69: break;
-          case 34: 
+          case 67: break;
+          case 33: 
             { return INTERFACE;
             }
-          case 70: break;
-          case 35: 
+          case 68: break;
+          case 34: 
             { return IMPLEMENTS;
             }
-          case 71: break;
-          case 36: 
+          case 69: break;
+          case 35: 
             { return SUBSCRIPTION;
             }
-          case 72: break;
+          case 70: break;
           default:
             zzScanError(ZZ_NO_MATCH);
           }

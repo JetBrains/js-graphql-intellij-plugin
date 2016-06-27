@@ -23,6 +23,11 @@ public class JSGraphQLEndpointParserTest extends ParsingTestCase {
         doTest(true);
     }
 
+    @Test
+    public void testErrorRecoveryTestData1() {
+        doTest(true);
+    }
+
     @Override
     protected String getTestDataPath() {
         return "test-resources/testData/endpoint";

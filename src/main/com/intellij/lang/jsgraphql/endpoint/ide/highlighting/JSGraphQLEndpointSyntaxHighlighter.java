@@ -12,12 +12,13 @@ import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighter;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypesSets;
 import com.intellij.lang.jsgraphql.endpoint.lexer.JSGraphQLEndpointLexer;
+import com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighter;
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
+import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
@@ -41,6 +42,7 @@ public class JSGraphQLEndpointSyntaxHighlighter extends SyntaxHighlighterBase {
 		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LBRACKET, JSGraphQLSyntaxHighlighter.BRACKET);
 		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.RBRACKET, JSGraphQLSyntaxHighlighter.BRACKET);
 		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LINE_COMMENT, JSGraphQLSyntaxHighlighter.COMMENT);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.AT_ANNOTATION, DefaultLanguageHighlighterColors.METADATA);
 	}
 
 	@NotNull

@@ -34,14 +34,14 @@ public class JSGraphQSpecLexerTest extends LexerTestCase {
 	}
 
 	public void testStringTermination() {
-		doTest("import \"foo\ntype Bar", "IMPORT ('import')\n" +
+		doTest("import \"foo\ntype Bar", "import ('import')\n" +
 				"WHITE_SPACE (' ')\n" +
 				"OPEN_QUOTE ('\"')\n" +
 				"STRING_BODY ('foo')\n" +
 				"BAD_CHARACTER ('\\n')\n" +
 				"type ('type')\n" +
 				"WHITE_SPACE (' ')\n" +
-				"IDENTIFIER ('Bar')");
+				"identifier ('Bar')");
 	}
 
 	private String getTestResource(String name) throws IOException {
