@@ -4,6 +4,7 @@ package com.intellij.lang.jsgraphql.endpoint.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNameIdentifierOwner;
 
 public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
 
@@ -32,7 +33,7 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitEnumTypeDefinition(@NotNull JSGraphQLEndpointEnumTypeDefinition o) {
-    visitPsiElement(o);
+    visitNamedTypeDefinition(o);
   }
 
   public void visitEnumValueDefinition(@NotNull JSGraphQLEndpointEnumValueDefinition o) {
@@ -60,11 +61,11 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitImportFileReference(@NotNull JSGraphQLEndpointImportFileReference o) {
-    visitPsiElement(o);
+    visitPsiNameIdentifierOwner(o);
   }
 
   public void visitInputObjectTypeDefinition(@NotNull JSGraphQLEndpointInputObjectTypeDefinition o) {
-    visitPsiElement(o);
+    visitNamedTypeDefinition(o);
   }
 
   public void visitInputValueDefinition(@NotNull JSGraphQLEndpointInputValueDefinition o) {
@@ -76,7 +77,7 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitInterfaceTypeDefinition(@NotNull JSGraphQLEndpointInterfaceTypeDefinition o) {
-    visitPsiElement(o);
+    visitNamedTypeDefinition(o);
   }
 
   public void visitListType(@NotNull JSGraphQLEndpointListType o) {
@@ -100,7 +101,7 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitObjectTypeDefinition(@NotNull JSGraphQLEndpointObjectTypeDefinition o) {
-    visitPsiElement(o);
+    visitNamedTypeDefinition(o);
   }
 
   public void visitOperationTypeDefinition(@NotNull JSGraphQLEndpointOperationTypeDefinition o) {
@@ -120,7 +121,7 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitScalarTypeDefinition(@NotNull JSGraphQLEndpointScalarTypeDefinition o) {
-    visitPsiElement(o);
+    visitNamedTypeDefinition(o);
   }
 
   public void visitSchemaDefinition(@NotNull JSGraphQLEndpointSchemaDefinition o) {
@@ -136,7 +137,15 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitUnionTypeDefinition(@NotNull JSGraphQLEndpointUnionTypeDefinition o) {
+    visitNamedTypeDefinition(o);
+  }
+
+  public void visitNamedTypeDefinition(@NotNull JSGraphQLEndpointNamedTypeDefinition o) {
     visitPsiElement(o);
+  }
+
+  public void visitPsiNameIdentifierOwner(@NotNull PsiNameIdentifierOwner o) {
+    visitElement(o);
   }
 
   public void visitPsiElement(@NotNull PsiElement o) {

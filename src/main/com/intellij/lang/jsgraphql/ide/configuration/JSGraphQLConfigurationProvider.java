@@ -27,6 +27,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
@@ -48,6 +49,7 @@ public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
 
     private final static Logger log = Logger.getInstance(JSGraphQLConfigurationProvider.class);
     private final static Key<String> GRAPHQL_CONFIG_BASE_DIR_URL = Key.create("jsgraphql.config.baseDir");
+    private final static Key<String> GRAPHQL_CONFIG_ENDPOINT_ENTRY_FILE_URL = Key.create("jsgraphql.config.entryDir");
 
     public static final String GRAPHQL_CONFIG_JSON = "graphql.config.json";
     public static final String GRAPHQL_DEFAULT_SCHEMA = "graphql.schema.json";
@@ -106,6 +108,28 @@ public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
 
     public boolean hasGraphQLConfig() {
         return getGraphQLConfigFile() != null;
+    }
+
+    public VirtualFile getEndpointEntryFile() {
+        final String entryFileUrl = myProject.getUserData(GRAPHQL_CONFIG_ENDPOINT_ENTRY_FILE_URL);
+        if(entryFileUrl != null) {
+            return VirtualFileManager.getInstance().findFileByUrl(entryFileUrl);
+        }
+        final VirtualFile configFile = getGraphQLConfigFile();
+        if(configFile != null) {
+            final JSGraphQLConfiguration configuration = getConfiguration(configFile);
+            if (configuration != null && configuration.schema != null && configuration.schema.endpoint != null) {
+                final String entryRelativeFileName = configuration.schema.endpoint.entry;
+                if(StringUtil.isNotEmpty(entryRelativeFileName) && configFile.getParent() != null) {
+                    final VirtualFile entryFile = configFile.getParent().findFileByRelativePath(entryRelativeFileName);
+                    if(entryFile != null) {
+                        myProject.putUserData(GRAPHQL_CONFIG_ENDPOINT_ENTRY_FILE_URL, entryFile.getUrl());
+                        return entryFile;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public VirtualFile getOrCreateFile(String name) {
@@ -207,6 +231,7 @@ public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
                     myProject.getMessageBus().syncPublisher(JSGraphQLConfigurationListener.TOPIC).onEndpointsChanged(endpoints);
 
                 }
+                myProject.putUserData(GRAPHQL_CONFIG_ENDPOINT_ENTRY_FILE_URL, null);
             }
         }
     }

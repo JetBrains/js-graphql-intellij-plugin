@@ -40,10 +40,10 @@ import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointImportFileRefer
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputObjectTypeDefinition;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinitions;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInterfaceTypeDefinition;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDef;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointObjectTypeDefinition;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointOperationTypeDefinitionSet;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointProperty;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiUtil;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointQuotedString;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointUnionTypeDefinition;
 import com.intellij.lang.jsgraphql.endpoint.psi.impl.JSGraphQLEndpointImplementsInterfacesImpl;
@@ -61,6 +61,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.GlobalSearchScopesCore;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -162,7 +163,7 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 			final TokenSet skipping = TokenSet.create(JSGraphQLEndpointTokenTypes.IDENTIFIER, JSGraphQLEndpointTokenTypes.COMMA);
 			final PsiElement implementsBefore = findPreviousLeaf(completionElement, JSGraphQLEndpointTokenTypes.IMPLEMENTS, skipping);
 			if (implementsBefore != null) {
-				final List<String> availableInterfaceNames = getAvailableInterfaceNames(implementsBefore);
+				final Collection<String> availableInterfaceNames = getAvailableInterfaceNames(implementsBefore);
 				for (String name : availableInterfaceNames) {
 					LookupElementBuilder element = LookupElementBuilder.create(name);
 					result.addElement(element);
@@ -188,11 +189,34 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 	private boolean completeImportFile(@NotNull CompletionResultSet result, PsiFile file, PsiElement parent) {
 		if (parent instanceof JSGraphQLEndpointQuotedString && parent.getParent() instanceof JSGraphQLEndpointImportFileReference) {
 
-			final Collection<VirtualFile> files = FileTypeIndex.getFiles(JSGraphQLEndpointFileType.INSTANCE, GlobalSearchScope.projectScope(file.getProject()));
+			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(file.getProject()).getEndpointEntryFile();
+			final VirtualFile entryFileDir = entryFile != null ? entryFile.getParent() : null;
+			final GlobalSearchScope scope;
+			if(entryFile != null) {
+				scope = GlobalSearchScopesCore.directoriesScope(file.getProject(), true,  entryFile.getParent());
+			} else {
+				scope = GlobalSearchScope.projectScope(file.getProject());
+			}
+			final Collection<VirtualFile> files = FileTypeIndex.getFiles(JSGraphQLEndpointFileType.INSTANCE, scope);
 			for (VirtualFile virtualFile : files) {
+				if(virtualFile.equals(entryFile)) {
+					// entry file should never be imported
+					continue;
+				}
 				final PsiFile psiFile = PsiManager.getInstance(file.getProject()).findFile(virtualFile);
 				if (psiFile != null) {
-					final String name = StringUtils.substringBeforeLast(psiFile.getName(), ".");
+					if(psiFile.equals(file)) {
+						// don't suggest the current file
+						continue;
+					}
+					String name = StringUtils.substringBeforeLast(psiFile.getName(), ".");
+					if(entryFileDir != null) {
+						VirtualFile parentDir = virtualFile.getParent();
+						while(parentDir != null && !parentDir.equals(entryFileDir)) {
+							name = parentDir.getName() + '/' + name;
+							parentDir = parentDir.getParent();
+						}
+					}
 					result.addElement(LookupElementBuilder.create(name).withIcon(psiFile.getIcon(0)));
 				}
 			}
@@ -215,9 +239,12 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 			}
 
 			for (String keyword : TOP_LEVEL_KEYWORDS) {
-				LookupElementBuilder element = LookupElementBuilder.create(keyword)
-						.withBoldness(true)
-						.withInsertHandler(AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP);
+				LookupElementBuilder element = LookupElementBuilder.create(keyword).withBoldness(true);
+				if(keyword.equals(JSGraphQLEndpointTokenTypes.IMPORT.toString())) {
+					element = element.withInsertHandler(JSGraphQLEndpointImportInsertHandler.INSTANCE_WITH_AUTO_POPUP);
+				} else {
+					element = element.withInsertHandler(AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP);
+				}
 				result.addElement(element);
 			}
 
@@ -255,7 +282,7 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 			final boolean isInsideInputType = inputObjectTypeDefinition != null;
 			if (isInsideInputValueDefinitions || isInsideInputType) {
 				// argument (input) or input type definition
-				final List<String> knownInputTypeNames = getKnownInputTypeNames(completionElement);
+				final Collection<String> knownInputTypeNames = getKnownInputTypeNames(completionElement);
 				if(isInsideInputType) {
 					// input types can only refer to other input types: http://facebook.github.io/graphql/#sec-Input-Objects
 					if(inputObjectTypeDefinition.getNamedTypeDef() != null) {
@@ -427,8 +454,8 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		return false;
 	}
 
-	private List<String> getAvailableInterfaceNames(PsiElement implementsToken) {
-		final List<String> available = getKnownInterfaceNames(implementsToken);
+	private Collection<String> getAvailableInterfaceNames(PsiElement implementsToken) {
+		final Collection<String> available = getKnownInterfaceNames(implementsToken);
 		final JSGraphQLEndpointImplementsInterfacesImpl implementsInterfaces = PsiTreeUtil.getParentOfType(implementsToken, JSGraphQLEndpointImplementsInterfacesImpl.class);
 		if (implementsInterfaces != null) {
 			final List<String> currentInterfaces = implementsInterfaces.getNamedTypeList().stream().map(type -> type.getIdentifier().getText()).collect(Collectors.toList());
@@ -437,65 +464,25 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		return available;
 	}
 
-	private List<String> getKnownInterfaceNames(PsiElement element) {
-		final List<String> known = Lists.newArrayList();
-		final Collection<JSGraphQLEndpointInterfaceTypeDefinition> interfaceTypeDefinitions = PsiTreeUtil.findChildrenOfType(element.getContainingFile(), JSGraphQLEndpointInterfaceTypeDefinition.class);
-		for (JSGraphQLEndpointInterfaceTypeDefinition interfaceTypeDefinition : interfaceTypeDefinitions) {
-			final JSGraphQLEndpointNamedTypeDef namedTypeDef = interfaceTypeDefinition.getNamedTypeDef();
-			if (namedTypeDef != null) {
-				known.add(namedTypeDef.getIdentifier().getText());
-			}
-		}
-		return known; // TODO: Support multiple files via imports
+	private Collection<String> getKnownInterfaceNames(PsiElement element) {
+		return JSGraphQLEndpointPsiUtil.getKnownDefinitionNames(element.getContainingFile(), JSGraphQLEndpointInterfaceTypeDefinition.class);
 	}
 
-	private List<String> getKnownTypeNames(PsiElement element) {
-		final List<String> known = Lists.newArrayList();
-		final Collection<JSGraphQLEndpointObjectTypeDefinition> typeDefinitions = PsiTreeUtil.findChildrenOfType(element.getContainingFile(), JSGraphQLEndpointObjectTypeDefinition.class);
-		for (JSGraphQLEndpointObjectTypeDefinition interfaceTypeDefinition : typeDefinitions) {
-			final JSGraphQLEndpointNamedTypeDef namedTypeDef = interfaceTypeDefinition.getNamedTypeDef();
-			if (namedTypeDef != null) {
-				known.add(namedTypeDef.getIdentifier().getText());
-			}
-		}
-		return known; // TODO: Support multiple files via imports
+	private Collection<String> getKnownTypeNames(PsiElement element) {
+		return JSGraphQLEndpointPsiUtil.getKnownDefinitionNames(element.getContainingFile(), JSGraphQLEndpointObjectTypeDefinition.class);
 	}
 
-	private List<String> getKnownInputTypeNames(PsiElement element) {
-		final List<String> known = Lists.newArrayList();
-		final Collection<JSGraphQLEndpointInputObjectTypeDefinition> interfaceTypeDefinitions = PsiTreeUtil.findChildrenOfType(element.getContainingFile(), JSGraphQLEndpointInputObjectTypeDefinition.class);
-		for (JSGraphQLEndpointInputObjectTypeDefinition interfaceTypeDefinition : interfaceTypeDefinitions) {
-			final JSGraphQLEndpointNamedTypeDef namedTypeDef = interfaceTypeDefinition.getNamedTypeDef();
-			if (namedTypeDef != null) {
-				known.add(namedTypeDef.getIdentifier().getText());
-			}
-		}
-		return known; // TODO: Support multiple files via imports
+	private Collection<String> getKnownInputTypeNames(PsiElement element) {
+		return JSGraphQLEndpointPsiUtil.getKnownDefinitionNames(element.getContainingFile(), JSGraphQLEndpointInputObjectTypeDefinition.class);
 	}
 
-	private List<String> getKnownEnumTypeNames(PsiElement element) {
-		final List<String> known = Lists.newArrayList();
-		final Collection<JSGraphQLEndpointEnumTypeDefinition> interfaceTypeDefinitions = PsiTreeUtil.findChildrenOfType(element.getContainingFile(), JSGraphQLEndpointEnumTypeDefinition.class);
-		for (JSGraphQLEndpointEnumTypeDefinition definition : interfaceTypeDefinitions) {
-			final JSGraphQLEndpointNamedTypeDef namedTypeDef = definition.getNamedTypeDef();
-			if (namedTypeDef != null) {
-				known.add(namedTypeDef.getIdentifier().getText());
-			}
-		}
-		return known; // TODO: Support multiple files via imports
+	private Collection<String> getKnownEnumTypeNames(PsiElement element) {
+		return JSGraphQLEndpointPsiUtil.getKnownDefinitionNames(element.getContainingFile(), JSGraphQLEndpointEnumTypeDefinition.class);
 	}
 
 
-	private List<String> getKnownUnionTypeNames(PsiElement element) {
-		final List<String> known = Lists.newArrayList();
-		final Collection<JSGraphQLEndpointUnionTypeDefinition> interfaceTypeDefinitions = PsiTreeUtil.findChildrenOfType(element.getContainingFile(), JSGraphQLEndpointUnionTypeDefinition.class);
-		for (JSGraphQLEndpointUnionTypeDefinition definition : interfaceTypeDefinitions) {
-			final JSGraphQLEndpointNamedTypeDef namedTypeDef = definition.getNamedTypeDef();
-			if (namedTypeDef != null) {
-				known.add(namedTypeDef.getIdentifier().getText());
-			}
-		}
-		return known; // TODO: Support multiple files via imports
+	private Collection<String> getKnownUnionTypeNames(PsiElement element) {
+		return JSGraphQLEndpointPsiUtil.getKnownDefinitionNames(element.getContainingFile(), JSGraphQLEndpointUnionTypeDefinition.class);
 	}
 
 	private PsiElement findPreviousLeaf(PsiElement start, IElementType typeToFind, TokenSet skipping) {

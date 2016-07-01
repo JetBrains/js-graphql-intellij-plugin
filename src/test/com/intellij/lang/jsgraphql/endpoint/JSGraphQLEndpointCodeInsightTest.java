@@ -25,9 +25,11 @@ public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTes
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
+		myFixture.addFileToProject("main.graphqle", "");
 		myFixture.addFileToProject(JSGraphQLConfigurationProvider.GRAPHQL_CONFIG_JSON, "{\n" +
 				"    \"schema\": {\n" +
 				"        \"endpoint\": {\n" +
+				"            \"entry\" : \"main.graphqle\",\n" +
 				"            \"annotations\": [\n" +
 				"                {\n" +
 				"                    \"name\": \"DataFetcher\",\n" +
@@ -144,6 +146,13 @@ public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTes
 	@Test
 	public void testCompletionFieldOverride() {
 		doTestCompletion("CompletionFieldOverride.graphqle", Lists.newArrayList("fieldToImpl2: Boolean"));
+	}
+
+	@Test
+	public void testCompletionImportFiles() {
+		myFixture.addFileToProject("folder/import1.graphqle", "");
+		myFixture.addFileToProject("import2.graphqle", "");
+		doTestCompletion("CompletionImportFiles.graphqle", Lists.newArrayList("folder/import1", "import2"));
 	}
 
 	private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {

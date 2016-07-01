@@ -116,8 +116,10 @@
 
     <!-- Find usages -->
     <lang.findUsagesProvider language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.findUsages.JSGraphQLFindUsagesProvider" />
+    <lang.findUsagesProvider language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.findUsages.JSGraphQLEndpointFindUsagesProvider" />
     <usageTypeProvider implementation="com.intellij.lang.jsgraphql.ide.findUsages.JSGraphQLUsageTypeProvider" />
     <findUsagesHandlerFactory id="GraphQL" implementation="com.intellij.lang.jsgraphql.ide.findUsages.JSGraphQLFindUsagesHandlerFactory"/>
+    <findUsagesHandlerFactory id="GraphQL Endpoint" implementation="com.intellij.lang.jsgraphql.endpoint.ide.findUsages.JSGraphQLEndpointFindUsagesHandlerFactory"/>
 
 
     <!-- Renaming -->

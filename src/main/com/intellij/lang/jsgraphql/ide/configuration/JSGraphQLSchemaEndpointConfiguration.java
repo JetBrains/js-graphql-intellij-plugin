@@ -13,6 +13,8 @@ import com.google.common.collect.Lists;
 
 public class JSGraphQLSchemaEndpointConfiguration {
 
+	public String entry;
+
 	public List<JSGraphQLSchemaEndpointAnnotation> annotations = Lists.newArrayList();
 
 }

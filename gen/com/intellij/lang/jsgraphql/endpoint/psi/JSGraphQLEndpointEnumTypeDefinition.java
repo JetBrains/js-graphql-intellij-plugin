@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface JSGraphQLEndpointEnumTypeDefinition extends PsiElement {
+public interface JSGraphQLEndpointEnumTypeDefinition extends JSGraphQLEndpointNamedTypeDefinition {
 
   @Nullable
   JSGraphQLEndpointEnumValueDefinitionSet getEnumValueDefinitionSet();

@@ -8,10 +8,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes.*;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiElement;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefPsiElement;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 
-public class JSGraphQLEndpointNamedTypeDefImpl extends JSGraphQLEndpointPsiElement implements JSGraphQLEndpointNamedTypeDef {
+public class JSGraphQLEndpointNamedTypeDefImpl extends JSGraphQLEndpointNamedTypeDefPsiElement implements JSGraphQLEndpointNamedTypeDef {
 
   public JSGraphQLEndpointNamedTypeDefImpl(ASTNode node) {
     super(node);

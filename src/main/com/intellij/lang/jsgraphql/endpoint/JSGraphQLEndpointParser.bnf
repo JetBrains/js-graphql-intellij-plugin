@@ -77,7 +77,7 @@ private Definition ::=
 
 private RecoverDefinition ::= !(TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA)
 
-ObjectTypeDefinition ::= TYPE NamedTypeDef ImplementsInterfaces? FieldDefinitionSet {pin=1}
+ObjectTypeDefinition ::= TYPE NamedTypeDef ImplementsInterfaces? FieldDefinitionSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
 ImplementsInterfaces ::= IMPLEMENTS NamedType CommaNamedType*  {pin=1}
 
@@ -117,9 +117,9 @@ NamedAnnotationArgument ::= identifier EQUALS AnnotationArgumentValue {pin=1 rec
 
 private RecoverNamedAnnotationArgument ::= !(COMMA | RPAREN)
 
-NamedType ::= identifier
+NamedType ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypePsiElement"}
 
-NamedTypeDef ::= identifier
+NamedTypeDef ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefPsiElement"}
 
 CompositeType ::= ListType | (NamedType REQUIRED?)
 
@@ -127,11 +127,11 @@ ListType ::= LBRACKET NamedType RBRACKET {pin=1}
 
 Property ::= identifier
 
-InterfaceTypeDefinition ::= INTERFACE NamedTypeDef FieldDefinitionSet {pin=1}
+InterfaceTypeDefinition ::= INTERFACE NamedTypeDef FieldDefinitionSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
-InputObjectTypeDefinition ::= INPUT NamedTypeDef FieldDefinitionSet {pin=1}
+InputObjectTypeDefinition ::= INPUT NamedTypeDef FieldDefinitionSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
-EnumTypeDefinition ::= ENUM NamedTypeDef EnumValueDefinitionSet {pin=1}
+EnumTypeDefinition ::= ENUM NamedTypeDef EnumValueDefinitionSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
 EnumValueDefinitionSet ::= LBRACE EnumValueDefinition CommaEnumValueDefinition* RBRACE {pin=1}
 
@@ -141,7 +141,7 @@ private RecoverCommaEnumValueDefinition ::= !(RBRACE | COMMA | TYPE | INTERFACE 
 
 EnumValueDefinition ::= identifier
 
-UnionTypeDefinition ::= UNION NamedTypeDef EQUALS UnionMemberSet {pin=1}
+UnionTypeDefinition ::= UNION NamedTypeDef EQUALS UnionMemberSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
 UnionMemberSet ::= UnionMember PipeUnionMember*
 
@@ -149,11 +149,11 @@ private PipeUnionMember ::= PIPE UnionMember {pin=1}
 
 UnionMember ::= identifier
 
-ScalarTypeDefinition ::= SCALAR NamedTypeDef {pin=1}
+ScalarTypeDefinition ::= SCALAR NamedTypeDef {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
 ImportDeclaration ::= IMPORT ImportFileReference {pin=1}
 
-ImportFileReference ::= QuotedString
+ImportFileReference ::= QuotedString {implements="com.intellij.psi.PsiNameIdentifierOwner" mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointImportFileReferencePsiElement"}
 
 SchemaDefinition ::= SCHEMA OperationTypeDefinitionSet {pin=1}
 
