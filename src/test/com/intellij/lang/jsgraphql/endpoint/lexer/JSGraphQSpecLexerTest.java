@@ -45,6 +45,6 @@ public class JSGraphQSpecLexerTest extends LexerTestCase {
 	}
 
 	private String getTestResource(String name) throws IOException {
-		return Resources.toString(Resources.getResource(this.getClass(), "/testData/endpoint/" + name), Charset.forName("ISO-8859-1"));
+		return Resources.toString(Resources.getResource(this.getClass(), "/testData/endpoint/" + name), Charset.forName("ISO-8859-1")).replace("\r\n", "\n");
 	}
 }

@@ -62,7 +62,12 @@ public class JSGraphQLEndpointNamedTypePsiElement extends JSGraphQLEndpointPsiEl
 				@Nullable
 				@Override
 				public PsiElement resolve() {
-					final Collection<JSGraphQLEndpointNamedTypeDefinition> definitions = JSGraphQLEndpointPsiUtil.getKnownDefinitions(self.getContainingFile(), JSGraphQLEndpointNamedTypeDefinition.class);
+					final Collection<JSGraphQLEndpointNamedTypeDefinition> definitions = JSGraphQLEndpointPsiUtil.getKnownDefinitions(
+							self.getContainingFile(),
+							JSGraphQLEndpointNamedTypeDefinition.class,
+							false,
+							null
+					);
 					final JSGraphQLEndpointNamedTypeDefinition resolvedElement = definitions.stream()
 							.filter(d -> d.getNamedTypeDef() != null && d.getNamedTypeDef().getText().equals(nameIdentifier.getText()))
 							.findFirst().orElse(null);

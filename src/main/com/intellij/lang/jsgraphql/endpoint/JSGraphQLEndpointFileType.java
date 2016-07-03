@@ -26,13 +26,13 @@ public class JSGraphQLEndpointFileType extends LanguageFileType {
     @NotNull
     @Override
     public String getName() {
-        return "GraphQL Endpoint Specification";
+        return "GraphQL Endpoint";
     }
 
     @NotNull
     @Override
     public String getDescription() {
-        return "GraphQL Endpoint Specification file";
+        return "GraphQL Endpoint file";
     }
 
     @NotNull

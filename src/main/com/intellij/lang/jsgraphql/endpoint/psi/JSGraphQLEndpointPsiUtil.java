@@ -7,23 +7,50 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.psi;
 
+import com.google.common.collect.Sets;
+import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
+import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
+import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.SourceTreeToPsiMap;
+import com.intellij.psi.impl.source.tree.Factory;
+import com.intellij.psi.impl.source.tree.LeafElement;
+import com.intellij.psi.search.FileTypeIndex;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.GlobalSearchScopesCore;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Sets;
-import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiNameIdentifierOwner;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.impl.source.SourceTreeToPsiMap;
-import com.intellij.psi.impl.source.tree.Factory;
-import com.intellij.psi.impl.source.tree.LeafElement;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.IncorrectOperationException;
-
 public class JSGraphQLEndpointPsiUtil {
+
+	/**
+	 * Creates a search scope for finding import files based on the endpoint entry file, falling back to
+	 * project scope in case no entry file has been configured.
+	 * @param project      project to search
+	 * @param entryFile    the entry file, or null to look it up
+     */
+	@NotNull
+	public static GlobalSearchScope getImportScopeFromEntryFile(Project project, @Nullable VirtualFile entryFile) {
+		if(entryFile == null) {
+			entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile();
+		}
+		final GlobalSearchScope scope;
+		if(entryFile != null) {
+			scope = GlobalSearchScopesCore.directoriesScope(project, true, entryFile.getParent());
+		} else {
+			scope = GlobalSearchScope.projectScope(project);
+		}
+		return scope;
+	}
 
 	/**
 	 * Gets known definitions, ie. those defined in the specified file, or included via an import.
@@ -31,8 +58,14 @@ public class JSGraphQLEndpointPsiUtil {
 	 *
 	 * @param file               the file to use as starting point
 	 * @param psiDefinitionClass class of definitions to get, e.g. object type definitions
+	 * @param includeAutoImportTypes whether to include types that are not currently imported, but can be made available using an auto-import
+     * @param importedFiles ref to add currently imported files to
 	 */
-	public static <T extends JSGraphQLEndpointNamedTypeDefinition> Collection<JSGraphQLEndpointNamedTypeDefinition> getKnownDefinitions(PsiFile file, Class<T> psiDefinitionClass) {
+	public static <T extends JSGraphQLEndpointNamedTypeDefinition> Collection<JSGraphQLEndpointNamedTypeDefinition> getKnownDefinitions(
+            PsiFile file,
+            Class<T> psiDefinitionClass,
+            boolean includeAutoImportTypes,
+            Ref<Collection<PsiFile>> importedFiles) {
 
 		final Set<JSGraphQLEndpointNamedTypeDefinition> definitions = Sets.newHashSet();
 
@@ -55,6 +88,21 @@ public class JSGraphQLEndpointPsiUtil {
 			}
 		}
 
+		if(importedFiles != null) {
+            importedFiles.set(Sets.newHashSet(files));
+        }
+
+		if(includeAutoImportTypes) {
+			final Collection<VirtualFile> knownFiles = FileTypeIndex.getFiles(JSGraphQLEndpointFileType.INSTANCE, getImportScopeFromEntryFile(file.getProject(), null));
+			final PsiManager psiManager = PsiManager.getInstance(file.getProject());
+			knownFiles.forEach(virtualFile ->{
+				final PsiFile psiFile = psiManager.findFile(virtualFile);
+				if(psiFile != null) {
+					files.add(psiFile);
+				}
+			});
+		}
+
 		for (PsiFile psiFile : files) {
 			final Collection<JSGraphQLEndpointNamedTypeDefinition> definitionElements = PsiTreeUtil.findChildrenOfType(psiFile, psiDefinitionClass);
 			for (JSGraphQLEndpointNamedTypeDefinition definition : definitionElements) {
@@ -71,10 +119,17 @@ public class JSGraphQLEndpointPsiUtil {
 	/**
 	 * Maps getKnownDefinitions to their corresponding names
 	 */
-	public static <T extends JSGraphQLEndpointNamedTypeDefinition> Collection<String> getKnownDefinitionNames(PsiFile file, Class<T> psiDefinitionClass) {
-		return getKnownDefinitions(file, psiDefinitionClass).stream()
+	public static <T extends JSGraphQLEndpointNamedTypeDefinition> Collection<JSGraphQLEndpointTypeResult> getKnownDefinitionNames(PsiFile file, Class<T> psiDefinitionClass, boolean autoImport) {
+        final Ref<Collection<PsiFile>> importedFiles = new Ref<>();
+        return getKnownDefinitions(file, psiDefinitionClass, autoImport, importedFiles).stream()
 				.filter(d -> d.getNamedTypeDef() != null)
-				.map(d -> d.getNamedTypeDef().getText())
+				.map(d -> {
+                    PsiFile fileToImport = d.getContainingFile();
+                    if(importedFiles.get().contains(fileToImport)) {
+                        fileToImport = null;
+                    }
+                    return new JSGraphQLEndpointTypeResult(d.getNamedTypeDef().getText(), fileToImport);
+                })
 				.collect(Collectors.toList());
 	}
 
