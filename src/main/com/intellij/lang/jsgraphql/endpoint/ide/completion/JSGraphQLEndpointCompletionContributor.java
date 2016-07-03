@@ -353,9 +353,11 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		if (typeDefinition != null) {
 			if (typeDefinition.getImplementsInterfaces() != null) {
 				final Set<String> implementsNames = typeDefinition.getImplementsInterfaces().getNamedTypeList().stream().map(t -> t.getIdentifier().getText()).collect(Collectors.toSet());
-				// TODO: Find available interfaces in imported files
-				final Collection<JSGraphQLEndpointInterfaceTypeDefinition> interfaceTypeDefinitions = PsiTreeUtil.findChildrenOfType(
-						fieldDefinitionSet.getContainingFile(), JSGraphQLEndpointInterfaceTypeDefinition.class
+				final Collection<JSGraphQLEndpointInterfaceTypeDefinition> interfaceTypeDefinitions = JSGraphQLEndpointPsiUtil.getKnownDefinitions(
+						fieldDefinitionSet.getContainingFile(),
+						JSGraphQLEndpointInterfaceTypeDefinition.class,
+						false,
+						null
 				);
 				final Set<String> currentFieldNames = fieldDefinitionSet.getFieldDefinitionList().stream().map(f -> f.getProperty().getText()).collect(Collectors.toSet());
 				for (JSGraphQLEndpointInterfaceTypeDefinition interfaceTypeDefinition : interfaceTypeDefinitions) {

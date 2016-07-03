@@ -154,6 +154,34 @@
     <!-- Search (find implementations etc.) -->
     <definitionsSearch implementation="com.intellij.lang.jsgraphql.schema.ide.search.JSGraphQLDefinitionsSearchExecutor"/>
 
+
+    <!-- Create type definition intentions -->
+    <intentionAction>
+      <className>com.intellij.lang.jsgraphql.endpoint.ide.intentions.JSGraphQLEndpointCreateObjectTypeIntention</className>
+      <category>GraphQL</category>
+    </intentionAction>
+    <intentionAction>
+      <className>com.intellij.lang.jsgraphql.endpoint.ide.intentions.JSGraphQLEndpointCreateInterfaceTypeIntention</className>
+      <category>GraphQL</category>
+    </intentionAction>
+    <intentionAction>
+      <className>com.intellij.lang.jsgraphql.endpoint.ide.intentions.JSGraphQLEndpointCreateEnumTypeIntention</className>
+      <category>GraphQL</category>
+    </intentionAction>
+    <intentionAction>
+      <className>com.intellij.lang.jsgraphql.endpoint.ide.intentions.JSGraphQLEndpointCreateInputTypeIntention</className>
+      <category>GraphQL</category>
+    </intentionAction>
+    <intentionAction>
+      <className>com.intellij.lang.jsgraphql.endpoint.ide.intentions.JSGraphQLEndpointCreateScalarTypeIntention</className>
+      <category>GraphQL</category>
+    </intentionAction>
+    <intentionAction>
+      <className>com.intellij.lang.jsgraphql.endpoint.ide.intentions.JSGraphQLEndpointCreateUnionTypeIntention</className>
+      <category>GraphQL</category>
+    </intentionAction>
+
+
   </extensions>
 
   <actions>

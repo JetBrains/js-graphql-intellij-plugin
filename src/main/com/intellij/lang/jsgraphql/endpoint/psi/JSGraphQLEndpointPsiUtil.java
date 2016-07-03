@@ -61,13 +61,13 @@ public class JSGraphQLEndpointPsiUtil {
 	 * @param includeAutoImportTypes whether to include types that are not currently imported, but can be made available using an auto-import
      * @param importedFiles ref to add currently imported files to
 	 */
-	public static <T extends JSGraphQLEndpointNamedTypeDefinition> Collection<JSGraphQLEndpointNamedTypeDefinition> getKnownDefinitions(
+	public static <T extends JSGraphQLEndpointNamedTypeDefinition> Collection<T> getKnownDefinitions(
             PsiFile file,
             Class<T> psiDefinitionClass,
             boolean includeAutoImportTypes,
             Ref<Collection<PsiFile>> importedFiles) {
 
-		final Set<JSGraphQLEndpointNamedTypeDefinition> definitions = Sets.newHashSet();
+		final Set<T> definitions = Sets.newHashSet();
 
 		final Set<PsiFile> files = Sets.newHashSet(file);
 		final JSGraphQLEndpointImportDeclaration[] importDeclarations = PsiTreeUtil.getChildrenOfType(file, JSGraphQLEndpointImportDeclaration.class);
@@ -104,8 +104,8 @@ public class JSGraphQLEndpointPsiUtil {
 		}
 
 		for (PsiFile psiFile : files) {
-			final Collection<JSGraphQLEndpointNamedTypeDefinition> definitionElements = PsiTreeUtil.findChildrenOfType(psiFile, psiDefinitionClass);
-			for (JSGraphQLEndpointNamedTypeDefinition definition : definitionElements) {
+			final Collection<T> definitionElements = PsiTreeUtil.findChildrenOfType(psiFile, psiDefinitionClass);
+			for (T definition : definitionElements) {
 				final JSGraphQLEndpointNamedTypeDef namedTypeDef = definition.getNamedTypeDef();
 				if (namedTypeDef != null) {
 					definitions.add(definition);
