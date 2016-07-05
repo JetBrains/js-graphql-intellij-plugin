@@ -25,7 +25,8 @@ public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTes
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
-		myFixture.addFileToProject("main.graphqle", "");
+		myFixture.addFileToProject("main.graphqle", "type MainType {}");
+		myFixture.addFileToProject("importable.graphqle", "type ImportableType {}");
 		myFixture.addFileToProject(JSGraphQLConfigurationProvider.GRAPHQL_CONFIG_JSON, "{\n" +
 				"    \"schema\": {\n" +
 				"        \"endpoint\": {\n" +
@@ -90,7 +91,7 @@ public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTes
 
 	@Test
 	public void testCompletionOperation() {
-		doTestCompletion("CompletionOperation.graphqle", Lists.newArrayList("enum", "import", "input", "interface", "schema", "type", "union"));
+		doTestCompletion("CompletionOperation.graphqle", Lists.newArrayList("enum", "import", "input", "interface", "scalar", "schema", "type", "union"));
 	}
 
 	@Test
@@ -152,7 +153,7 @@ public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTes
 	public void testCompletionImportFiles() {
 		myFixture.addFileToProject("folder/import1.graphqle", "");
 		myFixture.addFileToProject("import2.graphqle", "");
-		doTestCompletion("CompletionImportFiles.graphqle", Lists.newArrayList("folder/import1", "import2"));
+		doTestCompletion("CompletionImportFiles.graphqle", Lists.newArrayList("folder/import1", "import2", "importable"));
 	}
 
 	private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {
@@ -162,5 +163,13 @@ public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTes
 		assertEquals("Wrong completions", expectedCompletions, completions);
 	}
 
+
+	// ---- highlighting -----
+
+	@Test
+	public void testErrorAnnotator() {
+		myFixture.configureByFiles("ErrorAnnotator.graphqle");
+		myFixture.checkHighlighting(false, false, false);
+	}
 
 }

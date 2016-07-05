@@ -29,6 +29,7 @@
         INPUT='input'
         ENUM='enum'
         UNION='union'
+        SCALAR='scalar'
         SCHEMA='schema'
         QUERY='query'
         MUTATION='mutation'
@@ -123,7 +124,7 @@ NamedTypeDef ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSG
 
 CompositeType ::= ListType | (NamedType REQUIRED?)
 
-ListType ::= LBRACKET NamedType RBRACKET {pin=1}
+ListType ::= LBRACKET NamedType RBRACKET REQUIRED? {pin=1}
 
 Property ::= identifier
 

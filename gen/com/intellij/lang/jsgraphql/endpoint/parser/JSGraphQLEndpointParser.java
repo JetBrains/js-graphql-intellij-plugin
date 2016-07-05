@@ -585,7 +585,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // LBRACKET NamedType RBRACKET
+  // LBRACKET NamedType RBRACKET REQUIRED?
   public static boolean ListType(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "ListType")) return false;
     if (!nextTokenIs(b, LBRACKET)) return false;
@@ -594,9 +594,17 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     r = consumeToken(b, LBRACKET);
     p = r; // pin = 1
     r = r && report_error_(b, NamedType(b, l + 1));
-    r = p && consumeToken(b, RBRACKET) && r;
+    r = p && report_error_(b, consumeToken(b, RBRACKET)) && r;
+    r = p && ListType_3(b, l + 1) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  // REQUIRED?
+  private static boolean ListType_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "ListType_3")) return false;
+    consumeToken(b, REQUIRED);
+    return true;
   }
 
   /* ********************************************************** */

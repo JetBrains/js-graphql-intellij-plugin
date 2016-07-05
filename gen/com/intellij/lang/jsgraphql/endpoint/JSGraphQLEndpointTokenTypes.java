@@ -67,7 +67,7 @@ public interface JSGraphQLEndpointTokenTypes {
   IElementType RBRACKET = new JSGraphQLEndpointTokenType("]");
   IElementType REQUIRED = new JSGraphQLEndpointTokenType("!");
   IElementType RPAREN = new JSGraphQLEndpointTokenType(")");
-  IElementType SCALAR = new JSGraphQLEndpointTokenType("SCALAR");
+  IElementType SCALAR = new JSGraphQLEndpointTokenType("scalar");
   IElementType SCHEMA = new JSGraphQLEndpointTokenType("schema");
   IElementType STRING_BODY = new JSGraphQLEndpointTokenType("STRING_BODY");
   IElementType SUBSCRIPTION = new JSGraphQLEndpointTokenType("subscription");

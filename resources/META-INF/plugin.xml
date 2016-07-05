@@ -95,6 +95,7 @@
     <annotator language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLRelayTemplateAnnotator" /><!-- Using the JSX dialect overwrites the default annotator -->
     <annotator language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLRelayTemplateAnnotator" /><!-- Using the JSX dialect overwrites the default annotator -->
     <annotator language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.annotator.JSGraphQLEndpointHighlightAnnotator" />
+    <annotator language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.annotator.JSGraphQLEndpointErrorAnnotator" />
 
 
     <!-- Query context highlighter -->

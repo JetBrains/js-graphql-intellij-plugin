@@ -46,6 +46,7 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 			JSGraphQLEndpointTokenTypes.INPUT.toString(),
 			JSGraphQLEndpointTokenTypes.UNION.toString(),
 			JSGraphQLEndpointTokenTypes.ENUM.toString(),
+			JSGraphQLEndpointTokenTypes.SCALAR.toString(),
 			JSGraphQLEndpointTokenTypes.SCHEMA.toString()
 	);
 
