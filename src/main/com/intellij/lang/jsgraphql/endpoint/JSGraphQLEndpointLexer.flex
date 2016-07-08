@@ -26,6 +26,13 @@ import static com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes.*
         yybegin(myStateStack.pop());
     }
 
+    private IElementType keywordOrIdentifier(IElementType keyword) {
+        if(JSGraphQLEndpointLexerUtil.isKeywordAtPos(zzBuffer, zzMarkedPos)) {
+            return keyword;
+        }
+        return IDENTIFIER;
+    }
+
 
     public JSGraphQLEndpointLexer() {
         this((java.io.Reader)null);
@@ -45,7 +52,7 @@ WHITE_SPACE=({LINE_WS}|{EOL})+
 
 IDENTIFIER=[_A-Za-z][_0-9A-Za-z]*
 AT_ANNOTATION=@([_A-Za-z][_0-9A-Za-z]*)?
-NUMBER=-?[0-9]+(\.[0-9+])?
+NUMBER=-?[0-9]+(\.[0-9]+)?
 LINE_COMMENT=#.*
 
 %state STRING
@@ -54,10 +61,10 @@ LINE_COMMENT=#.*
 <YYINITIAL> {
   {WHITE_SPACE}       { return com.intellij.psi.TokenType.WHITE_SPACE; }
 
-  "type"              { return TYPE; }
+  "type"              { return keywordOrIdentifier(TYPE); }
+  "input"             { return keywordOrIdentifier(INPUT); }
   "interface"         { return INTERFACE; }
   "implements"        { return IMPLEMENTS; }
-  "input"             { return INPUT; }
   "enum"              { return ENUM; }
   "union"             { return UNION; }
   "("                 { return LPAREN; }

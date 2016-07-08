@@ -35,3 +35,27 @@ enum Enum {
 union Foo = A | B
 
 scalar Date
+
+type
+
+type Keywords {
+    type: Foo
+    type(arg: Foo): String
+    type(input: Foo): String
+    foo(input: Foo): String
+
+    # spaces
+    type : Foo
+    type (arg : Foo): String
+    type(input : Foo): String
+    input : String
+    input (foo: String): String
+
+}
+
+type
+
+type Another {
+    @DataFetcher(3.14159)
+    foo: String
+}
