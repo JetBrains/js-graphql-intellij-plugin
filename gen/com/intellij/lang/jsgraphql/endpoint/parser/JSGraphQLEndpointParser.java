@@ -113,6 +113,9 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     else if (t == SCHEMA_DEFINITION) {
       r = SchemaDefinition(b, 0);
     }
+    else if (t == STRING) {
+      r = String(b, 0);
+    }
     else if (t == UNION_MEMBER) {
       r = UnionMember(b, 0);
     }
@@ -772,7 +775,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // OPEN_QUOTE STRING_BODY? CLOSING_QUOTE
+  // OPEN_QUOTE String? CLOSING_QUOTE
   public static boolean QuotedString(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "QuotedString")) return false;
     if (!nextTokenIs(b, OPEN_QUOTE)) return false;
@@ -786,10 +789,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // STRING_BODY?
+  // String?
   private static boolean QuotedString_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "QuotedString_1")) return false;
-    consumeToken(b, STRING_BODY);
+    String(b, l + 1);
     return true;
   }
 
@@ -1025,6 +1028,18 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     r = r && OperationTypeDefinitionSet(b, l + 1);
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  /* ********************************************************** */
+  // STRING_BODY
+  public static boolean String(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "String")) return false;
+    if (!nextTokenIs(b, STRING_BODY)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, STRING_BODY);
+    exit_section_(b, m, STRING, r);
+    return r;
   }
 
   /* ********************************************************** */

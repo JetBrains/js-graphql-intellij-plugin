@@ -164,4 +164,6 @@ OperationTypeDefinition ::= (QUERY | MUTATION | SUBSCRIPTION) COLON NamedType {p
 
 private RecoverOperation ::= !(RBRACE | QUERY | MUTATION | SUBSCRIPTION)
 
-QuotedString ::= OPEN_QUOTE STRING_BODY? CLOSING_QUOTE {pin=1}
+QuotedString ::= OPEN_QUOTE String? CLOSING_QUOTE {pin=1}
+
+String ::= STRING_BODY {implements="com.intellij.psi.PsiLiteral" mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointStringLiteralPsiElement"}

@@ -7,15 +7,46 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.completion;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.google.common.collect.Lists;
-import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.completion.AddSpaceInsertHandler;
+import com.intellij.codeInsight.completion.CompletionContributor;
+import com.intellij.codeInsight.completion.CompletionParameters;
+import com.intellij.codeInsight.completion.CompletionProvider;
+import com.intellij.codeInsight.completion.CompletionResultSet;
+import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.lang.jsgraphql.JSGraphQLScalars;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypesSets;
-import com.intellij.lang.jsgraphql.endpoint.psi.*;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointAnnotation;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointAnnotationArguments;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointEnumTypeDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFieldDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFieldDefinitionSet;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFile;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointImportFileReference;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinitions;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInterfaceTypeDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointOperationTypeDefinitionSet;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointProperty;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiUtil;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointQuotedString;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointString;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointTypeResult;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointUnionTypeDefinition;
 import com.intellij.lang.jsgraphql.endpoint.psi.impl.JSGraphQLEndpointImplementsInterfacesImpl;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
@@ -24,17 +55,18 @@ import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLSchemaEndpointAnno
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiErrorElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 
 public class JSGraphQLEndpointCompletionContributor extends CompletionContributor {
@@ -160,7 +192,7 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 	}
 
 	private boolean completeImportFile(@NotNull CompletionResultSet result, PsiFile file, PsiElement parent) {
-		if (parent instanceof JSGraphQLEndpointQuotedString && parent.getParent() instanceof JSGraphQLEndpointImportFileReference) {
+		if ((parent instanceof JSGraphQLEndpointQuotedString || parent instanceof JSGraphQLEndpointString) && PsiTreeUtil.getParentOfType(parent, JSGraphQLEndpointImportFileReference.class) != null) {
 
 			final Project project = file.getProject();
 			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile();

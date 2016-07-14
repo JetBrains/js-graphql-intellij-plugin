@@ -38,6 +38,7 @@ public interface JSGraphQLEndpointTokenTypes {
   IElementType QUOTED_STRING = new JSGraphQLEndpointTokenType("QUOTED_STRING");
   IElementType SCALAR_TYPE_DEFINITION = new JSGraphQLEndpointTokenType("SCALAR_TYPE_DEFINITION");
   IElementType SCHEMA_DEFINITION = new JSGraphQLEndpointTokenType("SCHEMA_DEFINITION");
+  IElementType STRING = new JSGraphQLEndpointTokenType("STRING");
   IElementType UNION_MEMBER = new JSGraphQLEndpointTokenType("UNION_MEMBER");
   IElementType UNION_MEMBER_SET = new JSGraphQLEndpointTokenType("UNION_MEMBER_SET");
   IElementType UNION_TYPE_DEFINITION = new JSGraphQLEndpointTokenType("UNION_TYPE_DEFINITION");
@@ -167,6 +168,9 @@ public interface JSGraphQLEndpointTokenTypes {
       }
       else if (type == SCHEMA_DEFINITION) {
         return new JSGraphQLEndpointSchemaDefinitionImpl(node);
+      }
+      else if (type == STRING) {
+        return new JSGraphQLEndpointStringImpl(node);
       }
       else if (type == UNION_MEMBER) {
         return new JSGraphQLEndpointUnionMemberImpl(node);

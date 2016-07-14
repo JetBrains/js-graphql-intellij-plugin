@@ -58,9 +58,12 @@ public class JSGraphQLEndpointImportFileReferencePsiElement extends JSGraphQLEnd
 	public PsiElement getNameIdentifier() {
 		final PsiElement stringElement = this.findChildByType(JSGraphQLEndpointTokenTypes.QUOTED_STRING);
 		if(stringElement != null) {
-			final ASTNode stringBody = stringElement.getNode().findChildByType(JSGraphQLEndpointTokenTypes.STRING_BODY);
-			if (stringBody != null) {
-				return stringBody.getPsi();
+			final ASTNode string = stringElement.getNode().findChildByType(JSGraphQLEndpointTokenTypes.STRING);
+			if(string != null) {
+				final ASTNode stringBody = string.findChildByType(JSGraphQLEndpointTokenTypes.STRING_BODY);
+				if (stringBody != null) {
+					return stringBody.getPsi();
+				}
 			}
 		}
 		return null;
@@ -83,7 +86,7 @@ public class JSGraphQLEndpointImportFileReferencePsiElement extends JSGraphQLEnd
 	public PsiReference getReference() {
 		final PsiElement nameIdentifier = getNameIdentifier();
 		if(nameIdentifier != null) {
-			return new JSGraphQLEndpointFilePsiReference(this, TextRange.from(nameIdentifier.getStartOffsetInParent(), nameIdentifier.getTextLength()), nameIdentifier);
+			return new JSGraphQLEndpointFilePsiReference(this, TextRange.from(1, nameIdentifier.getTextLength()), nameIdentifier);
 		}
 		return null;
 	}
