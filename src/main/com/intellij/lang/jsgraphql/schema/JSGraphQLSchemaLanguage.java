@@ -7,9 +7,12 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
+import com.intellij.lang.DependentLanguage;
 import com.intellij.lang.Language;
 
-public class JSGraphQLSchemaLanguage extends Language {
+// implement DependentLanguage to prevent Scratch files
+// (see com.intellij.ide.scratch.ScratchFileServiceImpl.MyLanguages.getAvailableValues())
+public class JSGraphQLSchemaLanguage extends Language implements DependentLanguage {
     public static final JSGraphQLSchemaLanguage INSTANCE = new JSGraphQLSchemaLanguage();
     public static final String LANGUAGE_ID = "GraphQL Schema";
 

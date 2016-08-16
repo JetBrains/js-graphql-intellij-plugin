@@ -7,8 +7,13 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
+import com.intellij.ide.scratch.ScratchFileType;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,5 +49,21 @@ public class JSGraphQLSchemaFileType extends LanguageFileType {
     @Override
     public Icon getIcon() {
         return JSGraphQLIcons.Files.GraphQLSchema;
+    }
+
+    /**
+     * Scratch virtual files don't return their actual file type, so we need to find the PsiFile to determine
+     * whether it's a GraphQL schema scratch file
+     * @return true if the scratch file contains a GraphQL Schema PsiFile
+     */
+    public static boolean isGraphQLScratchFile(Project project, VirtualFile file) {
+        if(file.getFileType() instanceof ScratchFileType) {
+            final PsiManager psiManager = PsiManager.getInstance(project);
+            final PsiFile psiFile = psiManager.findFile(file);
+            if(psiFile != null && psiFile.getFileType() == JSGraphQLSchemaFileType.INSTANCE) {
+                return true;
+            }
+        }
+        return false;
     }
 }
