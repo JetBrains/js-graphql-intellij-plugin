@@ -65,6 +65,7 @@
     <fileTypeFactory implementation="com.intellij.lang.jsgraphql.JSGraphQLFileTypeFactory"/>
     <fileTypeFactory implementation="com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaFileTypeFactory"/>
     <fileTypeFactory implementation="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileTypeFactory"/>
+    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocFileTypeFactory"/>
     <internalFileTemplate name="GraphQL File"/>
 
 
@@ -72,9 +73,11 @@
     <lang.parserDefinition language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.JSGraphQLParserDefinition"/>
     <lang.parserDefinition language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaParserDefinition"/>
     <lang.parserDefinition language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointParserDefinition"/>
+    <lang.parserDefinition language="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocParserDefinition"/>
     <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.highlighting.JSGraphQLEndpointSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.ide.highlighting.JSGraphQLEndpointDocSyntaxHighlighterFactory"/>
     <lang.commenter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLCommenter"/>
     <lang.commenter language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLCommenter"/>
     <lang.braceMatcher language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLBraceMatcher"  />
@@ -82,10 +85,12 @@
     <lang.fileViewProviderFactory language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFileViewProviderFactory" />
     <lang.psiStructureViewFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.structureView.JSGraphQLPsiStructureViewFactory"/>
     <lang.psiStructureViewFactory language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.structureView.JSGraphQLPsiStructureViewFactory"/>
+    <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointEnterHandlerDelegate" />
 
     <!-- Completion -->
     <completion.contributor language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.completion.JSGraphQLCompletionContributor"/>
     <completion.contributor language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.completion.JSGraphQLEndpointCompletionContributor"/>
+    <completion.contributor language="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.ide.completion.JSGraphQLEndpointDocCompletionContributor"/>
 
 
     <!-- Error highlighting and annotations -->
@@ -96,6 +101,7 @@
     <annotator language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLRelayTemplateAnnotator" /><!-- Using the JSX dialect overwrites the default annotator -->
     <annotator language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.annotator.JSGraphQLEndpointHighlightAnnotator" />
     <annotator language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.annotator.JSGraphQLEndpointErrorAnnotator" />
+    <annotator language="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.ide.annotator.JSGraphQLEndpointDocHighlightAnnotator" />
 
 
     <!-- Query context highlighter -->
@@ -142,6 +148,7 @@
 
     <!-- Language injection -->
     <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.JSGraphQLTemplateFragmentLanguageInjector" order="first" />
+    <languageInjector implementation="com.intellij.lang.jsgraphql.endpoint.doc.ide.injection.JSGraphQLEndpointDocInjector" />
 
 
     <!-- Settings -->

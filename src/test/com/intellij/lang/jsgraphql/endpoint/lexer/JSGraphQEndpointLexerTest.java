@@ -15,7 +15,7 @@ import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.testFramework.LexerTestCase;
 
-public class JSGraphQSpecLexerTest extends LexerTestCase {
+public class JSGraphQEndpointLexerTest extends LexerTestCase {
 
 	@Override
 	protected Lexer createLexer() {

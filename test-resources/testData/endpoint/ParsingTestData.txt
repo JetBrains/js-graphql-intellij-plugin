@@ -1,4 +1,4 @@
-GraphQL Schema Specification File(0,790)
+GraphQL Endpoint File(0,790)
   JSGraphQLEndpointImportDeclarationImpl(IMPORT_DECLARATION)(0,12)
     PsiElement(import)('import')(0,6)
     PsiWhiteSpace(' ')(6,7)

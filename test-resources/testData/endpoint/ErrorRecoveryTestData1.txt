@@ -1,4 +1,4 @@
-GraphQL Schema Specification File(0,334)
+GraphQL Endpoint File(0,334)
   JSGraphQLEndpointObjectTypeDefinitionImpl(OBJECT_TYPE_DEFINITION)(0,40)
     PsiElement(type)('type')(0,4)
     PsiWhiteSpace(' ')(4,5)

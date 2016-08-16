@@ -29,7 +29,7 @@ public class JSGraphQLEndpointFile extends PsiFileBase {
 
     @Override
     public String toString() {
-        return "GraphQL Schema Specification File";
+        return "GraphQL Endpoint File";
     }
 
 }
