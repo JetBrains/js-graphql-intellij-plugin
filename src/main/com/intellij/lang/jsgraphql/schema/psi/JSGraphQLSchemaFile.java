@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.schema.psi;
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaFileType;
 import com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaLanguage;
+import com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaLanguageProjectService;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.search.ProjectScope;
@@ -41,4 +42,13 @@ public class JSGraphQLSchemaFile extends PsiFileBase {
         return "GraphQL Schema File";
     }
 
+    @Override
+    public boolean isPhysical() {
+        if(Boolean.TRUE.equals(getVirtualFile().getUserData(JSGraphQLSchemaLanguageProjectService.IS_GRAPHQL_SCHEMA_VIRTUAL_FILE))) {
+            // indicate that the psi file that backs the "GraphQL Schemas" project tree node is considered non-physical.
+            // this hides it from PSI file intentions etc.
+            return false;
+        }
+        return super.isPhysical();
+    }
 }
