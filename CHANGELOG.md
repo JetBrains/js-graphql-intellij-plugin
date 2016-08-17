@@ -1,3 +1,9 @@
+## 1.3.3 (2016-08-17)
+
+Changes:
+
+- Closes #18 Fixes compatibility issue with IDEA 2016.2.2
+
 ## 1.3.2 (2016-06-23)
 
 Changes:
