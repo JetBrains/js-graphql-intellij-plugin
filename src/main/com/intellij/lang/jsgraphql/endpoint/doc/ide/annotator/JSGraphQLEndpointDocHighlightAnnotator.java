@@ -17,6 +17,10 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.doc.psi.JSGraphQLEndpointDocPsiUtil;
+import com.intellij.lang.jsgraphql.endpoint.doc.psi.JSGraphQLEndpointDocTag;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFieldDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinitions;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.psi.PsiComment;
@@ -47,6 +51,36 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
 			final TextAttributesKey textAttributesKey = ATTRIBUTES.get(elementType);
 			if (textAttributesKey != null) {
 				setTextAttributes(element, holder, textAttributesKey);
+			}
+			// highlight invalid argument names after @param
+			if(elementType == JSGraphQLEndpointDocTokenTypes.DOCVALUE) {
+				final JSGraphQLEndpointFieldDefinition field = PsiTreeUtil.getNextSiblingOfType(comment, JSGraphQLEndpointFieldDefinition.class);
+				if(field != null) {
+					final JSGraphQLEndpointDocTag tag = PsiTreeUtil.getParentOfType(element, JSGraphQLEndpointDocTag.class);
+					if(tag != null && tag.getDocName().getText().equals("@param")) {
+						final String paramName = element.getText();
+						final JSGraphQLEndpointInputValueDefinitions arguments = PsiTreeUtil.findChildOfType(field, JSGraphQLEndpointInputValueDefinitions.class);
+						if(arguments == null) {
+							// no arguments so invalid use of @param
+							holder.createErrorAnnotation(element, "Invalid use of @param. The property has no arguments");
+						} else {
+							final JSGraphQLEndpointInputValueDefinition[] inputValues = PsiTreeUtil.getChildrenOfType(arguments, JSGraphQLEndpointInputValueDefinition.class);
+							boolean found = false;
+							if(inputValues != null) {
+								for (JSGraphQLEndpointInputValueDefinition inputValue: inputValues) {
+									if(inputValue.getIdentifier().getText().equals(paramName)) {
+										found = true;
+										break;
+									}
+								}
+							}
+							if(!found) {
+								holder.createErrorAnnotation(element, "@param name '" + element.getText() + "' doesn't match any of the field arguments");
+							}
+
+						}
+					}
+				}
 			}
 		}
 	}
