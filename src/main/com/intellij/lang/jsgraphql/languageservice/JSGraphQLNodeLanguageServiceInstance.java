@@ -15,8 +15,9 @@ import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.javascript.nodejs.NodeDetectionUtil;
-import com.intellij.javascript.nodejs.NodeSettingsUtil;
+import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter;
+import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager;
+import com.intellij.javascript.nodejs.interpreter.local.NodeJsLocalInterpreter;
 import com.intellij.lang.jsgraphql.JSGraphQLDebugUtil;
 import com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService;
 import com.intellij.openapi.application.Application;
@@ -84,14 +85,11 @@ public class JSGraphQLNodeLanguageServiceInstance implements ProjectManagerListe
     }
 
     public static String getNodeInterpreter(Project project) {
-        String interpreterPath = NodeSettingsUtil.getInterpreterPath(project);
-        if(interpreterPath == null) {
-            File interpreterInPath = NodeDetectionUtil.findInterpreterInPath();
-            if(interpreterInPath != null) {
-                interpreterPath = interpreterInPath.getAbsolutePath();
-            }
-        }
-        return interpreterPath;
+	    final NodeJsInterpreter nodeJsInterpreter = NodeJsInterpreterManager.getInstance(project).getDefault();
+	    if(nodeJsInterpreter instanceof NodeJsLocalInterpreter) {
+		    return ((NodeJsLocalInterpreter) nodeJsInterpreter).getInterpreterSystemDependentPath();
+	    }
+	    return null;
     }
 
     private void createProcessHandler() {
