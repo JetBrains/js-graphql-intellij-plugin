@@ -48,6 +48,9 @@ public class JSGraphQLEndpointNamedTypeDefPsiElement extends JSGraphQLEndpointPs
 
 	@Override
 	public boolean isEquivalentTo(PsiElement another) {
+		if(another == null) {
+			return false;
+		}
 		if(this == another) {
 			return true;
 		}
