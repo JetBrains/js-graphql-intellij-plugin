@@ -26,7 +26,12 @@ public class JSGraphQLSchemaFileViewProviderFactory implements FileViewProviderF
     public FileViewProvider createFileViewProvider(@NotNull VirtualFile file, Language language, @NotNull PsiManager manager, boolean eventSystemEnabled) {
         if(file instanceof LightVirtualFile) {
             final LightVirtualFile lightVirtualFile = (LightVirtualFile) file;
-            final JSGraphQLSchemaLightVirtualFile schemaLightVirtualFile = new JSGraphQLSchemaLightVirtualFile(lightVirtualFile, manager.getProject());
+            final JSGraphQLSchemaLightVirtualFile schemaLightVirtualFile;
+            if(file instanceof JSGraphQLSchemaLightVirtualFile) {
+                schemaLightVirtualFile = (JSGraphQLSchemaLightVirtualFile) file;
+            } else {
+                schemaLightVirtualFile = new JSGraphQLSchemaLightVirtualFile(lightVirtualFile);
+            }
             return new JSGraphQLSchemaFileViewProvider(manager, schemaLightVirtualFile, eventSystemEnabled, language, JSGraphQLSchemaFileType.INSTANCE);
         } else {
             return new JSGraphQLSchemaFileViewProvider(manager, file, eventSystemEnabled, language, JSGraphQLSchemaFileType.INSTANCE);

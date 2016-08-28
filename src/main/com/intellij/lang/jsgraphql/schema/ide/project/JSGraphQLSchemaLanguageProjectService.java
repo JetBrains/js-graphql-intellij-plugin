@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.schema.ide.project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ide.projectView.ProjectView;
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
@@ -39,11 +40,18 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.ui.LoadingNode;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
+import javax.swing.event.TreeModelEvent;
+import javax.swing.event.TreeModelListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -57,6 +65,9 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
     public static final Key<Boolean> IS_GRAPHQL_SCHEMA_VIRTUAL_FILE = Key.create("JSGraphQL.schema.file");
     public static final Key<Boolean> IS_GRAPHQL_SCHEMA_FILE_LISTENER_ADDED = Key.create("JSGraphQL.schema.file.listener.added");
     public static Set<String> SCALAR_TYPES = Sets.newHashSet("String", "String!", "Boolean", "Boolean!", "Int", "Int!", "Float", "Float!", "ID", "ID!");
+
+    private static final Key<TreeModelListener> SCHEMA_TREE_MODEL_LISTENER = Key.create("JSGraphQL.schema.tree.model.listener");
+    private static final Key<Boolean> SCHEMA_TREE_SELECT_ON_INSERT = Key.create("JSGraphQL.schema.tree.model.select");
 
     private final static Logger log = Logger.getInstance(JSGraphQLSchemaLanguageProjectService.class);
 
@@ -143,7 +154,16 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
      */
     @Nullable
     public PsiElement getReference(PsiElement element) {
-        JSGraphQLSchemaFileElements schemaFileElements = getOrCreateSchemaFileElements();
+        final JSGraphQLSchemaFileElements schemaFileElements;
+        final PsiFile containingFile = element.getContainingFile();
+        if(containingFile instanceof JSGraphQLSchemaFile && !isProjectSchemaFile(containingFile.getVirtualFile())) {
+            // schema file that's not the in-memory project schema
+            final SchemaWithVersionResponse schemaWithVersion = new SchemaWithVersionResponse();
+            schemaFileElements = new JSGraphQLSchemaFileElements(schemaWithVersion, (JSGraphQLSchemaFile) containingFile);
+        } else {
+            // use project schema
+            schemaFileElements = getOrCreateSchemaFileElements();
+        }
         if(element instanceof JSGraphQLNamedPsiElement) {
             JSGraphQLNamedPsiElement namedElement = (JSGraphQLNamedPsiElement)element;
             if(namedElement instanceof JSGraphQLNamedTypePsiElement) {
@@ -152,6 +172,15 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
                     final JSGraphQLNamedPsiElement definitionName = PsiTreeUtil.findChildOfType(definition, JSGraphQLNamedPsiElement.class);
                     if(definitionName != null) {
                         if(Objects.equals(namedElement.getName(), definitionName.getName())) {
+                            if(definitionName == element) {
+                                // potential self reference, but make sure it's a valid one
+                                if(definitionName instanceof JSGraphQLNamedTypePsiElement) {
+                                    if(((JSGraphQLNamedTypePsiElement) definitionName).getTypeContext() == JSGraphQLNamedTypeContext.Unknown) {
+                                        // ignore self-references inside schema { query: Query } etc.
+                                        continue;
+                                    }
+                                }
+                            }
                             return definitionName;
                         }
                     }
@@ -167,7 +196,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
         }
 
         // fallback is the schema file to make sure references are updated on schema changes
-        if(element.getContainingFile() instanceof JSGraphQLFile) {
+        if(containingFile instanceof JSGraphQLFile) {
             return schemaFileElements.getFile();
         }
 
@@ -175,6 +204,9 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
         return null;
     }
 
+    public static boolean isProjectSchemaFile(VirtualFile file) {
+        return file != null && Boolean.TRUE.equals(file.getUserData(JSGraphQLSchemaLanguageProjectService.IS_GRAPHQL_SCHEMA_VIRTUAL_FILE));
+    }
 
     // ---- FileEditorManagerListener ----
 
@@ -189,7 +221,84 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
     @Override
     public void selectionChanged(@NotNull FileEditorManagerEvent event) {
         if(event.getNewFile() != null) {
+            selectProjectSchemaInTree(event);
             markSchemaFileAsViewer(event.getManager(), event.getNewFile());
+        }
+    }
+
+    private void selectProjectSchemaInTree(@NotNull FileEditorManagerEvent event) {
+        if(!isProjectSchemaFile(event.getNewFile())) {
+            return;
+        }
+        try {
+            JSGraphQLSchemaFileNode node = project.getUserData(JSGraphQLSchemaFileNode.GRAPHQL_SCHEMA_TREE_NODE);
+            if(node != null) {
+                final ProjectView projectView = ProjectView.getInstance(project);
+                if(projectView.isAutoscrollFromSource(projectView.getCurrentViewId())) {
+                    final AbstractProjectViewPane projectViewPane = projectView.getCurrentProjectViewPane();
+                    if(projectViewPane != null) {
+                        if(projectViewPane.getSelectedDescriptor() != node) {
+                            final JTree tree = projectViewPane.getTree();
+                            final TreeNode root = (TreeNode) tree.getModel().getRoot();
+                            if(root != null) {
+                                for(int c = 0; c < root.getChildCount(); c++) {
+                                    final TreeNode schemaDirectory = root.getChildAt(c);
+                                    if(schemaDirectory instanceof DefaultMutableTreeNode) {
+                                        final Object userObject = ((DefaultMutableTreeNode) schemaDirectory).getUserObject();
+                                        if(userObject instanceof JSGraphQLSchemaDirectoryNode) {
+                                            if(schemaDirectory.getChildCount() == 1) {
+                                                final TreeNode schemaNode = schemaDirectory.getChildAt(0);
+                                                final TreePath treePath = new TreePath(
+                                                        new Object[]{root, schemaDirectory, schemaNode}
+                                                );
+                                                TreeModelListener treeModelListener = project.getUserData(SCHEMA_TREE_MODEL_LISTENER);
+                                                if(treeModelListener == null) {
+                                                    treeModelListener = new TreeModelListener() {
+                                                        @Override
+                                                        public void treeNodesInserted(TreeModelEvent treeModelEvent) {
+                                                            // idea uses "Loading..." nodes, so listen for inserts
+                                                            if(Boolean.TRUE.equals(project.getUserData(SCHEMA_TREE_SELECT_ON_INSERT))) {
+                                                                if(treeModelEvent.getChildren() != null) {
+                                                                    Object child = treeModelEvent.getChildren()[0];
+                                                                    if(child instanceof DefaultMutableTreeNode) {
+                                                                        final DefaultMutableTreeNode insertedNode = (DefaultMutableTreeNode) child;
+                                                                        if(insertedNode.getUserObject() instanceof JSGraphQLSchemaFileNode) {
+                                                                            final TreePath insertTreePath = new TreePath(insertedNode.getPath());
+                                                                            tree.setSelectionPath(insertTreePath);
+                                                                            tree.scrollPathToVisible(insertTreePath);
+                                                                            project.putUserData(SCHEMA_TREE_SELECT_ON_INSERT, false);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        @Override
+                                                        public void treeNodesChanged(TreeModelEvent treeModelEvent) {}
+                                                        @Override
+                                                        public void treeNodesRemoved(TreeModelEvent treeModelEvent) {}
+                                                        @Override
+                                                        public void treeStructureChanged(TreeModelEvent treeModelEvent) {}
+                                                    };
+                                                    tree.getModel().addTreeModelListener(treeModelListener);
+                                                    project.putUserData(SCHEMA_TREE_MODEL_LISTENER, treeModelListener);
+                                                }
+                                                tree.expandPath(treePath);
+                                                tree.setSelectionPath(treePath);
+                                                tree.scrollPathToVisible(treePath);
+                                                project.putUserData(SCHEMA_TREE_SELECT_ON_INSERT, schemaNode instanceof LoadingNode);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Unable to select GraphQL schema node", e);
         }
     }
 
@@ -197,6 +306,10 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
     public void dispose() {}
 
     private void markSchemaFileAsViewer(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
+        if(!isProjectSchemaFile(file)) {
+            // only the project schema should be read only
+            return;
+        }
         if(file.getFileType() == JSGraphQLSchemaFileType.INSTANCE || JSGraphQLSchemaFileType.isGraphQLScratchFile(project, file)) {
             // mark the schema editor as viewer only
             final FileEditor fileEditor = source.getSelectedEditor(file);

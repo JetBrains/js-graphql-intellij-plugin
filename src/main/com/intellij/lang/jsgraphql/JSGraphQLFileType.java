@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql;
 import com.intellij.ide.scratch.ScratchFileType;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -59,9 +60,13 @@ public class JSGraphQLFileType extends LanguageFileType {
     public static boolean isGraphQLScratchFile(Project project, VirtualFile file) {
         if(file.getFileType() instanceof ScratchFileType) {
             final PsiManager psiManager = PsiManager.getInstance(project);
-            final PsiFile psiFile = psiManager.findFile(file);
-            if(psiFile != null && psiFile.getFileType() == JSGraphQLFileType.INSTANCE) {
-                return true;
+            try {
+                final PsiFile psiFile = psiManager.findFile(file);
+                if (psiFile != null && psiFile.getFileType() == JSGraphQLFileType.INSTANCE) {
+                    return true;
+                }
+            } catch (ProcessCanceledException e) {
+                // can be thrown from psiManager.findFile
             }
         }
         return false;

@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.actions;
+package com.intellij.lang.jsgraphql.schema.ide.actions;
 
 import com.intellij.ide.actions.CreateFileFromTemplateAction;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
@@ -17,10 +17,10 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
 
-public class JSGraphQLNewFileAction extends CreateFileFromTemplateAction implements DumbAware {
+public class JSGraphQLSchemaNewFileAction extends CreateFileFromTemplateAction implements DumbAware {
 
-    public JSGraphQLNewFileAction() {
-        super("GraphQL File", "Creates a new GraphQL file", JSGraphQLIcons.Files.GraphQL);
+    public JSGraphQLSchemaNewFileAction() {
+        super("GraphQL Schema File", "Creates a new GraphQL Schema file", JSGraphQLIcons.Files.GraphQLSchema);
     }
 
     @Override
@@ -34,13 +34,13 @@ public class JSGraphQLNewFileAction extends CreateFileFromTemplateAction impleme
 
     @Override
     protected String getActionName(PsiDirectory directory, String newName, String templateName) {
-        return "Create GraphQL file " + newName;
+        return "Create GraphQL Schema file " + newName;
     }
 
     @Override
     protected void buildDialog(Project project, PsiDirectory directory, CreateFileFromTemplateDialog.Builder builder) {
         builder
-                .setTitle("New GraphQL File")
-                .addKind("GraphQL File", JSGraphQLIcons.Files.GraphQL, "GraphQL File");
+                .setTitle("New GraphQL Schema File")
+                .addKind("GraphQL Schema File", JSGraphQLIcons.Files.GraphQLSchema, "GraphQL Schema File");
     }
 }

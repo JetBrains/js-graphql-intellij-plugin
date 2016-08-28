@@ -25,6 +25,7 @@ import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -46,12 +47,18 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
     @Nullable
     @Override
     public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
-        return createQuickNavigateDocumentation(resolveDocumentationElement(element, originalElement), false);
+        if(isDocumentationSupported(element)) {
+            return createQuickNavigateDocumentation(resolveDocumentationElement(element, originalElement), false);
+        }
+        return null;
     }
 
     @Override
     public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
-        return createQuickNavigateDocumentation(resolveDocumentationElement(element, originalElement), true);
+        if(isDocumentationSupported(element)) {
+            return createQuickNavigateDocumentation(resolveDocumentationElement(element, originalElement), true);
+        }
+        return null;
     }
 
     @Override
@@ -60,6 +67,14 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
             return new JSGraphQLDocumentationPsiElement(context, link);
         }
         return super.getDocumentationElementForLink(psiManager, link, context);
+    }
+
+    private boolean isDocumentationSupported(PsiElement element) {
+        final PsiFile file = element.getContainingFile();
+        if(file instanceof JSGraphQLSchemaFile) {
+            return JSGraphQLSchemaLanguageProjectService.isProjectSchemaFile(file.getVirtualFile());
+        }
+        return true;
     }
 
     // ensures that the built-in schema info that points to the schema file are sent to the doc methods as the originalElement
@@ -77,6 +92,9 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
 
     @Nullable
     private String createQuickNavigateDocumentation(PsiElement element, boolean fullDocumentation) {
+        if(!isDocumentationSupported(element)) {
+            return null;
+        }
         if(element instanceof JSGraphQLDocumentationPsiElement) {
             JSGraphQLDocumentationPsiElement docElement = (JSGraphQLDocumentationPsiElement)element;
             return getTypeDocumentation(docElement);

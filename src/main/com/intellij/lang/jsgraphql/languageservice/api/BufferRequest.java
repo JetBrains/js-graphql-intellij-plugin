@@ -51,10 +51,4 @@ public class BufferRequest extends Request {
         return ret;
     }
 
-    public static BufferRequest getSchemaTokensAndAST(String buffer, boolean relay) {
-        BufferRequest ret = new BufferRequest("getSchemaTokensAndAST", relay);
-        ret.buffer = buffer;
-        return ret;
-    }
-
 }

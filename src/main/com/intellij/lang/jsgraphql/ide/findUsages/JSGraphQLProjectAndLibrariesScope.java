@@ -30,7 +30,7 @@ public class JSGraphQLProjectAndLibrariesScope extends ProjectAndLibrariesScope 
     public boolean contains(@NotNull VirtualFile file) {
 
         // always include the current schema file
-        if (Boolean.TRUE.equals(file.getUserData(JSGraphQLSchemaLanguageProjectService.IS_GRAPHQL_SCHEMA_VIRTUAL_FILE))) {
+        if (JSGraphQLSchemaLanguageProjectService.isProjectSchemaFile(file)) {
             return true;
         }
 
