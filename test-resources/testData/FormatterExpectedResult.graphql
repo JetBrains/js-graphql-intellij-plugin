@@ -125,3 +125,18 @@ query queryName($foo: TestInput, $site: TestEnum = RED) {
         }
     }
 }
+
+### --------- annotations.graphql --------- ###
+
+type AnnotatedObject @foo(foo: {test: true}) {
+    annotatedField(arg: Type = "default" @onArg): Type @onField
+    foo: String
+}
+
+query Foo {
+    field (arg: "test", foo: {more: true}) @onArg(test: {more: true}) {
+        foo {
+
+        }
+    }
+}

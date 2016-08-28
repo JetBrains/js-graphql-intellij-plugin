@@ -71,7 +71,7 @@ public class JSGraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
     @NotNull
     @Override
     public Lexer getHighlightingLexer() {
-        return new JSGraphQLLexer(project, schema);
+        return new JSGraphQLLexer(project);
     }
 
     @NotNull

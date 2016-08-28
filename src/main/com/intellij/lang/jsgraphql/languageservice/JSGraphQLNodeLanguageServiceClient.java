@@ -63,10 +63,6 @@ public class JSGraphQLNodeLanguageServiceClient {
         return executeRequest(request, ASTResponse.class, project);
     }
 
-    public static SchemaTokensAndASTResponse getSchemaTokensAndAST(String buffer, Project project) {
-        return executeRequest(BufferRequest.getSchemaTokensAndAST(buffer, false), SchemaTokensAndASTResponse.class, project);
-    }
-
     public static SchemaWithVersionResponse getSchemaWithVersion(Project project) {
         return executeRequest(SchemaWithVersionRequest.INSTANCE, SchemaWithVersionResponse.class, project);
     }

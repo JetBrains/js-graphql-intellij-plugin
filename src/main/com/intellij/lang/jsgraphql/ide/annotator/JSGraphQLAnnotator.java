@@ -21,12 +21,15 @@ import com.intellij.lang.jsgraphql.languageservice.api.Annotation;
 import com.intellij.lang.jsgraphql.languageservice.api.AnnotationsResponse;
 import com.intellij.lang.jsgraphql.languageservice.api.Pos;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLFile;
+import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +58,9 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
                     final AnnotationsResponse annotations = JSGraphQLNodeLanguageServiceClient.getAnnotations(buffer.toString(), file.getProject(), relay);
                     return new JSGraphQLAnnotationResult(annotations, editor);
                 }
+            } else if(file instanceof JSGraphQLSchemaFile) {
+                // no external annotation support yet for schema files
+                return new JSGraphQLAnnotationResult(new AnnotationsResponse(), editor);
             }
         } catch (Throwable e) {
             if(e instanceof ProcessCanceledException) {
@@ -77,12 +83,24 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
         if(annotationResult != null) {
             try {
                 final Editor editor = annotationResult.getEditor();
+                final String fileName = file.getVirtualFile().getPath();
+                final List<JSGraphQLErrorResult> errors = Lists.newArrayList();
+                final JSGraphQLLanguageWarningAnnotator internalAnnotator = new JSGraphQLLanguageWarningAnnotator();
+                file.accept(new PsiRecursiveElementVisitor() {
+                    @Override
+                    public void visitElement(PsiElement element) {
+                        final com.intellij.lang.annotation.Annotation annotation = internalAnnotator.annotate(file, element, holder);
+                        if(annotation != null) {
+                            final LogicalPosition pos = editor.offsetToLogicalPosition(element.getTextOffset());
+                            errors.add(new JSGraphQLErrorResult(annotation.getMessage(), fileName, annotation.getSeverity().myName, pos.line + 1, pos.column + 1));
+                        }
+                        super.visitElement(element);
+                    }
+                });
                 AnnotationsResponse annotationsReponse = annotationResult.getAnnotationsReponse();
                 if(annotationsReponse == null) {
                     return;
                 }
-                final List<JSGraphQLErrorResult> errors = Lists.newArrayList();
-                final String fileName = file.getVirtualFile().getPath();
                 for (Annotation annotation : annotationsReponse.getAnnotations()) {
                     LogicalPosition from = getLogicalPosition(annotation.getFrom());
                     LogicalPosition to = getLogicalPosition(annotation.getTo());

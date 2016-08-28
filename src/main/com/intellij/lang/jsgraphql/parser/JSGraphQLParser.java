@@ -179,7 +179,7 @@ public class JSGraphQLParser implements PsiParser {
             JSGraphQLToken token = astTokens.get(i);
             if(token.tokenType == JSGraphQLTokenTypes.KEYWORD) {
                 final String text = token.sourceToken.getText();
-                if(isPropertyScopeDefinition(text, i, astTokens)) {
+                if(isPropertyScopeDefinition(text, i, astTokens, scopes)) {
                     PropertyScope propertyScope = new PropertyScope(token, getNextLBrace(astTokens, i, 2));
                     scopes.add(propertyScope); // optional name of operation so allow token before '{'
                     ret.add(propertyScope);
@@ -193,7 +193,8 @@ public class JSGraphQLParser implements PsiParser {
                 }
             } else if (token.tokenType == JSGraphQLTokenTypes.RBRACE) {
                 if(!scopes.isEmpty()) {
-                    if(JSGraphQLElementType.SELECTION_SET_KIND.equals(token.sourceToken.getKind()) || JSGraphQLElementType.DOCUMENT_KIND.equals(token.sourceToken.getKind()) || schema) {
+                    final String kind = token.sourceToken.getKind();
+                    if(JSGraphQLElementType.SELECTION_SET_KIND.equals(kind) || JSGraphQLElementType.DOCUMENT_KIND.equals(kind) || isSchemaDefWithLBrace(kind)) {
                         PropertyScope propertyScope = scopes.pop();
                         if(propertyScope.lbrace == null) {
                             // closing the parent scope
@@ -217,26 +218,32 @@ public class JSGraphQLParser implements PsiParser {
         return ret;
     }
 
-    private boolean isPropertyScopeDefinition(String text, int tokenIndex, List<JSGraphQLToken> astTokens) {
-        if(schema) {
-            switch(text) {
-                case JSGraphQLKeywords.TYPE:
-                case JSGraphQLKeywords.INTERFACE:
-                case JSGraphQLKeywords.UNION:
-                case JSGraphQLKeywords.SCALAR:
-                case JSGraphQLKeywords.ENUM:
-                case JSGraphQLKeywords.INPUT:
-                case JSGraphQLKeywords.EXTEND:
-                    return true;
-                default:
-                    return false;
-            }
-        } else {
+    private boolean isPropertyScopeDefinition(String text, int tokenIndex, List<JSGraphQLToken> astTokens, Stack<PropertyScope> scopes) {
+        switch(text) {
+            case JSGraphQLKeywords.TYPE:
+                // type after extend is not a new scope
+                if(tokenIndex > 0) {
+                    final JSGraphQLToken prevToken = astTokens.get(tokenIndex - 1);
+                    if(JSGraphQLKeywords.EXTEND.equals(prevToken.sourceToken.getText())) {
+                        return false;
+                    }
+                }
+                return true;
+            case JSGraphQLKeywords.INTERFACE:
+            case JSGraphQLKeywords.ENUM:
+            case JSGraphQLKeywords.INPUT:
+            case JSGraphQLKeywords.EXTEND:
+            case JSGraphQLKeywords.SCHEMA:
+                return true;
+        }
+        if(!schema) {
             switch (text) {
                 case JSGraphQLKeywords.QUERY:
-                case JSGraphQLKeywords.FRAGMENT:
                 case JSGraphQLKeywords.MUTATION:
                 case JSGraphQLKeywords.SUBSCRIPTION:
+                    // not property scopes inside "schema {}"
+                    return scopes.isEmpty();
+                case JSGraphQLKeywords.FRAGMENT:
                     return true;
             }
             if (JSGraphQLKeywords.FRAGMENT_DOTS.equals(text)) {
@@ -250,12 +257,26 @@ public class JSGraphQLParser implements PsiParser {
         return false;
     }
 
+    private boolean isSchemaDefWithLBrace(String tokenKind) {
+        switch (tokenKind) {
+            case JSGraphQLElementType.SCHEMA_DEF_KIND:
+            case JSGraphQLElementType.OBJECT_TYPE_DEF_KIND:
+            case JSGraphQLElementType.INTERFACE_DEF_KIND:
+            case JSGraphQLElementType.ENUM_DEF_KIND:
+            case JSGraphQLElementType.INPUT_DEF_KIND:
+            case JSGraphQLElementType.EXTEND_DEF_KIND:
+                return true;
+        }
+        return false;
+    }
+    
     private JSGraphQLToken getNextLBrace(List<JSGraphQLToken> tokens, int currentIndex, int maxLookAhead) {
         int index = currentIndex + 1;
         while (maxLookAhead > 0) {
             if (index < tokens.size()) {
                 JSGraphQLToken lbrace = tokens.get(index);
-                if(lbrace.tokenType == JSGraphQLTokenTypes.LBRACE && JSGraphQLElementType.SELECTION_SET_KIND.equals(lbrace.sourceToken.getKind())) {
+                final boolean isSelectionSet = JSGraphQLElementType.SELECTION_SET_KIND.equals(lbrace.sourceToken.getKind());
+                if(lbrace.tokenType == JSGraphQLTokenTypes.LBRACE && (isSelectionSet || isSchemaDefWithLBrace(lbrace.sourceToken.getKind()))) {
                     return lbrace;
                 } else if(lbrace.tokenType == JSGraphQLTokenTypes.LPAREN || lbrace.tokenType == JSGraphQLTokenTypes.META || lbrace.tokenType == JSGraphQLTokenTypes.DEF || isFragmentOnKeyword(lbrace)) {
                     // property args, meta (@directive), fragment definition, mutation
@@ -267,7 +288,8 @@ public class JSGraphQLParser implements PsiParser {
                             index = i + 1;
                             break;
                         } else if(lbrace.tokenType == JSGraphQLTokenTypes.LBRACE) {
-                            if(schema || JSGraphQLElementType.SELECTION_SET_KIND.equals(lbrace.sourceToken.getKind())) {
+                            final String kind = lbrace.sourceToken.getKind();
+                            if(JSGraphQLElementType.SELECTION_SET_KIND.equals(kind) || isSchemaDefWithLBrace(kind)) {
                                 return lbrace;
                             }
                         }
