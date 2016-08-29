@@ -11,15 +11,13 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.ide.findUsages.JSGraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaLanguageProjectService;
+import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.UserDataHolderEx;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiNameIdentifierOwner;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiReferenceBase;
+import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.SearchScope;
@@ -79,7 +77,9 @@ public class JSGraphQLNamedPsiElement extends JSGraphQLPsiElement implements Psi
         if(another instanceof JSGraphQLNamedPsiElement && getText().equals(another.getText())) {
             // same token text
             // check if we're a reference to 'another', e.g. the type definition in the schema file
-            if(getContainingFile() != another.getContainingFile()) {
+            final PsiFile thisContainingFile = getContainingFile();
+            final PsiFile anotherContainingFile = another.getContainingFile();
+            if(thisContainingFile != anotherContainingFile) {
                 final PsiReference reference = getReference();
                 if(reference != null) {
                     return reference.resolve() == another;
@@ -93,7 +93,11 @@ public class JSGraphQLNamedPsiElement extends JSGraphQLPsiElement implements Psi
                 final boolean sameTypeContext = self.getTypeContext() == anotherType.getTypeContext();
                 if(sameTypeContext && self.getTypeContext() == JSGraphQLNamedTypeContext.Fragment) {
                     // fragments are local type, so the files need to be the same as well
-                    return self.getContainingFile().equals(another.getContainingFile());
+                    return thisContainingFile.equals(anotherContainingFile);
+                }
+                // also only consider schema types the same if they're from the same file
+                if(thisContainingFile instanceof JSGraphQLSchemaFile && anotherContainingFile instanceof JSGraphQLSchemaFile) {
+                    return sameTypeContext && thisContainingFile.equals(anotherContainingFile);
                 }
                 return sameTypeContext;
             }

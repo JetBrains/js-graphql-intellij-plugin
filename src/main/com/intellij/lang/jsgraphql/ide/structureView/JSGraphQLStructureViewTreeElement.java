@@ -65,6 +65,11 @@ public class JSGraphQLStructureViewTreeElement extends PsiTreeElementBase<PsiEle
                         PsiElement nextSibling = PsiTreeUtil.nextVisibleLeaf(queryTypeName);
                         addChildrenWithElementType(children, nextSibling, JSGraphQLTokenTypes.VARIABLE);
                     }
+                } else if(JSGraphQLElementType.SCHEMA_DEF_KIND.equals(elementType.getKind())) {
+                    Collection<JSGraphQLNamedTypePsiElement> schemaTypes = PsiTreeUtil.findChildrenOfType(childrenBase, JSGraphQLNamedTypePsiElement.class);
+                    for (JSGraphQLNamedTypePsiElement schemaType : schemaTypes) {
+                        children.add(new JSGraphQLStructureViewTreeElement(schemaType, schemaType));
+                    }
                 }
             }
         }
@@ -75,6 +80,11 @@ public class JSGraphQLStructureViewTreeElement extends PsiTreeElementBase<PsiEle
                 final JSGraphQLPsiElement[] definitions = PsiTreeUtil.getChildrenOfType(childrenBase, JSGraphQLPsiElement.class);
                 if(definitions != null) {
                     for (JSGraphQLPsiElement definition : definitions) {
+                        if(JSGraphQLKeywords.SCHEMA.equals(definition.getKeyword())) {
+                            final JSGraphQLPsiElement operations = PsiTreeUtil.findChildOfType(definition, JSGraphQLPsiElement.class);
+                            children.add(new JSGraphQLStructureViewTreeElement(Optional.ofNullable(operations).orElse(definition), definition));
+                            continue;
+                        }
                         final JSGraphQLNamedTypePsiElement definitionType = PsiTreeUtil.findChildOfType(definition, JSGraphQLNamedTypePsiElement.class);
                         if(definitionType != null) {
                             children.add(new JSGraphQLStructureViewTreeElement(definition, definitionType));

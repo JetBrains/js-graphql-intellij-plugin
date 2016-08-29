@@ -40,4 +40,28 @@ public class SchemaWithVersionResponse {
     public int getVersion() {
         return version;
     }
+
+    public void setSchema(String schema) {
+        this.schema = schema;
+    }
+
+    public void setQueryType(String queryType) {
+        this.queryType = queryType;
+    }
+
+    public void setMutationType(String mutationType) {
+        this.mutationType = mutationType;
+    }
+
+    public void setSubscriptionType(String subscriptionType) {
+        this.subscriptionType = subscriptionType;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
 }

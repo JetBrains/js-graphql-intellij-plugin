@@ -41,7 +41,7 @@ public class JSGraphQLSchemaDirectoryNode extends ProjectViewNode<String> {
 
     @Override
     public boolean contains(@NotNull VirtualFile file) {
-        return Boolean.TRUE.equals(file.getUserData(JSGraphQLSchemaLanguageProjectService.IS_GRAPHQL_SCHEMA_VIRTUAL_FILE));
+        return JSGraphQLSchemaLanguageProjectService.isProjectSchemaFile(file);
     }
 
     @NotNull

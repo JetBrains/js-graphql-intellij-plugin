@@ -1,9 +1,9 @@
 /**
- *  Copyright (c) 2015-present, Jim Kynde Meyer
- *  All rights reserved.
+ * Copyright (c) 2015-present, Jim Kynde Meyer
+ * All rights reserved.
  *
- *  This source code is licensed under the MIT license found in the
- *  LICENSE file in the root directory of this source tree.
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.intellij.lang.jsgraphql.lexer;
 
@@ -22,15 +22,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.BiFunction;
 
 
 public class JSGraphQLLexer extends LexerBase {
 
     private static final Logger log = Logger.getInstance(JSGraphQLLexer.class);
-
-    private final static BiFunction<String, Project, TokensResponse> getTokens = JSGraphQLNodeLanguageServiceClient::getTokens;
-    private final static BiFunction<String, Project, TokensResponse> getSchemaTokensAndAST = JSGraphQLNodeLanguageServiceClient::getSchemaTokensAndAST;
 
     private List<JSGraphQLToken> tokens = Lists.newArrayList();
     private JSGraphQLToken currentToken;
@@ -47,15 +43,8 @@ public class JSGraphQLLexer extends LexerBase {
 
     private final Project project;
 
-    private final boolean schema;
-
     public JSGraphQLLexer(Project project) {
-        this(project, false);
-    }
-
-    public JSGraphQLLexer(Project project, boolean schema) {
         this.project = project;
-        this.schema = schema;
     }
 
     @Override
@@ -78,15 +67,15 @@ public class JSGraphQLLexer extends LexerBase {
     private void fetchTokensFromLanguageService() {
 
         final String bufferAsString = buffer.toString();
-        if(buffer.length() == 0) {
+        if (buffer.length() == 0) {
             response = new TokensResponse();
             return;
         }
 
         // get the response using the client
-        response = schema ? getSchemaTokensAndAST.apply(bufferAsString, project) : getTokens.apply(bufferAsString, project);
+        response = JSGraphQLNodeLanguageServiceClient.getTokens(bufferAsString, project);
 
-        if(response == null) {
+        if (response == null) {
             // blank
             response = new TokensResponse();
             Token dummy = new Token();
@@ -99,70 +88,85 @@ public class JSGraphQLLexer extends LexerBase {
         }
 
         for (Token token : response.getTokens()) {
-            if(token.getStart() < startOffset) {
+            if (token.getStart() < startOffset) {
                 continue;
-            } else if(token.getStart() > endOffset) {
+            } else if (token.getStart() > endOffset) {
                 break;
             }
             final String text = token.getText();
             IElementType tokenType = JSGraphQLCodeMirrorTokenMapper.getTokenType(token.getType());
-            if(tokenType.equals(JSGraphQLTokenTypes.PUNCTUATION)) {
-                if("{".equals(text)) {
-                    tokenType = JSGraphQLTokenTypes.LBRACE;
-                } else if ("}".equals(text)) {
-                    tokenType = JSGraphQLTokenTypes.RBRACE;
-                } else if("(".equals(text)) {
-                    tokenType = JSGraphQLTokenTypes.LPAREN;
-                } else if (")".equals(text)) {
-                    tokenType = JSGraphQLTokenTypes.RPAREN;
-                } else if("[".equals(text)) {
-                    tokenType = JSGraphQLTokenTypes.LBRACKET;
-                } else if("]".equals(text)) {
-                    tokenType = JSGraphQLTokenTypes.RBRACKET;
-                } else if(JSGraphQLKeywords.FRAGMENT_DOTS.equals(text)) {
+            if (tokenType.equals(JSGraphQLTokenTypes.PUNCTUATION)) {
+                final IElementType punctuationTokenType = getPunctuationTokenType(text);
+                if (punctuationTokenType != null) {
+                    tokenType = punctuationTokenType;
+                } else if (JSGraphQLKeywords.FRAGMENT_DOTS.equals(text)) {
                     // consider the "..." spread operator a keyword for highlighting
                     tokenType = JSGraphQLTokenTypes.KEYWORD;
+                }
+            } else if (tokenType.equals(JSGraphQLTokenTypes.INVALIDCHAR)) {
+                // make sure we get the right tokenType for structural braces
+                // to aid in brace matching and enter after unclosed opening brace
+                IElementType punctuationTokenType = getPunctuationTokenType(text);
+                if (punctuationTokenType != null) {
+                    tokenType = punctuationTokenType;
                 }
             }
             tokens.add(new JSGraphQLToken(tokenType, token));
         }
         verifyTokens();
-        if(tokens.size() > 0) {
+        if (tokens.size() > 0) {
             advance();
         }
     }
 
+    private IElementType getPunctuationTokenType(String text) {
+        if ("{".equals(text)) {
+            return JSGraphQLTokenTypes.LBRACE;
+        } else if ("}".equals(text)) {
+            return JSGraphQLTokenTypes.RBRACE;
+        } else if ("(".equals(text)) {
+            return JSGraphQLTokenTypes.LPAREN;
+        } else if (")".equals(text)) {
+            return JSGraphQLTokenTypes.RPAREN;
+        } else if ("[".equals(text)) {
+            return JSGraphQLTokenTypes.LBRACKET;
+        } else if ("]".equals(text)) {
+            return JSGraphQLTokenTypes.RBRACKET;
+        }
+        return null;
+    }
+
     private void verifyTokens() {
-        if(!JSGraphQLDebugUtil.debug) return;
-        if(tokens.size() == 0) {
-            if(buffer.length() > 0) {
+        if (!JSGraphQLDebugUtil.debug) return;
+        if (tokens.size() == 0) {
+            if (buffer.length() > 0) {
                 log.error("No tokens returned for non-empty buffer", buffer.toString());
             }
         } else {
             int start = tokens.get(0).sourceToken.getStart();
-            int end = tokens.get(tokens.size()-1).sourceToken.getEnd();
-            if(start != startOffset) {
+            int end = tokens.get(tokens.size() - 1).sourceToken.getEnd();
+            if (start != startOffset) {
                 log.error("First token " + tokens.get(0) + " starting at " + start + " should start at " + startOffset, buffer.toString());
             }
-            if(end != endOffset) {
-                log.error("Last token " + tokens.get(tokens.size()-1) + " ending at " + end + " should end at " + endOffset, buffer.toString());
+            if (end != endOffset) {
+                log.error("Last token " + tokens.get(tokens.size() - 1) + " ending at " + end + " should end at " + endOffset, buffer.toString());
             }
             // verify that the tokens fully cover the requested range
             int expectedTokenStart = startOffset;
             int expectedTokenEnd = tokens.get(0).sourceToken.getEnd();
             int tokenIndex = 0;
             for (JSGraphQLToken token : tokens) {
-                if(token.sourceToken.getStart() != expectedTokenStart) {
+                if (token.sourceToken.getStart() != expectedTokenStart) {
                     log.error("Invalid token start range, expected " + expectedTokenStart, token.toString(), buffer.toString());
                 }
-                if(token.sourceToken.getEnd() != expectedTokenEnd) {
+                if (token.sourceToken.getEnd() != expectedTokenEnd) {
                     log.error("Invalid token end range, expected " + expectedTokenEnd, token.toString(), buffer.toString());
                 }
-                if(token.sourceToken.getText().length() != token.sourceToken.getEnd() - token.sourceToken.getStart()) {
+                if (token.sourceToken.getText().length() != token.sourceToken.getEnd() - token.sourceToken.getStart()) {
                     log.error("Token range doesn't match token length", token.toString());
                 }
                 tokenIndex++;
-                if(tokenIndex < tokens.size()) {
+                if (tokenIndex < tokens.size()) {
                     expectedTokenStart = expectedTokenEnd;
                     expectedTokenEnd = tokens.get(tokenIndex).sourceToken.getEnd();
                 }
@@ -180,7 +184,7 @@ public class JSGraphQLLexer extends LexerBase {
 
     @Override
     public void advance() {
-        if(currentTokenIndex < tokens.size() -1) {
+        if (currentTokenIndex < tokens.size() - 1) {
             currentTokenIndex++;
             currentToken = tokens.get(currentTokenIndex);
             currentTokenStart = currentToken.sourceToken.getStart();
@@ -195,7 +199,7 @@ public class JSGraphQLLexer extends LexerBase {
 
     @Override
     public int getTokenStart() {
-       return currentTokenStart;
+        return currentTokenStart;
     }
 
     @Override

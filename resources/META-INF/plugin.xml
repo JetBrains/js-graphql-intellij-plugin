@@ -29,6 +29,8 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>1.4.0: Language Service 1.2.0 based on graphql 0.7.0 and codemirror-graphql 0.5.4. Basic editor support for GraphQL Schema (.graphqls)</li>
+      <li>1.3.3: Fixes compatibility issue with IDEA 2016.2.2</li>
       <li>1.3.2: Removes GraphQL schema from scratch file formats.</li>
       <li>1.3.1: Fixes compatibility issue with WebStorm 2016.2 EAP.</li>
       <li>1.3.0: Adds support for GraphQL Scratch Files. Query results are now formatted.</li>
@@ -80,8 +82,10 @@
     <lang.syntaxHighlighterFactory language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.highlighting.JSGraphQLEndpointSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory language="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.ide.highlighting.JSGraphQLEndpointDocSyntaxHighlighterFactory"/>
     <lang.commenter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLCommenter"/>
+    <lang.commenter language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLCommenter"/>
     <lang.commenter language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLCommenter"/>
     <lang.braceMatcher language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLBraceMatcher"  />
+    <lang.braceMatcher language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLBraceMatcher"  />
     <lang.braceMatcher language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointBraceMatcher"  />
     <lang.fileViewProviderFactory language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFileViewProviderFactory" />
     <lang.psiStructureViewFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.structureView.JSGraphQLPsiStructureViewFactory"/>
@@ -96,6 +100,7 @@
 
     <!-- Error highlighting and annotations -->
     <externalAnnotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" />
+    <externalAnnotator language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" />
     <externalAnnotator language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" />
     <externalAnnotator language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" /><!-- Own reg required -->
     <annotator language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLRelayTemplateAnnotator" /><!-- Using the JSX dialect overwrites the default annotator -->
@@ -111,6 +116,7 @@
 
     <!-- Formatting -->
     <lang.formatter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLFormattingModelBuilder"/>
+    <lang.formatter language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLFormattingModelBuilder"/>
     <lang.formatter language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.formatter.JSGraphQLEndpointFormattingModelBuilder"/>
     <lang.formatter language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLInjectedFormattingModelBuilder" />
     <lang.formatter language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLInjectedFormattingModelBuilder" /><!-- Own reg required -->
@@ -118,6 +124,7 @@
     <lang.foldingBuilder language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLFoldingBuilder"/>
     <lang.foldingBuilder language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointFoldingBuilder"/>
     <lang.quoteHandler language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQuoteHandler" />
+    <lang.quoteHandler language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQuoteHandler" />
     <lang.quoteHandler language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointQuoteHandler" />
     <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLEnterHandlerDelegate" />
 
@@ -146,6 +153,7 @@
     <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.JSGraphQLConfigEditorNotificationProvider"/>
     <codeInsight.lineMarkerProvider language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLLineMarkerProvider" />
 
+    <editorTabColorProvider implementation="com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaEditorTabColorProvider" />
 
     <!-- Language injection -->
     <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.JSGraphQLTemplateFragmentLanguageInjector" order="first" />
@@ -196,6 +204,10 @@
   <actions>
 
     <action id="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLNewFileAction" class="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLNewFileAction">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewTypeScriptFile"/>
+    </action>
+
+    <action id="com.intellij.lang.jsgraphql.schema.ide.actions.JSGraphQLSchemaNewFileAction" class="com.intellij.lang.jsgraphql.schema.ide.actions.JSGraphQLSchemaNewFileAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewTypeScriptFile"/>
     </action>
 

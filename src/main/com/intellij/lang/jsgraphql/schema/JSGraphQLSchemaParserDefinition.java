@@ -37,7 +37,7 @@ public class JSGraphQLSchemaParserDefinition implements ParserDefinition{
     @NotNull
     @Override
     public Lexer createLexer(Project project) {
-        return new JSGraphQLLexer(project, true);
+        return new JSGraphQLLexer(project);
     }
 
     @NotNull

@@ -15,6 +15,7 @@ import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvi
 import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Iconable;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.messages.MessageBusConnection;
@@ -26,6 +27,8 @@ import java.util.Collection;
 
 public class JSGraphQLSchemaFileNode extends BasePsiNode<PsiFile> implements JSGraphQLSchemaLanguageServiceListener {
 
+    public static final Key<JSGraphQLSchemaFileNode> GRAPHQL_SCHEMA_TREE_NODE = Key.create("JSGraphQL.schema.tree.node");
+
     private final VirtualFile virtualFile;
     private final MessageBusConnection connection;
 
@@ -34,6 +37,7 @@ public class JSGraphQLSchemaFileNode extends BasePsiNode<PsiFile> implements JSG
         virtualFile = value.getVirtualFile();
         connection = project.getMessageBus().connect(project);
         connection.subscribe(JSGraphQLSchemaLanguageServiceListener.TOPIC, this);
+        project.putUserData(GRAPHQL_SCHEMA_TREE_NODE, this);
     }
 
     @Nullable
@@ -50,7 +54,7 @@ public class JSGraphQLSchemaFileNode extends BasePsiNode<PsiFile> implements JSG
 
     @Override
     public boolean contains(@NotNull VirtualFile file) {
-        return Boolean.TRUE.equals(file.getUserData(JSGraphQLSchemaLanguageProjectService.IS_GRAPHQL_SCHEMA_VIRTUAL_FILE));
+        return JSGraphQLSchemaLanguageProjectService.isProjectSchemaFile(file);
     }
 
     @Override

@@ -65,7 +65,10 @@ public class JSGraphQLNodeLanguageServiceInstance implements ProjectManagerListe
 
         this.project = project;
 
-        ProjectManager.getInstance().addProjectManagerListener(project, this);
+        final ProjectManager projectManager = ProjectManager.getInstance();
+        if(projectManager != null) {
+            projectManager.addProjectManagerListener(project, this);
+        }
 
         if (JSGraphQLDebugUtil.debug && JSGraphQLDebugUtil.languageServiceUrl != null) {
             try {

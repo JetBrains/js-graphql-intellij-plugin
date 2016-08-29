@@ -136,6 +136,12 @@ public class JSGraphQLCompletionContributor extends CompletionContributor {
                             }
 
                         }
+
+                        if(JSGraphQLKeywords.ALL.contains(text)) {
+                            // add a whitespace after completion of a keyword
+                            element = element.withInsertHandler(AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP);
+                        }
+
                         result.addElement(element);
                     }
                 }

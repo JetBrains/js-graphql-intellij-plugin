@@ -25,9 +25,9 @@ public class JSGraphQLBraceMatcher extends PairedBraceMatcherAdapter {
     private static class MyPairedBraceMatcher implements PairedBraceMatcher {
 
         static final BracePair[] PAIRS = new BracePair[]{
-                new BracePair(JSGraphQLTokenTypes.LPAREN, JSGraphQLTokenTypes.RPAREN, false),
-                new BracePair(JSGraphQLTokenTypes.LBRACKET, JSGraphQLTokenTypes.RBRACKET, false),
-                new BracePair(JSGraphQLTokenTypes.LBRACE, JSGraphQLTokenTypes.RBRACE, false)  // !! Idea inserts an extra closing RBRACE is structural true
+                new BracePair(JSGraphQLTokenTypes.LPAREN, JSGraphQLTokenTypes.RPAREN, true),
+                new BracePair(JSGraphQLTokenTypes.LBRACKET, JSGraphQLTokenTypes.RBRACKET, true),
+                new BracePair(JSGraphQLTokenTypes.LBRACE, JSGraphQLTokenTypes.RBRACE, true)
         };
 
         @Override public BracePair[] getPairs() {
