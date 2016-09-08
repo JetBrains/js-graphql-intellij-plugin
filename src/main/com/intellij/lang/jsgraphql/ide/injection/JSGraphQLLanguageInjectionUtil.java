@@ -22,6 +22,7 @@ public class JSGraphQLLanguageInjectionUtil {
 
     public static final String RELAY_QL_TEMPLATE_TAG = "Relay.QL";
     public static final String GRAPHQL_TEMPLATE_TAG = "graphql";
+    public static final String APOLLO_GQL_TEMPLATE_TAG = "gql";
 
     public enum JSGraphQLInjectionTag {
         RelayQL,
@@ -49,7 +50,7 @@ public class JSGraphQLLanguageInjectionUtil {
             final PsiElement firstChild = template.getFirstChild();
             if (firstChild instanceof JSReferenceExpression) {
                 final String tagText = firstChild.getText();
-                if (RELAY_QL_TEMPLATE_TAG.equals(tagText) || GRAPHQL_TEMPLATE_TAG.equals(tagText)) {
+                if (RELAY_QL_TEMPLATE_TAG.equals(tagText) || GRAPHQL_TEMPLATE_TAG.equals(tagText) || APOLLO_GQL_TEMPLATE_TAG.equals(tagText)) {
                     if(tagRef != null) {
                         tagRef.set(RELAY_QL_TEMPLATE_TAG.equals(tagText) ? JSGraphQLInjectionTag.RelayQL : JSGraphQLInjectionTag.GraphQL);
                     }
