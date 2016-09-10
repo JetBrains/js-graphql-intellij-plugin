@@ -7,14 +7,40 @@
  */
 package com.intellij.lang.jsgraphql.ide.endpoints;
 
+import com.intellij.ide.util.PropertiesComponent;
 import org.jdesktop.swingx.combobox.ListComboBoxModel;
 
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import java.util.List;
 
 public class JSGraphQLEndpointsModel extends ListComboBoxModel<JSGraphQLEndpoint> {
 
-    public JSGraphQLEndpointsModel(List<JSGraphQLEndpoint> list) {
+    private final static String INDEX_PROPERTY_NAME = JSGraphQLEndpointsModel.class.getName() + ".index";
+
+    public JSGraphQLEndpointsModel(List<JSGraphQLEndpoint> list, PropertiesComponent propertiesComponent) {
         super(list);
+        if(!list.isEmpty()) {
+            int defaultSelectedIndex = propertiesComponent.getInt(INDEX_PROPERTY_NAME, 0);
+            if(defaultSelectedIndex >= 0 && defaultSelectedIndex < list.size()) {
+                setSelectedItem(list.get(defaultSelectedIndex));
+            }
+        }
+        this.addListDataListener(new ListDataListener() {
+            @Override
+            public void intervalAdded(ListDataEvent listDataEvent) {}
+
+            @Override
+            public void intervalRemoved(ListDataEvent listDataEvent) {}
+
+            @Override
+            public void contentsChanged(ListDataEvent listDataEvent) {
+                final JSGraphQLEndpoint selectedItem = getSelectedItem();
+                if(selectedItem != null) {
+                    propertiesComponent.setValue(INDEX_PROPERTY_NAME, list.indexOf(selectedItem), 0);
+                }
+            }
+        });
     }
 
     public void reload(List<JSGraphQLEndpoint> newEndpoints) {
