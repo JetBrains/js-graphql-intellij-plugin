@@ -45,13 +45,13 @@ public class JSGraphQLCompletionContributor extends CompletionContributor {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
 
-                final boolean relay = JSGraphQLLanguageInjectionUtil.isRelayInjection(parameters.getOriginalFile());
+                final String environment = JSGraphQLLanguageInjectionUtil.getEnvironment(parameters.getOriginalFile());
                 final String buffer = parameters.getOriginalFile().getText();
                 final Editor editor = parameters.getEditor();
                 final Project project = editor.getProject();
                 final LogicalPosition logicalPosition = editor.offsetToLogicalPosition(parameters.getOffset());
 
-                final HintsResponse hints = JSGraphQLNodeLanguageServiceClient.getHints(buffer, logicalPosition.line, logicalPosition.column, project, relay);
+                final HintsResponse hints = JSGraphQLNodeLanguageServiceClient.getHints(buffer, logicalPosition.line, logicalPosition.column, project, environment);
 
                 if(hints != null) {
 

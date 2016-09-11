@@ -119,13 +119,13 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
                             // hence our reference to the file -- see JSGraphQLSchemaLanguageProjectService.getReference()
                             final String buffer = element.getContainingFile().getText();
                             final LogicalPosition pos = getTokenPos(buffer, element);
-                            final boolean relay = JSGraphQLLanguageInjectionUtil.isRelayInjection(element.getContainingFile());
+                            final String environment = JSGraphQLLanguageInjectionUtil.getEnvironment(element.getContainingFile());
                             final TokenDocumentationResponse tokenDocumentation = JSGraphQLNodeLanguageServiceClient.getTokenDocumentation(
                                     buffer,
                                     pos.line,
                                     pos.column,
                                     project,
-                                    relay
+                                    environment
                             );
                             if(tokenDocumentation != null) {
                                 String doc = "";

@@ -14,7 +14,7 @@ public class SetProjectDirRequest extends Request {
     private final String projectDir;
 
     public SetProjectDirRequest(@NotNull String projectDir) {
-        super("setProjectDir", false);
+        super("setProjectDir", null);
         this.projectDir = projectDir;
     }
 }

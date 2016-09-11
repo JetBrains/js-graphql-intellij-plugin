@@ -54,8 +54,8 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
                     buffer = getWhitespacePaddedGraphQL(file, buffer);
                 }
                 if (buffer.length() > 0) {
-                    final boolean relay = JSGraphQLLanguageInjectionUtil.isRelayInjection(file);
-                    final AnnotationsResponse annotations = JSGraphQLNodeLanguageServiceClient.getAnnotations(buffer.toString(), file.getProject(), relay);
+                    final String environment = JSGraphQLLanguageInjectionUtil.getEnvironment(file);
+                    final AnnotationsResponse annotations = JSGraphQLNodeLanguageServiceClient.getAnnotations(buffer.toString(), file.getProject(), environment);
                     return new JSGraphQLAnnotationResult(annotations, editor);
                 }
             } else if(file instanceof JSGraphQLSchemaFile) {

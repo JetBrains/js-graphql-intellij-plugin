@@ -12,6 +12,6 @@ public class SchemaWithVersionRequest extends Request {
     public final static SchemaWithVersionRequest INSTANCE = new SchemaWithVersionRequest();
 
     private SchemaWithVersionRequest() {
-        super("getSchemaWithVersion", false);
+        super("getSchemaWithVersion", null);
     }
 }
