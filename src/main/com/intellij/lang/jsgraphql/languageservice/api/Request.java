@@ -12,10 +12,10 @@ import org.jetbrains.annotations.NotNull;
 public abstract class Request {
 
     protected String command;
-    protected boolean relay;
+    protected String env;
 
-    protected Request(@NotNull String command, boolean relay) {
+    protected Request(@NotNull String command, String environment) {
         this.command = command;
-        this.relay = relay;
+        this.env = environment;
     }
 }

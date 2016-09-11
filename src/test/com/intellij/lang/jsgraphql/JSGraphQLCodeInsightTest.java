@@ -23,7 +23,6 @@ package com.intellij.lang.jsgraphql;
     protected void setUp() throws Exception {
 
         // TODO: This test depends on a running JS GraphQL Language service at http://localhost:3000
-        // TODO: Fix: This test requires comments around <depends>JavaScript</depends> and <depends>NodeJS</depends> in plugin.xml as a work-around to IDEA's complaint about missing 'NodeJS' and 'JavaScriptDebugger' plugins
         CodeMirrorNodeLanguageServiceClientTest.setLanguageServiceUrl(new URL("http", "localhost", 3000, JSGraphQLNodeLanguageServiceInstance.JSGRAPHQL_LANGUAGE_SERVICE_MAPPING));
 
         super.setUp();

@@ -15,7 +15,7 @@ public class DocumentationRequest extends Request {
     private String field;
 
     protected DocumentationRequest(String command) {
-        super(command, true);
+        super(command, null);
     }
 
     public static DocumentationRequest getTypeDocumentation(@NotNull String type) {
