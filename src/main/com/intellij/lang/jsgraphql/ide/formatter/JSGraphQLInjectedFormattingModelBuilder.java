@@ -31,8 +31,8 @@ public class JSGraphQLInjectedFormattingModelBuilder implements CustomFormatting
     @NotNull
     @Override
     public FormattingModel createModel(PsiElement element, CodeStyleSettings settings) {
-        if(element instanceof JSFile) {
-            final JSFile file = (JSFile)element;
+        if(element instanceof JSFile || element.getContainingFile() instanceof JSFile) {
+            final JSFile file = (JSFile)(element instanceof JSFile ? element : element.getContainingFile());
             file.putUserData(WANT_DEFAULT_FORMATTER_KEY, true);
             try {
                 final FormattingModelBuilder formattingModelBuilder = LanguageFormatting.INSTANCE.forContext(file.getLanguage(), element);
@@ -45,7 +45,7 @@ public class JSGraphQLInjectedFormattingModelBuilder implements CustomFormatting
                 file.putUserData(WANT_DEFAULT_FORMATTER_KEY, null);
             }
         }
-        throw new IllegalArgumentException("Unsupported element '" + element + "'. It must be a JSFile with its own default formatter to support injected GraphQL formatting");
+        throw new IllegalArgumentException("Unsupported element '" + element + "'. It must be an element in a JSFile with its own default formatter to support injected GraphQL formatting");
     }
 
     private static SpacingBuilder createSpaceBuilder(CodeStyleSettings settings, PsiElement element) {
