@@ -27,7 +27,7 @@ public class JSGraphQEndpointDocLexerTest extends LexerTestCase {
 
 		doTest("@param foo This is the desc", "docName ('@param')\n" +
 				"WHITE_SPACE (' ')\n" +
-				"docText ('foo')\n" +
+				"docValue ('foo')\n" +
 				"WHITE_SPACE (' ')\n" +
 				"docText ('This')\n" +
 				"WHITE_SPACE (' ')\n" +
@@ -48,7 +48,7 @@ public class JSGraphQEndpointDocLexerTest extends LexerTestCase {
 
 		doTest("@param foo This is the desc with another @param", "docName ('@param')\n" +
 				"WHITE_SPACE (' ')\n" +
-				"docText ('foo')\n" +
+				"docValue ('foo')\n" +
 				"WHITE_SPACE (' ')\n" +
 				"docText ('This')\n" +
 				"WHITE_SPACE (' ')\n" +
