@@ -78,10 +78,8 @@ public class JSGraphQLNamedPropertyPsiElement extends JSGraphQLNamedPsiElement {
             if(namedType != null) {
                 final JSGraphQLPropertyType propertyType = namedType.properties.get(getName());
                 if(propertyType != null) {
-                    final JSGraphQLNamedTypePsiElement propertyValueTypeElement = propertyType.propertyValueTypeElement;
-                    if(propertyValueTypeElement != null) {
-                        final String propertyValueTypeName = propertyValueTypeElement.getName();
-                        if(JSGraphQLSchemaLanguageProjectService.SCALAR_TYPES.contains(propertyValueTypeName)) {
+                    if(propertyType.propertyValueTypeName != null) {
+                        if(JSGraphQLSchemaLanguageProjectService.SCALAR_TYPES.contains(propertyType.propertyValueTypeName)) {
                             return true;
                         }
                     }

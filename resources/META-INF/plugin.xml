@@ -59,6 +59,7 @@
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaLanguageProjectService" serviceImplementation="com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaLanguageProjectService" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider" serviceImplementation="com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry" serviceImplementation="com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry" />
 
 
     <!-- Project tree -->
@@ -210,6 +211,10 @@
     </action>
 
     <action id="com.intellij.lang.jsgraphql.schema.ide.actions.JSGraphQLSchemaNewFileAction" class="com.intellij.lang.jsgraphql.schema.ide.actions.JSGraphQLSchemaNewFileAction">
+      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewTypeScriptFile"/>
+    </action>
+
+    <action id="com.intellij.lang.jsgraphql.endpoint.ide.actions.JSGraphQLEndpointNewFileAction" class="com.intellij.lang.jsgraphql.endpoint.ide.actions.JSGraphQLEndpointNewFileAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewTypeScriptFile"/>
     </action>
 

@@ -10,15 +10,22 @@ package com.intellij.lang.jsgraphql.schema.ide.type;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPropertyPsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedTypePsiElement;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
 
 /**
  * Represents the property aspect of a field in a GraphQL schema, e.g. 'username' on type 'User'.
  */
 public class JSGraphQLPropertyType {
 
-    public final JSGraphQLNamedPropertyPsiElement propertyElement;
+    public final PsiNamedElement propertyElement;
     public final JSGraphQLNamedType declaringTypeElement;
-    public final JSGraphQLNamedTypePsiElement propertyValueTypeElement;
+    public final String propertyValueTypeName;
+
+    public JSGraphQLPropertyType(PsiNamedElement propertyElement, JSGraphQLNamedType declaringTypeElement, String propertyValueTypeName) {
+        this.propertyElement = propertyElement;
+        this.declaringTypeElement = declaringTypeElement;
+        this.propertyValueTypeName = propertyValueTypeName;
+    }
 
     public JSGraphQLPropertyType(JSGraphQLNamedPropertyPsiElement propertyElement, JSGraphQLNamedType declaringTypeElement) {
         this.propertyElement = propertyElement;
@@ -36,11 +43,15 @@ public class JSGraphQLPropertyType {
                 break;
             }
         }
-        propertyValueTypeElement = valueTypeElement;
+        propertyValueTypeName = valueTypeElement != null ? valueTypeElement.getName() : null;
+    }
+
+    public String getPropertyName() {
+        return propertyElement != null ? propertyElement.getName() : null;
     }
 
     @Override
     public String toString() {
-        return declaringTypeElement.nameElement.getName() + "." + propertyElement.getName() + ": " + propertyValueTypeElement.getName();
+        return declaringTypeElement.getName() + "." + getPropertyName() + ": " + propertyValueTypeName;
     }
 }

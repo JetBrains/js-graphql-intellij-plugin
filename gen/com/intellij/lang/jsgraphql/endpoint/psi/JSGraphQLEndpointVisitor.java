@@ -94,11 +94,11 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitNamedType(@NotNull JSGraphQLEndpointNamedType o) {
-    visitPsiElement(o);
+    visitPsiNameIdentifierOwner(o);
   }
 
   public void visitNamedTypeDef(@NotNull JSGraphQLEndpointNamedTypeDef o) {
-    visitPsiElement(o);
+    visitPsiNameIdentifierOwner(o);
   }
 
   public void visitObjectTypeDefinition(@NotNull JSGraphQLEndpointObjectTypeDefinition o) {
@@ -114,7 +114,7 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitProperty(@NotNull JSGraphQLEndpointProperty o) {
-    visitPsiElement(o);
+    visitPsiNameIdentifierOwner(o);
   }
 
   public void visitQuotedString(@NotNull JSGraphQLEndpointQuotedString o) {

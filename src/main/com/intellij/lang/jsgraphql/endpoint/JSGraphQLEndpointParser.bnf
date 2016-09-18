@@ -118,15 +118,15 @@ NamedAnnotationArgument ::= identifier EQUALS AnnotationArgumentValue {pin=1 rec
 
 private RecoverNamedAnnotationArgument ::= !(COMMA | RPAREN)
 
-NamedType ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypePsiElement"}
+NamedType ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypePsiElement" implements="com.intellij.psi.PsiNameIdentifierOwner"}
 
-NamedTypeDef ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefPsiElement"}
+NamedTypeDef ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefPsiElement" implements="com.intellij.psi.PsiNameIdentifierOwner"}
 
 CompositeType ::= ListType | (NamedType REQUIRED?)
 
 ListType ::= LBRACKET NamedType RBRACKET REQUIRED? {pin=1}
 
-Property ::= identifier
+Property ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPropertyPsiElement" implements="com.intellij.psi.PsiNameIdentifierOwner"}
 
 InterfaceTypeDefinition ::= INTERFACE NamedTypeDef FieldDefinitionSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 

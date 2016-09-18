@@ -1,15 +1,15 @@
 /**
  * Copyright (c) 2015-present, Jim Kynde Meyer
  * All rights reserved.
- *
+ * <p>
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 package com.intellij.lang.jsgraphql.schema.ide.type;
 
 import com.google.common.collect.Maps;
-import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedTypePsiElement;
-import com.intellij.lang.jsgraphql.psi.JSGraphQLPsiElement;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
 
 import java.util.Map;
 
@@ -18,17 +18,25 @@ import java.util.Map;
  */
 public class JSGraphQLNamedType {
 
-    public final JSGraphQLPsiElement definitionElement;
-    public final JSGraphQLNamedTypePsiElement nameElement;
+    /** PSI element for the type definition, e.g. 'type Foo {}' */
+    public final PsiElement definitionElement;
+
+    /** PSI element representing the name of a type definition, e.g. 'Foo' in 'type Foo {}' */
+    public final PsiNamedElement nameElement;
+
     public final Map<String, JSGraphQLPropertyType> properties = Maps.newHashMap();
 
-    public JSGraphQLNamedType(JSGraphQLPsiElement definitionElement, JSGraphQLNamedTypePsiElement nameElement) {
+    public JSGraphQLNamedType(PsiElement definitionElement, PsiNamedElement nameElement) {
         this.definitionElement = definitionElement;
         this.nameElement = nameElement;
     }
 
+    public String getName() {
+        return nameElement.getName();
+    }
+
     @Override
     public String toString() {
-        return "Type: " + nameElement.getName();
+        return "Type: " + getName();
     }
 }

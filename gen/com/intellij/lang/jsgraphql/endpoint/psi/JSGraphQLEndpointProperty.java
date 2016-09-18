@@ -4,8 +4,9 @@ package com.intellij.lang.jsgraphql.endpoint.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNameIdentifierOwner;
 
-public interface JSGraphQLEndpointProperty extends PsiElement {
+public interface JSGraphQLEndpointProperty extends PsiNameIdentifierOwner {
 
   @NotNull
   PsiElement getIdentifier();

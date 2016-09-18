@@ -18,6 +18,9 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.UserDataHolderEx;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.SourceTreeToPsiMap;
+import com.intellij.psi.impl.source.tree.Factory;
+import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.SearchScope;
@@ -150,6 +153,11 @@ public class JSGraphQLNamedPsiElement extends JSGraphQLPsiElement implements Psi
                     if(service == null) {
                         service = JSGraphQLSchemaLanguageProjectService.getService(self.getProject());
                     }
+                    if(service.hasEndpointEntryFile()) {
+                        // with the endpoint language in use we can't cache the reference here
+                        // since endpoint language files are editable
+                        return service.getReference(self);
+                    }
                     final int currentSchemaVersion = service.getSchemaVersion();
                     if(currentSchemaVersion != cachedSchemaVersion) {
                         cachedSchemaVersion = currentSchemaVersion;
@@ -163,6 +171,22 @@ public class JSGraphQLNamedPsiElement extends JSGraphQLPsiElement implements Psi
                 public Object[] getVariants() {
                     // variants appears to filter the shown completions -- but should be okay for now inside a single property/type name
                     return NO_VARIANTS;
+                }
+
+                @Override
+                public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+                    PsiElement nameIdentifier = getNameIdentifier();
+                    if(nameIdentifier != null) {
+                        final PsiElement psiLeaf = nameIdentifier.getFirstChild() != null ? nameIdentifier.getFirstChild() : nameIdentifier;
+                        final LeafElement renamedLeaf = Factory.createSingleLeafElement(psiLeaf.getNode().getElementType(), newElementName, null, nameIdentifier.getManager());
+                        final PsiElement renamedPsiElement = SourceTreeToPsiMap.treeElementToPsi(renamedLeaf);
+                        if (renamedPsiElement != null) {
+                            psiLeaf.replace(renamedPsiElement);
+                        }
+                        return self;
+                    } else {
+                        throw new IncorrectOperationException();
+                    }
                 }
             };
         }

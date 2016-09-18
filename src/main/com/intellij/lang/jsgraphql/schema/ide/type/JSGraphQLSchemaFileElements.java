@@ -23,7 +23,7 @@ import java.util.Objects;
 /**
  * Contains the known types and declared fields contained in a specific GraphQL schema file
  */
-public class JSGraphQLSchemaFileElements {
+public class JSGraphQLSchemaFileElements implements JSGraphQLNamedTypeRegistry {
 
     private static final String QUERY = "Query";
     private static final String ANONYMOUS_QUERY = "SelectionSet";
@@ -50,6 +50,7 @@ public class JSGraphQLSchemaFileElements {
         collectNamedTypesAndProperties(true);
     }
 
+    @Override
     public JSGraphQLNamedType getNamedType(String typeName) {
         return nameToTypes.get(typeName);
     }

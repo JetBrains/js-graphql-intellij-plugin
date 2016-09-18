@@ -13,6 +13,8 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageServiceListener;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
@@ -21,6 +23,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaFileType;
 import com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaLanguage;
 import com.intellij.lang.jsgraphql.schema.ide.type.JSGraphQLNamedType;
+import com.intellij.lang.jsgraphql.schema.ide.type.JSGraphQLNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.schema.ide.type.JSGraphQLPropertyType;
 import com.intellij.lang.jsgraphql.schema.ide.type.JSGraphQLSchemaFileElements;
 import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
@@ -75,9 +78,11 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
     private JSGraphQLSchemaFileElements schemaFileElements;
 
     private final Object reloadLock = new Object();
+    private final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry;
 
     public JSGraphQLSchemaLanguageProjectService(@NotNull final Project project) {
         this.project = project;
+        this.endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(project);
 
         final MessageBusConnection connection = project.getMessageBus().connect(this);
         connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this);
@@ -133,7 +138,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
             }
         }
         final JSGraphQLNamedType namedType = getOrCreateSchemaFileElements().getNamedType(propertyPsiElement);
-        return namedType != null ? namedType.nameElement.getName() : null;
+        return namedType != null ? namedType.getName() : null;
     }
 
 
@@ -148,12 +153,23 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
     }
 
     /**
+     * Gets whether the project uses the Endpoint Language to define the schema
+     * @return true if the project is configured with a .graphqle entry file
+     */
+    public boolean hasEndpointEntryFile() {
+        return endpointNamedTypeRegistry.hasEndpointEntryFile();
+    }
+
+    /**
      * Gets the GraphQL Schema PSI element that the specified element references as it declaration
      * @param element the GraphQL PSI element to get the declaring GraphQL schema PSI element for
      * @return the GraphQL Schema PSI element that declares the specified element, or <code>null</code> if no matching declaration is found
      */
     @Nullable
     public PsiElement getReference(PsiElement element) {
+
+        final boolean hasEndpointFile = endpointNamedTypeRegistry.hasEndpointEntryFile();
+
         final JSGraphQLSchemaFileElements schemaFileElements;
         final PsiFile containingFile = element.getContainingFile();
         if(containingFile instanceof JSGraphQLSchemaFile && !isProjectSchemaFile(containingFile.getVirtualFile())) {
@@ -167,7 +183,19 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
         if(element instanceof JSGraphQLNamedPsiElement) {
             JSGraphQLNamedPsiElement namedElement = (JSGraphQLNamedPsiElement)element;
             if(namedElement instanceof JSGraphQLNamedTypePsiElement) {
-                // element references a JSGraphQLNamedType in the GraphQL schema file
+                if(hasEndpointFile) {
+                    final String nameToFind = namedElement.getName();
+                    if(nameToFind != null) {
+                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(nameToFind);
+                        if(namedType != null && namedType.definitionElement instanceof JSGraphQLEndpointNamedTypeDefinition) {
+                            final JSGraphQLEndpointNamedTypeDefinition namedTypeDefinition = (JSGraphQLEndpointNamedTypeDefinition) namedType.definitionElement;
+                            return namedTypeDefinition.getNamedTypeDef();
+                        } else {
+                            return null;
+                        }
+                    }
+                }
+                // not using endpoint, so element references a JSGraphQLNamedType in the GraphQL schema file
                 for (PsiElement definition : schemaFileElements.getFile().getChildren()) {
                     final JSGraphQLNamedPsiElement definitionName = PsiTreeUtil.findChildOfType(definition, JSGraphQLNamedPsiElement.class);
                     if(definitionName != null) {
@@ -188,11 +216,21 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
             } else if(element instanceof JSGraphQLNamedPropertyPsiElement) {
                 // get the name of the field, e.g. foo > bar > bas, stopping at fragments that give away the type,
                 // or ultimately when we're at a top level definition
-                final JSGraphQLNamedPropertyPsiElement schemaPropertyReferenceElement = resolveSchemaPropertyReferenceElement((JSGraphQLNamedPropertyPsiElement) element, schemaFileElements);
+                final JSGraphQLNamedTypeRegistry typeRegistry;
+                if(hasEndpointFile) {
+                    typeRegistry = endpointNamedTypeRegistry;
+                } else {
+                    typeRegistry = schemaFileElements;
+                }
+                final PsiElement schemaPropertyReferenceElement = resolveSchemaPropertyReferenceElement((JSGraphQLNamedPropertyPsiElement) element, typeRegistry);
                 if(schemaPropertyReferenceElement != null) {
                     return schemaPropertyReferenceElement;
                 }
             }
+        }
+
+        if(hasEndpointFile) {
+            return null;
         }
 
         // fallback is the schema file to make sure references are updated on schema changes
@@ -349,8 +387,8 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
     // ---- implementation ----
 
     @Nullable
-    private JSGraphQLNamedPropertyPsiElement resolveSchemaPropertyReferenceElement(@NotNull JSGraphQLNamedPropertyPsiElement propertyPsiElement, JSGraphQLSchemaFileElements schemaFileElements) {
-        final JSGraphQLSchemaPropertyPath propertyPath = getPropertyPath(propertyPsiElement, schemaFileElements);
+    private PsiElement resolveSchemaPropertyReferenceElement(@NotNull JSGraphQLNamedPropertyPsiElement propertyPsiElement, JSGraphQLNamedTypeRegistry namedTypeRegistry) {
+        final JSGraphQLSchemaPropertyPath propertyPath = getPropertyPath(propertyPsiElement, namedTypeRegistry);
         if(propertyPath != null) {
             JSGraphQLNamedType currentType = propertyPath.declaringType;
             JSGraphQLPropertyType currentPropertyType = null;
@@ -361,14 +399,14 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
                         // unknown property in the schema
                         return null;
                     }
-                    if (currentPropertyType.propertyValueTypeElement == null) {
+                    if (currentPropertyType.propertyValueTypeName == null) {
                         return null;
                     }
-                    currentType = schemaFileElements.getNamedType(currentPropertyType.propertyValueTypeElement.getName());
+                    currentType = namedTypeRegistry.getNamedType(currentPropertyType.propertyValueTypeName);
                 }
             }
             if(currentPropertyType != null) {
-                if(log.isDebugEnabled() && !Objects.equals(currentPropertyType.propertyElement.getName(), propertyPsiElement.getName())) {
+                if(log.isDebugEnabled() && !Objects.equals(currentPropertyType.getPropertyName(), propertyPsiElement.getName())) {
                     // wrong property resolved
                     log.debug("Wrong property resolved", propertyPsiElement, currentPropertyType.propertyElement);
                 }
@@ -388,7 +426,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
 
     @Nullable
     @SuppressWarnings("unchecked")
-    private JSGraphQLSchemaPropertyPath getPropertyPath(@NotNull JSGraphQLNamedPropertyPsiElement propertyPsiElement, JSGraphQLSchemaFileElements schemaFileElements) {
+    private JSGraphQLSchemaPropertyPath getPropertyPath(@NotNull JSGraphQLNamedPropertyPsiElement propertyPsiElement, JSGraphQLNamedTypeRegistry namedTypeRegistry) {
 
         if(propertyPsiElement.getContainingFile() instanceof JSGraphQLSchemaFile) {
             // no need to resolve property paths for psi elements inside schema file
@@ -437,7 +475,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
 
         // finally, if we found the type name, return the property path that the psi element belongs to
         if(declaringTypeName != null) {
-            final JSGraphQLNamedType namedType = schemaFileElements.getNamedType(declaringTypeName);
+            final JSGraphQLNamedType namedType = namedTypeRegistry.getNamedType(declaringTypeName);
             if(namedType != null) {
                 final JSGraphQLSchemaPropertyPath ret = new JSGraphQLSchemaPropertyPath(namedType);
                 final Set<JSGraphQLNamedPropertyPsiElement> addedPropertyNameElements = Sets.newHashSet();
