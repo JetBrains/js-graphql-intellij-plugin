@@ -10,7 +10,7 @@
 <idea-plugin version="2">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>1.4.0-endpoint</version>
+  <version>1.5.0</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -29,6 +29,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>1.4.1: Support for gql tagged templates used by Apollo and Lokka GraphQL Clients. Fixes false Error in Relay Mutation.</li>
       <li>1.4.0: Language Service 1.2.0 based on graphql 0.7.0 and codemirror-graphql 0.5.4. Basic editor support for GraphQL Schema (.graphqls)</li>
       <li>1.3.3: Fixes compatibility issue with IDEA 2016.2.2</li>
       <li>1.3.2: Removes GraphQL schema from scratch file formats.</li>
@@ -151,6 +152,7 @@
     <!-- Editor notification bars and markers -->
     <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.JSGraphQLNodeInterpreterEditorNotificationProvider"/>
     <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.JSGraphQLConfigEditorNotificationProvider"/>
+    <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.JSGraphQLApolloLokkaEditorNotificationProvider"/>
     <codeInsight.lineMarkerProvider language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLLineMarkerProvider" />
 
     <editorTabColorProvider implementation="com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaEditorTabColorProvider" />

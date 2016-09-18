@@ -22,6 +22,7 @@ import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.lang.jsgraphql.JSGraphQLFileType;
@@ -339,7 +340,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
         // configured endpoints combo box
         final List<JSGraphQLEndpoint> endpoints = JSGraphQLConfigurationProvider.getService(myProject).getEndpoints();
-        final JSGraphQLEndpointsModel endpointsModel = new JSGraphQLEndpointsModel(endpoints);
+        final JSGraphQLEndpointsModel endpointsModel = new JSGraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
         final ComboBox endpointComboBox = new ComboBox(endpointsModel);
         endpointComboBox.setToolTipText("GraphQL endpoint");
         editor.putUserData(JS_GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);

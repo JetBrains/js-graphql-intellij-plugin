@@ -13,40 +13,34 @@ public class BufferRequest extends Request {
     private int line;
     private int ch;
 
-    protected BufferRequest(String command, boolean relay) {
-        super(command, relay);
+    protected BufferRequest(String command, String environment) {
+        super(command, environment);
     }
 
     public static BufferRequest getTokens(String buffer) {
-        BufferRequest ret = new BufferRequest("getTokens", true);
+        BufferRequest ret = new BufferRequest("getTokens", null);
         ret.buffer = buffer;
         return ret;
     }
 
-    public static BufferRequest getHints(String buffer, int line, int ch, boolean relay) {
-        BufferRequest ret = new BufferRequest("getHints", relay);
-        ret.buffer = buffer;
-        ret.line = line;
-        ret.ch = ch;
-        return ret;
-    }
-
-    public static BufferRequest getTokenDocumentation(String buffer, int line, int ch, boolean relay) {
-        BufferRequest ret = new BufferRequest("getTokenDocumentation", relay);
+    public static BufferRequest getHints(String buffer, int line, int ch, String environment) {
+        BufferRequest ret = new BufferRequest("getHints", environment);
         ret.buffer = buffer;
         ret.line = line;
         ret.ch = ch;
         return ret;
     }
 
-    public static BufferRequest getAnnotations(String buffer, boolean relay) {
-        BufferRequest ret = new BufferRequest("getAnnotations", relay);
+    public static BufferRequest getTokenDocumentation(String buffer, int line, int ch, String environment) {
+        BufferRequest ret = new BufferRequest("getTokenDocumentation", environment);
         ret.buffer = buffer;
+        ret.line = line;
+        ret.ch = ch;
         return ret;
     }
 
-    public static BufferRequest getAST(String buffer, boolean relay) {
-        BufferRequest ret = new BufferRequest("getAST", relay);
+    public static BufferRequest getAnnotations(String buffer, String environment) {
+        BufferRequest ret = new BufferRequest("getAnnotations", environment);
         ret.buffer = buffer;
         return ret;
     }

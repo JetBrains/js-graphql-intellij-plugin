@@ -1,3 +1,16 @@
+## 1.4.1 (2016-09-11)
+
+Features:
+
+- Support for gql tagged templates used by Apollo and Lokka GraphQL Clients (#25)
+- Language Service 1.3.0 with Lokka and Apollo gql support (#25)
+- Persist endpoint selection to project configuration
+
+Changes:
+
+- Fixes false Error in Relay Mutation (#23)
+
+
 ## 1.4.0 (2016-08-28)
 
 Features:

@@ -33,13 +33,13 @@ public class JSGraphQLNodeLanguageServiceClient {
         return executeRequest(request, TokensResponse.class, project);
     }
 
-    public static HintsResponse getHints(String buffer, int line, int ch, Project project, boolean relay) {
-        final BufferRequest request = BufferRequest.getHints(buffer, line, ch, relay);
+    public static HintsResponse getHints(String buffer, int line, int ch, Project project, String environment) {
+        final BufferRequest request = BufferRequest.getHints(buffer, line, ch, environment);
         return executeRequest(request, HintsResponse.class, project);
     }
 
-    public static TokenDocumentationResponse getTokenDocumentation(String buffer, int line, int ch, Project project, boolean relay) {
-        final BufferRequest request = BufferRequest.getTokenDocumentation(buffer, line, ch, relay);
+    public static TokenDocumentationResponse getTokenDocumentation(String buffer, int line, int ch, Project project, String environment) {
+        final BufferRequest request = BufferRequest.getTokenDocumentation(buffer, line, ch, environment);
         return executeRequest(request, TokenDocumentationResponse.class, project);
     }
 
@@ -53,14 +53,9 @@ public class JSGraphQLNodeLanguageServiceClient {
         return executeRequest(request, TokenDocumentationResponse.class, project);
     }
 
-    public static AnnotationsResponse getAnnotations(String buffer, Project project, boolean relay) {
-        final BufferRequest request = BufferRequest.getAnnotations(buffer, relay);
+    public static AnnotationsResponse getAnnotations(String buffer, Project project, String environment) {
+        final BufferRequest request = BufferRequest.getAnnotations(buffer, environment);
         return executeRequest(request, AnnotationsResponse.class, project);
-    }
-
-    public static ASTResponse getAST(String buffer, Project project, boolean relay) {
-        final BufferRequest request = BufferRequest.getAST(buffer, relay);
-        return executeRequest(request, ASTResponse.class, project);
     }
 
     public static SchemaWithVersionResponse getSchemaWithVersion(Project project) {

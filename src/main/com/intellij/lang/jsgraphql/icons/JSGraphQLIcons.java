@@ -16,6 +16,8 @@ public class JSGraphQLIcons {
     public static class Logos {
         public static final Icon GraphQL = JSGraphQLIcons.load("/com/intellij/lang/jsgraphql/icons/graphql.png");
         public static final Icon Relay = JSGraphQLIcons.load("/com/intellij/lang/jsgraphql/icons/relay.png");
+        public static final Icon Apollo = JSGraphQLIcons.load("/com/intellij/lang/jsgraphql/icons/apollo.png");
+        public static final Icon Lokka = JSGraphQLIcons.load("/com/intellij/lang/jsgraphql/icons/lokka.png");
     }
 
     public static class Files {
