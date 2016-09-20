@@ -39,7 +39,8 @@ public class JSGraphQLEndpointFoldingBuilder extends FoldingBuilderEx implements
 	private static TokenSet FOLDING_ELEMENT_TYPES = TokenSet.create(
 			JSGraphQLEndpointTokenTypes.FIELD_DEFINITION_SET,
 			JSGraphQLEndpointTokenTypes.OPERATION_TYPE_DEFINITION_SET,
-			JSGraphQLEndpointTokenTypes.ENUM_VALUE_DEFINITION_SET
+			JSGraphQLEndpointTokenTypes.ENUM_VALUE_DEFINITION_SET,
+			JSGraphQLEndpointTokenTypes.ARGUMENTS_DEFINITION
 	);
 
 	@Nullable
@@ -47,6 +48,9 @@ public class JSGraphQLEndpointFoldingBuilder extends FoldingBuilderEx implements
 	public String getPlaceholderText(@NotNull ASTNode node) {
 		if(node.getElementType() == JSGraphQLEndpointTokenTypes.IMPORT_DECLARATION) {
 			return "...";
+		}
+		if(node.getElementType() == JSGraphQLEndpointTokenTypes.ARGUMENTS_DEFINITION) {
+			return "(...)";
 		}
 		return "{...}";
 	}

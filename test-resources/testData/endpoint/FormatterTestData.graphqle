@@ -20,6 +20,12 @@ foo1(foo: String!, bar: [Boolean]): String
 @DataFetcher("foo")
 foo: String
 
+manyArguments(
+arg1: String,
+arg2: Float!,
+arg3: [Boolean]
+): String
+
 }
 
 input Foo {

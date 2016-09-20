@@ -92,6 +92,8 @@
     <lang.fileViewProviderFactory language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFileViewProviderFactory" />
     <lang.psiStructureViewFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.structureView.JSGraphQLPsiStructureViewFactory"/>
     <lang.psiStructureViewFactory language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.structureView.JSGraphQLPsiStructureViewFactory"/>
+    <lang.psiStructureViewFactory language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.structureView.JSGraphQLEndpointPsiStructureViewFactory"/>
+    <iconProvider implementation="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointIconProvider" />
     <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointEnterHandlerDelegate" />
 
     <!-- Completion -->

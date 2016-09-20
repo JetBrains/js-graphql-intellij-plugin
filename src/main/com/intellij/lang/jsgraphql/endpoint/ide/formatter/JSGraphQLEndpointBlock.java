@@ -36,7 +36,15 @@ public class JSGraphQLEndpointBlock extends AbstractBlock {
 	static Set<IElementType> INDENT_PARENTS = Sets.newHashSet(
 			JSGraphQLEndpointTokenTypes.FIELD_DEFINITION_SET,
 			JSGraphQLEndpointTokenTypes.OPERATION_TYPE_DEFINITION_SET,
-			JSGraphQLEndpointTokenTypes.ENUM_VALUE_DEFINITION_SET
+			JSGraphQLEndpointTokenTypes.ENUM_VALUE_DEFINITION_SET,
+			JSGraphQLEndpointTokenTypes.ARGUMENTS_DEFINITION
+	);
+
+	static Set<IElementType> INDENT_EXCLUSIONS = Sets.newHashSet(
+			JSGraphQLEndpointTokenTypes.RBRACE,
+			JSGraphQLEndpointTokenTypes.LBRACE,
+			JSGraphQLEndpointTokenTypes.RPAREN,
+			JSGraphQLEndpointTokenTypes.LPAREN
 	);
 
 	@Nullable
@@ -84,7 +92,7 @@ public class JSGraphQLEndpointBlock extends AbstractBlock {
 	@Override
 	public Indent getIndent() {
 
-		if (myNode.getElementType() == JSGraphQLEndpointTokenTypes.RBRACE || myNode.getElementType() == JSGraphQLEndpointTokenTypes.LBRACE) {
+		if (INDENT_EXCLUSIONS.contains(myNode.getElementType())) {
 			return Indent.getNoneIndent();
 		}
 
