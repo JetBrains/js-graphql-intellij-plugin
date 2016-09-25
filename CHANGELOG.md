@@ -1,3 +1,13 @@
+## 1.4.2 (2016-09-25)
+
+Features:
+
+- Language Service 1.3.1: Support __schema root in schema.json (compatible with graphene)
+
+Changes:
+
+- Fixes formatting exception when using ".if" live template in JSFile with injected GraphQL (#26)
+
 ## 1.4.1 (2016-09-11)
 
 Features:
