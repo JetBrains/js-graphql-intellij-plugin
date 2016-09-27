@@ -43,16 +43,14 @@ public class JSGraphQLEndpointStructureViewTreeElement extends PsiTreeElementBas
     public Collection<StructureViewTreeElement> getChildrenBase() {
         final Collection<StructureViewTreeElement> children = Lists.newArrayList();
         if (childrenBase instanceof PsiFile) {
-            final JSGraphQLEndpointNamedTypeDefinition[] typeDefinitions = PsiTreeUtil.getChildrenOfType(
-                    childrenBase,
-                    JSGraphQLEndpointNamedTypeDefinition.class
-            );
-            if (typeDefinitions != null) {
-                for (JSGraphQLEndpointNamedTypeDefinition typeDefinition : typeDefinitions) {
+            for (PsiElement child : childrenBase.getChildren()) {
+                if (child instanceof JSGraphQLEndpointNamedTypeDefinition) {
+                    final JSGraphQLEndpointNamedTypeDefinition typeDefinition = (JSGraphQLEndpointNamedTypeDefinition) child;
                     children.add(new JSGraphQLEndpointStructureViewTreeElement(typeDefinition, typeDefinition.getNamedTypeDef()));
+                } else if (child instanceof JSGraphQLEndpointImportDeclaration) {
+                    children.add(new JSGraphQLEndpointStructureViewTreeElement(child, child));
                 }
             }
-
         } else if (childrenBase instanceof JSGraphQLEndpointNamedTypeDefinition) {
             childrenBase.accept(new PsiRecursiveElementVisitor() {
                 @Override
@@ -91,6 +89,9 @@ public class JSGraphQLEndpointStructureViewTreeElement extends PsiTreeElementBas
     @Nullable
     @Override
     public String getPresentableText() {
+        if(element instanceof JSGraphQLEndpointImportDeclaration) {
+            return element.getText();
+        }
         final PsiNameIdentifierOwner identifier = PsiTreeUtil.getChildOfType(element, PsiNameIdentifierOwner.class);
         if (identifier != null) {
             return identifier.getText();
@@ -99,7 +100,7 @@ public class JSGraphQLEndpointStructureViewTreeElement extends PsiTreeElementBas
         if (astIdentifier != null && astIdentifier.getElementType() == JSGraphQLEndpointTokenTypes.IDENTIFIER) {
             return astIdentifier.getText();
         }
-        if(element instanceof PsiFile) {
+        if (element instanceof PsiFile) {
             return null;
         }
         return element.getText();

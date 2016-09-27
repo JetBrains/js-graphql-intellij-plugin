@@ -42,6 +42,9 @@ public class JSGraphQLEndpointIconProvider extends IconProvider {
         if (element instanceof JSGraphQLEndpointInputValueDefinition) {
             return JSGraphQLIcons.Schema.Attribute;
         }
+        if(element instanceof JSGraphQLEndpointImportDeclaration) {
+            return JSGraphQLIcons.Files.GraphQLSchema;
+        }
         return null;
     }
 
