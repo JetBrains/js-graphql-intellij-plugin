@@ -175,6 +175,7 @@
 
     <!-- Search (find implementations etc.) -->
     <definitionsSearch implementation="com.intellij.lang.jsgraphql.schema.ide.search.JSGraphQLDefinitionsSearchExecutor"/>
+    <definitionsSearch implementation="com.intellij.lang.jsgraphql.endpoint.ide.search.JSGraphQLEndpointDefinitionsSearchExecutor"/>
 
 
     <!-- Create type definition intentions -->

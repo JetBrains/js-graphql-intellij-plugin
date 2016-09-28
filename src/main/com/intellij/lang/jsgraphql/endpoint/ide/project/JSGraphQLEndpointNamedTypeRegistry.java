@@ -26,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
  * Registry for resolving references to PSI Elements in the Endpoint language.
@@ -71,8 +72,15 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
 
     @Override
     public JSGraphQLNamedType getNamedType(String typeNameToGet) {
+        return computeNamedTypes().get(typeNameToGet);
+    }
 
-        final Map<String, JSGraphQLNamedType> knownTypes = endpointTypesByName.computeIfAbsent(project, p -> {
+    public void enumerateTypes(Consumer<JSGraphQLNamedType> consumer) {
+        computeNamedTypes().forEach((key, jsGraphQLNamedType) -> consumer.accept(jsGraphQLNamedType));
+    }
+
+    private Map<String, JSGraphQLNamedType> computeNamedTypes() {
+        return endpointTypesByName.computeIfAbsent(project, p -> {
             final Map<String, JSGraphQLNamedType> result = Maps.newConcurrentMap();
             final PsiFile entryPsiFile = getEndpointEntryPsiFile();
             if (entryPsiFile != null) {
@@ -124,8 +132,5 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
             return result;
 
         });
-
-        return knownTypes.get(typeNameToGet);
-
     }
 }
