@@ -87,11 +87,13 @@ public class JSGraphQLEndpointFoldingBuilder extends FoldingBuilderEx implements
 						}
 						final int endOffset = lastVisible.getStartOffset() + lastVisible.getTextLength();
 						final TextRange range = TextRange.create(anImport.getStartOffset() + 7, endOffset);
-						final Set<Object> dependencies = nodesToFold.stream()
-								.filter(n -> n != anImport)
-								.map(n -> (Object)n.getPsi())
-								.collect(Collectors.toSet());
-						list.add(new FoldingDescriptor(anImport, range, null, dependencies));
+						if(range.getLength() > 0) {
+							final Set<Object> dependencies = nodesToFold.stream()
+									.filter(n -> n != anImport)
+									.map(n -> (Object) n.getPsi())
+									.collect(Collectors.toSet());
+							list.add(new FoldingDescriptor(anImport, range, null, dependencies));
+						}
 					}
 				}
 			}
