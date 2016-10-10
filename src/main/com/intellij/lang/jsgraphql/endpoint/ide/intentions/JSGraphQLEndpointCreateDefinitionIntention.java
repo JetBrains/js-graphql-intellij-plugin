@@ -20,6 +20,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
@@ -58,6 +59,7 @@ public abstract class JSGraphQLEndpointCreateDefinitionIntention extends PsiElem
             if (definition != null) {
                 final IElementType type = getSupportedDefinitionType();
                 final String definitionText;
+                final boolean insertBefore = (type == JSGraphQLEndpointTokenTypes.INPUT);
                 Ref<Integer> caretOffsetAfterInsert = new Ref<>();
                 boolean indent = false;
                 if (type == JSGraphQLEndpointTokenTypes.UNION) {
@@ -67,12 +69,16 @@ public abstract class JSGraphQLEndpointCreateDefinitionIntention extends PsiElem
                     definitionText = "\n\nscalar " + unknownNamedType.getText() + "\n";
                 } else {
                     // all other types are <name> { ... }
-                    definitionText = "\n\n" + type.toString().toLowerCase() + " " + unknownNamedType.getText() + " {\n\n}\n";
-                    caretOffsetAfterInsert.set(definitionText.length() - 3);
+                    final String beforeLines = insertBefore ? "" : "\n\n";
+                    final String afterLines = insertBefore ? "\n\n" : "\n";
+                    final int caretOffsetDelta = insertBefore ? 4 : 3; // we want the caret to be placed before closing '}' and the trailing newlines
+                    definitionText = beforeLines + type.toString().toLowerCase() + " " + unknownNamedType.getText() + " {\n\n}" + afterLines;
+                    caretOffsetAfterInsert.set(definitionText.length() - caretOffsetDelta);
                     indent = true;
                 }
                 final Document document = editor.getDocument();
-                final int insertOffset = definition.getTextRange().getEndOffset();
+	            final TextRange definitionTextRange = definition.getTextRange();
+	            final int insertOffset = insertBefore ? definitionTextRange.getStartOffset() : definitionTextRange.getEndOffset();
                 document.insertString(insertOffset, definitionText);
                 if (caretOffsetAfterInsert.get() != null) {
                     // move caret to new position

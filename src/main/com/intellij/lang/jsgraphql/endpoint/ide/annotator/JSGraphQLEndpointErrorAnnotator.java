@@ -83,6 +83,15 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 						}
 					}
 
+					// input types must be declared before their use (imports are considered as declared before)
+					final JSGraphQLEndpointInputObjectTypeDefinition resolvedInputDef = PsiTreeUtil.getParentOfType(resolved, JSGraphQLEndpointInputObjectTypeDefinition.class);
+					if (resolvedInputDef != null) {
+						if(resolvedInputDef.getTextOffset() > element.getTextOffset() && resolvedInputDef.getContainingFile() == element.getContainingFile()) {
+							// non-imported input types must be declare earlier in the buffer than the usage
+							holder.createErrorAnnotation(element, "Input type must be declared before use");
+						}
+					}
+
 				}
 			}
 

@@ -47,3 +47,11 @@ type Test implements Node, <error descr="'NotInterface' must be an interface to 
     <error descr="Field 'duplicate' is declared more than once">duplicate</error>: String
 
 }
+
+input SomeInput {
+    foo: <error descr="Input type must be declared before use">DeclaredAfterInput</error>
+}
+
+input DeclaredAfterInput {
+    bar: String
+}
