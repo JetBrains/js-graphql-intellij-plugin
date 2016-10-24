@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.parser;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiParser;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class JSGraphQLParser implements PsiParser {
@@ -102,8 +104,30 @@ public class JSGraphQLParser implements PsiParser {
                         startScope(builder, scopes, currentToken, false);
                     }
                 } else if (currentToken.tokenType == JSGraphQLTokenTypes.RBRACE) {
+                    if(JSGraphQLElementType.OBJECT_VALUE_KIND.equals(propertyScope.lbrace.sourceToken.getKind())) {
+                        // close object value
+                        endScope(builder, tokenIndex, scopes, true);
+                        continue;
+                    } else {
+                        // close selection set
+                        endScope(builder, tokenIndex, scopes, true);
+                        // '}' in selection sets also closes the parent field it belongs to without advancing:
+                        endScope(builder, tokenIndex, scopes, false);
+                        continue;
+                    }
+                } else if(currentToken.tokenType == JSGraphQLTokenTypes.LPAREN) {
+                    if (propertyScope.lbrace != null) {
+                        startScope(builder, scopes, currentToken, false);
+                    }
+                } else if(currentToken.tokenType == JSGraphQLTokenTypes.RPAREN) {
                     endScope(builder, tokenIndex, scopes, true);
-                    endScope(builder, tokenIndex, scopes, false);
+                    continue;
+                } else if(currentToken.tokenType == JSGraphQLTokenTypes.LBRACKET) {
+                    if (propertyScope.lbrace != null) {
+                        startScope(builder, scopes, currentToken, false);
+                    }
+                } else if(currentToken.tokenType == JSGraphQLTokenTypes.RBRACKET) {
+                    endScope(builder, tokenIndex, scopes, true);
                     continue;
                 }
             } else if(currentToken.tokenType == JSGraphQLTokenTypes.PROPERTY) {
@@ -173,6 +197,13 @@ public class JSGraphQLParser implements PsiParser {
                 .filter((token) -> token.tokenType != JSGraphQLTokenTypes.WHITESPACE && token.tokenType != JSGraphQLTokenTypes.COMMENT)
                 .collect(Collectors.toList());
 
+        final Set<String> closeScopeKinds = Sets.newHashSet(
+                JSGraphQLElementType.SELECTION_SET_KIND,
+                JSGraphQLElementType.DOCUMENT_KIND,
+                JSGraphQLElementType.OBJECT_VALUE_KIND,
+                JSGraphQLElementType.ARGUMENTS_KIND
+        );
+
         final List<PropertyScope> ret = Lists.newArrayList();
         final Stack<PropertyScope> scopes = new Stack<>();
         for (int i = 0; i < astTokens.size(); i++) {
@@ -194,7 +225,7 @@ public class JSGraphQLParser implements PsiParser {
             } else if (token.tokenType == JSGraphQLTokenTypes.RBRACE) {
                 if(!scopes.isEmpty()) {
                     final String kind = token.sourceToken.getKind();
-                    if(JSGraphQLElementType.SELECTION_SET_KIND.equals(kind) || JSGraphQLElementType.DOCUMENT_KIND.equals(kind) || isSchemaDefWithLBrace(kind)) {
+                    if(closeScopeKinds.contains(kind) || isSchemaDefWithLBrace(kind)) {
                         PropertyScope propertyScope = scopes.pop();
                         if(propertyScope.lbrace == null) {
                             // closing the parent scope
@@ -211,6 +242,29 @@ public class JSGraphQLParser implements PsiParser {
                     PropertyScope propertyScope = new PropertyScope(token, token);
                     scopes.add(propertyScope);
                     ret.add(propertyScope);
+                } else {
+                    final String kind = token.sourceToken.getKind();
+                    if (JSGraphQLElementType.OBJECT_VALUE_KIND.equals(kind)) {
+                        PropertyScope propertyScope = new PropertyScope(token, token);
+                        scopes.add(propertyScope);
+                        ret.add(propertyScope);
+                    }
+                }
+            } else if(token.tokenType == JSGraphQLTokenTypes.LPAREN) {
+                PropertyScope propertyScope = new PropertyScope(token, token);
+                scopes.add(propertyScope);
+                ret.add(propertyScope);
+            } else if(token.tokenType == JSGraphQLTokenTypes.RPAREN) {
+                if(!scopes.isEmpty()) {
+                    scopes.pop().rbrace = token;
+                }
+            } else if (token.tokenType == JSGraphQLTokenTypes.LBRACKET) {
+                PropertyScope propertyScope = new PropertyScope(token, token);
+                scopes.add(propertyScope);
+                ret.add(propertyScope);
+            } else if (token.tokenType == JSGraphQLTokenTypes.RBRACKET) {
+                if (!scopes.isEmpty()) {
+                    scopes.pop().rbrace = token;
                 }
             }
         }
