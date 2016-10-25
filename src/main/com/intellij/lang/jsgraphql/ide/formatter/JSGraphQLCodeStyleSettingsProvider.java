@@ -51,5 +51,14 @@ public class JSGraphQLCodeStyleSettingsProvider extends CodeStyleSettingsProvide
         public JSGraphQLCodeStyleMainPanel(CodeStyleSettings currentSettings, CodeStyleSettings settings) {
             super(JSGraphQLLanguage.INSTANCE, currentSettings, settings);
         }
+
+        @Override
+        protected void addSpacesTab(CodeStyleSettings settings) {}
+
+        @Override
+        protected void addBlankLinesTab(CodeStyleSettings settings) {}
+
+        @Override
+        protected void addWrappingAndBracesTab(CodeStyleSettings settings) {}
     }
 }
