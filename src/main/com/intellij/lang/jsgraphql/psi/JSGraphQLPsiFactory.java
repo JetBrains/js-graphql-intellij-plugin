@@ -23,6 +23,14 @@ public class JSGraphQLPsiFactory {
                 return new JSGraphQLNamedTypePsiElement(node);
             } else if(JSGraphQLElementType.SELECTION_SET_KIND.equals(elementType.getKind())) {
                 return new JSGraphQLSelectionSetPsiElement(node);
+            } else if(JSGraphQLElementType.ATTRIBUTE_KIND.equals(elementType.getKind())) {
+                return new JSGraphQLAttributePsiElement(node);
+            } else if(JSGraphQLElementType.ARGUMENT_KIND.equals(elementType.getKind())) {
+                return new JSGraphQLArgumentPsiElement(node);
+            } else if(JSGraphQLElementType.OBJECT_FIELD_KIND.equals(elementType.getKind())) {
+                return new JSGraphQLObjectFieldPsiElement(node);
+            } else if(JSGraphQLElementType.OBJECT_VALUE_KIND.equals(elementType.getKind())) {
+                return new JSGraphQLObjectValuePsiElement(node);
             } else if(JSGraphQLElementType.FRAGMENT_DEFINITION_KIND.equals(elementType.getKind())) {
                 return new JSGraphQLFragmentDefinitionPsiElement(node);
             } else if(JSGraphQLElementType.INLINE_FRAGMENT_KIND.equals(elementType.getKind())) {

@@ -9,13 +9,18 @@ package com.intellij.lang.jsgraphql.ide.findUsages;
 
 import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
+import com.intellij.lang.jsgraphql.JSGraphQLKeywords;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLAttributePsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPropertyPsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedTypePsiElement;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLPsiElement;
 import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.util.PsiTreeUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +56,22 @@ public class JSGraphQLFindUsagesProvider implements FindUsagesProvider {
         if(element instanceof JSGraphQLNamedTypePsiElement) {
             final boolean atom = element.getContainingFile() instanceof JSGraphQLSchemaFile || ((JSGraphQLNamedTypePsiElement) element).isAtom();
             return atom ? "type" : "definition";
+        }
+        if(element instanceof JSGraphQLAttributePsiElement) {
+            JSGraphQLPsiElement parent = PsiTreeUtil.getParentOfType(element, JSGraphQLPsiElement.class);
+            while (parent != null) {
+                final JSGraphQLPsiElement ancestor = PsiTreeUtil.getParentOfType(parent, JSGraphQLPsiElement.class);
+                if(ancestor == null) {
+                    break;
+                }
+                parent = ancestor;
+            }
+            if(parent != null && JSGraphQLKeywords.INPUT.equals(parent.getKeyword())) {
+                // field of an input type
+                return "input field";
+            }
+            // field argument
+            return "argument";
         }
         return "unknown";
     }

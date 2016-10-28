@@ -132,6 +132,7 @@
     <lang.quoteHandler language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQuoteHandler" />
     <lang.quoteHandler language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointQuoteHandler" />
     <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLEnterHandlerDelegate" />
+    <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLEnterInEmptyListHandler"/>
     <langCodeStyleSettingsProvider implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLLanguageCodeStyleSettingsProvider"/>
     <codeStyleSettingsProvider implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLCodeStyleSettingsProvider" />
 

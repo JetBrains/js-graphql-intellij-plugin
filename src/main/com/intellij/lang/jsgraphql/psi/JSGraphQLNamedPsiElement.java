@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class JSGraphQLNamedPsiElement extends JSGraphQLPsiElement implements PsiNameIdentifierOwner {
 
-    private static final TokenSet NAME_TOKEN_SET = TokenSet.create(JSGraphQLTokenTypes.PROPERTY, JSGraphQLTokenTypes.DEF);
+    private static final TokenSet NAME_TOKEN_SET = TokenSet.create(JSGraphQLTokenTypes.PROPERTY, JSGraphQLTokenTypes.DEF, JSGraphQLTokenTypes.ATTRIBUTE);
     private static final Object[] NO_VARIANTS = new Object[0];
 
     private static final Key<GlobalSearchScope> USE_SCOPE = Key.create("jsgraphql.usages.scope");

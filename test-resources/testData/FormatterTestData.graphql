@@ -140,3 +140,32 @@ foo {
 }
 }
 }
+
+
+### --------- complex input objects --------- ###
+
+query ComplexInput {
+foo(
+complex: {
+foo: true,
+bar: "",
+bas: 1.1,
+list: [
+true,
+false
+],
+listObj: [
+{foo: BAS}
+{
+foo: BAZ
+}
+]
+},
+complexList: [
+1,
+2
+]
+) {
+id
+}
+}

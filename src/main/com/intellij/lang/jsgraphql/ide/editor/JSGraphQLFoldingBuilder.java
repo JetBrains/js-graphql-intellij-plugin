@@ -24,6 +24,11 @@ public class JSGraphQLFoldingBuilder implements FoldingBuilder {
     @Nullable
     @Override
     public String getPlaceholderText(@NotNull ASTNode node) {
+        final ASTNode first = node.getFirstChildNode();
+        final ASTNode last = node.getLastChildNode();
+        if (first != null && last != null) {
+            return first.getText() + "..." + last.getText();
+        }
         return "{...}";
     }
 

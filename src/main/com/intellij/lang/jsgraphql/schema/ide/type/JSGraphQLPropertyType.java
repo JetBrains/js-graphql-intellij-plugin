@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.schema.ide.type;
 
-import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPropertyPsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedTypePsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
@@ -27,7 +26,7 @@ public class JSGraphQLPropertyType {
         this.propertyValueTypeName = propertyValueTypeName;
     }
 
-    public JSGraphQLPropertyType(JSGraphQLNamedPropertyPsiElement propertyElement, JSGraphQLNamedType declaringTypeElement) {
+    public JSGraphQLPropertyType(PsiNamedElement propertyElement, JSGraphQLNamedType declaringTypeElement, Class<? extends PsiNamedElement> propertyClass) {
         this.propertyElement = propertyElement;
         this.declaringTypeElement = declaringTypeElement;
         PsiElement nextSibling = propertyElement.getNextSibling();
@@ -38,7 +37,7 @@ public class JSGraphQLPropertyType {
                 valueTypeElement = (JSGraphQLNamedTypePsiElement) nextSibling;
             }
             nextSibling = nextSibling.getNextSibling();
-            if(nextSibling instanceof JSGraphQLNamedPropertyPsiElement) {
+            if(nextSibling != null && propertyClass.isAssignableFrom(nextSibling.getClass())) {
                 // stop before the next property
                 break;
             }

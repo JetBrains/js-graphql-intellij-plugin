@@ -19,6 +19,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.formatter.common.AbstractBlock;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,6 +39,15 @@ public class JSGraphQLBlock extends AbstractBlock {
             ENUM_DEF_KIND,
             INPUT_DEF_KIND,
             EXTEND_DEF_KIND
+    );
+
+    private static final Set<IElementType> NO_INDENT_ELEMENT_TYPES = Sets.newHashSet(
+            JSGraphQLTokenTypes.LBRACE,
+            JSGraphQLTokenTypes.RBRACE,
+            JSGraphQLTokenTypes.LBRACKET,
+            JSGraphQLTokenTypes.RBRACKET,
+            JSGraphQLTokenTypes.LPAREN,
+            JSGraphQLTokenTypes.RPAREN
     );
 
     @Nullable
@@ -104,18 +114,31 @@ public class JSGraphQLBlock extends AbstractBlock {
     @Override
     public Indent getIndent() {
 
-        if (myNode.getElementType() == JSGraphQLTokenTypes.RBRACE || myNode.getElementType() == JSGraphQLTokenTypes.LBRACE) {
+        if (NO_INDENT_ELEMENT_TYPES.contains(myNode.getElementType())) {
             return Indent.getNoneIndent();
         }
 
         if(parent != null) {
             JSGraphQLElementType astNode = getAstNode(parent);
             if (astNode != null) {
-                if (JSGraphQLElementType.SELECTION_SET_KIND.equals(astNode.getKind())) {
+                final String kind = astNode.getKind();
+                if (JSGraphQLElementType.SELECTION_SET_KIND.equals(kind)) {
                     // this block is inside a selection set: '{ ... }', so indent it
                     return Indent.getNormalIndent();
                 }
-                if(JSGraphQLElementType.SCHEMA_DEF_KIND.equals(astNode.getKind())) {
+                if (JSGraphQLElementType.ARGUMENTS_KIND.equals(kind)) {
+                    // this block is inside a () arguments list, so indent it
+                    return Indent.getNormalIndent();
+                }
+                if (JSGraphQLElementType.OBJECT_VALUE_KIND.equals(kind)) {
+                    // this block is inside a {} object value, so indent it
+                    return Indent.getNormalIndent();
+                }
+                if (JSGraphQLElementType.LIST_VALUE_KIND.equals(kind)) {
+                    // this block is inside a [] list value, so indent it
+                    return Indent.getNormalIndent();
+                }
+                if(JSGraphQLElementType.SCHEMA_DEF_KIND.equals(kind)) {
                     // inside schema {}
                     if(myNode.getText().equals(JSGraphQLKeywords.QUERY) || myNode.getText().equals(JSGraphQLKeywords.MUTATION) || myNode.getText().equals(JSGraphQLKeywords.SUBSCRIPTION)) {
                         return Indent.getNormalIndent();
@@ -124,7 +147,7 @@ public class JSGraphQLBlock extends AbstractBlock {
                         return Indent.getNormalIndent();
                     }
                 }
-                if(myNode.getElementType() != JSGraphQLTokenTypes.KEYWORD && INDENT_PARENT_KINDS.contains(astNode.getKind())) {
+                if(myNode.getElementType() != JSGraphQLTokenTypes.KEYWORD && INDENT_PARENT_KINDS.contains(kind)) {
                     // properties inside schema definitions
                     return Indent.getNormalIndent();
                 }

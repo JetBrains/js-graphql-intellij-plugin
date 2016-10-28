@@ -9,7 +9,9 @@ package com.intellij.lang.jsgraphql.schema.ide.type;
 
 import com.google.common.collect.Maps;
 import com.intellij.lang.jsgraphql.languageservice.api.SchemaWithVersionResponse;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLAttributePsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPropertyPsiElement;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedTypePsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLPsiElement;
 import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
@@ -32,7 +34,7 @@ public class JSGraphQLSchemaFileElements implements JSGraphQLNamedTypeRegistry {
 
     private SchemaWithVersionResponse schemaWithVersion;
     private final Map<String, JSGraphQLNamedType> nameToTypes = Maps.newConcurrentMap();
-    private final Map<JSGraphQLNamedPropertyPsiElement, JSGraphQLNamedType> namedTypeFromPropertyElement = Maps.newConcurrentMap();
+    private final Map<JSGraphQLNamedPsiElement, JSGraphQLNamedType> namedTypeFromPropertyElement = Maps.newConcurrentMap();
 
     private final JSGraphQLSchemaFile file;
 
@@ -98,9 +100,18 @@ public class JSGraphQLSchemaFileElements implements JSGraphQLNamedTypeRegistry {
                 definition.acceptChildren(new PsiRecursiveElementVisitor() {
                     @Override
                     public void visitElement(PsiElement element) {
-                        if(element instanceof JSGraphQLNamedPropertyPsiElement) {
+                        if("input".equals(definition.getKeyword())) {
+                            // fields on input types are attributes
+                            if(element instanceof JSGraphQLAttributePsiElement) {
+                                final JSGraphQLAttributePsiElement propertyElement = (JSGraphQLAttributePsiElement) element;
+                                namedType.properties.put(propertyElement.getName(), new JSGraphQLPropertyType(propertyElement, namedType, JSGraphQLAttributePsiElement.class));
+                                namedTypeFromPropertyElement.put(propertyElement, namedType);
+                            } else {
+                                super.visitElement(element);
+                            }
+                        } else if(element instanceof JSGraphQLNamedPropertyPsiElement) {
                             final JSGraphQLNamedPropertyPsiElement propertyElement = (JSGraphQLNamedPropertyPsiElement) element;
-                            namedType.properties.put(propertyElement.getName(), new JSGraphQLPropertyType(propertyElement, namedType));
+                            namedType.properties.put(propertyElement.getName(), new JSGraphQLPropertyType(propertyElement, namedType, JSGraphQLNamedPropertyPsiElement.class));
                             namedTypeFromPropertyElement.put(propertyElement, namedType);
                             // no need to visit deeper so we don't call super.visitElement
                         } else {
