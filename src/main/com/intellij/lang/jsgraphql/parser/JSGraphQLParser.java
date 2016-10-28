@@ -90,6 +90,16 @@ public class JSGraphQLParser implements PsiParser {
 
             final PropertyScope propertyScope = tokenToPropertyScope.get(currentToken);
             if(propertyScope != null) {
+
+                if(scopes.isEmpty()) {
+                    if(currentToken.tokenType == JSGraphQLTokenTypes.RBRACE || currentToken.tokenType == JSGraphQLTokenTypes.RBRACKET || currentToken.tokenType == JSGraphQLTokenTypes.RPAREN) {
+                        // closing scope without an open scope, so skip ahead to continue parsing
+                        builder.advanceLexer();
+                        tokenIndex.set(tokenIndex.get()+1);
+                        continue;
+                    }
+                }
+
                 if (currentToken.tokenType == JSGraphQLTokenTypes.PROPERTY || currentToken.tokenType == JSGraphQLTokenTypes.KEYWORD/* query etc.*/) {
                     if (propertyScope.lbrace != null) {
                         // Field property token with selection set is considered a scope
@@ -107,6 +117,9 @@ public class JSGraphQLParser implements PsiParser {
                     if(JSGraphQLElementType.OBJECT_VALUE_KIND.equals(propertyScope.lbrace.sourceToken.getKind())) {
                         // close object value
                         endScope(builder, tokenIndex, scopes, true);
+                        if(propertyScope.parentToClose != null) {
+                            endScope(builder, tokenIndex, scopes, false);
+                        }
                         continue;
                     } else {
                         // close selection set
@@ -128,6 +141,14 @@ public class JSGraphQLParser implements PsiParser {
                     }
                 } else if(currentToken.tokenType == JSGraphQLTokenTypes.RBRACKET) {
                     endScope(builder, tokenIndex, scopes, true);
+                    if(propertyScope.parentToClose != null) {
+                        endScope(builder, tokenIndex, scopes, false);
+                    }
+                    continue;
+                } else if(currentToken.tokenType == JSGraphQLTokenTypes.ATTRIBUTE) {
+                    // atribute with list/object value, so it's a scope for indentation, folding etc.
+                    startScope(builder, scopes, currentToken, false);
+                    markCurrentToken(builder, tokenIndex, JSGraphQLElementType.ATTRIBUTE_KIND);
                     continue;
                 }
             } else if(currentToken.tokenType == JSGraphQLTokenTypes.PROPERTY) {
@@ -138,6 +159,10 @@ public class JSGraphQLParser implements PsiParser {
                 continue;
             } else if(currentToken.tokenType == JSGraphQLTokenTypes.DEF) {
                 markCurrentToken(builder, tokenIndex, JSGraphQLElementType.DEFINITION_KIND);
+                continue;
+            } else if(currentToken.tokenType == JSGraphQLTokenTypes.ATTRIBUTE) {
+                // attribute with literal value (not a scope)
+                markCurrentToken(builder, tokenIndex, JSGraphQLElementType.ATTRIBUTE_KIND);
                 continue;
             }
 
@@ -197,15 +222,11 @@ public class JSGraphQLParser implements PsiParser {
                 .filter((token) -> token.tokenType != JSGraphQLTokenTypes.WHITESPACE && token.tokenType != JSGraphQLTokenTypes.COMMENT)
                 .collect(Collectors.toList());
 
-        final Set<String> closeScopeKinds = Sets.newHashSet(
-                JSGraphQLElementType.SELECTION_SET_KIND,
-                JSGraphQLElementType.DOCUMENT_KIND,
-                JSGraphQLElementType.OBJECT_VALUE_KIND,
-                JSGraphQLElementType.ARGUMENTS_KIND
-        );
-
         final List<PropertyScope> ret = Lists.newArrayList();
         final Stack<PropertyScope> scopes = new Stack<>();
+
+        boolean parseArguments = false;
+
         for (int i = 0; i < astTokens.size(); i++) {
             JSGraphQLToken token = astTokens.get(i);
             if(token.tokenType == JSGraphQLTokenTypes.KEYWORD) {
@@ -224,52 +245,109 @@ public class JSGraphQLParser implements PsiParser {
                 }
             } else if (token.tokenType == JSGraphQLTokenTypes.RBRACE) {
                 if(!scopes.isEmpty()) {
-                    final String kind = token.sourceToken.getKind();
-                    if(closeScopeKinds.contains(kind) || isSchemaDefWithLBrace(kind)) {
-                        PropertyScope propertyScope = scopes.pop();
-                        if(propertyScope.lbrace == null) {
-                            // closing the parent scope
-                            if(!scopes.isEmpty()) {
-                                propertyScope = scopes.pop();
+                    if(parseArguments) {
+                        scopes.pop().rbrace = token;
+                    } else {
+                        final String kind = token.sourceToken.getKind();
+                        if (JSGraphQLElementType.SELECTION_SET_KIND.equals(kind) || JSGraphQLElementType.DOCUMENT_KIND.equals(kind) || isSchemaDefWithLBrace(kind)) {
+                            PropertyScope propertyScope = scopes.pop();
+                            if (propertyScope.lbrace == null) {
+                                // closing the parent scope
+                                if (!scopes.isEmpty()) {
+                                    propertyScope = scopes.pop();
+                                }
                             }
+                            propertyScope.rbrace = token;
                         }
-                        propertyScope.rbrace = token;
                     }
                 }
             } else if(token.tokenType == JSGraphQLTokenTypes.LBRACE) {
-                // if top level scope, it's shorthand for a query
-                if(scopes.isEmpty()) {
+                if(parseArguments) {
                     PropertyScope propertyScope = new PropertyScope(token, token);
                     scopes.add(propertyScope);
                     ret.add(propertyScope);
                 } else {
-                    final String kind = token.sourceToken.getKind();
-                    if (JSGraphQLElementType.OBJECT_VALUE_KIND.equals(kind)) {
+                    // if top level scope, it's shorthand for a query
+                    if(scopes.isEmpty()) {
                         PropertyScope propertyScope = new PropertyScope(token, token);
                         scopes.add(propertyScope);
                         ret.add(propertyScope);
                     }
                 }
             } else if(token.tokenType == JSGraphQLTokenTypes.LPAREN) {
-                PropertyScope propertyScope = new PropertyScope(token, token);
-                scopes.add(propertyScope);
-                ret.add(propertyScope);
+                if(!schema) {
+                    parseArguments = true;
+                    PropertyScope propertyScope = new PropertyScope(token, token);
+                    scopes.add(propertyScope);
+                    ret.add(propertyScope);
+                }
             } else if(token.tokenType == JSGraphQLTokenTypes.RPAREN) {
-                if(!scopes.isEmpty()) {
-                    scopes.pop().rbrace = token;
+                if(!schema) {
+                    if (!scopes.isEmpty()) {
+                        scopes.pop().rbrace = token;
+                    }
+                    parseArguments = false;
                 }
             } else if (token.tokenType == JSGraphQLTokenTypes.LBRACKET) {
-                PropertyScope propertyScope = new PropertyScope(token, token);
-                scopes.add(propertyScope);
-                ret.add(propertyScope);
+                if(!schema && parseArguments) {
+                    PropertyScope propertyScope = new PropertyScope(token, token);
+                    scopes.add(propertyScope);
+                    ret.add(propertyScope);
+                }
             } else if (token.tokenType == JSGraphQLTokenTypes.RBRACKET) {
-                if (!scopes.isEmpty()) {
+                if (!schema && parseArguments && !scopes.isEmpty()) {
                     scopes.pop().rbrace = token;
+                }
+            } else if(token.tokenType == JSGraphQLTokenTypes.ATTRIBUTE) {
+                if(!schema && parseArguments) {
+                    PropertyScope propertyScope = new PropertyScope(token, null);
+                    propertyScope.astTokenStartIndex = i;
+                    ret.add(propertyScope);
                 }
             }
         }
 
+        // associate the attribute scopes with their corresponding list/object values
+        final Set<PropertyScope> literalAttributeValues = Sets.newHashSet();
+        for (int i = 0; i < ret.size(); i++) {
+            final PropertyScope attributeNameScope = ret.get(i);
+            if(attributeNameScope.closedBy == null && attributeNameScope.propertyOrOperation.tokenType == JSGraphQLTokenTypes.ATTRIBUTE) {
+                if(i + 1 < ret.size()) {
+                    final PropertyScope attributeValueScope = ret.get(i + 1);
+                    if(!isValueForAttribute(astTokens, attributeNameScope, attributeValueScope)) {
+                        literalAttributeValues.add(attributeNameScope);
+                        continue;
+                    }
+                    final JSGraphQLToken valueToken = attributeValueScope.lbrace;
+                    if(valueToken != null && (valueToken.tokenType == JSGraphQLTokenTypes.LBRACE || valueToken.tokenType == JSGraphQLTokenTypes.LBRACKET)) {
+                        attributeValueScope.parentToClose = attributeNameScope;
+                        attributeNameScope.closedBy = attributeValueScope;
+                    } else {
+                        literalAttributeValues.add(attributeNameScope);
+                    }
+                } else {
+                    literalAttributeValues.add(attributeNameScope);
+                }
+            }
+        }
+        ret.removeAll(literalAttributeValues);
+
         return ret;
+    }
+
+    private boolean isValueForAttribute(List<JSGraphQLToken> astTokens, PropertyScope attributeNameScope, PropertyScope attributeValue) {
+        for(int i = attributeNameScope.astTokenStartIndex + 1; i < astTokens.size(); i++) {
+            final JSGraphQLToken token = astTokens.get(i);
+            if(token == attributeValue.lbrace) {
+                return true;
+            }
+            if(token.tokenType == JSGraphQLTokenTypes.PUNCTUATION) {
+                // expecting colon before the attribute value
+                continue;
+            }
+            break;
+        }
+        return false;
     }
 
     private boolean isPropertyScopeDefinition(String text, int tokenIndex, List<JSGraphQLToken> astTokens, Stack<PropertyScope> scopes) {
@@ -369,6 +447,11 @@ public class JSGraphQLParser implements PsiParser {
         JSGraphQLToken propertyOrOperation;
         JSGraphQLToken lbrace;
         JSGraphQLToken rbrace;
+
+        PropertyScope closedBy;
+        PropertyScope parentToClose;
+
+        Integer astTokenStartIndex;
 
         public PropertyScope(JSGraphQLToken propertyOrOperation, JSGraphQLToken lbrace) {
             this.propertyOrOperation = propertyOrOperation;

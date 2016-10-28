@@ -14,6 +14,7 @@ import com.intellij.lang.jsgraphql.ide.injection.JSGraphQLLanguageInjectionUtil;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.api.TokenDocumentationResponse;
 import com.intellij.lang.jsgraphql.languageservice.api.TypeDocumentationResponse;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLAttributePsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLFragmentDefinitionPsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPropertyPsiElement;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLNamedPsiElement;
@@ -24,10 +25,12 @@ import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.ui.GuiUtils;
 import com.intellij.util.containers.ContainerUtil;
@@ -197,6 +200,27 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
                     doc += "</code>";
                     return getDocTemplate(fullDocumentation).replace("${body}", doc);
                 }
+            } else if(element instanceof JSGraphQLAttributePsiElement) {
+                String doc = "";
+                PsiElement prevLeaf = PsiTreeUtil.prevLeaf(element);
+                String documentation = "";
+                while (prevLeaf instanceof PsiWhiteSpace || prevLeaf instanceof PsiComment) {
+                    documentation = StringUtils.removeStart(prevLeaf.getText(), "# ") + documentation;
+                    prevLeaf = PsiTreeUtil.prevLeaf(prevLeaf);
+                }
+                documentation = documentation.trim();
+                if(StringUtils.isNotBlank(documentation)) {
+                    doc += "<div style=\"margin-bottom: 4px\">" + StringEscapeUtils.escapeHtml(documentation) + "</div>";
+                }
+                doc += "<code>"  + element.getText();
+                PsiElement nextLeaf = PsiTreeUtil.nextLeaf(element);
+                // include the attribute type (stopping at newline, ",", and ")")
+                while(nextLeaf != null && !nextLeaf.getText().contains("\n") && !nextLeaf.getText().contains(",") && !nextLeaf.getText().contains(")")) {
+                    doc += nextLeaf.getText();
+                    nextLeaf = PsiTreeUtil.nextLeaf(nextLeaf);
+                }
+                doc += "</code>";
+                return getDocTemplate(fullDocumentation).replace("${body}", doc);
             }
 
         }

@@ -55,7 +55,9 @@ import javax.swing.tree.TreePath;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Provides Schema information about PSI elements, such as the type name of a property in a field, and the schema declarations a GraphQL PSI element is based on.
@@ -188,10 +190,12 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
             } else if(element instanceof JSGraphQLNamedPropertyPsiElement) {
                 // get the name of the field, e.g. foo > bar > bas, stopping at fragments that give away the type,
                 // or ultimately when we're at a top level definition
-                final JSGraphQLNamedPropertyPsiElement schemaPropertyReferenceElement = resolveSchemaPropertyReferenceElement((JSGraphQLNamedPropertyPsiElement) element, schemaFileElements);
+                final PsiNamedElement schemaPropertyReferenceElement = resolveSchemaPropertyReferenceElement((JSGraphQLNamedPropertyPsiElement) element, schemaFileElements);
                 if(schemaPropertyReferenceElement != null) {
                     return schemaPropertyReferenceElement;
                 }
+            } else if(element instanceof JSGraphQLAttributePsiElement) {
+	            return resolveSchemaAttributeReferenceElement((JSGraphQLAttributePsiElement)element);
             }
         }
 
@@ -204,7 +208,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
         return null;
     }
 
-    public static boolean isProjectSchemaFile(VirtualFile file) {
+	public static boolean isProjectSchemaFile(VirtualFile file) {
         return file != null && Boolean.TRUE.equals(file.getUserData(JSGraphQLSchemaLanguageProjectService.IS_GRAPHQL_SCHEMA_VIRTUAL_FILE));
     }
 
@@ -349,7 +353,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
     // ---- implementation ----
 
     @Nullable
-    private JSGraphQLNamedPropertyPsiElement resolveSchemaPropertyReferenceElement(@NotNull JSGraphQLNamedPropertyPsiElement propertyPsiElement, JSGraphQLSchemaFileElements schemaFileElements) {
+    private PsiNamedElement resolveSchemaPropertyReferenceElement(@NotNull JSGraphQLNamedPropertyPsiElement propertyPsiElement, JSGraphQLSchemaFileElements schemaFileElements) {
         final JSGraphQLSchemaPropertyPath propertyPath = getPropertyPath(propertyPsiElement, schemaFileElements);
         if(propertyPath != null) {
             JSGraphQLNamedType currentType = propertyPath.declaringType;
@@ -377,6 +381,100 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
         }
         return null;
     }
+
+	private PsiElement resolveSchemaAttributeReferenceElement(JSGraphQLAttributePsiElement element) {
+
+		if(element.getContainingFile() instanceof JSGraphQLSchemaFile) {
+			// attributes are self references in schema files
+			return null;
+		}
+
+		// get the field argument that the attribute belongs to
+		final JSGraphQLArgumentPsiElement argumentPsiElement = PsiTreeUtil.getParentOfType(element, JSGraphQLArgumentPsiElement.class);
+		final JSGraphQLAttributePsiElement argumentAttribute;
+		if(argumentPsiElement != null) {
+			// attribute is wrapped in argument (list/object attribute values)
+			argumentAttribute = argumentPsiElement.getAttribute();
+		} else {
+			// attribute is the arguments itself (literal attribute value)
+			argumentAttribute = element;
+		}
+
+		// and collect any fields that we have to traverse from the argument input type
+		final List<JSGraphQLObjectFieldPsiElement> parentObjectFields = Lists.newArrayList();
+		JSGraphQLObjectFieldPsiElement parent = PsiTreeUtil.getParentOfType(element, JSGraphQLObjectFieldPsiElement.class);
+		while (parent != null) {
+			parentObjectFields.add(0, parent);
+			parent = PsiTreeUtil.getParentOfType(parent, JSGraphQLObjectFieldPsiElement.class);
+		}
+
+		final List<String> propertyNames = parentObjectFields.stream().map(f -> f.getAttribute().getName()).collect(Collectors.toList());
+		if(element.getParent() instanceof JSGraphQLObjectValuePsiElement) {
+			// the attribute is part of an "{ }" object value, so add the name of the attribute to the property names that need to be resolved
+			propertyNames.add(element.getName());
+		}
+
+		// locate the argument declaration in the schema using the field that the argument belongs to
+		final JSGraphQLFieldPsiElement field = PsiTreeUtil.getParentOfType(argumentAttribute, JSGraphQLFieldPsiElement.class);
+		if (field != null && field.getNameElement() != null) {
+			final PsiReference reference = field.getNameElement().getReference();
+			if (reference != null) {
+				final PsiElement schemaFieldDeclaration = reference.resolve();
+				if(schemaFieldDeclaration != null) {
+					// locate a matching argument in the field, and get the type name after the colon
+					final String argumentName = argumentAttribute.getText();
+					PsiElement nextVisibleLeaf = PsiTreeUtil.nextVisibleLeaf(schemaFieldDeclaration);
+					boolean foundArgument = false;
+					PsiNamedElement argumentType = null;
+					while(nextVisibleLeaf != null) {
+						if(nextVisibleLeaf.getParent() instanceof PsiNamedElement) {
+							final PsiNamedElement psiNamedElement = (PsiNamedElement) nextVisibleLeaf.getParent();
+							if(foundArgument) {
+								// the identifier following the argument and colon is the argument type
+								argumentType = psiNamedElement;
+								break;
+							} else if(Optional.ofNullable(psiNamedElement.getName()).orElse("").equals(argumentName)) {
+								if(propertyNames.isEmpty()) {
+									// the attribute is a top level attribute that references an argument
+									return psiNamedElement;
+								}
+								foundArgument = true;
+							}
+						}
+						nextVisibleLeaf = PsiTreeUtil.nextVisibleLeaf(nextVisibleLeaf);
+					}
+					if(argumentType != null) {
+
+						JSGraphQLNamedType currentType = schemaFileElements.getNamedType(argumentType.getName());
+						JSGraphQLPropertyType currentPropertyType = null;
+
+						for (String property : propertyNames) {
+							if(currentType != null) {
+								currentPropertyType = currentType.properties.get(property);
+								if (currentPropertyType == null) {
+									// unknown property in the schema
+									return null;
+								}
+								if (currentPropertyType.propertyValueTypeElement == null) {
+									return null;
+								}
+								currentType = schemaFileElements.getNamedType(currentPropertyType.propertyValueTypeElement.getName());
+							}
+						}
+
+						if(currentPropertyType != null) {
+							return currentPropertyType.propertyElement;
+						}
+
+
+					}
+				}
+
+			}
+		}
+
+		return null;
+	}
 
     private static class JSGraphQLSchemaPropertyPath {
         final List<String> properties = Lists.newArrayList();
