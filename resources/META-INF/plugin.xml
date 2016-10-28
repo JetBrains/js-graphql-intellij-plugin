@@ -29,6 +29,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>1.4.2: Language Service 1.3.1: Support __schema root in schema.json.</li>
       <li>1.4.1: Support for gql tagged templates used by Apollo and Lokka GraphQL Clients. Fixes false Error in Relay Mutation.</li>
       <li>1.4.0: Language Service 1.2.0 based on graphql 0.7.0 and codemirror-graphql 0.5.4. Basic editor support for GraphQL Schema (.graphqls)</li>
       <li>1.3.3: Fixes compatibility issue with IDEA 2016.2.2</li>
@@ -131,6 +132,8 @@
     <lang.quoteHandler language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQuoteHandler" />
     <lang.quoteHandler language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointQuoteHandler" />
     <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLEnterHandlerDelegate" />
+    <langCodeStyleSettingsProvider implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLLanguageCodeStyleSettingsProvider"/>
+    <codeStyleSettingsProvider implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLCodeStyleSettingsProvider" />
 
 
     <!-- Find usages -->

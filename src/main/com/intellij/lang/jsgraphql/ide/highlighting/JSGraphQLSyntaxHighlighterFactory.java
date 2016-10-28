@@ -8,9 +8,11 @@
 package com.intellij.lang.jsgraphql.ide.highlighting;
 
 import com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaFileType;
+import com.intellij.openapi.fileTypes.PlainSyntaxHighlighter;
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterFactory;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +20,16 @@ public class JSGraphQLSyntaxHighlighterFactory extends SyntaxHighlighterFactory 
     @NotNull
     @Override
     public SyntaxHighlighter getSyntaxHighlighter(Project project, VirtualFile virtualFile) {
-        final boolean schema = virtualFile.getFileType() == JSGraphQLSchemaFileType.INSTANCE;
+        final boolean schema = virtualFile != null && virtualFile.getFileType() == JSGraphQLSchemaFileType.INSTANCE;
+        if(project == null) {
+            Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
+            if(openProjects.length > 0) {
+                project = openProjects[0];
+            } else {
+                // can't syntax highlight GraphQL without a project to associate the language service instance to
+                return new PlainSyntaxHighlighter();
+            }
+        }
         return new JSGraphQLSyntaxHighlighter(project, schema);
     }
 }
