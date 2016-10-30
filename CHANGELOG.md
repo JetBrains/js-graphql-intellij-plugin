@@ -1,3 +1,13 @@
+## 1.4.3 (2016-10-30)
+
+Features:
+
+- Add GraphQL configuration page for indentation (#29)
+
+Fixes:
+
+- Language Service 1.3.2: Object literal for variables in getFragment closes Relay.QL template expression.
+
 ## 1.4.2 (2016-09-25)
 
 Features:

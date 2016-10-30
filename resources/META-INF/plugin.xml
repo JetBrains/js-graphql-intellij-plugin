@@ -10,7 +10,7 @@
 <idea-plugin version="2">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>1.4.2</version>
+  <version>1.4.3</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -29,6 +29,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>1.4.3: GraphQL configuration page for indentation. Language Service 1.3.2: Object literal for variables in getFragment closes Relay.QL template expression.</li>
       <li>1.4.2: Language Service 1.3.1: Support __schema root in schema.json.</li>
       <li>1.4.1: Support for gql tagged templates used by Apollo and Lokka GraphQL Clients. Fixes false Error in Relay Mutation.</li>
       <li>1.4.0: Language Service 1.2.0 based on graphql 0.7.0 and codemirror-graphql 0.5.4. Basic editor support for GraphQL Schema (.graphqls)</li>
