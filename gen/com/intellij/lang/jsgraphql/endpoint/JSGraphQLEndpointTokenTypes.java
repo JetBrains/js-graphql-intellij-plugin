@@ -25,6 +25,7 @@ public interface JSGraphQLEndpointTokenTypes {
   IElementType INPUT_OBJECT_TYPE_DEFINITION = new JSGraphQLEndpointTokenType("INPUT_OBJECT_TYPE_DEFINITION");
   IElementType INPUT_VALUE_DEFINITION = new JSGraphQLEndpointTokenType("INPUT_VALUE_DEFINITION");
   IElementType INPUT_VALUE_DEFINITIONS = new JSGraphQLEndpointTokenType("INPUT_VALUE_DEFINITIONS");
+  IElementType INPUT_VALUE_DEFINITION_IDENTIFIER = new JSGraphQLEndpointTokenType("INPUT_VALUE_DEFINITION_IDENTIFIER");
   IElementType INTERFACE_TYPE_DEFINITION = new JSGraphQLEndpointTokenType("INTERFACE_TYPE_DEFINITION");
   IElementType LIST_TYPE = new JSGraphQLEndpointTokenType("LIST_TYPE");
   IElementType NAMED_ANNOTATION_ARGUMENT = new JSGraphQLEndpointTokenType("NAMED_ANNOTATION_ARGUMENT");
@@ -129,6 +130,9 @@ public interface JSGraphQLEndpointTokenTypes {
       }
       else if (type == INPUT_VALUE_DEFINITIONS) {
         return new JSGraphQLEndpointInputValueDefinitionsImpl(node);
+      }
+      else if (type == INPUT_VALUE_DEFINITION_IDENTIFIER) {
+        return new JSGraphQLEndpointInputValueDefinitionIdentifierImpl(node);
       }
       else if (type == INTERFACE_TYPE_DEFINITION) {
         return new JSGraphQLEndpointInterfaceTypeDefinitionImpl(node);

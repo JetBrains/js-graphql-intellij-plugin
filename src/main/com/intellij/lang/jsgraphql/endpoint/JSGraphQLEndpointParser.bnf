@@ -98,7 +98,9 @@ private RecoverArgumentsDefinition ::= !(COLON | RBRACE | AT_ANNOTATION | identi
 
 InputValueDefinitions ::= InputValueDefinition (COMMA InputValueDefinition)*
 
-InputValueDefinition ::= identifier COLON CompositeType {pin=1}
+InputValueDefinition ::= InputValueDefinitionIdentifier COLON CompositeType {pin=1}
+
+InputValueDefinitionIdentifier ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinitionIdentifierPsiElement" implements="com.intellij.psi.PsiNameIdentifierOwner"}
 
 Annotations ::= Annotation+
 

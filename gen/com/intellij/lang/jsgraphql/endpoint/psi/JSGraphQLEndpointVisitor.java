@@ -73,6 +73,10 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitInputValueDefinitionIdentifier(@NotNull JSGraphQLEndpointInputValueDefinitionIdentifier o) {
+    visitPsiNameIdentifierOwner(o);
+  }
+
   public void visitInputValueDefinitions(@NotNull JSGraphQLEndpointInputValueDefinitions o) {
     visitPsiElement(o);
   }

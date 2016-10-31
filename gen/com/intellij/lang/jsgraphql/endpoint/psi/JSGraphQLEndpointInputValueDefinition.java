@@ -11,6 +11,6 @@ public interface JSGraphQLEndpointInputValueDefinition extends PsiElement {
   JSGraphQLEndpointCompositeType getCompositeType();
 
   @NotNull
-  PsiElement getIdentifier();
+  JSGraphQLEndpointInputValueDefinitionIdentifier getInputValueDefinitionIdentifier();
 
 }

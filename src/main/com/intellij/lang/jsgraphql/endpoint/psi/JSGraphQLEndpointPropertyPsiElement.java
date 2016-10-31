@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.endpoint.psi;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
+import com.intellij.lang.jsgraphql.endpoint.doc.psi.JSGraphQLEndpointDocPsiUtil;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
@@ -23,7 +24,7 @@ import static com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointImportFi
 /**
  * Represents the property name of a field in a field definition set
  */
-public class JSGraphQLEndpointPropertyPsiElement extends JSGraphQLEndpointPsiElement implements PsiNameIdentifierOwner {
+public class JSGraphQLEndpointPropertyPsiElement extends JSGraphQLEndpointPsiElement implements PsiNameIdentifierOwner, JSGraphQLEndpointDocumentationAware {
 
 	public JSGraphQLEndpointPropertyPsiElement(@NotNull ASTNode node) {
 		super(node);
@@ -116,5 +117,29 @@ public class JSGraphQLEndpointPropertyPsiElement extends JSGraphQLEndpointPsiEle
 			return this.equals(reference.resolve());
 		}
 		return super.isEquivalentTo(another);
+	}
+
+	@Override
+	public String getDeclaration() {
+		final StringBuilder sb = new StringBuilder();
+		final JSGraphQLEndpointNamedTypeDefinition parent = PsiTreeUtil.getParentOfType(this, JSGraphQLEndpointNamedTypeDefinition.class);
+		if(parent != null && parent.getNamedTypeDef() != null) {
+			sb.append(parent.getNamedTypeDef().getText()).append(" ").append(this.getText());
+			final JSGraphQLEndpointFieldDefinition fieldDefinition = (JSGraphQLEndpointFieldDefinition) this.getParent();
+			if(fieldDefinition.getArgumentsDefinition() != null) {
+				sb.append(fieldDefinition.getArgumentsDefinition().getText());
+			}
+			if(fieldDefinition.getCompositeType() != null) {
+				sb.append(": ");
+				sb.append(fieldDefinition.getCompositeType().getText());
+			}
+		}
+		return sb.toString();
+	}
+
+	@Override
+	public String getDocumentation(boolean fullDocumentation) {
+		// documentation is placed on the field that the property belongs to
+		return JSGraphQLEndpointDocPsiUtil.getDocumentation(this.getParent());
 	}
 }

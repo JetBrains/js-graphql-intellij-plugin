@@ -71,6 +71,9 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     else if (t == INPUT_VALUE_DEFINITION) {
       r = InputValueDefinition(b, 0);
     }
+    else if (t == INPUT_VALUE_DEFINITION_IDENTIFIER) {
+      r = InputValueDefinitionIdentifier(b, 0);
+    }
     else if (t == INPUT_VALUE_DEFINITIONS) {
       r = InputValueDefinitions(b, 0);
     }
@@ -523,17 +526,30 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // identifier COLON CompositeType
+  // InputValueDefinitionIdentifier COLON CompositeType
   public static boolean InputValueDefinition(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "InputValueDefinition")) return false;
     if (!nextTokenIs(b, IDENTIFIER)) return false;
     boolean r, p;
     Marker m = enter_section_(b, l, _NONE_, INPUT_VALUE_DEFINITION, null);
-    r = consumeTokens(b, 1, IDENTIFIER, COLON);
+    r = InputValueDefinitionIdentifier(b, l + 1);
     p = r; // pin = 1
-    r = r && CompositeType(b, l + 1);
+    r = r && report_error_(b, consumeToken(b, COLON));
+    r = p && CompositeType(b, l + 1) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
+  }
+
+  /* ********************************************************** */
+  // identifier
+  public static boolean InputValueDefinitionIdentifier(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "InputValueDefinitionIdentifier")) return false;
+    if (!nextTokenIs(b, IDENTIFIER)) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = consumeToken(b, IDENTIFIER);
+    exit_section_(b, m, INPUT_VALUE_DEFINITION_IDENTIFIER, r);
+    return r;
   }
 
   /* ********************************************************** */

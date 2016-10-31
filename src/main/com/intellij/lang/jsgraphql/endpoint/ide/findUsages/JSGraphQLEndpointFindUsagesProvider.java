@@ -14,6 +14,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypesSets;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinitionIdentifier;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -48,6 +49,9 @@ public class JSGraphQLEndpointFindUsagesProvider implements FindUsagesProvider {
     @NotNull
     @Override
     public String getType(@NotNull PsiElement element) {
+        if(element instanceof JSGraphQLEndpointInputValueDefinitionIdentifier) {
+            return "argument";
+        }
         final JSGraphQLEndpointNamedTypeDefinition definition = PsiTreeUtil.getParentOfType(element, JSGraphQLEndpointNamedTypeDefinition.class);
         if(definition != null) {
             // if it's a definition, use the keyword, e.g. 'type', 'interface' etc.

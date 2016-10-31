@@ -68,7 +68,7 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
 							boolean found = false;
 							if(inputValues != null) {
 								for (JSGraphQLEndpointInputValueDefinition inputValue: inputValues) {
-									if(inputValue.getIdentifier().getText().equals(paramName)) {
+									if(inputValue.getInputValueDefinitionIdentifier().getText().equals(paramName)) {
 										found = true;
 										break;
 									}

@@ -58,7 +58,7 @@ public class JSGraphQLEndpointDocCompletionContributor extends CompletionContrib
 							if (fieldDefinition != null && fieldDefinition.getArgumentsDefinition() != null) {
 								final List<String> otherDocTagValues = JSGraphQLEndpointDocPsiUtil.getOtherDocTagValues(comment);
 								for (JSGraphQLEndpointInputValueDefinition arg : PsiTreeUtil.findChildrenOfType(fieldDefinition.getArgumentsDefinition(), JSGraphQLEndpointInputValueDefinition.class)) {
-									final String argName = arg.getIdentifier().getText();
+									final String argName = arg.getInputValueDefinitionIdentifier().getText();
 									if (!otherDocTagValues.contains(argName)) {
 										result.addElement(LookupElementBuilder.create(argName).withInsertHandler(AddSpaceInsertHandler.INSTANCE));
 									}

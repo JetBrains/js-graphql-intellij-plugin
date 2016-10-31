@@ -8,17 +8,17 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes.*;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiElement;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinitionIdentifierPsiElement;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 
-public class JSGraphQLEndpointInputValueDefinitionImpl extends JSGraphQLEndpointPsiElement implements JSGraphQLEndpointInputValueDefinition {
+public class JSGraphQLEndpointInputValueDefinitionIdentifierImpl extends JSGraphQLEndpointInputValueDefinitionIdentifierPsiElement implements JSGraphQLEndpointInputValueDefinitionIdentifier {
 
-  public JSGraphQLEndpointInputValueDefinitionImpl(ASTNode node) {
+  public JSGraphQLEndpointInputValueDefinitionIdentifierImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull JSGraphQLEndpointVisitor visitor) {
-    visitor.visitInputValueDefinition(this);
+    visitor.visitInputValueDefinitionIdentifier(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -27,15 +27,9 @@ public class JSGraphQLEndpointInputValueDefinitionImpl extends JSGraphQLEndpoint
   }
 
   @Override
-  @Nullable
-  public JSGraphQLEndpointCompositeType getCompositeType() {
-    return findChildByClass(JSGraphQLEndpointCompositeType.class);
-  }
-
-  @Override
   @NotNull
-  public JSGraphQLEndpointInputValueDefinitionIdentifier getInputValueDefinitionIdentifier() {
-    return findNotNullChildByClass(JSGraphQLEndpointInputValueDefinitionIdentifier.class);
+  public PsiElement getIdentifier() {
+    return findNotNullChildByType(IDENTIFIER);
   }
 
 }

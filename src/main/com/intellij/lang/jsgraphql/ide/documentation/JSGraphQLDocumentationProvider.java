@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.documentation;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.documentation.DocumentationManagerProtocol;
 import com.intellij.lang.documentation.DocumentationProviderEx;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointDocumentationAware;
 import com.intellij.lang.jsgraphql.ide.injection.JSGraphQLLanguageInjectionUtil;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.api.TokenDocumentationResponse;
@@ -223,6 +224,15 @@ public class JSGraphQLDocumentationProvider extends DocumentationProviderEx {
                 return getDocTemplate(fullDocumentation).replace("${body}", doc);
             }
 
+        } else if(element instanceof JSGraphQLEndpointDocumentationAware) {
+            final JSGraphQLEndpointDocumentationAware documentationAware = (JSGraphQLEndpointDocumentationAware) element;
+            final String documentation = documentationAware.getDocumentation(fullDocumentation);
+            String doc = "";
+            if(documentation != null) {
+                doc += "<div style=\"margin-bottom: 4px\">" + StringEscapeUtils.escapeHtml(documentation) + "</div>";
+            }
+            doc += "<code>" + documentationAware.getDeclaration() + "</code>";
+            return getDocTemplate(fullDocumentation).replace("${body}", doc);
         }
 
         return null;

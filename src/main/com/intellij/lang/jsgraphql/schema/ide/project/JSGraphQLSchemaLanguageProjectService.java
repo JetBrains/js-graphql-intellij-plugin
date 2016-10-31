@@ -14,7 +14,11 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointArgumentsDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedType;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition;
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointProperty;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageServiceListener;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
@@ -229,7 +233,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
                     return schemaPropertyReferenceElement;
                 }
             } else if(element instanceof JSGraphQLAttributePsiElement) {
-	            return resolveSchemaAttributeReferenceElement((JSGraphQLAttributePsiElement)element);
+	            return resolveSchemaAttributeReferenceElement((JSGraphQLAttributePsiElement)element, hasEndpointFile ? endpointNamedTypeRegistry: schemaFileElements);
             }
         }
 
@@ -420,7 +424,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
         return null;
     }
 
-	private PsiElement resolveSchemaAttributeReferenceElement(JSGraphQLAttributePsiElement element) {
+	private PsiElement resolveSchemaAttributeReferenceElement(JSGraphQLAttributePsiElement element, JSGraphQLNamedTypeRegistry namedTypeRegistry) {
 
 		if(element.getContainingFile() instanceof JSGraphQLSchemaFile) {
 			// attributes are self references in schema files
@@ -461,29 +465,46 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
 				if(schemaFieldDeclaration != null) {
 					// locate a matching argument in the field, and get the type name after the colon
 					final String argumentName = argumentAttribute.getText();
-					PsiElement nextVisibleLeaf = PsiTreeUtil.nextVisibleLeaf(schemaFieldDeclaration);
-					boolean foundArgument = false;
+
 					PsiNamedElement argumentType = null;
-					while(nextVisibleLeaf != null) {
-						if(nextVisibleLeaf.getParent() instanceof PsiNamedElement) {
-							final PsiNamedElement psiNamedElement = (PsiNamedElement) nextVisibleLeaf.getParent();
-							if(foundArgument) {
-								// the identifier following the argument and colon is the argument type
-								argumentType = psiNamedElement;
-								break;
-							} else if(Optional.ofNullable(psiNamedElement.getName()).orElse("").equals(argumentName)) {
-								if(propertyNames.isEmpty()) {
-									// the attribute is a top level attribute that references an argument
-									return psiNamedElement;
+					if(schemaFieldDeclaration instanceof JSGraphQLEndpointProperty) {
+						final JSGraphQLEndpointArgumentsDefinition argumentsDefinition = PsiTreeUtil.getNextSiblingOfType(schemaFieldDeclaration, JSGraphQLEndpointArgumentsDefinition.class);
+						if(argumentsDefinition != null) {
+							final List<JSGraphQLEndpointInputValueDefinition> arguments = PsiTreeUtil.getChildrenOfTypeAsList(argumentsDefinition.getInputValueDefinitions(), JSGraphQLEndpointInputValueDefinition.class);
+							for (JSGraphQLEndpointInputValueDefinition argument : arguments) {
+								if(argument.getInputValueDefinitionIdentifier().getText().equals(argumentName)) {
+									if(propertyNames.isEmpty()) {
+										return argument.getInputValueDefinitionIdentifier();
+									}
+									argumentType = PsiTreeUtil.findChildOfType(argument, JSGraphQLEndpointNamedType.class);
+									break;
 								}
-								foundArgument = true;
 							}
 						}
-						nextVisibleLeaf = PsiTreeUtil.nextVisibleLeaf(nextVisibleLeaf);
+					} else {
+						PsiElement nextVisibleLeaf = PsiTreeUtil.nextVisibleLeaf(schemaFieldDeclaration);
+						boolean foundArgument = false;
+						while (nextVisibleLeaf != null) {
+							if (nextVisibleLeaf.getParent() instanceof PsiNamedElement) {
+								final PsiNamedElement psiNamedElement = (PsiNamedElement) nextVisibleLeaf.getParent();
+								if (foundArgument) {
+									// the identifier following the argument and colon is the argument type
+									argumentType = psiNamedElement;
+									break;
+								} else if (Optional.ofNullable(psiNamedElement.getName()).orElse("").equals(argumentName)) {
+									if (propertyNames.isEmpty()) {
+										// the attribute is a top level attribute that references an argument
+										return psiNamedElement;
+									}
+									foundArgument = true;
+								}
+							}
+							nextVisibleLeaf = PsiTreeUtil.nextVisibleLeaf(nextVisibleLeaf);
+						}
 					}
 					if(argumentType != null) {
 
-						JSGraphQLNamedType currentType = schemaFileElements.getNamedType(argumentType.getName());
+						JSGraphQLNamedType currentType = namedTypeRegistry.getNamedType(argumentType.getName());
 						JSGraphQLPropertyType currentPropertyType = null;
 
 						for (String property : propertyNames) {
@@ -493,10 +514,10 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
 									// unknown property in the schema
 									return null;
 								}
-								if (currentPropertyType.propertyValueTypeElement == null) {
+								if (currentPropertyType.propertyValueTypeName == null) {
 									return null;
 								}
-								currentType = schemaFileElements.getNamedType(currentPropertyType.propertyValueTypeElement.getName());
+								currentType = namedTypeRegistry.getNamedType(currentPropertyType.propertyValueTypeName);
 							}
 						}
 

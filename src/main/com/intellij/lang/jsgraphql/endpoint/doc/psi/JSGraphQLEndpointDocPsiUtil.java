@@ -7,8 +7,10 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.doc.psi;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -99,5 +101,21 @@ public class JSGraphQLEndpointDocPsiUtil {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Gets the text of the continuous comments placed directly above the specified element
+	 * @param element element whose previous siblings are enumerated and included if they're documentation comments
+	 * @return the combined text of the documentation comments, preserving line breaks, or <code>null</code> if no documentation is available
+	 */
+	public static String getDocumentation(PsiElement element) {
+		final PsiComment comment = PsiTreeUtil.getPrevSiblingOfType(element, PsiComment.class);
+		if(isDocumentationComment(comment)) {
+			final List<PsiComment> siblings = Lists.newArrayList(comment);
+			getDocumentationCommentSiblings(comment, siblings, PsiElement::getPrevSibling);
+			Collections.reverse(siblings);
+			return siblings.stream().map(c -> StringUtils.stripStart(c.getText(), "# ")).collect(Collectors.joining("\n"));
+		}
+		return null;
 	}
 }
