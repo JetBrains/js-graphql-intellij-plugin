@@ -7,11 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.doc.ide.annotator;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.jetbrains.annotations.NotNull;
-
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -22,11 +17,17 @@ import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFieldDefinition
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinition;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinitions;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
+import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
+import com.intellij.openapi.util.Key;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Highlights GraphQL Endpoint documentation comments
@@ -41,13 +42,35 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
 		ATTRIBUTES.put(JSGraphQLEndpointDocTokenTypes.DOCVALUE, DefaultLanguageHighlighterColors.DOC_COMMENT_TAG_VALUE);
 	}
 
+    private static final Key<PsiElement> TODO_ELEMENT = Key.create("JSGraphQLEndpointDocHighlightAnnotator.Todo");
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+
+		final IElementType elementType = element.getNode().getElementType();
+
+        // highlight TO-DO items
+        if(elementType == JSGraphQLEndpointDocTokenTypes.DOCTEXT) {
+			final String elementText = element.getText().toLowerCase();
+			if(isTodoToken(elementText)) {
+				setTextAttributes(element, holder, CodeInsightColors.TODO_DEFAULT_ATTRIBUTES);
+                holder.getCurrentAnnotationSession().putUserData(TODO_ELEMENT, element);
+				return;
+			} else {
+                PsiElement prevSibling = element.getPrevSibling();
+                while (prevSibling != null) {
+                    if(prevSibling == holder.getCurrentAnnotationSession().getUserData(TODO_ELEMENT)) {
+                        setTextAttributes(element, holder, CodeInsightColors.TODO_DEFAULT_ATTRIBUTES);
+                        return;
+                    }
+                    prevSibling = prevSibling.getPrevSibling();
+                }
+            }
+		}
+
 		final PsiComment comment = PsiTreeUtil.getContextOfType(element, PsiComment.class);
 		if (comment != null && JSGraphQLEndpointDocPsiUtil.isDocumentationComment(comment)) {
-			final IElementType elementType = element.getNode().getElementType();
 			final TextAttributesKey textAttributesKey = ATTRIBUTES.get(elementType);
 			if (textAttributesKey != null) {
 				setTextAttributes(element, holder, textAttributesKey);
@@ -83,6 +106,13 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
 				}
 			}
 		}
+	}
+
+	private boolean isTodoToken(String elementText) {
+		if(elementText.startsWith("todo")) {
+            return elementText.length() == 4 || !Character.isAlphabetic(elementText.charAt(4));
+        }
+		return false;
 	}
 
 	private void setTextAttributes(PsiElement element, AnnotationHolder holder, TextAttributesKey key) {

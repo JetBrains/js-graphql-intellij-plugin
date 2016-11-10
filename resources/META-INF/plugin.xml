@@ -63,6 +63,11 @@
     <projectService serviceInterface="com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry" serviceImplementation="com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry" />
 
 
+    <!-- Spellchecking and to-do view-->
+    <spellchecker.support language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointSpellcheckingStrategy" />
+    <todoIndexer filetype="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTodoIndexer"/>
+
+
     <!-- Project tree -->
     <treeStructureProvider implementation="com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaTreeStructureProvider" />
 
