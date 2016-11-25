@@ -105,7 +105,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
     @Override
     public boolean analyze(final @NotNull PsiFile file, boolean updateWholeFile, @NotNull HighlightInfoHolder holder, @NotNull Runnable action) {
 
-        final PsiElement operationAtCursor = getOperationAtCursor(file);
+        final PsiElement operationAtCursor = getOperationAtCursor(file, null);
         if (operationAtCursor != null && hasMultipleVisibleTopLevelElement(file)) {
 
             // store the range of the current operation for use in the caret listener
@@ -172,7 +172,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
 
                                 if (!sameOperation) {
                                     // moved to somewhere outside the previous operation
-                                    if (hadOperation || getOperationAtCursor(psiFile) != null) {
+                                    if (hadOperation || getOperationAtCursor(psiFile, e) != null) {
                                         // perform a new highlighting pass
                                         DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
                                     }
@@ -328,7 +328,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
 
                 // no selection -- see if the caret is inside an operation
 
-                final PsiElement operationAtCursor = getOperationAtCursor(psiFile);
+                final PsiElement operationAtCursor = getOperationAtCursor(psiFile, null);
                 if (operationAtCursor != null) {
                     final HashSet<JSGraphQLFragmentDefinitionPsiElement> foundFragments = Sets.newHashSet();
                     findFragmentsInsideOperation(operationAtCursor, foundFragments, null);
@@ -439,11 +439,22 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
      * Gets the operation that wraps the current caret position, or <code>null</code> if none is found,
      * e.g. when outside any operation or inside a fragment definition
      */
-    private static PsiElement getOperationAtCursor(PsiFile psiFile) {
+    private static PsiElement getOperationAtCursor(PsiFile psiFile, CaretEvent caretEvent) {
         final FileEditor fileEditor = FileEditorManager.getInstance(psiFile.getProject()).getSelectedEditor(psiFile.getVirtualFile());
         if (fileEditor instanceof TextEditor) {
             final Editor editor = ((TextEditor) fileEditor).getEditor();
-            final int currentOffset = editor.getCaretModel().getOffset();
+            final int currentOffset;
+            if(caretEvent != null) {
+                currentOffset = editor.logicalPositionToOffset(caretEvent.getNewPosition());
+            } else {
+                try {
+                    currentOffset = editor.getCaretModel().getOffset();
+                } catch (Throwable e) {
+                    // a caret update is in progress, so can't determine the operation at this time,
+                    // but a new caretPositionChanged event will follow
+                    return null;
+                }
+            }
             PsiElement currentElement = psiFile.findElementAt(currentOffset);
             while (currentElement != null && !(currentElement.getParent() instanceof PsiFile)) {
                 currentElement = currentElement.getParent();
