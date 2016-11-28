@@ -1,3 +1,9 @@
+## 1.4.4 (2016-11-28)
+
+Fixes:
+
+- Assertion failed: Caret model is in its update process. All requests are illegal at this point. (#42)
+
 ## 1.4.3 (2016-10-30)
 
 Features:
