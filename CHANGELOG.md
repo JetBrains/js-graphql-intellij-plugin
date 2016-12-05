@@ -1,3 +1,19 @@
+## 1.4.4 (2016-11-28)
+
+Fixes:
+
+- Assertion failed: Caret model is in its update process. All requests are illegal at this point. (#42)
+
+## 1.4.3 (2016-10-30)
+
+Features:
+
+- Add GraphQL configuration page for indentation (#29)
+
+Fixes:
+
+- Language Service 1.3.2: Object literal for variables in getFragment closes Relay.QL template expression.
+
 ## 1.4.2 (2016-09-25)
 
 Features:

@@ -50,6 +50,16 @@ public class Token {
         this.kind = kind;
     }
 
+    public Token withTextAndOffset(String text, int offset) {
+        final Token token = new Token();
+        token.type = type;
+        token.text = text;
+        token.kind = kind;
+        token.start = start + offset;
+        token.end = token.start + text.length();
+        return token;
+    }
+
     @Override
     public String toString() {
         return "Token{" +

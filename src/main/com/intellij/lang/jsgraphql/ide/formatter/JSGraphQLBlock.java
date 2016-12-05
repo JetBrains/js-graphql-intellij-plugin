@@ -117,6 +117,11 @@ public class JSGraphQLBlock extends AbstractBlock {
         if (NO_INDENT_ELEMENT_TYPES.contains(myNode.getElementType())) {
             return Indent.getNoneIndent();
         }
+        if(myNode.getElementType() == JSGraphQLTokenTypes.PUNCTUATION) {
+            if(",".equals(myNode.getText())) {
+                return Indent.getNormalIndent();
+            }
+        }
 
         if(parent != null) {
             JSGraphQLElementType astNode = getAstNode(parent);
