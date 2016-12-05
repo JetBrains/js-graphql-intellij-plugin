@@ -104,6 +104,20 @@ public class JSGraphQLEndpointDocPsiUtil {
 	}
 
 	/**
+	 * Gets the PSI comment that starts the documentation for the specified element, or <code>null</code> if no documentation is available
+	 */
+	public static PsiComment getDocumentationStartElement(PsiElement element) {
+		final PsiComment comment = PsiTreeUtil.getPrevSiblingOfType(element, PsiComment.class);
+		if(isDocumentationComment(comment)) {
+			final List<PsiComment> siblings = Lists.newArrayList(comment);
+			getDocumentationCommentSiblings(comment, siblings, PsiElement::getPrevSibling);
+			Collections.reverse(siblings);
+			return siblings.get(0);
+		}
+		return null;
+	}
+
+	/**
 	 * Gets the text of the continuous comments placed directly above the specified element
 	 * @param element element whose previous siblings are enumerated and included if they're documentation comments
 	 * @return the combined text of the documentation comments, preserving line breaks, or <code>null</code> if no documentation is available

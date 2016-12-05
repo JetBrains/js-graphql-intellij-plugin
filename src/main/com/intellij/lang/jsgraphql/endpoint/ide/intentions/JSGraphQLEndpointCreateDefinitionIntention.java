@@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction;
 import com.intellij.ide.impl.DataManagerImpl;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
+import com.intellij.lang.jsgraphql.endpoint.doc.psi.JSGraphQLEndpointDocPsiUtil;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -20,7 +21,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
@@ -77,8 +78,17 @@ public abstract class JSGraphQLEndpointCreateDefinitionIntention extends PsiElem
                     indent = true;
                 }
                 final Document document = editor.getDocument();
-	            final TextRange definitionTextRange = definition.getTextRange();
-	            final int insertOffset = insertBefore ? definitionTextRange.getStartOffset() : definitionTextRange.getEndOffset();
+                final int insertOffset;
+                if(insertBefore) {
+                    final PsiComment documentationStartElement = JSGraphQLEndpointDocPsiUtil.getDocumentationStartElement(definition);
+                    if(documentationStartElement != null) {
+                        insertOffset = documentationStartElement.getTextRange().getStartOffset();
+                    } else {
+                        insertOffset = definition.getTextRange().getStartOffset();
+                    }
+                } else {
+                    insertOffset = definition.getTextRange().getEndOffset();
+                }
                 document.insertString(insertOffset, definitionText);
                 if (caretOffsetAfterInsert.get() != null) {
                     // move caret to new position
