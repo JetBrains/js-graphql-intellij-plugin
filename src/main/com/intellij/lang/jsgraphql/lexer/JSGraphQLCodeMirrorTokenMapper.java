@@ -18,12 +18,14 @@ public class JSGraphQLCodeMirrorTokenMapper {
 
     private final static Map<String, IElementType> mappings = Maps.newConcurrentMap();
 
+    public static final String CODEMIRROR_WHITESPACE = "ws";
+
     static {
         for (IElementType tokenType : JSGraphQLTokenTypes.ALL_TOKEN_TYPES) {
             if(tokenType instanceof JSGraphQLTokenType) {
                 mappings.put(((JSGraphQLTokenType)tokenType).getLexerTokenType(), tokenType);
             } else if(tokenType.equals(JSGraphQLTokenTypes.WHITESPACE)) {
-                mappings.put("ws", tokenType); // CodeMirror uses 'ws' for whitespace
+                mappings.put(CODEMIRROR_WHITESPACE, tokenType); // CodeMirror uses 'ws' for whitespace
             } else if(tokenType.equals(JSGraphQLTokenTypes.INVALIDCHAR)) {
                 mappings.put("invalidchar", tokenType); // CodeMirror uses 'invalidchar' for whitespace
             }

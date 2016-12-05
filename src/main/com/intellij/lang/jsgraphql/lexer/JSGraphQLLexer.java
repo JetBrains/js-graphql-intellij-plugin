@@ -18,6 +18,8 @@ import com.intellij.lexer.LexerBase;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.tree.IElementType;
+
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,6 +101,21 @@ public class JSGraphQLLexer extends LexerBase {
                 final IElementType punctuationTokenType = getPunctuationTokenType(text);
                 if (punctuationTokenType != null) {
                     tokenType = punctuationTokenType;
+                } else if(text.contains(",")) {
+                    // separate out commas from surrounding whitespace to support indentation on ", field" lines
+                    int offset = 0;
+                    final String[] parts = StringUtils.splitByCharacterType(text);
+                    for (String part : parts) {
+                        final Token partSourceToken = token.withTextAndOffset(part, offset);
+                        if(part.equals(",")) {
+                            tokens.add(new JSGraphQLToken(tokenType, partSourceToken));
+                        } else {
+                            partSourceToken.setKind(JSGraphQLCodeMirrorTokenMapper.CODEMIRROR_WHITESPACE);
+                            tokens.add(new JSGraphQLToken(JSGraphQLTokenTypes.WHITESPACE, partSourceToken));
+                        }
+                        offset += part.length();
+                    }
+                    continue; // already added the required tokens
                 } else if (JSGraphQLKeywords.FRAGMENT_DOTS.equals(text)) {
                     // consider the "..." spread operator a keyword for highlighting
                     tokenType = JSGraphQLTokenTypes.KEYWORD;

@@ -126,6 +126,17 @@ __typename
 }
 }
 
+
+### comma before fields ###
+
+query Commas {
+foo {
+bar
+, baz
+, baz2
+}
+}
+
 ### --------- annotations.graphql --------- ###
 
 type AnnotatedObject @foo(foo: {test: true}) {
