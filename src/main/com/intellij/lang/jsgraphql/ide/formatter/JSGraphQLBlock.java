@@ -131,7 +131,7 @@ public class JSGraphQLBlock extends AbstractBlock {
                     // this block is inside a selection set: '{ ... }', so indent it
                     return Indent.getNormalIndent();
                 }
-                if (JSGraphQLElementType.ARGUMENTS_KIND.equals(kind)) {
+                if (JSGraphQLElementType.ARGUMENTS_KIND.equals(kind) || JSGraphQLElementType.ARGUMENTS_DEF_KIND.equals(kind)) {
                     // this block is inside a () arguments list, so indent it
                     return Indent.getNormalIndent();
                 }

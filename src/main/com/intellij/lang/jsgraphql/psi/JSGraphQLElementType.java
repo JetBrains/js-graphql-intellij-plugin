@@ -31,6 +31,7 @@ public class JSGraphQLElementType extends IElementType {
     public final static String FRAGMENT_DEFINITION_KIND = "FragmentDefinition";
     public final static String INLINE_FRAGMENT_KIND = "InlineFragment";
     public final static String ARGUMENTS_KIND = "Arguments";
+    public final static String ARGUMENTS_DEF_KIND = "ArgumentsDef";
     public final static String ARGUMENT_KIND = "Argument";
     public final static String ATTRIBUTE_KIND = "Attribute";
     public final static String OBJECT_VALUE_KIND = "ObjectValue";
