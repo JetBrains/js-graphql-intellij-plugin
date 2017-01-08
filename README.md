@@ -16,6 +16,12 @@ It provides the following features in IntelliJ IDEA, WebStorm, RubyMine, PhpStor
 
 It depends on [js-graphql-language-service](https://github.com/jimkyndemeyer/js-graphql-language-service) that it manages using a Node.js process handler.
 
+## Documentation
+
+The plugin uses a `graphql.config.json` file in the project root to configure the location of your GraphQL schema.
+
+To get started, please see the [FAQ](#faq).
+
 ## Features demo
 
 **Schema setup, completion, error highlighting, documentation**
@@ -25,6 +31,24 @@ It depends on [js-graphql-language-service](https://github.com/jimkyndemeyer/js-
 ![](docs/js-graphql-webstorm-usages-structure-demo.gif)
 
 ## FAQ
+
+**How do I configure the plugin in a project**
+
+The plugin is activated as soon as you view or edit GraphQL in the editor. This includes GraphQL inside `Relay.QL` and `gql` templates in JavaScript and TypeScript. You can also use `.graphql` physical files and scratch files. These files allow you to query your endpoint directly from your IDE.
+
+An editor notification bar should prompt you to "Create a graphql.config.json". Accept and edit this config file to point the plugin at your local `schema.json` or your endpoint for introspection. The plugin uses the schema to provide completion and error highlighting.
+
+**How do I reload a GraphQL Schema that was loaded from a URL?**
+
+In the the GraphQL tool window, select the "Current Errors" tab and click the "Restart JS GraphQL Language Service" button. 
+
+**I clicked "No thanks" when asked to create a graphql.config.json. Now what?**
+
+Download [graphql.config.json](https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/resources/META-INF/graphql.config.json) from this repository and place it in your project root (next to your package.json for JS projects). Re-open the project and edit `graphql.config.json` to point the plugin at your schema.
+
+**Fields are shown as errors with "Cannot query field..." messages**
+
+Make sure you've edited your `graphql.config.json` to point it at your schema. This enables the plugin to properly recognize the available types and their fields.
 
 **Which IDEs are compatible with the plugin?**
 
@@ -41,16 +65,6 @@ The plugin is available from the JetBrains Plugin Repository at https://plugins.
 To install it, open "Settings", "Plugins", "Browse repositories..." and search for "GraphQL".
 
 **Note**: The experimental version in the `android-studio` branch is not available from the JetBrains Plugin Repository.
-
-**How do I configure the plugin in a project**
-
-The plugin is activated as soon as you view or edit GraphQL in the editor. This includes GraphQL inside `Relay.QL` and `gql` templates in JavaScript and TypeScript. You can also use `.graphql` physical files and scratch files. These files allow you to query your endpoint directly from your IDE.
-
-An editor notification bar should prompt you to "Create a graphql.config.json". Accept and edit this config file to point the plugin at your local `schema.json` or your endpoint for introspection. The plugin uses the schema to provide completion and error highlighting.
-
-**How do I reload a GraphQL Schema that was loaded from a URL?**
-
-In the the GraphQL tool window, select the "Current Errors" tab and click the "Restart JS GraphQL Language Service" button. 
 
 ## License
 MIT
