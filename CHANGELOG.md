@@ -1,3 +1,13 @@
+## 1.5.0 (2017-01-29)
+
+Features:
+
+- Language Service 1.4.0 based on graphql 0.9.1 and codemirror-graphql 0.6.2
+- Experimental support for GraphQL Endpoint Language (#15)
+- Full PSI support for arguments (#35, #51)
+- Support for top level Apollo fragments template placeholders (#44)
+- Keyboard shortcut can now be assigned to the restart language service action (#49)
+
 ## 1.4.4 (2016-11-28)
 
 Fixes:
