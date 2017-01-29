@@ -30,6 +30,7 @@ import com.intellij.lang.jsgraphql.JSGraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.actions.JSGraphQLEditEndpointsAction;
 import com.intellij.lang.jsgraphql.ide.actions.JSGraphQLExecuteEditorAction;
+import com.intellij.lang.jsgraphql.ide.actions.JSGraphQLRestartLanguageServiceAction;
 import com.intellij.lang.jsgraphql.ide.actions.JSGraphQLToggleVariablesAction;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
@@ -152,11 +153,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         final MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
 
         // the restart action
-        AnAction restartInstanceAction = new AnAction("Restart JS GraphQL Language Service", "Restarts the JS GraphQL Language Service Node.js process", AllIcons.Javaee.UpdateRunningApplication) {
-            public void actionPerformed(AnActionEvent e) {
-                restartInstance();
-            }
-        };
+        final AnAction restartInstanceAction = ActionManager.getInstance().getAction(JSGraphQLRestartLanguageServiceAction.class.getName());
 
         // tool window
         myToolWindowManager = new JSGraphQLLanguageToolWindowManager(project, GRAPH_QL_TOOL_WINDOW_NAME, GRAPH_QL_TOOL_WINDOW_NAME, JSGraphQLIcons.UI.GraphQLNode, restartInstanceAction);
@@ -552,7 +549,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         }
     }
 
-    private void restartInstance() {
+    public void restartInstance() {
 
         synchronized(this.myLock) {
             final JSGraphQLNodeLanguageServiceInstance instance = JSGraphQLNodeLanguageServiceClient.getLanguageServiceInstance(myProject);

@@ -238,6 +238,9 @@
       <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X 10.5+"/>
     </action>
 
+    <action class="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLRestartLanguageServiceAction" id="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLRestartLanguageServiceAction">
+    </action>
+
   </actions>
 
 </idea-plugin>
