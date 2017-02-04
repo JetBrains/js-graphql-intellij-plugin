@@ -50,6 +50,8 @@ Download [graphql.config.json](https://github.com/jimkyndemeyer/js-graphql-intel
 
 Make sure you've edited your `graphql.config.json` to point it at your schema. This enables the plugin to properly recognize the available types and their fields.
 
+Make sure both the schema "file" or "url" and the endpoints "url" are correct.
+
 **Which IDEs are compatible with the plugin?**
 
 The plugin is compatible with version 143+ of IntelliJ IDEA, WebStorm, RubyMine, PhpStorm, and PyCharm.
