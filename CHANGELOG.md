@@ -1,3 +1,9 @@
+## 1.5.1 (2017-02-12)
+
+Fixes:
+
+- 2017.1 EAP Not detecting Relay.QL usage (#60)
+
 ## 1.5.0 (2017-01-29)
 
 Features:

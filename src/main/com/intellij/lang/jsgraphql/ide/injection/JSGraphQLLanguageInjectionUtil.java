@@ -80,9 +80,16 @@ public class JSGraphQLLanguageInjectionUtil {
         if (host instanceof JSStringTemplateExpression && host instanceof PsiLanguageInjectionHost) {
             JSStringTemplateExpression template = (JSStringTemplateExpression) host;
             // check if we're a Relay.QL or graphql tagged template
-            final PsiElement firstChild = template.getFirstChild();
-            if (firstChild instanceof JSReferenceExpression) {
-                final String tagText = firstChild.getText();
+            JSReferenceExpression tagExpression = null;
+            if(template.getFirstChild() instanceof JSReferenceExpression) {
+                // up to version 2016.X
+                tagExpression = (JSReferenceExpression) template.getFirstChild();
+            } else if(template.getPrevSibling() instanceof JSReferenceExpression) {
+                // from version 2017.1
+                tagExpression = (JSReferenceExpression) template.getPrevSibling();
+            }
+            if (tagExpression != null) {
+                final String tagText = tagExpression.getText();
                 if (SUPPORTED_TAG_NAMES.contains(tagText)) {
                     if (envRef != null) {
                         envRef.set(getEnvironmentFromTemplateTag(tagText, host));

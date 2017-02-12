@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.ide.notifications;
 
-import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.jsgraphql.JSGraphQLFileType;
 import com.intellij.lang.jsgraphql.JSGraphQLParserDefinition;
@@ -26,7 +25,6 @@ import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,8 +32,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.EditorNotifications.Provider;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.webcore.ui.ModuleSelectionDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
