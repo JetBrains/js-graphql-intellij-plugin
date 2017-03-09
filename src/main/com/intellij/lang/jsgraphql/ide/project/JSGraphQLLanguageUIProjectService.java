@@ -39,8 +39,8 @@ import com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQueryContextHighlightVisi
 import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpoint;
 import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.JSGraphQLErrorResult;
-import com.intellij.lang.jsgraphql.ide.project.toolwindow.JSGraphQLLanguageToolWindowManager;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.JSGraphQLErrorTreeViewPanel;
+import com.intellij.lang.jsgraphql.ide.project.toolwindow.JSGraphQLLanguageToolWindowManager;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceInstance;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLFile;
@@ -406,7 +406,21 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                 final JSGraphQLQueryContext context = JSGraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
                 final Map<String, Object> requestData = Maps.newLinkedHashMap();
                 requestData.put("query", context.query);
-                requestData.put("variables", getQueryVariables(editor));
+                try {
+                    requestData.put("variables", getQueryVariables(editor));
+                } catch (JsonSyntaxException jse) {
+                    if (myToolWindowManagerInitialized) {
+                        myToolWindowManager.logCurrentErrors(ContainerUtil.immutableList(
+                                new JSGraphQLErrorResult(
+                                        "Failed to parse variables as JSON: " + jse.getMessage(),
+                                        virtualFile.getPath(),
+                                        "Error",
+                                        0,
+                                        0))
+                                , true);
+                    }
+                    return;
+                }
                 final String requestJson = new Gson().toJson(requestData);
                 final HttpClient httpClient = new HttpClient(new HttpClientParams());
                 try {
@@ -500,13 +514,11 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         return null;
     }
 
-    private String getQueryVariables(Editor editor) {
+    private Object getQueryVariables(Editor editor) {
         final Editor variablesEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
-        if(variablesEditor != null) {
+        if (variablesEditor != null) {
             final String variables = variablesEditor.getDocument().getText();
-            if(StringUtils.isNotEmpty(variables)) {
-                return variables;
-            }
+            return new Gson().fromJson(variables, Map.class);
         }
         return null;
     }
