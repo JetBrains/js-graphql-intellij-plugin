@@ -11,8 +11,12 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.intellij.codeInsight.CodeSmellInfo;
 import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.intellij.codeInsight.hint.HintManager;
+import com.intellij.codeInsight.hint.HintManagerImpl;
+import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.execution.filters.UrlFilter;
 import com.intellij.execution.process.OSProcessHandler;
 import com.intellij.execution.process.ProcessAdapter;
@@ -63,6 +67,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.vcs.CodeSmellDetector;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
@@ -71,10 +76,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.ui.EditorNotifications;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.OnePixelSplitter;
-import com.intellij.ui.SideBorder;
+import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.content.Content;
@@ -409,16 +411,27 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                 try {
                     requestData.put("variables", getQueryVariables(editor));
                 } catch (JsonSyntaxException jse) {
-                    if (myToolWindowManagerInitialized) {
-                        myToolWindowManager.logCurrentErrors(ContainerUtil.immutableList(
-                                new JSGraphQLErrorResult(
-                                        "Failed to parse variables as JSON: " + jse.getMessage(),
-                                        virtualFile.getPath(),
-                                        "Error",
-                                        0,
-                                        0))
-                                , true);
+                    Editor errorEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
+                    String errorMessage = jse.getMessage();
+                    if(errorEditor != null) {
+                        errorEditor.getContentComponent().grabFocus();
+                        final VirtualFile errorFile = FileDocumentManager.getInstance().getFile(errorEditor.getDocument());
+                        if (errorFile != null) {
+                            final List<CodeSmellInfo> errors = CodeSmellDetector.getInstance(myProject).findCodeSmells(ContainerUtil.list(errorFile));
+                            for (CodeSmellInfo error : errors) {
+                                errorMessage = error.getDescription();
+                                errorEditor.getCaretModel().moveToOffset(error.getTextRange().getStartOffset());
+                                break;
+                            }
+                        }
+                    } else {
+                        errorEditor = editor;
                     }
+                    final HintManagerImpl hintManager = HintManagerImpl.getInstanceImpl();
+                    final JComponent label = HintUtil.createErrorLabel("Failed to parse variables as JSON:\n" + errorMessage);
+                    final LightweightHint lightweightHint = new LightweightHint(label);
+                    final Point hintPosition = hintManager.getHintPosition(lightweightHint, errorEditor, HintManager.UNDER);
+                    hintManager.showEditorHint(lightweightHint, editor, hintPosition, 0, 10000, false, HintManager.UNDER);
                     return;
                 }
                 final String requestJson = new Gson().toJson(requestData);
