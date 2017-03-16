@@ -1,3 +1,9 @@
+## 1.5.2 (2017-03-16)
+
+Fixes:
+
+- Pass "variables" in payload to GraphQL server as JSON. (#64)
+
 ## 1.5.1 (2017-02-12)
 
 Fixes:
