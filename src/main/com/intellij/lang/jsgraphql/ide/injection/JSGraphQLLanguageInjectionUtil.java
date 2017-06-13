@@ -28,11 +28,13 @@ public class JSGraphQLLanguageInjectionUtil {
 
     public static final String RELAY_QL_TEMPLATE_TAG = "Relay.QL";
     public static final String GRAPHQL_TEMPLATE_TAG = "graphql";
+    public static final String GRAPHQL_EXPERIMENTAL_TEMPLATE_TAG = "graphql.experimental";
     public static final String GQL_TEMPLATE_TAG = "gql";
 
     public final static Set<String> SUPPORTED_TAG_NAMES = Sets.newHashSet(
             RELAY_QL_TEMPLATE_TAG,
             GRAPHQL_TEMPLATE_TAG,
+            GRAPHQL_EXPERIMENTAL_TEMPLATE_TAG,
             GQL_TEMPLATE_TAG
     );
 
