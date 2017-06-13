@@ -1,3 +1,9 @@
+## 1.5.3 (2017-06-13)
+
+Features:
+
+- Support Relay Modern graphql.experimental tag (#74)
+
 ## 1.5.2 (2017-03-16)
 
 Fixes:

@@ -107,7 +107,7 @@ public class JSGraphQLLanguageInjectionUtil {
         if (RELAY_QL_TEMPLATE_TAG.equals(tagText)) {
             return RELAY_ENVIRONMENT;
         }
-        if (GRAPHQL_TEMPLATE_TAG.equals(tagText)) {
+        if (GRAPHQL_TEMPLATE_TAG.equals(tagText) || GRAPHQL_EXPERIMENTAL_TEMPLATE_TAG.equals(tagText)) {
             return GRAPHQL_ENVIRONMENT;
         }
         if (GQL_TEMPLATE_TAG.equals(tagText)) {
