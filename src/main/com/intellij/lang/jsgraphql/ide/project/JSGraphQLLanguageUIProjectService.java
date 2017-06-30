@@ -89,6 +89,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.jetbrains.annotations.NotNull;
@@ -406,10 +407,9 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             final JSGraphQLEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
             if(selectedEndpoint != null && selectedEndpoint.url != null) {
                 final JSGraphQLQueryContext context = JSGraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
-                final Map<String, Object> requestData = Maps.newLinkedHashMap();
-                requestData.put("query", context.query);
+                String variables;
                 try {
-                    requestData.put("variables", getQueryVariables(editor));
+                    variables = getQueryVariables(editor);
                 } catch (JsonSyntaxException jse) {
                     Editor errorEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
                     String errorMessage = jse.getMessage();
@@ -434,7 +434,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     hintManager.showEditorHint(lightweightHint, editor, hintPosition, 0, 10000, false, HintManager.UNDER);
                     return;
                 }
-                final String requestJson = new Gson().toJson(requestData);
+                final String requestJson = "{\"query\":\""+ StringEscapeUtils.escapeJavaScript(context.query)+"\", \"variables\":" +  variables + "}";
                 final HttpClient httpClient = new HttpClient(new HttpClientParams());
                 try {
                     final PostMethod method = new PostMethod(selectedEndpoint.url);
@@ -527,11 +527,14 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         return null;
     }
 
-    private Object getQueryVariables(Editor editor) {
+    private String getQueryVariables(Editor editor) {
         final Editor variablesEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
         if (variablesEditor != null) {
             final String variables = variablesEditor.getDocument().getText();
-            return new Gson().fromJson(variables, Map.class);
+            if(!StringUtils.isBlank(variables)) {
+                new Gson().fromJson(variables, Map.class);
+                return variables;
+            }
         }
         return null;
     }
