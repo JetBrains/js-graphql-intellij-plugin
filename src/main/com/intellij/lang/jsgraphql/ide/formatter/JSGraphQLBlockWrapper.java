@@ -166,7 +166,12 @@ public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, Set
     @Override
     public Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
         if(wrapped != null) {
-            return wrapped.getSpacing(child1, child2);
+            Spacing wrappedSpacing = wrapped.getSpacing(child1, child2);
+            if(wrappedSpacing == null) {
+                // the wrapped formatter might not recognize a wrapped block, so try with the orignal wrapped children instead
+                wrappedSpacing = wrapped.getSpacing(unwrap(child1), unwrap(child2));
+            }
+            return wrappedSpacing;
         }
         return spacingBuilder.getSpacing(this, child1, child2);
     }
@@ -208,6 +213,13 @@ public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, Set
 
 
     // ---- implementation ----
+
+    private Block unwrap(Block child) {
+        if(child instanceof JSGraphQLBlockWrapper) {
+            return ((JSGraphQLBlockWrapper) child).wrapped;
+        }
+        return child;
+    }
 
     // This is based on AbstractBlock.buildInjectedBlocks, but substitutes DefaultInjectedLanguageBlockBuilder for a JSGraphQLInjectedLanguageBlockBuilder to
     //  enable host JS/TS template fragments that separate/shreds the GraphQL with ${...} expressions
