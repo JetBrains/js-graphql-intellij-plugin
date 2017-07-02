@@ -1,3 +1,11 @@
+## 1.5.4 (2017-07-02)
+
+Fixes:
+
+- Only show the error console automatically on the first error in the project (#80) (#90)
+- Send the variables editor text as-is since Gson always deserializes a JSON number as a Double (This turns a variable value of 1 into 1.0, making the value incompatible with the Int schema type) (#86)
+- Auto-import is not placed on a new line in JS files with GraphQL templates (#91)
+
 ## 1.5.3 (2017-06-13)
 
 Features:

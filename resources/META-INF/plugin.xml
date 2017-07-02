@@ -10,7 +10,7 @@
 <idea-plugin version="2">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>1.5.3</version>
+  <version>1.5.4</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -29,6 +29,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>1.5.4: Only show the error console automatically on the first error in the project. Fixes Int variables being sent as floats. Fixes auto-import is not placed on a new line in JS files with GraphQL templates.</li>
       <li>1.5.3: Support Relay Modern graphql.experimental tag.</li>
       <li>1.5.2: Pass "variables" in payload to GraphQL server as JSON.</li>
       <li>1.5.1: Compatible with IntelliJ IDEA 2017.1 EAP tagged template expressions.</li>
