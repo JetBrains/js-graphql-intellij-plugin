@@ -288,7 +288,7 @@ public class JSGraphQLNodeLanguageServiceInstance implements ProjectManagerListe
                     } else if(outputType == ProcessOutputTypes.STDERR) {
                         result.set(false);
                         countDownLatch.countDown();
-                        JSGraphQLLanguageUIProjectService.showConsole(project);
+                        JSGraphQLLanguageUIProjectService.showErrorConsole(project);
                     }
                 }
             }

@@ -114,6 +114,8 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     public final static String GRAPH_QL_TOOL_WINDOW_NAME = "GraphQL";
     public static final String GRAPH_QL_VARIABLES_JSON = "GraphQL.variables.json";
 
+    private static final Key<Boolean> JSGRAPHQL_SHOW_CONSOLE_ON_ERROR = Key.create("JSGraphQL.showConsoleOnError");
+
     /**
      * Indicates that this virtual file backs a GraphQL variables editor
      */
@@ -195,6 +197,15 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         return ServiceManager.getService(project, JSGraphQLLanguageUIProjectService.class);
     }
 
+    public static void showErrorConsole(@NotNull Project project) {
+        final Boolean showConsoleOnError = project.getUserData(JSGRAPHQL_SHOW_CONSOLE_ON_ERROR);
+        if(!Boolean.FALSE.equals(showConsoleOnError)) {
+            // only show the console automatically on the first error in the project
+            showToolWindowContent(project, ConsoleView.class);
+            project.putUserData(JSGRAPHQL_SHOW_CONSOLE_ON_ERROR, false);
+        }
+    }
+
     public static void showConsole(@NotNull Project project) {
         showToolWindowContent(project, ConsoleView.class);
     }
@@ -232,7 +243,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     if(StringUtils.isNotEmpty(event.getText())) {
                         if (outputType == ProcessOutputTypes.STDERR) {
                             // show the console on errors during initialization
-                            showConsole(myProject);
+                            showErrorConsole(myProject);
                         }
                     }
                 }
