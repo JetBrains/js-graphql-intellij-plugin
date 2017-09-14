@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService;
@@ -20,7 +21,9 @@ import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceC
 import com.intellij.lang.jsgraphql.languageservice.api.Annotation;
 import com.intellij.lang.jsgraphql.languageservice.api.AnnotationsResponse;
 import com.intellij.lang.jsgraphql.languageservice.api.Pos;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLErrorContextAware;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLFile;
+import com.intellij.lang.jsgraphql.psi.JSGraphQLPsiElement;
 import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
@@ -109,6 +112,12 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
                     HighlightSeverity severity = "error".equals(annotation.getSeverity()) ? HighlightSeverity.ERROR : HighlightSeverity.WARNING;
                     if (fromOffset < toOffset) {
                         final String message = StringUtils.substringBefore(annotation.getMessage(), "\n");
+                        final PsiElement errorElement = getPsiElementAtErrorOffset(file, fromOffset);
+                        if(errorElement instanceof JSGraphQLErrorContextAware) {
+                            if(!((JSGraphQLErrorContextAware) errorElement).isErrorInContext(message)) {
+                                continue;
+                            }
+                        }
                         holder.createAnnotation(severity, TextRange.create(fromOffset, toOffset), message);
                         errors.add(new JSGraphQLErrorResult(message, fileName, annotation.getSeverity(), from.line+1, from.column+1)); // +1 is for UI lines/columns
                     }
@@ -127,6 +136,22 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
 
 
     // --- implementation ----
+
+    private PsiElement getPsiElementAtErrorOffset(PsiFile psiFile, int offset) {
+        PsiElement element = psiFile.findElementAt(offset);
+        if(element instanceof JSGraphQLPsiElement) {
+            return element;
+        } else if(element != null) {
+            // error is potentially inside injected GraphQL
+            final PsiElement injectedElement = InjectedLanguageManager.getInstance(psiFile.getProject()).findInjectedElementAt(psiFile, offset);
+            if(injectedElement instanceof JSGraphQLPsiElement) {
+                return injectedElement;
+            } else if(injectedElement != null && injectedElement.getParent() instanceof JSGraphQLPsiElement) {
+                return injectedElement.getParent();
+            }
+        }
+        return null;
+    }
 
     private CharSequence getWhitespacePaddedGraphQL(PsiFile psiFile, CharSequence buffer) {
         // find the template expressions in the file
