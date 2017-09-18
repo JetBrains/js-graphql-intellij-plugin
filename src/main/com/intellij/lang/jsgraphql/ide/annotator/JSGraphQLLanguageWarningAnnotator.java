@@ -12,7 +12,6 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.jsgraphql.JSGraphQLKeywords;
 import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLElementType;
-import com.intellij.lang.jsgraphql.psi.JSGraphQLFile;
 import com.intellij.lang.jsgraphql.psi.JSGraphQLPsiElement;
 import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.psi.PsiElement;
@@ -21,18 +20,12 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Warns about using the Schema IDL in regular GraphQL files, and vice versa.
+ * Warns about using the GraphQL operations in GraphQL IDL files (.graphqls).
  */
 public class JSGraphQLLanguageWarningAnnotator {
 
     public Annotation annotate(PsiFile file, @NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-        if (file instanceof JSGraphQLFile) {
-            if (element.getNode().getElementType() == JSGraphQLTokenTypes.KEYWORD) {
-                if (JSGraphQLKeywords.SCHEMA_DEFINITION_KEYWORDS.contains(element.getNode().getText())) {
-                    return holder.createWarningAnnotation(element, "Schema definitions should be written in GraphQL Schema files (.graphqls)");
-                }
-            }
-        } else if (file instanceof JSGraphQLSchemaFile) {
+        if (file instanceof JSGraphQLSchemaFile) {
             if (element.getNode().getElementType() == JSGraphQLTokenTypes.KEYWORD) {
                 if (JSGraphQLKeywords.GRAPHQL_ROOT_KEYWORDS.contains(element.getNode().getText())) {
                     JSGraphQLPsiElement parent = PsiTreeUtil.getParentOfType(element, JSGraphQLPsiElement.class);
