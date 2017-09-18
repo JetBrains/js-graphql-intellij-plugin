@@ -7,13 +7,13 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.findUsages;
 
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.find.findUsages.FindUsagesHandlerFactory;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiNamedElement;
 
 /**
  * Find usages handler factory for the GraphQL Endpoint language
@@ -25,7 +25,7 @@ public class JSGraphQLEndpointFindUsagesHandlerFactory extends FindUsagesHandler
         if(!element.isValid()) {
             return false;
         }
-        return element instanceof PsiNamedElement;
+        return element instanceof JSGraphQLEndpointPsiElement;
     }
 
     @Nullable
