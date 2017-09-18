@@ -11,10 +11,12 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.JSGraphQLKeywords;
 import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
+import com.intellij.lang.jsgraphql.ide.project.JSGraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -25,7 +27,7 @@ import javax.swing.*;
 import java.util.Objects;
 import java.util.Optional;
 
-public class JSGraphQLNamedTypePsiElement extends JSGraphQLNamedPsiElement {
+public class JSGraphQLNamedTypePsiElement extends JSGraphQLNamedPsiElement implements JSGraphQLErrorContextAware {
 
     public JSGraphQLNamedTypePsiElement(@NotNull ASTNode node) {
         super(node);
@@ -66,6 +68,17 @@ public class JSGraphQLNamedTypePsiElement extends JSGraphQLNamedPsiElement {
                         }
                     }
                 }
+
+                // also search for the fragment definition in other files
+                final JSGraphQLNamedTypePsiElement definitionType = JSGraphQLPsiSearchHelper.getService(getProject()).resolveFragmentReference(this); // fragmentDefinitionName.get();
+                if(definitionType != null) {
+                    if(this.equals(definitionType)) {
+                        // this element is the fragment definition name element
+                        return null;
+                    }
+                    return new PsiReferenceBase.Immediate<>(this, TextRange.from(0, definitionType.getTextLength()), definitionType);
+                }
+
             }
             // null for named type in the schema, e.g. 'Node' which means that ctrl+click is find usages
             return null;
@@ -126,4 +139,20 @@ public class JSGraphQLNamedTypePsiElement extends JSGraphQLNamedPsiElement {
         return super.getElementIcon(flags);
     }
 
+    @Override
+    public boolean isErrorInContext(String errorMessage) {
+        if(errorMessage.startsWith("Unknown fragment")) {
+            // GraphQL doesn't known this fragment, but if it's defined elsewhere, check for a valid reference
+            final PsiReference reference = this.getReference();
+            if(reference != null && reference.resolve() != null) {
+                return false;
+            }
+        } else if(errorMessage.startsWith("Fragment") && errorMessage.endsWith("is never used.")) {
+            // fragments are not considered unused inside an injected element (e.g. Relay graphql, Apollo gql)
+            if(getContainingFile().getContext() instanceof PsiLanguageInjectionHost) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

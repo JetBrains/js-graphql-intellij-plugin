@@ -16,6 +16,7 @@ import com.intellij.lang.jsgraphql.JSGraphQLKeywords;
 import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.injection.JSGraphQLLanguageInjectionUtil;
+import com.intellij.lang.jsgraphql.ide.project.JSGraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.api.Hint;
 import com.intellij.lang.jsgraphql.languageservice.api.HintsResponse;
@@ -143,6 +144,21 @@ public class JSGraphQLCompletionContributor extends CompletionContributor {
                         }
 
                         result.addElement(element);
+                    }
+
+                    if(isFragmentSpreadCompletion && (hints.getHints() == null || hints.getHints().isEmpty())) {
+
+                        // also complete on fragments across files
+                        final List<JSGraphQLFragmentDefinitionPsiElement> knownFragmentDefinitions = JSGraphQLPsiSearchHelper.getService(project).getKnownFragmentDefinitions();
+                        for (JSGraphQLFragmentDefinitionPsiElement fragmentDefinition : knownFragmentDefinitions) {
+                            final String fragmentName = fragmentDefinition.getName();
+                            if(fragmentName != null) {
+                                final JSGraphQLNamedTypePsiElement fragmentOnType = fragmentDefinition.getFragmentOnType();
+                                final String tailText = fragmentOnType != null ? " - fragment " + fragmentName +  " on " + fragmentOnType.getName() : "";
+                                result.addElement(LookupElementBuilder.create(fragmentName).bold().withIcon(JSGraphQLIcons.Schema.Fragment).withTailText(tailText));
+                            }
+                        }
+
                     }
                 }
 
