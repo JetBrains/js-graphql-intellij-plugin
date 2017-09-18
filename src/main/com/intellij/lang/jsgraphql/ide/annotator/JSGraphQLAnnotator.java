@@ -86,6 +86,9 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
         if(annotationResult != null) {
             try {
                 final Editor editor = annotationResult.getEditor();
+                if(editor.isDisposed()) {
+                    return;
+                }
                 final String fileName = file.getVirtualFile().getPath();
                 final List<JSGraphQLErrorResult> errors = Lists.newArrayList();
                 final JSGraphQLLanguageWarningAnnotator internalAnnotator = new JSGraphQLLanguageWarningAnnotator();
