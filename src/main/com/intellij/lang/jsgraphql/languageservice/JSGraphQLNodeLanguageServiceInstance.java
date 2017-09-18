@@ -9,10 +9,7 @@ package com.intellij.lang.jsgraphql.languageservice;
 
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.OSProcessHandler;
-import com.intellij.execution.process.ProcessAdapter;
-import com.intellij.execution.process.ProcessEvent;
-import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.execution.process.*;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter;
@@ -20,6 +17,9 @@ import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager;
 import com.intellij.javascript.nodejs.interpreter.local.NodeJsLocalInterpreter;
 import com.intellij.lang.jsgraphql.JSGraphQLDebugUtil;
 import com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -146,7 +146,11 @@ public class JSGraphQLNodeLanguageServiceInstance implements ProjectManagerListe
 
 
         } catch (IOException | ExecutionException e) {
-            log.error("Error running JS GraphQL Language Service using Node.js", e);
+            if (e instanceof ProcessNotCreatedException) {
+                Notifications.Bus.notify(new Notification("GraphQL", "Unable to start JS GraphQL Language Service", "Node.js was not started: " + e.getMessage(), NotificationType.ERROR));
+            } else {
+                log.error("Error running JS GraphQL Language Service using Node.js", e);
+            }
         }
     }
 
