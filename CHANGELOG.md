@@ -1,3 +1,17 @@
+## 1.6.0 (2017-09-20)
+
+Features:
+
+- Support for Relay Modern fragments (#74)
+- Language Service 1.5.0: Support for loading the schema from .graphql file (Relay Modern projects) 
+
+Fixes:
+
+- Fix 'Find Usages' dialog for non-GraphQL entities (#93)
+- Fix case where the annotator would attempt to access an editor that is already disposed (#75)
+- Show a notification when the Node.js process fails to start (#100)
+- Remove Schema IDL warnings in .graphql files since this is the file extension Facebook uses to print schemas in Relay Modern (#85)
+
 ## 1.5.4 (2017-07-02)
 
 Fixes:
