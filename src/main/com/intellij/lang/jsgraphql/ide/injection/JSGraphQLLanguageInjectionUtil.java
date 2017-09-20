@@ -30,12 +30,14 @@ public class JSGraphQLLanguageInjectionUtil {
     public static final String GRAPHQL_TEMPLATE_TAG = "graphql";
     public static final String GRAPHQL_EXPERIMENTAL_TEMPLATE_TAG = "graphql.experimental";
     public static final String GQL_TEMPLATE_TAG = "gql";
+    public static final String APOLLO_GQL_TEMPLATE_TAG = "Apollo.gql";
 
     public final static Set<String> SUPPORTED_TAG_NAMES = Sets.newHashSet(
             RELAY_QL_TEMPLATE_TAG,
             GRAPHQL_TEMPLATE_TAG,
             GRAPHQL_EXPERIMENTAL_TEMPLATE_TAG,
-            GQL_TEMPLATE_TAG
+            GQL_TEMPLATE_TAG,
+            APOLLO_GQL_TEMPLATE_TAG
     );
 
 
@@ -112,6 +114,10 @@ public class JSGraphQLLanguageInjectionUtil {
         }
         if (GQL_TEMPLATE_TAG.equals(tagText)) {
             return PropertiesComponent.getInstance(host.getProject()).getValue(PROJECT_GQL_ENV, DEFAULT_GQL_ENVIRONMENT);
+        }
+        
+        if (APOLLO_GQL_TEMPLATE_TAG.equals(tagText)) {
+            return APOLLO_ENVIRONMENT;
         }
         // fallback
         return GRAPHQL_ENVIRONMENT;
