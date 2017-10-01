@@ -9,6 +9,7 @@ js-graphql-intellij-plugin.jar
 
 # Package Files #
 *.jar
+!lib/*.jar
 *.war
 *.ear
 
