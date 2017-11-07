@@ -24,6 +24,8 @@ import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
 
+import static com.intellij.lang.jsgraphql.ide.injection.JSGraphQLLanguageInjectionUtil.*;
+
 public class JSGraphQLLineMarkerProvider implements LineMarkerProvider {
 
     @Nullable
@@ -46,20 +48,21 @@ public class JSGraphQLLineMarkerProvider implements LineMarkerProvider {
         final String tooltip;
         final String url;
         boolean configureGQL = false;
-        if(JSGraphQLLanguageInjectionUtil.RELAY_ENVIRONMENT.equals(envRef.get())) {
+        final String environment = envRef.get();
+        if(RELAY_ENVIRONMENT.equals(environment)) {
             icon = JSGraphQLIcons.Logos.Relay;
             tooltip = "Relay GraphQL Template";
             url = "https://facebook.github.io/relay/docs/api-reference-relay-ql.html";
-        } else if(JSGraphQLLanguageInjectionUtil.GRAPHQL_ENVIRONMENT.equals(envRef.get())) {
+        } else if(GRAPHQL_ENVIRONMENT.equals(environment) || GRAPHQL_TEMPLATE_ENVIRONMENT.equals(environment)) {
             icon = JSGraphQLIcons.Logos.GraphQL;
             tooltip = "GraphQL";
             url = "http://graphql.org/";
-        } else if(JSGraphQLLanguageInjectionUtil.APOLLO_ENVIRONMENT.equals(envRef.get())) {
+        } else if(APOLLO_ENVIRONMENT.equals(environment)) {
             icon = JSGraphQLIcons.Logos.Apollo;
             tooltip = "Apollo Client GraphQL Template";
             url = "http://docs.apollostack.com/apollo-client/core.html";
             configureGQL = true;
-        } else if(JSGraphQLLanguageInjectionUtil.LOKKA_ENVIRONMENT.equals(envRef.get())) {
+        } else if(LOKKA_ENVIRONMENT.equals(environment)) {
             icon = JSGraphQLIcons.Logos.Lokka;
             tooltip = "Lokka GraphQL Template";
             url = "https://github.com/kadirahq/lokka";
