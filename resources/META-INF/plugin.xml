@@ -10,7 +10,7 @@
 <idea-plugin version="2">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>1.6.1</version>
+  <version>1.6.2</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -29,6 +29,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>1.6.2: Resolve fragment references under progress in annotator to ensure WebStorm 2017.3 compatibility.</li>
       <li>1.6.1: 2017.3 compatibility.</li>
       <li>1.6.0: Support for Relay Modern fragments. Language Service 1.5.0: Support for loading the schema from .graphql file (Relay Modern projects).</li>
       <li>1.5.4: Only show the error console automatically on the first error in the project. Fixes Int variables being sent as floats. Fixes auto-import is not placed on a new line in JS files with GraphQL templates.</li>

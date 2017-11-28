@@ -1,3 +1,9 @@
+## 1.6.2 (2017-11-28)
+
+Fixes:
+
+- Resolve fragment references under progress in annotator to ensure WebStorm 2017.3 compatibility (#115)
+
 ## 1.6.1 (2017-10-04)
 
 Fixes:
