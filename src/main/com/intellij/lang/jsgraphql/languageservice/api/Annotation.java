@@ -15,6 +15,8 @@ public class Annotation {
     private Pos from;
     private Pos to;
 
+    private boolean errorInContext = true;
+
     public String getMessage() {
         return message;
     }
@@ -33,5 +35,13 @@ public class Annotation {
 
     public Pos getTo() {
         return to;
+    }
+
+    public boolean isErrorInContext() {
+        return errorInContext;
+    }
+
+    public void setErrorInContext(boolean errorInContext) {
+        this.errorInContext = errorInContext;
     }
 }

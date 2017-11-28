@@ -59,6 +59,18 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
                 if (buffer.length() > 0) {
                     final String environment = JSGraphQLLanguageInjectionUtil.getEnvironment(file);
                     final AnnotationsResponse annotations = JSGraphQLNodeLanguageServiceClient.getAnnotations(buffer.toString(), file.getProject(), environment);
+                    if(annotations != null) {
+                        for (Annotation annotation : annotations.getAnnotations()) {
+                            LogicalPosition from = getLogicalPosition(annotation.getFrom());
+                            int fromOffset = editor.logicalPositionToOffset(from);
+                            final PsiElement errorElement = getPsiElementAtErrorOffset(file, fromOffset);
+                            if(errorElement instanceof JSGraphQLErrorContextAware) {
+                                final String message = StringUtils.substringBefore(annotation.getMessage(), "\n");
+                                final JSGraphQLErrorContextAware errorContextAware = (JSGraphQLErrorContextAware) errorElement;
+                                annotation.setErrorInContext(errorContextAware.isErrorInContext(message));
+                            }
+                        }
+                    }
                     return new JSGraphQLAnnotationResult(annotations, editor);
                 }
             } else if(file instanceof JSGraphQLSchemaFile) {
@@ -108,6 +120,9 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
                     return;
                 }
                 for (Annotation annotation : annotationsReponse.getAnnotations()) {
+                    if(!annotation.isErrorInContext()) {
+                        continue;
+                    }
                     LogicalPosition from = getLogicalPosition(annotation.getFrom());
                     LogicalPosition to = getLogicalPosition(annotation.getTo());
                     int fromOffset = editor.logicalPositionToOffset(from);
@@ -115,12 +130,6 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
                     HighlightSeverity severity = "error".equals(annotation.getSeverity()) ? HighlightSeverity.ERROR : HighlightSeverity.WARNING;
                     if (fromOffset < toOffset) {
                         final String message = StringUtils.substringBefore(annotation.getMessage(), "\n");
-                        final PsiElement errorElement = getPsiElementAtErrorOffset(file, fromOffset);
-                        if(errorElement instanceof JSGraphQLErrorContextAware) {
-                            if(!((JSGraphQLErrorContextAware) errorElement).isErrorInContext(message)) {
-                                continue;
-                            }
-                        }
                         holder.createAnnotation(severity, TextRange.create(fromOffset, toOffset), message);
                         errors.add(new JSGraphQLErrorResult(message, fileName, annotation.getSeverity(), from.line+1, from.column+1)); // +1 is for UI lines/columns
                     }
