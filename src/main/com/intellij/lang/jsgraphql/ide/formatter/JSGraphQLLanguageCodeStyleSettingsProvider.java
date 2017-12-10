@@ -10,13 +10,10 @@ package com.intellij.lang.jsgraphql.ide.formatter;
 import com.intellij.application.options.IndentOptionsEditor;
 import com.intellij.lang.Language;
 import com.intellij.lang.jsgraphql.JSGraphQLLanguage;
-import com.intellij.openapi.application.ApplicationBundle;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 public class JSGraphQLLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
 
@@ -41,16 +38,10 @@ public class JSGraphQLLanguageCodeStyleSettingsProvider extends LanguageCodeStyl
     public IndentOptionsEditor getIndentOptionsEditor() {
         return new IndentOptionsEditor() {
             protected void addComponents() {
-                addTabOptions();
-                myTabSizeField = new JTextField();
-                myTabSizeLabel = new JLabel();
-                myIndentField = createIndentTextField();
-                myIndentLabel = new JLabel(ApplicationBundle.message("editbox.indent.indent"));
-                add(myIndentLabel, myIndentField);
-            }
-
-            protected void addTabOptions() {
-                myCbUseTab = new JCheckBox("");
+                super.addComponents();
+                myCbUseTab.setVisible(false);
+                myTabSizeField.setVisible(false);
+                myTabSizeLabel.setVisible(false);
             }
         };
     }
