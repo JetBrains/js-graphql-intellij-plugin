@@ -10,7 +10,7 @@
 <idea-plugin version="2">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>1.6.2</version>
+  <version>1.6.3</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -29,6 +29,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>1.6.3: 'Editor > Code Style' never loads In WebStorm 2017.3.</li>
       <li>1.6.2: Resolve fragment references under progress in annotator to ensure WebStorm 2017.3 compatibility.</li>
       <li>1.6.1: 2017.3 compatibility.</li>
       <li>1.6.0: Support for Relay Modern fragments. Language Service 1.5.0: Support for loading the schema from .graphql file (Relay Modern projects).</li>

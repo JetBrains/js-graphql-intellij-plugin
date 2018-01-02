@@ -1,3 +1,9 @@
+## 1.6.3 (2018-01-02)
+
+Fixes:
+
+- 'Editor > Code Style' never loads In WebStorm 2017.3 (#120)
+
 ## 1.6.2 (2017-11-28)
 
 Fixes:
