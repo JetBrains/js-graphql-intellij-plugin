@@ -27,6 +27,12 @@ public class JSGraphQLEndpointEnumTypeDefinitionImpl extends JSGraphQLEndpointPs
   }
 
   @Override
+  @NotNull
+  public List<JSGraphQLEndpointAnnotation> getAnnotationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, JSGraphQLEndpointAnnotation.class);
+  }
+
+  @Override
   @Nullable
   public JSGraphQLEndpointEnumValueDefinitionSet getEnumValueDefinitionSet() {
     return findChildByClass(JSGraphQLEndpointEnumValueDefinitionSet.class);

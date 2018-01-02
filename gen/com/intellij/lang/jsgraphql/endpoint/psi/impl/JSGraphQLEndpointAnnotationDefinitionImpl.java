@@ -11,14 +11,14 @@ import static com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes.*
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiElement;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 
-public class JSGraphQLEndpointObjectTypeDefinitionImpl extends JSGraphQLEndpointPsiElement implements JSGraphQLEndpointObjectTypeDefinition {
+public class JSGraphQLEndpointAnnotationDefinitionImpl extends JSGraphQLEndpointPsiElement implements JSGraphQLEndpointAnnotationDefinition {
 
-  public JSGraphQLEndpointObjectTypeDefinitionImpl(ASTNode node) {
+  public JSGraphQLEndpointAnnotationDefinitionImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull JSGraphQLEndpointVisitor visitor) {
-    visitor.visitObjectTypeDefinition(this);
+    visitor.visitAnnotationDefinition(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -27,21 +27,9 @@ public class JSGraphQLEndpointObjectTypeDefinitionImpl extends JSGraphQLEndpoint
   }
 
   @Override
-  @NotNull
-  public List<JSGraphQLEndpointAnnotation> getAnnotationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, JSGraphQLEndpointAnnotation.class);
-  }
-
-  @Override
   @Nullable
-  public JSGraphQLEndpointFieldDefinitionSet getFieldDefinitionSet() {
-    return findChildByClass(JSGraphQLEndpointFieldDefinitionSet.class);
-  }
-
-  @Override
-  @Nullable
-  public JSGraphQLEndpointImplementsInterfaces getImplementsInterfaces() {
-    return findChildByClass(JSGraphQLEndpointImplementsInterfaces.class);
+  public JSGraphQLEndpointArgumentsDefinition getArgumentsDefinition() {
+    return findChildByClass(JSGraphQLEndpointArgumentsDefinition.class);
   }
 
   @Override

@@ -7,6 +7,9 @@ import com.intellij.psi.PsiElement;
 
 public interface JSGraphQLEndpointObjectTypeDefinition extends JSGraphQLEndpointNamedTypeDefinition {
 
+  @NotNull
+  List<JSGraphQLEndpointAnnotation> getAnnotationList();
+
   @Nullable
   JSGraphQLEndpointFieldDefinitionSet getFieldDefinitionSet();
 

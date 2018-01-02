@@ -11,14 +11,14 @@ import static com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes.*
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiElement;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 
-public class JSGraphQLEndpointAnnotationsImpl extends JSGraphQLEndpointPsiElement implements JSGraphQLEndpointAnnotations {
+public class JSGraphQLEndpointAnnotationArgumentObjectFieldImpl extends JSGraphQLEndpointPsiElement implements JSGraphQLEndpointAnnotationArgumentObjectField {
 
-  public JSGraphQLEndpointAnnotationsImpl(ASTNode node) {
+  public JSGraphQLEndpointAnnotationArgumentObjectFieldImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull JSGraphQLEndpointVisitor visitor) {
-    visitor.visitAnnotations(this);
+    visitor.visitAnnotationArgumentObjectField(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -28,8 +28,14 @@ public class JSGraphQLEndpointAnnotationsImpl extends JSGraphQLEndpointPsiElemen
 
   @Override
   @NotNull
-  public List<JSGraphQLEndpointAnnotation> getAnnotationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, JSGraphQLEndpointAnnotation.class);
+  public JSGraphQLEndpointAnnotationArgumentValue getAnnotationArgumentValue() {
+    return findNotNullChildByClass(JSGraphQLEndpointAnnotationArgumentValue.class);
+  }
+
+  @Override
+  @NotNull
+  public PsiElement getNameIdentifier() {
+    return findNotNullChildByType(IDENTIFIER);
   }
 
 }

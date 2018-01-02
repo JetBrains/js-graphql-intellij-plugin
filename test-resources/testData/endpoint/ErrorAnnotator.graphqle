@@ -34,7 +34,7 @@ type Test implements Node, <error descr="'NotInterface' must be an interface to 
     inputAsReturnType: <error descr="Field return type 'MyInput' cannot be an input type">MyInput</error>
 
     @DataFetcher(batched = <error descr="true or false expected">"test"</error>, value = <error descr="String value expected">true</error>, <error descr="Unknown argument 'another'">another</error> = 10)
-    <error descr="Unknown annotation '@Unknown'. Annotations are specified in the 'schema.endpoint.annotations' array in graphql.config.json.">@Unknown</error>("")
+    <error descr="Unknown annotation '@Unknown'.">@Unknown</error>("")
     wrongAnnotations: String
 
     wrongArgumentType(bar: [<error descr="Argument type 'Test' must be one of the following: 'input', 'enum', 'scalar'">Test</error>]!, bas: String): Test

@@ -27,6 +27,12 @@ public class JSGraphQLEndpointInputObjectTypeDefinitionImpl extends JSGraphQLEnd
   }
 
   @Override
+  @NotNull
+  public List<JSGraphQLEndpointAnnotation> getAnnotationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, JSGraphQLEndpointAnnotation.class);
+  }
+
+  @Override
   @Nullable
   public JSGraphQLEndpointFieldDefinitionSet getFieldDefinitionSet() {
     return findChildByClass(JSGraphQLEndpointFieldDefinitionSet.class);

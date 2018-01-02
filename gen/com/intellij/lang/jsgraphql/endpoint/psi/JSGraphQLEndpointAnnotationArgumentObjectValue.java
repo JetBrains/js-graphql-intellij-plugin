@@ -5,12 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface JSGraphQLEndpointScalarTypeDefinition extends JSGraphQLEndpointNamedTypeDefinition {
+public interface JSGraphQLEndpointAnnotationArgumentObjectValue extends JSGraphQLEndpointAnnotationArgumentValue {
 
   @NotNull
-  List<JSGraphQLEndpointAnnotation> getAnnotationList();
-
-  @Nullable
-  JSGraphQLEndpointNamedTypeDef getNamedTypeDef();
+  List<JSGraphQLEndpointAnnotationArgumentObjectField> getFields();
 
 }

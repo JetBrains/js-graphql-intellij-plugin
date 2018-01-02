@@ -86,6 +86,7 @@ LINE_COMMENT=#.*
   "query"             { return QUERY; }
   "mutation"          { return MUTATION; }
   "subscription"      { return SUBSCRIPTION; }
+  "annotation"        { return ANNOTATION_DEF; }
 
   \"                  { pushState(STRING); return OPEN_QUOTE; }
 

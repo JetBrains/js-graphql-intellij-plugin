@@ -59,3 +59,23 @@ type Another {
     @DataFetcher(3.14159)
     foo: String
 }
+
+@Cache(
+    family = {
+        systemName: "test", list = [
+            { foo = true}
+        ]
+    },
+    another = [
+        true,
+        false,
+        {
+            test = true,
+            another = []
+        }
+    ]
+)
+type WithTypeAnnotation {
+    foo: String
+}
+

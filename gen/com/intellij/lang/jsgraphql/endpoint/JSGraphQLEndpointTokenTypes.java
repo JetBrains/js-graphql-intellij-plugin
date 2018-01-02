@@ -9,9 +9,12 @@ import com.intellij.lang.jsgraphql.endpoint.psi.impl.*;
 public interface JSGraphQLEndpointTokenTypes {
 
   IElementType ANNOTATION = new JSGraphQLEndpointTokenType("ANNOTATION");
-  IElementType ANNOTATIONS = new JSGraphQLEndpointTokenType("ANNOTATIONS");
   IElementType ANNOTATION_ARGUMENTS = new JSGraphQLEndpointTokenType("ANNOTATION_ARGUMENTS");
+  IElementType ANNOTATION_ARGUMENT_LIST_VALUE = new JSGraphQLEndpointTokenType("ANNOTATION_ARGUMENT_LIST_VALUE");
+  IElementType ANNOTATION_ARGUMENT_OBJECT_FIELD = new JSGraphQLEndpointTokenType("ANNOTATION_ARGUMENT_OBJECT_FIELD");
+  IElementType ANNOTATION_ARGUMENT_OBJECT_VALUE = new JSGraphQLEndpointTokenType("ANNOTATION_ARGUMENT_OBJECT_VALUE");
   IElementType ANNOTATION_ARGUMENT_VALUE = new JSGraphQLEndpointTokenType("ANNOTATION_ARGUMENT_VALUE");
+  IElementType ANNOTATION_DEFINITION = new JSGraphQLEndpointTokenType("ANNOTATION_DEFINITION");
   IElementType ARGUMENTS_DEFINITION = new JSGraphQLEndpointTokenType("ARGUMENTS_DEFINITION");
   IElementType COMPOSITE_TYPE = new JSGraphQLEndpointTokenType("COMPOSITE_TYPE");
   IElementType ENUM_TYPE_DEFINITION = new JSGraphQLEndpointTokenType("ENUM_TYPE_DEFINITION");
@@ -44,6 +47,7 @@ public interface JSGraphQLEndpointTokenTypes {
   IElementType UNION_MEMBER_SET = new JSGraphQLEndpointTokenType("UNION_MEMBER_SET");
   IElementType UNION_TYPE_DEFINITION = new JSGraphQLEndpointTokenType("UNION_TYPE_DEFINITION");
 
+  IElementType ANNOTATION_DEF = new JSGraphQLEndpointTokenType("annotation");
   IElementType AT_ANNOTATION = new JSGraphQLEndpointTokenType("AT_ANNOTATION");
   IElementType CLOSING_QUOTE = new JSGraphQLEndpointTokenType("CLOSING_QUOTE");
   IElementType COLON = new JSGraphQLEndpointTokenType(":");
@@ -83,14 +87,23 @@ public interface JSGraphQLEndpointTokenTypes {
        if (type == ANNOTATION) {
         return new JSGraphQLEndpointAnnotationImpl(node);
       }
-      else if (type == ANNOTATIONS) {
-        return new JSGraphQLEndpointAnnotationsImpl(node);
-      }
       else if (type == ANNOTATION_ARGUMENTS) {
         return new JSGraphQLEndpointAnnotationArgumentsImpl(node);
       }
+      else if (type == ANNOTATION_ARGUMENT_LIST_VALUE) {
+        return new JSGraphQLEndpointAnnotationArgumentListValueImpl(node);
+      }
+      else if (type == ANNOTATION_ARGUMENT_OBJECT_FIELD) {
+        return new JSGraphQLEndpointAnnotationArgumentObjectFieldImpl(node);
+      }
+      else if (type == ANNOTATION_ARGUMENT_OBJECT_VALUE) {
+        return new JSGraphQLEndpointAnnotationArgumentObjectValueImpl(node);
+      }
       else if (type == ANNOTATION_ARGUMENT_VALUE) {
         return new JSGraphQLEndpointAnnotationArgumentValueImpl(node);
+      }
+      else if (type == ANNOTATION_DEFINITION) {
+        return new JSGraphQLEndpointAnnotationDefinitionImpl(node);
       }
       else if (type == ARGUMENTS_DEFINITION) {
         return new JSGraphQLEndpointArgumentsDefinitionImpl(node);

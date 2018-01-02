@@ -10,7 +10,7 @@
 <idea-plugin version="2">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>1.6.2</version>
+  <version>1.6.2-test</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[

@@ -40,7 +40,8 @@ public class JSGraphQLEndpointFoldingBuilder extends FoldingBuilderEx implements
 			JSGraphQLEndpointTokenTypes.FIELD_DEFINITION_SET,
 			JSGraphQLEndpointTokenTypes.OPERATION_TYPE_DEFINITION_SET,
 			JSGraphQLEndpointTokenTypes.ENUM_VALUE_DEFINITION_SET,
-			JSGraphQLEndpointTokenTypes.ARGUMENTS_DEFINITION
+			JSGraphQLEndpointTokenTypes.ARGUMENTS_DEFINITION,
+			JSGraphQLEndpointTokenTypes.ANNOTATION_ARGUMENTS
 	);
 
 	@Nullable
@@ -49,7 +50,7 @@ public class JSGraphQLEndpointFoldingBuilder extends FoldingBuilderEx implements
 		if(node.getElementType() == JSGraphQLEndpointTokenTypes.IMPORT_DECLARATION) {
 			return "...";
 		}
-		if(node.getElementType() == JSGraphQLEndpointTokenTypes.ARGUMENTS_DEFINITION) {
+		if(node.getElementType() == JSGraphQLEndpointTokenTypes.ARGUMENTS_DEFINITION || node.getElementType() == JSGraphQLEndpointTokenTypes.ANNOTATION_ARGUMENTS) {
 			return "(...)";
 		}
 		return "{...}";

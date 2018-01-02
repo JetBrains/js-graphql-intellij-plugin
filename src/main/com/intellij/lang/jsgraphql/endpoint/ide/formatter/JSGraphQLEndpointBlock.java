@@ -37,14 +37,19 @@ public class JSGraphQLEndpointBlock extends AbstractBlock {
 			JSGraphQLEndpointTokenTypes.FIELD_DEFINITION_SET,
 			JSGraphQLEndpointTokenTypes.OPERATION_TYPE_DEFINITION_SET,
 			JSGraphQLEndpointTokenTypes.ENUM_VALUE_DEFINITION_SET,
-			JSGraphQLEndpointTokenTypes.ARGUMENTS_DEFINITION
+			JSGraphQLEndpointTokenTypes.ARGUMENTS_DEFINITION,
+			JSGraphQLEndpointTokenTypes.ANNOTATION_ARGUMENTS,
+			JSGraphQLEndpointTokenTypes.ANNOTATION_ARGUMENT_OBJECT_VALUE,
+			JSGraphQLEndpointTokenTypes.ANNOTATION_ARGUMENT_LIST_VALUE
 	);
 
 	static Set<IElementType> INDENT_EXCLUSIONS = Sets.newHashSet(
 			JSGraphQLEndpointTokenTypes.RBRACE,
 			JSGraphQLEndpointTokenTypes.LBRACE,
 			JSGraphQLEndpointTokenTypes.RPAREN,
-			JSGraphQLEndpointTokenTypes.LPAREN
+			JSGraphQLEndpointTokenTypes.LPAREN,
+			JSGraphQLEndpointTokenTypes.RBRACKET,
+			JSGraphQLEndpointTokenTypes.LBRACKET
 	);
 
 	@Nullable

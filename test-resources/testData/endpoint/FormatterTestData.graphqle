@@ -28,6 +28,25 @@ arg3: [Boolean]
 
 }
 
+@Cache(
+family = {
+systemName: "test", list = [
+{ foo = true}
+]
+},
+another = [
+true,
+false,
+{
+test = true,
+another = []
+}
+]
+)
+type WithTypeAnnotation {
+foo: String
+}
+
 input Foo {
 bar: Base
 }

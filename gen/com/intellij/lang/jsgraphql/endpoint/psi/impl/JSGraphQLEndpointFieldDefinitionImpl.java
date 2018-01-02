@@ -27,9 +27,9 @@ public class JSGraphQLEndpointFieldDefinitionImpl extends JSGraphQLEndpointPsiEl
   }
 
   @Override
-  @Nullable
-  public JSGraphQLEndpointAnnotations getAnnotations() {
-    return findChildByClass(JSGraphQLEndpointAnnotations.class);
+  @NotNull
+  public List<JSGraphQLEndpointAnnotation> getAnnotationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, JSGraphQLEndpointAnnotation.class);
   }
 
   @Override

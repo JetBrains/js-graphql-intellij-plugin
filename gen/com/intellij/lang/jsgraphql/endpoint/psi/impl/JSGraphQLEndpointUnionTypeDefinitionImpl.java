@@ -27,6 +27,12 @@ public class JSGraphQLEndpointUnionTypeDefinitionImpl extends JSGraphQLEndpointP
   }
 
   @Override
+  @NotNull
+  public List<JSGraphQLEndpointAnnotation> getAnnotationList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, JSGraphQLEndpointAnnotation.class);
+  }
+
+  @Override
   @Nullable
   public JSGraphQLEndpointNamedTypeDef getNamedTypeDef() {
     return findChildByClass(JSGraphQLEndpointNamedTypeDef.class);
