@@ -1,3 +1,14 @@
+## 1.7.0 (2018-03-04)
+
+Features:
+
+- Language Service 1.5.1: Support for strongly typed variable placeholders in GraphQL tagged templates (#130)
+- Support for declaring annotations in Endpoint language (#15)
+
+Fixes:
+
+- Editor tab loaded on background thread during startup causes dispatch thread assertion error (#124)
+
 ## 1.6.3 (2018-01-02)
 
 Fixes:
