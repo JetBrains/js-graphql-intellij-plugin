@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.injection;
 
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.lang.javascript.psi.JSExpression;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
@@ -42,6 +43,7 @@ public class JSGraphQLLanguageInjectionUtil {
 
 
     public static final String GRAPHQL_ENVIRONMENT = "graphql";
+    public static final String GRAPHQL_TEMPLATE_ENVIRONMENT = "graphql-template";
     public static final String RELAY_ENVIRONMENT = "relay";
     public static final String APOLLO_ENVIRONMENT = "apollo";
     public static final String LOKKA_ENVIRONMENT = "lokka";
@@ -100,6 +102,14 @@ public class JSGraphQLLanguageInjectionUtil {
                     }
                     return true;
                 }
+                final String builderTailName = tagExpression.getReferenceName();
+                if(builderTailName != null && SUPPORTED_TAG_NAMES.contains(builderTailName)) {
+                    // a builder pattern that ends in a tagged template, e.g. someQueryAPI.graphql``
+                    if(envRef != null) {
+                        envRef.set(getEnvironmentFromTemplateTag(builderTailName, host));
+                    }
+                    return true;
+                }
             }
         }
         return false;
@@ -110,6 +120,13 @@ public class JSGraphQLLanguageInjectionUtil {
             return RELAY_ENVIRONMENT;
         }
         if (GRAPHQL_TEMPLATE_TAG.equals(tagText) || GRAPHQL_EXPERIMENTAL_TEMPLATE_TAG.equals(tagText)) {
+            if(host instanceof JSStringTemplateExpression) {
+                final JSExpression[] arguments = ((JSStringTemplateExpression) host).getArguments();
+                if(arguments.length > 0) {
+                    // one or more placeholders inside the tagged template text, so consider it templated graphql
+                    return GRAPHQL_TEMPLATE_ENVIRONMENT;
+                }
+            }
             return GRAPHQL_ENVIRONMENT;
         }
         if (GQL_TEMPLATE_TAG.equals(tagText)) {
