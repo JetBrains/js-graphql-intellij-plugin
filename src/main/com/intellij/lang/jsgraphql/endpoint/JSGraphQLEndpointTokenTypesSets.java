@@ -27,7 +27,8 @@ public interface JSGraphQLEndpointTokenTypesSets {
 			MUTATION,
 			SUBSCRIPTION,
 			TRUE,
-			FALSE
+			FALSE,
+			ANNOTATION_DEF
 	);
 
 	TokenSet PUNCTUATION = TokenSet.create(

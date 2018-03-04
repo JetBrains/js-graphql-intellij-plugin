@@ -7,6 +7,9 @@ import com.intellij.psi.PsiElement;
 
 public interface JSGraphQLEndpointEnumTypeDefinition extends JSGraphQLEndpointNamedTypeDefinition {
 
+  @NotNull
+  List<JSGraphQLEndpointAnnotation> getAnnotationList();
+
   @Nullable
   JSGraphQLEndpointEnumValueDefinitionSet getEnumValueDefinitionSet();
 

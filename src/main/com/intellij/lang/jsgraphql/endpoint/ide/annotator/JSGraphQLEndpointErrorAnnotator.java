@@ -15,6 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,24 +25,6 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.JSGraphQLScalars;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointAnnotation;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointArgumentsDefinition;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFieldDefinition;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFieldDefinitionSet;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointImplementsInterfaces;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointImportDeclaration;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointImportFileReference;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputObjectTypeDefinition;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInterfaceTypeDefinition;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedAnnotationArgument;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedType;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDef;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypePsiElement;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointObjectTypeDefinition;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointProperty;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiUtil;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointUnionTypeDefinition;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLSchemaEndpointAnnotation;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
@@ -209,7 +192,7 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 			List<JSGraphQLSchemaEndpointAnnotation> annotations = holder.getCurrentAnnotationSession().getUserData(ANNOTATIONS);
 			if (annotations == null) {
 				final JSGraphQLConfigurationProvider configurationProvider = JSGraphQLConfigurationProvider.getService(element.getProject());
-				annotations = configurationProvider.getEndpointAnnotations();
+				annotations = configurationProvider.getEndpointAnnotations(element.getContainingFile());
 				holder.getCurrentAnnotationSession().putUserData(ANNOTATIONS, annotations);
 			}
 			boolean knownAnnotation = false;
@@ -241,7 +224,9 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 												}
 												break;
 											}
-											case "Number": {
+											case "Number":
+											case "Float":
+											case "Int": {
 												final PsiElement firstChild = namedArgument.getAnnotationArgumentValue().getFirstChild();
 												if (firstChild != null) {
 													if (!JSGraphQLEndpointTokenTypes.NUMBER.equals(firstChild.getNode().getElementType())) {
@@ -260,7 +245,7 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 				}
 			}
 			if (!knownAnnotation) {
-				holder.createErrorAnnotation(atAnnotation, "Unknown annotation '" + atAnnotation.getText() + "'. Annotations are specified in the 'schema.endpoint.annotations' array in graphql.config.json.");
+				holder.createErrorAnnotation(atAnnotation, "Unknown annotation '" + atAnnotation.getText() + "'.");
 			}
 			return;
 

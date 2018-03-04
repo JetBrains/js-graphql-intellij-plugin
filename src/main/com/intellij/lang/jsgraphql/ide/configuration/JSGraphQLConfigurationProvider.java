@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.ide.endpoints.JSGraphQLEndpoint;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -43,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.List;
 
 public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
@@ -178,7 +180,7 @@ public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
         return Lists.newArrayList(); // no config yet
     }
 
-    public List<JSGraphQLSchemaEndpointAnnotation> getEndpointAnnotations() {
+    public List<JSGraphQLSchemaEndpointAnnotation> getEndpointAnnotations(PsiFile psiFile) {
         final List<JSGraphQLSchemaEndpointAnnotation> annotations = Lists.newArrayList();
         final VirtualFile configFile = getGraphQLConfigFile();
         if(configFile != null) {
@@ -191,6 +193,30 @@ public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
                 }
             }
         }
+
+        // also include in-language annotations (could eventually remove the need for the config file annotations)
+        final Collection<JSGraphQLEndpointTypeResult<JSGraphQLEndpointAnnotationDefinition>> languageAnnotations = JSGraphQLEndpointPsiUtil.getKnownDefinitionNames(
+                psiFile,
+                JSGraphQLEndpointAnnotationDefinition.class,
+                false
+        );
+        for (JSGraphQLEndpointTypeResult<JSGraphQLEndpointAnnotationDefinition> languageAnnotation : languageAnnotations) {
+            final JSGraphQLSchemaEndpointAnnotation annotationConfig = new JSGraphQLSchemaEndpointAnnotation();
+            annotationConfig.name = languageAnnotation.name;
+            final JSGraphQLEndpointArgumentsDefinition argumentsDefinition = languageAnnotation.element.getArgumentsDefinition();
+            if(argumentsDefinition != null && argumentsDefinition.getInputValueDefinitions() != null) {
+                for (JSGraphQLEndpointInputValueDefinition argument : argumentsDefinition.getInputValueDefinitions().getInputValueDefinitionList()) {
+                    final JSGraphQLSchemaEndpointAnnotationArgument argumentConfig = new JSGraphQLSchemaEndpointAnnotationArgument();
+                    argumentConfig.name = argument.getInputValueDefinitionIdentifier().getText();
+                    if(argument.getCompositeType() != null) {
+                        argumentConfig.type = argument.getCompositeType().getText();
+                    }
+                    annotationConfig.arguments.add(argumentConfig);
+                }
+            }
+            annotations.add(annotationConfig);
+        }
+
         return annotations;
     }
 

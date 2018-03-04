@@ -30,6 +30,7 @@
         ENUM='enum'
         UNION='union'
         SCALAR='scalar'
+        ANNOTATION_DEF='annotation'
         SCHEMA='schema'
         QUERY='query'
         MUTATION='mutation'
@@ -74,17 +75,21 @@ private Definition ::=
     ImportDeclaration
     |
     SchemaDefinition
+    |
+    AnnotationDefinition
     {recoverWhile=RecoverDefinition}
 
-private RecoverDefinition ::= !(TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA)
+private DefinitionKeyword ::= TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | ANNOTATION_DEF | IMPORT | SCHEMA
 
-ObjectTypeDefinition ::= TYPE NamedTypeDef ImplementsInterfaces? FieldDefinitionSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
+private RecoverDefinition ::= !(DefinitionKeyword | AT_ANNOTATION)
+
+ObjectTypeDefinition ::= Annotations? TYPE NamedTypeDef ImplementsInterfaces? FieldDefinitionSet {pin=2 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
 ImplementsInterfaces ::= IMPLEMENTS NamedType CommaNamedType*  {pin=1}
 
 private CommaNamedType ::= COMMA NamedType {pin=1 recoverWhile=RecoverCommaNamedType}
 
-private RecoverCommaNamedType ::= !(LBRACE | COMMA | TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA | identifier)
+private RecoverCommaNamedType ::= !(LBRACE | COMMA | DefinitionKeyword | identifier)
 
 FieldDefinitionSet ::= LBRACE FieldDefinition* RBRACE {pin=1}
 
@@ -94,7 +99,7 @@ private RecoverFieldDefinition ::= !(RBRACE | AT_ANNOTATION | identifier)
 
 ArgumentsDefinition ::= LPAREN InputValueDefinitions RPAREN {pin=1 recoverWhile=RecoverArgumentsDefinition}
 
-private RecoverArgumentsDefinition ::= !(COLON | RBRACE | AT_ANNOTATION | identifier)
+private RecoverArgumentsDefinition ::= !(COLON | RBRACE | AT_ANNOTATION | DefinitionKeyword | identifier)
 
 InputValueDefinitions ::= InputValueDefinition (COMMA InputValueDefinition)*
 
@@ -102,13 +107,23 @@ InputValueDefinition ::= InputValueDefinitionIdentifier COLON CompositeType {pin
 
 InputValueDefinitionIdentifier ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefinitionIdentifierPsiElement" implements="com.intellij.psi.PsiNameIdentifierOwner"}
 
-Annotations ::= Annotation+
+private Annotations ::= Annotation*
 
 Annotation ::= AT_ANNOTATION AnnotationArguments? {pin=1 recoverWhile=RecoverAnnotation}
 
-private RecoverAnnotation ::= !(RBRACE | AT_ANNOTATION | identifier)
+private RecoverAnnotation ::= !(RBRACE | AT_ANNOTATION | DefinitionKeyword | identifier )
 
-AnnotationArgumentValue ::= TRUE | FALSE | number | QuotedString
+AnnotationArgumentValue ::= TRUE | FALSE | number | QuotedString | AnnotationArgumentListValue | AnnotationArgumentObjectValue
+
+AnnotationArgumentListValue ::= LBRACKET (AnnotationArgumentValue (COMMA AnnotationArgumentValue)*)? RBRACKET {
+  pin=1 extends=AnnotationArgumentValue methods=[values="AnnotationArgumentValue"]
+}
+
+AnnotationArgumentObjectField ::= identifier (EQUALS | COLON) AnnotationArgumentValue {methods=[nameIdentifier="identifier"]}
+
+AnnotationArgumentObjectValue ::= LBRACE (AnnotationArgumentObjectField (COMMA AnnotationArgumentObjectField)*)? RBRACE {
+   pin=1 extends=AnnotationArgumentValue methods=[fields="AnnotationArgumentObjectField"]
+}
 
 AnnotationArguments ::= LPAREN (AnnotationArgumentValue | NamedAnnotationArguments) RPAREN {pin=1}
 
@@ -116,7 +131,7 @@ NamedAnnotationArguments ::= NamedAnnotationArgument CommaNamedAnnotationArgumen
 
 private CommaNamedAnnotationArgument ::= COMMA NamedAnnotationArgument {pin=1 recoverWhile=RecoverNamedAnnotationArgument}
 
-NamedAnnotationArgument ::= identifier EQUALS AnnotationArgumentValue {pin=1 recoverWhile=RecoverNamedAnnotationArgument}
+NamedAnnotationArgument ::= identifier (EQUALS | COLON) AnnotationArgumentValue {pin=1 recoverWhile=RecoverNamedAnnotationArgument}
 
 private RecoverNamedAnnotationArgument ::= !(COMMA | RPAREN)
 
@@ -130,21 +145,21 @@ ListType ::= LBRACKET NamedType RBRACKET REQUIRED? {pin=1}
 
 Property ::= identifier {mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPropertyPsiElement" implements="com.intellij.psi.PsiNameIdentifierOwner"}
 
-InterfaceTypeDefinition ::= INTERFACE NamedTypeDef FieldDefinitionSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
+InterfaceTypeDefinition ::= Annotations? INTERFACE NamedTypeDef FieldDefinitionSet {pin=2 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
-InputObjectTypeDefinition ::= INPUT NamedTypeDef FieldDefinitionSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
+InputObjectTypeDefinition ::= Annotations? INPUT NamedTypeDef FieldDefinitionSet {pin=2 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
-EnumTypeDefinition ::= ENUM NamedTypeDef EnumValueDefinitionSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
+EnumTypeDefinition ::= Annotations? ENUM NamedTypeDef EnumValueDefinitionSet {pin=2 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
 EnumValueDefinitionSet ::= LBRACE EnumValueDefinition CommaEnumValueDefinition* RBRACE {pin=1}
 
 private CommaEnumValueDefinition ::= COMMA EnumValueDefinition {pin=1 recoverWhile=RecoverCommaEnumValueDefinition}
 
-private RecoverCommaEnumValueDefinition ::= !(RBRACE | COMMA | TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | IMPORT | SCHEMA | identifier)
+private RecoverCommaEnumValueDefinition ::= !(RBRACE | COMMA | DefinitionKeyword | identifier)
 
 EnumValueDefinition ::= identifier
 
-UnionTypeDefinition ::= UNION NamedTypeDef EQUALS UnionMemberSet {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
+UnionTypeDefinition ::= Annotations? UNION NamedTypeDef EQUALS UnionMemberSet {pin=2 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
 UnionMemberSet ::= UnionMember PipeUnionMember*
 
@@ -152,7 +167,9 @@ private PipeUnionMember ::= PIPE UnionMember {pin=1}
 
 UnionMember ::= identifier
 
-ScalarTypeDefinition ::= SCALAR NamedTypeDef {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
+ScalarTypeDefinition ::= Annotations? SCALAR NamedTypeDef {pin=2 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
+
+AnnotationDefinition ::= ANNOTATION_DEF NamedTypeDef ArgumentsDefinition? {pin=1 implements="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition"}
 
 ImportDeclaration ::= IMPORT ImportFileReference {pin=1}
 

@@ -91,7 +91,7 @@ public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTes
 
 	@Test
 	public void testCompletionOperation() {
-		doTestCompletion("CompletionOperation.graphqle", Lists.newArrayList("enum", "import", "input", "interface", "scalar", "schema", "type", "union"));
+		doTestCompletion("CompletionOperation.graphqle", Lists.newArrayList("@DataFetcher", "annotation", "enum", "import", "input", "interface", "scalar", "schema", "type", "union"));
 	}
 
 	@Test

@@ -119,7 +119,7 @@ public class JSGraphQLEndpointPsiUtil {
 	/**
 	 * Maps getKnownDefinitions to their corresponding names
 	 */
-	public static <T extends JSGraphQLEndpointNamedTypeDefinition> Collection<JSGraphQLEndpointTypeResult> getKnownDefinitionNames(PsiFile file, Class<T> psiDefinitionClass, boolean autoImport) {
+	public static <T extends JSGraphQLEndpointNamedTypeDefinition> Collection<JSGraphQLEndpointTypeResult<T>> getKnownDefinitionNames(PsiFile file, Class<T> psiDefinitionClass, boolean autoImport) {
         final Ref<Collection<PsiFile>> importedFiles = new Ref<>();
         return getKnownDefinitions(file, psiDefinitionClass, autoImport, importedFiles).stream()
 				.filter(d -> d.getNamedTypeDef() != null)
@@ -128,7 +128,7 @@ public class JSGraphQLEndpointPsiUtil {
                     if(importedFiles.get().contains(fileToImport)) {
                         fileToImport = null;
                     }
-                    return new JSGraphQLEndpointTypeResult(d.getNamedTypeDef().getText(), fileToImport);
+                    return new JSGraphQLEndpointTypeResult<>(d.getNamedTypeDef().getText(), d, fileToImport);
                 })
 				.collect(Collectors.toList());
 	}

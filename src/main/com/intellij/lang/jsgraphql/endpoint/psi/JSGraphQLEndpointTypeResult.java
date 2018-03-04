@@ -10,15 +10,18 @@ package com.intellij.lang.jsgraphql.endpoint.psi;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.Nullable;
 
-public class JSGraphQLEndpointTypeResult {
+public class JSGraphQLEndpointTypeResult<T extends JSGraphQLEndpointNamedTypeDefinition> {
 
     public final String name;
+
+    public final T element;
 
     @Nullable
     public final PsiFile fileToImport;
 
-    public JSGraphQLEndpointTypeResult(String name, @Nullable PsiFile fileToImport) {
+    public JSGraphQLEndpointTypeResult(String name, T element, @Nullable PsiFile fileToImport) {
         this.name = name;
+        this.element = element;
         this.fileToImport = fileToImport;
     }
 }

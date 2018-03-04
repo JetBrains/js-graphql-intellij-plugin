@@ -8,17 +8,16 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes.*;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPsiElement;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 
-public class JSGraphQLEndpointScalarTypeDefinitionImpl extends JSGraphQLEndpointPsiElement implements JSGraphQLEndpointScalarTypeDefinition {
+public class JSGraphQLEndpointAnnotationArgumentObjectValueImpl extends JSGraphQLEndpointAnnotationArgumentValueImpl implements JSGraphQLEndpointAnnotationArgumentObjectValue {
 
-  public JSGraphQLEndpointScalarTypeDefinitionImpl(ASTNode node) {
+  public JSGraphQLEndpointAnnotationArgumentObjectValueImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull JSGraphQLEndpointVisitor visitor) {
-    visitor.visitScalarTypeDefinition(this);
+    visitor.visitAnnotationArgumentObjectValue(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
@@ -28,14 +27,8 @@ public class JSGraphQLEndpointScalarTypeDefinitionImpl extends JSGraphQLEndpoint
 
   @Override
   @NotNull
-  public List<JSGraphQLEndpointAnnotation> getAnnotationList() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, JSGraphQLEndpointAnnotation.class);
-  }
-
-  @Override
-  @Nullable
-  public JSGraphQLEndpointNamedTypeDef getNamedTypeDef() {
-    return findChildByClass(JSGraphQLEndpointNamedTypeDef.class);
+  public List<JSGraphQLEndpointAnnotationArgumentObjectField> getFields() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, JSGraphQLEndpointAnnotationArgumentObjectField.class);
   }
 
 }

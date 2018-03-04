@@ -13,6 +13,18 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
+  public void visitAnnotationArgumentListValue(@NotNull JSGraphQLEndpointAnnotationArgumentListValue o) {
+    visitAnnotationArgumentValue(o);
+  }
+
+  public void visitAnnotationArgumentObjectField(@NotNull JSGraphQLEndpointAnnotationArgumentObjectField o) {
+    visitPsiElement(o);
+  }
+
+  public void visitAnnotationArgumentObjectValue(@NotNull JSGraphQLEndpointAnnotationArgumentObjectValue o) {
+    visitAnnotationArgumentValue(o);
+  }
+
   public void visitAnnotationArgumentValue(@NotNull JSGraphQLEndpointAnnotationArgumentValue o) {
     visitPsiElement(o);
   }
@@ -21,8 +33,8 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
     visitPsiElement(o);
   }
 
-  public void visitAnnotations(@NotNull JSGraphQLEndpointAnnotations o) {
-    visitPsiElement(o);
+  public void visitAnnotationDefinition(@NotNull JSGraphQLEndpointAnnotationDefinition o) {
+    visitNamedTypeDefinition(o);
   }
 
   public void visitArgumentsDefinition(@NotNull JSGraphQLEndpointArgumentsDefinition o) {
