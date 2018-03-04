@@ -185,10 +185,12 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
         // make sure the GraphQL schema is shown in the project tree if not already
         if(!JSGraphQLSchemaDirectoryNode.isShownForProject(project)) {
-            final ProjectView projectView = ProjectView.getInstance(project);
-            if (projectView != null && projectView.getCurrentProjectViewPane() instanceof ProjectViewPane) {
-                projectView.refresh();
-            }
+            StartupManager.getInstance(this.myProject).runWhenProjectIsInitialized(() -> ApplicationManager.getApplication().invokeLater(() -> {
+                final ProjectView projectView = ProjectView.getInstance(project);
+                if (projectView != null && projectView.getCurrentProjectViewPane() instanceof ProjectViewPane) {
+                    projectView.refresh();
+                }
+            }));
         }
     }
 
