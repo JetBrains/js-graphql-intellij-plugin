@@ -124,6 +124,11 @@ public class JSGraphQLNodeLanguageServiceInstance implements ProjectManagerListe
             final GeneralCommandLine commandLine = new GeneralCommandLine(nodeInterpreter);
 
             commandLine.withWorkDirectory(jsGraphQLNodeFile.getParent());
+
+            // Node.js outputs deprecation warnings using the error console, so silence them
+            // on order to be able to detect real errors when creating the process handler
+            commandLine.addParameter("--no-deprecation");
+
             commandLine.addParameter(jsGraphQLNodeFile.getAbsolutePath());
 
             commandLine.addParameter("--port=" + socketPort);
