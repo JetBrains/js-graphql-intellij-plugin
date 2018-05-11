@@ -17,8 +17,8 @@ public class BufferRequest extends Request {
         super(command, environment);
     }
 
-    public static BufferRequest getTokens(String buffer) {
-        BufferRequest ret = new BufferRequest("getTokens", null);
+    public static BufferRequest getTokens(String buffer, String environment) {
+        BufferRequest ret = new BufferRequest("getTokens", environment);
         ret.buffer = buffer;
         return ret;
     }

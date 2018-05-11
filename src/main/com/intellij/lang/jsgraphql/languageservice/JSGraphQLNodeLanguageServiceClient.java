@@ -28,8 +28,8 @@ public class JSGraphQLNodeLanguageServiceClient {
     private static final Logger log = Logger.getInstance(JSGraphQLNodeLanguageServiceClient.class);
     private static Map<Project, JSGraphQLNodeLanguageServiceInstance> languageServiceInstances = Maps.newConcurrentMap();
 
-    public static TokensResponse getTokens(String buffer, Project project) {
-        final BufferRequest request = BufferRequest.getTokens(buffer);
+    public static TokensResponse getTokens(String buffer, Project project, String environment) {
+        final BufferRequest request = BufferRequest.getTokens(buffer, environment);
         return executeRequest(request, TokensResponse.class, project);
     }
 

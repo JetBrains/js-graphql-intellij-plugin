@@ -218,9 +218,12 @@ public class JSGraphQLParser implements PsiParser {
 
     private List<PropertyScope> getPropertyScopes(List<JSGraphQLToken> tokens) {
 
-        final List<JSGraphQLToken> astTokens = tokens.stream()
+        List<JSGraphQLToken> astTokens = tokens.stream()
                 .filter((token) -> token.tokenType != JSGraphQLTokenTypes.WHITESPACE && token.tokenType != JSGraphQLTokenTypes.COMMENT)
                 .collect(Collectors.toList());
+
+        // remove ${jsVar} placeholders from consideration
+        astTokens = removeVariablePlaceholders(astTokens);
 
         final List<PropertyScope> ret = Lists.newArrayList();
         final Stack<PropertyScope> scopes = new Stack<>();
@@ -333,6 +336,51 @@ public class JSGraphQLParser implements PsiParser {
         ret.removeAll(literalAttributeValues);
 
         return ret;
+    }
+
+    /**
+     * Removes placeholders like ${jsVariable.foo.bar} from the astTokens since the curly braces shouldn't count as selection sets
+     */
+    private List<JSGraphQLToken> removeVariablePlaceholders(List<JSGraphQLToken> astTokens) {
+        final List<JSGraphQLToken> tokens = Lists.newArrayListWithExpectedSize(astTokens.size());
+        for (int i = 0; i < astTokens.size(); i++) {
+            JSGraphQLToken currentToken = astTokens.get(i);
+            if(currentToken.tokenType == JSGraphQLTokenTypes.VARIABLE) {
+                // found a '$' so if the next token is a '{' then it's a placeholder
+                if(i < astTokens.size() - 1 /* there is a next token */) {
+                    final JSGraphQLToken nextToken = astTokens.get(i + 1);
+                    if(nextToken.tokenType == JSGraphQLTokenTypes.LBRACE) {
+                        // found a placeholder, so skip tokens until we on the other side of the placeholder
+                        tokens.add(currentToken);
+                        currentToken = null;
+                        int openBraces = 1;
+                        // start at the token that comes after '$' and '{'
+                        for(int j = i + 2; j < astTokens.size(); j++) {
+                            final JSGraphQLToken token = astTokens.get(j);
+                            i = j;
+                            if(token.tokenType == JSGraphQLTokenTypes.LBRACE) {
+                                openBraces++;
+                            } else if(token.tokenType == JSGraphQLTokenTypes.RBRACE) {
+                                openBraces--;
+                                if(openBraces == 0) {
+                                    // found the end of the placeholder
+                                    if(j < astTokens.size() - 1) {
+                                        // there's a next token which is the one we want to add
+                                        i++;
+                                        currentToken = astTokens.get(i);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if(currentToken != null) {
+                tokens.add(currentToken);
+            }
+        }
+        return tokens;
     }
 
     private boolean isValueForAttribute(List<JSGraphQLToken> astTokens, PropertyScope attributeNameScope, PropertyScope attributeValue) {

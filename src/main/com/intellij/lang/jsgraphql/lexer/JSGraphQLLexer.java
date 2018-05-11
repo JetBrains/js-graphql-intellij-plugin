@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.JSGraphQLDebugUtil;
 import com.intellij.lang.jsgraphql.JSGraphQLKeywords;
 import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
+import com.intellij.lang.jsgraphql.ide.injection.JSGraphQLTemplateFragmentLanguageInjector;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.languageservice.api.Token;
 import com.intellij.lang.jsgraphql.languageservice.api.TokensResponse;
@@ -41,6 +42,8 @@ public class JSGraphQLLexer extends LexerBase {
     private int startOffset;
     private int endOffset;
 
+    private String environment;
+
     private TokensResponse response;
 
     private final Project project;
@@ -63,6 +66,8 @@ public class JSGraphQLLexer extends LexerBase {
         this.tokens = Lists.newArrayList();
         this.response = null;
 
+        this.environment = JSGraphQLTemplateFragmentLanguageInjector.CURRENT_INJECTION_ENVIRONMENT.get();
+
         fetchTokensFromLanguageService();
     }
 
@@ -75,7 +80,7 @@ public class JSGraphQLLexer extends LexerBase {
         }
 
         // get the response using the client
-        response = JSGraphQLNodeLanguageServiceClient.getTokens(bufferAsString, project);
+        response = JSGraphQLNodeLanguageServiceClient.getTokens(bufferAsString, project, environment);
 
         if (response == null) {
             // blank

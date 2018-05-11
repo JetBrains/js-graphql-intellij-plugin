@@ -14,6 +14,7 @@ import com.intellij.lang.injection.MultiHostRegistrar;
 import com.intellij.lang.javascript.JSTokenTypes;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.JSGraphQLLanguage;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLanguageInjectionHost;
@@ -26,11 +27,13 @@ public class JSGraphQLTemplateFragmentLanguageInjector implements MultiHostInjec
 
     private static final ArrayList<Class<JSStringTemplateExpression>> INJECTION_CLASSES = Lists.newArrayList(JSStringTemplateExpression.class);
 
+    public final static ThreadLocal<String> CURRENT_INJECTION_ENVIRONMENT = new ThreadLocal<>();
+
     @Override
     public void getLanguagesToInject(@NotNull MultiHostRegistrar registrar, @NotNull PsiElement context) {
 
-
-        if(JSGraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(context)) {
+        final Ref<String> envRef = new Ref<>(null);
+        if(JSGraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(context, envRef)) {
 
             final JSStringTemplateExpression template = (JSStringTemplateExpression)context;
 
@@ -60,7 +63,13 @@ public class JSGraphQLTemplateFragmentLanguageInjector implements MultiHostInjec
                 }
             }
 
-            registrar.doneInjecting();
+            try {
+                CURRENT_INJECTION_ENVIRONMENT.set(envRef.get());
+                // lexing and parsing occurs inside the next method, allowing us to access the env from the thread local
+                registrar.doneInjecting();
+            } finally {
+                CURRENT_INJECTION_ENVIRONMENT.remove();
+            }
         }
     }
 

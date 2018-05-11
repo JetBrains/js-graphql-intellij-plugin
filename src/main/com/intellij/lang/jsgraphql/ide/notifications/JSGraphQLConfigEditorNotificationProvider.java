@@ -151,7 +151,7 @@ public class JSGraphQLConfigEditorNotificationProvider extends Provider {
                 FileEditorManager.getInstance(myProject).openFile(config, true, true);
                 if(setProjectDir) {
                     // fetch tokens from the client to force it to set the project dir base on the module we picked
-                    JSGraphQLNodeLanguageServiceClient.getTokens("", myProject);
+                    JSGraphQLNodeLanguageServiceClient.getTokens("", myProject, null);
                 }
                 Notifications.Bus.notify(new Notification("GraphQL", "Created " + JSGraphQLConfigurationProvider.GRAPHQL_CONFIG_JSON + " and " + JSGraphQLConfigurationProvider.GRAPHQL_DEFAULT_SCHEMA, "Edit to load your own GraphQL schema.", NotificationType.INFORMATION));
             }
