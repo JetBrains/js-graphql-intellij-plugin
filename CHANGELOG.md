@@ -1,3 +1,11 @@
+## 1.7.1 (2018-05-11)
+
+Fixes:
+
+- Node.js outputs deprecation warnings using the error console, so silence them on order to be able to detect real errors when creating the process handler (#153)
+- Fixed indentation issue with strongly typed placeholders by sending the current GraphQL environment to the language service (#130) 
+- Removed 400 px large svg GraphQL and Relay logos used by Rider for the line marker (#147) 
+
 ## 1.7.0 (2018-03-04)
 
 Features:
