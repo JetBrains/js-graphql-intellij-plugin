@@ -102,7 +102,27 @@ public class JSGraphQLLexer extends LexerBase {
             }
             final String text = token.getText();
             IElementType tokenType = JSGraphQLCodeMirrorTokenMapper.getTokenType(token.getType());
-            if (tokenType.equals(JSGraphQLTokenTypes.PUNCTUATION)) {
+            if(tokenType.equals(JSGraphQLTokenTypes.WHITESPACE)) {
+                String originalText = bufferAsString.substring(token.getStart(), token.getEnd());
+                if(originalText.trim().length() > 0) {
+                    // whitespace token with visible text, e.g. due to placeholders being removed at top level
+                    // by the language service and there's nothing valid to replace it with within the GraphQL grammar
+                    // so split the token into traditional ws tokens and the placeholder contents
+                    int offset = 0;
+                    final String[] parts = StringUtils.splitByCharacterType(originalText);
+                    for (String part : parts) {
+                        final Token partSourceToken = token.withTextAndOffset(part, offset);
+                        if(part.trim().length() > 0) {
+                            tokens.add(new JSGraphQLToken(JSGraphQLTokenTypes.TEMPLATE_FRAGMENT, partSourceToken));
+                        } else {
+                            partSourceToken.setKind(JSGraphQLCodeMirrorTokenMapper.CODEMIRROR_WHITESPACE);
+                            tokens.add(new JSGraphQLToken(JSGraphQLTokenTypes.WHITESPACE, partSourceToken));
+                        }
+                        offset += part.length();
+                    }
+                    continue; // already added the required tokens
+                }
+            } else if (tokenType.equals(JSGraphQLTokenTypes.PUNCTUATION)) {
                 final IElementType punctuationTokenType = getPunctuationTokenType(text);
                 if (punctuationTokenType != null) {
                     tokenType = punctuationTokenType;
