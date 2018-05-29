@@ -1,3 +1,9 @@
+## 1.7.2 (2018-05-29)
+
+Fixes:
+
+- Restore whitespace tokens for top level fragment placeholders in Apollo to preserve them during format lines (#162)
+
 ## 1.7.1 (2018-05-11)
 
 Fixes:

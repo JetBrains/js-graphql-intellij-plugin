@@ -10,7 +10,7 @@
 <idea-plugin version="2">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>1.7.1</version>
+  <version>1.7.2</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -29,6 +29,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>1.7.2: Restore whitespace tokens for top level fragment placeholders in Apollo to preserve them during format lines.</li>
       <li>1.7.1: Node 10 Buffer deprecation warning no longer read by plugin as an error in the language service. Two additional minor bug-fixes.</li>
       <li>1.7.0: Fixed editor background loading issue. Language Service 1.5.1: Support for strongly typed variable placeholders in GraphQL tagged templates. Support for declaring annotations in Endpoint language.</li>
       <li>1.6.3: 'Editor > Code Style' never loads In WebStorm 2017.3.</li>
