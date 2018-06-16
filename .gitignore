@@ -66,9 +66,8 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-.idea/dictionaries/*
-.idea/workspace.xml
-.idea/uiDesigner.xml
-.idea/vcs.xml
-.idea/pure-run-config-templates.xml
+.idea
 resources/META-INF/dist/
+
+.gradle
+build

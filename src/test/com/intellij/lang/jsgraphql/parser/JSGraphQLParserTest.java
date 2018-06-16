@@ -11,10 +11,12 @@ import com.intellij.lang.jsgraphql.JSGraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.languageservice.CodeMirrorNodeLanguageServiceClientTest;
 import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceInstance;
 import com.intellij.testFramework.ParsingTestCase;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URL;
 
+@Ignore
 public class JSGraphQLParserTest extends ParsingTestCase {
 
     public JSGraphQLParserTest() {

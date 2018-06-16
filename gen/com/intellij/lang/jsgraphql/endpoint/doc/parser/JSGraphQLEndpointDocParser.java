@@ -14,67 +14,67 @@ import com.intellij.lang.LightPsiParser;
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
 public class JSGraphQLEndpointDocParser implements PsiParser, LightPsiParser {
 
-  public ASTNode parse(IElementType t, PsiBuilder b) {
-    parseLight(t, b);
-    return b.getTreeBuilt();
+  public ASTNode parse(IElementType root_, PsiBuilder builder_) {
+    parseLight(root_, builder_);
+    return builder_.getTreeBuilt();
   }
 
-  public void parseLight(IElementType t, PsiBuilder b) {
-    boolean r;
-    b = adapt_builder_(t, b, this, null);
-    Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t == TAG) {
-      r = Tag(b, 0);
+  public void parseLight(IElementType root_, PsiBuilder builder_) {
+    boolean result_;
+    builder_ = adapt_builder_(root_, builder_, this, null);
+    Marker marker_ = enter_section_(builder_, 0, _COLLAPSE_, null);
+    if (root_ == TAG) {
+      result_ = Tag(builder_, 0);
     }
     else {
-      r = parse_root_(t, b, 0);
+      result_ = parse_root_(root_, builder_, 0);
     }
-    exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
+    exit_section_(builder_, 0, marker_, root_, result_, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType t, PsiBuilder b, int l) {
-    return Document(b, l + 1);
+  protected boolean parse_root_(IElementType root_, PsiBuilder builder_, int level_) {
+    return Document(builder_, level_ + 1);
   }
 
   /* ********************************************************** */
   // Rule*
-  static boolean Document(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Document")) return false;
-    int c = current_position_(b);
+  static boolean Document(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "Document")) return false;
+    int pos_ = current_position_(builder_);
     while (true) {
-      if (!Rule(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "Document", c)) break;
-      c = current_position_(b);
+      if (!Rule(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "Document", pos_)) break;
+      pos_ = current_position_(builder_);
     }
     return true;
   }
 
   /* ********************************************************** */
-  // Tag
-  //     |
+  // Tag
+  //     |
   //     docText
-  static boolean Rule(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Rule")) return false;
-    if (!nextTokenIs(b, "", DOCNAME, DOCTEXT)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = Tag(b, l + 1);
-    if (!r) r = consumeToken(b, DOCTEXT);
-    exit_section_(b, m, null, r);
-    return r;
+  static boolean Rule(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "Rule")) return false;
+    if (!nextTokenIs(builder_, "", DOCNAME, DOCTEXT)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = Tag(builder_, level_ + 1);
+    if (!result_) result_ = consumeToken(builder_, DOCTEXT);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // docName docValue
-  public static boolean Tag(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Tag")) return false;
-    if (!nextTokenIs(b, DOCNAME)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, TAG, null);
-    r = consumeTokens(b, 1, DOCNAME, DOCVALUE);
-    p = r; // pin = 1
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean Tag(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "Tag")) return false;
+    if (!nextTokenIs(builder_, DOCNAME)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, TAG, null);
+    result_ = consumeTokens(builder_, 1, DOCNAME, DOCVALUE);
+    pinned_ = result_; // pin = 1
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
 }

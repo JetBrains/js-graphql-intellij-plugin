@@ -13,11 +13,13 @@ package com.intellij.lang.jsgraphql;
  import com.intellij.psi.codeStyle.CodeStyleManager;
  import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
  import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+ import org.junit.Ignore;
  import org.junit.Test;
 
  import java.net.URL;
 
 
+ @Ignore
  public class JSGraphQLCodeInsightTest extends LightCodeInsightFixtureTestCase {
     @Override
     protected void setUp() throws Exception {
