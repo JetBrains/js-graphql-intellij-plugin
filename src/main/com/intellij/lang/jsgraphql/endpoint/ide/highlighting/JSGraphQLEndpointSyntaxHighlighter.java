@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypesSets;
 import com.intellij.lang.jsgraphql.endpoint.lexer.JSGraphQLEndpointLexer;
-import com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighter;
+import com.intellij.lang.jsgraphql.v1.ide.highlighting.JSGraphQLSyntaxHighlighter;
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;

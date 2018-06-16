@@ -64,23 +64,70 @@
        on how to target different products -->
 
   <depends>com.intellij.modules.lang</depends>
-  <!--
-  <depends>JavaScript</depends>
-  <depends>NodeJS</depends>
-  -->
-
+  <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
 
   <extensions defaultExtensionNs="com.intellij">
 
+    <!-- Language registration -->
+    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.GraphQLFileTypeFactory"/>
+    <lang.parserDefinition language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLParserDefinition"/>
+
+    <!-- Project services -->
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl" serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.SchemaIDLTypeDefinitionRegistry" serviceImplementation="com.intellij.lang.jsgraphql.schema.SchemaIDLTypeDefinitionRegistry" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService" serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" />
+
+    <!-- Startup -->
+    <postStartupActivity implementation="com.intellij.lang.jsgraphql.endpoint.ide.startup.GraphQLStartupActivity" />
+
+
+    <!-- Syntax and error highlighting -->
+    <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSyntaxHighlighterFactory"/>
+    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSyntaxAnnotator" />
+    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLValidationAnnotator" />
+    <colorSettingsPage implementation="com.intellij.lang.jsgraphql.ide.GraphQLColorSettingsPage"/>
+
+    <!-- Formatting and folding -->
+    <lang.formatter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLFormattingModelBuilder"/>
+    <lang.foldingBuilder language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLFoldingBuilder"/>
+
+    <!-- Editing -->
+    <lang.braceMatcher language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLBraceMatcher" />
+    <lang.quoteHandler language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLQuoteHandler" />
+    <lang.commenter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLCommenter"/>
+    <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.GraphQLEnterInEmptyListHandler"/>
+
+    <!-- Completion -->
+    <completion.contributor language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.completion.GraphQLCompletionContributor"/>
+
+    <!-- Find usages and renaming refactors -->
+    <lang.findUsagesProvider language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesProvider" />
+    <usageTypeProvider implementation="com.intellij.lang.jsgraphql.ide.references.GraphQLUsageTypeProvider" />
+    <lang.elementManipulator forClass="com.intellij.lang.jsgraphql.psi.impl.GraphQLIdentifierImpl" implementationClass="com.intellij.lang.jsgraphql.ide.references.GraphQLIdentifierManipulator" />
+
+    <!-- Search (find implementations etc.) -->
+    <definitionsSearch implementation="com.intellij.lang.jsgraphql.ide.search.GraphQLDefinitionsSearchExecutor"/>
+
+    <!-- Renaming -->
+    <vetoRenameCondition implementation="com.intellij.lang.jsgraphql.ide.rename.GraphQLRenameVetoCondition" />
+
+
+
+
+    <!-- v2 above this point -->
+
+
     <!-- Project Language services -->
     <!--
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.JSGraphQLLanguageUIProjectService" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaLanguageProjectService" serviceImplementation="com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaLanguageProjectService" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider" serviceImplementation="com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider" />
+    <projectService serviceInterface="JSGraphQLLanguageUIProjectService" serviceImplementation="JSGraphQLLanguageUIProjectService" />
+    <projectService serviceInterface="JSGraphQLSchemaLanguageProjectService" serviceImplementation="JSGraphQLSchemaLanguageProjectService" />
     -->
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider" serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry" serviceImplementation="com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry" />
     <!--
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.JSGraphQLPsiSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.JSGraphQLPsiSearchHelper" />
+    <projectService serviceInterface="JSGraphQLPsiSearchHelper" serviceImplementation="JSGraphQLPsiSearchHelper" />
     -->
 
 
@@ -91,47 +138,40 @@
 
     <!-- Project tree -->
     <!--
-    <treeStructureProvider implementation="com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaTreeStructureProvider" />
+    <treeStructureProvider implementation="JSGraphQLSchemaTreeStructureProvider" />
     -->
 
 
     <!-- File types -->
-    <!--
-    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.JSGraphQLFileTypeFactory"/>
-    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaFileTypeFactory"/>
-    -->
     <fileTypeFactory implementation="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileTypeFactory"/>
     <fileTypeFactory implementation="com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocFileTypeFactory"/>
     <internalFileTemplate name="GraphQL File"/>
 
 
     <!-- Language -->
-    <!--
-    <lang.parserDefinition language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.JSGraphQLParserDefinition"/>
-    <lang.parserDefinition language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.schema.JSGraphQLSchemaParserDefinition"/>
-    -->
+
     <lang.parserDefinition language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointParserDefinition"/>
     <lang.parserDefinition language="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocParserDefinition"/>
     <!--
-    <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighterFactory"/>
-    <lang.syntaxHighlighterFactory language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="JSGraphQLSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighterFactory language="GraphQL Schema" implementationClass="JSGraphQLSyntaxHighlighterFactory"/>
     -->
     <lang.syntaxHighlighterFactory language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.highlighting.JSGraphQLEndpointSyntaxHighlighterFactory"/>
     <lang.syntaxHighlighterFactory language="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.ide.highlighting.JSGraphQLEndpointDocSyntaxHighlighterFactory"/>
     <!--
-    <lang.commenter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLCommenter"/>
-    <lang.commenter language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLCommenter"/>
+    <lang.commenter language="GraphQL" implementationClass="JSGraphQLCommenter"/>
+    <lang.commenter language="GraphQL Schema" implementationClass="JSGraphQLCommenter"/>
     -->
-    <lang.commenter language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLCommenter"/>
+    <lang.commenter language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLCommenter"/>
     <!--
-    <lang.braceMatcher language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLBraceMatcher"  />
-    <lang.braceMatcher language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLBraceMatcher"  />
+    <lang.braceMatcher language="GraphQL" implementationClass="JSGraphQLBraceMatcher"  />
+    <lang.braceMatcher language="GraphQL Schema" implementationClass="JSGraphQLBraceMatcher"  />
     -->
     <lang.braceMatcher language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointBraceMatcher"  />
     <!--
-    <lang.fileViewProviderFactory language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.schema.psi.JSGraphQLSchemaFileViewProviderFactory" />
-    <lang.psiStructureViewFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.structureView.JSGraphQLPsiStructureViewFactory"/>
-    <lang.psiStructureViewFactory language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.structureView.JSGraphQLPsiStructureViewFactory"/>
+    <lang.fileViewProviderFactory language="GraphQL Schema" implementationClass="JSGraphQLSchemaFileViewProviderFactory" />
+    <lang.psiStructureViewFactory language="GraphQL" implementationClass="JSGraphQLPsiStructureViewFactory"/>
+    <lang.psiStructureViewFactory language="GraphQL Schema" implementationClass="JSGraphQLPsiStructureViewFactory"/>
     -->
     <lang.psiStructureViewFactory language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.structureView.JSGraphQLEndpointPsiStructureViewFactory"/>
     <iconProvider implementation="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointIconProvider" />
@@ -139,7 +179,7 @@
 
     <!-- Completion -->
     <!--
-    <completion.contributor language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.completion.JSGraphQLCompletionContributor"/>
+    <completion.contributor language="GraphQL" implementationClass="JSGraphQLCompletionContributor"/>
     -->
     <completion.contributor language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.completion.JSGraphQLEndpointCompletionContributor"/>
     <completion.contributor language="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.ide.completion.JSGraphQLEndpointDocCompletionContributor"/>
@@ -147,12 +187,12 @@
 
     <!-- Error highlighting and annotations -->
     <!--
-    <externalAnnotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" />
-    <externalAnnotator language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" />
-    <externalAnnotator language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" />
-    <externalAnnotator language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLAnnotator" /><!## Own reg required ##>
-    <annotator language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLRelayTemplateAnnotator" /><!## Using the JSX dialect overwrites the default annotator ##>
-    <annotator language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.annotator.JSGraphQLRelayTemplateAnnotator" /><!## Using the JSX dialect overwrites the default annotator ##>
+    <externalAnnotator language="GraphQL" implementationClass="JSGraphQLAnnotator" />
+    <externalAnnotator language="GraphQL Schema" implementationClass="JSGraphQLAnnotator" />
+    <externalAnnotator language="JavaScript" implementationClass="JSGraphQLAnnotator" />
+    <externalAnnotator language="TypeScript" implementationClass="JSGraphQLAnnotator" /><!## Own reg required ##>
+    <annotator language="JavaScript" implementationClass="JSGraphQLRelayTemplateAnnotator" /><!## Using the JSX dialect overwrites the default annotator ##>
+    <annotator language="TypeScript" implementationClass="JSGraphQLRelayTemplateAnnotator" /><!## Using the JSX dialect overwrites the default annotator ##>
     -->
     <annotator language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.annotator.JSGraphQLEndpointHighlightAnnotator" />
     <annotator language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.annotator.JSGraphQLEndpointErrorAnnotator" />
@@ -160,99 +200,99 @@
 
 
     <!-- Query context highlighter -->
-    <highlightVisitor implementation="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQueryContextHighlightVisitor" />
+    <!-- Fixme: Breaks internal annotators used in v2: <highlightVisitor implementation="com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor" />-->
 
 
     <!-- Formatting -->
     <!--
-    <lang.formatter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLFormattingModelBuilder"/>
-    <lang.formatter language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLFormattingModelBuilder"/>
-    <lang.formatter language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.formatter.JSGraphQLEndpointFormattingModelBuilder"/>
-    <lang.formatter language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLInjectedFormattingModelBuilder" />
-    <lang.formatter language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLInjectedFormattingModelBuilder" /><!## Own reg required ##>
+    <lang.formatter language="GraphQL" implementationClass="JSGraphQLFormattingModelBuilder"/>
+    <lang.formatter language="GraphQL Schema" implementationClass="JSGraphQLFormattingModelBuilder"/>
+    <lang.formatter language="JavaScript" implementationClass="JSGraphQLInjectedFormattingModelBuilder" />
+    <lang.formatter language="TypeScript" implementationClass="JSGraphQLInjectedFormattingModelBuilder" /><!## Own reg required ##>
     -->
+    <lang.formatter language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.formatter.JSGraphQLEndpointFormattingModelBuilder"/>
     <!--
-    <lang.foldingBuilder language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLFoldingBuilder"/>
-    <lang.foldingBuilder language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLFoldingBuilder"/>
+    <lang.foldingBuilder language="GraphQL" implementationClass="JSGraphQLFoldingBuilder"/>
+    <lang.foldingBuilder language="GraphQL Schema" implementationClass="JSGraphQLFoldingBuilder"/>
     -->
     <lang.foldingBuilder language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointFoldingBuilder"/>
     <!--
-    <lang.quoteHandler language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQuoteHandler" />
-    <lang.quoteHandler language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLQuoteHandler" />
+    <lang.quoteHandler language="GraphQL" implementationClass="JSGraphQLQuoteHandler" />
+    <lang.quoteHandler language="GraphQL Schema" implementationClass="JSGraphQLQuoteHandler" />
     -->
     <lang.quoteHandler language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointQuoteHandler" />
     <!--
-    <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLEnterHandlerDelegate" />
-    <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLEnterInEmptyListHandler"/>
+    <enterHandlerDelegate implementation="JSGraphQLEnterHandlerDelegate" />
+    <enterHandlerDelegate implementation="JSGraphQLEnterInEmptyListHandler"/>
     -->
     <!--
-    <langCodeStyleSettingsProvider implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLLanguageCodeStyleSettingsProvider"/>
-    <codeStyleSettingsProvider implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLCodeStyleSettingsProvider" />
+    <langCodeStyleSettingsProvider implementation="JSGraphQLLanguageCodeStyleSettingsProvider"/>
+    <codeStyleSettingsProvider implementation="JSGraphQLCodeStyleSettingsProvider" />
     -->
 
 
     <!-- Find usages -->
     <!--
-    <lang.findUsagesProvider language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.findUsages.JSGraphQLFindUsagesProvider" />
+    <lang.findUsagesProvider language="GraphQL" implementationClass="JSGraphQLFindUsagesProvider" />
     -->
     <lang.findUsagesProvider language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.findUsages.JSGraphQLEndpointFindUsagesProvider" />
-    <usageTypeProvider implementation="com.intellij.lang.jsgraphql.ide.findUsages.JSGraphQLUsageTypeProvider" />
+    <usageTypeProvider implementation="com.intellij.lang.jsgraphql.v1.ide.findUsages.JSGraphQLUsageTypeProvider" />
     <!--
-    <findUsagesHandlerFactory id="GraphQL" implementation="com.intellij.lang.jsgraphql.ide.findUsages.JSGraphQLFindUsagesHandlerFactory"/>
+    <findUsagesHandlerFactory id="GraphQL" implementation="JSGraphQLFindUsagesHandlerFactory"/>
     -->
     <findUsagesHandlerFactory id="GraphQL Endpoint" implementation="com.intellij.lang.jsgraphql.endpoint.ide.findUsages.JSGraphQLEndpointFindUsagesHandlerFactory"/>
 
 
     <!-- Renaming -->
     <!--
-    <vetoRenameCondition implementation="com.intellij.lang.jsgraphql.ide.rename.JSGraphQLRenameVetoCondition" />
+    <vetoRenameCondition implementation="JSGraphQLRenameVetoCondition" />
     -->
 
     
     <!-- Schema documentation -->
     <!--
-    <lang.documentationProvider language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.documentation.JSGraphQLDocumentationProvider" />
-    <lang.documentationProvider language="GraphQL Schema" implementationClass="com.intellij.lang.jsgraphql.ide.documentation.JSGraphQLDocumentationProvider" />
+    <lang.documentationProvider language="GraphQL" implementationClass="JSGraphQLDocumentationProvider" />
+    <lang.documentationProvider language="GraphQL Schema" implementationClass="JSGraphQLDocumentationProvider" />
     -->
     <!-- Note: JSX/TSX documentation providers are registered in their base language (JS), so we do the same to not take over the entire doc impl -->
     <!--
-    <lang.documentationProvider language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.documentation.JSGraphQLDocumentationProvider" />
+    <lang.documentationProvider language="JavaScript" implementationClass="JSGraphQLDocumentationProvider" />
     -->
 
 
     <!-- Editor notification bars and markers -->
-    <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.JSGraphQLConfigEditorNotificationProvider"/>
+    <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.v1.ide.notifications.JSGraphQLConfigEditorNotificationProvider"/>
     <!--
-    <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.JSGraphQLApolloLokkaEditorNotificationProvider"/>
+    <editorNotificationProvider implementation="JSGraphQLApolloLokkaEditorNotificationProvider"/>
     -->
     <!--
-    <codeInsight.lineMarkerProvider language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLLineMarkerProvider" />
+    <codeInsight.lineMarkerProvider language="JavaScript" implementationClass="JSGraphQLLineMarkerProvider" />
     -->
 
     <!--
-    <editorTabColorProvider implementation="com.intellij.lang.jsgraphql.schema.ide.project.JSGraphQLSchemaEditorTabColorProvider" />
+    <editorTabColorProvider implementation="JSGraphQLSchemaEditorTabColorProvider" />
     -->
 
     <!-- Language injection -->
     <!--
-    <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.JSGraphQLTemplateFragmentLanguageInjector" order="first" />
+    <multiHostInjector implementation="JSGraphQLTemplateFragmentLanguageInjector" order="first" />
     -->
     <languageInjector implementation="com.intellij.lang.jsgraphql.endpoint.doc.ide.injection.JSGraphQLEndpointDocInjector" />
 
 
     <!-- Settings -->
     <!--
-    <colorSettingsPage implementation="com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLColorSettingsPage" />
+    <colorSettingsPage implementation="JSGraphQLColorSettingsPage" />
     -->
 
     <!-- Query execution (see com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_SPLIT which is ctrl+enter by default) -->
-    <editorActionHandler action="EditorSplitLine" implementationClass="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLExecuteEditorActionHandler" order="first" />
-    <highlightErrorFilter implementation="com.intellij.lang.jsgraphql.ide.editor.JSGraphQLVariablesHighlightErrorFilter" />
+    <editorActionHandler action="EditorSplitLine" implementationClass="com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLExecuteEditorActionHandler" order="first" />
+    <highlightErrorFilter implementation="com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLVariablesHighlightErrorFilter" />
 
 
     <!-- Search (find implementations etc.) -->
     <!--
-    <definitionsSearch implementation="com.intellij.lang.jsgraphql.schema.ide.search.JSGraphQLDefinitionsSearchExecutor"/>
+    <definitionsSearch implementation="JSGraphQLDefinitionsSearchExecutor"/>
     -->
     <definitionsSearch implementation="com.intellij.lang.jsgraphql.endpoint.ide.search.JSGraphQLEndpointDefinitionsSearchExecutor"/>
 
@@ -288,25 +328,20 @@
 
   <actions>
 
-    <action id="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLNewFileAction" class="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLNewFileAction">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewTypeScriptFile"/>
+    <action id="com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLNewFileAction" class="com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLNewFileAction">
+      <add-to-group group-id="NewGroup"/>
     </action>
 
-    <action id="com.intellij.lang.jsgraphql.schema.ide.actions.JSGraphQLSchemaNewFileAction" class="com.intellij.lang.jsgraphql.schema.ide.actions.JSGraphQLSchemaNewFileAction">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewTypeScriptFile"/>
-    </action>
-
+    <!-- TODO JKM: Needs integration with references service
     <action id="com.intellij.lang.jsgraphql.endpoint.ide.actions.JSGraphQLEndpointNewFileAction" class="com.intellij.lang.jsgraphql.endpoint.ide.actions.JSGraphQLEndpointNewFileAction">
-      <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewTypeScriptFile"/>
+      <add-to-group group-id="NewGroup"/>
     </action>
+    -->
 
-    <action class="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLExecuteEditorAction" id="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLExecuteEditorAction">
+    <action class="com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLExecuteEditorAction" id="com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLExecuteEditorAction">
       <keyboard-shortcut first-keystroke="control ENTER" keymap="$default"/>
       <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X"/>
       <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X 10.5+"/>
-    </action>
-
-    <action class="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLRestartLanguageServiceAction" id="com.intellij.lang.jsgraphql.ide.actions.JSGraphQLRestartLanguageServiceAction">
     </action>
 
   </actions>

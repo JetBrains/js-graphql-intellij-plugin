@@ -1,0 +1,13 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+
+        <!-- Formatting -->
+        <lang.formatter language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLInjectedFormattingModelBuilder" />
+        <lang.formatter language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLInjectedFormattingModelBuilder" /><!-- Own reg required -->
+
+        <!-- Language Injection -->
+        <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.GraphQLTemplateFragmentLanguageInjector" order="first" />
+        <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionIndex"/>
+
+    </extensions>
+</idea-plugin>

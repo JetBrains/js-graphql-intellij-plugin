@@ -22,9 +22,8 @@ import com.intellij.formatting.Spacing;
 import com.intellij.formatting.SpacingBuilder;
 import com.intellij.formatting.Wrap;
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.jsgraphql.JSGraphQLDebugUtil;
+import com.intellij.lang.jsgraphql.v1.JSGraphQLDebugUtil;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
-import com.intellij.lang.jsgraphql.ide.formatter.JSGraphQLBlock;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.TokenType;
@@ -76,8 +75,6 @@ public class JSGraphQLEndpointBlock extends AbstractBlock {
 			}
 			child = child.getTreeNext();
 		}
-
-		JSGraphQLBlock.verifyBlocks(blocks);
 
 		return blocks;
 	}

@@ -15,7 +15,7 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedType;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDef;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointProperty;
-import com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighter;
+import com.intellij.lang.jsgraphql.v1.ide.highlighting.JSGraphQLSyntaxHighlighter;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.psi.PsiElement;
 

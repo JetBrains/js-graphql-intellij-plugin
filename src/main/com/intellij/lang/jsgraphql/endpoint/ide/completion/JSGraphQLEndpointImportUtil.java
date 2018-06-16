@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.completion;
 
-import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
+import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;

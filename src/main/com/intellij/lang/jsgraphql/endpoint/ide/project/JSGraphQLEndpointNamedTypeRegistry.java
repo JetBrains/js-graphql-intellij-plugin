@@ -9,11 +9,11 @@ package com.intellij.lang.jsgraphql.endpoint.ide.project;
 
 import com.google.common.collect.Maps;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
-import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
-import com.intellij.lang.jsgraphql.psi.JSGraphQLElementType;
-import com.intellij.lang.jsgraphql.schema.ide.type.JSGraphQLNamedType;
-import com.intellij.lang.jsgraphql.schema.ide.type.JSGraphQLNamedTypeRegistry;
-import com.intellij.lang.jsgraphql.schema.ide.type.JSGraphQLPropertyType;
+import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
+import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLElementType;
+import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
+import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedTypeRegistry;
+import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;

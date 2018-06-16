@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.endpoint.psi;
 import com.google.common.collect.Sets;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
-import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
+import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;

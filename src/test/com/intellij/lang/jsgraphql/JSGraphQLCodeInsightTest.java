@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql;
 
  import com.intellij.lang.jsgraphql.languageservice.CodeMirrorNodeLanguageServiceClientTest;
- import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceInstance;
+ import com.intellij.lang.jsgraphql.v1.languageservice.JSGraphQLNodeLanguageServiceInstance;
  import com.intellij.openapi.command.WriteCommandAction;
  import com.intellij.psi.codeStyle.CodeStyleManager;
  import com.intellij.psi.codeStyle.CodeStyleSettingsManager;

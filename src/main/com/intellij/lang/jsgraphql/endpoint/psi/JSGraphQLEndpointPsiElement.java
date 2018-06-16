@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
-import com.intellij.lang.jsgraphql.psi.JSGraphQLPsiElement;
+import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLPsiElement;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointLanguage;
 
 public abstract class JSGraphQLEndpointPsiElement extends JSGraphQLPsiElement {

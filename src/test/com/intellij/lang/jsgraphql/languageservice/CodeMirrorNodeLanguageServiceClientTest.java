@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.languageservice;
 
-import com.intellij.lang.jsgraphql.JSGraphQLDebugUtil;
+import com.intellij.lang.jsgraphql.v1.JSGraphQLDebugUtil;
 
 import java.net.URL;
 

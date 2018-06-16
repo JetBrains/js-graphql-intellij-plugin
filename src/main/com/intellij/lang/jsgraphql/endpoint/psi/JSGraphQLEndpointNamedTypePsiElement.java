@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.jsgraphql.JSGraphQLScalars;
+import com.intellij.lang.jsgraphql.v1.JSGraphQLScalars;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
