@@ -8,8 +8,8 @@
 package com.intellij.lang.jsgraphql.v1.psi;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.v1.JSGraphQLTokenTypes;
-import com.intellij.lang.jsgraphql.v1.ide.findUsages.JSGraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.v1.schema.ide.project.JSGraphQLSchemaLanguageProjectService;
 import com.intellij.lang.jsgraphql.v1.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.openapi.fileTypes.FileType;
@@ -121,7 +121,7 @@ public class JSGraphQLNamedPsiElement extends JSGraphQLPsiElement implements Psi
 
     @NotNull
     private GlobalSearchScope createFileTypeRestrictedUsageScope(Project project) {
-        FileType[] fileTypes = JSGraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[JSGraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
+        FileType[] fileTypes = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
         return GlobalSearchScope.getScopeRestrictedByFileTypes(ProjectScope.getAllScope(project), fileTypes);
     }
 

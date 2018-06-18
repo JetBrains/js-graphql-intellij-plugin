@@ -10,8 +10,8 @@ package com.intellij.lang.jsgraphql.v1.ide.project;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.v1.JSGraphQLTokenTypes;
-import com.intellij.lang.jsgraphql.v1.ide.findUsages.JSGraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLFragmentDefinitionPsiElement;
 import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLNamedTypePsiElement;
 import com.intellij.openapi.components.ServiceManager;
@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public class JSGraphQLPsiSearchHelper {
 
-    private static final FileType[] FILE_TYPES = JSGraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[JSGraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
+    private static final FileType[] FILE_TYPES = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
 
     private final Project myProject;
     private final Map<String, JSGraphQLNamedTypePsiElement> fragmentDefinitionsByName = Maps.newConcurrentMap();

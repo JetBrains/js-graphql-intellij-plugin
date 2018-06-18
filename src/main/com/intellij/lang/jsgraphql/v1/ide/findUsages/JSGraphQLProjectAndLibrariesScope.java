@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.v1.ide.findUsages;
 
+import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.v1.schema.ide.project.JSGraphQLSchemaLanguageProjectService;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.ProjectAndLibrariesScope;
@@ -35,7 +36,7 @@ public class JSGraphQLProjectAndLibrariesScope extends ProjectAndLibrariesScope 
         }
 
         // we're only interested in usages in GraphQL, JavaScript and TypeScript files
-        return JSGraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.contains(file.getFileType()) && super.contains(file);
+        return GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.contains(file.getFileType()) && super.contains(file);
 
     }
 

@@ -10,8 +10,8 @@ package com.intellij.lang.jsgraphql.v1.ide.notifications;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
+import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
-import com.intellij.lang.jsgraphql.v1.ide.findUsages.JSGraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.v1.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -92,7 +92,7 @@ public class JSGraphQLConfigEditorNotificationProvider extends Provider {
         if(file.getFileType() == GraphQLFileType.INSTANCE) {
             return true;
         }
-        if(JSGraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.contains(file.getFileType())) {
+        if(GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.contains(file.getFileType())) {
             return true;
         }
         return false;
