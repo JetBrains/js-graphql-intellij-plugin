@@ -8,8 +8,6 @@
 package com.intellij.lang.jsgraphql.ide.references;
 
 import com.google.common.collect.Sets;
-import com.intellij.lang.javascript.DialectDetector;
-import com.intellij.lang.javascript.ecmascript6.TypeScriptUtil;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.openapi.fileTypes.FileType;
 
@@ -21,9 +19,6 @@ public class GraphQLFindUsagesUtil {
 
     static {
         INCLUDED_FILE_TYPES.add(GraphQLFileType.INSTANCE);
-        // TODO JKM  optional dep on JavaScript plugin
-        INCLUDED_FILE_TYPES.addAll(TypeScriptUtil.TYPESCRIPT_FILE_TYPES);
-        INCLUDED_FILE_TYPES.addAll(DialectDetector.JAVASCRIPT_FILE_TYPES);
     }
 
 

@@ -5,15 +5,22 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.formatter;
+package com.intellij.lang.jsgraphql.ide.formatter.javascript;
 
-import com.intellij.formatting.*;
+import com.intellij.formatting.ASTBlock;
+import com.intellij.formatting.Alignment;
+import com.intellij.formatting.Block;
+import com.intellij.formatting.BlockEx;
+import com.intellij.formatting.Indent;
+import com.intellij.formatting.Spacing;
+import com.intellij.formatting.SpacingBuilder;
+import com.intellij.formatting.Wrap;
 import com.intellij.injected.editor.DocumentWindow;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
-import com.intellij.lang.jsgraphql.v1.JSGraphQLLanguage;
-import com.intellij.lang.jsgraphql.v1.ide.injection.JSGraphQLLanguageInjectionUtil;
+import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLLanguageInjectionUtil;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
@@ -32,15 +39,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, SettingsAwareBlock {
+public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, SettingsAwareBlock {
     @Nullable
-    private JSGraphQLBlockWrapper parent;
+    private GraphQLBlockWrapper parent;
     private SpacingBuilder spacingBuilder;
     private final CodeStyleSettings settings;
     private Block wrapped;
     private List<Block> subBlocks;
 
-    protected JSGraphQLBlockWrapper(Block wrapped, @Nullable JSGraphQLBlockWrapper parent, @NotNull ASTNode node, @Nullable Wrap wrap, @Nullable Alignment alignment, SpacingBuilder spacingBuilder, CodeStyleSettings settings) {
+    protected GraphQLBlockWrapper(Block wrapped, @Nullable GraphQLBlockWrapper parent, @NotNull ASTNode node, @Nullable Wrap wrap, @Nullable Alignment alignment, SpacingBuilder spacingBuilder, CodeStyleSettings settings) {
         super(node, wrap, alignment);
         this.wrapped = wrapped;
         this.parent = parent;
@@ -60,7 +67,7 @@ public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, Set
                     if(myNodeContainsGraphQL.get()) {
                         return;
                     } else if (element instanceof JSStringTemplateExpression) {
-                        if (JSGraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
+                        if (GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
                             myNodeContainsGraphQL.set(true);
                             return;
                         }
@@ -76,7 +83,7 @@ public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, Set
 
         final List<Block> blocks = new ArrayList<>();
 
-        if(myNode.getPsi() instanceof JSStringTemplateExpression && JSGraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(myNode.getPsi())) {
+        if(myNode.getPsi() instanceof JSStringTemplateExpression && GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(myNode.getPsi())) {
 
             JSStringTemplateExpression psi = (JSStringTemplateExpression) myNode.getPsi();
             InjectedLanguageUtil.enumerate(psi, (injectedPsi, places) -> {
@@ -92,14 +99,14 @@ public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, Set
             for (Block subBlock : subBlocks) {
                 if(subBlock instanceof ASTBlock) {
                     final ASTNode node = ((ASTBlock) subBlock).getNode();
-                    final Block block = new JSGraphQLBlockWrapper(subBlock, this, node, subBlock.getWrap(), subBlock.getAlignment(), spacingBuilder, settings);
+                    final Block block = new GraphQLBlockWrapper(subBlock, this, node, subBlock.getWrap(), subBlock.getAlignment(), spacingBuilder, settings);
                     blocks.add(block);
                 } else if(subBlock instanceof CompositeBlock) {
                     // the block represents multiple blocks, e.g. a method call and its parameter list
                     final List<Block> nestedSubBlocks = subBlock.getSubBlocks();
                     for (Block nestedSubBlock : nestedSubBlocks) {
                         if(nestedSubBlock instanceof ASTBlock) {
-                            final Block block = new JSGraphQLBlockWrapper(nestedSubBlock, this, ((ASTBlock) nestedSubBlock).getNode(), nestedSubBlock.getWrap(), nestedSubBlock.getAlignment(), spacingBuilder, settings);
+                            final Block block = new GraphQLBlockWrapper(nestedSubBlock, this, ((ASTBlock) nestedSubBlock).getNode(), nestedSubBlock.getWrap(), nestedSubBlock.getAlignment(), spacingBuilder, settings);
                             blocks.add(block);
                         } else {
                             // don't know how to wrap this, but we need to add it to main valid ranges for formatting
@@ -113,8 +120,6 @@ public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, Set
             }
 
         }
-
-        JSGraphQLBlock.verifyBlocks(blocks);
 
         return blocks;
     }
@@ -202,7 +207,7 @@ public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, Set
         if(wrapped != null) {
             return myNode.getPsi().getLanguage();
         }
-        return JSGraphQLLanguage.INSTANCE;
+        return GraphQLLanguage.INSTANCE;
     }
 
     @NotNull
@@ -215,13 +220,13 @@ public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, Set
     // ---- implementation ----
 
     private Block unwrap(Block child) {
-        if(child instanceof JSGraphQLBlockWrapper) {
-            return ((JSGraphQLBlockWrapper) child).wrapped;
+        if(child instanceof GraphQLBlockWrapper) {
+            return ((GraphQLBlockWrapper) child).wrapped;
         }
         return child;
     }
 
-    // This is based on AbstractBlock.buildInjectedBlocks, but substitutes DefaultInjectedLanguageBlockBuilder for a JSGraphQLInjectedLanguageBlockBuilder to
+    // This is based on AbstractBlock.buildInjectedBlocks, but substitutes DefaultInjectedLanguageBlockBuilder for a GraphQLInjectedLanguageBlockBuilder to
     //  enable host JS/TS template fragments that separate/shreds the GraphQL with ${...} expressions
     @NotNull
     private List<Block> buildInjectedBlocks() {
@@ -248,7 +253,7 @@ public class JSGraphQLBlockWrapper extends AbstractBlock implements BlockEx, Set
                 PsiFile injected = PsiDocumentManager.getInstance(psi.getProject()).getCachedPsiFile(documentWindow);
                 if (injected != null) {
                     List<Block> result = ContainerUtilRt.newArrayList();
-                    JSGraphQLInjectedLanguageBlockBuilder builder = new JSGraphQLInjectedLanguageBlockBuilder(settings);
+                    GraphQLInjectedLanguageBlockBuilder builder = new GraphQLInjectedLanguageBlockBuilder(settings);
                     builder.addInjectedBlocks(result, myNode, getWrap(), getAlignment(), getIndent());
                     return result;
                 }

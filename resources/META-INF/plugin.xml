@@ -207,8 +207,6 @@
     <!--
     <lang.formatter language="GraphQL" implementationClass="JSGraphQLFormattingModelBuilder"/>
     <lang.formatter language="GraphQL Schema" implementationClass="JSGraphQLFormattingModelBuilder"/>
-    <lang.formatter language="JavaScript" implementationClass="JSGraphQLInjectedFormattingModelBuilder" />
-    <lang.formatter language="TypeScript" implementationClass="JSGraphQLInjectedFormattingModelBuilder" /><!## Own reg required ##>
     -->
     <lang.formatter language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.formatter.JSGraphQLEndpointFormattingModelBuilder"/>
     <!--

@@ -119,6 +119,9 @@ public class SchemaIDLTypeDefinitionRegistry {
 
         final GraphQLPsiSearchHelper graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getService(project);
 
+        // Get the search scope that limits schema definition for the scoped element
+        GlobalSearchScope schemaScope = graphQLPsiSearchHelper.getSchemaScope(scopedElement);
+
         // GraphQL files
         FileTypeIndex.processFiles(GraphQLFileType.INSTANCE, file -> {
             final PsiFile psiFile = psiManager.findFile(file);
@@ -126,10 +129,10 @@ public class SchemaIDLTypeDefinitionRegistry {
                 processFile.accept(psiFile);
             }
             return true;
-        }, scope.intersectWith(graphQLPsiSearchHelper.getSchemaScope(scopedElement)));
+        }, scope.intersectWith(schemaScope));
 
         // Injected GraphQL
-        graphQLPsiSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, processFile);
+        graphQLPsiSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, processFile);
 
         return new TypeDefinitionRegistryWithErrors(typeRegistry, errros);
     }

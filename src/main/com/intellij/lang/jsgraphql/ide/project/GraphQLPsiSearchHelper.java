@@ -11,10 +11,7 @@ package com.intellij.lang.jsgraphql.ide.project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionIndex;
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLLanguageInjectionUtil;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
@@ -42,7 +39,6 @@ import com.intellij.psi.search.UsageSearchContext;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.indexing.FileBasedIndex;
 import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,8 +60,6 @@ public class GraphQLPsiSearchHelper {
 
     private final static Logger log = Logger.getInstance(GraphQLPsiSearchHelper.class);
 
-    private static final FileType[] FILE_TYPES = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
-
     private final Project myProject;
     private PluginDescriptor pluginDescriptor;
     private final Map<String, GraphQLFragmentDefinition> fragmentDefinitionsByName = Maps.newConcurrentMap();
@@ -81,7 +75,8 @@ public class GraphQLPsiSearchHelper {
         myProject = project;
         pluginDescriptor = PluginManager.getPlugin(PluginId.getId("com.intellij.lang.jsgraphql"));
         builtInSchemaScope = GlobalSearchScope.fileScope(project, getBuiltInSchema().getVirtualFile());
-        searchScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), FILE_TYPES).union(builtInSchemaScope);
+        final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
+        searchScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes).union(builtInSchemaScope);
         project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
             @Override
             public void beforePsiChanged(boolean isPhysical) {
@@ -137,6 +132,7 @@ public class GraphQLPsiSearchHelper {
      * Finds all fragment definition across files in the project
      *
      * @param scopedElement the starting point for finding known fragment definitions
+     *
      * @return a list of known fragment definitions, or an empty list if the index is not yet ready
      */
     public List<GraphQLFragmentDefinition> getKnownFragmentDefinitions(PsiElement scopedElement) {
@@ -162,6 +158,7 @@ public class GraphQLPsiSearchHelper {
      * Gets a resolved reference or null if no reference or resolved element is found
      *
      * @param psiElement the element to get a resolved reference for
+     *
      * @return the resolved reference, or null if non is available
      */
     public static GraphQLIdentifier getResolvedReference(GraphQLNamedElement psiElement) {
@@ -232,34 +229,17 @@ public class GraphQLPsiSearchHelper {
     }
 
     /**
-     * Uses the {@link GraphQLInjectionIndex} to process injected GraphQL PsiFiles
+     * Process injected GraphQL PsiFiles
      *
      * @param scopedElement the starting point of the enumeration settings the scopedElement of the processing
+     * @param schemaScope   the search scope to use for limiting the schema definitions
      * @param consumer      a consumer that will be invoked for each injected GraphQL PsiFile
      */
-    public void processInjectedGraphQLPsiFiles(PsiElement scopedElement, Consumer<PsiFile> consumer) {
-        final PsiManager psiManager = PsiManager.getInstance(scopedElement.getProject());
-        final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(scopedElement.getProject());
-        FileBasedIndex.getInstance().getFilesWithKey(GraphQLInjectionIndex.NAME, Collections.singleton(GraphQLInjectionIndex.DATA_KEY), virtualFile -> {
-            final PsiFile fileWithInjection = psiManager.findFile(virtualFile);
-            if (fileWithInjection != null) {
-                fileWithInjection.accept(new PsiRecursiveElementVisitor() {
-                    @Override
-                    public void visitElement(PsiElement element) {
-                        if (GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
-                            injectedLanguageManager.enumerate(element, (injectedPsi, places) -> {
-                                consumer.accept(injectedPsi);
-                            });
-                        } else {
-                            // visit deeper until injection found
-                            super.visitElement(element);
-                        }
-                    }
-                });
-            }
-            return true;
-        }, getSchemaScope(scopedElement));
-
+    public void processInjectedGraphQLPsiFiles(PsiElement scopedElement, GlobalSearchScope schemaScope, Consumer<PsiFile> consumer) {
+        GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = ServiceManager.getService(myProject, GraphQLInjectionSearchHelper.class);
+        if (graphQLInjectionSearchHelper != null) {
+            graphQLInjectionSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, consumer);
+        }
     }
 
     /**
@@ -267,10 +247,10 @@ public class GraphQLPsiSearchHelper {
      */
     public static String getFileName(PsiFile psiFile) {
         VirtualFile virtualFile = psiFile.getVirtualFile();
-        if(virtualFile == null) {
+        if (virtualFile == null) {
             virtualFile = psiFile.getOriginalFile().getVirtualFile();
         }
-        if(virtualFile != null) {
+        if (virtualFile != null) {
             return virtualFile.getPath();
         }
         return psiFile.getName();

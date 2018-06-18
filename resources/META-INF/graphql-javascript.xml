@@ -1,13 +1,18 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
 
+        <!-- Startup -->
+        <postStartupActivity implementation="com.intellij.lang.jsgraphql.endpoint.ide.startup.javascript.GraphQLJavaScriptStartupActivity" />
+
         <!-- Formatting -->
-        <lang.formatter language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLInjectedFormattingModelBuilder" />
-        <lang.formatter language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLInjectedFormattingModelBuilder" /><!-- Own reg required -->
+        <lang.formatter language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder" />
+        <lang.formatter language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder" /><!-- Own reg required -->
 
         <!-- Language Injection -->
-        <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.GraphQLTemplateFragmentLanguageInjector" order="first" />
-        <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionIndex"/>
+        <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLTemplateFragmentLanguageInjector" order="first" />
+        <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLJavascriptInjectionSearchHelper" />
 
+        <!-- Indexing -->
+        <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLInjectionIndex"/>
     </extensions>
 </idea-plugin>

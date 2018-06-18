@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.endpoint.ide.startup;
 
 import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
@@ -20,6 +21,10 @@ public class GraphQLStartupActivity implements StartupActivity, DumbAware {
 
     @Override
     public void runActivity(@NotNull Project project) {
+        if(ApplicationManager.getApplication().isUnitTestMode()) {
+            // don't create the UI when unit testing
+            return;
+        }
         // startup the UI service
         JSGraphQLLanguageUIProjectService.getService(project);
     }
