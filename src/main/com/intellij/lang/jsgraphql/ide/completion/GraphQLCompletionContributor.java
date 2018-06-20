@@ -46,6 +46,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -496,10 +497,45 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 protected void addCompletions(@NotNull final CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
 
                     final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
+                    final TypeDefinitionRegistry registry = GraphQLTypeDefinitionRegistryServiceImpl.getService(completionElement.getProject()).getRegistry(completionElement);
+
+                    final Set<String> addedDirectiveNames = Sets.newHashSet();
+
+                    // directives declared - available even when schema validation errors are present, as in when typing/completing a directive name
+                    for (DirectiveDefinition directiveDefinition : registry.getDirectiveDefinitions().values()) {
+                        final EnumSet<Introspection.DirectiveLocation> validLocations = EnumSet.noneOf(Introspection.DirectiveLocation.class);
+                        for (DirectiveLocation directiveLocation : directiveDefinition.getDirectiveLocations()) {
+                            try {
+                                validLocations.add(Introspection.DirectiveLocation.valueOf(directiveLocation.getName()));
+                            } catch (IllegalArgumentException ignored) {
+                            }
+                        }
+                        if (!isValidDirectiveLocation(validLocations, parameters.getPosition())) {
+                            continue;
+                        }
+                        LookupElementBuilder element = LookupElementBuilder.create(directiveDefinition.getName());
+                        for (InputValueDefinition directiveArgument : directiveDefinition.getInputValueDefinitions()) {
+                            if (directiveArgument.getType() instanceof GraphQLNonNull) {
+                                // found a required argument so insert the '()' for arguments
+                                element = element.withInsertHandler((ctx, item) -> {
+                                    ParenthesesInsertHandler.WITH_PARAMETERS.handleInsert(ctx, item);
+                                    AutoPopupController.getInstance(ctx.getProject()).autoPopupMemberLookup(ctx.getEditor(), null);
+                                });
+                                break;
+                            }
+                        }
+                        addedDirectiveNames.add(directiveDefinition.getName());
+                        result.addElement(element);
+                    }
+
+                    // directive including the built-in ones from a valid and working schema
                     final GraphQLSchema schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(completionElement.getProject()).getSchema(completionElement);
                     if (schema != null) {
                         for (graphql.schema.GraphQLDirective graphQLDirective : schema.getDirectives()) {
-                            if (!isValidDirectiveLocation(graphQLDirective, parameters.getPosition())) {
+                            if(!addedDirectiveNames.add(graphQLDirective.getName())) {
+                                continue;
+                            }
+                            if (!isValidDirectiveLocation(graphQLDirective.validLocations(), parameters.getPosition())) {
                                 continue;
                             }
                             LookupElementBuilder element = LookupElementBuilder.create(graphQLDirective.getName());
@@ -515,7 +551,6 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                             }
                             result.addElement(element);
                         }
-                        // TODO: Also support SDL directives, e.g. auth annotations etc. for the endpoint implementation
                     }
 
                 }
@@ -863,12 +898,12 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         return super.invokeAutoPopup(position, typeChar);
     }
 
-    private boolean isValidDirectiveLocation(graphql.schema.GraphQLDirective graphQLDirective, PsiElement completionPosition) {
+    private boolean isValidDirectiveLocation(EnumSet<Introspection.DirectiveLocation> validLocations, PsiElement completionPosition) {
         final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(completionPosition, GraphQLDirectivesAware.class);
         if (directivesAware == null) {
             return false;
         }
-        for (Introspection.DirectiveLocation directiveLocation : graphQLDirective.validLocations()) {
+        for (Introspection.DirectiveLocation directiveLocation : validLocations) {
             switch (directiveLocation) {
                 // Executable locations
                 case QUERY:

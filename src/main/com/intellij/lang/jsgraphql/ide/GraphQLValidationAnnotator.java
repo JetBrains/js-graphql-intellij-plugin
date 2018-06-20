@@ -334,6 +334,13 @@ public class GraphQLValidationAnnotator implements Annotator {
                                                 }
                                             } else if (elementType == GraphQLElementTypes.AT) {
                                                 // mark the directive and not only the '@'
+                                                if(validationErrorType == ValidationErrorType.MisplacedDirective) {
+                                                    // graphql-java KnownDirectives rule only recognizes executable directive locations, so ignore
+                                                    // the error if we're inside a type definition
+                                                    if(PsiTreeUtil.getTopmostParentOfType(errorPsiElement, GraphQLTypeSystemDefinition.class) != null) {
+                                                        continue;
+                                                    }
+                                                }
                                                 errorPsiElement = errorPsiElement.getParent();
                                             }
                                             if (errorPsiElement != null) {
