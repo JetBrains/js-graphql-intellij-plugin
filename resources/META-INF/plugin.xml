@@ -10,7 +10,7 @@
 <idea-plugin>
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>2.0.0-alpha-2</version>
+  <version>2.0.0-alpha-3</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -27,6 +27,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>2.0.0-alpha-3: graphql-config support</li>
       <li>2.0.0-alpha-2: Language support for GraphQL draft spec as of June 2018. Compatible with Android Studio 3.1 and IntelliJ IDEA Community Edition</li>
     </ul>
     ]]>
@@ -53,10 +54,14 @@
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService" serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.GraphQLSettings" serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.scopes.GraphQLProjectScopesManager" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.scopes.GraphQLProjectScopesManager" />
 
     <!-- Startup -->
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.endpoint.ide.startup.GraphQLStartupActivity" />
-
+    <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigProjectStartupActivity" />
 
     <!-- Syntax and error highlighting -->
     <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSyntaxHighlighterFactory"/>
@@ -88,8 +93,14 @@
     <!-- Renaming -->
     <vetoRenameCondition implementation="com.intellij.lang.jsgraphql.ide.rename.GraphQLRenameVetoCondition" />
 
+    <!-- Settings -->
+    <projectConfigurable groupId="language" instance="com.intellij.lang.jsgraphql.ui.GraphQLProjectConfigurable" />
 
+    <!-- .graphqlconfig JSON -->
+    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigFileTypeFactory" />
 
+    <!-- Editor notifications -->
+    <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.GraphQLScopeEditorNotificationProvider"/>
 
     <!-- v2 above this point -->
 
@@ -234,7 +245,7 @@
 
 
     <!-- Editor notification bars and markers -->
-    <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.v1.ide.notifications.JSGraphQLConfigEditorNotificationProvider"/>
+    <!--<editorNotificationProvider implementation="com.intellij.lang.jsgraphql.v1.ide.notifications.JSGraphQLConfigEditorNotificationProvider"/>-->
     <!--
     <editorNotificationProvider implementation="JSGraphQLApolloLokkaEditorNotificationProvider"/>
     -->

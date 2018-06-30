@@ -5,10 +5,11 @@
 #
 # See https://graphql.org/learn/schema/ for how to describe the types in your schema.
 #
-# Edit the graphql.config.json file to add your endpoint location to be able to query from .graphql files.
+# GrapQL endpoint locations are configured using .graphqlconfig files.
+# Click the settings icon in the header of the editor be able to query from .graphql files.
 #
-# If your project contains multiple schemas, you can keep them separate by configuring custom scopes under
-# "Settings" > "Appearance & Behavior" > "Scopes".
+# If your project contains multiple schemas, you can keep them separate by configuring the GraphQL project structure
+# under "Settings" > "Language & Frameworks" > "GraphQL"
 
 schema {
     query: Query

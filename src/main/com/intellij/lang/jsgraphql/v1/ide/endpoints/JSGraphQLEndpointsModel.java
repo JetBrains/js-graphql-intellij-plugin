@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright (c) 2015-present, Jim Kynde Meyer
  *  All rights reserved.
  *
@@ -8,20 +8,21 @@
 package com.intellij.lang.jsgraphql.v1.ide.endpoints;
 
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import org.jdesktop.swingx.combobox.ListComboBoxModel;
 
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.util.List;
 
-public class JSGraphQLEndpointsModel extends ListComboBoxModel<JSGraphQLEndpoint> {
+public class JSGraphQLEndpointsModel extends ListComboBoxModel<GraphQLConfigEndpoint> {
 
     private final static String INDEX_PROPERTY_NAME = JSGraphQLEndpointsModel.class.getName() + ".index";
 
-    public JSGraphQLEndpointsModel(List<JSGraphQLEndpoint> list, PropertiesComponent propertiesComponent) {
+    public JSGraphQLEndpointsModel(List<GraphQLConfigEndpoint> list, PropertiesComponent propertiesComponent) {
         super(list);
         if(!list.isEmpty()) {
-            int defaultSelectedIndex = propertiesComponent.getInt(INDEX_PROPERTY_NAME, 0);
+            int defaultSelectedIndex = propertiesComponent.getInt(INDEX_PROPERTY_NAME + getConfigPathPersistenceKey(), 0);
             if(defaultSelectedIndex >= 0 && defaultSelectedIndex < list.size()) {
                 setSelectedItem(list.get(defaultSelectedIndex));
             }
@@ -35,24 +36,24 @@ public class JSGraphQLEndpointsModel extends ListComboBoxModel<JSGraphQLEndpoint
 
             @Override
             public void contentsChanged(ListDataEvent listDataEvent) {
-                final JSGraphQLEndpoint selectedItem = getSelectedItem();
+                final GraphQLConfigEndpoint selectedItem = getSelectedItem();
                 if(selectedItem != null) {
-                    propertiesComponent.setValue(INDEX_PROPERTY_NAME, list.indexOf(selectedItem), 0);
+                    propertiesComponent.setValue(INDEX_PROPERTY_NAME + getConfigPathPersistenceKey(), list.indexOf(selectedItem), 0);
                 }
             }
         });
     }
 
-    public void reload(List<JSGraphQLEndpoint> newEndpoints) {
+    public void reload(List<GraphQLConfigEndpoint> newEndpoints) {
 
         if(data != newEndpoints) {
-            // once there's a config the endpoint list instance is shared,
-            // but in this case we created the model before that, and we need to add the endpoints at this point
             data.clear();
-            data.addAll(newEndpoints);
+            if(newEndpoints != null) {
+                data.addAll(newEndpoints);
+            }
         }
 
-        final JSGraphQLEndpoint selectedItem = getSelectedItem();
+        final GraphQLConfigEndpoint selectedItem = getSelectedItem();
 
         if (selectedItem == null) {
             // default to the first endpoint if one is available
@@ -68,5 +69,13 @@ public class JSGraphQLEndpointsModel extends ListComboBoxModel<JSGraphQLEndpoint
 
         // we have to let components that bind to the model know that the model has been changed
         this.fireContentsChanged(this, -1, -1);
+    }
+
+    private String getConfigPathPersistenceKey() {
+        if (getSize() > 0) {
+            return ":" + getElementAt(0).configPath;
+        } else {
+            return "";
+        }
     }
 }

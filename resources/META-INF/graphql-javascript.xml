@@ -15,4 +15,9 @@
         <!-- Indexing -->
         <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLInjectionIndex"/>
     </extensions>
+
+    <extensions defaultExtensionNs="JavaScript">
+        <JsonSchema.ProviderFactory implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.javascript.GraphQLConfigJsonSchemaProvider"/>
+    </extensions>
+
 </idea-plugin>

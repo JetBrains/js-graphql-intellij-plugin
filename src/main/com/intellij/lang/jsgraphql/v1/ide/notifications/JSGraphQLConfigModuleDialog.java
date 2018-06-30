@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-present, Jim Kynde Meyer
  * All rights reserved.
  *
@@ -29,6 +29,12 @@ public class JSGraphQLConfigModuleDialog extends DialogWrapper {
         this.project = project;
         setTitle("Select GraphQL Configuration Home");
         init();
+    }
+
+    @Nullable
+    @Override
+    public JComponent getPreferredFocusedComponent() {
+        return modulesComboBox;
     }
 
     @Nullable

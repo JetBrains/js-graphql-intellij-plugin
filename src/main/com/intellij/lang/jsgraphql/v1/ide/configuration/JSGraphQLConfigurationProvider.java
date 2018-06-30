@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright (c) 2015-present, Jim Kynde Meyer
  *  All rights reserved.
  *
@@ -254,7 +254,7 @@ public class JSGraphQLConfigurationProvider extends VirtualFileAdapter {
                     }
 
                     // signal the change
-                    myProject.getMessageBus().syncPublisher(JSGraphQLConfigurationListener.TOPIC).onEndpointsChanged(endpoints);
+                    myProject.getMessageBus().syncPublisher(JSGraphQLConfigurationListener.TOPIC).onEndpointsChanged();
 
                 }
                 myProject.putUserData(GRAPHQL_CONFIG_ENDPOINT_ENTRY_FILE_URL, null);

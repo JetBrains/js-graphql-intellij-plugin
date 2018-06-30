@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-present, Jim Kynde Meyer
  * All rights reserved.
  * <p>
@@ -12,6 +12,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.lang.jsgraphql.GraphQLScopeResolution;
+import com.intellij.lang.jsgraphql.GraphQLSettings;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.project.scopes.GraphQLProjectScopesManager;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
@@ -29,7 +33,12 @@ import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiRecursiveElementVisitor;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.AnyPsiChangeListener;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -37,7 +46,6 @@ import com.intellij.psi.search.GlobalSearchScopesCore;
 import com.intellij.psi.search.PsiSearchHelper;
 import com.intellij.psi.search.UsageSearchContext;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
-import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.NotNull;
@@ -61,10 +69,13 @@ public class GraphQLPsiSearchHelper {
     private final static Logger log = Logger.getInstance(GraphQLPsiSearchHelper.class);
 
     private final Project myProject;
-    private PluginDescriptor pluginDescriptor;
+    private final GraphQLSettings mySettings;
+    private final PluginDescriptor pluginDescriptor;
     private final Map<String, GraphQLFragmentDefinition> fragmentDefinitionsByName = Maps.newConcurrentMap();
     private final GlobalSearchScope searchScope;
     private final GlobalSearchScope builtInSchemaScope;
+    private final GraphQLConfigManager graphQLConfigManager;
+    private final GraphQLProjectScopesManager graphQLProjectScopesManager;
 
     public static GraphQLPsiSearchHelper getService(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLPsiSearchHelper.class);
@@ -73,6 +84,9 @@ public class GraphQLPsiSearchHelper {
 
     public GraphQLPsiSearchHelper(@NotNull final Project project) {
         myProject = project;
+        mySettings = GraphQLSettings.getSettings(project);
+        graphQLConfigManager = GraphQLConfigManager.getService(myProject);
+        graphQLProjectScopesManager = GraphQLProjectScopesManager.getService(myProject);
         pluginDescriptor = PluginManager.getPlugin(PluginId.getId("com.intellij.lang.jsgraphql"));
         builtInSchemaScope = GlobalSearchScope.fileScope(project, getBuiltInSchema().getVirtualFile());
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
@@ -90,30 +104,35 @@ public class GraphQLPsiSearchHelper {
      * Uses custom editable scopes to limit the schema and reference resolution of a GraphQL psi element
      */
     public GlobalSearchScope getSchemaScope(PsiElement element) {
-        final NamedScopesHolder[] holders = NamedScopesHolder.getAllNamedScopeHolders(myProject);
-        for (NamedScopesHolder holder : holders) {
-            final NamedScope[] scopes = holder.getEditableScopes();  // don't need predefined scopes as we default to entire project
-            for (NamedScope scope : scopes) {
-                final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, scope);
-                VirtualFile virtualFile = element.getContainingFile().getVirtualFile();
-                if (virtualFile == null) {
-                    // in memory PsiFile such as the completion PSI
-                    virtualFile = element.getContainingFile().getOriginalFile().getVirtualFile();
+
+        final GraphQLScopeResolution scopeResolution = mySettings.getScopeResolution();
+
+        switch (scopeResolution) {
+            case PROJECT_SCOPES:
+            case GRAPHQL_CONFIG_GLOBS:
+                final VirtualFile virtualFile = getVirtualFile(element.getContainingFile());
+                final NamedScope schemaScope = (scopeResolution == GraphQLScopeResolution.PROJECT_SCOPES
+                        ? graphQLProjectScopesManager.getSchemaScope(virtualFile)
+                        : graphQLConfigManager.getSchemaScope(virtualFile)
+                );
+                if (schemaScope != null) {
+                    final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
+                    return searchScope.intersectWith(filterSearchScope.union(builtInSchemaScope));
                 }
-                if (virtualFile != null) {
-                    if (filterSearchScope.contains(virtualFile)) {
-                        // TODO JKM cache based on virtual file system
-                        // Scope should be combination of completion PSI and original??
-                        return searchScope.intersectWith(filterSearchScope.union(builtInSchemaScope));
-                    }
-                } else {
-                    // TODO JKM
-                    System.err.println("Unable to resolve scope for " + element);
-                }
-            }
+                break;
         }
+
         // default is entire project limited by relevant file types
         return searchScope;
+    }
+
+    private static VirtualFile getVirtualFile(PsiFile containingFile) {
+        VirtualFile virtualFile = containingFile.getVirtualFile();
+        if (virtualFile == null) {
+            // in memory PsiFile such as the completion PSI
+            virtualFile = containingFile.getOriginalFile().getVirtualFile();
+        }
+        return virtualFile;
     }
 
     /**
@@ -224,6 +243,10 @@ public class GraphQLPsiSearchHelper {
             psiFile = psiFileFactory.createFileFromText("GraphQL Specification Schema", GraphQLLanguage.INSTANCE, specSchemaText);
             myProject.putUserData(GRAPHQL_BUILT_IN_SCHEMA_PSI_FILE, psiFile);
             psiFile.getVirtualFile().putUserData(IS_GRAPHQL_BUILT_IN_SCHEMA_VIRTUAL_FILE, true);
+            try {
+                psiFile.getVirtualFile().setWritable(false);
+            } catch (IOException ignored) {
+            }
         }
         return psiFile;
     }
@@ -246,10 +269,7 @@ public class GraphQLPsiSearchHelper {
      * Gets the virtual file system path of a PSI file
      */
     public static String getFileName(PsiFile psiFile) {
-        VirtualFile virtualFile = psiFile.getVirtualFile();
-        if (virtualFile == null) {
-            virtualFile = psiFile.getOriginalFile().getVirtualFile();
-        }
+        VirtualFile virtualFile = getVirtualFile(psiFile);
         if (virtualFile != null) {
             return virtualFile.getPath();
         }

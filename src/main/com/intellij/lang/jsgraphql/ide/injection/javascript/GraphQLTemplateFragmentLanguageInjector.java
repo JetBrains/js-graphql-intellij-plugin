@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright (c) 2015-present, Jim Kynde Meyer
  *  All rights reserved.
  *
@@ -15,8 +15,10 @@ import com.intellij.lang.javascript.JSTokenTypes;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLanguageInjectionHost;
+import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -61,6 +63,12 @@ public class GraphQLTemplateFragmentLanguageInjector implements MultiHostInjecto
             }
 
             registrar.doneInjecting();
+
+            // update graphql config notifications
+            final VirtualFile virtualFile = context.getContainingFile().getVirtualFile();
+            if(virtualFile != null) {
+                EditorNotifications.getInstance(context.getProject()).updateNotifications(virtualFile);
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright (c) 2015-present, Jim Kynde Meyer
  *  All rights reserved.
  *
@@ -24,14 +24,15 @@ import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
-import com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLEditEndpointsAction;
+import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
 import com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLToggleVariablesAction;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContext;
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor;
-import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpoint;
 import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.v1.ide.project.toolwindow.JSGraphQLErrorResult;
 import com.intellij.lang.jsgraphql.v1.ide.project.toolwindow.JSGraphQLErrorTreeViewPanel;
@@ -41,14 +42,24 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.impl.EditorHeaderComponent;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
@@ -63,7 +74,11 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.ui.*;
+import com.intellij.ui.EditorNotifications;
+import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.LightweightHint;
+import com.intellij.ui.OnePixelSplitter;
+import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.content.Content;
@@ -154,7 +169,9 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         // add editor headers to already open files since we've only just added the listener for fileOpened()
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
         for (VirtualFile virtualFile : fileEditorManager.getOpenFiles()) {
-            insertEditorHeaderComponentIfApplicable(fileEditorManager, virtualFile);
+            UIUtil.invokeLaterIfNeeded(() -> {
+                insertEditorHeaderComponentIfApplicable(fileEditorManager, virtualFile);
+            });
         }
 
         // listen for configuration changes
@@ -231,8 +248,8 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     // ---- configuration listener ----
 
     @Override
-    public void onEndpointsChanged(List<JSGraphQLEndpoint> endpoints) {
-        reloadEndpoints(endpoints);
+    public void onEndpointsChanged() {
+        reloadEndpoints();
     }
 
 
@@ -241,14 +258,19 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
     // -- endpoints --
 
-    private void reloadEndpoints(List<JSGraphQLEndpoint> newEndpoints) {
+    private void reloadEndpoints() {
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
+        final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
         for (VirtualFile file : fileEditorManager.getOpenFiles()) {
+            final List<GraphQLConfigEndpoint> endpoints = graphQLConfigManager.getEndpoints(file);
+            if(endpoints == null) {
+                continue;
+            }
             for (FileEditor editor : fileEditorManager.getEditors(file)) {
                 if(editor instanceof TextEditor) {
                     final JSGraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
                     if(endpointsModel != null) {
-                        endpointsModel.reload(newEndpoints);
+                        endpointsModel.reload(endpoints);
                     }
                 }
             }
@@ -285,7 +307,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
         // variables & settings actions
         final DefaultActionGroup settingsActions = new DefaultActionGroup();
-        settingsActions.add(new JSGraphQLEditEndpointsAction());
+        settingsActions.add(new GraphQLEditConfigAction());
         settingsActions.add(new JSGraphQLToggleVariablesAction());
 
         final JComponent settingsToolbar = createToolbar(settingsActions);
@@ -298,7 +320,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         final JComponent queryToolbar = createToolbar(queryActions);
 
         // configured endpoints combo box
-        final List<JSGraphQLEndpoint> endpoints = JSGraphQLConfigurationProvider.getService(myProject).getEndpoints();
+        final List<GraphQLConfigEndpoint> endpoints = GraphQLConfigManager.getService(myProject).getEndpoints(fileEditor.getFile());
         final JSGraphQLEndpointsModel endpointsModel = new JSGraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
         final ComboBox endpointComboBox = new ComboBox(endpointsModel);
         endpointComboBox.setToolTipText("GraphQL endpoint");
@@ -363,8 +385,9 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     public void executeGraphQL(Editor editor, VirtualFile virtualFile) {
         final JSGraphQLEndpointsModel endpointsModel = editor.getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
         if(endpointsModel != null) {
-            final JSGraphQLEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
+            final GraphQLConfigEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
             if(selectedEndpoint != null && selectedEndpoint.url != null) {
+                final GraphQLConfigVariableAwareEndpoint endpoint = new GraphQLConfigVariableAwareEndpoint(selectedEndpoint, myProject);
                 final JSGraphQLQueryContext context = JSGraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
                 String variables;
                 try {
@@ -395,9 +418,10 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                 }
                 final String requestJson = "{\"query\":\""+ StringEscapeUtils.escapeJavaScript(context.query)+"\", \"variables\":" +  variables + "}";
                 final HttpClient httpClient = new HttpClient(new HttpClientParams());
+                final String url = endpoint.getUrl();
                 try {
-                    final PostMethod method = new PostMethod(selectedEndpoint.url);
-                    setHeadersFromOptions(selectedEndpoint, method);
+                    final PostMethod method = new PostMethod(url);
+                    setHeadersFromOptions(endpoint, method);
                     method.setRequestEntity(new StringRequestEntity(requestJson, "application/json", "UTF-8"));
                     ApplicationManager.getApplication().executeOnPooledThread(() -> {
                         try {
@@ -460,11 +484,11 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                                 editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, null);
                             }
                         } catch (IOException e) {
-                            Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", selectedEndpoint.url + ": " + e.getMessage(), NotificationType.WARNING), myProject);
+                            Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", url + ": " + e.getMessage(), NotificationType.WARNING), myProject);
                         }
                     });
                 } catch (UnsupportedEncodingException | IllegalStateException | IllegalArgumentException e) {
-                    Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", selectedEndpoint.url + ": " + e.getMessage(), NotificationType.ERROR), myProject);
+                    Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", url + ": " + e.getMessage(), NotificationType.ERROR), myProject);
                 }
 
             }
@@ -505,14 +529,11 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         return String.format("%.1f %sb", bytes / Math.pow(1000, exp), pre);
     }
 
-    private void setHeadersFromOptions(JSGraphQLEndpoint endpoint, PostMethod method) {
-        if(endpoint.options != null) {
-            final Object headers = endpoint.options.get("headers");
-            if(headers instanceof Map) {
-                Map<String, Object> headersMap = (Map<String, Object>)headers;
-                for (Map.Entry<String, Object> entry : headersMap.entrySet()) {
-                    method.setRequestHeader(entry.getKey(), String.valueOf(entry.getValue()));
-                }
+    private void setHeadersFromOptions(GraphQLConfigVariableAwareEndpoint endpoint, PostMethod method) {
+        final Map<String, Object> headers = endpoint.getHeaders();
+        if (headers != null) {
+            for (Map.Entry<String, Object> entry : headers.entrySet()) {
+                method.setRequestHeader(entry.getKey(), String.valueOf(entry.getValue()));
             }
         }
     }

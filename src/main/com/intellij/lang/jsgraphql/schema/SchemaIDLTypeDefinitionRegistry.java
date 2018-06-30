@@ -92,9 +92,6 @@ public class SchemaIDLTypeDefinitionRegistry {
                                 if(!textRange.isEmpty()) {
                                     schemaText.replace(textRange.getStartOffset(), textRange.getEndOffset(), StringUtil.repeat(" ", textRange.getLength()));
                                 }
-                            } else {
-                                // TODO JKM
-                                System.err.println("");
                             }
                         });
 

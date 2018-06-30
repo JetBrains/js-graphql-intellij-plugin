@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "JSON schema for .graphlconfig",
+  "id": "https://github.com/prismagraphql/graphql-config/blob/master/specification.md",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "schemaPath": {
+      "type": "string",
+      "description": "A .graphql file that describes the schema using GraphQL SDL, e.g. \"./schema.graphql\""
+    },
+    "includes": {
+      "type": "array",
+      "description": "A glob pattern matching included files",
+      "items": {
+        "type": "string"
+      }
+    },
+    "excludes": {
+      "type": "array",
+      "description": "A glob pattern matching excluded files",
+      "items": {
+        "type": "string"
+      }
+    },
+    "extensions": {
+      "$ref": "#/definitions/extensions"
+    },
+    "projects": {
+      "type": "object",
+      "description" : "One or more projects as an object keyed by project name. Values are objects with fields describing schema structure, endpoints etc.",
+      "patternProperties": {
+        ".*": {
+          "description": "A named project with fields for describing schema structure, endpoints etc.",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "The name of this project. If absent, the key of this project config object will be used as the project name."
+            },
+            "schemaPath": {
+              "type": "string",
+              "description": "A .graphql file that describes the schema for this project using GraphQL SDL, e.g. \"./project-one-schema.graphql\""
+            },
+            "includes": {
+              "type": "array",
+              "description": "A glob pattern matching included files",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excludes": {
+              "type": "array",
+              "description": "A glob pattern matching excluded files",
+              "items": {
+                "type": "string"
+              }
+            },
+            "extensions": {
+              "$ref": "#/definitions/extensions"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "extensions": {
+      "type": "object",
+      "description": "Extensions to add additional configuration such as locations of GraphQL endpoint and framework-specific configuration.",
+      "properties": {
+        "endpoints": {
+          "type": "object",
+          "description": "GraphQL endpoints used for introspection and queries etc.",
+          "patternProperties": {
+            ".*": {
+              "description": "A string containing the URL of the endpoint, or an object with the URL and headers",
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "The URL of the endpoint"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "The URL of the endpoint"
+                    },
+                    "headers": {
+                      "type": "object",
+                      "description": "HTTP headers to send with requests"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
