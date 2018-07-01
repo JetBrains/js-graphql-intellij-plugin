@@ -45,7 +45,7 @@ class GraphQLConfigPackageSet implements PackageSet {
         this.globMatcher = globMatcher;
 
         if (StringUtils.isNotEmpty(configData.schemaPath)) {
-            VirtualFile schemaFile = configBaseDir.findFileByRelativePath(configData.schemaPath);
+            VirtualFile schemaFile = configBaseDir.findFileByRelativePath(StringUtils.replaceChars(configData.schemaPath, '\\', '/'));
             if (schemaFile != null) {
                 schemaFilePath = schemaFile.getPath();
             }

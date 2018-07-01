@@ -436,16 +436,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                                 if (fileEditor instanceof TextEditor) {
                                     final TextEditor textEditor = (TextEditor) fileEditor;
                                     UIUtil.invokeLaterIfNeeded(() -> {
-                                        ApplicationManager.getApplication().runWriteAction(() -> {
-                                            final Document document = textEditor.getEditor().getDocument();
-                                            document.setText(responseJson);
-                                            if(requestJson.startsWith("{")) {
-                                                final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
-                                                if (psiFile != null) {
-                                                    new ReformatCodeProcessor(psiFile, false).run();
-                                                }
-                                            }
-                                        });
+                                        updateQueryResultEditor(responseJson, textEditor);
                                         final StringBuilder queryResultText = new StringBuilder(virtualFile.getName()).
                                                 append(": ").
                                                 append(sw.getTime()).
@@ -476,14 +467,13 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                                                 querySuccessLabel.setIcon(AllIcons.Ide.ErrorPoint);
                                             }
                                         }
-                                        showToolWindowContent(myProject, fileEditor.getComponent().getClass());
-                                        textEditor.getEditor().getScrollingModel().scrollVertically(0);
+                                        showQueryResultEditor(textEditor);
                                     });
                                 }
                             } finally {
                                 editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, null);
                             }
-                        } catch (IOException e) {
+                        } catch (IOException | IllegalArgumentException e) {
                             Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", url + ": " + e.getMessage(), NotificationType.WARNING), myProject);
                         }
                     });
@@ -493,6 +483,32 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
             }
         }
+    }
+
+    public void showQueryResult(String jsonResponse) {
+        if(fileEditor instanceof TextEditor) {
+            final TextEditor fileEditor = (TextEditor) this.fileEditor;
+            updateQueryResultEditor(jsonResponse, fileEditor);
+            showQueryResultEditor(fileEditor);
+        }
+    }
+
+    private void showQueryResultEditor(TextEditor textEditor) {
+        showToolWindowContent(myProject, fileEditor.getComponent().getClass());
+        textEditor.getEditor().getScrollingModel().scrollVertically(0);
+    }
+
+    private void updateQueryResultEditor(String responseJson, TextEditor textEditor) {
+        ApplicationManager.getApplication().runWriteAction(() -> {
+            final Document document = textEditor.getEditor().getDocument();
+            document.setText(responseJson);
+            if(responseJson.startsWith("{")) {
+                final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
+                if (psiFile != null) {
+                    new ReformatCodeProcessor(psiFile, false).run();
+                }
+            }
+        });
     }
 
     private Integer getErrorCount(String responseJson) {
@@ -529,7 +545,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         return String.format("%.1f %sb", bytes / Math.pow(1000, exp), pre);
     }
 
-    private void setHeadersFromOptions(GraphQLConfigVariableAwareEndpoint endpoint, PostMethod method) {
+    public static void setHeadersFromOptions(GraphQLConfigVariableAwareEndpoint endpoint, PostMethod method) {
         final Map<String, Object> headers = endpoint.getHeaders();
         if (headers != null) {
             for (Map.Entry<String, Object> entry : headers.entrySet()) {

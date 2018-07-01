@@ -43,7 +43,15 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
     }
 
     public void setScopeResolution(GraphQLScopeResolution scopeResolution) {
-        this.myState.scopeResolution = scopeResolution;
+        myState.scopeResolution = scopeResolution;
+    }
+
+    public String getIntrospectionQuery() {
+        return myState.introspectionQuery;
+    }
+
+    public void setIntrospectionQuery(String introspectionQuery) {
+        myState.introspectionQuery = introspectionQuery;
     }
 
     /**
@@ -53,6 +61,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
      */
     static class GraphQLSettingsState {
         public GraphQLScopeResolution scopeResolution = GraphQLScopeResolution.ENTIRE_PROJECT;
+        public String introspectionQuery = "";
     }
 }
 

@@ -24,6 +24,7 @@ import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public class GraphQLProjectSettingsForm {
@@ -58,6 +59,7 @@ public class GraphQLProjectSettingsForm {
         schemasPanel.setBorder(IdeBorderFactory.createTitledBorder("GraphQL Project Structure and Schemas"));
 
         introspectionPanel.setBorder(IdeBorderFactory.createTitledBorder("GraphQL Introspection"));
+        automaticallyUpdateGraphQLFilesCheckBox.setVisible(false);
 
         final HoverHyperlinkLabel editScopesLink = new HoverHyperlinkLabel("Edit scopes");
         editScopesLink.addHyperlinkListener(hyperlinkEvent -> {
@@ -122,14 +124,16 @@ public class GraphQLProjectSettingsForm {
                 mySettings.setScopeResolution(graphQLScopeResolution);
             }
         });
+        mySettings.setIntrospectionQuery(introspectionQueryTextField.getText());
     }
 
     void reset() {
         scopes.get(mySettings.getScopeResolution()).setSelected(true);
+        introspectionQueryTextField.setText(mySettings.getIntrospectionQuery());
     }
 
     boolean isModified() {
-        return !scopes.get(mySettings.getScopeResolution()).isSelected();
+        return !scopes.get(mySettings.getScopeResolution()).isSelected() || !Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText());
     }
 
 }

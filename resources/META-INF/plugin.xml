@@ -102,6 +102,12 @@
     <!-- Editor notifications -->
     <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.GraphQLScopeEditorNotificationProvider"/>
 
+      <!-- Introspection -->
+      <codeInsight.lineMarkerProvider implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionJsonToSDLLineMarkerProvider" language="JSON" />
+      <codeInsight.lineMarkerProvider implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectEndpointUrlLineMarkerProvider" language="JSON" />
+      <projectViewNestingRulesProvider implementation="com.intellij.lang.jsgraphql.ide.project.GraphQLIntrospectionProjectViewNestingRulesProvider" />
+
+
     <!-- v2 above this point -->
 
 

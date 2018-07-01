@@ -69,7 +69,7 @@ public class GraphQLConfigVariableAwareEndpoint {
         return map;
     }
 
-    private String expandVariables(String rawValue) {
+    public String expandVariables(String rawValue) {
 
         Matcher matcher = ENV_PATTERN.matcher(rawValue);
 
