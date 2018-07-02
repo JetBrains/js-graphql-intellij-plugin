@@ -50,17 +50,6 @@ import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
         yybegin(state.state);
     }
 
-    private IElementType keywordOrName(IElementType keyword) {
-        if(GraphQLLexerUtil.isKeywordAtPos(zzBuffer, zzMarkedPos)) {
-            if(SCHEMA_KEYWORD.equals(keyword)) {
-                // the schema keyword, so handle the operation types correctly in that state
-                pushState(SCHEMA_DEFINITION);
-            }
-            return keyword;
-        }
-        return NAME;
-    }
-
   public GraphQLLexer() {
     this((java.io.Reader)null);
   }
@@ -97,18 +86,11 @@ TRIPEL_QUOTED_STRING_BODY = {QUO_STRING_CHAR}+
   myStateStack.clear();
 %eof}
 
-%state QUO_STRING THREE_QUO_STRING VARIABLE_OR_TEMPLATE TEMPLATE SCHEMA_DEFINITION
+%state QUO_STRING THREE_QUO_STRING VARIABLE_OR_TEMPLATE TEMPLATE
 
 %%
 
-<SCHEMA_DEFINITION> {
-  "query"            { return QUERY_KEYWORD; }
-  "mutation"         { return MUTATION_KEYWORD; }
-  "subscription"     { return SUBSCRIPTION_KEYWORD; }
-  "}"                { popState(); return BRACE_R; }
-}
-
-<YYINITIAL, SCHEMA_DEFINITION> {
+<YYINITIAL> {
   // Ignored tokens
   {UnicodeBOM}       { return WHITE_SPACE; }
   {WhiteSpace}+      { return WHITE_SPACE; }
@@ -133,21 +115,21 @@ TRIPEL_QUOTED_STRING_BODY = {QUO_STRING_CHAR}+
   "&"                { return AMP; }
 
   // keywords
-  "query"            { return keywordOrName(QUERY_KEYWORD); }
-  "mutation"         { return keywordOrName(MUTATION_KEYWORD); }
-  "subscription"     { return keywordOrName(SUBSCRIPTION_KEYWORD); }
-  "fragment"         { return keywordOrName(FRAGMENT_KEYWORD); }
-  "on"               { return keywordOrName(ON_KEYWORD); }
-  "schema"           { return keywordOrName(SCHEMA_KEYWORD); }
-  "type"             { return keywordOrName(TYPE_KEYWORD); }
-  "scalar"           { return keywordOrName(SCALAR_KEYWORD); }
-  "interface"        { return keywordOrName(INTERFACE_KEYWORD); }
-  "implements"       { return keywordOrName(IMPLEMENTS_KEYWORD); }
-  "enum"             { return keywordOrName(ENUM_KEYWORD); }
-  "union"            { return keywordOrName(UNION_KEYWORD); }
-  "extend"           { return keywordOrName(EXTEND_KEYWORD); }
-  "input"            { return keywordOrName(INPUT_KEYWORD); }
-  "directive"        { return keywordOrName(DIRECTIVE_KEYWORD); }
+  "query"            { return QUERY_KEYWORD; }
+  "mutation"         { return MUTATION_KEYWORD; }
+  "subscription"     { return SUBSCRIPTION_KEYWORD; }
+  "fragment"         { return FRAGMENT_KEYWORD; }
+  "on"               { return ON_KEYWORD; }
+  "schema"           { return SCHEMA_KEYWORD; }
+  "type"             { return TYPE_KEYWORD; }
+  "scalar"           { return SCALAR_KEYWORD; }
+  "interface"        { return INTERFACE_KEYWORD; }
+  "implements"       { return IMPLEMENTS_KEYWORD; }
+  "enum"             { return ENUM_KEYWORD; }
+  "union"            { return UNION_KEYWORD; }
+  "extend"           { return EXTEND_KEYWORD; }
+  "input"            { return INPUT_KEYWORD; }
+  "directive"        { return DIRECTIVE_KEYWORD; }
 
   // string and number literals
   \"                 { pushState(QUO_STRING);        return OPEN_QUOTE;    }
