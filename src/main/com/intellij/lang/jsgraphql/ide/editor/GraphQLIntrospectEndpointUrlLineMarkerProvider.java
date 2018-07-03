@@ -27,8 +27,11 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiErrorElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.introspection.IntrospectionQuery;
 import org.apache.commons.httpclient.HttpClient;
@@ -42,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -63,13 +68,12 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
         }
         if (element instanceof JsonProperty) {
             final JsonProperty jsonProperty = (JsonProperty) element;
-            if ("url".equals(jsonProperty.getName()) && jsonProperty.getValue() instanceof JsonStringLiteral) {
+            final Ref<String> urlRef = Ref.create();
+            if (isEndpointUrl(jsonProperty, urlRef) && !hasErrors(jsonProperty.getContainingFile())) {
 
-                return new LineMarkerInfo<>((JsonStringLiteral) jsonProperty.getValue(), jsonProperty.getValue().getTextRange(), AllIcons.General.Run, Pass.UPDATE_ALL, o -> "Run introspection query to generate GraphQL SDL schema file", (evt, jsonUrl) -> {
+                return new LineMarkerInfo<>(jsonProperty, jsonProperty.getTextRange(), AllIcons.General.Run, Pass.UPDATE_ALL, o -> "Run introspection query to generate GraphQL SDL schema file", (evt, jsonUrl) -> {
 
-                    final String url = jsonUrl.getValue();
-
-                    final GraphQLConfigVariableAwareEndpoint endpoint = getEndpoint(url, jsonProperty);
+                    final GraphQLConfigVariableAwareEndpoint endpoint = getEndpoint(urlRef.get(), jsonProperty);
                     if (endpoint == null) {
                         return;
                     }
@@ -79,6 +83,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
                         return;
                     }
 
+                    final String url = endpoint.getUrl();
                     final HttpClient httpClient = new HttpClient(new HttpClientParams());
 
                     try {
@@ -90,7 +95,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
 
                         final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
 
-                        final PostMethod method = new PostMethod(endpoint.getUrl());
+                        final PostMethod method = new PostMethod(url);
                         method.setRequestEntity(new StringRequestEntity(requestJson, "application/json", "UTF-8"));
 
                         setHeadersFromOptions(endpoint, method);
@@ -127,6 +132,46 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
         return null;
     }
 
+    private boolean hasErrors(PsiFile file) {
+        return PsiTreeUtil.findChildOfType(file, PsiErrorElement.class) != null;
+    }
+
+    private boolean isEndpointUrl(JsonProperty jsonProperty, Ref<String> urlRef) {
+        if (jsonProperty.getValue() instanceof JsonStringLiteral) {
+            final String url = ((JsonStringLiteral) jsonProperty.getValue()).getValue();
+            if (isUrlOrVariable(url)) {
+                final JsonProperty parentProperty = PsiTreeUtil.getParentOfType(jsonProperty, JsonProperty.class);
+                final JsonProperty grandParentProperty = PsiTreeUtil.getParentOfType(parentProperty, JsonProperty.class);
+                if ("url".equals(jsonProperty.getName()) && grandParentProperty != null && "endpoints".equals(grandParentProperty.getName())) {
+                    // "endpoints": {
+                    //      "<name>": {
+                    //          "url": "url" <---
+                    //      }
+                    // }
+                    urlRef.set(url);
+                    return true;
+                }
+                if (parentProperty != null && "endpoints".equals(parentProperty.getName())) {
+                    // "endpoints": {
+                    //      "<name>": "url" <---
+                    // }
+                    urlRef.set(url);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean isUrlOrVariable(String jsonValue) {
+        try {
+            new URL(jsonValue);
+            return true;
+        } catch (MalformedURLException e) {
+            return GraphQLConfigVariableAwareEndpoint.containsVariable(jsonValue);
+        }
+    }
+
     private String getSchemaPath(JsonProperty urlElement) {
         JsonObject jsonObject = PsiTreeUtil.getParentOfType(urlElement, JsonObject.class);
         String url = urlElement.getValue() instanceof JsonStringLiteral ? ((JsonStringLiteral) urlElement.getValue()).getValue() : "";
@@ -154,14 +199,21 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
 
             final GraphQLConfigEndpoint endpointConfig = new GraphQLConfigEndpoint("", "", url);
 
-            final Stream<JsonProperty> jsonPropertyStream = PsiTreeUtil.getChildrenOfTypeAsList(urlJsonProperty.getParent(), JsonProperty.class).stream();
-            final Optional<JsonProperty> headers = jsonPropertyStream.filter(p -> "headers".equals(p.getName())).findFirst();
-            headers.ifPresent(headersProp -> {
-                final JsonValue jsonValue = headersProp.getValue();
-                if (jsonValue != null) {
-                    endpointConfig.headers = new Gson().<Map<String, Object>>fromJson(jsonValue.getText(), Map.class);
-                }
-            });
+            // if the endpoint is just the url string, headers are not supported
+            final JsonProperty parent = PsiTreeUtil.getParentOfType(urlJsonProperty, JsonProperty.class);
+            final boolean supportsHeaders = parent != null && !"endpoints".equals(parent.getName());
+
+            if (supportsHeaders) {
+                final Stream<JsonProperty> jsonPropertyStream = PsiTreeUtil.getChildrenOfTypeAsList(urlJsonProperty.getParent(), JsonProperty.class).stream();
+                final Optional<JsonProperty> headers = jsonPropertyStream.filter(p -> "headers".equals(p.getName())).findFirst();
+                headers.ifPresent(headersProp -> {
+                    final JsonValue jsonValue = headersProp.getValue();
+                    if (jsonValue != null) {
+                        endpointConfig.headers = new Gson().<Map<String, Object>>fromJson(jsonValue.getText(), Map.class);
+                    }
+                });
+            }
+
 
             return new GraphQLConfigVariableAwareEndpoint(endpointConfig, urlJsonProperty.getProject());
 

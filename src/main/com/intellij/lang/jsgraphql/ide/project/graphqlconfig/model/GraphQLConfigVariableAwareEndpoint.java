@@ -56,6 +56,10 @@ public class GraphQLConfigVariableAwareEndpoint {
         return null;
     }
 
+    public static boolean containsVariable(String rawValue) {
+        return ENV_PATTERN.matcher(rawValue).find();
+    }
+
     @SuppressWarnings("unchecked")
     private Map<String, Object> expandVariables(Map<String, Object> map) {
         map.keySet().forEach(key -> {
