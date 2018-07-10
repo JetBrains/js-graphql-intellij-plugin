@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-present, Jim Kynde Meyer
  * All rights reserved.
  * <p>
@@ -904,56 +904,63 @@ public class GraphQLCompletionContributor extends CompletionContributor {
             return false;
         }
         for (Introspection.DirectiveLocation directiveLocation : validLocations) {
-            switch (directiveLocation) {
-                // Executable locations
-                case QUERY:
-                    if (directivesAware instanceof GraphQLTypedOperationDefinition) {
-                        GraphQLOperationType type = ((GraphQLTypedOperationDefinition) directivesAware).getOperationType();
-                        return type.getNode().findChildByType(GraphQLElementTypes.QUERY_KEYWORD) != null;
-                    }
-                    break;
-                case MUTATION:
-                    if (directivesAware instanceof GraphQLTypedOperationDefinition) {
-                        GraphQLOperationType type = ((GraphQLTypedOperationDefinition) directivesAware).getOperationType();
-                        return type.getNode().findChildByType(GraphQLElementTypes.MUTATION_KEYWORD) != null;
-                    }
-                    break;
-                // TODO JKM not yet supported by graphql-java
-                // case SUBSCRIPTION:
-                //    break;
-                case FIELD:
-                    return directivesAware instanceof GraphQLField;
-                case FRAGMENT_DEFINITION:
-                    return directivesAware instanceof GraphQLFragmentDefinition;
-                case FRAGMENT_SPREAD:
-                    return directivesAware instanceof GraphQLFragmentSpread;
-                case INLINE_FRAGMENT:
-                    return directivesAware instanceof GraphQLInlineFragment;
-
-                // SDL
-                case SCHEMA:
-                    return directivesAware instanceof GraphQLSchemaDefinition;
-                case SCALAR:
-                    return directivesAware instanceof GraphQLScalarTypeDefinition || directivesAware instanceof GraphQLScalarTypeExtensionDefinition;
-                case OBJECT:
-                    return directivesAware instanceof GraphQLObjectTypeDefinition || directivesAware instanceof GraphQLObjectTypeExtensionDefinition;
-                case FIELD_DEFINITION:
-                    return directivesAware instanceof GraphQLFieldDefinition;
-                case ARGUMENT_DEFINITION:
-                    return directivesAware instanceof GraphQLInputValueDefinition && directivesAware.getParent() instanceof GraphQLArgumentsDefinition;
-                case INTERFACE:
-                    return directivesAware instanceof GraphQLInterfaceTypeDefinition || directivesAware instanceof GraphQLInterfaceTypeExtensionDefinition;
-                case UNION:
-                    return directivesAware instanceof GraphQLUnionTypeDefinition || directivesAware instanceof GraphQLUnionTypeExtensionDefinition;
-                case ENUM:
-                    return directivesAware instanceof GraphQLEnumTypeDefinition || directivesAware instanceof GraphQLEnumTypeExtensionDefinition;
-                case ENUM_VALUE:
-                    return directivesAware instanceof GraphQLEnumValueDefinition;
-                case INPUT_OBJECT:
-                    return directivesAware instanceof GraphQLInputObjectTypeDefinition || directivesAware instanceof GraphQLInputObjectTypeExtensionDefinition;
-                case INPUT_FIELD_DEFINITION:
-                    return directivesAware instanceof GraphQLInputValueDefinition && !(directivesAware.getParent() instanceof GraphQLArgumentsDefinition);
+            if(isValidDirectiveLocation(directivesAware, directiveLocation)) {
+                return true;
             }
+        }
+        return false;
+    }
+
+    private boolean isValidDirectiveLocation(GraphQLDirectivesAware directivesAware, Introspection.DirectiveLocation directiveLocation) {
+        switch (directiveLocation) {
+            // Executable locations
+            case QUERY:
+                if (directivesAware instanceof GraphQLTypedOperationDefinition) {
+                    GraphQLOperationType type = ((GraphQLTypedOperationDefinition) directivesAware).getOperationType();
+                    return type.getNode().findChildByType(GraphQLElementTypes.QUERY_KEYWORD) != null;
+                }
+                break;
+            case MUTATION:
+                if (directivesAware instanceof GraphQLTypedOperationDefinition) {
+                    GraphQLOperationType type = ((GraphQLTypedOperationDefinition) directivesAware).getOperationType();
+                    return type.getNode().findChildByType(GraphQLElementTypes.MUTATION_KEYWORD) != null;
+                }
+                break;
+            // TODO JKM not yet supported by graphql-java
+            // case SUBSCRIPTION:
+            //    break;
+            case FIELD:
+                return directivesAware instanceof GraphQLField;
+            case FRAGMENT_DEFINITION:
+                return directivesAware instanceof GraphQLFragmentDefinition;
+            case FRAGMENT_SPREAD:
+                return directivesAware instanceof GraphQLFragmentSpread;
+            case INLINE_FRAGMENT:
+                return directivesAware instanceof GraphQLInlineFragment;
+
+            // SDL
+            case SCHEMA:
+                return directivesAware instanceof GraphQLSchemaDefinition;
+            case SCALAR:
+                return directivesAware instanceof GraphQLScalarTypeDefinition || directivesAware instanceof GraphQLScalarTypeExtensionDefinition;
+            case OBJECT:
+                return directivesAware instanceof GraphQLObjectTypeDefinition || directivesAware instanceof GraphQLObjectTypeExtensionDefinition;
+            case FIELD_DEFINITION:
+                return directivesAware instanceof GraphQLFieldDefinition;
+            case ARGUMENT_DEFINITION:
+                return directivesAware instanceof GraphQLInputValueDefinition && directivesAware.getParent() instanceof GraphQLArgumentsDefinition;
+            case INTERFACE:
+                return directivesAware instanceof GraphQLInterfaceTypeDefinition || directivesAware instanceof GraphQLInterfaceTypeExtensionDefinition;
+            case UNION:
+                return directivesAware instanceof GraphQLUnionTypeDefinition || directivesAware instanceof GraphQLUnionTypeExtensionDefinition;
+            case ENUM:
+                return directivesAware instanceof GraphQLEnumTypeDefinition || directivesAware instanceof GraphQLEnumTypeExtensionDefinition;
+            case ENUM_VALUE:
+                return directivesAware instanceof GraphQLEnumValueDefinition;
+            case INPUT_OBJECT:
+                return directivesAware instanceof GraphQLInputObjectTypeDefinition || directivesAware instanceof GraphQLInputObjectTypeExtensionDefinition;
+            case INPUT_FIELD_DEFINITION:
+                return directivesAware instanceof GraphQLInputValueDefinition && !(directivesAware.getParent() instanceof GraphQLArgumentsDefinition);
         }
         return false;
     }
