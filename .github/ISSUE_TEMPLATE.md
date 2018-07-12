@@ -1,6 +1,6 @@
 ## Before you create the issue
-- Please search the [existing issues](https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues?q=sort%3Aupdated-desc) before opening a new issue.
-- Read the [FAQ](https://github.com/jimkyndemeyer/js-graphql-intellij-plugin#faq)
+- Please search the existing issues at https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues?q=sort%3Aupdated-desc before opening a new issue.
+- Read the FAQ at https://github.com/jimkyndemeyer/js-graphql-intellij-plugin#faq
 - If you're using an EAP, try with a stable version. If that works, please mention it in the issue along with both versions.
 
 ## Version and Environment Details
