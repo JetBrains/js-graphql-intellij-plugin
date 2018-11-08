@@ -54,6 +54,14 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
         myState.introspectionQuery = introspectionQuery;
     }
 
+    public boolean isEnableRelayModernFrameworkSupport() {
+        return myState.enableRelayModernFrameworkSupport;
+    }
+
+    public void setEnableRelayModernFrameworkSupport(boolean enableRelayModernFrameworkSupport) {
+        myState.enableRelayModernFrameworkSupport = enableRelayModernFrameworkSupport;
+    }
+
     /**
      * The state class that is persisted as XML
      *
@@ -62,6 +70,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
     static class GraphQLSettingsState {
         public GraphQLScopeResolution scopeResolution = GraphQLScopeResolution.ENTIRE_PROJECT;
         public String introspectionQuery = "";
+        public boolean enableRelayModernFrameworkSupport;
     }
 }
 

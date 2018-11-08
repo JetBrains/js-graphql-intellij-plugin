@@ -18,7 +18,19 @@ import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
+import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveLocation;
+import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
+import com.intellij.lang.jsgraphql.psi.GraphQLField;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSelection;
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread;
+import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectField;
+import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeCondition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
@@ -143,19 +155,21 @@ public class GraphQLValidationAnnotator implements Annotator {
                     message = "Unknown type \"" + psiElement.getText() + "\"";
                 }
                 if (message != null) {
-                    final Annotation annotation = annotationHolder.createErrorAnnotation(psiElement, message);
-                    annotation.setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
-                    if (!fixes.isEmpty()) {
-                        final InspectionManager inspectionManager = InspectionManager.getInstance(psiElement.getProject());
-                        final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
-                                psiElement,
-                                psiElement,
-                                message,
-                                ProblemHighlightType.ERROR,
-                                true,
-                                LocalQuickFix.EMPTY_ARRAY
-                        );
-                        fixes.forEach(fix -> annotation.registerFix(fix, null, null, problemDescriptor));
+                    final Optional<Annotation> annotation = createErrorAnnotation(annotationHolder, psiElement, message);
+                    if(annotation.isPresent()) {
+                        annotation.get().setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
+                        if (!fixes.isEmpty()) {
+                            final InspectionManager inspectionManager = InspectionManager.getInstance(psiElement.getProject());
+                            final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
+                                    psiElement,
+                                    psiElement,
+                                    message,
+                                    ProblemHighlightType.ERROR,
+                                    true,
+                                    LocalQuickFix.EMPTY_ARRAY
+                            );
+                            fixes.forEach(fix -> annotation.get().registerFix(fix, null, null, problemDescriptor));
+                        }
                     }
                 }
             }
@@ -165,7 +179,8 @@ public class GraphQLValidationAnnotator implements Annotator {
         if (psiElement instanceof GraphQLDirectiveLocation) {
             final PsiReference reference = psiElement.getReference();
             if (reference == null || reference.resolve() == null) {
-                annotationHolder.createErrorAnnotation(psiElement, "Unknown directive location '" + psiElement.getText() + "'.").setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
+                Optional<Annotation> errorAnnotation = createErrorAnnotation(annotationHolder, psiElement, "Unknown directive location '" + psiElement.getText() + "'.");
+                errorAnnotation.ifPresent(annotation -> annotation.setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES));
             }
         }
 
@@ -184,6 +199,10 @@ public class GraphQLValidationAnnotator implements Annotator {
                 if (fileEditor instanceof TextEditor) {
                     editor = ((TextEditor) fileEditor).getEditor();
                     session.putUserData(EDITOR, editor);
+                }
+                if(editor == null) {
+                    // no compatible editor found to annotate
+                    return;
                 }
             }
 
@@ -214,7 +233,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                                     // use the definition identifier in that case
                                     errorPsiElement = nextLeaf.getParent();
                                 }
-                                annotationHolder.createErrorAnnotation(errorPsiElement, error.getMessage());
+                                createErrorAnnotation(annotationHolder, errorPsiElement, error.getMessage());
                             }
                         }
                     }
@@ -223,8 +242,11 @@ public class GraphQLValidationAnnotator implements Annotator {
                     final List<? extends GraphQLDefinition> operations = PsiTreeUtil.getChildrenOfAnyType(psiElement.getContainingFile(), GraphQLOperationDefinition.class, GraphQLFragmentDefinition.class);
                     final String fullErrorMessage = StringUtils.join(errorMessages, "\n");
                     for (GraphQLDefinition definition : operations) {
-                        Annotation errorAnnotation = annotationHolder.createErrorAnnotation(definition, "No type information available due to schema errors: \n" + fullErrorMessage);
-                        errorAnnotation.setTextAttributes(CodeInsightColors.WEAK_WARNING_ATTRIBUTES);
+                        Optional<Annotation> errorAnnotation = createErrorAnnotation(annotationHolder, definition, "No type information available due to schema errors: \n" + fullErrorMessage);
+                        if(!errorAnnotation.isPresent()) {
+                            continue;
+                        }
+                        errorAnnotation.get().setTextAttributes(CodeInsightColors.WEAK_WARNING_ATTRIBUTES);
 
                         if(!firstSchemaError.isNull()) {
                             final InspectionManager inspectionManager = InspectionManager.getInstance(psiElement.getProject());
@@ -238,7 +260,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                             );
 
                             // help the user navigate to the schema error
-                            errorAnnotation.registerFix(new LocalQuickFixOnPsiElement(definition) {
+                            errorAnnotation.get().registerFix(new LocalQuickFixOnPsiElement(definition) {
 
                                 @NotNull
                                 @Override
@@ -345,7 +367,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                                             }
                                             if (errorPsiElement != null) {
                                                 final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
-                                                annotationHolder.createErrorAnnotation(errorPsiElement, message);
+                                                createErrorAnnotation(annotationHolder, errorPsiElement, message);
                                             }
                                         }
                                     }
@@ -360,6 +382,13 @@ public class GraphQLValidationAnnotator implements Annotator {
             }
 
         }
+    }
+
+    private Optional<Annotation> createErrorAnnotation(@NotNull AnnotationHolder annotationHolder, PsiElement errorPsiElement, String message) {
+        if (GraphQLRelayModernAnnotationFilter.getService(errorPsiElement.getProject()).errorIsIgnored(errorPsiElement)) {
+            return Optional.empty();
+        }
+        return Optional.of(annotationHolder.createErrorAnnotation(errorPsiElement, message));
     }
 
     private int getOffsetFromSourceLocation(Editor editor, SourceLocation location) {

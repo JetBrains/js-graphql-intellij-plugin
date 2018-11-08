@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ui;
 
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -64,6 +65,7 @@ public class GraphQLProjectConfigurable implements SearchableConfigurable {
                 });
                 ApplicationManager.getApplication().invokeLater(() -> {
                     if (!myProject.isDisposed()) {
+                        DaemonCodeAnalyzer.getInstance(myProject).restart();
                         EditorNotifications.getInstance(myProject).updateAllNotifications();
                     }
                 }, myProject.getDisposed());

@@ -15,6 +15,7 @@ import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.GraphQLScopeResolution;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.project.scopes.ConditionalGlobalSearchScope;
 import com.intellij.lang.jsgraphql.ide.project.scopes.GraphQLProjectScopesManager;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
@@ -63,8 +64,8 @@ import java.util.function.Predicate;
  */
 public class GraphQLPsiSearchHelper {
 
-    public static final Key<Boolean> IS_GRAPHQL_BUILT_IN_SCHEMA_VIRTUAL_FILE = Key.create("JSGraphQL.built-in.schema.virtual-file");
-    public static final Key<PsiFile> GRAPHQL_BUILT_IN_SCHEMA_PSI_FILE = Key.create("JSGraphQL.build-in.schema.psi-file");
+    private static final Key<PsiFile> GRAPHQL_BUILT_IN_SCHEMA_PSI_FILE = Key.create("JSGraphQL.built-in.schema.psi-file");
+    private static final Key<PsiFile> RELAY_MODERN_DIRECTIVES_SCHEMA_PSI_FILE = Key.create("JSGraphQL.relay.modern.directives.schema.psi-file");
 
     private final static Logger log = Logger.getInstance(GraphQLPsiSearchHelper.class);
 
@@ -73,7 +74,7 @@ public class GraphQLPsiSearchHelper {
     private final PluginDescriptor pluginDescriptor;
     private final Map<String, GraphQLFragmentDefinition> fragmentDefinitionsByName = Maps.newConcurrentMap();
     private final GlobalSearchScope searchScope;
-    private final GlobalSearchScope builtInSchemaScope;
+    private final GlobalSearchScope allBuiltInSchemaScopes;
     private final GraphQLConfigManager graphQLConfigManager;
     private final GraphQLProjectScopesManager graphQLProjectScopesManager;
 
@@ -88,9 +89,13 @@ public class GraphQLPsiSearchHelper {
         graphQLConfigManager = GraphQLConfigManager.getService(myProject);
         graphQLProjectScopesManager = GraphQLProjectScopesManager.getService(myProject);
         pluginDescriptor = PluginManager.getPlugin(PluginId.getId("com.intellij.lang.jsgraphql"));
-        builtInSchemaScope = GlobalSearchScope.fileScope(project, getBuiltInSchema().getVirtualFile());
-        final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
-        searchScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes).union(builtInSchemaScope);
+
+        GlobalSearchScope builtInSchemaScope = GlobalSearchScope.fileScope(project, getBuiltInSchema().getVirtualFile());
+        GlobalSearchScope builtInRelaySchemaScope = GlobalSearchScope.fileScope(project, getRelayModernDirectivesSchema().getVirtualFile());
+        allBuiltInSchemaScopes = builtInSchemaScope.union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, mySettings::isEnableRelayModernFrameworkSupport));
+
+        final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(FileType.EMPTY_ARRAY);
+        searchScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes).union(allBuiltInSchemaScopes);
         project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
             @Override
             public void beforePsiChanged(boolean isPhysical) {
@@ -117,7 +122,7 @@ public class GraphQLPsiSearchHelper {
                 );
                 if (schemaScope != null) {
                     final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
-                    return searchScope.intersectWith(filterSearchScope.union(builtInSchemaScope));
+                    return searchScope.intersectWith(filterSearchScope.union(allBuiltInSchemaScopes));
                 }
                 break;
         }
@@ -199,15 +204,16 @@ public class GraphQLPsiSearchHelper {
      */
     public void processElementsWithWord(PsiElement scopedElement, String word, Predicate<PsiNamedElement> predicate) {
         try {
+            final GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
             PsiSearchHelper.SERVICE.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
                 if (psiElement instanceof PsiNamedElement) {
                     return predicate.test((PsiNamedElement) psiElement);
                 }
                 return true;
-            }, getSchemaScope(scopedElement), word, UsageSearchContext.IN_CODE, true, true);
+            }, schemaScope, word, UsageSearchContext.IN_CODE, true, true);
 
-            // also include the built-in schema
-            getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
+            // also include the built-in schemas
+            final PsiRecursiveElementVisitor builtInFileVisitor = new PsiRecursiveElementVisitor() {
                 @Override
                 public void visitElement(PsiElement element) {
                     if (element instanceof PsiNamedElement && word.equals(element.getText())) {
@@ -215,7 +221,16 @@ public class GraphQLPsiSearchHelper {
                     }
                     super.visitElement(element);
                 }
-            });
+            };
+
+            // spec schema
+            getBuiltInSchema().accept(builtInFileVisitor);
+
+            // relay schema if enabled
+            final PsiFile relayModernDirectivesSchema = getRelayModernDirectivesSchema();
+            if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
+                relayModernDirectivesSchema.accept(builtInFileVisitor);
+            }
 
         } catch (IndexNotReadyException e) {
             // can't search yet (e.g. during project startup)
@@ -223,26 +238,44 @@ public class GraphQLPsiSearchHelper {
     }
 
     /**
-     * Gets the build-in Schema that all endpoints support, including the introspection types, fields, directives and default scalars.
+     * Gets the built-in Schema that all endpoints support, including the introspection types, fields, directives and default scalars.
      */
     public PsiFile getBuiltInSchema() {
-        PsiFile psiFile = myProject.getUserData(GRAPHQL_BUILT_IN_SCHEMA_PSI_FILE);
+        return getGraphQLPsiFileFromResources(
+                "graphql specification schema.graphql",
+                "GraphQL Specification Schema",
+                GRAPHQL_BUILT_IN_SCHEMA_PSI_FILE
+        );
+    }
+
+    /**
+     * Gets the built-in Relay Modern Directives schema
+     */
+    public PsiFile getRelayModernDirectivesSchema() {
+        return getGraphQLPsiFileFromResources(
+                "relay modern directives schema.graphql",
+                "Relay Modern Directives Schema",
+                RELAY_MODERN_DIRECTIVES_SCHEMA_PSI_FILE
+        );
+    }
+
+    private PsiFile getGraphQLPsiFileFromResources(String resourceName, String displayName, Key<PsiFile> cacheProjectKey) {
+        PsiFile psiFile = myProject.getUserData(cacheProjectKey);
         if (psiFile == null) {
             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
             String specSchemaText = "";
             try {
-                try (InputStream inputStream = pluginDescriptor.getPluginClassLoader().getResourceAsStream("/META-INF/graphql specification schema.graphql")) {
+                try (InputStream inputStream = pluginDescriptor.getPluginClassLoader().getResourceAsStream("/META-INF/" + resourceName)) {
                     if (inputStream != null) {
                         specSchemaText = new String(IOUtils.toByteArray(inputStream));
                     }
                 }
             } catch (IOException e) {
-                log.error("Unable to load spec schema", e);
-                Notifications.Bus.notify(new Notification("GraphQL", "Unable to load GraphQL Specification Schema", e.getMessage(), NotificationType.ERROR));
+                log.error("Unable to load schema", e);
+                Notifications.Bus.notify(new Notification("GraphQL", "Unable to load " + displayName, e.getMessage(), NotificationType.ERROR));
             }
-            psiFile = psiFileFactory.createFileFromText("GraphQL Specification Schema", GraphQLLanguage.INSTANCE, specSchemaText);
-            myProject.putUserData(GRAPHQL_BUILT_IN_SCHEMA_PSI_FILE, psiFile);
-            psiFile.getVirtualFile().putUserData(IS_GRAPHQL_BUILT_IN_SCHEMA_VIRTUAL_FILE, true);
+            psiFile = psiFileFactory.createFileFromText(displayName, GraphQLLanguage.INSTANCE, specSchemaText);
+            myProject.putUserData(cacheProjectKey, psiFile);
             try {
                 psiFile.getVirtualFile().setWritable(false);
             } catch (IOException ignored) {
@@ -262,6 +295,19 @@ public class GraphQLPsiSearchHelper {
         GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = ServiceManager.getService(myProject, GraphQLInjectionSearchHelper.class);
         if (graphQLInjectionSearchHelper != null) {
             graphQLInjectionSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, consumer);
+        }
+    }
+
+    /**
+     * Process built-in GraphQL PsiFiles that are not the spec schema
+     *
+     * @param schemaScope   the search scope to use for limiting the schema definitions
+     * @param consumer      a consumer that will be invoked for each injected GraphQL PsiFile
+     */
+    public void processAdditionalBuiltInPsiFiles(GlobalSearchScope schemaScope, Consumer<PsiFile> consumer) {
+        final PsiFile relayModernDirectivesSchema = getRelayModernDirectivesSchema();
+        if(schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
+            consumer.accept(relayModernDirectivesSchema);
         }
     }
 

@@ -43,6 +43,8 @@ public class GraphQLProjectSettingsForm {
     private JPanel introspectionPanel;
     private ExpandableTextField introspectionQueryTextField;
     private JCheckBox automaticallyUpdateGraphQLFilesCheckBox;
+    JPanel relayModernPanel;
+    JCheckBox enableRelayModernCheckBox;
 
     private GraphQLSettings mySettings;
 
@@ -60,6 +62,8 @@ public class GraphQLProjectSettingsForm {
 
         introspectionPanel.setBorder(IdeBorderFactory.createTitledBorder("GraphQL Introspection"));
         automaticallyUpdateGraphQLFilesCheckBox.setVisible(false);
+
+        relayModernPanel.setBorder(IdeBorderFactory.createTitledBorder("GraphQL Frameworks"));
 
         final HoverHyperlinkLabel editScopesLink = new HoverHyperlinkLabel("Edit scopes");
         editScopesLink.addHyperlinkListener(hyperlinkEvent -> {
@@ -125,15 +129,26 @@ public class GraphQLProjectSettingsForm {
             }
         });
         mySettings.setIntrospectionQuery(introspectionQueryTextField.getText());
+        mySettings.setEnableRelayModernFrameworkSupport(enableRelayModernCheckBox.isSelected());
     }
 
     void reset() {
         scopes.get(mySettings.getScopeResolution()).setSelected(true);
         introspectionQueryTextField.setText(mySettings.getIntrospectionQuery());
+        enableRelayModernCheckBox.setSelected(mySettings.isEnableRelayModernFrameworkSupport());
     }
 
     boolean isModified() {
-        return !scopes.get(mySettings.getScopeResolution()).isSelected() || !Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText());
+        if (!scopes.get(mySettings.getScopeResolution()).isSelected()) {
+            return true;
+        }
+        if (!Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText())) {
+            return true;
+        }
+        if (mySettings.isEnableRelayModernFrameworkSupport() != enableRelayModernCheckBox.isSelected()) {
+            return true;
+        }
+        return false;
     }
 
 }

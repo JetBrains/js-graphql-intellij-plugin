@@ -29,13 +29,13 @@ public class GraphQLFileType extends LanguageFileType {
   @NotNull
   @Override
   public String getName() {
-    return "GraphQL file";
+    return "GraphQL";
   }
 
   @NotNull
   @Override
   public String getDescription() {
-    return "GraphQL Document";
+    return getName();
   }
 
   @NotNull

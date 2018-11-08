@@ -131,6 +131,9 @@ public class SchemaIDLTypeDefinitionRegistry {
         // Injected GraphQL
         graphQLPsiSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, processFile);
 
+        // Built-in that are additions to a default registry which already has the GraphQL spec directives
+        graphQLPsiSearchHelper.processAdditionalBuiltInPsiFiles(schemaScope, processFile);
+
         return new TypeDefinitionRegistryWithErrors(typeRegistry, errros);
     }
 }

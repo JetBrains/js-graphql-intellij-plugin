@@ -94,6 +94,7 @@ class GraphQLConfigPackageSet implements PackageSet {
             if (filePath.startsWith(configBaseDirPath)) {
                 relativePath = StringUtils.removeStart(filePath, configBaseDirPath);
             } else {
+                // the file is outside the config base dir, so it's not included
                 return false;
             }
             return (!hasIncludes || matchesGlobs(relativePath, this.configData.includes)) && !matchesGlobs(relativePath, this.configData.excludes);

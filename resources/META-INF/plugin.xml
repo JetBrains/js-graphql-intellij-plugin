@@ -58,10 +58,12 @@
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.scopes.GraphQLProjectScopesManager" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.scopes.GraphQLProjectScopesManager" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" serviceImplementation="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" />
 
     <!-- Startup -->
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.endpoint.ide.startup.GraphQLStartupActivity" />
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigProjectStartupActivity" />
+    <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.project.relay.GraphQLRelayModernEnableStartupActivity" />
 
     <!-- Syntax and error highlighting -->
     <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSyntaxHighlighterFactory"/>
@@ -320,6 +322,10 @@
 
     <action id="com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLNewFileAction" class="com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLNewFileAction">
       <add-to-group group-id="NewGroup"/>
+    </action>
+
+    <action class="com.intellij.lang.jsgraphql.ide.actions.GraphQLCreateConfigFileAction" id="com.intellij.lang.jsgraphql.ide.actions.GraphQLCreateConfigFileAction">
+      <add-to-group group-id="NewGroup" />
     </action>
 
     <!-- TODO JKM: Needs integration with references service
