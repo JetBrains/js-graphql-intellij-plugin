@@ -9,14 +9,19 @@ package com.intellij.lang.jsgraphql.ide;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.quickfix.RenameElementFix;
-import com.intellij.codeInspection.*;
+import com.intellij.codeInspection.InspectionManager;
+import com.intellij.codeInspection.LocalQuickFix;
+import com.intellij.codeInspection.LocalQuickFixOnPsiElement;
+import com.intellij.codeInspection.ProblemDescriptor;
+import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
-import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.psi.GraphQLArgumentsDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveLocation;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
@@ -28,9 +33,13 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.lang.jsgraphql.psi.GraphQLObjectField;
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTemplateSelection;
+import com.intellij.lang.jsgraphql.psi.GraphQLTemplateVariable;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeCondition;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLVisitor;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
@@ -44,9 +53,17 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.NavigatablePsiElement;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiRecursiveElementVisitor;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -56,7 +73,12 @@ import graphql.GraphQLError;
 import graphql.language.Document;
 import graphql.language.SourceLocation;
 import graphql.parser.Parser;
-import graphql.schema.*;
+import graphql.schema.GraphQLFieldsContainer;
+import graphql.schema.GraphQLInputFieldsContainer;
+import graphql.schema.GraphQLInputObjectField;
+import graphql.schema.GraphQLInterfaceType;
+import graphql.schema.GraphQLObjectType;
+import graphql.schema.SchemaUtil;
 import graphql.schema.idl.errors.SchemaProblem;
 import graphql.schema.validation.InvalidSchemaException;
 import graphql.validation.ValidationError;
@@ -210,7 +232,7 @@ public class GraphQLValidationAnnotator implements Annotator {
             try {
                 final GraphQLSchemaWithErrors schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(project).getSchemaWithErrors(psiElement);
                 if (!schema.isErrorsPresent()) {
-                    final Document document = parser.parseDocument(containingFile.getText());
+                    final Document document = parser.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile));
                     userData = new Validator().validateDocument(schema.getSchema(), document);
                 } else {
 
@@ -366,6 +388,12 @@ public class GraphQLValidationAnnotator implements Annotator {
                                                 errorPsiElement = errorPsiElement.getParent();
                                             }
                                             if (errorPsiElement != null) {
+                                                if (isInsideTemplateElement(errorPsiElement)) {
+                                                    // error due to template placeholder replacement, so we can ignore it for '___' replacement variables
+                                                    if (validationErrorType == ValidationErrorType.UndefinedVariable) {
+                                                        continue;
+                                                    }
+                                                }
                                                 final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
                                                 createErrorAnnotation(annotationHolder, errorPsiElement, message);
                                             }
@@ -382,6 +410,88 @@ public class GraphQLValidationAnnotator implements Annotator {
             }
 
         }
+    }
+
+    /**
+     * Gets whether the specified element is inside a placeholder in a template
+     */
+    boolean isInsideTemplateElement(PsiElement psiElement) {
+        return PsiTreeUtil.findFirstParent(
+                psiElement, false,
+                el -> el instanceof GraphQLTemplateDefinition || el instanceof GraphQLTemplateSelection || el instanceof GraphQLTemplateVariable
+        ) != null;
+    }
+
+    /**
+     * Replaces template placeholders in a GraphQL operation to produce valid GraphQL.
+     *
+     * Positions of tokens are preserved by using replacements that fit within the ${} placeholder token.
+     *
+     * Note that the replacement needs to be filtered for variables and selections, specifically:
+     * - Variables: '$__'
+     * - Selection '___'
+     *
+     * @param graphqlPsiFile the file to transform to valid GraphQL by replacing placeholders
+     *
+     * @return the transformed valid GraphQL as a string
+     */
+    private String replacePlaceholdersWithValidGraphQL(PsiFile graphqlPsiFile) {
+        final StringBuffer buffer = new StringBuffer(graphqlPsiFile.getText());
+        final GraphQLVisitor visitor = new GraphQLVisitor() {
+            @Override
+            public void visitTemplateDefinition(@NotNull GraphQLTemplateDefinition templateDefinition) {
+                // top level template, e.g. the inclusion of an external fragment below a query
+                // in this case whitespace will produce a valid GraphQL document
+                final TextRange textRange = templateDefinition.getTextRange();
+                for (int bufferIndex = textRange.getStartOffset(); bufferIndex < textRange.getEndOffset(); bufferIndex++) {
+                    buffer.setCharAt(bufferIndex, ' ');
+                }
+            }
+
+            @Override
+            public void visitTemplateSelection(@NotNull GraphQLTemplateSelection templateSelection) {
+                // template is a selection, e.g. where a field or fragment would be found
+                // in this case well add a '___'  selection that can fit within ${} and filter it out in the annotator
+                final TextRange textRange = templateSelection.getTextRange();
+                int charIndex = 0;
+                for (int bufferIndex = textRange.getStartOffset(); bufferIndex < textRange.getEndOffset(); bufferIndex++) {
+                    buffer.setCharAt(bufferIndex, charIndex <= 2 ? '_' : ' ');
+                    charIndex++;
+                }
+            }
+
+            @Override
+            public void visitTemplateVariable(@NotNull GraphQLTemplateVariable templateVariable) {
+                // template is a variable, so replace it with '$__' that fits within ${} and filter it out in the annotator
+                final TextRange textRange = templateVariable.getTextRange();
+                int charIndex = 0;
+                for (int bufferIndex = textRange.getStartOffset(); bufferIndex < textRange.getEndOffset(); bufferIndex++) {
+                    char currentChar;
+                    switch (charIndex) {
+                        case 0:
+                            currentChar = '$';
+                            break;
+                        case 1:
+                        case 2:
+                            currentChar = '_';
+                            break;
+                        default:
+                            currentChar = ' ';
+                            break;
+                    }
+                    buffer.setCharAt(bufferIndex, currentChar);
+                    charIndex++;
+                }
+            }
+        };
+        graphqlPsiFile.accept(new PsiRecursiveElementVisitor() {
+            @Override
+            public void visitElement(PsiElement element) {
+                element.accept(visitor);
+                super.visitElement(element);
+            }
+        });
+        return buffer.toString();
     }
 
     private Optional<Annotation> createErrorAnnotation(@NotNull AnnotationHolder annotationHolder, PsiElement errorPsiElement, String message) {
