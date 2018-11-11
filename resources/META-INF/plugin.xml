@@ -48,6 +48,9 @@
     <fileTypeFactory implementation="com.intellij.lang.jsgraphql.GraphQLFileTypeFactory"/>
     <lang.parserDefinition language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLParserDefinition"/>
 
+    <!-- Icons -->
+    <iconProvider implementation="com.intellij.lang.jsgraphql.GraphQLIconProvider" />
+
     <!-- Project services -->
     <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl" serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.SchemaIDLTypeDefinitionRegistry" serviceImplementation="com.intellij.lang.jsgraphql.schema.SchemaIDLTypeDefinitionRegistry" />
@@ -165,9 +168,9 @@
     <lang.braceMatcher language="GraphQL Schema" implementationClass="JSGraphQLBraceMatcher"  />
     -->
     <lang.braceMatcher language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointBraceMatcher"  />
+    <lang.psiStructureViewFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.structureView.GraphQLPsiStructureViewFactory"/>
     <!--
     <lang.fileViewProviderFactory language="GraphQL Schema" implementationClass="JSGraphQLSchemaFileViewProviderFactory" />
-    <lang.psiStructureViewFactory language="GraphQL" implementationClass="JSGraphQLPsiStructureViewFactory"/>
     <lang.psiStructureViewFactory language="GraphQL Schema" implementationClass="JSGraphQLPsiStructureViewFactory"/>
     -->
     <lang.psiStructureViewFactory language="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.ide.structureView.JSGraphQLEndpointPsiStructureViewFactory"/>
