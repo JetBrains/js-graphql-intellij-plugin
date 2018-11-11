@@ -101,6 +101,9 @@
     <!-- .graphqlconfig JSON -->
     <fileTypeFactory implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigFileTypeFactory" />
 
+    <!-- recognize .graphqls as GraphQL for legacy reasons -->
+    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.ide.project.GraphQLSLegacyFileTypeFactory" />
+
     <!-- Editor notifications -->
     <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.GraphQLScopeEditorNotificationProvider"/>
 
