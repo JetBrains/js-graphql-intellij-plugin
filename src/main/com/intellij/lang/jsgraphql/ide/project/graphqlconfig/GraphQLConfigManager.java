@@ -23,6 +23,7 @@ import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
+import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -36,6 +37,7 @@ import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileCopyEvent;
 import com.intellij.openapi.vfs.VirtualFileEvent;
@@ -43,6 +45,12 @@ import com.intellij.openapi.vfs.VirtualFileListener;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.VirtualFileMoveEvent;
 import com.intellij.openapi.vfs.VirtualFilePropertyEvent;
+import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiTreeChangeAdapter;
+import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
@@ -70,6 +78,7 @@ import java.util.Set;
 public class GraphQLConfigManager {
 
     public static final String GRAPHQLCONFIG = ".graphqlconfig";
+    public static final String GRAPHQLCONFIG_COMMENT = ".graphqlconfig=";
 
     private static final String GRAPHQLCONFIG_YML = ".graphqlconfig.yml";
     private static final String GRAPHQLCONFIG_YAML = ".graphqlconfig.yaml";
@@ -131,7 +140,12 @@ public class GraphQLConfigManager {
      */
     public VirtualFile getClosestConfigFile(VirtualFile virtualFile) {
         final Set<VirtualFile> contentRoots = getContentRoots(virtualFile);
-        VirtualFile directory = virtualFile.getParent();
+        VirtualFile directory;
+        if(virtualFile.getFileType() == ScratchFileType.INSTANCE) {
+            directory = getConfigBaseDirForScratch(virtualFile);
+        } else {
+            directory = virtualFile.getParent();
+        }
         while (directory != null) {
             for (String fileName : GRAPHQLCONFIG_FILE_NAMES) {
                 VirtualFile configFile = directory.findChild(fileName);
@@ -174,17 +188,11 @@ public class GraphQLConfigManager {
      * Gets the endpoints that are within scope for the specified GraphQL virtual file.
      *
      * If the file is not a GraphQL file, null is returned
-     *
      */
     @SuppressWarnings("unchecked")
     public List<GraphQLConfigEndpoint> getEndpoints(VirtualFile virtualFile) {
 
-        if (virtualFile.getFileType() == ScratchFileType.INSTANCE) {
-            // TODO: Return all endpoints for scratch files?
-            return Lists.newArrayList();
-        }
-
-        if (virtualFile.getFileType() != GraphQLFileType.INSTANCE) {
+        if (virtualFile.getFileType() != GraphQLFileType.INSTANCE && !GraphQLFileType.isGraphQLScratchFile(myProject, virtualFile)) {
             return null;
         }
 
@@ -259,8 +267,30 @@ public class GraphQLConfigManager {
 
         };
         VirtualFileManager.getInstance().addVirtualFileListener(virtualFileListener);
+
+        PsiManager.getInstance(myProject).addPsiTreeChangeListener(new PsiTreeChangeAdapter() {
+
+            @Override
+            public void childReplaced(@NotNull PsiTreeChangeEvent event) {
+                if (event.getFile() instanceof GraphQLFile && event.getFile().getVirtualFile().getFileType() == ScratchFileType.INSTANCE) {
+                    if (hasGraphQLConfigComment(event.getNewChild()) || hasGraphQLConfigComment(event.getOldChild())) {
+                        // updated the .graphqlconfig comment in a scratch comment which associates the scratch with a scope
+                        // so clear the cached path to scope entry in virtualFilePathToScopes
+                        virtualFilePathToScopes.keySet().remove(event.getFile().getVirtualFile().getPath());
+                    }
+                }
+            }
+        });
+
         buildConfigurationModel();
 
+    }
+
+    private boolean hasGraphQLConfigComment(PsiElement psiElement) {
+        if (psiElement instanceof PsiComment) {
+            return psiElement.getText().contains(GRAPHQLCONFIG_COMMENT);
+        }
+        return false;
     }
 
     private void onVirtualFileChange(VirtualFileEvent event) {
@@ -301,7 +331,9 @@ public class GraphQLConfigManager {
             try {
                 final String jsonText = new String(jsonFile.contentsToByteArray(), jsonFile.getCharset());
                 final GraphQLConfigData graphQLConfigData = gson.fromJson(jsonText, GraphQLConfigData.class);
-                newConfigPathToConfigurations.put(jsonFile.getParent().getPath(), graphQLConfigData);
+                if(graphQLConfigData != null) {
+                    newConfigPathToConfigurations.put(jsonFile.getParent().getPath(), graphQLConfigData);
+                }
             } catch (IOException | JsonSyntaxException e) {
                 createParseErrorNotification(jsonFile, e);
             }
@@ -390,7 +422,7 @@ public class GraphQLConfigManager {
         if (module != null) {
             return Sets.newHashSet(ModuleRootManager.getInstance(module).getContentRoots());
         } else {
-            return null;
+            return Sets.newHashSet(myProject.getBaseDir());
         }
     }
 
@@ -402,7 +434,12 @@ public class GraphQLConfigManager {
             virtualFileWithPath.set(((VirtualFileWindow) virtualFile).getDelegate());
         }
         NamedScope namedScope = virtualFilePathToScopes.computeIfAbsent(virtualFileWithPath.get().getPath(), path -> {
-            VirtualFile configBaseDir = virtualFileWithPath.get().getParent();
+            VirtualFile configBaseDir;
+            if (virtualFileWithPath.get().getFileType() != ScratchFileType.INSTANCE) {
+                configBaseDir = virtualFileWithPath.get().getParent();
+            } else {
+                configBaseDir = getConfigBaseDirForScratch(virtualFileWithPath.get());
+            }
             // locate the nearest config file, see https://github.com/prismagraphql/graphql-config/blob/master/src/findGraphQLConfigFile.ts
             final Set<VirtualFile> contentRoots = getContentRoots(virtualFileWithPath.get());
             while (configBaseDir != null) {
@@ -439,6 +476,59 @@ public class GraphQLConfigManager {
             return namedScope;
         }
         return null;
+    }
+
+    /**
+     * Resolves the logical configuration base dir for a scratch file that is placed outside the project by IntelliJ
+     * @param scratchVirtualFile the scratch file to resolve a configuration dir for
+     * @return the resolved configuration base dir or null if none was found
+     */
+    private VirtualFile getConfigBaseDirForScratch(VirtualFile scratchVirtualFile) {
+
+        final PsiFile psiFile = PsiManager.getInstance(myProject).findFile(scratchVirtualFile);
+
+        // by default we'll use the directory of the scratch file
+        final Ref<VirtualFile> baseDir = new Ref<>();
+
+        // but look for a GRAPHQLCONFIG_COMMENT to override it
+        if (psiFile != null) {
+            PsiElement element = psiFile.getFirstChild();
+            while (element != null) {
+                if (element instanceof PsiComment) {
+                    final String commentText = element.getText();
+                    if (commentText.contains(GRAPHQLCONFIG_COMMENT)) {
+                        final String configFileName = StringUtil.substringAfter(commentText, GRAPHQLCONFIG_COMMENT);
+                        if (configFileName != null) {
+                            final VirtualFile configVirtualFile = scratchVirtualFile.getFileSystem().findFileByPath(configFileName.trim());
+                            if (configVirtualFile != null) {
+                                if (configVirtualFile.isDirectory()) {
+                                    baseDir.set(configVirtualFile);
+                                } else {
+                                    baseDir.set(configVirtualFile.getParent());
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+                element = element.getNextSibling();
+            }
+        }
+
+        if (baseDir.get() == null) {
+            // fallback to either:
+            // - a single config
+            // - the project base dir
+            if (configPathToConfigurations.size() == 1) {
+                final String singleConfigPath = configPathToConfigurations.keySet().iterator().next();
+                baseDir.set(scratchVirtualFile.getFileSystem().findFileByPath(singleConfigPath));
+            }
+            if (baseDir.get() == null) {
+                baseDir.set(myProject.getBaseDir());
+            }
+        }
+
+        return baseDir.get();
     }
 
     private void createParseErrorNotification(VirtualFile file, Exception e) {

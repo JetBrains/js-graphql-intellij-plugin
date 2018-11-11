@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 
@@ -23,6 +24,7 @@ public class GraphQLCreateConfigFileAction extends AnAction {
             final VirtualFile virtualFile = getActionDirectory(e);
             if (virtualFile != null) {
                 GraphQLConfigManager.getService(e.getProject()).createAndOpenConfigFile(virtualFile, true);
+                ApplicationManager.getApplication().saveAll();
             }
         }
     }

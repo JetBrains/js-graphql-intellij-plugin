@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 
 import com.google.common.collect.Maps;
+import com.intellij.ide.scratch.ScratchFileType;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -83,8 +84,13 @@ class GraphQLConfigPackageSet implements PackageSet {
     /**
      * Gets whether a file is included.
      * Based on graphl-config: https://github.com/prismagraphql/graphql-config/blob/b6785a7f0c1b84010cd6e9b94797796254d527b9/src/GraphQLProjectConfig.ts#L56
+     * Note: Scratch files are always considered to be included since they are associated with a configuration package set but have a path that lies the project sources
      */
     boolean includesVirtualFile(@NotNull VirtualFile file) {
+        if(file.getFileType() == ScratchFileType.INSTANCE) {
+            // if a scratch file has been associated with a configuration it is considered to be included
+            return true;
+        }
         return includesFilePath.computeIfAbsent(file.getPath(), filePath -> {
             if (filePath.equals(schemaFilePath)) {
                 // fast-path for always including the schema file if present

@@ -26,7 +26,7 @@ If you're authoring your schemas in SDL, the plugin provides the following featu
 - Find usages in SDL and refactoring such as rename which will update the relevant queries, mutations etc.
 
 For use cases where you don't declare the schema in the project, an introspection query can be executed against a
-GraphQL endpoint URL to write the schema to a `.graphql` file as SDL. See [Working with GraphQL Endpoints](#working-with-graphql-endpoints).
+GraphQL endpoint URL to write the schema to a `.graphql` file as SDL. See [Working with GraphQL Endpoints](#working-with-graphql-endpoints-and-scratch-files).
 
 ## Project Structure and Schema Discovery
 By default, the plugin assumes that your project only contains a single schema. If this is the case, you don't need
@@ -143,10 +143,28 @@ __Option B: Multiple config files:__
 
 With this approach the location of the config files creates separate scopes for the two schemas. 
 
+### Working with GraphQL Endpoints and Scratch Files
+
+You can use GraphQL scratch files to work with your schema outside product code, e.g. by writing temporary queries to
+test resolvers. 
+
+To run queries or mutations against your GraphQL endpoint, add your endpoint details to a `.graphqlconfig` file. If you
+don't already have a config file, you can create one by right-clicking on your project base dir and choosing 
+"New" - "GraphQL Configuration File". If you already have a config file, you can jump to it using the "Edit .graphqlconfig"
+toolbar button in the top left side of the scratch file editor.
+
+See https://github.com/prisma/graphql-config#specifying-endpoint-info for the expected format of endpoint details such as
+the URL, headers etc.
+
+GraphQL scratch files use the following rules for schema discovery and endpoints:
+
+- If there is a single `.graphqlconfig` the scratch file automatically uses the schema and endpoints from that configuration
+- For a project with multiple `.graphqlconfig` files, add the following GraphQL comment to your scratch file to pick the relevant `.graphqlconfig`:
+    - `# .graphqlconfig=<absolute path to your config dir>\.graphqlconfig`
+- In case no matching `.graphqlconfig` was found, the project base dir will be used for schema discovery, and no endpoints
+    will be available for queries or other operations   
+
 ### ---- TODO BELOW THIS LINE ----
-
-### Working with GraphQL Endpoints
-
 
 ## Breaking changes from v1
 
