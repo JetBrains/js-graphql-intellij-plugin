@@ -7,12 +7,16 @@
  */
 package com.intellij.lang.jsgraphql.ide.references;
 
+import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
+import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectiveImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferencePsiElement;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
+import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
@@ -25,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public class GraphQLReferenceService {
@@ -121,22 +126,32 @@ public class GraphQLReferenceService {
             final GraphQLFieldImpl field = PsiTreeUtil.getParentOfType(element, GraphQLFieldImpl.class);
             if (field != null) {
                 final PsiReference fieldPsiReference = field.getNameIdentifier().getReference();
-                GraphQLFieldDefinition fieldDefinition = null;
                 if (fieldPsiReference != null) {
                     final PsiElement resolvedPsiReference = fieldPsiReference.resolve();
-                    if (resolvedPsiReference != null && resolvedPsiReference.getParent() instanceof GraphQLFieldDefinition) {
-                        fieldDefinition = (GraphQLFieldDefinition) resolvedPsiReference.getParent();
-                    }
-                }
-                if (fieldDefinition != null) {
-                    final GraphQLArgumentsDefinition argumentsDefinition = fieldDefinition.getArgumentsDefinition();
-                    if (argumentsDefinition != null) {
-                        for (GraphQLInputValueDefinition inputValueDefinition : argumentsDefinition.getInputValueDefinitionList()) {
-                            if (name.equals(inputValueDefinition.getName())) {
-                                return createInputValueDefinitionReference(element, inputValueDefinition);
+                    if (resolvedPsiReference != null) {
+                        if (resolvedPsiReference.getParent() instanceof GraphQLFieldDefinition) {
+                            final GraphQLFieldDefinition fieldDefinition = (GraphQLFieldDefinition) resolvedPsiReference.getParent();
+                            final GraphQLArgumentsDefinition argumentsDefinition = fieldDefinition.getArgumentsDefinition();
+                            if (argumentsDefinition != null) {
+                                for (GraphQLInputValueDefinition inputValueDefinition : argumentsDefinition.getInputValueDefinitionList()) {
+                                    if (name.equals(inputValueDefinition.getName())) {
+                                        return createInputValueDefinitionReference(element, inputValueDefinition);
+                                    }
+                                }
+                            }
+                        } else if (resolvedPsiReference.getParent() instanceof JSGraphQLEndpointFieldDefinition) {
+                            // Endpoint language
+                            final JSGraphQLEndpointArgumentsDefinition argumentsDefinition = ((JSGraphQLEndpointFieldDefinition) resolvedPsiReference.getParent()).getArgumentsDefinition();
+                            if (argumentsDefinition != null && argumentsDefinition.getInputValueDefinitions() != null) {
+                                for (JSGraphQLEndpointInputValueDefinition argumentDefinition : argumentsDefinition.getInputValueDefinitions().getInputValueDefinitionList()) {
+                                    if (Objects.equals(element.getName(), argumentDefinition.getInputValueDefinitionIdentifier().getIdentifier().getText())) {
+                                        return createReference(element, argumentDefinition.getInputValueDefinitionIdentifier());
+                                    }
+                                }
                             }
                         }
                     }
+
                 }
             }
         }
@@ -153,12 +168,12 @@ public class GraphQLReferenceService {
         Ref<PsiReference> reference = new Ref<>();
         if (name != null) {
             final GraphQLPsiSearchHelper graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getService(element.getProject());
-            if(name.startsWith("__")) {
+            if (name.startsWith("__")) {
                 // __typename or introspection fields __schema and __type which implicitly extends the query root type
                 graphQLPsiSearchHelper.getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
                     @Override
                     public void visitElement(final PsiElement schemaElement) {
-                        if(schemaElement instanceof GraphQLReferencePsiElement && schemaElement.getText().equals(name)) {
+                        if (schemaElement instanceof GraphQLReferencePsiElement && schemaElement.getText().equals(name)) {
                             reference.set(createReference(element, schemaElement));
                             return;
                         }
@@ -172,7 +187,6 @@ public class GraphQLReferenceService {
                 if (typeScope != null) {
                     final GraphQLType fieldType = new SchemaUtil().getUnmodifiedType(typeScope);
                     graphQLPsiSearchHelper.processElementsWithWord(element, name, psiNamedElement -> {
-                        // TODO JKM Also support Endpoint references
                         if (psiNamedElement.getParent() instanceof com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition) {
                             boolean isTypeMatch = false;
                             final GraphQLTypeDefinition typeDefinition = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLTypeDefinition.class);
@@ -195,6 +209,32 @@ public class GraphQLReferenceService {
                         }
                         return true;
                     });
+                    if (reference.isNull()) {
+                        // Endpoint language
+                        final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
+                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(new SchemaUtil().getUnmodifiedType(typeScope).getName());
+                        if (namedType != null) {
+                            JSGraphQLPropertyType property = namedType.properties.get(name);
+                            if (property != null) {
+                                reference.set(createReference(element, property.propertyElement));
+                            } else if (namedType.definitionElement instanceof JSGraphQLEndpointObjectTypeDefinition) {
+                                // field is potentially auto-implemented, so look in the interfaces types
+                                final JSGraphQLEndpointImplementsInterfaces implementsInterfaces = ((JSGraphQLEndpointObjectTypeDefinition) namedType.definitionElement).getImplementsInterfaces();
+                                if (implementsInterfaces != null) {
+                                    for (JSGraphQLEndpointNamedType implementedType : implementsInterfaces.getNamedTypeList()) {
+                                        final JSGraphQLNamedType interfaceType = endpointNamedTypeRegistry.getNamedType(implementedType.getName());
+                                        if (interfaceType != null) {
+                                            property = interfaceType.properties.get(name);
+                                            if (property != null) {
+                                                reference.set(createReference(element, property.propertyElement));
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -219,7 +259,16 @@ public class GraphQLReferenceService {
 
 
     PsiReference resolveTypeName(GraphQLReferencePsiElement element) {
-        return resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLTypeNameDefinition);
+        PsiReference psiReference = resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLTypeNameDefinition);
+        if (psiReference == null) {
+            // Endpoint language
+            final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
+            final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(element.getName());
+            if (namedType != null) {
+                return createReference(element, namedType.nameElement);
+            }
+        }
+        return psiReference;
     }
 
 

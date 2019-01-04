@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
+import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
@@ -39,6 +40,7 @@ public class SchemaIDLTypeDefinitionRegistry {
     private Project project;
     private GlobalSearchScope scope;
     private PsiManager psiManager;
+    private JSGraphQLEndpointNamedTypeRegistry graphQLEndpointNamedTypeRegistry;
 
     public static SchemaIDLTypeDefinitionRegistry getService(@NotNull Project project) {
         return ServiceManager.getService(project, SchemaIDLTypeDefinitionRegistry.class);
@@ -48,6 +50,7 @@ public class SchemaIDLTypeDefinitionRegistry {
         this.project = project;
         scope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), GraphQLFileType.INSTANCE);
         psiManager = PsiManager.getInstance(project);
+        graphQLEndpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(project);
     }
 
     public TypeDefinitionRegistry getRegistry(PsiElement scopedElement) {
@@ -59,7 +62,7 @@ public class SchemaIDLTypeDefinitionRegistry {
         final Parser parser = new Parser();
 
         final TypeDefinitionRegistry typeRegistry = new TypeDefinitionRegistry();
-        final List<GraphQLException> errros = Lists.newArrayList();
+        final List<GraphQLException> errors = Lists.newArrayList();
 
         Consumer<PsiFile> processFile = psiFile -> {
             final GraphQLTypeSystemDefinition[] typeSystemDefinitions = PsiTreeUtil.getChildrenOfType(psiFile, GraphQLTypeSystemDefinition.class);
@@ -106,7 +109,7 @@ public class SchemaIDLTypeDefinitionRegistry {
                         typeRegistry.merge(new SchemaParser().buildRegistry(document));
                     } catch (GraphQLException | CancellationException e) {
                         if(e instanceof GraphQLException) {
-                            errros.add((GraphQLException) e);
+                            errors.add((GraphQLException) e);
                         }
                         // CancellationException is a parse error, but we don't always have a valid program as the user types, so that's expected
                     }
@@ -134,6 +137,13 @@ public class SchemaIDLTypeDefinitionRegistry {
         // Built-in that are additions to a default registry which already has the GraphQL spec directives
         graphQLPsiSearchHelper.processAdditionalBuiltInPsiFiles(schemaScope, processFile);
 
-        return new TypeDefinitionRegistryWithErrors(typeRegistry, errros);
+        // Types defined using GraphQL Endpoint Language
+        if(graphQLEndpointNamedTypeRegistry.hasEndpointEntryFile()) {
+            final TypeDefinitionRegistryWithErrors endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry();
+            typeRegistry.merge(endpointTypesAsRegistry.getRegistry());
+            errors.addAll(endpointTypesAsRegistry.getErrors());
+        }
+
+        return new TypeDefinitionRegistryWithErrors(typeRegistry, errors);
     }
 }
