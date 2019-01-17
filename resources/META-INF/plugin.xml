@@ -248,14 +248,10 @@
 
     
     <!-- Schema documentation -->
-    <!--
-    <lang.documentationProvider language="GraphQL" implementationClass="JSGraphQLDocumentationProvider" />
-    <lang.documentationProvider language="GraphQL Schema" implementationClass="JSGraphQLDocumentationProvider" />
+    <lang.documentationProvider language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.documentation.GraphQLDocumentationProvider" />
     -->
     <!-- Note: JSX/TSX documentation providers are registered in their base language (JS), so we do the same to not take over the entire doc impl -->
-    <!--
-    <lang.documentationProvider language="JavaScript" implementationClass="JSGraphQLDocumentationProvider" />
-    -->
+    <lang.documentationProvider language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.documentation.GraphQLDocumentationProvider" />
 
 
     <!-- Editor notification bars and markers -->

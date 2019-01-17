@@ -15,6 +15,7 @@ import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementWeigher;
+import com.intellij.lang.jsgraphql.ide.documentation.GraphQLDocumentationMarkdownRenderer;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.*;
@@ -212,12 +213,14 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                             .withBoldness(true)
                                             .withTypeText(SchemaIDLUtil.typeString(field.getType()));
                                     if (field.getDescription() != null) {
-                                        element = element.withTailText(" - " + field.getDescription().trim(), true);
+                                        final String fieldDocumentation = GraphQLDocumentationMarkdownRenderer.getDescriptionAsPlainText(field.getDescription(), true);
+                                        element = element.withTailText(" - " + fieldDocumentation, true);
                                     }
                                     if (field.isDeprecated()) {
                                         element = element.strikeout();
                                         if (field.getDeprecationReason() != null) {
-                                            element = element.withTailText(" - Deprecated: " + field.getDeprecationReason().trim(), true);
+                                            final String deprecationReason = GraphQLDocumentationMarkdownRenderer.getDescriptionAsPlainText(field.getDeprecationReason(), true);
+                                            element = element.withTailText(" - Deprecated: " + deprecationReason, true);
                                         }
                                     }
                                     for (graphql.schema.GraphQLArgument fieldArgument : field.getArguments()) {
@@ -263,7 +266,8 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     }
                     final boolean fragmentDefinition = typeCondition != null && typeCondition.getParent() instanceof GraphQLFragmentDefinition;
 
-                    final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLTypeDefinitionRegistryServiceImpl.getService(completionElement.getProject()).getRegistry(parameters.getOriginalFile());
+                    final GraphQLTypeDefinitionRegistryServiceImpl typeDefinitionRegistryService = GraphQLTypeDefinitionRegistryServiceImpl.getService(completionElement.getProject());
+                    final TypeDefinitionRegistry typeDefinitionRegistry = typeDefinitionRegistryService.getRegistry(parameters.getOriginalFile());
 
                     final List<Pair<TypeDefinition, Description>> fragmentTypes = Lists.newArrayList();
 
@@ -272,7 +276,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                         typeDefinitionRegistry.types().forEach((key, value) -> {
                             final boolean canFragment = value instanceof ObjectTypeDefinition || value instanceof UnionTypeDefinition || value instanceof InterfaceTypeDefinition;
                             if (canFragment) {
-                                fragmentTypes.add(Pair.create(value, getDescription(value)));
+                                fragmentTypes.add(Pair.create(value, typeDefinitionRegistryService.getTypeDefinitionDescription(value)));
                             }
                         });
                     } else {
@@ -293,20 +297,20 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                 final Ref<Consumer<TypeDefinition<?>>> addTypesRecursive = new Ref<>();
                                 final Consumer<TypeDefinition<?>> addTypes = (typeToFragmentOn) -> {
                                     if (typeToFragmentOn instanceof ObjectTypeDefinition) {
-                                        fragmentTypes.add(Pair.create(typeToFragmentOn, getDescription(typeToFragmentOn)));
+                                        fragmentTypes.add(Pair.create(typeToFragmentOn, typeDefinitionRegistryService.getTypeDefinitionDescription(typeToFragmentOn)));
                                         final List<Type> anImplements = ((ObjectTypeDefinition) typeToFragmentOn).getImplements();
                                         if (anImplements != null) {
                                             anImplements.forEach(type -> {
                                                 final TypeDefinition typeDefinition = typeDefinitionRegistry.getType(type).orElse(null);
                                                 if (typeDefinition instanceof InterfaceTypeDefinition) {
-                                                    fragmentTypes.add(Pair.create(typeDefinition, getDescription(typeDefinition)));
+                                                    fragmentTypes.add(Pair.create(typeDefinition, typeDefinitionRegistryService.getTypeDefinitionDescription(typeDefinition)));
                                                 }
                                             });
                                         }
                                     } else if (typeToFragmentOn instanceof InterfaceTypeDefinition) {
-                                        fragmentTypes.add(Pair.create(typeToFragmentOn, getDescription(typeToFragmentOn)));
+                                        fragmentTypes.add(Pair.create(typeToFragmentOn, typeDefinitionRegistryService.getTypeDefinitionDescription(typeToFragmentOn)));
                                         final List<ObjectTypeDefinition> implementationsOf = typeDefinitionRegistry.getImplementationsOf((InterfaceTypeDefinition) typeToFragmentOn);
-                                        implementationsOf.forEach(impl -> fragmentTypes.add(Pair.create(impl, getDescription(impl))));
+                                        implementationsOf.forEach(impl -> fragmentTypes.add(Pair.create(impl, typeDefinitionRegistryService.getTypeDefinitionDescription(impl))));
                                     } else if (typeToFragmentOn instanceof UnionTypeDefinition) {
                                         final List<Type> memberTypes = ((UnionTypeDefinition) typeToFragmentOn).getMemberTypes();
                                         if (memberTypes != null) {
@@ -328,7 +332,8 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                 .create(fragmentType.first.getName())
                                 .withBoldness(true);
                         if (fragmentType.second != null) {
-                            element = element.withTailText(fragmentType.second.getContent().trim(), true);
+                            final String documentation = GraphQLDocumentationMarkdownRenderer.getDescriptionAsPlainText(fragmentType.second.getContent(), true);
+                            element = element.withTailText(" - " + documentation, true);
                         }
                         result.addElement(element);
                     });
@@ -436,7 +441,8 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                             if (!existingArgumentNames.contains(argumentDefinition.getName())) {
                                                 LookupElementBuilder element = LookupElementBuilder.create(argumentDefinition.getName()).withTypeText(SchemaIDLUtil.typeString(argumentDefinition.getType()));
                                                 if (argumentDefinition.getDescription() != null) {
-                                                    element = element.withTailText(" - " + argumentDefinition.getDescription().trim(), true);
+                                                    final String argumentDocumentation = GraphQLDocumentationMarkdownRenderer.getDescriptionAsPlainText(argumentDefinition.getDescription(), true);
+                                                    element = element.withTailText(" - " + argumentDocumentation, true);
                                                 }
                                                 result.addElement(element.withInsertHandler(AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP));
                                             }
@@ -475,7 +481,8 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                         if (!existingFieldNames.contains(fieldDefinition.getName())) {
                                             LookupElementBuilder element = LookupElementBuilder.create(fieldDefinition.getName()).withTypeText(SchemaIDLUtil.typeString(fieldDefinition.getType()));
                                             if (fieldDefinition.getDescription() != null) {
-                                                element = element.withTailText(" - " + fieldDefinition.getDescription().trim(), true);
+                                                final String fieldDocumentation = GraphQLDocumentationMarkdownRenderer.getDescriptionAsPlainText(fieldDefinition.getDescription(), true);
+                                                element = element.withTailText(" - " + fieldDocumentation, true);
                                             }
                                             result.addElement(element.withInsertHandler(AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP));
                                         }
@@ -1028,19 +1035,6 @@ public class GraphQLCompletionContributor extends CompletionContributor {
             }
         }
         return false;
-    }
-
-    @Nullable
-    private Description getDescription(TypeDefinition typeDefinition) {
-        Description description = null;
-        if (typeDefinition instanceof ObjectTypeDefinition) {
-            description = ((ObjectTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof InterfaceTypeDefinition) {
-            description = ((InterfaceTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof UnionTypeDefinition) {
-            description = ((UnionTypeDefinition) typeDefinition).getDescription();
-        }
-        return description;
     }
 
     @NotNull

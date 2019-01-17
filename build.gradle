@@ -26,7 +26,7 @@ repositories {
 dependencies {
     compile "com.graphql-java:graphql-java:9.0"
     compile "commons-io:commons-io:2.6"
-    compile "fr.opensagres.js:minimatch.java:1.1.0"
+    compile "com.atlassian.commonmark:commonmark:0.12.1"
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.21'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
