@@ -91,20 +91,20 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
             final PsiElement parent = element.getParent();
 
             if (parent instanceof GraphQLTypeNameDefinition) {
-                return getTypeDocumentation(element, typeRegistryService, schema, parent);
+                return getTypeDocumentation(element, typeRegistryService, schema, (GraphQLTypeNameDefinition) parent);
             }
 
             if (parent instanceof GraphQLFieldDefinition) {
-                return getFieldDocumentation(element, schema, parent);
+                return getFieldDocumentation(element, schema, (GraphQLFieldDefinition) parent);
             }
 
             if (parent instanceof GraphQLInputValueDefinition) {
-                return getArgumentDocumentation(schema, parent);
+                return getArgumentDocumentation(schema, (GraphQLInputValueDefinition) parent);
 
             }
 
             if (parent instanceof GraphQLEnumValue) {
-                return getEnumValueDocumentation(schema, parent);
+                return getEnumValueDocumentation(schema, (GraphQLEnumValue) parent);
             }
 
             if (parent instanceof GraphQLDirectiveDefinition) {
@@ -144,12 +144,12 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     }
 
     @Nullable
-    private String getEnumValueDocumentation(GraphQLSchema schema, PsiElement parent) {
+    private String getEnumValueDocumentation(GraphQLSchema schema, GraphQLEnumValue parent) {
         final String enumName = GraphQLPsiUtil.getTypeName(parent, null);
         if (enumName != null) {
             graphql.schema.GraphQLType schemaType = schema.getType(enumName);
             if (schemaType instanceof GraphQLEnumType) {
-                final String enumValueName = ((GraphQLEnumValue) parent).getName();
+                final String enumValueName = parent.getName();
                 for (GraphQLEnumValueDefinition enumValueDefinition : ((GraphQLEnumType) schemaType).getValues()) {
                     if (Objects.equals(enumValueDefinition.getName(), enumValueName)) {
                         final String description = enumValueDefinition.getDescription();
@@ -164,11 +164,11 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     }
 
     @Nullable
-    private String getArgumentDocumentation(GraphQLSchema schema, PsiElement parent) {
+    private String getArgumentDocumentation(GraphQLSchema schema, GraphQLInputValueDefinition parent) {
 
         // input value definition defines an argument on a field or a directive, or a field on an input type
 
-        final String inputValueName = ((GraphQLInputValueDefinition) parent).getName();
+        final String inputValueName = parent.getName();
         if (inputValueName != null) {
 
             final PsiElement definition = PsiTreeUtil.getParentOfType(parent, GraphQLFieldDefinition.class, GraphQLDirectiveDefinition.class, GraphQLInputObjectTypeDefinition.class, GraphQLInputObjectTypeExtensionDefinition.class);
@@ -238,8 +238,8 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     }
 
     @Nullable
-    private String getFieldDocumentation(PsiElement element, GraphQLSchema schema, PsiElement parent) {
-        final GraphQLType psiFieldType = ((GraphQLFieldDefinition) parent).getType();
+    private String getFieldDocumentation(PsiElement element, GraphQLSchema schema, GraphQLFieldDefinition parent) {
+        final GraphQLType psiFieldType = parent.getType();
         final GraphQLTypeSystemDefinition psiDefinition = PsiTreeUtil.getParentOfType(parent, GraphQLTypeSystemDefinition.class);
         final GraphQLNamedElement psiTypeName = PsiTreeUtil.findChildOfType(psiDefinition, GraphQLNamedElement.class);
         if (psiTypeName != null) {
@@ -276,7 +276,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     }
 
     @Nullable
-    private String getTypeDocumentation(PsiElement element, GraphQLTypeDefinitionRegistryServiceImpl typeRegistryService, GraphQLSchema schema, PsiElement parent) {
+    private String getTypeDocumentation(PsiElement element, GraphQLTypeDefinitionRegistryServiceImpl typeRegistryService, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
         graphql.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement) element).getName());
         if (schemaType != null) {
             final String description = typeRegistryService.getTypeDescription(schemaType);
