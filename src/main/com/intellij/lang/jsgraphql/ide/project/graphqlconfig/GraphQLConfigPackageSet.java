@@ -17,10 +17,7 @@ import com.intellij.psi.search.scope.packageSet.PackageSet;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -144,5 +141,21 @@ class GraphQLConfigPackageSet implements PackageSet {
 
     public VirtualFile getConfigBaseDir() {
         return configBaseDir;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GraphQLConfigPackageSet that = (GraphQLConfigPackageSet) o;
+        return hasIncludes == that.hasIncludes &&
+                Objects.equals(configData, that.configData) &&
+                Objects.equals(configBaseDirPath, that.configBaseDirPath) &&
+                Objects.equals(schemaFilePath, that.schemaFilePath);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(configBaseDirPath, hasIncludes, schemaFilePath);
     }
 }

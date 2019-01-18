@@ -53,7 +53,6 @@ import com.intellij.psi.PsiTreeChangeAdapter;
 import com.intellij.psi.PsiTreeChangeEvent;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.io.IOUtils;
@@ -89,7 +88,7 @@ public class GraphQLConfigManager {
             GRAPHQLCONFIG_YAML
     };
 
-    private static final NamedScope NONE = new NamedScope("", null);
+    private static final GraphQLNamedScope NONE = new GraphQLNamedScope("", null);
 
     private final Project myProject;
     private final GlobalSearchScope projectScope;
@@ -97,7 +96,7 @@ public class GraphQLConfigManager {
     public final IdeaPluginDescriptor pluginDescriptor;
 
     private volatile Map<String, GraphQLConfigData> configPathToConfigurations = Maps.newConcurrentMap();
-    private final Map<String, NamedScope> virtualFilePathToScopes = Maps.newConcurrentMap();
+    private final Map<String, GraphQLNamedScope> virtualFilePathToScopes = Maps.newConcurrentMap();
     private VirtualFileListener virtualFileListener;
 
     public GraphQLConfigManager(Project myProject) {
@@ -119,7 +118,7 @@ public class GraphQLConfigManager {
      * @return the closest config file that includes the specified virtualFile, or null if none found or not included
      */
     public VirtualFile getClosestIncludingConfigFile(VirtualFile virtualFile) {
-        NamedScope schemaScope = getSchemaScope(virtualFile);
+        GraphQLNamedScope schemaScope = getSchemaScope(virtualFile);
         if (schemaScope == null) {
             return null;
         }
@@ -196,7 +195,7 @@ public class GraphQLConfigManager {
             return null;
         }
 
-        final NamedScope schemaScope = getSchemaScope(virtualFile);
+        final GraphQLNamedScope schemaScope = getSchemaScope(virtualFile);
         if (schemaScope != null) {
             GraphQLConfigPackageSet packageSet = (GraphQLConfigPackageSet) schemaScope.getValue();
             if (packageSet != null && packageSet.getConfigData() != null) {
@@ -427,13 +426,13 @@ public class GraphQLConfigManager {
     }
 
     @Nullable
-    public NamedScope getSchemaScope(VirtualFile virtualFile) {
+    public GraphQLNamedScope getSchemaScope(VirtualFile virtualFile) {
         final Ref<VirtualFile> virtualFileWithPath = new Ref<>(virtualFile);
         if (virtualFile instanceof VirtualFileWindow) {
             // injected virtual files
             virtualFileWithPath.set(((VirtualFileWindow) virtualFile).getDelegate());
         }
-        NamedScope namedScope = virtualFilePathToScopes.computeIfAbsent(virtualFileWithPath.get().getPath(), path -> {
+        GraphQLNamedScope namedScope = virtualFilePathToScopes.computeIfAbsent(virtualFileWithPath.get().getPath(), path -> {
             VirtualFile configBaseDir;
             if (virtualFileWithPath.get().getFileType() != ScratchFileType.INSTANCE) {
                 configBaseDir = virtualFileWithPath.get().getParent();
@@ -451,14 +450,14 @@ public class GraphQLConfigManager {
                         for (Map.Entry<String, GraphQLResolvedConfigData> entry : configData.projects.entrySet()) {
                             final GraphQLConfigPackageSet packageSet = new GraphQLConfigPackageSet(configBaseDir, entry.getValue(), graphQLConfigGlobMatcher);
                             if (packageSet.includesVirtualFile(virtualFileWithPath.get())) {
-                                return new NamedScope("graphql-config:" + entry.getKey(), packageSet);
+                                return new GraphQLNamedScope("graphql-config:" + entry.getKey(), packageSet);
                             }
                         }
                     }
                     // then top level config
                     final GraphQLConfigPackageSet packageSet = new GraphQLConfigPackageSet(configBaseDir, configData, graphQLConfigGlobMatcher);
                     if (packageSet.includesVirtualFile(virtualFileWithPath.get())) {
-                        return new NamedScope("graphql-config:" + configBaseDirPath, packageSet);
+                        return new GraphQLNamedScope("graphql-config:" + configBaseDirPath, packageSet);
                     }
                     return NONE;
                 } else {

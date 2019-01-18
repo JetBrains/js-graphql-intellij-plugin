@@ -8,24 +8,22 @@
 package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.AnyPsiChangeListener;
+import com.intellij.psi.impl.PsiManagerImpl;
 import graphql.GraphQLException;
 import graphql.language.*;
-import graphql.schema.GraphQLEnumType;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLInterfaceType;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLScalarType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
-import graphql.schema.GraphQLUnionType;
+import graphql.schema.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.UnExecutableSchemaGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.Map;
 
 public class GraphQLTypeDefinitionRegistryServiceImpl implements GraphQLTypeDefinitionRegistryService {
 
@@ -33,33 +31,49 @@ public class GraphQLTypeDefinitionRegistryServiceImpl implements GraphQLTypeDefi
 
     private Project project;
 
+    private final Map<String, TypeDefinitionRegistryWithErrors> fileNameToRegistry = Maps.newConcurrentMap();
+    private final Map<String, GraphQLSchemaWithErrors> fileNameToSchema = Maps.newConcurrentMap();
+
     public static GraphQLTypeDefinitionRegistryServiceImpl getService(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLTypeDefinitionRegistryServiceImpl.class);
     }
 
     public GraphQLTypeDefinitionRegistryServiceImpl(Project project) {
         this.project = project;
+        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
+            @Override
+            public void beforePsiChanged(boolean isPhysical) {
+                // clear the cache on each PSI change
+                fileNameToRegistry.clear();
+                fileNameToSchema.clear();
+            }
+        });
+
     }
 
     @Override
-    public TypeDefinitionRegistry getRegistry(PsiElement psiElement) {
+    public TypeDefinitionRegistryWithErrors getRegistryWithErrors(PsiElement psiElement) { ;
+        return fileNameToRegistry.computeIfAbsent(GraphQLPsiSearchHelper.getFileName(psiElement.getContainingFile()), fileName -> {
+            return SchemaIDLTypeDefinitionRegistry.getService(project).getRegistryWithErrors(psiElement);
+        });
+    }
 
-        // TODO JKM can cache schema as long as not a modification to type system definitions
-        // or a GraphQL file is deleted/added
-
-        return SchemaIDLTypeDefinitionRegistry.getService(project).getRegistry(psiElement);
-
+    @Override
+    public TypeDefinitionRegistry getRegistry(PsiElement psiElement) { ;
+        return getRegistryWithErrors(psiElement).getRegistry();
     }
 
     @Override
     public GraphQLSchemaWithErrors getSchemaWithErrors(PsiElement psiElement) {
-        final TypeDefinitionRegistryWithErrors registryWithErrors = SchemaIDLTypeDefinitionRegistry.getService(project).getRegistryWithErrors(psiElement);
-        try {
-            final GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryWithErrors.getRegistry());
-            return new GraphQLSchemaWithErrors(schema, Collections.emptyList(), registryWithErrors);
-        } catch (GraphQLException e) {
-            return new GraphQLSchemaWithErrors(EMPTY_SCHEMA, Lists.newArrayList(e), registryWithErrors);
-        }
+        return fileNameToSchema.computeIfAbsent(GraphQLPsiSearchHelper.getFileName(psiElement.getContainingFile()), fileName -> {
+            final TypeDefinitionRegistryWithErrors registryWithErrors = getRegistryWithErrors(psiElement);
+            try {
+                final GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryWithErrors.getRegistry());
+                return new GraphQLSchemaWithErrors(schema, Collections.emptyList(), registryWithErrors);
+            } catch (GraphQLException e) {
+                return new GraphQLSchemaWithErrors(EMPTY_SCHEMA, Lists.newArrayList(e), registryWithErrors);
+            }
+        });
     }
 
     @Override

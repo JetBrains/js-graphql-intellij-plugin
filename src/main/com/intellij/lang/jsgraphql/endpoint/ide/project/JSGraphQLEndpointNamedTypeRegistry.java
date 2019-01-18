@@ -44,6 +44,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
 
     private final Map<Project, Map<String, JSGraphQLNamedType>> endpointTypesByName = Maps.newConcurrentMap();
     private final Map<Project, PsiFile> endpointEntryPsiFile = Maps.newConcurrentMap();
+    private final Map<Project, TypeDefinitionRegistryWithErrors> projectToRegistry = Maps.newConcurrentMap();
 
     public static JSGraphQLEndpointNamedTypeRegistry getService(@NotNull Project project) {
         return ServiceManager.getService(project, JSGraphQLEndpointNamedTypeRegistry.class);
@@ -58,6 +59,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
                 // clear the cache on each PSI change
                 endpointTypesByName.clear();
                 endpointEntryPsiFile.clear();
+                projectToRegistry.clear();
             }
         });
     }
@@ -86,6 +88,10 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     }
 
     public TypeDefinitionRegistryWithErrors getTypesAsRegistry() {
+        return projectToRegistry.computeIfAbsent(project, p -> doGetTypesAsRegistry());
+    }
+
+    private TypeDefinitionRegistryWithErrors doGetTypesAsRegistry() {
 
         final TypeDefinitionRegistry registry = new TypeDefinitionRegistry();
         final List<GraphQLException> errors = Lists.newArrayList();

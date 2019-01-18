@@ -73,6 +73,7 @@ public class GraphQLPsiSearchHelper {
     private final GraphQLSettings mySettings;
     private final PluginDescriptor pluginDescriptor;
     private final Map<String, GraphQLFragmentDefinition> fragmentDefinitionsByName = Maps.newConcurrentMap();
+    private final Map<String, GlobalSearchScope> fileNameToSchemaScope = Maps.newConcurrentMap();
     private final GlobalSearchScope searchScope;
     private final GlobalSearchScope allBuiltInSchemaScopes;
     private final GraphQLConfigManager graphQLConfigManager;
@@ -101,6 +102,7 @@ public class GraphQLPsiSearchHelper {
             public void beforePsiChanged(boolean isPhysical) {
                 // clear the cache on each PSI change
                 fragmentDefinitionsByName.clear();
+                fileNameToSchemaScope.clear();
             }
         });
     }
@@ -110,25 +112,30 @@ public class GraphQLPsiSearchHelper {
      */
     public GlobalSearchScope getSchemaScope(PsiElement element) {
 
-        final GraphQLScopeResolution scopeResolution = mySettings.getScopeResolution();
+        return fileNameToSchemaScope.computeIfAbsent(getFileName(element.getContainingFile()), fileName -> {
 
-        switch (scopeResolution) {
-            case PROJECT_SCOPES:
-            case GRAPHQL_CONFIG_GLOBS:
-                final VirtualFile virtualFile = getVirtualFile(element.getContainingFile());
-                final NamedScope schemaScope = (scopeResolution == GraphQLScopeResolution.PROJECT_SCOPES
-                        ? graphQLProjectScopesManager.getSchemaScope(virtualFile)
-                        : graphQLConfigManager.getSchemaScope(virtualFile)
-                );
-                if (schemaScope != null) {
-                    final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
-                    return searchScope.intersectWith(filterSearchScope.union(allBuiltInSchemaScopes));
-                }
-                break;
-        }
+            final GraphQLScopeResolution scopeResolution = mySettings.getScopeResolution();
 
-        // default is entire project limited by relevant file types
-        return searchScope;
+            switch (scopeResolution) {
+                case PROJECT_SCOPES:
+                case GRAPHQL_CONFIG_GLOBS:
+                    final VirtualFile virtualFile = getVirtualFile(element.getContainingFile());
+                    final NamedScope schemaScope = (scopeResolution == GraphQLScopeResolution.PROJECT_SCOPES
+                            ? graphQLProjectScopesManager.getSchemaScope(virtualFile)
+                            : graphQLConfigManager.getSchemaScope(virtualFile)
+                    );
+                    if (schemaScope != null) {
+                        final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
+                        return searchScope.intersectWith(filterSearchScope.union(allBuiltInSchemaScopes));
+                    }
+                    break;
+            }
+
+            // default is entire project limited by relevant file types
+            return searchScope;
+
+        });
+
     }
 
     private static VirtualFile getVirtualFile(PsiFile containingFile) {

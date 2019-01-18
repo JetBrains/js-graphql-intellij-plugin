@@ -20,6 +20,13 @@ public interface GraphQLTypeDefinitionRegistryService {
      */
     TypeDefinitionRegistry getRegistry(PsiElement psiElement);
 
+    /**
+     * Get a registry representing the known types and fields in a schema, and also includes
+     * Can be based on type system definitions, an introspection result, or the more abstract endpoint language type definition
+     * @param psiElement the element from which the registry is needed, serving as a scope restriction
+     */
+    TypeDefinitionRegistryWithErrors getRegistryWithErrors(PsiElement psiElement);
+
     GraphQLSchema getSchema(PsiElement psiElement);
 
     GraphQLSchemaWithErrors getSchemaWithErrors(PsiElement psiElement);
