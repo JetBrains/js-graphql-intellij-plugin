@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.references;
 
+import com.google.common.collect.Maps;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
@@ -22,6 +23,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.AnyPsiChangeListener;
+import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.schema.GraphQLType;
 import graphql.schema.SchemaUtil;
@@ -29,16 +32,38 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
 public class GraphQLReferenceService {
 
+    private final Map<String, PsiReference> logicalTypeNameToReference = Maps.newConcurrentMap();
+
     public static GraphQLReferenceService getService(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLReferenceService.class);
     }
 
+    public GraphQLReferenceService(@NotNull final Project project) {
+        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
+            @Override
+            public void beforePsiChanged(boolean isPhysical) {
+                // clear the cache on each PSI change
+                logicalTypeNameToReference.clear();
+            }
+        });
+    }
+
     public PsiReference resolveReference(GraphQLReferencePsiElement element) {
+        return new GraphQLCachingReference(element, this::doResolveReference);
+    }
+
+    private PsiElement doResolveReference(GraphQLReferencePsiElement element) {
+        PsiReference reference = innerResolveReference(element);
+        return reference != null ? reference.resolve() : null;
+    }
+
+    private PsiReference innerResolveReference(GraphQLReferencePsiElement element) {
         if (element != null) {
             final PsiElement parent = element.getParent();
             if (parent instanceof GraphQLField) {
@@ -259,16 +284,19 @@ public class GraphQLReferenceService {
 
 
     PsiReference resolveTypeName(GraphQLReferencePsiElement element) {
-        PsiReference psiReference = resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLTypeNameDefinition);
-        if (psiReference == null) {
-            // Endpoint language
-            final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-            final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(element.getName());
-            if (namedType != null) {
-                return createReference(element, namedType.nameElement);
+        final String logicalTypeName = GraphQLPsiSearchHelper.getFileName(element.getContainingFile()) + ":" + element.getName();
+        return logicalTypeNameToReference.computeIfAbsent(logicalTypeName, logicalTypeNameKey -> {
+            PsiReference psiReference = resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLTypeNameDefinition);
+            if (psiReference == null) {
+                // Endpoint language
+                final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
+                final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(element.getName());
+                if (namedType != null) {
+                    return createReference(element, namedType.nameElement);
+                }
             }
-        }
-        return psiReference;
+            return psiReference;
+        });
     }
 
 

@@ -10,6 +10,8 @@ package com.intellij.lang.jsgraphql.endpoint.ide.project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaEventListener;
 import com.intellij.lang.jsgraphql.schema.TypeDefinitionRegistryWithErrors;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLElementType;
@@ -20,8 +22,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.AnyPsiChangeListener;
-import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.GraphQLException;
 import graphql.introspection.Introspection;
@@ -53,10 +53,9 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     public JSGraphQLEndpointNamedTypeRegistry(Project project) {
         this.project = project;
         this.configurationProvider = JSGraphQLConfigurationProvider.getService(project);
-        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
+        project.getMessageBus().connect().subscribe(GraphQLSchemaChangeListener.TOPIC, new GraphQLSchemaEventListener() {
             @Override
-            public void beforePsiChanged(boolean isPhysical) {
-                // clear the cache on each PSI change
+            public void onGraphQLSchemaChanged() {
                 endpointTypesByName.clear();
                 endpointEntryPsiFile.clear();
                 projectToRegistry.clear();

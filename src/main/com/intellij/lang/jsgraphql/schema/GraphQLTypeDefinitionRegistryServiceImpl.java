@@ -40,9 +40,9 @@ public class GraphQLTypeDefinitionRegistryServiceImpl implements GraphQLTypeDefi
 
     public GraphQLTypeDefinitionRegistryServiceImpl(Project project) {
         this.project = project;
-        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
+        project.getMessageBus().connect().subscribe(GraphQLSchemaChangeListener.TOPIC, new GraphQLSchemaEventListener() {
             @Override
-            public void beforePsiChanged(boolean isPhysical) {
+            public void onGraphQLSchemaChanged() {
                 // clear the cache on each PSI change
                 fileNameToRegistry.clear();
                 fileNameToSchema.clear();

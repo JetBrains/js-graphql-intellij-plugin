@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.startup;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAware;
@@ -21,6 +22,10 @@ public class GraphQLStartupActivity implements StartupActivity, DumbAware {
 
     @Override
     public void runActivity(@NotNull Project project) {
+
+        // startup schema change listener
+        GraphQLSchemaChangeListener.getService(project);
+
         if(ApplicationManager.getApplication().isUnitTestMode()) {
             // don't create the UI when unit testing
             return;

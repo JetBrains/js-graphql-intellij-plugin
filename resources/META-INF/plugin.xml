@@ -54,6 +54,7 @@
     <!-- Project services -->
     <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl" serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.SchemaIDLTypeDefinitionRegistry" serviceImplementation="com.intellij.lang.jsgraphql.schema.SchemaIDLTypeDefinitionRegistry" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener" serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService" serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" />
