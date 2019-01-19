@@ -102,7 +102,13 @@ mutation MyMutation($input: MyInput!) {
     # Payload
 }
 
-%invalid%
+type
+
+mutation Foo
+
+type Test implements
+
+fragment F
 
 ### --------- kitchen-sink.graphql --------- ###
 
@@ -126,17 +132,6 @@ query queryName($foo: TestInput, $site: TestEnum = RED) {
     }
 }
 
-
-### comma before fields ###
-
-query Commas {
-    foo {
-        bar
-        , baz
-        , baz2
-    }
-}
-
 ### --------- annotations.graphql --------- ###
 
 type AnnotatedObject @foo(foo: {test: true}) {
@@ -149,34 +144,5 @@ query Foo {
         foo {
 
         }
-    }
-}
-
-
-### --------- complex input objects --------- ###
-
-query ComplexInput {
-    foo(
-        complex: {
-            foo: true,
-            bar: "",
-            bas: 1.1,
-            list: [
-                true,
-                false
-            ],
-            listObj: [
-                {foo: BAS}
-                {
-                    foo: BAZ
-                }
-            ]
-        },
-        complexList: [
-            1,
-            2
-        ]
-    ) {
-        id
     }
 }

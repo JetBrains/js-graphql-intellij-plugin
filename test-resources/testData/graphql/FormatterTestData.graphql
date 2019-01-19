@@ -102,7 +102,13 @@ mutation MyMutation($input: MyInput!) {
 # Payload
 }
 
-%invalid%
+type
+
+mutation Foo
+
+type Test implements
+
+fragment F
 
 ### --------- kitchen-sink.graphql --------- ###
 
@@ -131,9 +137,9 @@ __typename
 
 query Commas {
 foo {
-bar
-, baz
-, baz2
+bar,
+baz,
+baz2
 }
 }
 

@@ -1,0 +1,24 @@
+type KnownType implements KnownInterface {
+    k: String
+    fieldToImpl1: Boolean
+    <caret>
+}
+
+interface KnownInterface {
+    fieldToImpl1: Boolean
+    fieldToImpl2: Boolean
+}
+
+enum MyEnum {
+    A, B, C
+}
+
+union MyUnion = KnownType | KnownInterface
+
+type MyType {
+    foo(arg: String)
+}
+
+input MyCompletionInputABC {
+    bas: Boolean
+}

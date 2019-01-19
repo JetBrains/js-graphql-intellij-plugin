@@ -45,6 +45,8 @@ import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 
+import static graphql.schema.idl.ScalarInfo.STANDARD_SCALAR_DEFINITIONS;
+
 public class SchemaIDLTypeDefinitionRegistry {
 
     private final GraphQLPsiSearchHelper graphQLPsiSearchHelper;
@@ -71,6 +73,13 @@ public class SchemaIDLTypeDefinitionRegistry {
                 scopeToRegistry.clear();
             }
         });
+
+        // don't want the "Java" scalars to be available without being declared explicitly
+        STANDARD_SCALAR_DEFINITIONS.remove("Long");
+        STANDARD_SCALAR_DEFINITIONS.remove("BigInteger");
+        STANDARD_SCALAR_DEFINITIONS.remove("BigDecimal");
+        STANDARD_SCALAR_DEFINITIONS.remove("Short");
+        STANDARD_SCALAR_DEFINITIONS.remove("Char");
 
     }
 
@@ -161,12 +170,14 @@ public class SchemaIDLTypeDefinitionRegistry {
                                     }
                                     if(node instanceof AbstractNode) {
                                         final SourceLocation sourceLocation = node.getSourceLocation();
-                                        final SourceLocation newSourceLocation = new SourceLocation(
-                                                sourceLocation.getLine() + lineDelta.get(),
-                                                sourceLocation.getColumn(),
-                                                sourceLocation.getSourceName()
-                                        );
-                                        ((AbstractNode) node).setSourceLocation(newSourceLocation);
+                                        if (sourceLocation != null) {
+                                            final SourceLocation newSourceLocation = new SourceLocation(
+                                                    sourceLocation.getLine() + lineDelta.get(),
+                                                    sourceLocation.getColumn(),
+                                                    sourceLocation.getSourceName()
+                                            );
+                                            ((AbstractNode) node).setSourceLocation(newSourceLocation);
+                                        }
 
                                     }
                                     //noinspection unchecked

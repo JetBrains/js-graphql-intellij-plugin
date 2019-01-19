@@ -102,7 +102,13 @@ mutation MyMutation($input: MyInput!) {
     # Payload
 }
 
-%invalid%
+type
+
+mutation Foo
+
+type Test implements
+
+fragment F
 
 ### --------- kitchen-sink.graphql --------- ###
 
@@ -110,19 +116,30 @@ query queryName($foo: TestInput, $site: TestEnum = RED) {
     testAlias: hasArgs(string: "testString")
     ... on Test {
         hasArgs(
-        listEnum: [RED, GREEN, BLUE]
-        int: 1
-        listFloat: [1.23, 1.3e-1, -1.35384e+3]
-        boolean: true
-        id: 123
-        object: $foo
-        enum: $site
+            listEnum: [RED, GREEN, BLUE]
+            int: 1
+            listFloat: [1.23, 1.3e-1, -1.35384e+3]
+            boolean: true
+            id: 123
+            object: $foo
+            enum: $site
         )
     }
     test @include(if: true) {
         union {
             __typename
         }
+    }
+}
+
+
+### comma before fields ###
+
+query Commas {
+    foo {
+        bar,
+        baz,
+        baz2
     }
 }
 
@@ -138,5 +155,34 @@ query Foo {
         foo {
 
         }
+    }
+}
+
+
+### --------- complex input objects --------- ###
+
+query ComplexInput {
+    foo(
+        complex: {
+            foo: true,
+            bar: "",
+            bas: 1.1,
+            list: [
+                true,
+                false
+            ],
+            listObj: [
+                {foo: BAS}
+                {
+                    foo: BAZ
+                }
+            ]
+        },
+        complexList: [
+            1,
+            2
+        ]
+    ) {
+        id
     }
 }

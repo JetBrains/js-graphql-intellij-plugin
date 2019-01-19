@@ -1,0 +1,21 @@
+type KnownType {
+    k: String
+}
+
+interface KnownInterface {
+    i: Boolean
+}
+
+enum MyEnum {
+    A, B, C
+}
+
+union MyUnion = KnownType | KnownInterface
+
+# comment
+
+<caret>
+
+type Foo implements Bar {
+    foo:
+}

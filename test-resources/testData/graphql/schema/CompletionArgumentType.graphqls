@@ -1,0 +1,25 @@
+type KnownType {
+    k: String
+}
+
+type KnownTypeOther {
+    k: String
+}
+
+interface KnownInterface {
+    i: Boolean
+}
+
+enum MyEnum {
+    A, B, C
+}
+
+union MyUnion = KnownType | KnownTypeOther
+
+type MyType {
+    foo(arg: <caret>)
+}
+
+input MyCompletionInputABC {
+    bas: Boolean
+}

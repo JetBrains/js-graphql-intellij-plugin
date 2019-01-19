@@ -9,10 +9,8 @@ package com.intellij.lang.jsgraphql.parser;
 
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.testFramework.ParsingTestCase;
-import org.junit.Ignore;
 import org.junit.Test;
 
-@Ignore
 public class JSGraphQLParserTest extends ParsingTestCase {
 
     public JSGraphQLParserTest() {
@@ -26,7 +24,7 @@ public class JSGraphQLParserTest extends ParsingTestCase {
 
     @Override
     protected String getTestDataPath() {
-        return "test-resources/testData";
+        return "test-resources/testData/graphql";
     }
 
     @Override

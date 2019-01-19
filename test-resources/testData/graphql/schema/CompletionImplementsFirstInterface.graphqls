@@ -1,0 +1,10 @@
+interface KnownInterface1 {
+    i1: Boolean
+}
+
+interface KnownInterface2 {
+    i2: Boolean
+}
+
+
+type More implements <caret>
