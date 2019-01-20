@@ -1,0 +1,9 @@
+fragment MyHumanFragment on Human {
+    id
+}
+
+{
+    human(id: "") {
+        ...<caret>
+    }
+}

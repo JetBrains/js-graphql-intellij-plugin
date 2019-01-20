@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 
 import com.google.common.collect.Maps;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.util.Pair;
@@ -46,7 +47,13 @@ public class GraphQLConfigGlobMatcherImpl implements GraphQLConfigGlobMatcher {
                 final ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
                 try {
                     engine.put(NASHORN_SCRIPT_OBJECT, engine.eval("new Object()"));
-                    final String script = IOUtils.resourceToString("/META-INF/minimatch-nashorn.js", Charset.defaultCharset(), pluginDescriptor.getPluginClassLoader());
+                    final String script;
+                    if(ApplicationManager.getApplication().isUnitTestMode()) {
+                        // plugin class loader appears to be unable to locate certain resources during unit-test?!
+                        script = IOUtils.toString(getClass().getResource("/META-INF/minimatch-nashorn.js"), Charset.forName("UTF-8"));
+                    } else {
+                        script = IOUtils.resourceToString("/META-INF/minimatch-nashorn.js", Charset.forName("UTF-8"), pluginDescriptor.getPluginClassLoader());
+                    }
                     engine.eval(script);
                 } catch (IOException | ScriptException e) {
                     throw new RuntimeException("Unable to load minimatch-nashorn.js", e);

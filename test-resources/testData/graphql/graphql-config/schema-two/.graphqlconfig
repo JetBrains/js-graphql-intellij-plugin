@@ -1,0 +1,4 @@
+{
+  "includes": ["*.graphql"],
+  "excludes": ["*excluded*.graphql"]
+}

@@ -42,8 +42,8 @@ public class JSGraphQLSchemaCodeInsightTest extends LightCodeInsightFixtureTestC
     }
 
     @Test
-    public void testCompletionOperation() {
-        doTestCompletion("CompletionOperation.graphqls", Lists.newArrayList("directive", "enum", "extend", "fragment", "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union", "{"));
+    public void testCompletionTopLevelKeywords() {
+        doTestCompletion("CompletionTopLevelKeywords.graphqls", Lists.newArrayList("directive", "enum", "extend", "fragment", "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union", "{"));
     }
 
     @Test

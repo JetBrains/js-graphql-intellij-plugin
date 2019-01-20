@@ -1,0 +1,9 @@
+{
+    human(id: "") {
+        fieldWithInput(input: {
+            nestedField: [
+                {<caret>}
+            ]
+        })
+    }
+}

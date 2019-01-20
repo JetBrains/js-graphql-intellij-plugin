@@ -290,8 +290,9 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                             typeScopeProvider = PsiTreeUtil.getParentOfType(typeScopeProvider, GraphQLTypeScopeProvider.class);
                         }
 
-                        final GraphQLType typeScope = typeScopeProvider != null ? typeScopeProvider.getTypeScope() : null;
+                        GraphQLType typeScope = typeScopeProvider != null ? typeScopeProvider.getTypeScope() : null;
                         if (typeScope != null) {
+                            typeScope = new SchemaUtil().getUnmodifiedType(typeScope); // unwrap non-null and lists since fragments are about the raw type
                             final TypeDefinition fragmentType = typeDefinitionRegistry.getType(typeScope.getName()).orElse(null);
                             if (fragmentType != null) {
                                 final Ref<Consumer<TypeDefinition<?>>> addTypesRecursive = new Ref<>();
@@ -983,6 +984,9 @@ public class GraphQLCompletionContributor extends CompletionContributor {
      */
     private boolean isFragmentApplicableInTypeScope(TypeDefinitionRegistry typeDefinitionRegistry, GraphQLFragmentDefinition fragmentCandidate, GraphQLType requiredTypeScope) {
 
+        // unwrap non-nullable and list types
+        requiredTypeScope = new SchemaUtil().getUnmodifiedType(requiredTypeScope);
+
         final GraphQLTypeCondition typeCondition = fragmentCandidate.getTypeCondition();
         if (typeCondition == null || typeCondition.getTypeName() == null) {
             return false;
@@ -1008,6 +1012,10 @@ public class GraphQLCompletionContributor extends CompletionContributor {
      * @return true if the candidate type condtion name is compatible inside the required type scope
      */
     private boolean isCompatibleFragment(TypeDefinitionRegistry typeDefinitionRegistry, GraphQLType requiredTypeScope, String fragmentTypeName) {
+
+        // unwrap non-nullable and list types
+        requiredTypeScope = new SchemaUtil().getUnmodifiedType(requiredTypeScope);
+
         if (requiredTypeScope instanceof GraphQLInterfaceType) {
             // also include fragments on types implementing the interface scope
             final TypeDefinition typeScopeDefinition = typeDefinitionRegistry.types().get(requiredTypeScope.getName());
