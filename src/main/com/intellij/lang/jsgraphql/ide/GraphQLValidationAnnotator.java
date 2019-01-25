@@ -43,6 +43,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLVisitor;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
@@ -233,6 +234,16 @@ public class GraphQLValidationAnnotator implements Annotator {
                 final GraphQLSchemaWithErrors schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(project).getSchemaWithErrors(psiElement);
                 if (!schema.isErrorsPresent()) {
                     final Document document = parser.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile));
+
+                    // adjust source locations for injected GraphQL since the annotator works on the entire editor buffer (e.g. tsx with graphql tagged templates)
+                    if(containingFile.getContext() != null) {
+                        final LogicalPosition logicalPosition = editor.offsetToLogicalPosition(containingFile.getContext().getTextOffset());
+                        if(logicalPosition.line > 0 || logicalPosition.column > 0) {
+                            // logical positions can be used as deltas between graphql-java and intellij since graphql-java is 1-based and intellij is 0-based
+                            GraphQLUtil.adjustSourceLocations(document, logicalPosition.line, logicalPosition.column);
+                        }
+                    }
+
                     userData = new Validator().validateDocument(schema.getSchema(), document);
                 } else {
 
@@ -360,7 +371,11 @@ public class GraphQLValidationAnnotator implements Annotator {
                                 case LoneAnonymousOperationViolation:
                                     for (SourceLocation location : validationError.getLocations()) {
                                         final int positionToOffset = getOffsetFromSourceLocation(editor, location);
-                                        PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset);
+                                        int injectionOffset = 0;
+                                        if(containingFile.getContext() != null) {
+                                            injectionOffset = containingFile.getContext().getTextOffset();
+                                        }
+                                        PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset - injectionOffset);
                                         if (errorPsiElement != null) {
                                             final IElementType elementType = errorPsiElement.getNode().getElementType();
                                             if (elementType == GraphQLElementTypes.SPREAD) {

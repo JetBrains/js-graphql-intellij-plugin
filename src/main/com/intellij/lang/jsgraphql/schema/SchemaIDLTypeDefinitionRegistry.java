@@ -9,12 +9,12 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
+import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
@@ -30,10 +30,7 @@ import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.GraphQLException;
-import graphql.language.AbstractNode;
 import graphql.language.Document;
-import graphql.language.Node;
-import graphql.language.SourceLocation;
 import graphql.parser.Parser;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
@@ -41,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 
@@ -162,36 +158,8 @@ public class SchemaIDLTypeDefinitionRegistry {
 
                             // adjust line numbers in source locations if there's a line delta compared to the original file buffer
                             if (lineDelta.get() > 0) {
-                                final Ref<Consumer<Node>> adjustSourceLines = new Ref<>();
-                                final Set<Node> visitedNodes = Sets.newHashSet();
-                                adjustSourceLines.set((Node node) -> {
-                                    if(node == null || !visitedNodes.add(node)) {
-                                        return;
-                                    }
-                                    if(node instanceof AbstractNode) {
-                                        final SourceLocation sourceLocation = node.getSourceLocation();
-                                        if (sourceLocation != null) {
-                                            final SourceLocation newSourceLocation = new SourceLocation(
-                                                    sourceLocation.getLine() + lineDelta.get(),
-                                                    sourceLocation.getColumn(),
-                                                    sourceLocation.getSourceName()
-                                            );
-                                            ((AbstractNode) node).setSourceLocation(newSourceLocation);
-                                        }
-
-                                    }
-                                    //noinspection unchecked
-                                    final List<Node> children = node.getChildren();
-                                    if(children != null) {
-                                        //noinspection unchecked
-                                        children.forEach(child -> {
-                                            if(child != null) {
-                                                adjustSourceLines.get().accept(child);
-                                            }
-                                        });
-                                    }
-                                });
-                                adjustSourceLines.get().accept(document);
+                                final Integer lineDeltaToApply = lineDelta.get();
+                                GraphQLUtil.adjustSourceLocations(document, lineDeltaToApply, 0);
                             }
 
                             typeRegistry.merge(new SchemaParser().buildRegistry(document));
