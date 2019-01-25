@@ -223,8 +223,12 @@ public class SchemaIDLTypeDefinitionRegistry {
             // Types defined using GraphQL Endpoint Language
             if(graphQLEndpointNamedTypeRegistry.hasEndpointEntryFile()) {
                 final TypeDefinitionRegistryWithErrors endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry();
-                typeRegistry.merge(endpointTypesAsRegistry.getRegistry());
-                errors.addAll(endpointTypesAsRegistry.getErrors());
+                try {
+                    typeRegistry.merge(endpointTypesAsRegistry.getRegistry());
+                    errors.addAll(endpointTypesAsRegistry.getErrors());
+                } catch (GraphQLException e) {
+                    errors.add(e);
+                }
             }
 
             return new TypeDefinitionRegistryWithErrors(typeRegistry, errors);
