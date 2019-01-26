@@ -85,6 +85,7 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.ImmutableList;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
+import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
@@ -464,18 +465,22 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                                 httpClient.executeMethod(method);
                                 final String responseJson = Optional.fromNullable(method.getResponseBodyAsString()).or("");
                                 sw.stop();
+                                final Header responseHeader = method.getResponseHeader("Content-Type");
+                                final boolean reformatJson = responseHeader != null && "application/json".equals(responseHeader.getValue());
                                 final Integer errorCount = getErrorCount(responseJson);
                                 if (fileEditor instanceof TextEditor) {
                                     final TextEditor textEditor = (TextEditor) fileEditor;
                                     UIUtil.invokeLaterIfNeeded(() -> {
                                         ApplicationManager.getApplication().runWriteAction(() -> {
                                             final Document document = textEditor.getEditor().getDocument();
-                                            document.setText(responseJson);
-                                            if(requestJson.startsWith("{")) {
-                                                final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
-                                                if (psiFile != null) {
-                                                    new ReformatCodeProcessor(psiFile, false).run();
-                                                }
+                                            document.setText(responseJson.replace("\r\n", "\n"));
+                                            if(reformatJson) {
+                                                PsiDocumentManager.getInstance(myProject).performForCommittedDocument(document, () -> {
+                                                    final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
+                                                    if (psiFile != null) {
+                                                        new ReformatCodeProcessor(psiFile, false).run();
+                                                    }
+                                                }); // wait for doc to update PSI before reformat
                                             }
                                         });
                                         final StringBuilder queryResultText = new StringBuilder(virtualFile.getName()).
