@@ -24,7 +24,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.EditorNotifications.Provider;
-import com.jetbrains.nodejs.settings.NodeSettingsConfigurable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -111,7 +110,7 @@ public class JSGraphQLNodeInterpreterEditorNotificationProvider extends Provider
     @NotNull
     protected Runnable getConfigureAction() {
         return () -> {
-            ShowSettingsUtilImpl.showSettingsDialog(myProject, NodeSettingsConfigurable.ID, "Node interpreter");
+            ShowSettingsUtilImpl.showSettingsDialog(myProject, "settings.nodejs", "Node interpreter");
             myNotifications.updateAllNotifications();
         };
     }

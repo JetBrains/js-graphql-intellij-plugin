@@ -30,12 +30,12 @@ public class JSGraphQLDefinitionsSearchExecutor implements QueryExecutor<PsiElem
     private static final String IMPLEMENTS_KEYWORD = "implements";
 
     @Override
-    public boolean execute(@NotNull PsiElement queryParameters, @NotNull Processor<PsiElement> consumer) {
+    public boolean execute(@NotNull PsiElement queryParameters, @NotNull Processor<? super PsiElement> consumer) {
         ApplicationManager.getApplication().runReadAction((Computable) () -> JSGraphQLDefinitionsSearchExecutor.doExecute(queryParameters, consumer));
         return true;
     }
 
-    private static boolean doExecute(PsiElement sourceElement, final Processor<PsiElement> consumer) {
+    private static boolean doExecute(PsiElement sourceElement, final Processor<? super PsiElement> consumer) {
         if (sourceElement instanceof JSGraphQLNamedTypePsiElement) {
             final String typeName = ((JSGraphQLNamedTypePsiElement) sourceElement).getName();
             if(typeName != null) {
