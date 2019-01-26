@@ -448,7 +448,9 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     return;
                 }
                 final String requestJson = "{\"query\":\""+ StringEscapeUtils.escapeJavaScript(context.query)+"\", \"variables\":" +  variables + "}";
-                final HttpClient httpClient = new HttpClient(new HttpClientParams());
+                final HttpClientParams params = new HttpClientParams();
+                params.setContentCharset("UTF-8"); // set fallback charset to align with JSON spec
+                final HttpClient httpClient = new HttpClient(params);
                 try {
                     final PostMethod method = new PostMethod(selectedEndpoint.url);
                     setHeadersFromOptions(selectedEndpoint, method);
