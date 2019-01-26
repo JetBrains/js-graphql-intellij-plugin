@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.highlighting;
 
+import com.intellij.lang.javascript.highlighting.JSHighlighter;
 import com.intellij.lang.jsgraphql.JSGraphQLTokenTypes;
 import com.intellij.lang.jsgraphql.lexer.JSGraphQLLexer;
 import com.intellij.lexer.Lexer;
@@ -20,7 +21,9 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
 
 public class JSGraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
 
-    public static final TextAttributesKey KEYWORD = createTextAttributesKey("JSGRAPHQL.KEYWORD", TextAttributesKey.find("JS.KEYWORD"));
+    // reference the JS highlighter here to ensure it has initialized the colors and the find by id calls below work predictably instead of relying on class loader order
+    public static final TextAttributesKey KEYWORD = createTextAttributesKey("JSGRAPHQL.KEYWORD", JSHighlighter.JS_KEYWORD);
+
     public static final TextAttributesKey PUNCTUATION = createTextAttributesKey("JSGRAPHQL.PUNCTUATION", TextAttributesKey.find("JS.COMMA"));
     public static final TextAttributesKey PAREN = createTextAttributesKey("JSGRAPHQL.PAREN", TextAttributesKey.find("JS.PARENTHS"));
     public static final TextAttributesKey BRACE = createTextAttributesKey("JSGRAPHQL.BRACE", TextAttributesKey.find("JS.BRACES"));
