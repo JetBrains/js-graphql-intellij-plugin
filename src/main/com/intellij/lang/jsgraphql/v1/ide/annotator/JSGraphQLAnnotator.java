@@ -136,7 +136,7 @@ public class JSGraphQLAnnotator extends ExternalAnnotator<JSGraphQLAnnotationRes
                 }
                 JSGraphQLLanguageUIProjectService jsGraphQLLanguageUIProjectService = JSGraphQLLanguageUIProjectService.getService(file.getProject());
                 if(jsGraphQLLanguageUIProjectService != null) {
-                    jsGraphQLLanguageUIProjectService.logErrorsInCurrentFile(file, errors);
+                    //jsGraphQLLanguageUIProjectService.logErrorsInCurrentFile(file, errors);
                 }
             } catch (Exception e) {
                 log.error("Unable to apply annotations", e);

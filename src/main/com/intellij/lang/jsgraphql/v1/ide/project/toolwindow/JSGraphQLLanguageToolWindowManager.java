@@ -7,29 +7,21 @@
  */
 package com.intellij.lang.jsgraphql.v1.ide.project.toolwindow;
 
-import com.intellij.ide.errorTreeView.NewErrorTreeViewPanel;
+import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLSchemasPanel;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.impl.ContentImpl;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.ImmutableList;
-import com.intellij.util.ui.MessageCategory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 
 /**
  * GraphQL tool window manager based on JSLanguageCompilerToolWindowManager in the JavaScript plugin.
@@ -40,9 +32,7 @@ public class JSGraphQLLanguageToolWindowManager implements Disposable {
     @NotNull
     private final Project myProject;
 
-    private volatile NewErrorTreeViewPanel myCurrentErrorTreeViewPanel;
-
-    private volatile NewErrorTreeViewPanel myProjectErrorTreeViewPanel;
+    private volatile JPanel mySchemasTree;
 
     private volatile boolean myFirstInitialized;
 
@@ -55,8 +45,6 @@ public class JSGraphQLLanguageToolWindowManager implements Disposable {
     private AnAction[] myActions;
 
     private final String myToolWindowName;
-
-    private volatile List<JSGraphQLErrorResult> myLastResult;
 
     public JSGraphQLLanguageToolWindowManager(@NotNull Project project, @NotNull String toolWindowName, @NotNull String helpId, @Nullable Icon icon, @Nullable AnAction... actions) {
         myProject = project;
@@ -72,117 +60,27 @@ public class JSGraphQLLanguageToolWindowManager implements Disposable {
             ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
             myToolWindow = manager.registerToolWindow(myToolWindowName, true, ToolWindowAnchor.BOTTOM, myProject, true);
             myToolWindow.setIcon(myIcon);
-            createAllErrorsPanel();
+            createSchemasPanel();
             myFirstInitialized = true;
         }
     }
 
-    private Content createCurrentErrorContent(final ToolWindow toolWindow) {
-        final Ref<Content> contentRef = new Ref<>();
-        myCurrentErrorTreeViewPanel = new JSGraphQLErrorTreeViewPanel(myProject, myHelpId, () -> myLastResult = null, myActions) {
-            public void close() {
-                toolWindow.hide(() -> {
-                    myLastResult = null;
-                    final Content contentImpl = contentRef.get();
-                    if (contentImpl != null) {
-                        toolWindow.getContentManager().removeContent(contentImpl, true);
-                    }
-                    Content newContentImpl = createCurrentErrorContent(toolWindow);
-                    toolWindow.getContentManager().setSelectedContent(newContentImpl);
-                });
-            }
-        };
-        Disposer.register(myProject, myCurrentErrorTreeViewPanel);
-        contentRef.set(new ContentImpl(myCurrentErrorTreeViewPanel, "Current Errors", false));
-        toolWindow.getContentManager().addContent(contentRef.get(), 0);
-        return contentRef.get();
-    }
-
-    private void createAllErrorsPanel() {
+    private void createSchemasPanel() {
         ApplicationManager.getApplication().assertIsDispatchThread();
-        if (myProjectErrorTreeViewPanel == null) {
+        if (mySchemasTree == null) {
             final Ref<Content> contentRef = new Ref<>();
-            myProjectErrorTreeViewPanel = new JSGraphQLErrorTreeViewPanel(myProject, myHelpId, null, myActions) {
-                public void close() {
-                    final NewErrorTreeViewPanel oldPanel = myProjectErrorTreeViewPanel;
-                    myProjectErrorTreeViewPanel = null;
-                    myToolWindow.hide(() -> {
-                        Content content = contentRef.get();
-                        if (content != null) {
-                            myToolWindow.getContentManager().removeContent(content, true);
-                        }
-                        if (oldPanel != null) {
-                            Disposer.dispose(oldPanel);
-                        }
-                    });
-                }
-            };
-            Disposer.register(myProject, myProjectErrorTreeViewPanel);
-            contentRef.set(new ContentImpl(myProjectErrorTreeViewPanel, "Project Errors", false));
-            myToolWindow.getContentManager().addContent(contentRef.get());
+            mySchemasTree = new GraphQLSchemasPanel(myProject);
+            final ContentImpl schemasContent = new ContentImpl(mySchemasTree, "Schemas and Project Structure", false);
+            schemasContent.setCloseable(false);
+            contentRef.set(schemasContent);
+            myToolWindow.getContentManager().addContent(contentRef.get(), 0);
 
         }
     }
 
-    private void show() {
-        if (myToolWindow != null) {
-            myToolWindow.show(null);
-        }
-    }
-
-    private void setActivePanel(NewErrorTreeViewPanel panel, ToolWindow window) {
-        final Content[] contents = window.getContentManager().getContents();
-        for (Content content : contents) {
-            if (content.getComponent() == panel) {
-                window.getContentManager().setSelectedContent(content);
-                break;
-            }
-        }
-        show();
-    }
-
-    public void logCurrentErrors(@NotNull ImmutableList<JSGraphQLErrorResult> immutableResults, boolean setActive) {
-        ApplicationManager.getApplication().assertIsDispatchThread();
-        if (myCurrentErrorTreeViewPanel == null) {
-            if (!myFirstInitialized || myToolWindow == null) {
-                return;
-            }
-
-            Content list = createCurrentErrorContent(myToolWindow);
-            myToolWindow.getContentManager().setSelectedContent(list);
-            show();
-        }
-
-        if (myFirstInitialized && myCurrentErrorTreeViewPanel != null) {
-            final List<JSGraphQLErrorResult> results = ContainerUtil.newArrayList(immutableResults);
-            if (!results.equals(myLastResult)) {
-                logErrorsImpl(myCurrentErrorTreeViewPanel, results);
-                myLastResult = results;
-            }
-        }
-
-        if (setActive) {
-            setActivePanel(myCurrentErrorTreeViewPanel, myToolWindow);
-        }
-
-    }
-
+    @Override
     public void dispose() {
         cleanPanel();
-    }
-
-    private static void logErrorsImpl(NewErrorTreeViewPanel errorTreeViewPanel, List<JSGraphQLErrorResult> list) {
-        errorTreeViewPanel.getErrorViewStructure().clear();
-        for (JSGraphQLErrorResult compilerResult : list) {
-            String path = compilerResult.myFileAbsoluteSystemDependPath;
-            VirtualFile file = null;
-            if (path != null) {
-                file = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
-            }
-            int category = "warning".equalsIgnoreCase(compilerResult.myCategory) ? MessageCategory.WARNING : MessageCategory.ERROR;
-            errorTreeViewPanel.addMessage(category, new String[]{compilerResult.myErrorText}, file, compilerResult.myLine, compilerResult.myColumn, null);
-        }
-        errorTreeViewPanel.updateTree();
     }
 
     private synchronized void cleanPanel() {
@@ -190,19 +88,7 @@ public class JSGraphQLLanguageToolWindowManager implements Disposable {
             if (!myProject.isDisposed()) {
                 ToolWindowManager.getInstance(myProject).unregisterToolWindow(myToolWindowName);
             }
-
-            if (myCurrentErrorTreeViewPanel != null) {
-                Disposer.dispose(myCurrentErrorTreeViewPanel);
-            }
-
-            if (myProjectErrorTreeViewPanel != null) {
-                Disposer.dispose(myProjectErrorTreeViewPanel);
-            }
-
-            myProjectErrorTreeViewPanel = null;
             myToolWindow = null;
-            myCurrentErrorTreeViewPanel = null;
-            myLastResult = null;
         }
     }
 }

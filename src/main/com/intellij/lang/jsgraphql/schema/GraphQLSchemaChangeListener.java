@@ -9,16 +9,15 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFile;
+import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiTreeChangeAdapter;
-import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.PsiTreeChangeEventImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
@@ -64,6 +63,13 @@ public class GraphQLSchemaChangeListener {
                     // always consider the schema changed when editing an endpoint file
                     signalSchemaChanged();
                 }
+                if (event.getParent() instanceof PsiLanguageInjectionHost) {
+                    GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = ServiceManager.getService(myProject, GraphQLInjectionSearchHelper.class);
+                    if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(event.getParent())) {
+                        // change in injection target
+                        signalSchemaChanged();
+                    }
+                }
             }
 
             private void signalSchemaChanged() {
@@ -95,6 +101,16 @@ public class GraphQLSchemaChangeListener {
                 checkForSchemaChange(event);
             }
 
+            @Override
+            public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
+                if (event instanceof PsiTreeChangeEventImpl) {
+                    if (!((PsiTreeChangeEventImpl) event).isGenericChange()) {
+                        // ignore the generic event which fires for all other cases above
+                        // if it's not the generic case, children have been replaced, e.g. using the commenter
+                        checkForSchemaChange(event);
+                    }
+                }
+            }
         };
         psiManager.addPsiTreeChangeListener(listener);
     }
@@ -103,7 +119,6 @@ public class GraphQLSchemaChangeListener {
      * Evaluates whether the change event can affect the associated GraphQL schema
      *
      * @param event the event that occurred
-     *
      * @return true if the change can affect the declared schema
      */
     private boolean affectsGraphQLSchema(PsiTreeChangeEvent event) {

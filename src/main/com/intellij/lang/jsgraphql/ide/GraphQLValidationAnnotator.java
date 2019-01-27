@@ -11,7 +11,6 @@ import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.quickfix.RenameElementFix;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.LocalQuickFixOnPsiElement;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.annotation.Annotation;
@@ -20,26 +19,9 @@ import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
-import com.intellij.lang.jsgraphql.psi.GraphQLArgumentsDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
-import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveLocation;
-import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
-import com.intellij.lang.jsgraphql.psi.GraphQLField;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSelection;
-import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread;
-import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
-import com.intellij.lang.jsgraphql.psi.GraphQLObjectField;
-import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLTemplateSelection;
-import com.intellij.lang.jsgraphql.psi.GraphQLTemplateVariable;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeCondition;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLVisitor;
+import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
@@ -55,18 +37,8 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.NavigatablePsiElement;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiNamedElement;
-import com.intellij.psi.PsiRecursiveElementVisitor;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.text.EditDistance;
 import graphql.AssertException;
@@ -74,19 +46,13 @@ import graphql.GraphQLError;
 import graphql.language.Document;
 import graphql.language.SourceLocation;
 import graphql.parser.Parser;
-import graphql.schema.GraphQLFieldsContainer;
-import graphql.schema.GraphQLInputFieldsContainer;
-import graphql.schema.GraphQLInputObjectField;
-import graphql.schema.GraphQLInterfaceType;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.SchemaUtil;
+import graphql.schema.*;
 import graphql.schema.idl.errors.SchemaProblem;
 import graphql.schema.validation.InvalidSchemaException;
 import graphql.validation.ValidationError;
 import graphql.validation.ValidationErrorType;
 import graphql.validation.Validator;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -179,7 +145,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                 }
                 if (message != null) {
                     final Optional<Annotation> annotation = createErrorAnnotation(annotationHolder, psiElement, message);
-                    if(annotation.isPresent()) {
+                    if (annotation.isPresent()) {
                         annotation.get().setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
                         if (!fixes.isEmpty()) {
                             final InspectionManager inspectionManager = InspectionManager.getInstance(psiElement.getProject());
@@ -223,7 +189,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                     editor = ((TextEditor) fileEditor).getEditor();
                     session.putUserData(EDITOR, editor);
                 }
-                if(editor == null) {
+                if (editor == null) {
                     // no compatible editor found to annotate
                     return;
                 }
@@ -236,9 +202,9 @@ public class GraphQLValidationAnnotator implements Annotator {
                     final Document document = parser.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile));
 
                     // adjust source locations for injected GraphQL since the annotator works on the entire editor buffer (e.g. tsx with graphql tagged templates)
-                    if(containingFile.getContext() != null) {
+                    if (containingFile.getContext() != null) {
                         final LogicalPosition logicalPosition = editor.offsetToLogicalPosition(containingFile.getContext().getTextOffset());
-                        if(logicalPosition.line > 0 || logicalPosition.column > 0) {
+                        if (logicalPosition.line > 0 || logicalPosition.column > 0) {
                             // logical positions can be used as deltas between graphql-java and intellij since graphql-java is 1-based and intellij is 0-based
                             GraphQLUtil.adjustSourceLocations(document, logicalPosition.line, logicalPosition.column);
                         }
@@ -253,7 +219,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                     for (GraphQLError error : schema.getErrors()) {
                         errorMessages.add(error.getMessage() + formatLocation(error.getLocations()));
                         SourceLocation firstSourceLocation = error.getLocations().stream().findFirst().orElse(null);
-                        if(firstSourceLocation != null && firstSchemaError.isNull()) {
+                        if (firstSourceLocation != null && firstSchemaError.isNull()) {
                             firstSchemaError.set(firstSourceLocation);
                         }
                         if (firstSourceLocation != null && currentFileName.equals(firstSourceLocation.getSourceName())) {
@@ -261,7 +227,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                             PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset);
                             if (errorPsiElement != null) {
                                 PsiElement nextLeaf = PsiTreeUtil.nextVisibleLeaf(errorPsiElement);
-                                if(nextLeaf != null && nextLeaf.getParent() instanceof GraphQLIdentifier) {
+                                if (nextLeaf != null && nextLeaf.getParent() instanceof GraphQLIdentifier) {
                                     // graphql-errors typically point to the keywords of definitions, so
                                     // use the definition identifier in that case
                                     errorPsiElement = nextLeaf.getParent();
@@ -269,70 +235,6 @@ public class GraphQLValidationAnnotator implements Annotator {
                                 createErrorAnnotation(annotationHolder, errorPsiElement, error.getMessage());
                             }
                         }
-                    }
-
-                    // schema errors are present, so mark operations and fragments with a message that type information is incomplete
-                    final List<? extends GraphQLDefinition> operations = PsiTreeUtil.getChildrenOfAnyType(psiElement.getContainingFile(), GraphQLOperationDefinition.class, GraphQLFragmentDefinition.class);
-                    final String fullErrorMessage = StringUtils.join(errorMessages, "\n");
-                    for (GraphQLDefinition definition : operations) {
-                        Optional<Annotation> errorAnnotation = createErrorAnnotation(annotationHolder, definition, "No type information available due to schema errors: \n" + fullErrorMessage);
-                        if(!errorAnnotation.isPresent()) {
-                            continue;
-                        }
-                        errorAnnotation.get().setTextAttributes(CodeInsightColors.WEAK_WARNING_ATTRIBUTES);
-
-                        if(!firstSchemaError.isNull()) {
-                            final InspectionManager inspectionManager = InspectionManager.getInstance(psiElement.getProject());
-                            final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
-                                    definition,
-                                    definition,
-                                    "Navigate to GraphQL schema error",
-                                    ProblemHighlightType.ERROR,
-                                    true,
-                                    LocalQuickFix.EMPTY_ARRAY
-                            );
-
-                            // help the user navigate to the schema error
-                            errorAnnotation.get().registerFix(new LocalQuickFixOnPsiElement(definition) {
-
-                                @NotNull
-                                @Override
-                                public String getText() {
-                                    return "Navigate to GraphQL schema error";
-                                }
-
-                                @Nls
-                                @NotNull
-                                @Override
-                                public String getFamilyName() {
-                                    return "GraphQL schema errors";
-                                }
-
-                                @Override
-                                public void invoke(@NotNull Project project, @NotNull PsiFile file, @NotNull PsiElement startElement, @NotNull PsiElement endElement) {
-                                    final SourceLocation sourceLocation = firstSchemaError.get();
-                                    final VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(sourceLocation.getSourceName());
-                                    if(virtualFile != null) {
-                                        final PsiFile schemaPsiFile = PsiManager.getInstance(project).findFile(virtualFile);
-                                        if(schemaPsiFile != null) {
-                                            schemaPsiFile.navigate(true);
-                                            final Editor schemaEditor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(schemaPsiFile);
-                                            if(schemaEditor != null) {
-                                                final int positionToOffset = getOffsetFromSourceLocation(schemaEditor, sourceLocation);
-                                                final NavigatablePsiElement navigatablePsiElement = PsiTreeUtil.getNonStrictParentOfType(
-                                                        schemaPsiFile.findElementAt(positionToOffset),
-                                                        NavigatablePsiElement.class
-                                                );
-                                                if(navigatablePsiElement != null) {
-                                                    navigatablePsiElement.navigate(true);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }, null, null, problemDescriptor);
-                        }
-
                     }
 
                     userData = Collections.emptyList();
@@ -372,7 +274,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                                     for (SourceLocation location : validationError.getLocations()) {
                                         final int positionToOffset = getOffsetFromSourceLocation(editor, location);
                                         int injectionOffset = 0;
-                                        if(containingFile.getContext() != null) {
+                                        if (containingFile.getContext() != null) {
                                             injectionOffset = containingFile.getContext().getTextOffset();
                                         }
                                         PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset - injectionOffset);
@@ -393,10 +295,10 @@ public class GraphQLValidationAnnotator implements Annotator {
                                                 }
                                             } else if (elementType == GraphQLElementTypes.AT) {
                                                 // mark the directive and not only the '@'
-                                                if(validationErrorType == ValidationErrorType.MisplacedDirective) {
+                                                if (validationErrorType == ValidationErrorType.MisplacedDirective) {
                                                     // graphql-java KnownDirectives rule only recognizes executable directive locations, so ignore
                                                     // the error if we're inside a type definition
-                                                    if(PsiTreeUtil.getTopmostParentOfType(errorPsiElement, GraphQLTypeSystemDefinition.class) != null) {
+                                                    if (PsiTreeUtil.getTopmostParentOfType(errorPsiElement, GraphQLTypeSystemDefinition.class) != null) {
                                                         continue;
                                                     }
                                                 }
@@ -439,15 +341,14 @@ public class GraphQLValidationAnnotator implements Annotator {
 
     /**
      * Replaces template placeholders in a GraphQL operation to produce valid GraphQL.
-     *
+     * <p>
      * Positions of tokens are preserved by using replacements that fit within the ${} placeholder token.
-     *
+     * <p>
      * Note that the replacement needs to be filtered for variables and selections, specifically:
      * - Variables: '$__'
      * - Selection '___'
      *
      * @param graphqlPsiFile the file to transform to valid GraphQL by replacing placeholders
-     *
      * @return the transformed valid GraphQL as a string
      */
     private String replacePlaceholdersWithValidGraphQL(PsiFile graphqlPsiFile) {

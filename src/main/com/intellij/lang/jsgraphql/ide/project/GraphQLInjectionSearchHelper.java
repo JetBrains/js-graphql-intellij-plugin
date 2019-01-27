@@ -16,6 +16,11 @@ import java.util.function.Consumer;
 public interface GraphQLInjectionSearchHelper {
 
     /**
+     * Gets whether the specified host is a target for GraphQL Injection
+     */
+    boolean isJSGraphQLLanguageInjectionTarget(PsiElement host);
+
+    /**
      * Process injected GraphQL PsiFiles
      *
      * @param scopedElement the starting point of the enumeration settings the scopedElement of the processing

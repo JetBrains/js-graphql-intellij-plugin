@@ -12,16 +12,11 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.GraphQLScopeResolution;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.scopes.ConditionalGlobalSearchScope;
-import com.intellij.lang.jsgraphql.ide.project.scopes.GraphQLProjectScopesManager;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
-import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
-import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
-import com.intellij.lang.jsgraphql.psi.GraphQLNamedElement;
+import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -34,12 +29,7 @@ import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.PsiNamedElement;
-import com.intellij.psi.PsiRecursiveElementVisitor;
-import com.intellij.psi.PsiReference;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.AnyPsiChangeListener;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -77,7 +67,8 @@ public class GraphQLPsiSearchHelper {
     private final GlobalSearchScope searchScope;
     private final GlobalSearchScope allBuiltInSchemaScopes;
     private final GraphQLConfigManager graphQLConfigManager;
-    private final GraphQLProjectScopesManager graphQLProjectScopesManager;
+
+    private GraphQLFile defaultProjectFile;
 
     public static GraphQLPsiSearchHelper getService(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLPsiSearchHelper.class);
@@ -88,12 +79,18 @@ public class GraphQLPsiSearchHelper {
         myProject = project;
         mySettings = GraphQLSettings.getSettings(project);
         graphQLConfigManager = GraphQLConfigManager.getService(myProject);
-        graphQLProjectScopesManager = GraphQLProjectScopesManager.getService(myProject);
         pluginDescriptor = PluginManager.getPlugin(PluginId.getId("com.intellij.lang.jsgraphql"));
 
+        final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
+        defaultProjectFile = (GraphQLFile) psiFileFactory.createFileFromText("Default schema file", GraphQLLanguage.INSTANCE, "");
+
+        GlobalSearchScope defaultProjectFileScope = GlobalSearchScope.fileScope(defaultProjectFile);
         GlobalSearchScope builtInSchemaScope = GlobalSearchScope.fileScope(project, getBuiltInSchema().getVirtualFile());
         GlobalSearchScope builtInRelaySchemaScope = GlobalSearchScope.fileScope(project, getRelayModernDirectivesSchema().getVirtualFile());
-        allBuiltInSchemaScopes = builtInSchemaScope.union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, mySettings::isEnableRelayModernFrameworkSupport));
+        allBuiltInSchemaScopes = builtInSchemaScope
+                .union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, mySettings::isEnableRelayModernFrameworkSupport))
+                .union(defaultProjectFileScope)
+        ;
 
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(FileType.EMPTY_ARRAY);
         searchScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes).union(allBuiltInSchemaScopes);
@@ -108,27 +105,24 @@ public class GraphQLPsiSearchHelper {
     }
 
     /**
+     * Gets an empty GraphQL file that can be used to get a single project-wide schema scope.
+     */
+    public GraphQLFile getDefaultProjectFile() {
+        return defaultProjectFile;
+    }
+
+    /**
      * Uses custom editable scopes to limit the schema and reference resolution of a GraphQL psi element
      */
     public GlobalSearchScope getSchemaScope(PsiElement element) {
 
         return fileNameToSchemaScope.computeIfAbsent(getFileName(element.getContainingFile()), fileName -> {
 
-            final GraphQLScopeResolution scopeResolution = mySettings.getScopeResolution();
-
-            switch (scopeResolution) {
-                case PROJECT_SCOPES:
-                case GRAPHQL_CONFIG_GLOBS:
-                    final VirtualFile virtualFile = getVirtualFile(element.getContainingFile());
-                    final NamedScope schemaScope = (scopeResolution == GraphQLScopeResolution.PROJECT_SCOPES
-                            ? graphQLProjectScopesManager.getSchemaScope(virtualFile)
-                            : graphQLConfigManager.getSchemaScope(virtualFile)
-                    );
-                    if (schemaScope != null) {
-                        final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
-                        return searchScope.intersectWith(filterSearchScope.union(allBuiltInSchemaScopes));
-                    }
-                    break;
+            final VirtualFile virtualFile = getVirtualFile(element.getContainingFile());
+            final NamedScope schemaScope = graphQLConfigManager.getSchemaScope(virtualFile);
+            if (schemaScope != null) {
+                final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
+                return searchScope.intersectWith(filterSearchScope.union(allBuiltInSchemaScopes));
             }
 
             // default is entire project limited by relevant file types
@@ -163,7 +157,6 @@ public class GraphQLPsiSearchHelper {
      * Finds all fragment definition across files in the project
      *
      * @param scopedElement the starting point for finding known fragment definitions
-     *
      * @return a list of known fragment definitions, or an empty list if the index is not yet ready
      */
     public List<GraphQLFragmentDefinition> getKnownFragmentDefinitions(PsiElement scopedElement) {
@@ -189,7 +182,6 @@ public class GraphQLPsiSearchHelper {
      * Gets a resolved reference or null if no reference or resolved element is found
      *
      * @param psiElement the element to get a resolved reference for
-     *
      * @return the resolved reference, or null if non is available
      */
     public static GraphQLIdentifier getResolvedReference(GraphQLNamedElement psiElement) {
@@ -308,12 +300,12 @@ public class GraphQLPsiSearchHelper {
     /**
      * Process built-in GraphQL PsiFiles that are not the spec schema
      *
-     * @param schemaScope   the search scope to use for limiting the schema definitions
-     * @param consumer      a consumer that will be invoked for each injected GraphQL PsiFile
+     * @param schemaScope the search scope to use for limiting the schema definitions
+     * @param consumer    a consumer that will be invoked for each injected GraphQL PsiFile
      */
     public void processAdditionalBuiltInPsiFiles(GlobalSearchScope schemaScope, Consumer<PsiFile> consumer) {
         final PsiFile relayModernDirectivesSchema = getRelayModernDirectivesSchema();
-        if(schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
+        if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
             consumer.accept(relayModernDirectivesSchema);
         }
     }

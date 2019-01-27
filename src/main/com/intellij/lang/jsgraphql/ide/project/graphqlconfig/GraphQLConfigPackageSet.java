@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 import com.google.common.collect.Maps;
 import com.intellij.ide.scratch.ScratchFileType;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
+import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
@@ -23,9 +24,10 @@ import java.util.stream.Collectors;
 /**
  * PackageSet implementation which uses graphql-config include/exclude globs to apply scoping for schema types etc.
  */
-class GraphQLConfigPackageSet implements PackageSet {
+public class GraphQLConfigPackageSet implements PackageSet {
 
     private final VirtualFile configBaseDir;
+    private GraphQLFile configEntryFile;
     private final GraphQLResolvedConfigData configData;
     private GraphQLConfigGlobMatcher globMatcher;
     private final String configBaseDirPath;
@@ -35,10 +37,11 @@ class GraphQLConfigPackageSet implements PackageSet {
 
     private final Map<String, Boolean> includesFilePath = Maps.newConcurrentMap();
 
-    GraphQLConfigPackageSet(VirtualFile configBaseDir, GraphQLResolvedConfigData configData, GraphQLConfigGlobMatcher globMatcher) {
+    GraphQLConfigPackageSet(VirtualFile configBaseDir, GraphQLFile configEntryFile, GraphQLResolvedConfigData configData, GraphQLConfigGlobMatcher globMatcher) {
 
         this.configBaseDir = configBaseDir;
         this.configBaseDirPath = configBaseDir.getPath() + "/";
+        this.configEntryFile = configEntryFile;
         this.configData = configData;
         this.globMatcher = globMatcher;
 
@@ -68,6 +71,9 @@ class GraphQLConfigPackageSet implements PackageSet {
 
     @Override
     public boolean contains(@NotNull PsiFile file, NamedScopesHolder holder) {
+        if(file.equals(configEntryFile)) {
+            return true;
+        }
         VirtualFile virtualFile = file.getVirtualFile();
         if (virtualFile == null) {
             virtualFile = file.getOriginalFile().getVirtualFile();
@@ -83,9 +89,13 @@ class GraphQLConfigPackageSet implements PackageSet {
      * Based on graphl-config: https://github.com/prismagraphql/graphql-config/blob/b6785a7f0c1b84010cd6e9b94797796254d527b9/src/GraphQLProjectConfig.ts#L56
      * Note: Scratch files are always considered to be included since they are associated with a configuration package set but have a path that lies the project sources
      */
-    boolean includesVirtualFile(@NotNull VirtualFile file) {
+    public boolean includesVirtualFile(@NotNull VirtualFile file) {
         if(file.getFileType() == ScratchFileType.INSTANCE) {
             // if a scratch file has been associated with a configuration it is considered to be included
+            return true;
+        }
+        if(file.equals(configEntryFile.getVirtualFile())) {
+            // the "entry" file is always considered included
             return true;
         }
         return includesFilePath.computeIfAbsent(file.getPath(), filePath -> {
@@ -121,7 +131,7 @@ class GraphQLConfigPackageSet implements PackageSet {
     @NotNull
     @Override
     public PackageSet createCopy() {
-        return new GraphQLConfigPackageSet(configBaseDir, configData, globMatcher);
+        return new GraphQLConfigPackageSet(configBaseDir, configEntryFile, configData, globMatcher);
     }
 
     @NotNull

@@ -18,8 +18,7 @@ import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.scratch.ScratchFileType;
 import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.GraphQLScopeResolution;
-import com.intellij.lang.jsgraphql.GraphQLSettings;
+import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
@@ -38,22 +37,13 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileCopyEvent;
-import com.intellij.openapi.vfs.VirtualFileEvent;
-import com.intellij.openapi.vfs.VirtualFileListener;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.VirtualFileMoveEvent;
-import com.intellij.openapi.vfs.VirtualFilePropertyEvent;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiTreeChangeAdapter;
-import com.intellij.psi.PsiTreeChangeEvent;
+import com.intellij.openapi.vfs.*;
+import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
@@ -66,15 +56,19 @@ import org.yaml.snakeyaml.representer.Representer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Manages integration with graphql-config files. See https://github.com/prismagraphql/graphql-config
  */
 public class GraphQLConfigManager {
+
+    public final static Topic<GraphQLConfigFileEventListener> TOPIC = new Topic<>(
+            "GraphQL Configuration File Change Events",
+            GraphQLConfigFileEventListener.class,
+            Topic.BroadcastDirection.TO_PARENT
+    );
+
 
     public static final String GRAPHQLCONFIG = ".graphqlconfig";
     public static final String GRAPHQLCONFIG_COMMENT = ".graphqlconfig=";
@@ -95,7 +89,9 @@ public class GraphQLConfigManager {
     private final GraphQLConfigGlobMatcher graphQLConfigGlobMatcher;
     public final IdeaPluginDescriptor pluginDescriptor;
 
-    private volatile Map<String, GraphQLConfigData> configPathToConfigurations = Maps.newConcurrentMap();
+    private volatile Map<VirtualFile, GraphQLConfigData> configPathToConfigurations = Maps.newConcurrentMap();
+    private volatile Map<GraphQLResolvedConfigData, GraphQLFile> configDataToEntryFiles = Maps.newConcurrentMap();
+    private volatile Map<GraphQLResolvedConfigData, GraphQLConfigPackageSet> configDataToPackageset = Maps.newConcurrentMap();
     private final Map<String, GraphQLNamedScope> virtualFilePathToScopes = Maps.newConcurrentMap();
     private VirtualFileListener virtualFileListener;
 
@@ -114,7 +110,6 @@ public class GraphQLConfigManager {
      * Gets the closest .graphqlconfig{.yml,.yaml} file that includes the specified file
      *
      * @param virtualFile the file to get the config file for
-     *
      * @return the closest config file that includes the specified virtualFile, or null if none found or not included
      */
     public VirtualFile getClosestIncludingConfigFile(VirtualFile virtualFile) {
@@ -140,7 +135,7 @@ public class GraphQLConfigManager {
     public VirtualFile getClosestConfigFile(VirtualFile virtualFile) {
         final Set<VirtualFile> contentRoots = getContentRoots(virtualFile);
         VirtualFile directory;
-        if(virtualFile.getFileType() == ScratchFileType.INSTANCE) {
+        if (virtualFile.getFileType() == ScratchFileType.INSTANCE) {
             directory = getConfigBaseDirForScratch(virtualFile);
         } else {
             directory = virtualFile.getParent();
@@ -180,6 +175,26 @@ public class GraphQLConfigManager {
             } catch (IOException e) {
                 Notifications.Bus.notify(new Notification("GraphQL", "Unable to create " + GRAPHQLCONFIG, "Unable to create file '" + GRAPHQLCONFIG + "' in directory '" + configBaseDir.getPath() + "': " + e.getMessage(), NotificationType.ERROR));
             }
+        });
+    }
+
+    /**
+     * Gets the currently discovered configurations
+     *
+     * @see #buildConfigurationModel()
+     */
+    public Map<VirtualFile, GraphQLConfigData> getConfigurationsByPath() {
+        return configPathToConfigurations;
+    }
+
+    /**
+     * Gets a GraphQL PSI file that will be considered included in the specified configuration.
+     * This file can be used as "the entry file" to get the corresponding schema scope.
+     */
+    public GraphQLFile getConfigurationEntryFile(GraphQLResolvedConfigData configData) {
+        return configDataToEntryFiles.computeIfAbsent(configData, cd -> {
+            final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
+            return (GraphQLFile) psiFileFactory.createFileFromText("graphql-config:" + UUID.randomUUID().toString(), GraphQLLanguage.INSTANCE, "");
         });
     }
 
@@ -319,9 +334,9 @@ public class GraphQLConfigManager {
         }
     }
 
-    private void buildConfigurationModel() {
+    public void buildConfigurationModel() {
 
-        final Map<String, GraphQLConfigData> newConfigPathToConfigurations = Maps.newConcurrentMap();
+        final Map<VirtualFile, GraphQLConfigData> newConfigPathToConfigurations = Maps.newConcurrentMap();
 
         // JSON format
         final Collection<VirtualFile> jsonFiles = FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, projectScope);
@@ -330,8 +345,8 @@ public class GraphQLConfigManager {
             try {
                 final String jsonText = new String(jsonFile.contentsToByteArray(), jsonFile.getCharset());
                 final GraphQLConfigData graphQLConfigData = gson.fromJson(jsonText, GraphQLConfigData.class);
-                if(graphQLConfigData != null) {
-                    newConfigPathToConfigurations.put(jsonFile.getParent().getPath(), graphQLConfigData);
+                if (graphQLConfigData != null) {
+                    newConfigPathToConfigurations.put(jsonFile.getParent(), graphQLConfigData);
                 }
             } catch (IOException | JsonSyntaxException e) {
                 createParseErrorNotification(jsonFile, e);
@@ -349,35 +364,11 @@ public class GraphQLConfigManager {
                 try {
                     final String yamlText = new String(yamlFile.contentsToByteArray(), yamlFile.getCharset());
                     final GraphQLConfigData graphQLConfigData = yaml.load(yamlText);
-                    newConfigPathToConfigurations.putIfAbsent(yamlFile.getParent().getPath(), graphQLConfigData);
+                    newConfigPathToConfigurations.putIfAbsent(yamlFile.getParent(), graphQLConfigData);
                 } catch (IOException | YAMLException e) {
                     createParseErrorNotification(yamlFile, e);
                 }
             });
-        }
-
-        // suggest graphql-config should be used to resolve the schema if applicable
-        if (!newConfigPathToConfigurations.isEmpty()) {
-            boolean suggestAsScopes = false;
-            for (GraphQLConfigData graphQLConfigData : newConfigPathToConfigurations.values()) {
-                if (hasScopeSettings(graphQLConfigData)) {
-                    suggestAsScopes = true;
-                    break;
-                }
-            }
-            if (suggestAsScopes) {
-                GraphQLSettings settings = GraphQLSettings.getSettings(myProject);
-                if (settings.getScopeResolution() != GraphQLScopeResolution.GRAPHQL_CONFIG_GLOBS) {
-                    Notification enableGraphQLConfig = new Notification("GraphQL", "graphl-config file globs detected", "<a href=\"enable\">Use graphql-config globs</a> to discover schemas", NotificationType.INFORMATION, (notification, event) -> {
-                        settings.setScopeResolution(GraphQLScopeResolution.GRAPHQL_CONFIG_GLOBS);
-                        ApplicationManager.getApplication().saveSettings();
-                        notification.expire();
-                        EditorNotifications.getInstance(myProject).updateAllNotifications();
-                    });
-                    enableGraphQLConfig.setImportant(true);
-                    Notifications.Bus.notify(enableGraphQLConfig);
-                }
-            }
         }
 
         // apply defaults to projects as spec'ed in https://github.com/prismagraphql/graphql-config/blob/master/specification.md#default-configuration-properties
@@ -409,7 +400,10 @@ public class GraphQLConfigManager {
 
         this.configPathToConfigurations = newConfigPathToConfigurations;
         this.virtualFilePathToScopes.clear();
+        this.configDataToEntryFiles.clear();
+        this.configDataToPackageset.clear();
 
+        myProject.getMessageBus().syncPublisher(TOPIC).onGraphQLConfigurationFileChanged();
         myProject.getMessageBus().syncPublisher(JSGraphQLConfigurationListener.TOPIC).onEndpointsChanged();
 
         EditorNotifications.getInstance(myProject).updateAllNotifications();
@@ -435,29 +429,50 @@ public class GraphQLConfigManager {
         GraphQLNamedScope namedScope = virtualFilePathToScopes.computeIfAbsent(virtualFileWithPath.get().getPath(), path -> {
             VirtualFile configBaseDir;
             if (virtualFileWithPath.get().getFileType() != ScratchFileType.INSTANCE) {
-                configBaseDir = virtualFileWithPath.get().getParent();
+                if (virtualFile instanceof LightVirtualFile) {
+                    // handle entry files
+                    configBaseDir = null;
+                    for (Map.Entry<VirtualFile, GraphQLConfigData> entry : configPathToConfigurations.entrySet()) {
+                        GraphQLFile entryFile = getConfigurationEntryFile(entry.getValue());
+                        if (entryFile.getVirtualFile().equals(virtualFile)) {
+                            // the virtual file is an entry file for the specific config base (either the root schema or one of the nested graphql-config project schemas)
+                            configBaseDir = entry.getKey();
+                            break;
+                        }
+                    }
+                } else {
+                    // on-disk file, so use the containing directory to look for config files
+                    configBaseDir = virtualFileWithPath.get().getParent();
+                }
             } else {
                 configBaseDir = getConfigBaseDirForScratch(virtualFileWithPath.get());
             }
             // locate the nearest config file, see https://github.com/prismagraphql/graphql-config/blob/master/src/findGraphQLConfigFile.ts
             final Set<VirtualFile> contentRoots = getContentRoots(virtualFileWithPath.get());
             while (configBaseDir != null) {
-                final String configBaseDirPath = configBaseDir.getPath();
-                GraphQLConfigData configData = configPathToConfigurations.get(configBaseDirPath);
+                GraphQLConfigData configData = configPathToConfigurations.get(configBaseDir);
                 if (configData != null) {
+                    final VirtualFile effectiveConfigBaseDir = configBaseDir;
                     // check projects first
                     if (configData.projects != null) {
                         for (Map.Entry<String, GraphQLResolvedConfigData> entry : configData.projects.entrySet()) {
-                            final GraphQLConfigPackageSet packageSet = new GraphQLConfigPackageSet(configBaseDir, entry.getValue(), graphQLConfigGlobMatcher);
+                            final GraphQLResolvedConfigData projectConfigData = entry.getValue();
+                            final GraphQLConfigPackageSet packageSet = configDataToPackageset.computeIfAbsent(projectConfigData, dataKey -> {
+                                final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
+                                return new GraphQLConfigPackageSet(effectiveConfigBaseDir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
+                            });
                             if (packageSet.includesVirtualFile(virtualFileWithPath.get())) {
-                                return new GraphQLNamedScope("graphql-config:" + entry.getKey(), packageSet);
+                                return new GraphQLNamedScope("graphql-config:" + configBaseDir.getPath() + ":" + entry.getKey(), packageSet);
                             }
                         }
                     }
                     // then top level config
-                    final GraphQLConfigPackageSet packageSet = new GraphQLConfigPackageSet(configBaseDir, configData, graphQLConfigGlobMatcher);
+                    final GraphQLConfigPackageSet packageSet = configDataToPackageset.computeIfAbsent(configData, dataKey -> {
+                        final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
+                        return new GraphQLConfigPackageSet(effectiveConfigBaseDir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
+                    });
                     if (packageSet.includesVirtualFile(virtualFileWithPath.get())) {
-                        return new GraphQLNamedScope("graphql-config:" + configBaseDirPath, packageSet);
+                        return new GraphQLNamedScope("graphql-config:" + configBaseDir.getPath(), packageSet);
                     }
                     return NONE;
                 } else {
@@ -479,6 +494,7 @@ public class GraphQLConfigManager {
 
     /**
      * Resolves the logical configuration base dir for a scratch file that is placed outside the project by IntelliJ
+     *
      * @param scratchVirtualFile the scratch file to resolve a configuration dir for
      * @return the resolved configuration base dir or null if none was found
      */
@@ -519,8 +535,8 @@ public class GraphQLConfigManager {
             // - a single config
             // - the project base dir
             if (configPathToConfigurations.size() == 1) {
-                final String singleConfigPath = configPathToConfigurations.keySet().iterator().next();
-                baseDir.set(scratchVirtualFile.getFileSystem().findFileByPath(singleConfigPath));
+                final VirtualFile singleConfigPath = configPathToConfigurations.keySet().iterator().next();
+                baseDir.set(singleConfigPath);
             }
             if (baseDir.get() == null) {
                 baseDir.set(myProject.getBaseDir());

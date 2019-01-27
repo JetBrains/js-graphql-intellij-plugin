@@ -28,15 +28,19 @@ import java.util.Objects;
  */
 public class GraphQLNamedScope extends NamedScope {
 
-    public GraphQLNamedScope(@NotNull String name, @Nullable PackageSet value) {
+    public GraphQLNamedScope(@NotNull String name, @Nullable GraphQLConfigPackageSet value) {
         super(name, value);
+    }
+
+    public GraphQLConfigPackageSet getPackageSet() {
+        return (GraphQLConfigPackageSet)getValue();
     }
 
     @NotNull
     @Override
     public NamedScope createCopy() {
         final PackageSet value = getValue();
-        return new GraphQLNamedScope(getName(), value != null ? value.createCopy() : null);
+        return new GraphQLNamedScope(getName(), value != null ? (GraphQLConfigPackageSet)value.createCopy() : null);
     }
 
     @Override

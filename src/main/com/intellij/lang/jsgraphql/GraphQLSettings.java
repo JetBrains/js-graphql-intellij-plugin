@@ -38,14 +38,6 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
         this.myState = state;
     }
 
-    public GraphQLScopeResolution getScopeResolution() {
-        return myState.scopeResolution;
-    }
-
-    public void setScopeResolution(GraphQLScopeResolution scopeResolution) {
-        myState.scopeResolution = scopeResolution;
-    }
-
     public String getIntrospectionQuery() {
         return myState.introspectionQuery;
     }
@@ -68,7 +60,6 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
      * NOTE!!!: 1. Class must be static, and 2. Fields must be public for settings serialization to work
      */
     static class GraphQLSettingsState {
-        public GraphQLScopeResolution scopeResolution = GraphQLScopeResolution.ENTIRE_PROJECT;
         public String introspectionQuery = "";
         public boolean enableRelayModernFrameworkSupport;
     }

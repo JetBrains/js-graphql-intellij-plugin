@@ -30,12 +30,18 @@ import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.GraphQLException;
+import graphql.InvalidSyntaxError;
 import graphql.language.Document;
+import graphql.language.SourceLocation;
 import graphql.parser.Parser;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import graphql.schema.idl.errors.SchemaProblem;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Token;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CancellationException;
@@ -166,8 +172,20 @@ public class SchemaIDLTypeDefinitionRegistry {
                         } catch (GraphQLException | CancellationException e) {
                             if(e instanceof GraphQLException) {
                                 errors.add((GraphQLException) e);
+                            } else if (e instanceof CancellationException) {
+                                // CancellationException is a parse error, but we don't always have a valid program as the user types, so that's expected
+                                if(e.getCause() instanceof RecognitionException) {
+                                    final Token offendingToken = ((RecognitionException) e.getCause()).getOffendingToken();
+                                    if(offendingToken != null) {
+                                        final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(
+                                                offendingToken.getLine(),
+                                                offendingToken.getCharPositionInLine() + 1,
+                                                GraphQLPsiSearchHelper.getFileName(psiFile)
+                                        ));
+                                        errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, "Unexpected token: \"" + offendingToken.getText() + "\""))));
+                                    }
+                                }
                             }
-                            // CancellationException is a parse error, but we don't always have a valid program as the user types, so that's expected
                         }
                     }
                 }

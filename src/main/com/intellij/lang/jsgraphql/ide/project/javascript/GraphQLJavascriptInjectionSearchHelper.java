@@ -22,6 +22,11 @@ import java.util.function.Consumer;
 
 public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionSearchHelper {
 
+    @Override
+    public boolean isJSGraphQLLanguageInjectionTarget(PsiElement host) {
+        return GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(host);
+    }
+
     /**
      * Uses the {@link GraphQLInjectionIndex} to process injected GraphQL PsiFiles
      *

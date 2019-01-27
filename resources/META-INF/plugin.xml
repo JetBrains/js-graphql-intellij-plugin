@@ -62,7 +62,6 @@
     <projectService serviceInterface="com.intellij.lang.jsgraphql.GraphQLSettings" serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.scopes.GraphQLProjectScopesManager" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.scopes.GraphQLProjectScopesManager" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" serviceImplementation="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" />
 
     <!-- Startup -->
