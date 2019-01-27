@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
@@ -23,8 +24,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.SimpleNode;
-import org.apache.commons.lang3.StringUtils;
-import org.fest.util.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

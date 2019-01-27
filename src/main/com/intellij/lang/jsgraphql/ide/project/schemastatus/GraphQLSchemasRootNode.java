@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
+import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
@@ -14,7 +15,6 @@ import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.treeStructure.SimpleNode;
-import org.fest.util.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;

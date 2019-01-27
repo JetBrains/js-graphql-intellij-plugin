@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
+import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
@@ -14,7 +15,6 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
-import org.fest.util.Lists;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

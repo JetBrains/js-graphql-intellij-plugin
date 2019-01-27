@@ -7,12 +7,12 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import graphql.GraphQLError;
-import org.fest.util.Lists;
 
 import java.util.List;
 

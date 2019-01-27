@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
+import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.gotoByName.ChooseByNamePopup;
 import com.intellij.ide.util.gotoByName.ChooseByNamePopupComponent;
@@ -22,8 +23,7 @@ import com.intellij.ui.treeStructure.SimpleTree;
 import graphql.language.*;
 import graphql.schema.idl.ScalarInfo;
 import graphql.schema.idl.TypeDefinitionRegistry;
-import org.apache.commons.lang3.StringUtils;
-import org.fest.util.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

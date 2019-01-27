@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.endpoint.ide.project;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaEventListener;
@@ -28,7 +29,6 @@ import graphql.introspection.Introspection;
 import graphql.language.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import org.apache.commons.lang.StringUtils;
-import org.fest.util.Sets;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
