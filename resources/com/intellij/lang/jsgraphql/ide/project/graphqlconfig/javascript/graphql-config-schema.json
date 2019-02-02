@@ -9,7 +9,7 @@
     },
     "schemaPath": {
       "type": "string",
-      "description": "A .graphql file that describes the schema using GraphQL SDL, e.g. \"./schema.graphql\""
+      "description": "A .graphql file that describes the schema using GraphQL SDL, e.g. \"./schema.graphql\", or a JSON file containing the result of a GraphQL Introspection query"
     },
     "includes": {
       "type": "array",

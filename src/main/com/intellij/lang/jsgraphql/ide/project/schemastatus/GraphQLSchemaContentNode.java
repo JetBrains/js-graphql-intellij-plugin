@@ -134,7 +134,7 @@ public class GraphQLSchemaContentNode extends SimpleNode {
                 if (element instanceof AbstractNode) {
                     final SourceLocation sourceLocation = ((AbstractNode) element).getSourceLocation();
                     if (sourceLocation != null && sourceLocation.getSourceName() != null) {
-                        GraphQLTreeNodeNavigationUtil.openSourceLocation(myProject, sourceLocation);
+                        GraphQLTreeNodeNavigationUtil.openSourceLocation(myProject, sourceLocation, true);
                     }
                 }
             }

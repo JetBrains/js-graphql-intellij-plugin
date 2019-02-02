@@ -37,7 +37,7 @@ import java.util.Map;
 public class GraphQLIntrospectionHelper {
 
     @SuppressWarnings("unchecked")
-    static String printIntrospectionJsonAsGraphQL(String introspectionJson) {
+    public static String printIntrospectionJsonAsGraphQL(String introspectionJson) {
         Map<String, Object> introspectionAsMap = new Gson().fromJson(introspectionJson, Map.class);
         if (!introspectionAsMap.containsKey("__schema")) {
             // possibly a full query result

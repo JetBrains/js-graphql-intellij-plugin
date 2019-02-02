@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -43,6 +44,17 @@ public class GraphQLEditConfigAction extends AnAction {
 
     public GraphQLEditConfigAction() {
         super(SETTINGS_TOOLTIP, SETTINGS_TOOLTIP, AllIcons.General.Settings);
+    }
+
+    @Override
+    public void update(AnActionEvent e) {
+        super.update(e);
+        final VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
+        if (virtualFile != null && Boolean.TRUE.equals(virtualFile.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_SDL))) {
+            e.getPresentation().setEnabled(false);
+        } else {
+            e.getPresentation().setEnabled(true);
+        }
     }
 
     @Override

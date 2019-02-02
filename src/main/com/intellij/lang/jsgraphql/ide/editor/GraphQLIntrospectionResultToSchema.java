@@ -42,7 +42,7 @@ import static graphql.Assert.assertTrue;
 public class GraphQLIntrospectionResultToSchema {
 
     /**
-     * Returns a IDL Document that reprSesents the schema as defined by the introspection result map
+     * Returns a IDL Document that represents the schema as defined by the introspection result map
      *
      * @param introspectionResult the result of an introspection query on a schema
      *

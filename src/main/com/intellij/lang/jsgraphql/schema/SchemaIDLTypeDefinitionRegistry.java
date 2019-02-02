@@ -9,10 +9,13 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
+import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
+import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.components.ServiceManager;
@@ -20,12 +23,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiErrorElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.*;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -47,6 +45,9 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 
+import static com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper.printIntrospectionJsonAsGraphQL;
+import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL;
+import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_SDL;
 import static graphql.schema.idl.ScalarInfo.STANDARD_SCALAR_DEFINITIONS;
 
 public class SchemaIDLTypeDefinitionRegistry {
@@ -54,6 +55,7 @@ public class SchemaIDLTypeDefinitionRegistry {
     private final GraphQLPsiSearchHelper graphQLPsiSearchHelper;
     private final Project project;
     private final GlobalSearchScope scope;
+    private final GlobalSearchScope introspectionScope;
     private final PsiManager psiManager;
     private final JSGraphQLEndpointNamedTypeRegistry graphQLEndpointNamedTypeRegistry;
 
@@ -66,6 +68,7 @@ public class SchemaIDLTypeDefinitionRegistry {
     public SchemaIDLTypeDefinitionRegistry(Project project) {
         this.project = project;
         scope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), GraphQLFileType.INSTANCE);
+        introspectionScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), JsonFileType.INSTANCE);
         psiManager = PsiManager.getInstance(project);
         graphQLEndpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(project);
         graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getService(project);
@@ -98,6 +101,9 @@ public class SchemaIDLTypeDefinitionRegistry {
             final List<GraphQLException> errors = Lists.newArrayList();
 
             Consumer<PsiFile> processFile = psiFile -> {
+                if (!(psiFile instanceof GraphQLFile)) {
+                    return;
+                }
                 final GraphQLTypeSystemDefinition[] typeSystemDefinitions = PsiTreeUtil.getChildrenOfType(psiFile, GraphQLTypeSystemDefinition.class);
                 if (typeSystemDefinitions != null) {
 
@@ -199,6 +205,31 @@ public class SchemaIDLTypeDefinitionRegistry {
                 }
                 return true;
             }, scope.intersectWith(schemaScope));
+
+            // JSON GraphQL introspection result files
+            FileTypeIndex.processFiles(JsonFileType.INSTANCE, file -> {
+                // only JSON files that are directly referenced as "schemaPath" from the .graphqlconfig will be
+                // considered within scope, so we can just go ahead and try to turn the JSON into GraphQL
+                final PsiFile psiFile = psiManager.findFile(file);
+                if (psiFile != null) {
+                    try {
+                        final String introspectionJsonAsGraphQL = printIntrospectionJsonAsGraphQL(psiFile.getText());
+                        final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(project);
+                        final String fileName = file.getPath();
+                        final GraphQLFile newIntrospectionFile = (GraphQLFile) psiFileFactory.createFileFromText(fileName, GraphQLLanguage.INSTANCE, introspectionJsonAsGraphQL);
+                        newIntrospectionFile.putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
+                        newIntrospectionFile.getVirtualFile().putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
+                        newIntrospectionFile.getVirtualFile().setWritable(false);
+                        psiFile.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
+                        file.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
+                        processFile.accept(newIntrospectionFile);
+                    } catch (Exception e) {
+                        final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(1, 1, GraphQLPsiSearchHelper.getFileName(psiFile)));
+                        errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, e.getMessage()))));
+                    }
+                }
+                return true;
+            }, introspectionScope.intersectWith(schemaScope));
 
             // Injected GraphQL
             graphQLPsiSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, processFile);

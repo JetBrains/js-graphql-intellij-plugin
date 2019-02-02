@@ -39,7 +39,7 @@ public class GraphQLSchemaErrorNode extends SimpleNode {
     public void handleDoubleClickOrEnter(SimpleTree tree, InputEvent inputEvent) {
         final SourceLocation location = getLocation();
         if (location != null && location.getSourceName() != null) {
-            GraphQLTreeNodeNavigationUtil.openSourceLocation(myProject, location);
+            GraphQLTreeNodeNavigationUtil.openSourceLocation(myProject, location, false);
         }
     }
 

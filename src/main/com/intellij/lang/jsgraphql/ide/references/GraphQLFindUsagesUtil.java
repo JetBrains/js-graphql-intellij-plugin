@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.references;
 
 import com.google.common.collect.Sets;
+import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.openapi.fileTypes.FileType;
 
@@ -19,6 +20,7 @@ public class GraphQLFindUsagesUtil {
 
     static {
         INCLUDED_FILE_TYPES.add(GraphQLFileType.INSTANCE);
+        INCLUDED_FILE_TYPES.add(JsonFileType.INSTANCE);
     }
 
 

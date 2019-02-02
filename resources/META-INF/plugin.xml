@@ -116,6 +116,7 @@
       <codeInsight.lineMarkerProvider implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionJsonToSDLLineMarkerProvider" language="JSON" />
       <codeInsight.lineMarkerProvider implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectEndpointUrlLineMarkerProvider" language="JSON" />
       <projectViewNestingRulesProvider implementation="com.intellij.lang.jsgraphql.ide.project.GraphQLIntrospectionProjectViewNestingRulesProvider" />
+      <editorTabTitleProvider implementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionEditorTabTitleProvider" />
 
 
     <!-- v2 above this point -->

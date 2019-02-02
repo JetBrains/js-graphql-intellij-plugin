@@ -71,6 +71,12 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             final Ref<String> urlRef = Ref.create();
             if (isEndpointUrl(jsonProperty, urlRef) && !hasErrors(jsonProperty.getContainingFile())) {
 
+                final String currentSchemaPath = getSchemaPath(jsonProperty, false);
+                if (currentSchemaPath != null && currentSchemaPath.endsWith(".json")) {
+                    // schema is based on JSON Introspection result, so doesn't make sense to show the line marker
+                    return null;
+                }
+
                 return new LineMarkerInfo<>(jsonProperty, jsonProperty.getTextRange(), AllIcons.General.Run, Pass.UPDATE_ALL, o -> "Run introspection query to generate GraphQL SDL schema file", (evt, jsonUrl) -> {
 
                     final GraphQLConfigVariableAwareEndpoint endpoint = getEndpoint(urlRef.get(), jsonProperty);
@@ -78,7 +84,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
                         return;
                     }
 
-                    String schemaPath = getSchemaPath(jsonProperty);
+                    String schemaPath = getSchemaPath(jsonProperty, true);
                     if (schemaPath == null || schemaPath.trim().isEmpty()) {
                         return;
                     }
@@ -172,7 +178,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
         }
     }
 
-    private String getSchemaPath(JsonProperty urlElement) {
+    private String getSchemaPath(JsonProperty urlElement, boolean showNotificationOnMissingPath) {
         JsonObject jsonObject = PsiTreeUtil.getParentOfType(urlElement, JsonObject.class);
         String url = urlElement.getValue() instanceof JsonStringLiteral ? ((JsonStringLiteral) urlElement.getValue()).getValue() : "";
         while (jsonObject != null) {
@@ -190,7 +196,9 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             }
             jsonObject = PsiTreeUtil.getParentOfType(jsonObject, JsonObject.class);
         }
-        Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Configuration Error", "No schemaPath found for url " + url, NotificationType.ERROR), urlElement.getProject());
+        if (showNotificationOnMissingPath) {
+            Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Configuration Error", "No schemaPath found for url " + url, NotificationType.ERROR), urlElement.getProject());
+        }
         return null;
     }
 

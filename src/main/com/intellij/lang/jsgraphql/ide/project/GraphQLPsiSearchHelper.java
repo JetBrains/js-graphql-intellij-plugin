@@ -10,13 +10,16 @@ package com.intellij.lang.jsgraphql.ide.project;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.scopes.ConditionalGlobalSearchScope;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -46,6 +49,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -204,9 +208,17 @@ public class GraphQLPsiSearchHelper {
     public void processElementsWithWord(PsiElement scopedElement, String word, Predicate<PsiNamedElement> predicate) {
         try {
             final GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
+            final Set<GraphQLFile> introspectionFiles = Sets.newLinkedHashSet();
             PsiSearchHelper.SERVICE.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
                 if (psiElement instanceof PsiNamedElement) {
                     return predicate.test((PsiNamedElement) psiElement);
+                }
+                if (psiElement instanceof JsonStringLiteral) {
+                    // the word appears in introspection JSON so get the GraphQL SDL file
+                    final GraphQLFile graphQLFile = psiElement.getContainingFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
+                    if (graphQLFile != null) {
+                        introspectionFiles.add(graphQLFile);
+                    }
                 }
                 return true;
             }, schemaScope, word, UsageSearchContext.IN_CODE, true, true);
@@ -224,6 +236,9 @@ public class GraphQLPsiSearchHelper {
 
             // spec schema
             getBuiltInSchema().accept(builtInFileVisitor);
+
+            // introspection files (GraphQL SDL created from JSON)
+            introspectionFiles.forEach(file -> file.accept(builtInFileVisitor));
 
             // relay schema if enabled
             final PsiFile relayModernDirectivesSchema = getRelayModernDirectivesSchema();

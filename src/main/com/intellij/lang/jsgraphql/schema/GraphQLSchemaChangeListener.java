@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
+import com.intellij.json.psi.JsonFile;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFile;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
@@ -69,6 +70,10 @@ public class GraphQLSchemaChangeListener {
                         // change in injection target
                         signalSchemaChanged();
                     }
+                }
+                if (event.getFile() instanceof JsonFile && event.getFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL) != null) {
+                    // GraphQL Introspection JSON changed
+                    signalSchemaChanged();
                 }
             }
 

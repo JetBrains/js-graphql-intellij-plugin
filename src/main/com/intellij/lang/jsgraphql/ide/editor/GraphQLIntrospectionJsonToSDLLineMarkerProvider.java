@@ -40,8 +40,9 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
     @SuppressWarnings(value = "unchecked")
     public LineMarkerInfo getLineMarkerInfo(@NotNull PsiElement element) {
         if (element instanceof JsonProperty) {
-            if (PsiTreeUtil.getParentOfType(element, JsonProperty.class) == null) {
-                // top level property
+            final JsonProperty parentProperty = PsiTreeUtil.getParentOfType(element, JsonProperty.class);
+            if (parentProperty == null || "data".equals(parentProperty.getName())) {
+                // top level property or inside data property
                 final JsonProperty jsonProperty = (JsonProperty) element;
                 final String propertyName = jsonProperty.getName();
                 if ("__schema".equals(propertyName) && jsonProperty.getValue() instanceof JsonObject) {

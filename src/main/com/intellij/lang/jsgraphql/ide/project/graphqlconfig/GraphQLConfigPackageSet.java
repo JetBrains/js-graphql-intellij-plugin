@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 
 import com.google.common.collect.Maps;
 import com.intellij.ide.scratch.ScratchFileType;
+import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -97,6 +98,12 @@ public class GraphQLConfigPackageSet implements PackageSet {
         if(file.equals(configEntryFile.getVirtualFile())) {
             // the "entry" file is always considered included
             return true;
+        }
+        if(JsonFileType.INSTANCE.equals(file.getFileType())) {
+            if(GraphQLConfigManager.GRAPHQLCONFIG.equals(file.getName())) {
+                // skip the .graphqlconfig JSON file from the JSON files that will be processed during schema discovery
+                return false;
+            }
         }
         return includesFilePath.computeIfAbsent(file.getPath(), filePath -> {
             if (filePath.equals(schemaFilePath)) {
