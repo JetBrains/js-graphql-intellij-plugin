@@ -213,16 +213,24 @@ public class SchemaIDLTypeDefinitionRegistry {
                 final PsiFile psiFile = psiManager.findFile(file);
                 if (psiFile != null) {
                     try {
-                        final String introspectionJsonAsGraphQL = printIntrospectionJsonAsGraphQL(psiFile.getText());
-                        final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(project);
-                        final String fileName = file.getPath();
-                        final GraphQLFile newIntrospectionFile = (GraphQLFile) psiFileFactory.createFileFromText(fileName, GraphQLLanguage.INSTANCE, introspectionJsonAsGraphQL);
-                        newIntrospectionFile.putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
-                        newIntrospectionFile.getVirtualFile().putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
-                        newIntrospectionFile.getVirtualFile().setWritable(false);
-                        psiFile.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
-                        file.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
-                        processFile.accept(newIntrospectionFile);
+                        synchronized (GRAPHQL_INTROSPECTION_JSON_TO_SDL) {
+                            final String introspectionJsonAsGraphQL = printIntrospectionJsonAsGraphQL(psiFile.getText());
+                            final GraphQLFile currentSDLPsiFile = psiFile.getUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL);
+                            if(currentSDLPsiFile != null && currentSDLPsiFile.getText().equals(introspectionJsonAsGraphQL)) {
+                                // already have a PSI file that matches the introspection SDL
+                                processFile.accept(currentSDLPsiFile);
+                            } else {
+                                final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(project);
+                                final String fileName = file.getPath();
+                                final GraphQLFile newIntrospectionFile = (GraphQLFile) psiFileFactory.createFileFromText(fileName, GraphQLLanguage.INSTANCE, introspectionJsonAsGraphQL);
+                                newIntrospectionFile.putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
+                                newIntrospectionFile.getVirtualFile().putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
+                                newIntrospectionFile.getVirtualFile().setWritable(false);
+                                psiFile.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
+                                file.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
+                                processFile.accept(newIntrospectionFile);
+                            }
+                        }
                     } catch (Exception e) {
                         final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(1, 1, GraphQLPsiSearchHelper.getFileName(psiFile)));
                         errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, e.getMessage()))));

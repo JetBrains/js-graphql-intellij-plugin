@@ -100,10 +100,8 @@ public class GraphQLConfigPackageSet implements PackageSet {
             return true;
         }
         if(JsonFileType.INSTANCE.equals(file.getFileType())) {
-            if(GraphQLConfigManager.GRAPHQLCONFIG.equals(file.getName())) {
-                // skip the .graphqlconfig JSON file from the JSON files that will be processed during schema discovery
-                return false;
-            }
+            // the only JSON file that can be considered included is an introspection JSON file referenced as schemaPath
+            return file.getPath().equals(schemaFilePath);
         }
         return includesFilePath.computeIfAbsent(file.getPath(), filePath -> {
             if (filePath.equals(schemaFilePath)) {
