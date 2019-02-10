@@ -14,6 +14,7 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
@@ -58,6 +59,7 @@ public class SchemaIDLTypeDefinitionRegistry {
     private final GlobalSearchScope introspectionScope;
     private final PsiManager psiManager;
     private final JSGraphQLEndpointNamedTypeRegistry graphQLEndpointNamedTypeRegistry;
+    private final GraphQLConfigManager graphQLConfigManager;
 
     private final Map<GlobalSearchScope, TypeDefinitionRegistryWithErrors> scopeToRegistry = Maps.newConcurrentMap();
 
@@ -72,6 +74,7 @@ public class SchemaIDLTypeDefinitionRegistry {
         psiManager = PsiManager.getInstance(project);
         graphQLEndpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(project);
         graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getService(project);
+        graphQLConfigManager = GraphQLConfigManager.getService(project);
         project.getMessageBus().connect().subscribe(GraphQLSchemaChangeListener.TOPIC, new GraphQLSchemaEventListener() {
             @Override
             public void onGraphQLSchemaChanged() {
@@ -207,37 +210,41 @@ public class SchemaIDLTypeDefinitionRegistry {
             }, scope.intersectWith(schemaScope));
 
             // JSON GraphQL introspection result files
-            FileTypeIndex.processFiles(JsonFileType.INSTANCE, file -> {
-                // only JSON files that are directly referenced as "schemaPath" from the .graphqlconfig will be
-                // considered within scope, so we can just go ahead and try to turn the JSON into GraphQL
-                final PsiFile psiFile = psiManager.findFile(file);
-                if (psiFile != null) {
-                    try {
-                        synchronized (GRAPHQL_INTROSPECTION_JSON_TO_SDL) {
-                            final String introspectionJsonAsGraphQL = printIntrospectionJsonAsGraphQL(psiFile.getText());
-                            final GraphQLFile currentSDLPsiFile = psiFile.getUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL);
-                            if(currentSDLPsiFile != null && currentSDLPsiFile.getText().equals(introspectionJsonAsGraphQL)) {
-                                // already have a PSI file that matches the introspection SDL
-                                processFile.accept(currentSDLPsiFile);
-                            } else {
-                                final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(project);
-                                final String fileName = file.getPath();
-                                final GraphQLFile newIntrospectionFile = (GraphQLFile) psiFileFactory.createFileFromText(fileName, GraphQLLanguage.INSTANCE, introspectionJsonAsGraphQL);
-                                newIntrospectionFile.putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
-                                newIntrospectionFile.getVirtualFile().putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
-                                newIntrospectionFile.getVirtualFile().setWritable(false);
-                                psiFile.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
-                                file.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
-                                processFile.accept(newIntrospectionFile);
+            if(!graphQLConfigManager.getConfigurationsByPath().isEmpty()) {
+                // need one or more configurations to be able to point "schemaPath" to relevant JSON files
+                // otherwise all JSON files would be in scope
+                FileTypeIndex.processFiles(JsonFileType.INSTANCE, file -> {
+                    // only JSON files that are directly referenced as "schemaPath" from the .graphqlconfig will be
+                    // considered within scope, so we can just go ahead and try to turn the JSON into GraphQL
+                    final PsiFile psiFile = psiManager.findFile(file);
+                    if (psiFile != null) {
+                        try {
+                            synchronized (GRAPHQL_INTROSPECTION_JSON_TO_SDL) {
+                                final String introspectionJsonAsGraphQL = printIntrospectionJsonAsGraphQL(psiFile.getText());
+                                final GraphQLFile currentSDLPsiFile = psiFile.getUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL);
+                                if (currentSDLPsiFile != null && currentSDLPsiFile.getText().equals(introspectionJsonAsGraphQL)) {
+                                    // already have a PSI file that matches the introspection SDL
+                                    processFile.accept(currentSDLPsiFile);
+                                } else {
+                                    final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(project);
+                                    final String fileName = file.getPath();
+                                    final GraphQLFile newIntrospectionFile = (GraphQLFile) psiFileFactory.createFileFromText(fileName, GraphQLLanguage.INSTANCE, introspectionJsonAsGraphQL);
+                                    newIntrospectionFile.putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
+                                    newIntrospectionFile.getVirtualFile().putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
+                                    newIntrospectionFile.getVirtualFile().setWritable(false);
+                                    psiFile.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
+                                    file.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
+                                    processFile.accept(newIntrospectionFile);
+                                }
                             }
+                        } catch (Exception e) {
+                            final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(1, 1, GraphQLPsiSearchHelper.getFileName(psiFile)));
+                            errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, e.getMessage()))));
                         }
-                    } catch (Exception e) {
-                        final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(1, 1, GraphQLPsiSearchHelper.getFileName(psiFile)));
-                        errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, e.getMessage()))));
                     }
-                }
-                return true;
-            }, introspectionScope.intersectWith(schemaScope));
+                    return true;
+                }, introspectionScope.intersectWith(schemaScope));
+            }
 
             // Injected GraphQL
             graphQLPsiSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, processFile);
