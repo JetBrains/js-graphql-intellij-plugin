@@ -9,8 +9,6 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.lang.jsgraphql.GraphQLScopeResolution;
-import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
@@ -27,8 +25,6 @@ public class JSGraphQLSchemaGraphQLConfigCodeInsightTest extends LightCodeInsigh
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        final GraphQLSettings settings = GraphQLSettings.getSettings(myFixture.getProject());
-        settings.setScopeResolution(GraphQLScopeResolution.GRAPHQL_CONFIG_GLOBS);
         ApplicationManager.getApplication().saveSettings();
         myFixture.configureByFiles("schema-one/.graphqlconfig");
         myFixture.configureByFiles("schema-one/schema-one.graphql");

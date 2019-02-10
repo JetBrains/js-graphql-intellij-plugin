@@ -9,6 +9,7 @@
     },
     "schemaPath": {
       "type": "string",
+      "default": "./schema.graphql",
       "description": "A .graphql file that describes the schema using GraphQL SDL, e.g. \"./schema.graphql\", or a JSON file containing the result of a GraphQL Introspection query"
     },
     "includes": {
@@ -92,6 +93,10 @@
                     "headers": {
                       "type": "object",
                       "description": "HTTP headers to send with requests"
+                    },
+                    "introspect": {
+                      "type": "boolean",
+                      "description": "Boolean indicating whether this endpoint should be introspected automatically by the tool that loads the configuration, e.g. an IDE"
                     }
                   }
                 }

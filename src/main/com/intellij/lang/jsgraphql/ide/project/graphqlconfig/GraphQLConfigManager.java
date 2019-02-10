@@ -19,14 +19,17 @@ import com.intellij.ide.scratch.ScratchFileType;
 import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.PluginId;
@@ -57,6 +60,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Manages integration with graphql-config files. See https://github.com/prismagraphql/graphql-config
@@ -69,6 +73,7 @@ public class GraphQLConfigManager {
             Topic.BroadcastDirection.TO_PARENT
     );
 
+    public static final String ENDPOINTS_EXTENSION = "endpoints";
 
     public static final String GRAPHQLCONFIG = ".graphqlconfig";
     public static final String GRAPHQLCONFIG_COMMENT = ".graphqlconfig=";
@@ -76,7 +81,7 @@ public class GraphQLConfigManager {
     private static final String GRAPHQLCONFIG_YML = ".graphqlconfig.yml";
     private static final String GRAPHQLCONFIG_YAML = ".graphqlconfig.yaml";
 
-    private static final String[] GRAPHQLCONFIG_FILE_NAMES = {
+    public static final String[] GRAPHQLCONFIG_FILE_NAMES = {
             GRAPHQLCONFIG,
             GRAPHQLCONFIG_YML,
             GRAPHQLCONFIG_YAML
@@ -138,7 +143,7 @@ public class GraphQLConfigManager {
         if (virtualFile.getFileType() == ScratchFileType.INSTANCE) {
             directory = getConfigBaseDirForScratch(virtualFile);
         } else {
-            directory = virtualFile.getParent();
+            directory = virtualFile.isDirectory() ? virtualFile : virtualFile.getParent();
         }
         while (directory != null) {
             for (String fileName : GRAPHQLCONFIG_FILE_NAMES) {
@@ -157,15 +162,24 @@ public class GraphQLConfigManager {
     }
 
     public void createAndOpenConfigFile(VirtualFile configBaseDir, Boolean openEditor) {
+        createAndOpenConfigFile(configBaseDir, openEditor, outputStream -> {
+            try (InputStream inputStream = pluginDescriptor.getPluginClassLoader().getResourceAsStream("/META-INF/" + GRAPHQLCONFIG)) {
+                if (inputStream != null) {
+                    IOUtils.copy(inputStream, outputStream);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+
+    public void createAndOpenConfigFile(VirtualFile configBaseDir, Boolean openEditor, Consumer<OutputStream> outputStreamConsumer) {
         ApplicationManager.getApplication().runWriteAction(() -> {
             try {
                 final VirtualFile configFile = configBaseDir.createChildData(this, GRAPHQLCONFIG);
                 try (OutputStream stream = configFile.getOutputStream(this)) {
-                    try (InputStream inputStream = pluginDescriptor.getPluginClassLoader().getResourceAsStream("/META-INF/" + GRAPHQLCONFIG)) {
-                        if (inputStream != null) {
-                            IOUtils.copy(inputStream, stream);
-                        }
-                    }
+                    outputStreamConsumer.accept(stream);
                 }
                 if (openEditor) {
                     UIUtil.invokeLaterIfNeeded(() -> {
@@ -200,7 +214,7 @@ public class GraphQLConfigManager {
 
     /**
      * Gets the endpoints that are within scope for the specified GraphQL virtual file.
-     *
+     * <p>
      * If the file is not a GraphQL file, null is returned
      */
     @SuppressWarnings("unchecked")
@@ -216,20 +230,24 @@ public class GraphQLConfigManager {
             if (packageSet != null && packageSet.getConfigData() != null) {
                 Map<String, Object> extensions = packageSet.getConfigData().extensions;
                 if (extensions != null) {
-                    final Object endpointsValue = extensions.get("endpoints");
+                    final Object endpointsValue = extensions.get(ENDPOINTS_EXTENSION);
                     if (endpointsValue instanceof Map) {
-                        final String configPath = packageSet.getConfigBaseDir().getPath();
                         final List<GraphQLConfigEndpoint> result = Lists.newArrayList();
                         ((Map<String, Object>) endpointsValue).forEach((key, value) -> {
                             if (value instanceof String) {
-                                result.add(new GraphQLConfigEndpoint(configPath, key, (String) value));
+                                result.add(new GraphQLConfigEndpoint(packageSet, key, (String) value));
                             } else if (value instanceof Map) {
-                                Object url = ((Map) value).get("url");
-                                Object headers = ((Map) value).get("headers");
+                                final Map endpointAsMap = (Map) value;
+                                final Object url = endpointAsMap.get("url");
                                 if (url instanceof String) {
-                                    GraphQLConfigEndpoint endpoint = new GraphQLConfigEndpoint(configPath, key, (String) url);
+                                    GraphQLConfigEndpoint endpoint = new GraphQLConfigEndpoint(packageSet, key, (String) url);
+                                    Object headers = endpointAsMap.get("headers");
                                     if (headers instanceof Map) {
                                         endpoint.headers = (Map<String, Object>) headers;
+                                    }
+                                    Boolean introspect = (Boolean) endpointAsMap.get("introspect");
+                                    if (introspect != null) {
+                                        endpoint.introspect = introspect;
                                     }
                                     result.add(endpoint);
                                 }
@@ -297,6 +315,8 @@ public class GraphQLConfigManager {
         });
 
         buildConfigurationModel();
+
+        introspectEndpoints();
 
     }
 
@@ -407,6 +427,54 @@ public class GraphQLConfigManager {
         myProject.getMessageBus().syncPublisher(JSGraphQLConfigurationListener.TOPIC).onEndpointsChanged();
 
         EditorNotifications.getInstance(myProject).updateAllNotifications();
+    }
+
+    private void introspectEndpoints() {
+        final List<GraphQLResolvedConfigData> configDataList = Lists.newArrayList();
+        for (GraphQLConfigData configData : configPathToConfigurations.values()) {
+            configDataList.add(configData);
+            if (configData.projects != null) {
+                configDataList.addAll(configData.projects.values());
+            }
+        }
+        configDataList.forEach(configData -> {
+            final GraphQLFile entryFile = getConfigurationEntryFile(configData);
+            final List<GraphQLConfigEndpoint> endpoints = getEndpoints(entryFile.getVirtualFile());
+            if (endpoints != null) {
+                for (GraphQLConfigEndpoint endpoint : endpoints) {
+                    if (Boolean.TRUE.equals(endpoint.introspect)) {
+                        // endpoint should be automatically introspected
+                        final String schemaPath = endpoint.configPackageSet.getConfigData().schemaPath;
+                        if (schemaPath != null && !schemaPath.trim().isEmpty()) {
+                            final Notification introspect = new Notification("GraphQL", "Get GraphQL Schema from Endpoint now?", "Introspect '" + endpoint.name + "' to update the local schema file.", NotificationType.INFORMATION).setImportant(true);
+                            introspect.addAction(new NotificationAction("Introspect '" + endpoint.url + "'") {
+                                @Override
+                                public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+                                    GraphQLIntrospectionHelper.performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
+                                }
+                            });
+                            String schemaFilePath = endpoint.configPackageSet.getSchemaFilePath();
+                            if (schemaFilePath != null) {
+                                final VirtualFile schemaFile = LocalFileSystem.getInstance().findFileByPath(schemaFilePath);
+                                if (schemaFile != null) {
+                                    introspect.addAction(new NotificationAction("Open schema file") {
+                                        @Override
+                                        public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+                                            if (schemaFile.isValid()) {
+                                                FileEditorManager.getInstance(myProject).openFile(schemaFile, true);
+                                            } else {
+                                                notification.expire();
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                            Notifications.Bus.notify(introspect);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     @Nullable

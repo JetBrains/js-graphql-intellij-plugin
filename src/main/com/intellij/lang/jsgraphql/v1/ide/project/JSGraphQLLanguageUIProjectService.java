@@ -12,7 +12,6 @@ import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.codeInsight.CodeSmellInfo;
-import com.intellij.codeInsight.actions.ReformatCodeProcessor;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
@@ -60,8 +59,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.impl.source.codeStyle.CodeStyleManagerImpl;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
@@ -470,18 +470,21 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         textEditor.getEditor().getScrollingModel().scrollVertically(0);
     }
 
-    private void updateQueryResultEditor(String responseJson, TextEditor textEditor, boolean reformatJson) {
+    private void updateQueryResultEditor(final String responseJson, TextEditor textEditor, boolean reformatJson) {
         ApplicationManager.getApplication().runWriteAction(() -> {
-            final Document document = textEditor.getEditor().getDocument();
-            document.setText(responseJson.replace("\r\n", "\n"));
-            if(reformatJson) {
-                PsiDocumentManager.getInstance(myProject).performForCommittedDocument(document, () -> {
-                    final PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
-                    if (psiFile != null) {
-                        new ReformatCodeProcessor(psiFile, false).run();
-                    }
-                }); // wait for doc to update PSI before reformat
+            String documentJson = responseJson.replace("\r\n", "\n");
+            if (reformatJson) {
+                final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
+                final PsiFile jsonPsiFile = psiFileFactory.createFileFromText("", JsonFileType.INSTANCE, documentJson);
+                CodeStyleManagerImpl.getInstance(myProject).reformat(jsonPsiFile);
+                final Document document = jsonPsiFile.getViewProvider().getDocument();
+                if (document != null) {
+                    documentJson = document.getText();
+                }
             }
+
+            final Document document = textEditor.getEditor().getDocument();
+            document.setText(documentJson);
         });
     }
 

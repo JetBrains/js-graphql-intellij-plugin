@@ -73,7 +73,7 @@ public class JSGraphQLEndpointsModel extends ListComboBoxModel<GraphQLConfigEndp
 
     private String getConfigPathPersistenceKey() {
         if (getSize() > 0) {
-            return ":" + getElementAt(0).configPath;
+            return ":" + getElementAt(0).configPackageSet.getConfigBaseDir().getPath();
         } else {
             return "";
         }

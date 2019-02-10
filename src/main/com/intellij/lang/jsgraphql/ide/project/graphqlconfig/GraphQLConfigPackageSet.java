@@ -158,6 +158,10 @@ public class GraphQLConfigPackageSet implements PackageSet {
         return configBaseDir;
     }
 
+    public String getSchemaFilePath() {
+        return schemaFilePath;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

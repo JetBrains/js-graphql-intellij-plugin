@@ -7,7 +7,11 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model;
 
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigPackageSet;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * graphql-config endpoint extension
@@ -16,16 +20,18 @@ import java.util.Map;
  */
 public class GraphQLConfigEndpoint {
 
-    public String name;
+    public final String name;
 
-    public String configPath;
+    public final GraphQLConfigPackageSet configPackageSet;
 
     public String url;
 
+    public Boolean introspect;
+
     public Map<String, Object> headers;
 
-    public GraphQLConfigEndpoint(String configPath, String name, String url) {
-        this.configPath = configPath;
+    public GraphQLConfigEndpoint(@Nullable GraphQLConfigPackageSet configPackageSet, String name, String url) {
+        this.configPackageSet = configPackageSet;
         this.name = name;
         this.url = url;
     }
@@ -34,22 +40,17 @@ public class GraphQLConfigEndpoint {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         GraphQLConfigEndpoint that = (GraphQLConfigEndpoint) o;
-
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (configPath != null ? !configPath.equals(that.configPath) : that.configPath != null) return false;
-        if (url != null ? !url.equals(that.url) : that.url != null) return false;
-        return headers != null ? headers.equals(that.headers) : that.headers == null;
+        return Objects.equals(name, that.name) &&
+                Objects.equals(configPackageSet, that.configPackageSet) &&
+                Objects.equals(url, that.url) &&
+                Objects.equals(introspect, that.introspect) &&
+                Objects.equals(headers, that.headers);
     }
 
     @Override
     public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (configPath != null ? configPath.hashCode() : 0);
-        result = 31 * result + (url != null ? url.hashCode() : 0);
-        result = 31 * result + (headers != null ? headers.hashCode() : 0);
-        return result;
+        return Objects.hash(name, configPackageSet, url, introspect, headers);
     }
 
     @Override

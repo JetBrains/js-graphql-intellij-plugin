@@ -25,7 +25,7 @@ public class GraphQLConfigVariableAwareEndpointTest {
     @Test
     public void getExpandedVariables() {
 
-        GraphQLConfigEndpoint endpoint = new GraphQLConfigEndpoint("", "", "http://localhost/");
+        GraphQLConfigEndpoint endpoint = new GraphQLConfigEndpoint(null, "", "http://localhost/");
         GraphQLConfigVariableAwareEndpoint variableAwareEndpoint = new GraphQLConfigVariableAwareEndpoint(endpoint, PROJECT);
 
         // setup env var resolver
