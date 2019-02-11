@@ -36,3 +36,24 @@ directive @relay(
     """
     mask: Boolean
 ) on FRAGMENT_DEFINITION | FRAGMENT_SPREAD
+
+directive @match on FIELD
+
+directive @module(
+    name: String!
+) on FRAGMENT_SPREAD
+
+directive @refetchable(
+    queryName: String!
+) on FRAGMENT_DEFINITION
+
+directive @defer(
+    label: String!
+    if: Boolean = true
+) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+directive @stream(
+    label: String!
+    initial_count: Int!
+    if: Boolean = true
+) on FIELD
