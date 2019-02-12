@@ -10,13 +10,13 @@ package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Streams;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.scratch.ScratchFileType;
 import com.intellij.injected.editor.VirtualFileWindow;
+import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper;
@@ -40,7 +40,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -87,6 +92,8 @@ public class GraphQLConfigManager {
             GRAPHQLCONFIG_YAML
     };
 
+    private static final Set<String> GRAPHQLCONFIG_FILE_NAMES_SET = Sets.newHashSet(GRAPHQLCONFIG_FILE_NAMES);
+
     private static final GraphQLNamedScope NONE = new GraphQLNamedScope("", null);
 
     private final Project myProject;
@@ -98,7 +105,6 @@ public class GraphQLConfigManager {
     private volatile Map<GraphQLResolvedConfigData, GraphQLFile> configDataToEntryFiles = Maps.newConcurrentMap();
     private volatile Map<GraphQLResolvedConfigData, GraphQLConfigPackageSet> configDataToPackageset = Maps.newConcurrentMap();
     private final Map<String, GraphQLNamedScope> virtualFilePathToScopes = Maps.newConcurrentMap();
-    private VirtualFileListener virtualFileListener;
 
     public GraphQLConfigManager(Project myProject) {
         this.myProject = myProject;
@@ -195,7 +201,7 @@ public class GraphQLConfigManager {
     /**
      * Gets the currently discovered configurations
      *
-     * @see #buildConfigurationModel()
+     * @see #buildConfigurationModel(List)
      */
     public Map<VirtualFile, GraphQLConfigData> getConfigurationsByPath() {
         return configPathToConfigurations;
@@ -264,41 +270,38 @@ public class GraphQLConfigManager {
     }
 
     void initialize() {
-        virtualFileListener = new VirtualFileListener() {
-
+        myProject.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
             @Override
-            public void propertyChanged(@NotNull VirtualFilePropertyEvent event) {
-                onVirtualFileChange(event);
+            public void after(@NotNull List<? extends VFileEvent> events) {
+                final List<VirtualFile> changedConfigFiles = Lists.newArrayList();
+                boolean configurationsRenamed = false;
+                for (VFileEvent event : events) {
+                    final VirtualFile file = event.getFile();
+                    if (file != null) {
+                        if (event instanceof VFilePropertyChangeEvent) {
+                            // renames
+                            final VFilePropertyChangeEvent propertyChangeEvent = (VFilePropertyChangeEvent) event;
+                            if (VirtualFile.PROP_NAME.equals(propertyChangeEvent.getPropertyName())) {
+                                if (propertyChangeEvent.getNewValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(propertyChangeEvent.getNewValue())) {
+                                    configurationsRenamed = true;
+                                } else if (propertyChangeEvent.getOldValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(propertyChangeEvent.getOldValue())) {
+                                    configurationsRenamed = true;
+                                }
+                            }
+                        } else {
+                            // other changes
+                            final String name = file.getName();
+                            if (GRAPHQLCONFIG_FILE_NAMES_SET.contains(name)) {
+                                changedConfigFiles.add(file);
+                            }
+                        }
+                    }
+                }
+                if (!changedConfigFiles.isEmpty() || configurationsRenamed) {
+                    buildConfigurationModel(changedConfigFiles);
+                }
             }
-
-            @Override
-            public void contentsChanged(@NotNull VirtualFileEvent event) {
-                onVirtualFileChange(event);
-            }
-
-            @Override
-            public void fileDeleted(@NotNull VirtualFileEvent event) {
-                onVirtualFileChange(event);
-            }
-
-            @Override
-            public void fileCreated(@NotNull VirtualFileEvent event) {
-                onVirtualFileChange(event);
-            }
-
-            @Override
-            public void fileCopied(@NotNull VirtualFileCopyEvent event) {
-                onVirtualFileChange(event);
-            }
-
-            @Override
-            public void fileMoved(@NotNull VirtualFileMoveEvent event) {
-                onVirtualFileChange(event);
-            }
-
-
-        };
-        VirtualFileManager.getInstance().addVirtualFileListener(virtualFileListener);
+        });
 
         PsiManager.getInstance(myProject).addPsiTreeChangeListener(new PsiTreeChangeAdapter() {
 
@@ -314,7 +317,7 @@ public class GraphQLConfigManager {
             }
         });
 
-        buildConfigurationModel();
+        buildConfigurationModel(null);
 
         introspectEndpoints();
 
@@ -327,39 +330,27 @@ public class GraphQLConfigManager {
         return false;
     }
 
-    private void onVirtualFileChange(VirtualFileEvent event) {
-        if (myProject.isDisposed()) {
-            VirtualFileManager.getInstance().removeVirtualFileListener(virtualFileListener);
-            return;
-        }
-        String oldName = null;
-        if (event instanceof VirtualFilePropertyEvent) {
-            final VirtualFilePropertyEvent propertyEvent = (VirtualFilePropertyEvent) event;
-            if (VirtualFile.PROP_NAME.equals(propertyEvent.getPropertyName())) {
-                oldName = String.valueOf(propertyEvent.getOldValue());
-            }
-        }
-        final String[] names = new String[]{event.getFile().getName(), oldName};
-        for (String name : names) {
-            if (name == null) {
-                continue;
-            }
-            if (name.startsWith(GRAPHQLCONFIG)) {
-                if (name.length() == GRAPHQLCONFIG.length() || name.equals(GRAPHQLCONFIG_YML) || name.equals(GRAPHQLCONFIG_YAML)) {
-                    buildConfigurationModel();
-                    break;
-                }
-            }
-
-        }
-    }
-
-    public void buildConfigurationModel() {
+    /**
+     * Builds a model of the .graphqlconfig files in the project
+     *
+     * @param changedConfigurationFiles config files that were changed in the Virtual File System and should be explicitly processed given that they haven't been indexed yet
+     */
+    public void buildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles) {
 
         final Map<VirtualFile, GraphQLConfigData> newConfigPathToConfigurations = Maps.newConcurrentMap();
 
         // JSON format
-        final Collection<VirtualFile> jsonFiles = FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, projectScope);
+        final Collection<VirtualFile> jsonFiles = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, projectScope));
+        if (changedConfigurationFiles != null) {
+            for (VirtualFile configurationFile : changedConfigurationFiles) {
+                if (configurationFile.getFileType().equals(JsonFileType.INSTANCE)) {
+                    if (configurationFile.isValid()) { // don't process deletions
+                        jsonFiles.add(configurationFile);
+                    }
+                }
+            }
+        }
+
         final Gson gson = new Gson();
         for (VirtualFile jsonFile : jsonFiles) {
             try {
@@ -374,13 +365,22 @@ public class GraphQLConfigManager {
         }
 
         // YAML format
-        final Collection<VirtualFile> ymlFiles = FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, projectScope);
-        final Collection<VirtualFile> yamlFiles = FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YAML, projectScope);
-        if (!ymlFiles.isEmpty() || !yamlFiles.isEmpty()) {
+        final Collection<VirtualFile> yamlFiles = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, projectScope));
+        yamlFiles.addAll(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YAML, projectScope));
+        if (changedConfigurationFiles != null) {
+            for (VirtualFile configurationFile : changedConfigurationFiles) {
+                if (configurationFile.getName().equals(GRAPHQLCONFIG_YML) || configurationFile.getName().equals(GRAPHQLCONFIG_YAML)) {
+                    if (configurationFile.isValid()) { // don't process deletions
+                        yamlFiles.add(configurationFile);
+                    }
+                }
+            }
+        }
+        if (!yamlFiles.isEmpty()) {
             final Representer representer = new Representer();
             representer.getPropertyUtils().setSkipMissingProperties(true);
             final Yaml yaml = new Yaml(new Constructor(GraphQLConfigData.class), representer);
-            Streams.concat(ymlFiles.stream(), yamlFiles.stream()).forEach(yamlFile -> {
+            yamlFiles.forEach(yamlFile -> {
                 try {
                     final String yamlText = new String(yamlFile.contentsToByteArray(), yamlFile.getCharset());
                     final GraphQLConfigData graphQLConfigData = yaml.load(yamlText);

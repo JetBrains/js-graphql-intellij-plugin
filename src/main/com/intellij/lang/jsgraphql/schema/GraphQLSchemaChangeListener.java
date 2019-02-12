@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.intellij.json.psi.JsonFile;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFile;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition;
@@ -20,6 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiTreeChangeEventImpl;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,10 +79,6 @@ public class GraphQLSchemaChangeListener {
                 }
             }
 
-            private void signalSchemaChanged() {
-                myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeListener.TOPIC).onGraphQLSchemaChanged();
-            }
-
             @Override
             public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
                 checkForSchemaChange(event);
@@ -118,6 +116,14 @@ public class GraphQLSchemaChangeListener {
             }
         };
         psiManager.addPsiTreeChangeListener(listener);
+
+        // also consider the schema changed when the underlying schema configuration files change
+        final MessageBusConnection connection = myProject.getMessageBus().connect();
+        connection.subscribe(GraphQLConfigManager.TOPIC, this::signalSchemaChanged);
+    }
+
+    private void signalSchemaChanged() {
+        myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeListener.TOPIC).onGraphQLSchemaChanged();
     }
 
     /**
