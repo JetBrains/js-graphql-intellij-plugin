@@ -42,8 +42,8 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
 
     private final List<GraphQLConfigEndpoint> endpoints;
 
-    public GraphQLSchemaEndpointsListNode(Project project, List<GraphQLConfigEndpoint> endpoints) {
-        super(project);
+    public GraphQLSchemaEndpointsListNode(SimpleNode parent, List<GraphQLConfigEndpoint> endpoints) {
+        super(parent);
         this.endpoints = endpoints;
         myName = "Endpoints";
         setIcon(AllIcons.Nodes.WebFolder);
@@ -54,7 +54,7 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
         if (endpoints == null) {
             return new SimpleNode[]{new DefaultEndpointNode(myProject)};
         } else {
-            return endpoints.stream().map(endpoint -> new ConfigurableEndpointNode(myProject, endpoint)).toArray(SimpleNode[]::new);
+            return endpoints.stream().map(endpoint -> new ConfigurableEndpointNode(this, endpoint)).toArray(SimpleNode[]::new);
         }
     }
 
@@ -67,8 +67,8 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
 
         private GraphQLConfigEndpoint endpoint;
 
-        public ConfigurableEndpointNode(Project project, GraphQLConfigEndpoint endpoint) {
-            super(project);
+        public ConfigurableEndpointNode(SimpleNode parent, GraphQLConfigEndpoint endpoint) {
+            super(parent);
             this.endpoint = endpoint;
             myName = endpoint.name;
             getTemplatePresentation().setTooltip("Endpoints allow you to perform GraphQL introspection, queries and mutations");

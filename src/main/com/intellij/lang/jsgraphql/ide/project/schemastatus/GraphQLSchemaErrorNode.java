@@ -8,7 +8,6 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import graphql.GraphQLError;
@@ -24,8 +23,8 @@ public class GraphQLSchemaErrorNode extends SimpleNode {
 
     private final GraphQLError error;
 
-    public GraphQLSchemaErrorNode(Project project, GraphQLError error) {
-        super(project);
+    public GraphQLSchemaErrorNode(SimpleNode parent, GraphQLError error) {
+        super(parent);
         this.error = error;
         myName = error.getMessage();
         setIcon(AllIcons.Ide.Error);

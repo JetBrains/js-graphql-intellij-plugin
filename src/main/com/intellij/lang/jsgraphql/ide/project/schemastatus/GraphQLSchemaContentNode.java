@@ -14,7 +14,6 @@ import com.intellij.ide.util.gotoByName.ChooseByNamePopupComponent;
 import com.intellij.ide.util.gotoByName.SimpleChooseByNameModel;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
@@ -39,8 +38,8 @@ public class GraphQLSchemaContentNode extends SimpleNode {
 
     private final GraphQLSchemaWithErrors schemaWithErrors;
 
-    public GraphQLSchemaContentNode(Project project, SimpleNode parent, GraphQLSchemaWithErrors schemaWithErrors) {
-        super(project, parent);
+    public GraphQLSchemaContentNode(SimpleNode parent, GraphQLSchemaWithErrors schemaWithErrors) {
+        super(parent);
         this.schemaWithErrors = schemaWithErrors;
 
         final List<String> parts = Lists.newArrayList();

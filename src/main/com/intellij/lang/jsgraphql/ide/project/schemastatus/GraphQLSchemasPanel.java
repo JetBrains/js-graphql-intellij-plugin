@@ -14,6 +14,7 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManage
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.DumbServiceImpl;
@@ -22,6 +23,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.SimpleTreeBuilder;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
@@ -153,6 +155,31 @@ public class GraphQLSchemasPanel extends JPanel {
                         ApplicationManager.getApplication().saveAll();
                     }
                 }
+            }
+        });
+        leftActionGroup.add(new AnAction("Edit selected schema configuration", "Opens the .graphqlconfig file for the selected schema", AllIcons.General.Settings) {
+            @Override
+            public void actionPerformed(AnActionEvent e) {
+                GraphQLConfigSchemaNode selectedSchemaNode = getSelectedSchemaNode();
+                if (selectedSchemaNode != null && selectedSchemaNode.getConfigFile() != null) {
+                    FileEditorManager.getInstance(myProject).openFile(selectedSchemaNode.getConfigFile(), true);
+                }
+            }
+
+            @Override
+            public void update(AnActionEvent e) {
+                e.getPresentation().setEnabled(getSelectedSchemaNode() != null);
+            }
+
+            private GraphQLConfigSchemaNode getSelectedSchemaNode() {
+                SimpleNode node = myTree.getSelectedNode();
+                while (node != null) {
+                    if (node instanceof GraphQLConfigSchemaNode) {
+                        return (GraphQLConfigSchemaNode) node;
+                    }
+                    node = node.getParent();
+                }
+                return null;
             }
         });
         leftActionGroup.add(new AnAction("Restart schema discovery", "Performs GraphQL schema discovery across the project", AllIcons.Actions.Refresh) {

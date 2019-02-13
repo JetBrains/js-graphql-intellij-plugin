@@ -10,7 +10,6 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import graphql.GraphQLError;
 
@@ -23,8 +22,8 @@ public class GraphQLSchemaErrorsListNode extends SimpleNode {
 
     private final GraphQLSchemaWithErrors schemaWithErrors;
 
-    public GraphQLSchemaErrorsListNode(Project project, GraphQLSchemaWithErrors schemaWithErrors) {
-        super(project);
+    public GraphQLSchemaErrorsListNode(SimpleNode parent, GraphQLSchemaWithErrors schemaWithErrors) {
+        super(parent);
         this.schemaWithErrors = schemaWithErrors;
         myName = "Schema errors";
         setIcon(AllIcons.Nodes.TreeClosed);
@@ -34,10 +33,10 @@ public class GraphQLSchemaErrorsListNode extends SimpleNode {
     public SimpleNode[] getChildren() {
         final List<SimpleNode> children = Lists.newArrayList();
         for (GraphQLError error : schemaWithErrors.getErrors()) {
-            children.add(new GraphQLSchemaErrorNode(myProject, error));
+            children.add(new GraphQLSchemaErrorNode(this, error));
         }
         if (children.isEmpty()) {
-            SimpleNode noErrors = new SimpleNode() {
+            SimpleNode noErrors = new SimpleNode(this) {
                 @Override
                 public SimpleNode[] getChildren() {
                     return NO_CHILDREN;

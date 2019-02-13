@@ -39,6 +39,7 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
     private final GraphQLConfigManager configManager;
     private final GraphQLResolvedConfigData configData;
     private final VirtualFile configBaseDir;
+    private final VirtualFile configFile;
 
     private final List<GraphQLConfigEndpoint> endpoints;
     private final GraphQLFile configurationEntryFile;
@@ -50,6 +51,7 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
         this.configManager = configManager;
         this.configData = configData;
         this.configBaseDir = configBaseDir;
+        this.configFile = configManager.getClosestConfigFile(configBaseDir);
         if (configData.name != null && !configData.name.isEmpty()) {
             myName = configData.name;
         } else {
@@ -76,6 +78,9 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
      */
     public boolean representsFile(VirtualFile virtualFile) {
         if (virtualFile != null) {
+            if(virtualFile.equals(configFile)) {
+                return true;
+            }
             final GraphQLNamedScope schemaScope = configManager.getSchemaScope(configurationEntryFile.getVirtualFile());
             if (schemaScope != null) {
                 if (schemaScope.getPackageSet().includesVirtualFile(virtualFile)) {
@@ -84,6 +89,10 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
             }
         }
         return false;
+    }
+
+    public VirtualFile getConfigFile() {
+        return configFile;
     }
 
     @Override
@@ -96,13 +105,13 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
     @Override
     public SimpleNode[] getChildren() {
         final List<SimpleNode> children = Lists.newArrayList(
-                new GraphQLSchemaContentNode(myProject, this, schemaWithErrors),
-                new GraphQLSchemaErrorsListNode(myProject, schemaWithErrors)
+                new GraphQLSchemaContentNode( this, schemaWithErrors),
+                new GraphQLSchemaErrorsListNode(this, schemaWithErrors)
         );
         if (projectsConfigData != null && !projectsConfigData.isEmpty()) {
             children.add(new GraphQLConfigProjectsNode(this));
         }
-        children.add(new GraphQLSchemaEndpointsListNode(myProject, endpoints));
+        children.add(new GraphQLSchemaEndpointsListNode(this, endpoints));
         return children.toArray(SimpleNode.NO_CHILDREN);
     }
 
