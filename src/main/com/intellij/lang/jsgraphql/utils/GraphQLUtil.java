@@ -7,58 +7,104 @@
  */
 package com.intellij.lang.jsgraphql.utils;
 
-import com.google.common.collect.Sets;
-import com.intellij.openapi.util.Ref;
-import graphql.language.AbstractNode;
 import graphql.language.Document;
-import graphql.language.Node;
 import graphql.language.SourceLocation;
+import graphql.parser.GraphqlAntlrToLanguage;
+import graphql.parser.antlr.GraphqlLexer;
+import graphql.parser.antlr.GraphqlParser;
+import graphql.schema.GraphQLModifiedType;
+import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLUnmodifiedType;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.atn.PredictionMode;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
 
 public final class GraphQLUtil {
 
 
     /**
-     * Shifts the source locations in the specified document with the specified line detla
-     * @param document a GraphQL document from graphql-java
+     * Gets the raw named type that sits within a non-null/list modifier type, or the type as-is if no unwrapping is needed
+     * @param graphQLType the type to unwrap
+     * @return the raw type as-is, or the type wrapped inside a non-null/list modifier type
+     */
+    public static GraphQLUnmodifiedType getUnmodifiedType(GraphQLType graphQLType) {
+        if (graphQLType instanceof GraphQLModifiedType) {
+            return getUnmodifiedType(((GraphQLModifiedType) graphQLType).getWrappedType());
+        }
+        return (GraphQLUnmodifiedType) graphQLType;
+    }
+
+
+    public static Document parseDocument(String input, int lineDelta, int firstLineColumnDelta) {
+        return parseDocument(input, null, lineDelta, firstLineColumnDelta);
+    }
+
+    /**
+     * Parses GraphQL string input into a graphql-java Document, shifting the source locations in the specified document with the specified line delta.
+     * Shifting of the sourceLocation is required for proper error reporting locations for GraphQL language injections, e.g. GraphQL in a JavaScript file.
+     * @param input a GraphQL document represented as a string to be parsed
+     * @param sourceName the file name of the source
      * @param lineDelta the delta line to apply to the document and all child nodes
      * @param firstLineColumnDelta the column delta for the first line
      */
-    public static void adjustSourceLocations(Document document, int lineDelta, int firstLineColumnDelta) {
-        final Ref<Consumer<Node>> adjustSourceLines = new Ref<>();
-        final Set<Node> visitedNodes = Sets.newHashSet();
-        adjustSourceLines.set((Node node) -> {
-            if(node == null || !visitedNodes.add(node)) {
-                return;
-            }
-            if(node instanceof AbstractNode) {
-                final SourceLocation sourceLocation = node.getSourceLocation();
-                if (sourceLocation != null) {
-                    final int currentLine = sourceLocation.getLine();
-                    final int columnDelta = currentLine == 1 ? firstLineColumnDelta : 0;
-                    final SourceLocation newSourceLocation = new SourceLocation(
-                            currentLine + lineDelta,
-                            sourceLocation.getColumn() + columnDelta,
-                            sourceLocation.getSourceName()
-                    );
-                    ((AbstractNode) node).setSourceLocation(newSourceLocation);
-                }
+    public static Document parseDocument(String input, String sourceName, int lineDelta, int firstLineColumnDelta) {
 
+        CharStream charStream;
+        if(sourceName == null) {
+            charStream = CharStreams.fromString(input);
+        } else{
+            charStream = CharStreams.fromString(input, sourceName);
+        }
+
+        GraphqlLexer lexer = new GraphqlLexer(charStream);
+
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+        GraphqlParser parser = new GraphqlParser(tokens);
+        parser.removeErrorListeners();
+        parser.getInterpreter().setPredictionMode(PredictionMode.SLL);
+        parser.setErrorHandler(new BailErrorStrategy());
+        GraphqlParser.DocumentContext documentContext = parser.document();
+
+
+        GraphqlAntlrToLanguage antlrToLanguage = new GraphqlAntlrToLanguage(tokens) {
+            @Override
+            protected SourceLocation getSourceLocation(ParserRuleContext parserRuleContext) {
+                Token startToken = parserRuleContext.getStart();
+                String sourceName = startToken.getTokenSource().getSourceName();
+                if (IntStream.UNKNOWN_SOURCE_NAME.equals(sourceName)) {
+                    // UNKNOWN_SOURCE_NAME is Antrl's way of indicating that no source name was given during parsing --
+                    // which is the case when queries and other operations are parsed. We don't want this hardcoded
+                    // '<unknown>' sourceName to leak to clients when the response is serialized as JSON, so we null it.
+                    sourceName = null;
+                }
+                int line = startToken.getLine();
+                int column = startToken.getCharPositionInLine() + 1;
+                if(line == 1 && firstLineColumnDelta > 0) {
+                    column += firstLineColumnDelta;
+                }
+                line += lineDelta;
+                return new SourceLocation(line, column, sourceName);
             }
-            //noinspection unchecked
-            final List<Node> children = node.getChildren();
-            if(children != null) {
-                //noinspection unchecked
-                children.forEach(child -> {
-                    if(child != null) {
-                        adjustSourceLines.get().accept(child);
-                    }
-                });
+        };
+        Document doc = antlrToLanguage.createDocument(documentContext);
+
+        Token stop = documentContext.getStop();
+        List<Token> allTokens = tokens.getTokens();
+        if (stop != null && allTokens != null && !allTokens.isEmpty()) {
+            Token last = allTokens.get(allTokens.size() - 1);
+            //
+            // do we have more tokens in the stream than we consumed in the parse?
+            // if yes then its invalid.  We make sure its the same channel
+            boolean notEOF = last.getType() != Token.EOF;
+            boolean lastGreaterThanDocument = last.getTokenIndex() > stop.getTokenIndex();
+            boolean sameChannel = last.getChannel() == stop.getChannel();
+            if (notEOF && lastGreaterThanDocument && sameChannel) {
+                throw new ParseCancellationException("There are more tokens in the query that have not been consumed");
             }
-        });
-        adjustSourceLines.get().accept(document);
+        }
+        return doc;
     }
 }

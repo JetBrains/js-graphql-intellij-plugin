@@ -169,13 +169,8 @@ public class SchemaIDLTypeDefinitionRegistry {
                                 }
                             });
 
-                            final Document document = parser.parseDocument(typeSystemDefinitionBuffer.toString(), GraphQLPsiSearchHelper.getFileName(psiFile));
-
                             // adjust line numbers in source locations if there's a line delta compared to the original file buffer
-                            if (lineDelta.get() > 0) {
-                                final Integer lineDeltaToApply = lineDelta.get();
-                                GraphQLUtil.adjustSourceLocations(document, lineDeltaToApply, 0);
-                            }
+                            final Document document = GraphQLUtil.parseDocument(typeSystemDefinitionBuffer.toString(), GraphQLPsiSearchHelper.getFileName(psiFile), lineDelta.get(), 0);
 
                             typeRegistry.merge(new SchemaParser().buildRegistry(document));
                         } catch (GraphQLException | CancellationException e) {

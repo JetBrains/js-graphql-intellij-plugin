@@ -150,16 +150,13 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
                 } else {
                     interfaces = Collections.emptyList();
                 }
-                ObjectTypeDefinition definition = withSourceLocation(new ObjectTypeDefinition(endpointType.getName(), interfaces, Collections.emptyList(), fieldDefinitions), typeDefinition);
 
-                if (typeDefinition.getNamedTypeDef() instanceof JSGraphQLEndpointDocumentationAware) {
-                    final String documentation = ((JSGraphQLEndpointDocumentationAware) typeDefinition.getNamedTypeDef()).getDocumentation(false);
-                    if (StringUtils.isNotBlank(documentation)) {
-                        definition.setDescription(new Description(documentation, definition.getSourceLocation(), true));
-                    }
-                }
+                final ObjectTypeDefinition.Builder builder = ObjectTypeDefinition.newObjectTypeDefinition();
+                final SourceLocation sourceLocation = getSourceLocation(typeDefinition);
+                final Description description = getDescription(typeDefinition, sourceLocation);
+                builder.name(endpointType.getName()).implementz(interfaces).fieldDefinitions(fieldDefinitions).sourceLocation(sourceLocation).description(description);
 
-                registry.add(definition);
+                registry.add(builder.build());
 
             } else if (psiDefinition instanceof JSGraphQLEndpointInterfaceTypeDefinition) {
 
@@ -173,16 +170,12 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
                             addFieldDefinition(fieldDefinitions, addedFieldNames, endpointFieldDefinition, errors);
                         }
                     }
-                    final InterfaceTypeDefinition definition = withSourceLocation(new InterfaceTypeDefinition(psiInterfaceDefinition.getNamedTypeDef().getName(), fieldDefinitions, Collections.emptyList()), psiDefinition);
 
-                    if (psiInterfaceDefinition.getNamedTypeDef() instanceof JSGraphQLEndpointDocumentationAware) {
-                        final String documentation = ((JSGraphQLEndpointDocumentationAware) psiInterfaceDefinition.getNamedTypeDef()).getDocumentation(false);
-                        if (StringUtils.isNotBlank(documentation)) {
-                            definition.setDescription(new Description(documentation, definition.getSourceLocation(), true));
-                        }
-                    }
-
-                    registry.add(definition);
+                    final InterfaceTypeDefinition.Builder builder = InterfaceTypeDefinition.newInterfaceTypeDefinition();
+                    final SourceLocation sourceLocation = getSourceLocation(psiDefinition);
+                    final Description description = getDescription(psiInterfaceDefinition, sourceLocation);
+                    builder.name(psiInterfaceDefinition.getNamedTypeDef().getName()).definitions(fieldDefinitions).sourceLocation(sourceLocation).description(description);
+                    registry.add(builder.build());
                 }
 
             } else if (psiDefinition instanceof JSGraphQLEndpointInputObjectTypeDefinition) {
@@ -193,11 +186,18 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
                     if (psiInputObjectDefinition.getFieldDefinitionSet() != null) {
                         for (JSGraphQLEndpointFieldDefinition fieldDefinition : psiInputObjectDefinition.getFieldDefinitionSet().getFieldDefinitionList()) {
                             if (fieldDefinition.getCompositeType() != null) {
-                                inputValueDefinitions.add(new InputValueDefinition(fieldDefinition.getProperty().getName(), createType(fieldDefinition.getCompositeType())));
+                                final InputValueDefinition inputValueDefinition = InputValueDefinition.newInputValueDefinition()
+                                        .name(fieldDefinition.getProperty().getName())
+                                        .type(createType(fieldDefinition.getCompositeType()))
+                                        .build();
+                                inputValueDefinitions.add(inputValueDefinition);
                             }
                         }
                     }
-                    registry.add(withSourceLocation(new InputObjectTypeDefinition(psiInputObjectDefinition.getNamedTypeDef().getName(), Collections.emptyList(), inputValueDefinitions), psiDefinition));
+                    final InputObjectTypeDefinition.Builder builder = InputObjectTypeDefinition.newInputObjectDefinition();
+                    final SourceLocation sourceLocation = getSourceLocation(psiDefinition);
+                    builder.name(psiInputObjectDefinition.getNamedTypeDef().getName()).inputValueDefinitions(inputValueDefinitions).sourceLocation(sourceLocation);
+                    registry.add(builder.build());
 
                 }
             } else if (psiDefinition instanceof JSGraphQLEndpointEnumTypeDefinition) {
@@ -210,7 +210,11 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
                             enumValueDefinitions.add(new EnumValueDefinition(psiEnumValueDefinition.getIdentifier().getText()));
                         }
                     }
-                    registry.add(withSourceLocation(new EnumTypeDefinition(psiEnumTypeDefinition.getNamedTypeDef().getName(), enumValueDefinitions, Collections.emptyList()), psiDefinition));
+                    final EnumTypeDefinition.Builder enumTypeDefinition = EnumTypeDefinition.newEnumTypeDefinition()
+                            .name(psiEnumTypeDefinition.getNamedTypeDef().getName())
+                            .enumValueDefinitions(enumValueDefinitions)
+                            .sourceLocation(getSourceLocation(psiDefinition));
+                    registry.add(enumTypeDefinition.build());
                 }
 
             } else if (psiDefinition instanceof JSGraphQLEndpointUnionTypeDefinition) {
@@ -224,7 +228,11 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
                             memberTypes.add(new TypeName(psiUnionMember.getIdentifier().getText()));
                         }
                     }
-                    registry.add(withSourceLocation(new UnionTypeDefinition(psiUnionTypeDefinition.getNamedTypeDef().getName(), Collections.emptyList(), memberTypes), psiDefinition));
+                    final UnionTypeDefinition.Builder builder = UnionTypeDefinition.newUnionTypeDefinition()
+                            .name(psiUnionTypeDefinition.getNamedTypeDef().getName())
+                            .memberTypes(memberTypes)
+                            .sourceLocation(getSourceLocation(psiDefinition));
+                    registry.add(builder.build());
 
                 }
 
@@ -238,13 +246,28 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
                     for (Introspection.DirectiveLocation directiveLocation : Introspection.DirectiveLocation.values()) {
                         directiveLocations.add(new DirectiveLocation(directiveLocation.name()));
                     }
-                    registry.add(new DirectiveDefinition(psiAnnotationDefinition.getNamedTypeDef().getName(), inputValueDefinitions, directiveLocations));
+                    final DirectiveDefinition.Builder builder = DirectiveDefinition.newDirectiveDefinition()
+                            .name(psiAnnotationDefinition.getNamedTypeDef().getName())
+                            .inputValueDefinitions(inputValueDefinitions)
+                            .directiveLocations(directiveLocations)
+                            .sourceLocation(getSourceLocation(psiDefinition));
+                    registry.add(builder.build());
                 }
 
             }
         });
 
         return registryWithErrors;
+    }
+
+    private Description getDescription(JSGraphQLEndpointNamedTypeDefinition typeDefinition, SourceLocation sourceLocation) {
+        if (typeDefinition.getNamedTypeDef() instanceof JSGraphQLEndpointDocumentationAware) {
+            final String documentation = ((JSGraphQLEndpointDocumentationAware) typeDefinition.getNamedTypeDef()).getDocumentation(false);
+            if (StringUtils.isNotBlank(documentation)) {
+                return new Description(documentation, sourceLocation, true);
+            }
+        }
+        return null;
     }
 
     private void addFieldDefinition(List<FieldDefinition> fieldDefinitions, Set<String> addedFieldNames, JSGraphQLEndpointFieldDefinition endpointFieldDefinition, List<GraphQLException> errors) {
@@ -254,15 +277,19 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
             final Type fieldType = createType(endpointFieldDefinition.getCompositeType());
             if (fieldType != null) {
                 if (addedFieldNames.add(fieldName)) {
-                    FieldDefinition fieldDefinition = new FieldDefinition(fieldName, fieldType, createInputValueDefinitions(endpointFieldDefinition.getArgumentsDefinition(), errors), Collections.emptyList());
-                    withSourceLocation(fieldDefinition, endpointFieldDefinition);
+                    final SourceLocation sourceLocation = getSourceLocation(endpointFieldDefinition);
+                    final FieldDefinition.Builder builder = FieldDefinition.newFieldDefinition()
+                            .name(fieldName)
+                            .type(fieldType)
+                            .inputValueDefinitions(createInputValueDefinitions(endpointFieldDefinition.getArgumentsDefinition(), errors))
+                            .sourceLocation(sourceLocation);
                     if (property instanceof JSGraphQLEndpointDocumentationAware) {
                         final String documentation = ((JSGraphQLEndpointDocumentationAware) property).getDocumentation(false);
                         if (StringUtils.isNotBlank(documentation)) {
-                            fieldDefinition.setDescription(new Description(documentation, fieldDefinition.getSourceLocation(), true));
+                            builder.description(new Description(documentation, sourceLocation, true));
                         }
                     }
-                    fieldDefinitions.add(fieldDefinition);
+                    fieldDefinitions.add(builder.build());
                 }
             } else {
                 errors.add(new JSGraphQLEndpointSchemaError("Field '" + fieldName + "' has no valid output type", endpointFieldDefinition));
@@ -295,16 +322,16 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     }
 
     private Type createType(JSGraphQLEndpointCompositeType endpointCompositeType) {
-        final boolean isNomNull = endpointCompositeType.getText().contains("!");
+        final boolean isNonNull = endpointCompositeType.getText().contains("!");
         if (endpointCompositeType.getListType() != null) {
             final JSGraphQLEndpointNamedType listElementType = endpointCompositeType.getListType().getNamedType();
             if (listElementType != null) {
                 final String name = listElementType.getName();
                 if (name != null) {
-                    Type type = withSourceLocation(new TypeName(name), listElementType);
-                    type = withSourceLocation(new ListType(type), endpointCompositeType);
-                    if (isNomNull) {
-                        type = withSourceLocation(new NonNullType(type), endpointCompositeType);
+                    Type type = TypeName.newTypeName(name).sourceLocation(getSourceLocation(listElementType)).build();
+                    type = ListType.newListType(type).sourceLocation(getSourceLocation(endpointCompositeType)).build();
+                    if (isNonNull) {
+                        type = NonNullType.newNonNullType(type).sourceLocation(getSourceLocation(endpointCompositeType)).build();
                     }
                     return type;
                 }
@@ -312,9 +339,9 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         } else if (endpointCompositeType.getNamedType() != null) {
             final String name = endpointCompositeType.getNamedType().getName();
             if (name != null) {
-                Type type = withSourceLocation(new TypeName(name), endpointCompositeType.getNamedType());
-                if (isNomNull) {
-                    type = withSourceLocation(new NonNullType(type), endpointCompositeType);
+                Type type = TypeName.newTypeName(name).sourceLocation(getSourceLocation(endpointCompositeType.getNamedType())).build();
+                if (isNonNull) {
+                    type = NonNullType.newNonNullType(type).sourceLocation(getSourceLocation(endpointCompositeType)).build();
                 }
                 return type;
             }
@@ -322,11 +349,8 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         return null;
     }
 
-    private <T extends Node<?>> T withSourceLocation(T node, PsiElement psiSourceElement) {
-        if (node instanceof AbstractNode) {
-            ((AbstractNode<?>) node).setSourceLocation(new SourceLocation(-1, -1, psiSourceElement.getContainingFile().getName()));
-        }
-        return node;
+    private SourceLocation getSourceLocation(PsiElement psiSourceElement) {
+        return new SourceLocation(-1, -1, psiSourceElement.getContainingFile().getName());
     }
 
     private Map<String, JSGraphQLNamedType> computeNamedTypes() {

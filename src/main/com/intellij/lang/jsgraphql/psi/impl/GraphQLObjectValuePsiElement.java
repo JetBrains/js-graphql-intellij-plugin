@@ -12,6 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.schema.*;
@@ -45,7 +46,7 @@ public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl impl
             if (typeScopeProvider != null && objectField != null) {
                 GraphQLType typeScope = typeScopeProvider.getTypeScope();
                 if (typeScope != null) {
-                    typeScope = new SchemaUtil().getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
+                    typeScope = GraphQLUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
                     if (typeScope instanceof GraphQLInputFieldsContainer) {
                         final GraphQLInputObjectField inputObjectField = ((GraphQLInputFieldsContainer) typeScope).getFieldDefinition(objectField.getName());
                         if (inputObjectField != null) {

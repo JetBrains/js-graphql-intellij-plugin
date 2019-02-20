@@ -86,7 +86,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                     typeScope = typeScopeProvider.getTypeScope();
                     if (typeScope != null) {
                         // unwrap non-nulls and lists for type and field hints
-                        typeScope = new SchemaUtil().getUnmodifiedType(typeScope);
+                        typeScope = GraphQLUtil.getUnmodifiedType(typeScope);
                     }
                 }
 
@@ -195,21 +195,21 @@ public class GraphQLValidationAnnotator implements Annotator {
                 }
             }
 
-            final Parser parser = new Parser();
             try {
                 final GraphQLSchemaWithErrors schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(project).getSchemaWithErrors(psiElement);
                 if (!schema.isErrorsPresent()) {
-                    final Document document = parser.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile));
-
                     // adjust source locations for injected GraphQL since the annotator works on the entire editor buffer (e.g. tsx with graphql tagged templates)
+                    int lineDelta = 0;
+                    int firsteLineColumDelta = 0;
                     if (containingFile.getContext() != null) {
                         final LogicalPosition logicalPosition = editor.offsetToLogicalPosition(containingFile.getContext().getTextOffset());
                         if (logicalPosition.line > 0 || logicalPosition.column > 0) {
                             // logical positions can be used as deltas between graphql-java and intellij since graphql-java is 1-based and intellij is 0-based
-                            GraphQLUtil.adjustSourceLocations(document, logicalPosition.line, logicalPosition.column);
+                            lineDelta = logicalPosition.line;
+                            firsteLineColumDelta = logicalPosition.column;
                         }
                     }
-
+                    final Document document = GraphQLUtil.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile), lineDelta, firsteLineColumDelta);
                     userData = new Validator().validateDocument(schema.getSchema(), document);
                 } else {
 

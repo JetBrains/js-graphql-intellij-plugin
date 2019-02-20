@@ -12,6 +12,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
@@ -331,6 +332,10 @@ public class GraphQLPsiSearchHelper {
     public static String getFileName(PsiFile psiFile) {
         VirtualFile virtualFile = getVirtualFile(psiFile);
         if (virtualFile != null) {
+            if (virtualFile instanceof VirtualFileWindow) {
+                // injected virtual files
+                virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
+            }
             return virtualFile.getPath();
         }
         return psiFile.getName();

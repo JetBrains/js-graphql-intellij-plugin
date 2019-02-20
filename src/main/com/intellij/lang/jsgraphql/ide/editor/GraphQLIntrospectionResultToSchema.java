@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.editor;
 
+import com.google.common.collect.Lists;
 import graphql.PublicApi;
 import graphql.language.Argument;
 import graphql.language.AstValueHelper;
@@ -59,8 +60,7 @@ public class GraphQLIntrospectionResultToSchema {
         TypeName query = new TypeName((String) queryType.get("name"));
         boolean nonDefaultQueryName = !"Query".equals(query.getName());
 
-        SchemaDefinition schemaDefinition = new SchemaDefinition();
-        schemaDefinition.getOperationTypeDefinitions().add(new OperationTypeDefinition("query", query));
+        SchemaDefinition schemaDefinition = SchemaDefinition.newSchemaDefinition().operationTypeDefinition(new OperationTypeDefinition("query", query)).build();
 
         Map<String, Object> mutationType = (Map<String, Object>) schema.get("mutationType");
         boolean nonDefaultMutationName = false;
@@ -78,7 +78,7 @@ public class GraphQLIntrospectionResultToSchema {
             schemaDefinition.getOperationTypeDefinitions().add(new OperationTypeDefinition("subscription", subscription));
         }
 
-        Document document = new Document();
+        Document document = new Document(Lists.newArrayList());
         if (nonDefaultQueryName || nonDefaultMutationName || nonDefaultSubscriptionName) {
             document.getDefinitions().add(schemaDefinition);
         }
@@ -128,8 +128,10 @@ public class GraphQLIntrospectionResultToSchema {
     UnionTypeDefinition createUnion(Map<String, Object> input) {
         assertTrue(input.get("kind").equals("UNION"), "wrong input");
 
-        UnionTypeDefinition unionTypeDefinition = new UnionTypeDefinition((String) input.get("name"));
-        unionTypeDefinition.setDescription(getDescription(input));
+        UnionTypeDefinition unionTypeDefinition = UnionTypeDefinition.newUnionTypeDefinition()
+                .name((String) input.get("name"))
+                .description(getDescription(input))
+                .build();
 
         List<Map<String, Object>> possibleTypes = (List<Map<String, Object>>) input.get("possibleTypes");
 
@@ -145,17 +147,20 @@ public class GraphQLIntrospectionResultToSchema {
     EnumTypeDefinition createEnum(Map<String, Object> input) {
         assertTrue(input.get("kind").equals("ENUM"), "wrong input");
 
-        EnumTypeDefinition enumTypeDefinition = new EnumTypeDefinition((String) input.get("name"));
-        enumTypeDefinition.setDescription(getDescription(input));
+        EnumTypeDefinition enumTypeDefinition = EnumTypeDefinition.newEnumTypeDefinition()
+                .name((String) input.get("name"))
+                .description(getDescription(input))
+                .build();
 
         List<Map<String, Object>> enumValues = (List<Map<String, Object>>) input.get("enumValues");
 
         for (Map<String, Object> enumValue : enumValues) {
 
-            EnumValueDefinition enumValueDefinition = new EnumValueDefinition((String) enumValue.get("name"));
-            enumValueDefinition.setDescription(getDescription(enumValue));
-
-            createDeprecatedDirective(enumValue, enumValueDefinition.getDirectives());
+            EnumValueDefinition enumValueDefinition = EnumValueDefinition.newEnumValueDefinition()
+                    .name((String) enumValue.get("name"))
+                    .description(getDescription(enumValue))
+                    .directives(createDeprecatedDirective(enumValue))
+                    .build();
 
             enumTypeDefinition.getEnumValueDefinitions().add(enumValueDefinition);
         }
@@ -167,10 +172,12 @@ public class GraphQLIntrospectionResultToSchema {
     InterfaceTypeDefinition createInterface(Map<String, Object> input) {
         assertTrue(input.get("kind").equals("INTERFACE"), "wrong input");
 
-        InterfaceTypeDefinition interfaceTypeDefinition = new InterfaceTypeDefinition((String) input.get("name"));
-        interfaceTypeDefinition.setDescription(getDescription(input));
-        List<Map<String, Object>> fields = (List<Map<String, Object>>) input.get("fields");
-        interfaceTypeDefinition.getFieldDefinitions().addAll(createFields(fields));
+        final List<Map<String, Object>> fields = (List<Map<String, Object>>) input.get("fields");
+        final InterfaceTypeDefinition interfaceTypeDefinition = InterfaceTypeDefinition.newInterfaceTypeDefinition()
+                .name((String) input.get("name"))
+                .description(getDescription(input))
+                .definitions(createFields(fields))
+                .build();
 
         return interfaceTypeDefinition;
 
@@ -179,12 +186,12 @@ public class GraphQLIntrospectionResultToSchema {
     @SuppressWarnings("unchecked")
     InputObjectTypeDefinition createInputObject(Map<String, Object> input) {
         assertTrue(input.get("kind").equals("INPUT_OBJECT"), "wrong input");
-
-        InputObjectTypeDefinition inputObjectTypeDefinition = new InputObjectTypeDefinition((String) input.get("name"));
-        inputObjectTypeDefinition.setDescription(getDescription(input));
-        List<Map<String, Object>> fields = (List<Map<String, Object>>) input.get("inputFields");
-        List<InputValueDefinition> inputValueDefinitions = createInputValueDefinitions(fields);
-        inputObjectTypeDefinition.getInputValueDefinitions().addAll(inputValueDefinitions);
+        final List<Map<String, Object>> fields = (List<Map<String, Object>>) input.get("inputFields");
+        final InputObjectTypeDefinition inputObjectTypeDefinition = InputObjectTypeDefinition.newInputObjectDefinition()
+                .name((String) input.get("name"))
+                .description(getDescription(input))
+                .inputValueDefinitions(createInputValueDefinitions(fields))
+                .build();
 
         return inputObjectTypeDefinition;
     }
@@ -193,10 +200,11 @@ public class GraphQLIntrospectionResultToSchema {
     ObjectTypeDefinition createObject(Map<String, Object> input) {
         assertTrue(input.get("kind").equals("OBJECT"), "wrong input");
 
-        ObjectTypeDefinition objectTypeDefinition = new ObjectTypeDefinition((String) input.get("name"));
-        objectTypeDefinition.setDescription(getDescription(input));
+        ObjectTypeDefinition.Builder builder = ObjectTypeDefinition.newObjectTypeDefinition()
+                .name((String) input.get("name"))
+                .description(getDescription(input));
         if (input.containsKey("interfaces")) {
-            objectTypeDefinition.getImplements().addAll(
+            builder.implementz(
                     ((List<Map<String, Object>>) input.get("interfaces")).stream()
                             .map(this::createTypeIndirection)
                             .collect(Collectors.toList())
@@ -204,38 +212,38 @@ public class GraphQLIntrospectionResultToSchema {
         }
         List<Map<String, Object>> fields = (List<Map<String, Object>>) input.get("fields");
 
-        objectTypeDefinition.getFieldDefinitions().addAll(createFields(fields));
+        builder.fieldDefinitions(createFields(fields));
 
-        return objectTypeDefinition;
+        return builder.build();
     }
 
     private List<FieldDefinition> createFields(List<Map<String, Object>> fields) {
         List<FieldDefinition> result = new ArrayList<>();
         for (Map<String, Object> field : fields) {
-            FieldDefinition fieldDefinition = new FieldDefinition((String) field.get("name"));
-            fieldDefinition.setDescription(getDescription(field));
-            fieldDefinition.setType(createTypeIndirection((Map<String, Object>) field.get("type")));
-
-            createDeprecatedDirective(field, fieldDefinition.getDirectives());
-
             List<Map<String, Object>> args = (List<Map<String, Object>>) field.get("args");
             List<InputValueDefinition> inputValueDefinitions = createInputValueDefinitions(args);
-            fieldDefinition.getInputValueDefinitions().addAll(inputValueDefinitions);
+            FieldDefinition fieldDefinition = FieldDefinition.newFieldDefinition()
+                    .name((String) field.get("name"))
+                    .description(getDescription(field))
+                    .type(createTypeIndirection((Map<String, Object>) field.get("type")))
+                    .inputValueDefinitions(inputValueDefinitions)
+                    .directives(createDeprecatedDirective(field))
+                    .build();
             result.add(fieldDefinition);
         }
         return result;
     }
 
-    private void createDeprecatedDirective(Map<String, Object> field, List<Directive> directives) {
+    private List<Directive> createDeprecatedDirective(Map<String, Object> field) {
         if ((Boolean) field.get("isDeprecated")) {
             String reason = (String) field.get("deprecationReason");
             if (reason == null) {
                 reason = "No longer supported"; // default according to spec
             }
             Argument reasonArg = new Argument("reason", new StringValue(reason));
-            Directive deprecated = new Directive("deprecated", Collections.singletonList(reasonArg));
-            directives.add(deprecated);
+            return Collections.singletonList(new Directive("deprecated", Collections.singletonList(reasonArg)));
         }
+        return Collections.emptyList();
     }
 
     @SuppressWarnings("unchecked")
@@ -243,14 +251,14 @@ public class GraphQLIntrospectionResultToSchema {
         List<InputValueDefinition> result = new ArrayList<>();
         for (Map<String, Object> arg : args) {
             Type argType = createTypeIndirection((Map<String, Object>) arg.get("type"));
-            InputValueDefinition inputValueDefinition = new InputValueDefinition((String) arg.get("name"), argType);
-            inputValueDefinition.setDescription(getDescription(arg));
-
             String valueLiteral = (String) arg.get("defaultValue");
-            if (valueLiteral != null) {
-                Value defaultValue = AstValueHelper.valueFromAst(valueLiteral);
-                inputValueDefinition.setDefaultValue(defaultValue);
-            }
+            Value defaultValue = valueLiteral != null ? AstValueHelper.valueFromAst(valueLiteral) : null;
+            InputValueDefinition inputValueDefinition = InputValueDefinition.newInputValueDefinition()
+                    .name((String) arg.get("name"))
+                    .type(argType)
+                    .description(getDescription(arg))
+                    .defaultValue(defaultValue)
+                    .build();
             result.add(inputValueDefinition);
         }
         return result;

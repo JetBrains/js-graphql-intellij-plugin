@@ -12,12 +12,12 @@ import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.psi.GraphQLField;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.introspection.Introspection;
 import graphql.schema.GraphQLFieldsContainer;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
-import graphql.schema.SchemaUtil;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLFieldPsiElement extends GraphQLNamedElementImpl implements GraphQLField, GraphQLTypeScopeProvider {
@@ -36,7 +36,7 @@ public abstract class GraphQLFieldPsiElement extends GraphQLNamedElementImpl imp
                 GraphQLType parentType = parentTypeScopeProvider.getTypeScope();
                 if (parentType != null) {
                     // found a parent operation, field, or fragment
-                    parentType = new SchemaUtil().getUnmodifiedType(parentType); // unwrap list, non-null since we want a specific field
+                    parentType = GraphQLUtil.getUnmodifiedType(parentType); // unwrap list, non-null since we want a specific field
                     if (parentType instanceof GraphQLFieldsContainer) {
                         final graphql.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) parentType).getFieldDefinition(fieldName);
                         if (fieldDefinition != null) {
