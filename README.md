@@ -2,6 +2,8 @@
 
 # JS GraphQL IntelliJ Plugin
 
+__Note:__ V2.0 is in active development. See the [v2 branch](https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/tree/v2) and [#164]( https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/164)
+
 GraphQL language support including Relay.QL tagged templates in JavaScript and TypeScript.
 
 It provides the following features in IntelliJ IDEA, WebStorm, RubyMine, PhpStorm, and PyCharm:
@@ -14,7 +16,7 @@ It provides the following features in IntelliJ IDEA, WebStorm, RubyMine, PhpStor
 - Configurable GraphQL schema retrieval and reloading based on a local file or a url using 'then-request'
 - Execute queries with variables against configurable endpoints
 
-It depends on [js-graphql-language-service](https://github.com/jimkyndemeyer/js-graphql-language-service) that it manages using a Node.js process handler.
+V1.x depends on [js-graphql-language-service](https://github.com/jimkyndemeyer/js-graphql-language-service) that it manages using a Node.js process handler.
 
 ## Installation
 1. Install Node JS
