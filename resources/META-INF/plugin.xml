@@ -10,7 +10,7 @@
 <idea-plugin>
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>2.0.0-alpha-5</version>
+  <version>2.0.0-alpha-6</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -27,6 +27,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>2.0.0-alpha-6: Added migration of graphql.config.json files. Support schemas based on JSON introspection files. Added automatic introspection notification. Updated Relay Modern directives. Upgraded to graphql-java 11.0.</li>
       <li>2.0.0-alpha-5: Simplified schema discovery to only support graphql-config and introduced new schema discovery UI</li>
       <li>2.0.0-alpha-4: Performance improvements, Relay Modern support, MarkDown documentation support, structure view, scratch files, recognize .graphqls, template placeholder support</li>
       <li>2.0.0-alpha-3: graphql-config support</li>
