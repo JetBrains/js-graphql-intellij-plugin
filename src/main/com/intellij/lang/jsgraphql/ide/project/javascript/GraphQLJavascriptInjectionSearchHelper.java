@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.project.javascript;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLLanguageInjectionUtil;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -35,27 +36,30 @@ public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionS
      * @param consumer      a consumer that will be invoked for each injected GraphQL PsiFile
      */
     public void processInjectedGraphQLPsiFiles(PsiElement scopedElement, GlobalSearchScope schemaScope, Consumer<PsiFile> consumer) {
-        final PsiManager psiManager = PsiManager.getInstance(scopedElement.getProject());
-        final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(scopedElement.getProject());
-        FileBasedIndex.getInstance().getFilesWithKey(GraphQLInjectionIndex.NAME, Collections.singleton(GraphQLInjectionIndex.DATA_KEY), virtualFile -> {
-            final PsiFile fileWithInjection = psiManager.findFile(virtualFile);
-            if (fileWithInjection != null) {
-                fileWithInjection.accept(new PsiRecursiveElementVisitor() {
-                    @Override
-                    public void visitElement(PsiElement element) {
-                        if (GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
-                            injectedLanguageManager.enumerate(element, (injectedPsi, places) -> {
-                                consumer.accept(injectedPsi);
-                            });
-                        } else {
-                            // visit deeper until injection found
-                            super.visitElement(element);
+        try {
+            final PsiManager psiManager = PsiManager.getInstance(scopedElement.getProject());
+            final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(scopedElement.getProject());
+            FileBasedIndex.getInstance().getFilesWithKey(GraphQLInjectionIndex.NAME, Collections.singleton(GraphQLInjectionIndex.DATA_KEY), virtualFile -> {
+                final PsiFile fileWithInjection = psiManager.findFile(virtualFile);
+                if (fileWithInjection != null) {
+                    fileWithInjection.accept(new PsiRecursiveElementVisitor() {
+                        @Override
+                        public void visitElement(PsiElement element) {
+                            if (GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
+                                injectedLanguageManager.enumerate(element, (injectedPsi, places) -> {
+                                    consumer.accept(injectedPsi);
+                                });
+                            } else {
+                                // visit deeper until injection found
+                                super.visitElement(element);
+                            }
                         }
-                    }
-                });
-            }
-            return true;
-        }, schemaScope);
-
+                    });
+                }
+                return true;
+            }, schemaScope);
+        } catch (IndexNotReadyException e) {
+            // can't search yet (e.g. during project startup)
+        }
     }
 }
