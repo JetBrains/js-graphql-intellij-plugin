@@ -10,7 +10,9 @@ package com.intellij.lang.jsgraphql.operations;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.editor.Document;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.junit.Test;
 
@@ -19,10 +21,27 @@ import java.util.List;
 
 public class JSGraphQLOperationsCodeInsightTest extends LightCodeInsightFixtureTestCase {
 
+    private PsiFile[] psiFiles;
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        myFixture.configureByFiles("CompletionSchema.graphqls");
+        psiFiles = myFixture.configureByFiles("CompletionSchema.graphqls");
+    }
+
+    @Override
+    protected void tearDown() throws Exception {
+        // clean up the schema discovery caches
+        for (PsiFile psiFile : psiFiles) {
+            PsiDocumentManager documentManager = PsiDocumentManager.getInstance(psiFile.getProject());
+            final Document document = documentManager.getDocument(psiFile);
+            assertNotNull(document);
+            ApplicationManager.getApplication().runWriteAction(() -> {
+                document.setText("");
+                documentManager.commitAllDocuments();
+            });
+        }
+        super.tearDown();
     }
 
     @Override
