@@ -162,7 +162,9 @@ public class SchemaIDLTypeDefinitionRegistry {
                                 final PsiElement parent = error.getParent();
                                 if(parent instanceof GraphQLDirective) {
                                     // happens when typing '@' and the name of the directive is still missing
-                                    final TextRange textRange = parent.getTextRange().shiftLeft(typeSystemDefinition.getTextRange().getStartOffset());
+                                    final int delta = typeSystemDefinition.getTextRange().getStartOffset();
+                                    final TextRange parentRange = parent.getTextRange();
+                                    final TextRange textRange = new TextRange(parentRange.getStartOffset() - delta, parentRange.getEndOffset() - delta);
                                     if(!textRange.isEmpty()) {
                                         typeSystemDefinitionBuffer.replace(textRange.getStartOffset(), textRange.getEndOffset(), StringUtil.repeat(" ", textRange.getLength()));
                                     }
