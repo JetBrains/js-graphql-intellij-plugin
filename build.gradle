@@ -112,7 +112,7 @@ task generateGraphQLEndpointDocParser(type: GenerateParser) {
 }
 
 task downloadMinimatchNashorn(type: Download) {
-    src 'https://raw.githubusercontent.com/jimkyndemeyer/minimatch-nashorn/1.0.0/dist/minimatch-nashorn.js'
+    src 'https://raw.githubusercontent.com/jimkyndemeyer/minimatch-nashorn/1.0.1/dist/minimatch-nashorn.js'
     dest 'resources/META-INF'
     overwrite false
 }
