@@ -411,7 +411,9 @@ public class GraphQLConfigManager {
                         projectConfig.extensions = baseConfig.extensions;
                     } else if (baseConfig.extensions != null) {
                         for (Map.Entry<String, Object> extension : baseConfig.extensions.entrySet()) {
-                            projectConfig.extensions.put(extension.getKey(), extension.getValue());
+                            if (!projectConfig.extensions.containsKey(extension.getKey())) {
+                                projectConfig.extensions.put(extension.getKey(), extension.getValue());
+                            }
                         }
                     }
                 });
@@ -501,10 +503,24 @@ public class GraphQLConfigManager {
                     // handle entry files
                     configBaseDir = null;
                     for (Map.Entry<VirtualFile, GraphQLConfigData> entry : configPathToConfigurations.entrySet()) {
-                        GraphQLFile entryFile = getConfigurationEntryFile(entry.getValue());
+                        final GraphQLConfigData configData = entry.getValue();
+                        GraphQLFile entryFile = getConfigurationEntryFile(configData);
+                        boolean found = false;
                         if (entryFile.getVirtualFile().equals(virtualFile)) {
                             // the virtual file is an entry file for the specific config base (either the root schema or one of the nested graphql-config project schemas)
                             configBaseDir = entry.getKey();
+                            found = true;
+                        } else if(configData.projects != null) {
+                            for (Map.Entry<String, GraphQLResolvedConfigData> projectEntry : configData.projects.entrySet()) {
+                                entryFile = getConfigurationEntryFile(projectEntry.getValue());
+                                if (entryFile.getVirtualFile().equals(virtualFile)) {
+                                    configBaseDir = entry.getKey();
+                                    found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (found) {
                             break;
                         }
                     }

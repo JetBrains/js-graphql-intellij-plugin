@@ -45,6 +45,7 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
     private final GraphQLFile configurationEntryFile;
 
     private Map<String, GraphQLResolvedConfigData> projectsConfigData;
+    private boolean performSchemaDiscovery = true;
 
     protected GraphQLConfigSchemaNode(Project project, GraphQLConfigManager configManager, GraphQLResolvedConfigData configData, VirtualFile configBaseDir) {
         super(project);
@@ -58,19 +59,28 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
             // use the last part of the folder as name
             myName = StringUtils.substringAfterLast(configBaseDir.getPath(), "/");
         }
-        getPresentation().setLocationString(configBaseDir.getPresentableUrl());
+
         getPresentation().setIcon(JSGraphQLIcons.Files.GraphQLSchema);
 
-        final GraphQLTypeDefinitionRegistryServiceImpl registry = GraphQLTypeDefinitionRegistryServiceImpl.getService(myProject);
-
-        configurationEntryFile = configManager.getConfigurationEntryFile(configData);
-        endpoints = configManager.getEndpoints(configurationEntryFile.getVirtualFile());
-        schemaWithErrors = registry.getSchemaWithErrors(configurationEntryFile);
-
         if (configData instanceof GraphQLConfigData) {
+            getPresentation().setLocationString(configBaseDir.getPresentableUrl());
             projectsConfigData = ((GraphQLConfigData) configData).projects;
+            // this node is only considered a "real" schema that should be discovered if the config file doesn't use projects
+            // if the config uses projects we can't do discovery at the root level as that's likely to consider multiple distinct schemas
+            // as one with resulting re-declaration errors during validation
+            performSchemaDiscovery = projectsConfigData == null || projectsConfigData.isEmpty();
         }
 
+        if (performSchemaDiscovery) {
+            final GraphQLTypeDefinitionRegistryServiceImpl registry = GraphQLTypeDefinitionRegistryServiceImpl.getService(myProject);
+            configurationEntryFile = configManager.getConfigurationEntryFile(configData);
+            endpoints = configManager.getEndpoints(configurationEntryFile.getVirtualFile());
+            schemaWithErrors = registry.getSchemaWithErrors(configurationEntryFile);
+        } else {
+            schemaWithErrors = null;
+            endpoints = null;
+            configurationEntryFile = null;
+        }
     }
 
     /**
@@ -78,13 +88,15 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
      */
     public boolean representsFile(VirtualFile virtualFile) {
         if (virtualFile != null) {
-            if(virtualFile.equals(configFile)) {
+            if (virtualFile.equals(configFile)) {
                 return true;
             }
-            final GraphQLNamedScope schemaScope = configManager.getSchemaScope(configurationEntryFile.getVirtualFile());
-            if (schemaScope != null) {
-                if (schemaScope.getPackageSet().includesVirtualFile(virtualFile)) {
-                    return true;
+            if (performSchemaDiscovery) {
+                final GraphQLNamedScope schemaScope = configManager.getSchemaScope(configurationEntryFile.getVirtualFile());
+                if (schemaScope != null) {
+                    if (schemaScope.getPackageSet().includesVirtualFile(virtualFile)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -104,20 +116,23 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
 
     @Override
     public SimpleNode[] getChildren() {
-        final List<SimpleNode> children = Lists.newArrayList(
-                new GraphQLSchemaContentNode( this, schemaWithErrors),
-                new GraphQLSchemaErrorsListNode(this, schemaWithErrors)
-        );
+        final List<SimpleNode> children = Lists.newArrayList();
+        if (performSchemaDiscovery) {
+            children.add(new GraphQLSchemaContentNode(this, schemaWithErrors));
+            children.add(new GraphQLSchemaErrorsListNode(this, schemaWithErrors));
+        }
         if (projectsConfigData != null && !projectsConfigData.isEmpty()) {
             children.add(new GraphQLConfigProjectsNode(this));
         }
-        children.add(new GraphQLSchemaEndpointsListNode(this, endpoints));
+        if (endpoints != null) {
+            children.add(new GraphQLSchemaEndpointsListNode(this, endpoints));
+        }
         return children.toArray(SimpleNode.NO_CHILDREN);
     }
 
     @Override
     public boolean isAutoExpandNode() {
-        return representsCurrentFile();
+        return representsCurrentFile() || !performSchemaDiscovery;
     }
 
     @NotNull
