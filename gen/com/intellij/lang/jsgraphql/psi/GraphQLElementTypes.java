@@ -124,7 +124,7 @@ public interface GraphQLElementTypes {
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == ALIAS) {
+      if (type == ALIAS) {
         return new GraphQLAliasImpl(node);
       }
       else if (type == ARGUMENT) {

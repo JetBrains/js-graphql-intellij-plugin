@@ -40,11 +40,10 @@ public class JSGraphQLEndpointDocParser implements PsiParser, LightPsiParser {
   // Rule*
   static boolean Document(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "Document")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!Rule(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "Document", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -57,10 +56,8 @@ public class JSGraphQLEndpointDocParser implements PsiParser, LightPsiParser {
     if (!recursion_guard_(builder_, level_, "Rule")) return false;
     if (!nextTokenIs(builder_, "", DOCNAME, DOCTEXT)) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = Tag(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, DOCTEXT);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 

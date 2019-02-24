@@ -3,7 +3,7 @@ buildscript {
         maven { url 'https://jitpack.io'}
     }
     dependencies{
-        classpath "com.github.JetBrains:gradle-grammar-kit-plugin:2018.1.2"
+        classpath "com.github.JetBrains:gradle-grammar-kit-plugin:2018.3"
     }
 }
 

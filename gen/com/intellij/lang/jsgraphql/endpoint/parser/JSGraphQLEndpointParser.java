@@ -207,11 +207,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // (COMMA AnnotationArgumentValue)*
   private static boolean AnnotationArgumentListValue_1_0_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "AnnotationArgumentListValue_1_0_1")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!AnnotationArgumentListValue_1_0_1_0(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "AnnotationArgumentListValue_1_0_1", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -245,10 +244,8 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean AnnotationArgumentObjectField_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "AnnotationArgumentObjectField_1")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, EQUALS);
     if (!result_) result_ = consumeToken(builder_, COLON);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -288,11 +285,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // (COMMA AnnotationArgumentObjectField)*
   private static boolean AnnotationArgumentObjectValue_1_0_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "AnnotationArgumentObjectValue_1_0_1")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!AnnotationArgumentObjectValue_1_0_1_0(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "AnnotationArgumentObjectValue_1_0_1", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -343,10 +339,8 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean AnnotationArguments_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "AnnotationArguments_1")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = AnnotationArgumentValue(builder_, level_ + 1);
     if (!result_) result_ = NamedAnnotationArguments(builder_, level_ + 1);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -376,11 +370,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // Annotation*
   static boolean Annotations(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "Annotations")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!Annotation(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "Annotations", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -442,7 +435,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // ListType | (NamedType REQUIRED?)
   public static boolean CompositeType(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "CompositeType")) return false;
-    if (!nextTokenIs(builder_, "<composite type>", LBRACKET, IDENTIFIER)) return false;
+    if (!nextTokenIs(builder_, "<composite type>", IDENTIFIER, LBRACKET)) return false;
     boolean result_;
     Marker marker_ = enter_section_(builder_, level_, _NONE_, COMPOSITE_TYPE, "<composite type>");
     result_ = ListType(builder_, level_ + 1);
@@ -509,7 +502,6 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   static boolean DefinitionKeyword(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "DefinitionKeyword")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, TYPE);
     if (!result_) result_ = consumeToken(builder_, INTERFACE);
     if (!result_) result_ = consumeToken(builder_, INPUT);
@@ -519,7 +511,6 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     if (!result_) result_ = consumeToken(builder_, ANNOTATION_DEF);
     if (!result_) result_ = consumeToken(builder_, IMPORT);
     if (!result_) result_ = consumeToken(builder_, SCHEMA);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -527,11 +518,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // Definition*
   static boolean Document(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "Document")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!Definition(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "Document", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -590,11 +580,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // CommaEnumValueDefinition*
   private static boolean EnumValueDefinitionSet_2(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "EnumValueDefinitionSet_2")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!CommaEnumValueDefinition(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "EnumValueDefinitionSet_2", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -647,11 +636,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // FieldDefinition*
   private static boolean FieldDefinitionSet_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "FieldDefinitionSet_1")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!FieldDefinition(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "FieldDefinitionSet_1", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -674,11 +662,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // CommaNamedType*
   private static boolean ImplementsInterfaces_2(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "ImplementsInterfaces_2")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!CommaNamedType(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "ImplementsInterfaces_2", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -775,11 +762,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // (COMMA InputValueDefinition)*
   private static boolean InputValueDefinitions_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "InputValueDefinitions_1")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!InputValueDefinitions_1_0(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "InputValueDefinitions_1", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -859,10 +845,8 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean NamedAnnotationArgument_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "NamedAnnotationArgument_1")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, EQUALS);
     if (!result_) result_ = consumeToken(builder_, COLON);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -882,11 +866,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // CommaNamedAnnotationArgument*
   private static boolean NamedAnnotationArguments_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "NamedAnnotationArguments_1")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!CommaNamedAnnotationArgument(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "NamedAnnotationArguments_1", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -964,11 +947,9 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean OperationTypeDefinition_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "OperationTypeDefinition_0")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, QUERY);
     if (!result_) result_ = consumeToken(builder_, MUTATION);
     if (!result_) result_ = consumeToken(builder_, SUBSCRIPTION);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -990,11 +971,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // OperationTypeDefinition*
   private static boolean OperationTypeDefinitionSet_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "OperationTypeDefinitionSet_1")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!OperationTypeDefinition(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "OperationTypeDefinitionSet_1", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -1062,12 +1042,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean RecoverAnnotation_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "RecoverAnnotation_0")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, RBRACE);
     if (!result_) result_ = consumeToken(builder_, AT_ANNOTATION);
     if (!result_) result_ = DefinitionKeyword(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -1086,13 +1064,11 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean RecoverArgumentsDefinition_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "RecoverArgumentsDefinition_0")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, COLON);
     if (!result_) result_ = consumeToken(builder_, RBRACE);
     if (!result_) result_ = consumeToken(builder_, AT_ANNOTATION);
     if (!result_) result_ = DefinitionKeyword(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -1111,12 +1087,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean RecoverCommaEnumValueDefinition_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "RecoverCommaEnumValueDefinition_0")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, RBRACE);
     if (!result_) result_ = consumeToken(builder_, COMMA);
     if (!result_) result_ = DefinitionKeyword(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -1135,12 +1109,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean RecoverCommaNamedType_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "RecoverCommaNamedType_0")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, LBRACE);
     if (!result_) result_ = consumeToken(builder_, COMMA);
     if (!result_) result_ = DefinitionKeyword(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -1159,10 +1131,8 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean RecoverDefinition_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "RecoverDefinition_0")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = DefinitionKeyword(builder_, level_ + 1);
     if (!result_) result_ = consumeToken(builder_, AT_ANNOTATION);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -1181,11 +1151,9 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean RecoverFieldDefinition_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "RecoverFieldDefinition_0")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, RBRACE);
     if (!result_) result_ = consumeToken(builder_, AT_ANNOTATION);
     if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -1204,10 +1172,8 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean RecoverNamedAnnotationArgument_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "RecoverNamedAnnotationArgument_0")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, COMMA);
     if (!result_) result_ = consumeToken(builder_, RPAREN);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -1226,12 +1192,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   private static boolean RecoverOperation_0(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "RecoverOperation_0")) return false;
     boolean result_;
-    Marker marker_ = enter_section_(builder_);
     result_ = consumeToken(builder_, RBRACE);
     if (!result_) result_ = consumeToken(builder_, QUERY);
     if (!result_) result_ = consumeToken(builder_, MUTATION);
     if (!result_) result_ = consumeToken(builder_, SUBSCRIPTION);
-    exit_section_(builder_, marker_, null, result_);
     return result_;
   }
 
@@ -1311,11 +1275,10 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   // PipeUnionMember*
   private static boolean UnionMemberSet_1(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "UnionMemberSet_1")) return false;
-    int pos_ = current_position_(builder_);
     while (true) {
+      int pos_ = current_position_(builder_);
       if (!PipeUnionMember(builder_, level_ + 1)) break;
       if (!empty_element_parsed_guard_(builder_, "UnionMemberSet_1", pos_)) break;
-      pos_ = current_position_(builder_);
     }
     return true;
   }
@@ -1344,42 +1307,42 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  final static Parser RecoverAnnotation_parser_ = new Parser() {
+  static final Parser RecoverAnnotation_parser_ = new Parser() {
     public boolean parse(PsiBuilder builder_, int level_) {
       return RecoverAnnotation(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverArgumentsDefinition_parser_ = new Parser() {
+  static final Parser RecoverArgumentsDefinition_parser_ = new Parser() {
     public boolean parse(PsiBuilder builder_, int level_) {
       return RecoverArgumentsDefinition(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverCommaEnumValueDefinition_parser_ = new Parser() {
+  static final Parser RecoverCommaEnumValueDefinition_parser_ = new Parser() {
     public boolean parse(PsiBuilder builder_, int level_) {
       return RecoverCommaEnumValueDefinition(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverCommaNamedType_parser_ = new Parser() {
+  static final Parser RecoverCommaNamedType_parser_ = new Parser() {
     public boolean parse(PsiBuilder builder_, int level_) {
       return RecoverCommaNamedType(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverDefinition_parser_ = new Parser() {
+  static final Parser RecoverDefinition_parser_ = new Parser() {
     public boolean parse(PsiBuilder builder_, int level_) {
       return RecoverDefinition(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverFieldDefinition_parser_ = new Parser() {
+  static final Parser RecoverFieldDefinition_parser_ = new Parser() {
     public boolean parse(PsiBuilder builder_, int level_) {
       return RecoverFieldDefinition(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverNamedAnnotationArgument_parser_ = new Parser() {
+  static final Parser RecoverNamedAnnotationArgument_parser_ = new Parser() {
     public boolean parse(PsiBuilder builder_, int level_) {
       return RecoverNamedAnnotationArgument(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverOperation_parser_ = new Parser() {
+  static final Parser RecoverOperation_parser_ = new Parser() {
     public boolean parse(PsiBuilder builder_, int level_) {
       return RecoverOperation(builder_, level_ + 1);
     }
