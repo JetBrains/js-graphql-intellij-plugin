@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.intellij.ide.util.treeView.PresentableNodeDescriptor;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -38,6 +39,10 @@ public class GraphQLSchemasRootNode extends SimpleNode {
     @Override
     public SimpleNode[] getChildren() {
         try {
+            if (DumbService.getInstance(myProject).isDumb()) {
+                // empty the tree view during indexing
+                return SimpleNode.NO_CHILDREN;
+            }
             final List<SimpleNode> children = Lists.newArrayList();
             for (Map.Entry<VirtualFile, GraphQLConfigData> entry : configManager.getConfigurationsByPath().entrySet()) {
                 children.add(new GraphQLConfigSchemaNode(myProject, configManager, entry.getValue(), entry.getKey()));

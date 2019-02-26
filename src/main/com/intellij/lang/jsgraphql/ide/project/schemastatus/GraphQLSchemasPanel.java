@@ -17,6 +17,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
@@ -102,6 +103,19 @@ public class GraphQLSchemasPanel extends JPanel {
 
         // Need indexing to be ready to build schema status
         DumbServiceImpl.getInstance(myProject).smartInvokeLater(myBuilder::initRootNode);
+
+        // update tree in response to indexing changes
+        connection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
+            @Override
+            public void enteredDumbMode() {
+                myBuilder.updateFromRoot(true);
+            }
+
+            @Override
+            public void exitDumbMode() {
+                myBuilder.updateFromRoot(true);
+            }
+        });
 
         final JBScrollPane scrollPane = new JBScrollPane(myTree);
         scrollPane.setBorder(IdeBorderFactory.createBorder(SideBorder.LEFT));

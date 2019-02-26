@@ -20,6 +20,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
@@ -159,9 +160,13 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
         @Override
         public SimpleNode[] getChildren() {
             if (parent.projectsConfigData != null) {
-                return parent.projectsConfigData.values().stream().map(config -> {
-                    return new GraphQLConfigSchemaNode(myProject, parent.configManager, config, parent.configBaseDir);
-                }).toArray(SimpleNode[]::new);
+                try {
+                    return parent.projectsConfigData.values().stream().map(config -> {
+                        return new GraphQLConfigSchemaNode(myProject, parent.configManager, config, parent.configBaseDir);
+                    }).toArray(SimpleNode[]::new);
+                } catch (IndexNotReadyException ignored) {
+                    // entered "dumb" mode, so just return no children as the tree view will be rebuilt as empty shortly (GraphQLSchemasRootNode)
+                }
             }
             return SimpleNode.NO_CHILDREN;
         }
