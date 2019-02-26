@@ -255,7 +255,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     return;
                 }
                 UIUtil.invokeLaterIfNeeded(() -> { // ensure components are created on the swing thread
-                    final JComponent headerComponent = createHeaderComponent(fileEditor, editor);
+                    final JComponent headerComponent = createHeaderComponent(fileEditor, editor, file);
                     editor.setHeaderComponent(headerComponent);
                     if (editor instanceof EditorEx) {
                         ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
@@ -269,7 +269,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     private static class JSGraphQLEditorHeaderComponent extends EditorHeaderComponent {
     }
 
-    private JComponent createHeaderComponent(FileEditor fileEditor, Editor editor) {
+    private JComponent createHeaderComponent(FileEditor fileEditor, Editor editor, VirtualFile file) {
 
         final JSGraphQLEditorHeaderComponent headerComponent = new JSGraphQLEditorHeaderComponent();
 
@@ -288,7 +288,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         final JComponent queryToolbar = createToolbar(queryActions);
 
         // configured endpoints combo box
-        final List<GraphQLConfigEndpoint> endpoints = GraphQLConfigManager.getService(myProject).getEndpoints(fileEditor.getFile());
+        final List<GraphQLConfigEndpoint> endpoints = GraphQLConfigManager.getService(myProject).getEndpoints(file);
         final JSGraphQLEndpointsModel endpointsModel = new JSGraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
         final ComboBox endpointComboBox = new ComboBox(endpointsModel);
         endpointComboBox.setToolTipText("GraphQL endpoint");
