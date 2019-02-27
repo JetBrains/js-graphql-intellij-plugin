@@ -101,6 +101,8 @@ public class GraphQLConfigManager {
     private final GraphQLConfigGlobMatcher graphQLConfigGlobMatcher;
     public final IdeaPluginDescriptor pluginDescriptor;
 
+    private volatile boolean initialized = false;
+
     private volatile Map<VirtualFile, GraphQLConfigData> configPathToConfigurations = Maps.newConcurrentMap();
     private volatile Map<GraphQLResolvedConfigData, GraphQLFile> configDataToEntryFiles = Maps.newConcurrentMap();
     private volatile Map<GraphQLResolvedConfigData, GraphQLConfigPackageSet> configDataToPackageset = Maps.newConcurrentMap();
@@ -115,6 +117,10 @@ public class GraphQLConfigManager {
 
     public static GraphQLConfigManager getService(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLConfigManager.class);
+    }
+
+    public boolean isInitialized() {
+        return initialized;
     }
 
     /**
@@ -427,6 +433,8 @@ public class GraphQLConfigManager {
 
         myProject.getMessageBus().syncPublisher(TOPIC).onGraphQLConfigurationFileChanged();
         myProject.getMessageBus().syncPublisher(JSGraphQLConfigurationListener.TOPIC).onEndpointsChanged();
+
+        initialized = true;
 
         EditorNotifications.getInstance(myProject).updateAllNotifications();
     }

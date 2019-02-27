@@ -17,6 +17,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
@@ -57,7 +58,11 @@ public class GraphQLScopeEditorNotificationProvider extends Provider {
     }
 
     private boolean showNotification(@NotNull VirtualFile file) {
-        if (!isGraphQLRelatedFile(file)) {
+        if (!isGraphQLRelatedFile(file) || DumbService.getInstance(myProject).isDumb()) {
+            return false;
+        }
+        final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
+        if (!graphQLConfigManager.isInitialized()) {
             return false;
         }
         if (file.getFileType() != GraphQLFileType.INSTANCE) {
@@ -89,7 +94,6 @@ public class GraphQLScopeEditorNotificationProvider extends Provider {
             }
         }
         if (GlobalSearchScope.projectScope(myProject).accept(file)) {
-            final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
             if (graphQLConfigManager.getClosestConfigFile(file) != null) {
                 if (graphQLConfigManager.getClosestIncludingConfigFile(file) == null) {
                     // has config, but is not included
