@@ -582,8 +582,6 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             editorEx.setPermanentHeaderComponent(header);
         }
 
-        Disposer.register(this, fileEditor);
-
         final ContentImpl content = new ContentImpl(fileEditor.getComponent(), "Query result", true);
         content.setCloseable(false);
         toolWindow.getContentManager().addContent(content);
