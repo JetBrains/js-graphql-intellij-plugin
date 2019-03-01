@@ -187,8 +187,8 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		if ((parent instanceof JSGraphQLEndpointQuotedString || parent instanceof JSGraphQLEndpointString) && PsiTreeUtil.getParentOfType(parent, JSGraphQLEndpointImportFileReference.class) != null) {
 
 			final Project project = file.getProject();
-			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile();
-			final GlobalSearchScope scope = JSGraphQLEndpointPsiUtil.getImportScopeFromEntryFile(project, entryFile);
+			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile(file);
+			final GlobalSearchScope scope = JSGraphQLEndpointPsiUtil.getImportScopeFromEntryFile(project, entryFile, file);
 			final Collection<VirtualFile> files = FileTypeIndex.getFiles(JSGraphQLEndpointFileType.INSTANCE, scope);
 			for (VirtualFile virtualFile : files) {
 				if(virtualFile.equals(entryFile)) {

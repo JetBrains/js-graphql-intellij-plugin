@@ -19,12 +19,14 @@ import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
+import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointConfiguration;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
@@ -32,6 +34,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
@@ -72,6 +75,8 @@ import java.util.function.Consumer;
  */
 public class GraphQLConfigManager {
 
+    private final static Logger log = Logger.getInstance(GraphQLConfigManager.class);
+
     public final static Topic<GraphQLConfigFileEventListener> TOPIC = new Topic<>(
             "GraphQL Configuration File Change Events",
             GraphQLConfigFileEventListener.class,
@@ -82,6 +87,7 @@ public class GraphQLConfigManager {
 
     public static final String GRAPHQLCONFIG = ".graphqlconfig";
     public static final String GRAPHQLCONFIG_COMMENT = ".graphqlconfig=";
+    public static final String ENDPOINT_LANGUAGE_EXTENSION = "endpoint-language";
 
     private static final String GRAPHQLCONFIG_YML = ".graphqlconfig.yml";
     private static final String GRAPHQLCONFIG_YAML = ".graphqlconfig.yaml";
@@ -107,6 +113,7 @@ public class GraphQLConfigManager {
     private volatile Map<GraphQLResolvedConfigData, GraphQLFile> configDataToEntryFiles = Maps.newConcurrentMap();
     private volatile Map<GraphQLResolvedConfigData, GraphQLConfigPackageSet> configDataToPackageset = Maps.newConcurrentMap();
     private final Map<String, GraphQLNamedScope> virtualFilePathToScopes = Maps.newConcurrentMap();
+    private final Map<GraphQLNamedScope, JSGraphQLSchemaEndpointConfiguration> scopeToSchemaEndpointLanguageConfiguration = Maps.newConcurrentMap();
 
     public GraphQLConfigManager(Project myProject) {
         this.myProject = myProject;
@@ -222,6 +229,39 @@ public class GraphQLConfigManager {
             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
             return (GraphQLFile) psiFileFactory.createFileFromText("graphql-config:" + UUID.randomUUID().toString(), GraphQLLanguage.INSTANCE, "");
         });
+    }
+
+    public JSGraphQLSchemaEndpointConfiguration getEndpointLanguageConfiguration(VirtualFile virtualFile, @Nullable Ref<VirtualFile> configBasedir) {
+        if (virtualFile.getFileType() != GraphQLFileType.INSTANCE && virtualFile.getFileType() != JSGraphQLEndpointFileType.INSTANCE && !GraphQLFileType.isGraphQLScratchFile(myProject, virtualFile)) {
+            return null;
+        }
+        GraphQLNamedScope schemaScope = getSchemaScope(virtualFile);
+        if(schemaScope != null) {
+            JSGraphQLSchemaEndpointConfiguration configuration = scopeToSchemaEndpointLanguageConfiguration.computeIfAbsent(schemaScope, scope -> {
+                if (schemaScope.getConfigData() != null) {
+                    final Map<String, Object> extensions = schemaScope.getConfigData().extensions;
+                    if (extensions != null && extensions.containsKey(ENDPOINT_LANGUAGE_EXTENSION)) {
+                        try {
+                            final Gson gson = new Gson();
+                            final JSGraphQLSchemaEndpointConfiguration config = gson.fromJson(gson.toJsonTree(extensions.get(ENDPOINT_LANGUAGE_EXTENSION)), JSGraphQLSchemaEndpointConfiguration.class);
+                            return config;
+                        } catch (JsonSyntaxException je) {
+                            log.warn("Invalid JSON in config file", je);
+                        }
+
+                    }
+                }
+                // using sentinel value to avoid re-computing values which happens on nulls
+                return JSGraphQLSchemaEndpointConfiguration.NONE;
+            });
+            if(configuration != JSGraphQLSchemaEndpointConfiguration.NONE) {
+                if(configBasedir != null) {
+                    configBasedir.set(schemaScope.getConfigBaseDir());
+                }
+                return configuration;
+            }
+        }
+        return null;
     }
 
     /**
@@ -430,6 +470,7 @@ public class GraphQLConfigManager {
         this.virtualFilePathToScopes.clear();
         this.configDataToEntryFiles.clear();
         this.configDataToPackageset.clear();
+        this.scopeToSchemaEndpointLanguageConfiguration.clear();
 
         myProject.getMessageBus().syncPublisher(TOPIC).onGraphQLConfigurationFileChanged();
         myProject.getMessageBus().syncPublisher(JSGraphQLConfigurationListener.TOPIC).onEndpointsChanged();

@@ -107,7 +107,7 @@ public class JSGraphQLEndpointImportFileReferencePsiElement extends JSGraphQLEnd
 		@Override
 		public PsiElement resolve() {
 			final Project project = this.getElement().getProject();
-			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile();
+			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile(this.getElement().getContainingFile());
 			if(entryFile != null && entryFile.getParent() != null) {
 				final String fileName = nameIdentifier.getText();
 				if(fileName.startsWith(".") || fileName.startsWith("/")) {

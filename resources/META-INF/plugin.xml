@@ -259,7 +259,6 @@
 
 
     <!-- Editor notification bars and markers -->
-    <!--<editorNotificationProvider implementation="com.intellij.lang.jsgraphql.v1.ide.notifications.JSGraphQLConfigEditorNotificationProvider"/>-->
     <!--
     <editorNotificationProvider implementation="JSGraphQLApolloLokkaEditorNotificationProvider"/>
     -->

@@ -9,11 +9,11 @@ package com.intellij.lang.jsgraphql.endpoint;
 
 import java.util.List;
 
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
@@ -27,9 +27,9 @@ public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTes
 		super.setUp();
 		myFixture.addFileToProject("main.graphqle", "type MainType {}");
 		myFixture.addFileToProject("importable.graphqle", "type ImportableType {}");
-		myFixture.addFileToProject(JSGraphQLConfigurationProvider.GRAPHQL_CONFIG_JSON, "{\n" +
-				"    \"schema\": {\n" +
-				"        \"endpoint\": {\n" +
+		myFixture.addFileToProject(GraphQLConfigManager.GRAPHQLCONFIG, "{\n" +
+				"    \"extensions\": {\n" +
+				"        \"endpoint-language\": {\n" +
 				"            \"entry\" : \"main.graphqle\",\n" +
 				"            \"annotations\": [\n" +
 				"                {\n" +

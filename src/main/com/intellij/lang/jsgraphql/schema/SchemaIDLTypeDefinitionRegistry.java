@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
@@ -24,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -250,8 +252,12 @@ public class SchemaIDLTypeDefinitionRegistry {
             graphQLPsiSearchHelper.processAdditionalBuiltInPsiFiles(schemaScope, processFile);
 
             // Types defined using GraphQL Endpoint Language
-            if(graphQLEndpointNamedTypeRegistry.hasEndpointEntryFile()) {
-                final TypeDefinitionRegistryWithErrors endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry();
+            VirtualFile virtualFile = scopedElement.getContainingFile().getOriginalFile().getVirtualFile();
+            if (virtualFile instanceof VirtualFileWindow) {
+                virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
+            }
+            if (graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, null) != null) {
+                final TypeDefinitionRegistryWithErrors endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry(scopedElement);
                 try {
                     typeRegistry.merge(endpointTypesAsRegistry.getRegistry());
                     errors.addAll(endpointTypesAsRegistry.getErrors());

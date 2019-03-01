@@ -74,7 +74,7 @@ public class JSGraphQLNamedPropertyPsiElement extends JSGraphQLNamedPsiElement {
         final JSGraphQLSchemaLanguageProjectService schemaService = JSGraphQLSchemaLanguageProjectService.getService(getProject());
         final String propertyOwnerType = schemaService.getTypeName(typedReferenceElement);
         if(propertyOwnerType != null) {
-            final JSGraphQLNamedType namedType = schemaService.getNamedType(propertyOwnerType);
+            final JSGraphQLNamedType namedType = schemaService.getNamedType(propertyOwnerType, this);
             if(namedType != null) {
                 final JSGraphQLPropertyType propertyType = namedType.properties.get(getName());
                 if(propertyType != null) {

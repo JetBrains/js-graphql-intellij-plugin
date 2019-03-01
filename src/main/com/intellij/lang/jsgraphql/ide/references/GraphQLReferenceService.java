@@ -237,7 +237,7 @@ public class GraphQLReferenceService {
                     if (reference.isNull()) {
                         // Endpoint language
                         final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(GraphQLUtil.getUnmodifiedType(typeScope).getName());
+                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(GraphQLUtil.getUnmodifiedType(typeScope).getName(), field);
                         if (namedType != null) {
                             JSGraphQLPropertyType property = namedType.properties.get(name);
                             if (property != null) {
@@ -247,7 +247,7 @@ public class GraphQLReferenceService {
                                 final JSGraphQLEndpointImplementsInterfaces implementsInterfaces = ((JSGraphQLEndpointObjectTypeDefinition) namedType.definitionElement).getImplementsInterfaces();
                                 if (implementsInterfaces != null) {
                                     for (JSGraphQLEndpointNamedType implementedType : implementsInterfaces.getNamedTypeList()) {
-                                        final JSGraphQLNamedType interfaceType = endpointNamedTypeRegistry.getNamedType(implementedType.getName());
+                                        final JSGraphQLNamedType interfaceType = endpointNamedTypeRegistry.getNamedType(implementedType.getName(), field);
                                         if (interfaceType != null) {
                                             property = interfaceType.properties.get(name);
                                             if (property != null) {
@@ -290,7 +290,7 @@ public class GraphQLReferenceService {
             if (psiReference == null) {
                 // Endpoint language
                 final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(element.getName());
+                final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(element.getName(), element);
                 if (namedType != null) {
                     return createReference(element, namedType.nameElement);
                 }

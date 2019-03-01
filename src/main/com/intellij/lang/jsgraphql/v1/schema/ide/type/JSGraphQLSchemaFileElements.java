@@ -53,7 +53,7 @@ public class JSGraphQLSchemaFileElements implements JSGraphQLNamedTypeRegistry {
     }
 
     @Override
-    public JSGraphQLNamedType getNamedType(String typeName) {
+    public JSGraphQLNamedType getNamedType(String typeName, PsiElement scopedElement) {
         return nameToTypes.get(typeName);
     }
 

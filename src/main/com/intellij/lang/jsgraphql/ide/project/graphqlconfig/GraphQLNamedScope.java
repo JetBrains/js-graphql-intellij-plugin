@@ -15,6 +15,8 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.search.scope.packageSet.PackageSet;
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +30,23 @@ import java.util.Objects;
  */
 public class GraphQLNamedScope extends NamedScope {
 
+    private VirtualFile configBaseDir;
+    private GraphQLResolvedConfigData configData;
+
     public GraphQLNamedScope(@NotNull String name, @Nullable GraphQLConfigPackageSet value) {
         super(name, value);
+        if(value != null) {
+            this.configData = value.getConfigData();
+            configBaseDir = value.getConfigBaseDir();
+        }
+    }
+
+    public GraphQLResolvedConfigData getConfigData() {
+        return configData;
+    }
+
+    public VirtualFile getConfigBaseDir() {
+        return configBaseDir;
     }
 
     public GraphQLConfigPackageSet getPackageSet() {

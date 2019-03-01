@@ -39,9 +39,9 @@ public class JSGraphQLEndpointPsiUtil {
 	 * @param entryFile    the entry file, or null to look it up
      */
 	@NotNull
-	public static GlobalSearchScope getImportScopeFromEntryFile(Project project, @Nullable VirtualFile entryFile) {
+	public static GlobalSearchScope getImportScopeFromEntryFile(Project project, @Nullable VirtualFile entryFile, PsiElement scopedElement) {
 		if(entryFile == null) {
-			entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile();
+			entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile(scopedElement.getContainingFile());
 		}
 		final GlobalSearchScope scope;
 		if(entryFile != null) {
@@ -93,7 +93,7 @@ public class JSGraphQLEndpointPsiUtil {
         }
 
 		if(includeAutoImportTypes) {
-			final Collection<VirtualFile> knownFiles = FileTypeIndex.getFiles(JSGraphQLEndpointFileType.INSTANCE, getImportScopeFromEntryFile(file.getProject(), null));
+			final Collection<VirtualFile> knownFiles = FileTypeIndex.getFiles(JSGraphQLEndpointFileType.INSTANCE, getImportScopeFromEntryFile(file.getProject(), null, file));
 			final PsiManager psiManager = PsiManager.getInstance(file.getProject());
 			knownFiles.forEach(virtualFile ->{
 				final PsiFile psiFile = psiManager.findFile(virtualFile);

@@ -19,7 +19,6 @@ import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointInputValueDefin
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedType;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointNamedTypeDefinition;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointProperty;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageServiceListener;
 import com.intellij.lang.jsgraphql.v1.languageservice.JSGraphQLNodeLanguageServiceClient;
 import com.intellij.lang.jsgraphql.v1.languageservice.api.SchemaWithVersionResponse;
@@ -51,10 +50,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileEditor.*;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -166,16 +162,17 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
      * @return the corresponding named type, or <code>null</code> if the type is unknown
      */
     @Nullable
-    public JSGraphQLNamedType getNamedType(@NotNull  String typeName) {
-        return getOrCreateSchemaFileElements().getNamedType(typeName);
+    public JSGraphQLNamedType getNamedType(@NotNull  String typeName, PsiElement scopedElement) {
+        return getOrCreateSchemaFileElements().getNamedType(typeName, scopedElement);
     }
 
     /**
      * Gets whether the project uses the Endpoint Language to define the schema
      * @return true if the project is configured with a .graphqle entry file
+     * @param scopedPsiElement the element to get the entry file for
      */
-    public boolean hasEndpointEntryFile() {
-        return endpointNamedTypeRegistry.hasEndpointEntryFile();
+    public boolean hasEndpointEntryFile(PsiElement scopedPsiElement) {
+        return endpointNamedTypeRegistry.hasEndpointEntryFile(scopedPsiElement);
     }
 
     /**
@@ -186,7 +183,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
     @Nullable
     public PsiElement getReference(PsiElement element) {
 
-        final boolean hasEndpointFile = endpointNamedTypeRegistry.hasEndpointEntryFile();
+        final boolean hasEndpointFile = endpointNamedTypeRegistry.hasEndpointEntryFile(element);
 
         final JSGraphQLSchemaFileElements schemaFileElements;
         final PsiFile containingFile = element.getContainingFile();
@@ -204,7 +201,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
                 if(hasEndpointFile) {
                     final String nameToFind = namedElement.getName();
                     if(nameToFind != null) {
-                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(nameToFind);
+                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(nameToFind, element);
                         if(namedType != null && namedType.definitionElement instanceof JSGraphQLEndpointNamedTypeDefinition) {
                             final JSGraphQLEndpointNamedTypeDefinition namedTypeDefinition = (JSGraphQLEndpointNamedTypeDefinition) namedType.definitionElement;
                             return namedTypeDefinition.getNamedTypeDef();
@@ -422,7 +419,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
                     if (currentPropertyType.propertyValueTypeName == null) {
                         return null;
                     }
-                    currentType = namedTypeRegistry.getNamedType(currentPropertyType.propertyValueTypeName);
+                    currentType = namedTypeRegistry.getNamedType(currentPropertyType.propertyValueTypeName, propertyPsiElement);
                 }
             }
             if(currentPropertyType != null) {
@@ -516,7 +513,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
 					}
 					if(argumentType != null) {
 
-						JSGraphQLNamedType currentType = namedTypeRegistry.getNamedType(argumentType.getName());
+						JSGraphQLNamedType currentType = namedTypeRegistry.getNamedType(argumentType.getName(), element);
 						JSGraphQLPropertyType currentPropertyType = null;
 
 						for (String property : propertyNames) {
@@ -529,7 +526,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
 								if (currentPropertyType.propertyValueTypeName == null) {
 									return null;
 								}
-								currentType = namedTypeRegistry.getNamedType(currentPropertyType.propertyValueTypeName);
+								currentType = namedTypeRegistry.getNamedType(currentPropertyType.propertyValueTypeName, element);
 							}
 						}
 
@@ -606,7 +603,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
 
         // finally, if we found the type name, return the property path that the psi element belongs to
         if(declaringTypeName != null) {
-            final JSGraphQLNamedType namedType = namedTypeRegistry.getNamedType(declaringTypeName);
+            final JSGraphQLNamedType namedType = namedTypeRegistry.getNamedType(declaringTypeName, propertyPsiElement);
             if(namedType != null) {
                 final JSGraphQLSchemaPropertyPath ret = new JSGraphQLSchemaPropertyPath(namedType);
                 final Set<JSGraphQLNamedPropertyPsiElement> addedPropertyNameElements = Sets.newHashSet();
@@ -698,25 +695,7 @@ public class JSGraphQLSchemaLanguageProjectService implements FileEditorManagerL
     }
 
     private String getSchemaFileName() {
-        final VirtualFile baseDir = JSGraphQLConfigurationProvider.getService(project).getConfigurationBaseDir();
-        if(baseDir != null) {
-            final Module moduleByName = ModuleManager.getInstance(project).findModuleByName(baseDir.getName());
-            if(moduleByName != null) {
-                return getSchemaFileNameFromModule(moduleByName);
-            }
-            for (Module module : ModuleManager.getInstance(project).getModules()) {
-                for (VirtualFile contentRoot : ModuleRootManager.getInstance(module).getContentRoots()) {
-                    if(baseDir.equals(contentRoot)) {
-                        return getSchemaFileNameFromModule(module);
-                    }
-                }
-            }
-        }
         return project.getName() + "." + JSGraphQLSchemaFileType.INSTANCE.getDefaultExtension();
-    }
-
-    private String getSchemaFileNameFromModule(Module module) {
-        return module.getName() + "." + JSGraphQLSchemaFileType.INSTANCE.getDefaultExtension();
     }
 
     private boolean isNewSchemaUrl(JSGraphQLSchemaFileElements schemaFileElements, SchemaWithVersionResponse schemaWithVersion) {

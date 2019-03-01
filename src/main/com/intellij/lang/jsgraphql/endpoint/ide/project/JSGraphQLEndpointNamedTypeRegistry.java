@@ -11,6 +11,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLNamedScope;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaEventListener;
 import com.intellij.lang.jsgraphql.schema.TypeDefinitionRegistryWithErrors;
@@ -40,11 +42,12 @@ import java.util.function.Consumer;
 public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeRegistry {
 
     private final JSGraphQLConfigurationProvider configurationProvider;
+    private final GraphQLConfigManager graphQLConfigManager;
     private final Project project;
 
-    private final Map<Project, Map<String, JSGraphQLNamedType>> endpointTypesByName = Maps.newConcurrentMap();
-    private final Map<Project, PsiFile> endpointEntryPsiFile = Maps.newConcurrentMap();
-    private final Map<Project, TypeDefinitionRegistryWithErrors> projectToRegistry = Maps.newConcurrentMap();
+    private final Map<GraphQLNamedScope, Map<String, JSGraphQLNamedType>> endpointTypesByName = Maps.newConcurrentMap();
+    private final Map<GraphQLNamedScope, PsiFile> endpointEntryPsiFile = Maps.newConcurrentMap();
+    private final Map<GraphQLNamedScope, TypeDefinitionRegistryWithErrors> projectToRegistry = Maps.newConcurrentMap();
 
     public static JSGraphQLEndpointNamedTypeRegistry getService(@NotNull Project project) {
         return ServiceManager.getService(project, JSGraphQLEndpointNamedTypeRegistry.class);
@@ -53,6 +56,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     public JSGraphQLEndpointNamedTypeRegistry(Project project) {
         this.project = project;
         this.configurationProvider = JSGraphQLConfigurationProvider.getService(project);
+        graphQLConfigManager = GraphQLConfigManager.getService(project);
         project.getMessageBus().connect().subscribe(GraphQLSchemaChangeListener.TOPIC, new GraphQLSchemaEventListener() {
             @Override
             public void onGraphQLSchemaChanged() {
@@ -63,13 +67,17 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         });
     }
 
-    public boolean hasEndpointEntryFile() {
-        return getEndpointEntryPsiFile() != null;
+    public boolean hasEndpointEntryFile(PsiElement scopedPsiElement) {
+        return getEndpointEntryPsiFile(scopedPsiElement) != null;
     }
 
-    private PsiFile getEndpointEntryPsiFile() {
-        return endpointEntryPsiFile.computeIfAbsent(project, p -> {
-            final VirtualFile endpointEntryFile = configurationProvider.getEndpointEntryFile();
+    private PsiFile getEndpointEntryPsiFile(PsiElement scopedPsiElement) {
+        final GraphQLNamedScope schemaScope = graphQLConfigManager.getSchemaScope(scopedPsiElement.getContainingFile().getVirtualFile());
+        if(schemaScope == null) {
+            return null;
+        }
+        return endpointEntryPsiFile.computeIfAbsent(schemaScope, p -> {
+            final VirtualFile endpointEntryFile = configurationProvider.getEndpointEntryFile(scopedPsiElement.getContainingFile());
             if (endpointEntryFile != null) {
                 return PsiManager.getInstance(project).findFile(endpointEntryFile);
             }
@@ -78,25 +86,29 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     }
 
     @Override
-    public JSGraphQLNamedType getNamedType(String typeNameToGet) {
-        return computeNamedTypes().get(typeNameToGet);
+    public JSGraphQLNamedType getNamedType(String typeNameToGet, PsiElement scopedElement) {
+        return computeNamedTypes(scopedElement).get(typeNameToGet);
     }
 
-    public void enumerateTypes(Consumer<JSGraphQLNamedType> consumer) {
-        computeNamedTypes().forEach((key, jsGraphQLNamedType) -> consumer.accept(jsGraphQLNamedType));
+    public void enumerateTypes(PsiElement scopedElement, Consumer<JSGraphQLNamedType> consumer) {
+        computeNamedTypes(scopedElement).forEach((key, jsGraphQLNamedType) -> consumer.accept(jsGraphQLNamedType));
     }
 
-    public TypeDefinitionRegistryWithErrors getTypesAsRegistry() {
-        return projectToRegistry.computeIfAbsent(project, p -> doGetTypesAsRegistry());
+    public TypeDefinitionRegistryWithErrors getTypesAsRegistry(PsiElement scopedElement) {
+        final GraphQLNamedScope schemaScope = graphQLConfigManager.getSchemaScope(scopedElement.getContainingFile().getVirtualFile());
+        if (schemaScope == null) {
+            return new TypeDefinitionRegistryWithErrors(new TypeDefinitionRegistry(), Collections.emptyList());
+        }
+        return projectToRegistry.computeIfAbsent(schemaScope, p -> doGetTypesAsRegistry(scopedElement));
     }
 
-    private TypeDefinitionRegistryWithErrors doGetTypesAsRegistry() {
+    private TypeDefinitionRegistryWithErrors doGetTypesAsRegistry(PsiElement scopedElement) {
 
         final TypeDefinitionRegistry registry = new TypeDefinitionRegistry();
         final List<GraphQLException> errors = Lists.newArrayList();
         final TypeDefinitionRegistryWithErrors registryWithErrors = new TypeDefinitionRegistryWithErrors(registry, errors);
 
-        final Map<String, JSGraphQLNamedType> namedTypes = computeNamedTypes();
+        final Map<String, JSGraphQLNamedType> namedTypes = computeNamedTypes(scopedElement);
 
         final PsiRecursiveElementVisitor errorsVisitor = new PsiRecursiveElementVisitor() {
             @Override
@@ -353,10 +365,14 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         return new SourceLocation(-1, -1, psiSourceElement.getContainingFile().getName());
     }
 
-    private Map<String, JSGraphQLNamedType> computeNamedTypes() {
-        return endpointTypesByName.computeIfAbsent(project, p -> {
+    private Map<String, JSGraphQLNamedType> computeNamedTypes(PsiElement scopedPsiElement) {
+        final GraphQLNamedScope schemaScope = graphQLConfigManager.getSchemaScope(scopedPsiElement.getContainingFile().getVirtualFile());
+        if (schemaScope == null) {
+            return Collections.emptyMap();
+        }
+        return endpointTypesByName.computeIfAbsent(schemaScope, p -> {
             final Map<String, JSGraphQLNamedType> result = Maps.newConcurrentMap();
-            final PsiFile entryPsiFile = getEndpointEntryPsiFile();
+            final PsiFile entryPsiFile = getEndpointEntryPsiFile(scopedPsiElement);
             if (entryPsiFile != null) {
                 Collection<JSGraphQLEndpointNamedTypeDefinition> endpointNamedTypeDefinitions = JSGraphQLEndpointPsiUtil.getKnownDefinitions(
                         entryPsiFile,

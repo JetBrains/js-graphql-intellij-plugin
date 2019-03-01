@@ -153,7 +153,7 @@ public class JSGraphQLNamedPsiElement extends JSGraphQLPsiElement implements Psi
                     if(service == null) {
                         service = JSGraphQLSchemaLanguageProjectService.getService(self.getProject());
                     }
-                    if(service.hasEndpointEntryFile()) {
+                    if(service.hasEndpointEntryFile(self)) {
                         // with the endpoint language in use we can't cache the reference here
                         // since endpoint language files are editable
                         return service.getReference(self);

@@ -17,7 +17,6 @@ import com.intellij.lang.jsgraphql.v1.languageservice.api.HintsResponse;
 import com.intellij.lang.jsgraphql.v1.languageservice.api.Request;
 import com.intellij.lang.jsgraphql.v1.languageservice.api.SchemaWithVersionRequest;
 import com.intellij.lang.jsgraphql.v1.languageservice.api.SchemaWithVersionResponse;
-import com.intellij.lang.jsgraphql.v1.languageservice.api.SetProjectDirRequest;
 import com.intellij.lang.jsgraphql.v1.languageservice.api.TokenDocumentationResponse;
 import com.intellij.lang.jsgraphql.v1.languageservice.api.TokensResponse;
 import com.intellij.lang.jsgraphql.v1.languageservice.api.TypeDocumentationResponse;
@@ -131,11 +130,6 @@ public class JSGraphQLNodeLanguageServiceClient {
             if(!project.isDisposed()) {
                 final JSGraphQLConfigurationProvider configurationProvider = JSGraphQLConfigurationProvider.getService(project);
                 if(configurationProvider != null) { // can be null during test
-                    final String projectDir = configurationProvider.getConfigurationBasePath();
-                    if(projectDir != null) {
-                        executeRequest(new SetProjectDirRequest(projectDir), null, project, false);
-                        instance.setSchemaProjectDir(projectDir);
-                    }
                 }
             }
         }
@@ -148,11 +142,4 @@ public class JSGraphQLNodeLanguageServiceClient {
         languageServiceInstances.remove(instance.getProject());
     }
 
-
-    public static void onInstanceRestarted(@NotNull JSGraphQLNodeLanguageServiceInstance instance) {
-        final String projectDir = JSGraphQLConfigurationProvider.getService(instance.getProject()).getConfigurationBasePath();
-        if(projectDir != null) {
-            executeRequest(new SetProjectDirRequest(projectDir), null, instance.getProject(), false);
-        }
-    }
 }

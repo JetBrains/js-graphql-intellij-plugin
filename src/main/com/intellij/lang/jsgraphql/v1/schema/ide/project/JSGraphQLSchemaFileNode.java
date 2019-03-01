@@ -11,7 +11,6 @@ import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.BasePsiNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.schema.psi.JSGraphQLSchemaFile;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Iconable;
@@ -88,17 +87,6 @@ public class JSGraphQLSchemaFileNode extends BasePsiNode<PsiFile> implements JSG
         if(project != null && !project.isDisposed()) {
             String schemaUrl = JSGraphQLSchemaLanguageProjectService.getService(project).getSchemaUrl();
             if (StringUtils.isNotEmpty(schemaUrl)) {
-                final VirtualFile baseDir = JSGraphQLConfigurationProvider.getService(project).getConfigurationBaseDir();
-                if(baseDir != null) {
-                    final String comparableSchemaUrl = schemaUrl.replace("\\", "/");
-                    final String comparableBaseDir = baseDir.getPath().replace("\\", "/");
-                    if(comparableSchemaUrl.startsWith(comparableBaseDir)) {
-                        schemaUrl = schemaUrl.substring(comparableBaseDir.length());
-                        if(schemaUrl.length() > 1 && (schemaUrl.startsWith("/") || schemaUrl.startsWith("\\"))) {
-                            schemaUrl = schemaUrl.substring(1);
-                        }
-                    }
-                }
                 data.setLocationString(schemaUrl);
             }
         }

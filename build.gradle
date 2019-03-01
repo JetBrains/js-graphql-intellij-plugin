@@ -44,6 +44,11 @@ intellij {
     plugins = ['JavaScriptLanguage', 'CSS']
     ideaDependencyCachePath = project.buildDir
 }
+
+runIde {
+    jvmArgs '-Xmx2G'
+}
+
 patchPluginXml {
 
 }

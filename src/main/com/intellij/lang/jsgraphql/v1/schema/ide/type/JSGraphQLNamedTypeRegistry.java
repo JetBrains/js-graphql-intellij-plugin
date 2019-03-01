@@ -7,14 +7,18 @@
  */
 package com.intellij.lang.jsgraphql.v1.schema.ide.type;
 
+import com.intellij.psi.PsiElement;
+
 /**
- * Provides a project-wide registry to look up known type definitions based on their name
+ * Provides a scoped registry to look up known type definitions based on their name
  */
 public interface JSGraphQLNamedTypeRegistry {
 
     /**
      * Gets the name type, if any, that has the specified typeName
+     * @param typeName the name of the type to lookup
+     * @param scopedElement the PSI element from which the request is made, serving as scoping for schema discovery
      */
-    JSGraphQLNamedType getNamedType(String typeName);
+    JSGraphQLNamedType getNamedType(String typeName, PsiElement scopedElement);
 
 }
