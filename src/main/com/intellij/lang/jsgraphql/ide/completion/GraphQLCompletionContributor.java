@@ -182,6 +182,9 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 @Override
                 protected void addCompletions(@NotNull final CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
 
+                    // move "__*" fields to bottom
+                    final CompletionResultSet orderedResult = updateResult(parameters, result);
+
                     final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
 
                     GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypeScopeProvider.class);
@@ -234,14 +237,16 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                             break;
                                         }
                                     }
-                                    result.addElement(element);
+                                    orderedResult.addElement(element);
                                 });
                             }
                             if (!(typeScopeProvider instanceof GraphQLOperationDefinition)) {
                                 // show the '...' except when top level selection in an operation
-                                result.addElement(LookupElementBuilder.create("...").withInsertHandler((ctx, item) -> {
+                                orderedResult.addElement(LookupElementBuilder.create("...").withInsertHandler((ctx, item) -> {
                                     AutoPopupController.getInstance(ctx.getProject()).autoPopupMemberLookup(ctx.getEditor(), null);
                                 }));
+                                // and add the built-in __typename option
+                                orderedResult.addElement(LookupElementBuilder.create("__typename"));
                             }
                         }
                     }
@@ -1079,7 +1084,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         }
 
         private String getSortText(LookupElement element) {
-            if (element.getLookupString().startsWith("__")) {
+            if (element.getLookupString().startsWith("__") || element.getLookupString().startsWith("...")) {
                 return "|" + element.getLookupString();
             }
             return element.getLookupString();
