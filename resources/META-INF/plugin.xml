@@ -333,11 +333,9 @@
       <add-to-group group-id="NewGroup" />
     </action>
 
-    <!-- TODO JKM: Needs integration with references service
     <action id="com.intellij.lang.jsgraphql.endpoint.ide.actions.JSGraphQLEndpointNewFileAction" class="com.intellij.lang.jsgraphql.endpoint.ide.actions.JSGraphQLEndpointNewFileAction">
       <add-to-group group-id="NewGroup"/>
     </action>
-    -->
 
     <action class="com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLExecuteEditorAction" id="com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLExecuteEditorAction">
       <keyboard-shortcut first-keystroke="control ENTER" keymap="$default"/>
