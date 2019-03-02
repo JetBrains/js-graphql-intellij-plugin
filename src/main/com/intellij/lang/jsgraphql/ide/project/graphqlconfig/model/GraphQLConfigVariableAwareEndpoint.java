@@ -42,6 +42,10 @@ public class GraphQLConfigVariableAwareEndpoint {
         this.project = project;
     }
 
+    public String getName() {
+        return endpoint.name;
+    }
+
     public String getUrl() {
         if (endpoint.url != null) {
             return expandVariables(endpoint.url);

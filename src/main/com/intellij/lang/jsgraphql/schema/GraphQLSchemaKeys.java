@@ -13,6 +13,11 @@ import com.intellij.openapi.util.Key;
 public class GraphQLSchemaKeys {
 
     /**
+     * Set on the Virtual File that contains the JSON result of an introspection query
+     */
+    public static final Key<Boolean> IS_GRAPHQL_INTROSPECTION_JSON = Key.create("JSGraphQL.IsIntrospectionJSON");
+
+    /**
      * Set on a JSON introspection file (PSI and Virtual) to get the derived GraphQL SDL file
      */
     public static final Key<GraphQLFile> GRAPHQL_INTROSPECTION_JSON_TO_SDL = Key.create("JSGraphQL.IntrospectionJSONToSDL");

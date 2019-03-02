@@ -63,6 +63,7 @@
     <projectService serviceInterface="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.GraphQLSettings" serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" serviceImplementation="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" />
 
@@ -342,6 +343,8 @@
       <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X"/>
       <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X 10.5+"/>
     </action>
+
+    <action class="com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAction" id="com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAction" />
 
   </actions>
 

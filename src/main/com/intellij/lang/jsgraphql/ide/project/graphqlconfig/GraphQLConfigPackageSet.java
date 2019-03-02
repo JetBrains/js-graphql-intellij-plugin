@@ -12,6 +12,7 @@ import com.intellij.ide.scratch.ScratchFileType;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
@@ -46,17 +47,21 @@ public class GraphQLConfigPackageSet implements PackageSet {
         this.configData = configData;
         this.globMatcher = globMatcher;
 
+        updateSchemaFilePath();
+
+        configData.excludes = normalizeGlobs(configData.excludes);
+        configData.includes = normalizeGlobs(configData.includes);
+
+        hasIncludes = configData.includes != null && !configData.includes.isEmpty();
+    }
+
+    private void updateSchemaFilePath() {
         if (StringUtils.isNotEmpty(configData.schemaPath)) {
             VirtualFile schemaFile = configBaseDir.findFileByRelativePath(StringUtils.replaceChars(configData.schemaPath, '\\', '/'));
             if (schemaFile != null) {
                 schemaFilePath = schemaFile.getPath();
             }
         }
-
-        configData.excludes = normalizeGlobs(configData.excludes);
-        configData.includes = normalizeGlobs(configData.includes);
-
-        hasIncludes = configData.includes != null && !configData.includes.isEmpty();
     }
 
     /**
@@ -101,6 +106,10 @@ public class GraphQLConfigPackageSet implements PackageSet {
         }
         if(JsonFileType.INSTANCE.equals(file.getFileType())) {
             // the only JSON file that can be considered included is an introspection JSON file referenced as schemaPath
+            if (schemaFilePath == null && Boolean.TRUE.equals(file.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON))) {
+                // new file created from introspection, so update schemaFilePath accordingly
+                updateSchemaFilePath();
+            }
             return file.getPath().equals(schemaFilePath);
         }
         return includesFilePath.computeIfAbsent(file.getPath(), filePath -> {

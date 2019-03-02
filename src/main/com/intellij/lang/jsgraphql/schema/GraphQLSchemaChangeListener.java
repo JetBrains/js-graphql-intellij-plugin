@@ -18,6 +18,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiTreeChangeEventImpl;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -73,9 +74,19 @@ public class GraphQLSchemaChangeListener {
                         signalSchemaChanged();
                     }
                 }
-                if (event.getFile() instanceof JsonFile && event.getFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL) != null) {
-                    // GraphQL Introspection JSON changed
-                    signalSchemaChanged();
+                if (event.getFile() instanceof JsonFile) {
+                    boolean introspectionJsonUpdated = false;
+                    if (event.getFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL) != null) {
+                        introspectionJsonUpdated = true;
+                    } else {
+                        final VirtualFile virtualFile = event.getFile().getVirtualFile();
+                        if (virtualFile != null && Boolean.TRUE.equals(virtualFile.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON))) {
+                            introspectionJsonUpdated = true;
+                        }
+                    }
+                    if(introspectionJsonUpdated) {
+                        signalSchemaChanged();
+                    }
                 }
             }
 

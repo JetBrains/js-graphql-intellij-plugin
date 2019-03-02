@@ -79,7 +79,7 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
         @Override
         public void handleDoubleClickOrEnter(SimpleTree tree, InputEvent inputEvent) {
 
-            final String introspect = "Get GraphQL Schema from Endpoint";
+            final String introspect = "Get GraphQL Schema from Endpoint (introspection)";
             final String createScratch = "New GraphQL Scratch File (for query, mutation testing)";
             ListPopup listPopup = JBPopupFactory.getInstance().createListPopup(new BaseListPopupStep<String>("Choose Endpoint Action", introspect, createScratch) {
 
@@ -87,7 +87,7 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
                 public PopupStep onChosen(String selectedValue, boolean finalChoice) {
                     return doFinalStep(() -> {
                         if (introspect.equals(selectedValue)) {
-                            GraphQLIntrospectionHelper.performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
+                            GraphQLIntrospectionHelper.getService(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
                         } else if (createScratch.equals(selectedValue)) {
                             final String text = "# " + GRAPHQLCONFIG_COMMENT + endpoint.configPackageSet.getConfigBaseDir().getPresentableUrl() + "\n\nquery ScratchQuery {\n\n}";
                             final VirtualFile scratchFile = ScratchRootType.getInstance().createScratchFile(myProject, "scratch.graphql", GraphQLLanguage.INSTANCE, text);

@@ -120,7 +120,7 @@ public class GraphQLIntrospectionResultToSchema {
         if (ScalarInfo.isStandardScalar(name)) {
             return null;
         }
-        return new ScalarTypeDefinition(name);
+        return ScalarTypeDefinition.newScalarTypeDefinition().name(name).description(getDescription(input)).build();
     }
 
 

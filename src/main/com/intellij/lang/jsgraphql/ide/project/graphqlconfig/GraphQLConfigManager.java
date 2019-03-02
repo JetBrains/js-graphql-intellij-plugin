@@ -501,7 +501,7 @@ public class GraphQLConfigManager {
                             introspect.addAction(new NotificationAction("Introspect '" + endpoint.url + "'") {
                                 @Override
                                 public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                                    GraphQLIntrospectionHelper.performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
+                                    GraphQLIntrospectionHelper.getService(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
                                 }
                             });
                             String schemaFilePath = endpoint.configPackageSet.getSchemaFilePath();

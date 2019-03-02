@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.ContextHelpAction;
 import com.intellij.ide.util.treeView.IndexComparator;
+import com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAction;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.openapi.actionSystem.*;
@@ -171,6 +172,12 @@ public class GraphQLSchemasPanel extends JPanel {
                 }
             }
         });
+
+        final AnAction reRunAction = ActionManager.getInstance().getAction(GraphQLRerunLatestIntrospectionAction.class.getName());
+        if (reRunAction != null) {
+            leftActionGroup.add(reRunAction);
+        }
+
         leftActionGroup.add(new AnAction("Edit selected schema configuration", "Opens the .graphqlconfig file for the selected schema", AllIcons.General.Settings) {
             @Override
             public void actionPerformed(AnActionEvent e) {

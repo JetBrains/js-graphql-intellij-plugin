@@ -55,13 +55,6 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             final JsonProperty jsonProperty = (JsonProperty) element;
             final Ref<String> urlRef = Ref.create();
             if (isEndpointUrl(jsonProperty, urlRef) && !hasErrors(jsonProperty.getContainingFile())) {
-
-                final String currentSchemaPath = getSchemaPath(jsonProperty, false);
-                if (currentSchemaPath != null && currentSchemaPath.endsWith(".json")) {
-                    // schema is based on JSON Introspection result, so doesn't make sense to show the line marker
-                    return null;
-                }
-
                 return new LineMarkerInfo<>(jsonProperty, jsonProperty.getTextRange(), AllIcons.General.Run, Pass.UPDATE_ALL, o -> "Run introspection query to generate GraphQL SDL schema file", (evt, jsonUrl) -> {
 
                     String introspectionUtl;
@@ -83,7 +76,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
                     final Project project = element.getProject();
                     final VirtualFile introspectionSourceFile = element.getContainingFile().getVirtualFile();
 
-                    GraphQLIntrospectionHelper.performIntrospectionQueryAndUpdateSchemaPathFile(project, endpoint, schemaPath, introspectionSourceFile);
+                    GraphQLIntrospectionHelper.getService(project).performIntrospectionQueryAndUpdateSchemaPathFile(project, endpoint, schemaPath, introspectionSourceFile);
 
                 }, GutterIconRenderer.Alignment.CENTER);
             }
@@ -158,11 +151,13 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
     private GraphQLConfigVariableAwareEndpoint getEndpoint(String url, JsonProperty urlJsonProperty) {
         try {
 
-            final GraphQLConfigEndpoint endpointConfig = new GraphQLConfigEndpoint(null, "", url);
-
             // if the endpoint is just the url string, headers are not supported
             final JsonProperty parent = PsiTreeUtil.getParentOfType(urlJsonProperty, JsonProperty.class);
             final boolean supportsHeaders = parent != null && !"endpoints".equals(parent.getName());
+
+            final String name = supportsHeaders ? parent.getName() : url;
+
+            final GraphQLConfigEndpoint endpointConfig = new GraphQLConfigEndpoint(null, name, url);
 
             if (supportsHeaders) {
                 final Stream<JsonProperty> jsonPropertyStream = PsiTreeUtil.getChildrenOfTypeAsList(urlJsonProperty.getParent(), JsonProperty.class).stream();

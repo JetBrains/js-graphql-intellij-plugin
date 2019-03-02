@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.v1.ide.project;
 
-import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -49,6 +48,9 @@ import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.impl.EditorHeaderComponent;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.ComboBox;
@@ -92,6 +94,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Provides the project-specific GraphQL tool window, including errors view, console, and query result editor.
@@ -393,14 +396,15 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     final PostMethod method = new PostMethod(url);
                     setHeadersFromOptions(endpoint, method);
                     method.setRequestEntity(new StringRequestEntity(requestJson, "application/json", "UTF-8"));
-                    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+
+                    final Runnable executeQuery = () -> {
                         try {
                             try {
                                 editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, true);
                                 StopWatch sw = new StopWatch();
                                 sw.start();
                                 httpClient.executeMethod(method);
-                                final String responseJson = Optional.fromNullable(method.getResponseBodyAsString()).or("");
+                                final String responseJson = Optional.ofNullable(method.getResponseBodyAsString()).orElse("");
                                 sw.stop();
                                 final Header responseHeader = method.getResponseHeader("Content-Type");
                                 final boolean reformatJson = responseHeader != null && "application/json".equals(responseHeader.getValue());
@@ -448,7 +452,15 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                         } catch (IOException | IllegalArgumentException e) {
                             Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", url + ": " + e.getMessage(), NotificationType.WARNING), myProject);
                         }
-                    });
+                    };
+                    final Task.Backgroundable task = new Task.Backgroundable(myProject, "Executing GraphQL", false) {
+                        @Override
+                        public void run(@NotNull ProgressIndicator indicator) {
+                            indicator.setIndeterminate(true);
+                            executeQuery.run();
+                        }
+                    };
+                    ProgressManager.getInstance().run(task);
                 } catch (UnsupportedEncodingException | IllegalStateException | IllegalArgumentException e) {
                     Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", url + ": " + e.getMessage(), NotificationType.ERROR), myProject);
                 }
@@ -457,11 +469,23 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         }
     }
 
-    public void showQueryResult(String jsonResponse) {
+    public enum QueryResultDisplay {
+        ALWAYS,
+        ON_ERRORS_ONLY
+    }
+
+    public void showQueryResult(String jsonResponse, QueryResultDisplay display) {
         if (fileEditor instanceof TextEditor) {
             final TextEditor fileEditor = (TextEditor) this.fileEditor;
             updateQueryResultEditor(jsonResponse, fileEditor, true);
-            showQueryResultEditor(fileEditor);
+            if (display == QueryResultDisplay.ON_ERRORS_ONLY) {
+                final Integer errorCount = getErrorCount(jsonResponse);
+                if (errorCount == null || errorCount > 0) {
+                    showQueryResultEditor(fileEditor);
+                }
+            } else {
+                showQueryResultEditor(fileEditor);
+            }
         }
     }
 
