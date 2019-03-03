@@ -168,10 +168,10 @@ public class GraphQLIntrospectionHelper {
             }
         }
         final Document schemaDefinition = new GraphQLIntrospectionResultToSchema().createSchemaDefinition(introspectionAsMap);
-        final SchemaPrinter.Options options = SchemaPrinter.Options.defaultOptions().includeScalarTypes(true).includeSchemaDefintion(true);
+        final SchemaPrinter.Options options = SchemaPrinter.Options.defaultOptions().includeScalarTypes(false).includeSchemaDefintion(true);
         final StringBuilder sb = new StringBuilder(new SchemaPrinter(options).print(schemaDefinition));
 
-        // graphql-java currently appears to discard custom scalars as part of the schema that the printer constructs, so include them manually here
+        // graphql-java only prints scalars that are used by fields since it visits fields to discover types, so add the scalars here manually
         final Set<String> knownScalars = Sets.newHashSet();
         for (Node definition : schemaDefinition.getChildren()) {
             if (definition instanceof ScalarTypeDefinition) {

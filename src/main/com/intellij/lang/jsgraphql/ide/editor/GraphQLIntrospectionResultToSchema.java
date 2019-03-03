@@ -128,32 +128,26 @@ public class GraphQLIntrospectionResultToSchema {
     UnionTypeDefinition createUnion(Map<String, Object> input) {
         assertTrue(input.get("kind").equals("UNION"), "wrong input");
 
-        UnionTypeDefinition unionTypeDefinition = UnionTypeDefinition.newUnionTypeDefinition()
-                .name((String) input.get("name"))
-                .description(getDescription(input))
-                .build();
-
-        List<Map<String, Object>> possibleTypes = (List<Map<String, Object>>) input.get("possibleTypes");
-
+        final List<Map<String, Object>> possibleTypes = (List<Map<String, Object>>) input.get("possibleTypes");
+        final List<Type> memberTypes = Lists.newArrayList();
         for (Map<String, Object> possibleType : possibleTypes) {
             TypeName typeName = new TypeName((String) possibleType.get("name"));
-            unionTypeDefinition.getMemberTypes().add(typeName);
+            memberTypes.add(typeName);
         }
 
-        return unionTypeDefinition;
+        return UnionTypeDefinition.newUnionTypeDefinition()
+                .name((String) input.get("name"))
+                .description(getDescription(input))
+                .memberTypes(memberTypes)
+                .build();
     }
 
     @SuppressWarnings("unchecked")
     EnumTypeDefinition createEnum(Map<String, Object> input) {
         assertTrue(input.get("kind").equals("ENUM"), "wrong input");
 
-        EnumTypeDefinition enumTypeDefinition = EnumTypeDefinition.newEnumTypeDefinition()
-                .name((String) input.get("name"))
-                .description(getDescription(input))
-                .build();
-
-        List<Map<String, Object>> enumValues = (List<Map<String, Object>>) input.get("enumValues");
-
+        final List<Map<String, Object>> enumValues = (List<Map<String, Object>>) input.get("enumValues");
+        final List<EnumValueDefinition> enumValueDefinitions = Lists.newArrayList();
         for (Map<String, Object> enumValue : enumValues) {
 
             EnumValueDefinition enumValueDefinition = EnumValueDefinition.newEnumValueDefinition()
@@ -162,10 +156,14 @@ public class GraphQLIntrospectionResultToSchema {
                     .directives(createDeprecatedDirective(enumValue))
                     .build();
 
-            enumTypeDefinition.getEnumValueDefinitions().add(enumValueDefinition);
+            enumValueDefinitions.add(enumValueDefinition);
         }
 
-        return enumTypeDefinition;
+        return EnumTypeDefinition.newEnumTypeDefinition()
+                .name((String) input.get("name"))
+                .description(getDescription(input))
+                .enumValueDefinitions(enumValueDefinitions)
+                .build();
     }
 
     @SuppressWarnings("unchecked")
