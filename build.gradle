@@ -13,7 +13,7 @@ plugins {
 }
 
 group 'com.intellij.lang.jsgraphql'
-version '2.0.0-alpha-6'
+version '2.0.0-alpha-7'
 
 apply plugin: 'java'
 
