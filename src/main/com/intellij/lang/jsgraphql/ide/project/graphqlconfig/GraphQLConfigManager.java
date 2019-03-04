@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import com.intellij.ProjectTopics;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.scratch.ScratchFileType;
@@ -39,7 +40,10 @@ import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootEvent;
+import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
@@ -54,6 +58,7 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.io.IOUtils;
@@ -316,7 +321,18 @@ public class GraphQLConfigManager {
     }
 
     void initialize() {
-        myProject.getMessageBus().connect().subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+        final MessageBusConnection connection = myProject.getMessageBus().connect();
+        connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+            @Override
+            public void rootsChanged(ModuleRootEvent event) {
+                // rebuild configuration when the project structure is changed, e.g. excludes
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    // let queued updates complete
+                    buildConfigurationModel(null);
+                });
+            }
+        });
+        connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
             @Override
             public void after(@NotNull List<? extends VFileEvent> events) {
                 final List<VirtualFile> changedConfigFiles = Lists.newArrayList();
@@ -382,6 +398,9 @@ public class GraphQLConfigManager {
      * @param changedConfigurationFiles config files that were changed in the Virtual File System and should be explicitly processed given that they haven't been indexed yet
      */
     public void buildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles) {
+
+        // make sure we have an updated index that is used to locate config files
+        DumbService.getInstance(myProject).completeJustSubmittedTasks();
 
         final Map<VirtualFile, GraphQLConfigData> newConfigPathToConfigurations = Maps.newConcurrentMap();
 
