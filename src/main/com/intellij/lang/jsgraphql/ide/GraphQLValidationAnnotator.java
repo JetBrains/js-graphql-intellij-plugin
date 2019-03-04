@@ -45,7 +45,6 @@ import graphql.AssertException;
 import graphql.GraphQLError;
 import graphql.language.Document;
 import graphql.language.SourceLocation;
-import graphql.parser.Parser;
 import graphql.schema.*;
 import graphql.schema.idl.errors.SchemaProblem;
 import graphql.schema.validation.InvalidSchemaException;
@@ -212,18 +211,19 @@ public class GraphQLValidationAnnotator implements Annotator {
                     final Document document = GraphQLUtil.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile), lineDelta, firsteLineColumDelta);
                     userData = new Validator().validateDocument(schema.getSchema(), document);
                 } else {
-
-                    final List<String> errorMessages = Lists.newArrayList();
                     final String currentFileName = GraphQLPsiSearchHelper.getFileName(containingFile);
                     final Ref<SourceLocation> firstSchemaError = new Ref<>();
                     for (GraphQLError error : schema.getErrors()) {
-                        errorMessages.add(error.getMessage() + formatLocation(error.getLocations()));
                         SourceLocation firstSourceLocation = error.getLocations().stream().findFirst().orElse(null);
                         if (firstSourceLocation != null && firstSchemaError.isNull()) {
                             firstSchemaError.set(firstSourceLocation);
                         }
                         if (firstSourceLocation != null && currentFileName.equals(firstSourceLocation.getSourceName())) {
-                            final int positionToOffset = getOffsetFromSourceLocation(editor, firstSourceLocation);
+                            int positionToOffset = getOffsetFromSourceLocation(editor, firstSourceLocation);
+                            if(containingFile.getContext() != null) {
+                                // injected file, so adjust the position
+                                positionToOffset = positionToOffset - containingFile.getContext().getTextOffset();
+                            }
                             PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset);
                             if (errorPsiElement != null) {
                                 PsiElement nextLeaf = PsiTreeUtil.nextVisibleLeaf(errorPsiElement);

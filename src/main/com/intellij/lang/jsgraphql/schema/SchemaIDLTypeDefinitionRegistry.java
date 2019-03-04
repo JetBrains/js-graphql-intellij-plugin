@@ -112,6 +112,23 @@ public class SchemaIDLTypeDefinitionRegistry {
                 final GraphQLTypeSystemDefinition[] typeSystemDefinitions = PsiTreeUtil.getChildrenOfType(psiFile, GraphQLTypeSystemDefinition.class);
                 if (typeSystemDefinitions != null) {
 
+                    // for injected GraphQL we need to take the location of the injection into account, so count the lines plus first-line column delta
+                    int injectedFirstLineColumnDelta = 0;
+                    int injectionLineDelta = 0;
+                    if (psiFile.getContext() != null) {
+                        int endOffset = psiFile.getContext().getTextOffset();
+                        final PsiFile fileWithInjection = psiFile.getContext().getContainingFile();
+                        final CharSequence injectionBuffer = fileWithInjection.getViewProvider().getContents();
+                        for (int i = 0; i < endOffset; i++) {
+                            if (injectionBuffer.charAt(i) == '\n') {
+                                injectedFirstLineColumnDelta = 0;
+                                injectionLineDelta++;
+                            } else {
+                                injectedFirstLineColumnDelta++;
+                            }
+                        }
+                    }
+
                     // count out the new lines to be able to map from text offset in the buffer to line number (1-based
 
                     final String fileBuffer = psiFile.getText();
@@ -174,7 +191,7 @@ public class SchemaIDLTypeDefinitionRegistry {
                             });
 
                             // adjust line numbers in source locations if there's a line delta compared to the original file buffer
-                            final Document document = GraphQLUtil.parseDocument(typeSystemDefinitionBuffer.toString(), GraphQLPsiSearchHelper.getFileName(psiFile), lineDelta.get(), 0);
+                            final Document document = GraphQLUtil.parseDocument(typeSystemDefinitionBuffer.toString(), GraphQLPsiSearchHelper.getFileName(psiFile), lineDelta.get() + injectionLineDelta, injectedFirstLineColumnDelta);
 
                             typeRegistry.merge(new SchemaParser().buildRegistry(document));
                         } catch (GraphQLException | CancellationException e) {
