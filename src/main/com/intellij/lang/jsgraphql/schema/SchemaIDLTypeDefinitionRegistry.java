@@ -270,7 +270,7 @@ public class SchemaIDLTypeDefinitionRegistry {
 
             // Types defined using GraphQL Endpoint Language
             VirtualFile virtualFile = scopedElement.getContainingFile().getOriginalFile().getVirtualFile();
-            if (virtualFile instanceof VirtualFileWindow) {
+            while (virtualFile instanceof VirtualFileWindow) {
                 virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
             }
             if (graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, null) != null) {

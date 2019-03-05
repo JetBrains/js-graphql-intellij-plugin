@@ -332,7 +332,7 @@ public class GraphQLPsiSearchHelper {
     public static String getFileName(PsiFile psiFile) {
         VirtualFile virtualFile = getVirtualFile(psiFile);
         if (virtualFile != null) {
-            if (virtualFile instanceof VirtualFileWindow) {
+            while (virtualFile instanceof VirtualFileWindow) {
                 // injected virtual files
                 virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
             }
