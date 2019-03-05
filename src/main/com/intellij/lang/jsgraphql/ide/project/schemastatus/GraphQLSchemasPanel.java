@@ -207,7 +207,7 @@ public class GraphQLSchemasPanel extends JPanel {
             @Override
             public void actionPerformed(AnActionEvent e) {
                 myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeListener.TOPIC).onGraphQLSchemaChanged();
-                GraphQLConfigManager.getService(myProject).buildConfigurationModel(null);
+                GraphQLConfigManager.getService(myProject).buildConfigurationModel(null, null);
             }
         });
         leftActionGroup.add(new ContextHelpAction(""));

@@ -39,8 +39,8 @@ public class GraphQLSchemasRootNode extends SimpleNode {
     @Override
     public SimpleNode[] getChildren() {
         try {
-            if (DumbService.getInstance(myProject).isDumb()) {
-                // empty the tree view during indexing
+            if (DumbService.getInstance(myProject).isDumb() || !configManager.isInitialized()) {
+                // empty the tree view during indexing and until the config has been initialized
                 return SimpleNode.NO_CHILDREN;
             }
             final List<SimpleNode> children = Lists.newArrayList();

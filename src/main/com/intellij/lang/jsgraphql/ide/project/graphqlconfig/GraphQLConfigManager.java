@@ -34,23 +34,29 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import com.intellij.psi.*;
@@ -169,7 +175,7 @@ public class GraphQLConfigManager {
         } else {
             directory = virtualFile.isDirectory() ? virtualFile : virtualFile.getParent();
         }
-        while (directory != null) {
+        while (directory != null && directory.isValid()) {
             for (String fileName : GRAPHQLCONFIG_FILE_NAMES) {
                 VirtualFile configFile = directory.findChild(fileName);
                 if (configFile != null) {
@@ -219,7 +225,7 @@ public class GraphQLConfigManager {
     /**
      * Gets the currently discovered configurations
      *
-     * @see #buildConfigurationModel(List)
+     * @see #buildConfigurationModel(List, Runnable)
      */
     public Map<VirtualFile, GraphQLConfigData> getConfigurationsByPath() {
         return configPathToConfigurations;
@@ -232,7 +238,12 @@ public class GraphQLConfigManager {
     public GraphQLFile getConfigurationEntryFile(GraphQLResolvedConfigData configData) {
         return configDataToEntryFiles.computeIfAbsent(configData, cd -> {
             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
-            return (GraphQLFile) psiFileFactory.createFileFromText("graphql-config:" + UUID.randomUUID().toString(), GraphQLLanguage.INSTANCE, "");
+            return ApplicationManager.getApplication().runReadAction(new Computable<GraphQLFile>() {
+                @Override
+                public GraphQLFile compute() {
+                    return (GraphQLFile) psiFileFactory.createFileFromText("graphql-config:" + UUID.randomUUID().toString(), GraphQLLanguage.INSTANCE, "");
+                }
+            });
         });
     }
 
@@ -241,7 +252,7 @@ public class GraphQLConfigManager {
             return null;
         }
         GraphQLNamedScope schemaScope = getSchemaScope(virtualFile);
-        if(schemaScope != null) {
+        if (schemaScope != null) {
             JSGraphQLSchemaEndpointConfiguration configuration = scopeToSchemaEndpointLanguageConfiguration.computeIfAbsent(schemaScope, scope -> {
                 if (schemaScope.getConfigData() != null) {
                     final Map<String, Object> extensions = schemaScope.getConfigData().extensions;
@@ -259,8 +270,8 @@ public class GraphQLConfigManager {
                 // using sentinel value to avoid re-computing values which happens on nulls
                 return JSGraphQLSchemaEndpointConfiguration.NONE;
             });
-            if(configuration != JSGraphQLSchemaEndpointConfiguration.NONE) {
-                if(configBasedir != null) {
+            if (configuration != JSGraphQLSchemaEndpointConfiguration.NONE) {
+                if (configBasedir != null) {
                     configBasedir.set(schemaScope.getConfigBaseDir());
                 }
                 return configuration;
@@ -328,7 +339,7 @@ public class GraphQLConfigManager {
                 // rebuild configuration when the project structure is changed, e.g. excludes
                 ApplicationManager.getApplication().invokeLater(() -> {
                     // let queued updates complete
-                    buildConfigurationModel(null);
+                    buildConfigurationModel(null, null);
                 });
             }
         });
@@ -336,31 +347,52 @@ public class GraphQLConfigManager {
             @Override
             public void after(@NotNull List<? extends VFileEvent> events) {
                 final List<VirtualFile> changedConfigFiles = Lists.newArrayList();
-                boolean configurationsRenamed = false;
+                boolean configurationsChanged = false;
                 for (VFileEvent event : events) {
                     final VirtualFile file = event.getFile();
                     if (file != null) {
-                        if (event instanceof VFilePropertyChangeEvent) {
-                            // renames
-                            final VFilePropertyChangeEvent propertyChangeEvent = (VFilePropertyChangeEvent) event;
-                            if (VirtualFile.PROP_NAME.equals(propertyChangeEvent.getPropertyName())) {
-                                if (propertyChangeEvent.getNewValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(propertyChangeEvent.getNewValue())) {
-                                    configurationsRenamed = true;
-                                } else if (propertyChangeEvent.getOldValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(propertyChangeEvent.getOldValue())) {
-                                    configurationsRenamed = true;
+                        if (file.isDirectory()) {
+                            // directory was changed, check whether a config file is affected
+                            if (!configurationsChanged) {
+                                for (VirtualFile configPathDir : configPathToConfigurations.keySet()) {
+                                    if (!configPathDir.isValid() || file.getPath().startsWith(configPathDir.getPath())) {
+                                        configurationsChanged = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (!configurationsChanged && event instanceof VFileCreateEvent) {
+                                // new directory created, e.g. by switching branch
+                                for (String configFileName : GRAPHQLCONFIG_FILE_NAMES_SET) {
+                                    if (file.findFileByRelativePath(configFileName) != null) {
+                                        configurationsChanged = true;
+                                        break;
+                                    }
                                 }
                             }
                         } else {
-                            // other changes
-                            final String name = file.getName();
-                            if (GRAPHQLCONFIG_FILE_NAMES_SET.contains(name)) {
-                                changedConfigFiles.add(file);
+                            if (event instanceof VFilePropertyChangeEvent) {
+                                // renames
+                                final VFilePropertyChangeEvent propertyChangeEvent = (VFilePropertyChangeEvent) event;
+                                if (VirtualFile.PROP_NAME.equals(propertyChangeEvent.getPropertyName())) {
+                                    if (propertyChangeEvent.getNewValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(propertyChangeEvent.getNewValue())) {
+                                        configurationsChanged = true;
+                                    } else if (propertyChangeEvent.getOldValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(propertyChangeEvent.getOldValue())) {
+                                        configurationsChanged = true;
+                                    }
+                                }
+                            } else {
+                                // other changes (create/deletions)
+                                final String name = file.getName();
+                                if (GRAPHQLCONFIG_FILE_NAMES_SET.contains(name)) {
+                                    changedConfigFiles.add(file);
+                                }
                             }
                         }
                     }
                 }
-                if (!changedConfigFiles.isEmpty() || configurationsRenamed) {
-                    buildConfigurationModel(changedConfigFiles);
+                if (!changedConfigFiles.isEmpty() || configurationsChanged) {
+                    buildConfigurationModel(changedConfigFiles, null);
                 }
             }
         });
@@ -379,9 +411,7 @@ public class GraphQLConfigManager {
             }
         });
 
-        buildConfigurationModel(null);
-
-        introspectEndpoints();
+        buildConfigurationModel(null, this::introspectEndpoints);
 
     }
 
@@ -396,18 +426,45 @@ public class GraphQLConfigManager {
      * Builds a model of the .graphqlconfig files in the project
      *
      * @param changedConfigurationFiles config files that were changed in the Virtual File System and should be explicitly processed given that they haven't been indexed yet
+     * @param onCompleted optional runnable to execute when the config model has been built
      */
-    public void buildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles) {
+    public void buildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles, @Nullable Runnable onCompleted) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            final Task.Backgroundable task = new Task.Backgroundable(myProject, "GraphQL Configuration Scan", false) {
+                @Override
+                public void run(@NotNull ProgressIndicator indicator) {
+                    indicator.setIndeterminate(true);
+                    DumbService.getInstance(myProject).runReadActionInSmartMode(() -> {
+                        doBuildConfigurationModel(changedConfigurationFiles);
+                        if (onCompleted != null) {
+                            onCompleted.run();
+                        }
+                    });
+                }
+            };
+            ProgressManager.getInstance().run(task);
+        }, ModalityState.NON_MODAL);
+    }
 
-        // make sure we have an updated index that is used to locate config files
-        DumbService.getInstance(myProject).completeJustSubmittedTasks();
+    /**
+     * Builds a model of the .graphqlconfig files in the project
+     *
+     * @param changedConfigurationFiles config files that were changed in the Virtual File System and should be explicitly processed given that they haven't been indexed yet
+     */
+    private void doBuildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles) {
 
         final Map<VirtualFile, GraphQLConfigData> newConfigPathToConfigurations = Maps.newConcurrentMap();
 
         // JSON format
-        final Collection<VirtualFile> jsonFiles = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, projectScope));
+        final Collection<VirtualFile> jsonFiles = ApplicationManager.getApplication().runReadAction(
+                (Computable<Collection<VirtualFile>>) () -> Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, projectScope))
+        );
         if (changedConfigurationFiles != null) {
             for (VirtualFile configurationFile : changedConfigurationFiles) {
+                if (!projectScope.contains(configurationFile)) {
+                    // skip excluded files
+                    continue;
+                }
                 if (configurationFile.getFileType().equals(JsonFileType.INSTANCE)) {
                     if (configurationFile.isValid()) { // don't process deletions
                         jsonFiles.add(configurationFile);
@@ -430,10 +487,19 @@ public class GraphQLConfigManager {
         }
 
         // YAML format
-        final Collection<VirtualFile> yamlFiles = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, projectScope));
-        yamlFiles.addAll(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YAML, projectScope));
+        final Collection<VirtualFile> yamlFiles = ApplicationManager.getApplication().runReadAction(
+                (Computable<Collection<VirtualFile>>) () -> {
+                    final LinkedHashSet<VirtualFile> files = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, projectScope));
+                    files.addAll(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YAML, projectScope));
+                    return files;
+                }
+        );
         if (changedConfigurationFiles != null) {
             for (VirtualFile configurationFile : changedConfigurationFiles) {
+                if (!projectScope.contains(configurationFile)) {
+                    // skip excluded files
+                    continue;
+                }
                 if (configurationFile.getName().equals(GRAPHQLCONFIG_YML) || configurationFile.getName().equals(GRAPHQLCONFIG_YAML)) {
                     if (configurationFile.isValid()) { // don't process deletions
                         yamlFiles.add(configurationFile);
@@ -491,10 +557,10 @@ public class GraphQLConfigManager {
         this.configDataToPackageset.clear();
         this.scopeToSchemaEndpointLanguageConfiguration.clear();
 
+        initialized = true;
+
         myProject.getMessageBus().syncPublisher(TOPIC).onGraphQLConfigurationFileChanged();
         myProject.getMessageBus().syncPublisher(JSGraphQLConfigurationListener.TOPIC).onEndpointsChanged();
-
-        initialized = true;
 
         EditorNotifications.getInstance(myProject).updateAllNotifications();
     }
@@ -578,7 +644,7 @@ public class GraphQLConfigManager {
                             // the virtual file is an entry file for the specific config base (either the root schema or one of the nested graphql-config project schemas)
                             configBaseDir = entry.getKey();
                             found = true;
-                        } else if(configData.projects != null) {
+                        } else if (configData.projects != null) {
                             for (Map.Entry<String, GraphQLResolvedConfigData> projectEntry : configData.projects.entrySet()) {
                                 entryFile = getConfigurationEntryFile(projectEntry.getValue());
                                 if (entryFile.getVirtualFile().equals(virtualFile)) {

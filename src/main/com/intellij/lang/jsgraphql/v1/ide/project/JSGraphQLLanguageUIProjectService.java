@@ -236,14 +236,16 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             if (endpoints == null) {
                 continue;
             }
-            for (FileEditor editor : fileEditorManager.getEditors(file)) {
-                if (editor instanceof TextEditor) {
-                    final JSGraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
-                    if (endpointsModel != null) {
-                        endpointsModel.reload(endpoints);
+            ApplicationManager.getApplication().runReadAction(() -> {
+                for (FileEditor editor : fileEditorManager.getEditors(file)) {
+                    if (editor instanceof TextEditor) {
+                        final JSGraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
+                        if (endpointsModel != null) {
+                            endpointsModel.reload(endpoints);
+                        }
                     }
                 }
-            }
+            });
         }
     }
 

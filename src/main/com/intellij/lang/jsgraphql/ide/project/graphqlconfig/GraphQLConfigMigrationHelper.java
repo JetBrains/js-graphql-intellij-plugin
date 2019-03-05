@@ -22,9 +22,14 @@ import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -36,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
@@ -50,21 +56,31 @@ public final class GraphQLConfigMigrationHelper {
 
     public static void checkGraphQLConfigJsonMigrations(Project project) {
 
-        final GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
-        for (VirtualFile virtualFile : FilenameIndex.getVirtualFilesByName(project, "graphql.config.json", scope)) {
-            if (!virtualFile.isDirectory() && virtualFile.isInLocalFileSystem()) {
-                boolean migrate = true;
-                for (String fileName : GraphQLConfigManager.GRAPHQLCONFIG_FILE_NAMES) {
-                    if (virtualFile.getParent().findChild(fileName) != null) {
-                        migrate = false;
-                        break;
+        final Task.Backgroundable task = new Task.Backgroundable(project, "Verifying GraphQL Configuration", false) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                indicator.setIndeterminate(true);
+                final GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
+                final Collection<VirtualFile> legacyConfigFiles = ApplicationManager.getApplication().runReadAction(
+                        (Computable<Collection<VirtualFile>>) () -> FilenameIndex.getVirtualFilesByName(project, "graphql.config.json", scope)
+                );
+                for (VirtualFile virtualFile : legacyConfigFiles) {
+                    if (!virtualFile.isDirectory() && virtualFile.isInLocalFileSystem()) {
+                        boolean migrate = true;
+                        for (String fileName : GraphQLConfigManager.GRAPHQLCONFIG_FILE_NAMES) {
+                            if (virtualFile.getParent().findChild(fileName) != null) {
+                                migrate = false;
+                                break;
+                            }
+                        }
+                        if (migrate) {
+                            createMigrationNotification(project, virtualFile);
+                        }
                     }
                 }
-                if (migrate) {
-                    createMigrationNotification(project, virtualFile);
-                }
             }
-        }
+        };
+        ProgressManager.getInstance().run(task);
     }
 
     static void createMigrationNotification(Project project, VirtualFile configurationFile) {
