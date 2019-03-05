@@ -121,7 +121,7 @@ public class JSGraphQLNamedPsiElement extends JSGraphQLPsiElement implements Psi
 
     @NotNull
     private GlobalSearchScope createFileTypeRestrictedUsageScope(Project project) {
-        FileType[] fileTypes = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
+        FileType[] fileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(new FileType[GraphQLFindUsagesUtil.getService().getIncludedFileTypes().size()]);
         return GlobalSearchScope.getScopeRestrictedByFileTypes(ProjectScope.getAllScope(project), fileTypes);
     }
 

@@ -1,9 +1,6 @@
 <idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
 
-        <!-- Startup -->
-        <postStartupActivity implementation="com.intellij.lang.jsgraphql.endpoint.ide.startup.javascript.GraphQLJavaScriptStartupActivity" />
-
         <!-- Formatting -->
         <lang.formatter language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder" />
         <lang.formatter language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder" /><!-- Own reg required -->
@@ -18,6 +15,10 @@
 
     <extensions defaultExtensionNs="JavaScript">
         <JsonSchema.ProviderFactory implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.javascript.GraphQLConfigJsonSchemaProvider"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">
+        <graphQLFindUsagesFileTypeContributor implementation="com.intellij.lang.jsgraphql.ide.references.javascript.JavaScriptGraphQLFindUsagesFileTypeContributor" />
     </extensions>
 
 </idea-plugin>

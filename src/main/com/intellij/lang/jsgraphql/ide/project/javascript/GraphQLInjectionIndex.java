@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.project.javascript;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLLanguageInjectionUtil;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiRecursiveElementVisitor;
@@ -20,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Indexes files which contain GraphQL Injection to enable discovery of type definitions written using injected Schema IDL.
@@ -32,6 +34,7 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
     private static final Map<String, Void> INJECTED_KEY = Collections.singletonMap(DATA_KEY, null);
 
     private final DataIndexer<String, Void, FileContent> myDataIndexer;
+    private final Set<FileType> includedFileTypes;
 
     public GraphQLInjectionIndex() {
         myDataIndexer = inputData -> {
@@ -47,6 +50,7 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
             });
             return environment.isNull() ? Collections.emptyMap() : INJECTED_KEY;
         };
+        includedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
     }
 
     @NotNull
@@ -70,7 +74,7 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
     @NotNull
     @Override
     public FileBasedIndex.InputFilter getInputFilter() {
-        return file -> file.getFileType() != GraphQLFileType.INSTANCE && GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.contains(file.getFileType());
+        return file -> file.getFileType() != GraphQLFileType.INSTANCE && includedFileTypes.contains(file.getFileType());
     }
 
     @Override

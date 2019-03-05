@@ -105,7 +105,7 @@ public class GraphQLScopeEditorNotificationProvider extends Provider {
     }
 
     private boolean isGraphQLRelatedFile(VirtualFile file) {
-        return GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.contains(file.getFileType());
+        return GraphQLFindUsagesUtil.getService().getIncludedFileTypes().contains(file.getFileType());
     }
 
     protected class SchemaConfigEditorNotificationPanel extends EditorNotificationPanel {

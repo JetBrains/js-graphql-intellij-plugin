@@ -35,7 +35,7 @@ import java.util.Map;
  */
 public class JSGraphQLPsiSearchHelper {
 
-    private static final FileType[] FILE_TYPES = GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.toArray(new FileType[GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.size()]);
+    private static final FileType[] FILE_TYPES = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(new FileType[GraphQLFindUsagesUtil.getService().getIncludedFileTypes().size()]);
 
     private final Project myProject;
     private final Map<String, JSGraphQLNamedTypePsiElement> fragmentDefinitionsByName = Maps.newConcurrentMap();

@@ -36,7 +36,7 @@ public class JSGraphQLProjectAndLibrariesScope extends ProjectAndLibrariesScope 
         }
 
         // we're only interested in usages in GraphQL, JavaScript and TypeScript files
-        return GraphQLFindUsagesUtil.INCLUDED_FILE_TYPES.contains(file.getFileType()) && super.contains(file);
+        return GraphQLFindUsagesUtil.getService().getIncludedFileTypes().contains(file.getFileType()) && super.contains(file);
 
     }
 
