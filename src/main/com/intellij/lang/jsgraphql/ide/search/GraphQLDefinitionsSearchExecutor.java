@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.search;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -34,6 +35,7 @@ public class GraphQLDefinitionsSearchExecutor implements QueryExecutor<PsiElemen
             final GraphQLInterfaceTypeDefinition interfaceTypeDefinition = PsiTreeUtil.getParentOfType(sourceElement, GraphQLInterfaceTypeDefinition.class);
             if (interfaceTypeDefinition != null) {
                 GraphQLPsiSearchHelper.getService(sourceElement.getProject()).processElementsWithWord(sourceElement, sourceElement.getText(), namedElement -> {
+                    ProgressManager.checkCanceled();
                     if (namedElement instanceof GraphQLIdentifier && PsiTreeUtil.getParentOfType(namedElement, GraphQLImplementsInterfaces.class) != null) {
                         final GraphQLTypeSystemDefinition typeSystemDefinition = PsiTreeUtil.getParentOfType(namedElement, GraphQLObjectTypeDefinition.class, GraphQLObjectTypeExtensionDefinition.class);
                         if (typeSystemDefinition instanceof GraphQLObjectTypeDefinition) {

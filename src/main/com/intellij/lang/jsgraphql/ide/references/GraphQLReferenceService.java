@@ -20,6 +20,7 @@ import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
@@ -39,12 +40,31 @@ import java.util.function.Predicate;
 public class GraphQLReferenceService {
 
     private final Map<String, PsiReference> logicalTypeNameToReference = Maps.newConcurrentMap();
+    private final GraphQLPsiSearchHelper psiSearchHelper;
+
+    /**
+     * Sentinel reference for use in concurrent maps which don't allow nulls
+     */
+    private final static PsiReference NULL_REFERENCE = new PsiReferenceBase<PsiElement>(null, true) {
+        @Nullable
+        @Override
+        public PsiElement resolve() {
+            return null;
+        }
+
+        @NotNull
+        @Override
+        public Object[] getVariants() {
+            return PsiReference.EMPTY_ARRAY;
+        }
+    };
 
     public static GraphQLReferenceService getService(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLReferenceService.class);
     }
 
     public GraphQLReferenceService(@NotNull final Project project) {
+        psiSearchHelper = GraphQLPsiSearchHelper.getService(project);
         project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
             @Override
             public void beforePsiChanged(boolean isPhysical) {
@@ -285,18 +305,24 @@ public class GraphQLReferenceService {
 
     PsiReference resolveTypeName(GraphQLReferencePsiElement element) {
         final String logicalTypeName = GraphQLPsiSearchHelper.getFileName(element.getContainingFile()) + ":" + element.getName();
-        return logicalTypeNameToReference.computeIfAbsent(logicalTypeName, logicalTypeNameKey -> {
-            PsiReference psiReference = resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLTypeNameDefinition);
+        // intentionally not using computeIfAbsent here to avoid locking during long-running write actions
+        // it's better to compute multiple times in certain rare cases than blocking
+        // NOTE: concurrent hash map doesn't allow nulls, so using the NULL_REFERENCE sentinel value to avoid re-computation of unresolvable references
+        PsiReference psiReference = logicalTypeNameToReference.get(logicalTypeName);
+        if (psiReference == null) {
+            psiReference = resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLTypeNameDefinition);
             if (psiReference == null) {
-                // Endpoint language
+                // fallback to resolving to Endpoint language elements
                 final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
                 final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(element.getName(), element);
                 if (namedType != null) {
-                    return createReference(element, namedType.nameElement);
+                    psiReference = createReference(element, namedType.nameElement);
                 }
             }
-            return psiReference;
-        });
+            // use sentinel to avoid nulls
+            logicalTypeNameToReference.putIfAbsent(logicalTypeName, psiReference != null ? psiReference : NULL_REFERENCE);
+        }
+        return psiReference != NULL_REFERENCE ? psiReference : null;
     }
 
 
@@ -363,7 +389,8 @@ public class GraphQLReferenceService {
         final String name = element.getName();
         Ref<PsiReference> reference = new Ref<>();
         if (name != null) {
-            GraphQLPsiSearchHelper.getService(element.getProject()).processElementsWithWord(element, name, psiNamedElement -> {
+            psiSearchHelper.processElementsWithWord(element, name, psiNamedElement -> {
+                ProgressManager.checkCanceled();
                 if (isMatch.test(psiNamedElement)) {
                     reference.set(new PsiReferenceBase<PsiNamedElement>(element, TextRange.from(0, element.getTextLength())) {
                         @Nullable
