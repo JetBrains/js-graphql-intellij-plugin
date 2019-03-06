@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -151,6 +152,10 @@ public class GraphQLConfigManager {
         } finally {
             readLock.unlock();
         }
+    }
+
+    public Lock getReadLock() {
+        return readLock;
     }
 
     /**
@@ -459,7 +464,9 @@ public class GraphQLConfigManager {
     }
 
     /**
-     * Builds a model of the .graphqlconfig files in the project
+     * Builds a model of the .graphqlconfig files in the project using an asynchronous background task.
+     *
+     * Can safely be invoked from the AWT UI thread.
      *
      * @param changedConfigurationFiles config files that were changed in the Virtual File System and should be explicitly processed given that they haven't been indexed yet
      * @param onCompleted optional runnable to execute when the config model has been built
@@ -483,11 +490,15 @@ public class GraphQLConfigManager {
     }
 
     /**
-     * Builds a model of the .graphqlconfig files in the project
+     * Builds a model of the .graphqlconfig files in the project.
+     *
+     * NOTE!: This is a potentially long-running process that is executed synchronously, so it should NOT be invoked outside unit tests.
+     * Use the asynchronous {@link GraphQLConfigManager#buildConfigurationModel(List, Runnable)} for all other use cases.
      *
      * @param changedConfigurationFiles config files that were changed in the Virtual File System and should be explicitly processed given that they haven't been indexed yet
      */
-    private void doBuildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles) {
+    @VisibleForTesting
+    public void doBuildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles) {
 
         final Map<VirtualFile, GraphQLConfigData> newConfigPathToConfigurations = Maps.newConcurrentMap();
 

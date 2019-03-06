@@ -9,12 +9,15 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 
 /**
@@ -22,15 +25,22 @@ import java.util.List;
  */
 public class JSGraphQLSchemaGraphQLConfigCodeInsightTest extends LightCodeInsightFixtureTestCase {
 
+    private PsiFile[] files;
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        ApplicationManager.getApplication().saveSettings();
-        myFixture.configureByFiles("schema-one/.graphqlconfig");
-        myFixture.configureByFiles("schema-one/schema-one.graphql");
-        myFixture.configureByFiles("schema-two/.graphqlconfig");
-        myFixture.configureByFiles("schema-two/schema-two.graphql");
-        myFixture.configureByFiles("schema-two/schema-excluded-two.graphql");
+        files = myFixture.configureByFiles(
+                "schema-one/.graphqlconfig",
+                "schema-one/schema-one.graphql",
+                "schema-two/.graphqlconfig",
+                "schema-two/schema-two.graphql",
+                "schema-two/schema-excluded-two.graphql",
+                "schema-one/query-one.graphql",
+                "schema-two/query-two.graphql"
+        );
+        // use the synchronous method of building the configuration for the unit test
+        GraphQLConfigManager.getService(getProject()).doBuildConfigurationModel(null);
     }
 
     @Override
@@ -41,21 +51,27 @@ public class JSGraphQLSchemaGraphQLConfigCodeInsightTest extends LightCodeInsigh
     // ---- completion ----
 
     @Test
-    public void testCompletionSchemaOne() {
+    public void testCompletionSchemas() {
         doTestCompletion("schema-one/query-one.graphql", Lists.newArrayList("fieldOne"));
-    }
-
-    @Test
-    public void testCompletionSchemaTwo() {
         doTestCompletion("schema-two/query-two.graphql", Lists.newArrayList("fieldTwo"));
     }
 
-
     private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {
-        myFixture.configureByFiles(sourceFile);
-        myFixture.complete(CompletionType.BASIC, 1);
-        final List<String> completions = myFixture.getLookupElementStrings();
-        assertEquals("Wrong completions", expectedCompletions, completions);
+        for (PsiFile file : this.files) {
+            if (file.getVirtualFile().getPath().endsWith(sourceFile)) {
+                myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
+                break;
+            }
+        }
+        final Lock readLock = GraphQLConfigManager.getService(getProject()).getReadLock();
+        try {
+            readLock.lock();
+            myFixture.complete(CompletionType.BASIC, 1);
+            final List<String> completions = myFixture.getLookupElementStrings();
+            assertEquals("Wrong completions", expectedCompletions, completions);
+        } finally {
+            readLock.unlock();
+        }
         ApplicationManager.getApplication().runWriteAction(() -> {
             myFixture.getEditor().getDocument().setText(""); // blank out the file so it doesn't affect other tests
             PsiDocumentManager.getInstance(myFixture.getProject()).commitAllDocuments();
