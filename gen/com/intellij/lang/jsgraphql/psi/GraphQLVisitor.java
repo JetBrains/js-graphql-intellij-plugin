@@ -5,7 +5,9 @@ import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
+import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import com.intellij.psi.PsiNamedElement;
 
 public class GraphQLVisitor extends PsiElementVisitor {
@@ -48,6 +50,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitDirectiveDefinition(@NotNull GraphQLDirectiveDefinition o) {
     visitTypeSystemDefinition(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitDirectiveLocation(@NotNull GraphQLDirectiveLocation o) {

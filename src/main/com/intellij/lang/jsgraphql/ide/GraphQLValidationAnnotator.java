@@ -22,6 +22,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
@@ -220,7 +221,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                         }
                         if (firstSourceLocation != null && currentFileName.equals(firstSourceLocation.getSourceName())) {
                             int positionToOffset = getOffsetFromSourceLocation(editor, firstSourceLocation);
-                            if(containingFile.getContext() != null) {
+                            if (containingFile.getContext() != null) {
                                 // injected file, so adjust the position
                                 positionToOffset = positionToOffset - containingFile.getContext().getTextOffset();
                             }
@@ -413,6 +414,19 @@ public class GraphQLValidationAnnotator implements Annotator {
     private Optional<Annotation> createErrorAnnotation(@NotNull AnnotationHolder annotationHolder, PsiElement errorPsiElement, String message) {
         if (GraphQLRelayModernAnnotationFilter.getService(errorPsiElement.getProject()).errorIsIgnored(errorPsiElement)) {
             return Optional.empty();
+        }
+        // error locations from graphql-java will give us the beginning of a type definition including the description
+        final GraphQLQuotedString quotedString = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLQuotedString.class);
+        if (quotedString != null) {
+            // check if this is the description
+            final GraphQLDescriptionAware descriptionAware = PsiTreeUtil.getParentOfType(quotedString, GraphQLDescriptionAware.class);
+            if (descriptionAware != null && descriptionAware.getDescription() == quotedString) {
+                final GraphQLIdentifier describedName = PsiTreeUtil.findChildOfType(descriptionAware, GraphQLIdentifier.class);
+                if (describedName != null) {
+                    // highlight the identifier (e.g. type name) that has the error instead
+                    errorPsiElement = describedName;
+                }
+            }
         }
         return Optional.of(annotationHolder.createErrorAnnotation(errorPsiElement, message));
     }

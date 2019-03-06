@@ -5,9 +5,10 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
+import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
 
-public interface GraphQLEnumTypeDefinition extends GraphQLTypeDefinition, GraphQLDirectivesAware, GraphQLTypeNameDefinitionOwnerPsiElement {
+public interface GraphQLEnumTypeDefinition extends GraphQLTypeDefinition, GraphQLDirectivesAware, GraphQLDescriptionAware, GraphQLTypeNameDefinitionOwnerPsiElement {
 
   @Nullable
   GraphQLEnumValueDefinitions getEnumValueDefinitions();

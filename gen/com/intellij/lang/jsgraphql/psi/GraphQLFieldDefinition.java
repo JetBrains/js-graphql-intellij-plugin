@@ -5,8 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
+import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 
-public interface GraphQLFieldDefinition extends GraphQLDirectivesAware, GraphQLNamedElement {
+public interface GraphQLFieldDefinition extends GraphQLDirectivesAware, GraphQLDescriptionAware, GraphQLNamedElement {
 
   @Nullable
   GraphQLArgumentsDefinition getArgumentsDefinition();
