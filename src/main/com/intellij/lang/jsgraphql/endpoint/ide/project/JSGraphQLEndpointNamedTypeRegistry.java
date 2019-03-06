@@ -72,12 +72,12 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     }
 
     private PsiFile getEndpointEntryPsiFile(PsiElement scopedPsiElement) {
-        final GraphQLNamedScope schemaScope = graphQLConfigManager.getSchemaScope(scopedPsiElement.getContainingFile().getVirtualFile());
+        final GraphQLNamedScope schemaScope = getSchemaScope(scopedPsiElement);
         if(schemaScope == null) {
             return null;
         }
         return endpointEntryPsiFile.computeIfAbsent(schemaScope, p -> {
-            final VirtualFile endpointEntryFile = configurationProvider.getEndpointEntryFile(scopedPsiElement.getContainingFile());
+            final VirtualFile endpointEntryFile = configurationProvider.getEndpointEntryFile(scopedPsiElement.getContainingFile().getOriginalFile());
             if (endpointEntryFile != null) {
                 return PsiManager.getInstance(project).findFile(endpointEntryFile);
             }
@@ -95,11 +95,20 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     }
 
     public TypeDefinitionRegistryWithErrors getTypesAsRegistry(PsiElement scopedElement) {
-        final GraphQLNamedScope schemaScope = graphQLConfigManager.getSchemaScope(scopedElement.getContainingFile().getVirtualFile());
+        final GraphQLNamedScope schemaScope = getSchemaScope(scopedElement);
         if (schemaScope == null) {
             return new TypeDefinitionRegistryWithErrors(new TypeDefinitionRegistry(), Collections.emptyList());
         }
         return projectToRegistry.computeIfAbsent(schemaScope, p -> doGetTypesAsRegistry(scopedElement));
+    }
+
+    private GraphQLNamedScope getSchemaScope(PsiElement scopedElement) {
+        VirtualFile virtualFile = scopedElement.getContainingFile().getVirtualFile();
+        if (virtualFile == null) {
+            // in memory PsiFile such as the completion PSI
+            virtualFile = scopedElement.getContainingFile().getOriginalFile().getVirtualFile();
+        }
+        return virtualFile != null ? graphQLConfigManager.getSchemaScope(virtualFile) : null;
     }
 
     private TypeDefinitionRegistryWithErrors doGetTypesAsRegistry(PsiElement scopedElement) {
@@ -366,7 +375,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     }
 
     private Map<String, JSGraphQLNamedType> computeNamedTypes(PsiElement scopedPsiElement) {
-        final GraphQLNamedScope schemaScope = graphQLConfigManager.getSchemaScope(scopedPsiElement.getContainingFile().getVirtualFile());
+        final GraphQLNamedScope schemaScope = getSchemaScope(scopedPsiElement);
         if (schemaScope == null) {
             return Collections.emptyMap();
         }
