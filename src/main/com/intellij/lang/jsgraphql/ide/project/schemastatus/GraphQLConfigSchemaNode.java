@@ -126,7 +126,8 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
             children.add(new GraphQLConfigProjectsNode(this));
         }
         if (endpoints != null) {
-            children.add(new GraphQLSchemaEndpointsListNode(this, endpoints));
+            final String projectKey = this.configData instanceof GraphQLConfigData ? null : this.configData.name;
+            children.add(new GraphQLSchemaEndpointsListNode(this, projectKey, endpoints));
         }
         return children.toArray(SimpleNode.NO_CHILDREN);
     }

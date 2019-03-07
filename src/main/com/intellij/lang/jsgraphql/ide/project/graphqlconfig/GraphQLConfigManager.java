@@ -69,6 +69,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
@@ -84,6 +85,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
+
+import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.GRAPHQL_SCRATCH_PROJECT_KEY;
 
 /**
  * Manages integration with graphql-config files. See https://github.com/prismagraphql/graphql-config
@@ -734,7 +737,12 @@ public class GraphQLConfigManager {
                         final VirtualFile effectiveConfigBaseDir = configBaseDir;
                         // check projects first
                         if (configData.projects != null) {
+                            final String projectKey = virtualFileWithPath.get().getUserData(GRAPHQL_SCRATCH_PROJECT_KEY);
                             for (Map.Entry<String, GraphQLResolvedConfigData> entry : configData.projects.entrySet()) {
+                                if(projectKey != null && !projectKey.equals(entry.getKey())) {
+                                    // associated with another project so skip ahead
+                                    continue;
+                                }
                                 final GraphQLResolvedConfigData projectConfigData = entry.getValue();
                                 final GraphQLConfigPackageSet packageSet = configDataToPackageset.computeIfAbsent(projectConfigData, dataKey -> {
                                     final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
@@ -793,10 +801,15 @@ public class GraphQLConfigManager {
             PsiElement element = psiFile.getFirstChild();
             while (element != null) {
                 if (element instanceof PsiComment) {
-                    final String commentText = element.getText();
+                    final String commentText = element.getText().trim();
                     if (commentText.contains(GRAPHQLCONFIG_COMMENT)) {
-                        final String configFileName = StringUtil.substringAfter(commentText, GRAPHQLCONFIG_COMMENT);
+                        String configFileName = StringUtil.substringAfter(commentText, GRAPHQLCONFIG_COMMENT);
                         if (configFileName != null) {
+                            if(configFileName.contains("!")) {
+                                final String projectKey = StringUtils.substringAfterLast(configFileName, "!");
+                                scratchVirtualFile.putUserData(GRAPHQL_SCRATCH_PROJECT_KEY, projectKey);
+                                configFileName = StringUtils.substringBeforeLast(configFileName, "!");
+                            }
                             final VirtualFile configVirtualFile = scratchVirtualFile.getFileSystem().findFileByPath(configFileName.trim());
                             if (configVirtualFile != null) {
                                 if (configVirtualFile.isDirectory()) {

@@ -31,6 +31,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.Optional;
 
 import static com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager.GRAPHQLCONFIG_COMMENT;
 import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService.JS_GRAPH_QL_ENDPOINTS_MODEL;
@@ -40,10 +41,12 @@ import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProj
  */
 public class GraphQLSchemaEndpointsListNode extends SimpleNode {
 
+    private final String projectKey;
     private final List<GraphQLConfigEndpoint> endpoints;
 
-    public GraphQLSchemaEndpointsListNode(SimpleNode parent, List<GraphQLConfigEndpoint> endpoints) {
+    public GraphQLSchemaEndpointsListNode(SimpleNode parent, String projectKey, List<GraphQLConfigEndpoint> endpoints) {
         super(parent);
+        this.projectKey = projectKey;
         this.endpoints = endpoints;
         myName = "Endpoints";
         setIcon(AllIcons.Nodes.WebFolder);
@@ -54,7 +57,7 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
         if (endpoints == null) {
             return new SimpleNode[]{new DefaultEndpointNode(myProject)};
         } else {
-            return endpoints.stream().map(endpoint -> new ConfigurableEndpointNode(this, endpoint)).toArray(SimpleNode[]::new);
+            return endpoints.stream().map(endpoint -> new ConfigurableEndpointNode(this, projectKey, endpoint)).toArray(SimpleNode[]::new);
         }
     }
 
@@ -65,10 +68,12 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
 
     private static class ConfigurableEndpointNode extends SimpleNode {
 
-        private GraphQLConfigEndpoint endpoint;
+        private final String projectKey;
+        private final GraphQLConfigEndpoint endpoint;
 
-        public ConfigurableEndpointNode(SimpleNode parent, GraphQLConfigEndpoint endpoint) {
+        public ConfigurableEndpointNode(SimpleNode parent, String projectKey, GraphQLConfigEndpoint endpoint) {
             super(parent);
+            this.projectKey = projectKey;
             this.endpoint = endpoint;
             myName = endpoint.name;
             getTemplatePresentation().setTooltip("Endpoints allow you to perform GraphQL introspection, queries and mutations");
@@ -89,7 +94,8 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
                         if (introspect.equals(selectedValue)) {
                             GraphQLIntrospectionHelper.getService(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
                         } else if (createScratch.equals(selectedValue)) {
-                            final String text = "# " + GRAPHQLCONFIG_COMMENT + endpoint.configPackageSet.getConfigBaseDir().getPresentableUrl() + "\n\nquery ScratchQuery {\n\n}";
+                            final String configBaseDir = endpoint.configPackageSet.getConfigBaseDir().getPresentableUrl();
+                            final String text = "# " + GRAPHQLCONFIG_COMMENT + configBaseDir + "!" + Optional.ofNullable(projectKey).orElse("") + "\n\nquery ScratchQuery {\n\n}";
                             final VirtualFile scratchFile = ScratchRootType.getInstance().createScratchFile(myProject, "scratch.graphql", GraphQLLanguage.INSTANCE, text);
                             if (scratchFile != null) {
                                 FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(scratchFile, true);

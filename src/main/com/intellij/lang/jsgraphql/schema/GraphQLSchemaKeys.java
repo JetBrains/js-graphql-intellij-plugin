@@ -26,4 +26,10 @@ public class GraphQLSchemaKeys {
      * Set on the PSI File that is the SDL version of a JSON Introspection file
      */
     public static final Key<Boolean> IS_GRAPHQL_INTROSPECTION_SDL = Key.create("JSGraphQL.IsIntrospectionSDL");
+
+    /**
+     * Set on a scratch Virtual File to indicate which project it's been associated with
+     */
+    public static final Key<String> GRAPHQL_SCRATCH_PROJECT_KEY = Key.create("JSGraphQL.ScratchProjectKey");
+
 }

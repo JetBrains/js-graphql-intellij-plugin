@@ -41,7 +41,7 @@ public class GraphQLDefaultSchemaNode extends SimpleNode {
         final List<SimpleNode> children = Lists.newArrayList(
                 new GraphQLSchemaContentNode(this, schemaWithErrors),
                 new GraphQLSchemaErrorsListNode(this, schemaWithErrors),
-                new GraphQLSchemaEndpointsListNode(this, null)
+                new GraphQLSchemaEndpointsListNode(this, null, null)
         );
         return children.toArray(SimpleNode.NO_CHILDREN);
     }
