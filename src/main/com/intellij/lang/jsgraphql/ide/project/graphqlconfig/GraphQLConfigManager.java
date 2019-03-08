@@ -798,6 +798,7 @@ public class GraphQLConfigManager {
 
         // but look for a GRAPHQLCONFIG_COMMENT to override it
         if (psiFile != null) {
+            scratchVirtualFile.putUserData(GRAPHQL_SCRATCH_PROJECT_KEY, null);
             PsiElement element = psiFile.getFirstChild();
             while (element != null) {
                 if (element instanceof PsiComment) {
