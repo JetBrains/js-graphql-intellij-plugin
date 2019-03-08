@@ -739,7 +739,7 @@ public class GraphQLConfigManager {
                         if (configData.projects != null) {
                             final String projectKey = virtualFileWithPath.get().getUserData(GRAPHQL_SCRATCH_PROJECT_KEY);
                             for (Map.Entry<String, GraphQLResolvedConfigData> entry : configData.projects.entrySet()) {
-                                if(projectKey != null && !projectKey.equals(entry.getKey())) {
+                                if(projectKey != null && !projectKey.trim().isEmpty() && !projectKey.equals(entry.getKey())) {
                                     // associated with another project so skip ahead
                                     continue;
                                 }
