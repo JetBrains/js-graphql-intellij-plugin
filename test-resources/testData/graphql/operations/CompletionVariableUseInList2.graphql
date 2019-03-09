@@ -1,0 +1,5 @@
+query Three($variable: [MyEnum]!, $second: [MyEnum]!, $ignored: Boolean!) {
+    human(id: "") {
+        fieldWithEnumInListArg(enumInListArg: $<caret>)
+    }
+}

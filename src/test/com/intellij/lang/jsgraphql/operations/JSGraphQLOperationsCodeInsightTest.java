@@ -157,6 +157,24 @@ public class JSGraphQLOperationsCodeInsightTest extends LightCodeInsightFixtureT
     }
 
 
+    // -- variables --
+
+    @Test
+    public void testCompletionVariableUse() {
+        doTestCompletion("CompletionVariableUse.graphql", Lists.newArrayList("$second", "$variable"));
+    }
+
+    @Test
+    public void testCompletionVariableUseInList() {
+        doTestCompletion("CompletionVariableUseInList.graphql", Lists.newArrayList("$second", "$variable"));
+    }
+
+    @Test
+    public void testCompletionVariableUseInList2() {
+        doTestCompletion("CompletionVariableUseInList2.graphql", Lists.newArrayList("$second", "$variable"));
+    }
+
+
     // -- directives --
 
     @Test
@@ -175,7 +193,7 @@ public class JSGraphQLOperationsCodeInsightTest extends LightCodeInsightFixtureT
     private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {
         myFixture.configureByFiles(sourceFile);
         myFixture.complete(CompletionType.BASIC, 1);
-        final List<String> completions = myFixture.getLookupElementStrings();
+        final List<String> completions = myFixture.getLookupElementStrings(); // NOTE!: will be null of only one matching completion
         assertEquals("Wrong completions", expectedCompletions, completions);
         ApplicationManager.getApplication().runWriteAction(() -> {
             myFixture.getEditor().getDocument().setText(""); // blank out the file so it doesn't affect other tests

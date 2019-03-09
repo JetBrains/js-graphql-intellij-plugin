@@ -37,6 +37,7 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.patterns.StandardPatterns;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Consumer;
 import com.intellij.util.ProcessingContext;
@@ -45,6 +46,7 @@ import graphql.language.*;
 import graphql.schema.GraphQLType;
 import graphql.schema.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
+import graphql.validation.rules.VariablesTypesMatcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -140,6 +142,9 @@ public class GraphQLCompletionContributor extends CompletionContributor {
 
         // completion of operation types schema definition
         completionOfOperationKeywordsInSchemaDefinition();
+
+        // completion of variable name referenced as an argument value
+        completeVariableName();
 
     }
 
@@ -964,6 +969,73 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         };
         extend(CompletionType.BASIC, TOP_LEVEL_KEYWORD_PATTERN, provider);
     }
+
+    private void completeVariableName() {
+        CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
+            @Override
+            protected void addCompletions(@NotNull final CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
+                final PsiElement completionElement = parameters.getPosition();
+                final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypeScopeProvider.class);
+
+                if (typeScopeProvider != null) {
+                    final GraphQLType typeScope = typeScopeProvider.getTypeScope();
+
+                    if (typeScope != null) {
+                        final GraphQLTypedOperationDefinition query = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypedOperationDefinition.class);
+
+                        if (query != null && query.getVariableDefinitions() != null) {
+                            final VariablesTypesMatcher variablesTypesMatcher = new VariablesTypesMatcher();
+                            final GraphQLSchema schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(completionElement.getProject()).getSchema(parameters.getOriginalFile());
+
+                            for (GraphQLVariableDefinition variableDefinition : query.getVariableDefinitions().getVariableDefinitions()) {
+                                if (variableDefinition.getType() != null) {
+
+                                    final GraphQLIdentifier variableTypeIdentifier = PsiTreeUtil.findChildOfType(variableDefinition.getType(), GraphQLIdentifier.class);
+                                    if (variableTypeIdentifier != null) {
+                                        GraphQLType declaredType = schema.getType(variableTypeIdentifier.getText());
+                                        if (declaredType != null) {
+                                            if (variableTypeIdentifier.getNextSibling() instanceof LeafPsiElement && "!".equals(variableTypeIdentifier.getNextSibling().getText())) {
+                                                declaredType = new GraphQLNonNull(declaredType);
+                                            }
+                                            PsiElement parent = variableTypeIdentifier.getParent();
+                                            while (parent != null && !(parent instanceof GraphQLVariableDefinition)) {
+                                                if (parent instanceof GraphQLListType) {
+                                                    declaredType = new GraphQLList(declaredType);
+                                                } else if (parent instanceof GraphQLNonNullType) {
+                                                    declaredType = new GraphQLNonNull(declaredType);
+                                                }
+                                                parent = parent.getParent();
+                                            }
+
+                                            final String variableNameCompletion = variableDefinition.getVariable().getText();
+                                            if (variablesTypesMatcher.doesVariableTypesMatch(declaredType, null, typeScope)) {
+                                                result.addElement(LookupElementBuilder.create(variableNameCompletion).withTypeText(declaredType.toString()));
+                                            } else if (completionElement.getParent() instanceof GraphQLVariable && completionElement.getParent().getParent() instanceof GraphQLArrayValue) {
+                                                // variable is used inside a list literal, e.g. [$myVar], so need to unwrap the type scope
+                                                GraphQLType typeScopeWithoutList = typeScope;
+                                                while (typeScopeWithoutList instanceof GraphQLModifiedType) {
+                                                    boolean done = typeScopeWithoutList instanceof GraphQLList;
+                                                    typeScopeWithoutList = ((GraphQLModifiedType) typeScopeWithoutList).getWrappedType();
+                                                    if (done) {
+                                                        break;
+                                                    }
+                                                }
+                                                if (variablesTypesMatcher.doesVariableTypesMatch(declaredType, null, typeScopeWithoutList)) {
+                                                    result.addElement(LookupElementBuilder.create(variableNameCompletion).withTypeText(declaredType.toString()));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.VARIABLE_NAME).inside(GraphQLArgument.class), provider);
+    }
+
 
     @Override
     public boolean invokeAutoPopup(@NotNull PsiElement position, char typeChar) {
