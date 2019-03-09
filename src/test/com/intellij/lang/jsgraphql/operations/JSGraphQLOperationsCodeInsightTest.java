@@ -99,7 +99,7 @@ public class JSGraphQLOperationsCodeInsightTest extends LightCodeInsightFixtureT
 
     @Test
     public void testCompletionFieldExtension() {
-        doTestCompletion("CompletionFieldExtension.graphql", Lists.newArrayList("enumField", "extended", "fieldWithArg", "fieldWithInput", "id", "name", "search", "...", "__typename"));
+        doTestCompletion("CompletionFieldExtension.graphql", Lists.newArrayList("enumField", "extended", "fieldWithArg", "fieldWithEnumArg", "fieldWithEnumInListArg", "fieldWithInput", "id", "name", "search", "...", "__typename"));
     }
 
 
@@ -141,6 +141,19 @@ public class JSGraphQLOperationsCodeInsightTest extends LightCodeInsightFixtureT
     @Test
     public void testCompletionInputNestedField2() {
         doTestCompletion("CompletionInputNestedField2.graphql", Lists.newArrayList("val"));
+    }
+
+
+    // -- enums --
+
+    @Test
+    public void testCompletionEnumArgument() {
+        doTestCompletion("CompletionEnumArgument.graphql", Lists.newArrayList("Value1", "Value2"));
+    }
+
+    @Test
+    public void testCompletionEnumInListArgument() {
+        doTestCompletion("CompletionEnumInListArgument.graphql", Lists.newArrayList("Value1", "Value2"));
     }
 
 

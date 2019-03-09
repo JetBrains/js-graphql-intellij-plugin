@@ -21,6 +21,8 @@ type Human implements Node {
     fieldWithArg(height: Units, another: String): Float
     fieldWithInput(input: MyInput): String
     search(text: String!): [SearchResult]
+    fieldWithEnumArg(enumArg: MyEnum): String
+    fieldWithEnumInListArg(enumInListArg: [MyEnum]): String
 }
 
 type Ship implements Node {

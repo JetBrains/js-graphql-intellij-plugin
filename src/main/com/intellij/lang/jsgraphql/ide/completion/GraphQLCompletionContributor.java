@@ -18,10 +18,10 @@ import com.intellij.codeInsight.lookup.LookupElementWeigher;
 import com.intellij.lang.jsgraphql.ide.documentation.GraphQLDocumentationMarkdownRenderer;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
-import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLEnumValueDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLObjectValueImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
@@ -42,16 +42,12 @@ import com.intellij.util.Consumer;
 import com.intellij.util.ProcessingContext;
 import graphql.introspection.Introspection;
 import graphql.language.*;
-import graphql.schema.*;
 import graphql.schema.GraphQLType;
+import graphql.schema.*;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.intellij.lang.jsgraphql.GraphQLConstants.__DIRECTIVE_LOCATION_ENUM;
@@ -117,6 +113,8 @@ public class GraphQLCompletionContributor extends CompletionContributor {
 
         // completion of constants (true, false, null, enums) and '{}', '[]'
         completeConstantsOrListOrInputObject();
+
+        completeEnumNamesInList();
 
         // completion of "implements" in type or type extension
         completeImpementsKeyword();
@@ -396,6 +394,31 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.NAME).afterLeaf(":").withSuperParent(2, GraphQLEnumValue.class), provider);
     }
 
+    private void completeEnumNamesInList() {
+        CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
+            @Override
+            protected void addCompletions(@NotNull final CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
+
+                final PsiElement completionElement = parameters.getPosition();
+                final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypeScopeProvider.class);
+                if (typeScopeProvider != null) {
+                    final GraphQLType typeScope = typeScopeProvider.getTypeScope();
+                    if (typeScope != null) {
+                        final GraphQLUnmodifiedType rawType = GraphQLUtil.getUnmodifiedType(typeScope);
+                        if (rawType instanceof GraphQLEnumType) {
+                            ((GraphQLEnumType) rawType).getValues().forEach(value -> {
+                                result.addElement(LookupElementBuilder.create(value.getName()).withTypeText(typeScope.getName()));
+                            });
+                        }
+                    }
+                }
+
+            }
+        };
+        // NOTE: the PSI produces enum values when none of the keywords match, e.g. 'tru' is considered a possible enum value
+        extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.NAME).withSuperParent(2, psiElement(GraphQLEnumValue.class).withParent(GraphQLArrayValue.class)), provider);
+    }
+
     private void completeVariableDefinitionTypeName() {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
@@ -502,7 +525,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 final GraphQLSchema schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(completionElement.getProject()).getSchema(completionElement);
                 if (schema != null) {
                     for (graphql.schema.GraphQLDirective graphQLDirective : schema.getDirectives()) {
-                        if(!addedDirectiveNames.add(graphQLDirective.getName())) {
+                        if (!addedDirectiveNames.add(graphQLDirective.getName())) {
                             continue;
                         }
                         if (!isValidDirectiveLocation(graphQLDirective.validLocations(), parameters.getPosition())) {
@@ -957,7 +980,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
             return false;
         }
         for (Introspection.DirectiveLocation directiveLocation : validLocations) {
-            if(isValidDirectiveLocation(directivesAware, directiveLocation)) {
+            if (isValidDirectiveLocation(directivesAware, directiveLocation)) {
                 return true;
             }
         }
