@@ -233,6 +233,11 @@ public class GraphQLReferenceService {
                     final GraphQLType fieldType = GraphQLUtil.getUnmodifiedType(typeScope);
                     graphQLPsiSearchHelper.processElementsWithWord(element, name, psiNamedElement -> {
                         if (psiNamedElement.getParent() instanceof com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition) {
+                            final GraphQLFieldDefinition fieldDefinition = (GraphQLFieldDefinition) psiNamedElement.getParent();
+                            if (!Objects.equals(fieldDefinition.getName(), name)) {
+                                // field name doesn't match, keep looking
+                                return true;
+                            }
                             boolean isTypeMatch = false;
                             final GraphQLTypeDefinition typeDefinition = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLTypeDefinition.class);
                             if (typeDefinition != null) {
