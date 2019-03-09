@@ -27,7 +27,7 @@ public class GraphQLProjectSettingsForm {
     // introspection
     private JPanel introspectionPanel;
     private ExpandableTextField introspectionQueryTextField;
-    private JCheckBox automaticallyUpdateGraphQLFilesCheckBox;
+    private JCheckBox enableIntrospectionDefaultValues;
     JPanel relayModernPanel;
     JCheckBox enableRelayModernCheckBox;
 
@@ -37,8 +37,6 @@ public class GraphQLProjectSettingsForm {
 
         this.mySettings = mySettings;
         introspectionPanel.setBorder(IdeBorderFactory.createTitledBorder("GraphQL Introspection"));
-        automaticallyUpdateGraphQLFilesCheckBox.setVisible(false);
-
         relayModernPanel.setBorder(IdeBorderFactory.createTitledBorder("GraphQL Frameworks"));
 
         return this;
@@ -63,10 +61,12 @@ public class GraphQLProjectSettingsForm {
     void apply() throws ConfigurationException {
         mySettings.setIntrospectionQuery(introspectionQueryTextField.getText());
         mySettings.setEnableRelayModernFrameworkSupport(enableRelayModernCheckBox.isSelected());
+        mySettings.setEnableIntrospectionDefaultValues(enableIntrospectionDefaultValues.isSelected());
     }
 
     void reset() {
         introspectionQueryTextField.setText(mySettings.getIntrospectionQuery());
+        enableIntrospectionDefaultValues.setSelected(mySettings.isEnableIntrospectionDefaultValues());
         enableRelayModernCheckBox.setSelected(mySettings.isEnableRelayModernFrameworkSupport());
     }
 
@@ -75,6 +75,9 @@ public class GraphQLProjectSettingsForm {
             return true;
         }
         if (mySettings.isEnableRelayModernFrameworkSupport() != enableRelayModernCheckBox.isSelected()) {
+            return true;
+        }
+        if (mySettings.isEnableIntrospectionDefaultValues() != enableIntrospectionDefaultValues.isSelected()) {
             return true;
         }
         return false;
@@ -110,10 +113,11 @@ public class GraphQLProjectSettingsForm {
         final JLabel label1 = new JLabel();
         label1.setText("Introspection Query (Leave blank for default)");
         introspectionPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        automaticallyUpdateGraphQLFilesCheckBox = new JCheckBox();
-        automaticallyUpdateGraphQLFilesCheckBox.setEnabled(false);
-        automaticallyUpdateGraphQLFilesCheckBox.setText("Automatically update GraphQL files printed from introspection Json files when modified !TODO!");
-        introspectionPanel.add(automaticallyUpdateGraphQLFilesCheckBox, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        enableIntrospectionDefaultValues = new JCheckBox();
+        enableIntrospectionDefaultValues.setEnabled(true);
+        enableIntrospectionDefaultValues.setText("Include  argument default values in schema introspection");
+        enableIntrospectionDefaultValues.setToolTipText("Skipping default values improves interoperability with endpoints that don't follow the GraphQL specification for default values. The schema can still be used, but information about the default values will be unavailable.");
+        introspectionPanel.add(enableIntrospectionDefaultValues, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         relayModernPanel = new JPanel();
         relayModernPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         rootPanel.add(relayModernPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
@@ -130,4 +134,5 @@ public class GraphQLProjectSettingsForm {
     public JComponent $$$getRootComponent$$$() {
         return rootPanel;
     }
+
 }

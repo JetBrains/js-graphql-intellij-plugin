@@ -38,6 +38,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
+import graphql.GraphQLException;
 import graphql.introspection.IntrospectionQuery;
 import graphql.language.Description;
 import graphql.language.Document;
@@ -110,9 +111,13 @@ public class GraphQLIntrospectionHelper {
 
         try {
 
-            String query = GraphQLSettings.getSettings(project).getIntrospectionQuery();
+            final GraphQLSettings graphQLSettings = GraphQLSettings.getSettings(project);
+            String query = graphQLSettings.getIntrospectionQuery();
             if (StringUtils.isBlank(query)) {
                 query = IntrospectionQuery.INTROSPECTION_QUERY;
+            }
+            if (!graphQLSettings.isEnableIntrospectionDefaultValues()) {
+                query = query.replace("defaultValue", "");
             }
 
             final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
@@ -128,15 +133,39 @@ public class GraphQLIntrospectionHelper {
                     indicator.setIndeterminate(true);
                     try {
                         httpClient.executeMethod(method);
-                        final String responseJson = Optional.ofNullable(method.getResponseBodyAsString()).orElse("");
+                        final String responseJson = sanitizeIntrospectionJson(Optional.ofNullable(method.getResponseBodyAsString()).orElse(""));
                         ApplicationManager.getApplication().invokeLater(() -> {
                             try {
                                 JSGraphQLLanguageUIProjectService.getService(project).showQueryResult(responseJson, JSGraphQLLanguageUIProjectService.QueryResultDisplay.ON_ERRORS_ONLY);
                                 IntrospectionOutputFormat format = schemaPath.endsWith(".json") ? IntrospectionOutputFormat.JSON : IntrospectionOutputFormat.SDL;
-                                final String schemaText = format == IntrospectionOutputFormat.SDL ? printIntrospectionJsonAsGraphQL(responseJson) : responseJson;
+                                final String schemaAsSDL = printIntrospectionJsonAsGraphQL(responseJson); // always try to print the schema to validate it since that will be done in schema discovery of the JSON anyway
+                                final String schemaText = format == IntrospectionOutputFormat.SDL ? schemaAsSDL : responseJson;
                                 createOrUpdateIntrospectionOutputFile(schemaText, format, introspectionSourceFile, schemaPath, project);
                             } catch (Exception e) {
-                                Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Introspection Error", e.getMessage(), NotificationType.WARNING).addAction(retry), project);
+                                final Notification notification = new Notification(
+                                        "GraphQL",
+                                        "GraphQL Introspection Error",
+                                        "A valid schema could not be built using the introspection result: " + e.getMessage(),
+                                        NotificationType.WARNING
+                                ).addAction(retry).setImportant(true);
+                                if (e instanceof GraphQLException) {
+                                    final String content = "A valid schema could not be built using the introspection result. The endpoint may not follow the GraphQL Specification. The error was:\n\""+e.getMessage()+ "\".";
+                                    notification.setContent(content);
+                                    if (GraphQLSettings.getSettings(project).isEnableIntrospectionDefaultValues()) {
+                                        // suggest retrying without the default values as they're a common cause of spec compliance issues
+                                        final NotificationAction retryWithoutDefaultValues = new NotificationAction("Retry (skip default values from now on)") {
+                                            @Override
+                                            public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+                                                GraphQLSettings.getSettings(project).setEnableIntrospectionDefaultValues(false);
+                                                ApplicationManager.getApplication().saveSettings();
+                                                notification.expire();
+                                                performIntrospectionQueryAndUpdateSchemaPathFile(project, endpoint, schemaPath, introspectionSourceFile);
+                                            }
+                                        };
+                                        notification.addAction(retryWithoutDefaultValues);
+                                    }
+                                }
+                                Notifications.Bus.notify(notification, project);
                             }
                         });
                     } catch (IOException e) {
@@ -149,6 +178,16 @@ public class GraphQLIntrospectionHelper {
         } catch (UnsupportedEncodingException | IllegalStateException | IllegalArgumentException e) {
             Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", url + ": " + e.getMessage(), NotificationType.ERROR).addAction(retry), project);
         }
+    }
+
+    /**
+     * Ensures that the JSON response falls within the GraphQL specification character range such that it can be expressed as valid GraphQL SDL in the editor
+     * @param introspectionJson the JSON to sanitize
+     * @return a sanitized version where the character ranges are within those allowed by the GraphQL Language Specification
+     */
+    private String sanitizeIntrospectionJson(String introspectionJson) {
+        // Strip out emojis (e.g. the one in the GitHub schema) since they're outside the allowed range
+        return introspectionJson.replaceAll("[\ud83c\udf00-\ud83d\ude4f]|[\ud83d\ude80-\ud83d\udeff]", "");
     }
 
     @SuppressWarnings("unchecked")
@@ -226,8 +265,13 @@ public class GraphQLIntrospectionHelper {
                     outputFile = dirs.directory.getVirtualFile().createChildData(introspectionSourceFile, dirs.newName);
                 }
                 outputFile.putUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON, true);
-                final FileEditor fileEditor = FileEditorManager.getInstance(project).openFile(outputFile, true, true)[0];
-                setEditorTextAndFormatLines(header + schemaText, fileEditor);
+                final FileEditor[] fileEditors = FileEditorManager.getInstance(project).openFile(outputFile, true, true);
+                if (fileEditors.length > 0) {
+                    final FileEditor fileEditor = fileEditors[0];
+                    setEditorTextAndFormatLines(header + schemaText, fileEditor);
+                } else {
+                    Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Error", "Unable to open an editor for '" + outputFile.getPath() + "'", NotificationType.ERROR));
+                }
             } catch (IOException ioe) {
                 Notifications.Bus.notify(new Notification("GraphQL", "GraphQL IO Error", "Unable to create file '" + outputFileName + "' in directory '" + introspectionSourceFile.getParent().getPath() + "': " + ioe.getMessage(), NotificationType.ERROR));
             }
