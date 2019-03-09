@@ -45,7 +45,7 @@
             </constraints>
             <properties>
               <enabled value="true"/>
-              <text value="Include  argument default values in schema introspection"/>
+              <text value="Include argument default values in schema introspection"/>
               <toolTipText value="Skipping default values improves interoperability with endpoints that don't follow the GraphQL specification for default values. The schema can still be used, but information about the default values will be unavailable."/>
             </properties>
           </component>
