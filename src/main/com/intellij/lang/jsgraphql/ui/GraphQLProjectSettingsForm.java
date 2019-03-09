@@ -115,7 +115,7 @@ public class GraphQLProjectSettingsForm {
         introspectionPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         enableIntrospectionDefaultValues = new JCheckBox();
         enableIntrospectionDefaultValues.setEnabled(true);
-        enableIntrospectionDefaultValues.setText("Include  argument default values in schema introspection");
+        enableIntrospectionDefaultValues.setText("Include argument default values in schema introspection");
         enableIntrospectionDefaultValues.setToolTipText("Skipping default values improves interoperability with endpoints that don't follow the GraphQL specification for default values. The schema can still be used, but information about the default values will be unavailable.");
         introspectionPanel.add(enableIntrospectionDefaultValues, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         relayModernPanel = new JPanel();
