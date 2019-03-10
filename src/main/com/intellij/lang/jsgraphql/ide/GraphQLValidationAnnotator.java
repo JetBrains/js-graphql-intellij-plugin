@@ -23,6 +23,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
@@ -310,6 +311,21 @@ public class GraphQLValidationAnnotator implements Annotator {
                                                     // error due to template placeholder replacement, so we can ignore it for '___' replacement variables
                                                     if (validationErrorType == ValidationErrorType.UndefinedVariable) {
                                                         continue;
+                                                    }
+                                                }
+                                                if(validationErrorType == ValidationErrorType.SubSelectionRequired) {
+                                                    // apollo client 2.5 doesn't require sub selections for client fields
+                                                    final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLDirectivesAware.class);
+                                                    if (directivesAware != null) {
+                                                        boolean ignoreError = false;
+                                                        for (GraphQLDirective directive : directivesAware.getDirectives()) {
+                                                            if ("client".equals(directive.getName())) {
+                                                                ignoreError = true;
+                                                            }
+                                                        }
+                                                        if (ignoreError) {
+                                                            continue;
+                                                        }
                                                     }
                                                 }
                                                 final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
