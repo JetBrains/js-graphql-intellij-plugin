@@ -76,7 +76,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
                     final Project project = element.getProject();
                     final VirtualFile introspectionSourceFile = element.getContainingFile().getVirtualFile();
 
-                    GraphQLIntrospectionHelper.getService(project).performIntrospectionQueryAndUpdateSchemaPathFile(project, endpoint, schemaPath, introspectionSourceFile);
+                    GraphQLIntrospectionHelper.getService(project).performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile);
 
                 }, GutterIconRenderer.Alignment.CENTER);
             }
