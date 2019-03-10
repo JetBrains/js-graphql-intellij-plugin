@@ -143,6 +143,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                     }
                 } else if (parent instanceof GraphQLTypeName) {
                     message = "Unknown type \"" + psiElement.getText() + "\"";
+                    fixes.addAll(GraphQLMissingTypeFix.getApplicableFixes((GraphQLIdentifier) psiElement));
                 }
                 if (message != null) {
                     final Optional<Annotation> annotation = createErrorAnnotation(annotationHolder, psiElement, message);
