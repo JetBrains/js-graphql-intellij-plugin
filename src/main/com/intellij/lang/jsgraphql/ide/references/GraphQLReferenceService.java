@@ -27,6 +27,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.AnyPsiChangeListener;
 import com.intellij.psi.impl.PsiManagerImpl;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +46,7 @@ public class GraphQLReferenceService {
     /**
      * Sentinel reference for use in concurrent maps which don't allow nulls
      */
-    private final static PsiReference NULL_REFERENCE = new PsiReferenceBase<PsiElement>(null, true) {
+    private final static PsiReference NULL_REFERENCE = new PsiReferenceBase<PsiElement>(new LeafPsiElement(GraphQLElementTypes.TYPE, "type"), true) {
         @Nullable
         @Override
         public PsiElement resolve() {
