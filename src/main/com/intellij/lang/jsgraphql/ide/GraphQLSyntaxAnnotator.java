@@ -15,6 +15,7 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,10 +86,27 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             }
 
             @Override
+            public void visitInputValueDefinition(@NotNull GraphQLInputValueDefinition element) {
+
+                // first reset the bold font display from keywords such as input/type being used as field name
+                Annotation annotation = holder.createInfoAnnotation(element.getNameIdentifier(), null);
+                annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
+
+                final GraphQLArgumentsDefinition arguments = PsiTreeUtil.getParentOfType(element, GraphQLArgumentsDefinition.class);
+                if (arguments != null) {
+                    // element is an argument so color as such
+                    applyTextAttributes(element.getNameIdentifier(), ARGUMENT);
+                } else {
+                    // otherwise consider the "fields" in an in put
+                    applyTextAttributes(element.getNameIdentifier(), FIELD_NAME);
+                }
+            }
+
+            @Override
             public void visitArgument(@NotNull GraphQLArgument argument) {
 
                 // first reset the bold font display from keywords such as input/type being used as argument name
-                Annotation annotation = holder.createInfoAnnotation(element, null);
+                Annotation annotation = holder.createInfoAnnotation(argument.getNameIdentifier(), null);
                 annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
 
                 // then apply argument font style
