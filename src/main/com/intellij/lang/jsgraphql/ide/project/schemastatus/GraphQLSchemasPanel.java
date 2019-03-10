@@ -94,7 +94,7 @@ public class GraphQLSchemasPanel extends JPanel {
         final Runnable treeUpdater = () -> myBuilder.updateFromRoot(true);
         final Runnable queueTreeUpdater = () -> {
             treeUpdaterAlarm.cancelRequest(treeUpdater);
-            treeUpdaterAlarm.addRequest(treeUpdater, 300); // delay similar to inspection delay
+            treeUpdaterAlarm.addRequest(treeUpdater, 500);
         };
 
         // update tree on schema or config changes
