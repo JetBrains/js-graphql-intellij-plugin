@@ -10,7 +10,7 @@
 <idea-plugin>
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>2.0.0-alpha-7</version>
+  <version>2.0.0-alpha-8</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -27,6 +27,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>2.0.0-alpha-8: Added intention to add missing schema types in SDL. Fixed error marker positions in gql tags. Moved configuration scan to background tasks. Added support for projects in scratch files. Added completion of variable names. Added completion of enums in lists. Fixed arguments shown as keywords in syntax highlighter. Improved introspection including support for custom scalars.</li>
       <li>2.0.0-alpha-7: Added re-run introspection action to improve remote schema workflow. Added scalars to introspection SDL output. Added __typename completion. Various fixes.</li>
       <li>2.0.0-alpha-6: Added migration of graphql.config.json files. Support schemas based on JSON introspection files. Added automatic introspection notification. Updated Relay Modern directives. Upgraded to graphql-java 11.0.</li>
       <li>2.0.0-alpha-5: Simplified schema discovery to only support graphql-config and introduced new schema discovery UI</li>
@@ -258,7 +259,7 @@
     <vetoRenameCondition implementation="JSGraphQLRenameVetoCondition" />
     -->
 
-    
+
     <!-- Schema documentation -->
     <lang.documentationProvider language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.documentation.GraphQLDocumentationProvider" />
     -->
