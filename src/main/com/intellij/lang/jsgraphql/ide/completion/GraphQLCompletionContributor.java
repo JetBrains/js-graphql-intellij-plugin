@@ -710,7 +710,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
 
-                final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
+                final PsiElement completionElement = parameters.getPosition();
 
                 // the type condition that the 'on' keyword belongs to
                 GraphQLTypeCondition typeCondition = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypeCondition.class);
