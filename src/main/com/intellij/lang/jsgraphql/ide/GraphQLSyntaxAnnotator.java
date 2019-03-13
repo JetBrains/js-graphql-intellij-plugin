@@ -147,6 +147,16 @@ public class GraphQLSyntaxAnnotator implements Annotator {
                 }
             }
 
+            @Override
+            public void visitObjectField(@NotNull GraphQLObjectField objectField) {
+                // first reset the bold font display from keywords such as input/type being used as object field name
+                Annotation annotation = holder.createInfoAnnotation(objectField.getNameIdentifier(), null);
+                annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
+
+                // then apply argument font style
+                applyTextAttributes(objectField.getNameIdentifier(), ARGUMENT);
+            }
+
             private void applyTextAttributes(@Nullable PsiElement element, @NotNull TextAttributesKey attributes) {
                 if (element == null) return;
                 Annotation annotation = holder.createInfoAnnotation(element, null);
