@@ -14,6 +14,7 @@ import com.google.common.collect.Sets;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.json.psi.JsonStringLiteral;
+import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
@@ -159,7 +160,7 @@ public class GraphQLPsiSearchHelper {
     }
 
     /**
-     * Finds all fragment definition across files in the project
+     * Finds all fragment definitions inside the scope of the specified element
      *
      * @param scopedElement the starting point for finding known fragment definitions
      * @return a list of known fragment definitions, or an empty list if the index is not yet ready
@@ -167,6 +168,11 @@ public class GraphQLPsiSearchHelper {
     public List<GraphQLFragmentDefinition> getKnownFragmentDefinitions(PsiElement scopedElement) {
         try {
             final List<GraphQLFragmentDefinition> fragmentDefinitions = Lists.newArrayList();
+            GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
+            if (GraphQLFileType.isGraphQLScratchFile(myProject, getVirtualFile(scopedElement.getContainingFile()))) {
+                // include the fragments in the currently edited scratch file
+                schemaScope = schemaScope.union(GlobalSearchScope.fileScope(scopedElement.getContainingFile()));
+            }
             PsiSearchHelper.SERVICE.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
                 if (psiElement.getNode().getElementType() == GraphQLElementTypes.FRAGMENT_KEYWORD) {
                     final GraphQLFragmentDefinition fragmentDefinition = PsiTreeUtil.getParentOfType(psiElement, GraphQLFragmentDefinition.class);
@@ -175,7 +181,7 @@ public class GraphQLPsiSearchHelper {
                     }
                 }
                 return true;
-            }, getSchemaScope(scopedElement), "fragment", UsageSearchContext.IN_CODE, true, true);
+            }, schemaScope, "fragment", UsageSearchContext.IN_CODE, true, true);
             return fragmentDefinitions;
         } catch (IndexNotReadyException e) {
             // can't search yet (e.g. during project startup)
@@ -245,6 +251,11 @@ public class GraphQLPsiSearchHelper {
             final PsiFile relayModernDirectivesSchema = getRelayModernDirectivesSchema();
             if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
                 relayModernDirectivesSchema.accept(builtInFileVisitor);
+            }
+
+            // finally, look in the current scratch file
+            if (GraphQLFileType.isGraphQLScratchFile(myProject, getVirtualFile(scopedElement.getContainingFile()))) {
+                scopedElement.getContainingFile().accept(builtInFileVisitor);
             }
 
         } catch (IndexNotReadyException e) {
