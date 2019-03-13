@@ -80,6 +80,8 @@ public class GraphQLTypeDefinitionRegistryServiceImpl implements GraphQLTypeDefi
                 return new GraphQLSchemaWithErrors(schema, Collections.emptyList(), registryWithErrors);
             } catch (GraphQLException e) {
                 return new GraphQLSchemaWithErrors(EMPTY_SCHEMA, Lists.newArrayList(e), registryWithErrors);
+            } catch (Exception e) {
+                return new GraphQLSchemaWithErrors(EMPTY_SCHEMA, Lists.newArrayList(new GraphQLException(e)), registryWithErrors);
             }
         });
     }
