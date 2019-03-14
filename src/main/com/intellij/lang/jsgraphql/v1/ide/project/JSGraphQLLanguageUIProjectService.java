@@ -409,7 +409,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                                 final String responseJson = Optional.ofNullable(method.getResponseBodyAsString()).orElse("");
                                 sw.stop();
                                 final Header responseHeader = method.getResponseHeader("Content-Type");
-                                final boolean reformatJson = responseHeader != null && "application/json".equals(responseHeader.getValue());
+                                final boolean reformatJson = responseHeader != null && responseHeader.getValue() != null && responseHeader.getValue().startsWith("application/json");
                                 final Integer errorCount = getErrorCount(responseJson);
                                 if (fileEditor instanceof TextEditor) {
                                     final TextEditor textEditor = (TextEditor) fileEditor;
