@@ -112,6 +112,11 @@ public class GraphQLConfigPackageSet implements PackageSet {
             }
             return file.getPath().equals(schemaFilePath);
         }
+        final PsiFile jsonIntrospectionFile = file.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_SDL_TO_JSON);
+        if (jsonIntrospectionFile != null && jsonIntrospectionFile.getVirtualFile() != null) {
+            // the file is the in-memory SDL derived from a JSON introspection file, so it's included if the JSON file is set as the schemaPath
+            return jsonIntrospectionFile.getVirtualFile().getPath().equals(schemaFilePath);
+        }
         return includesFilePath.computeIfAbsent(file.getPath(), filePath -> {
             if (filePath.equals(schemaFilePath)) {
                 // fast-path for always including the schema file if present

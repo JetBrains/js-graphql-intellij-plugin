@@ -49,8 +49,7 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 
-import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL;
-import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_SDL;
+import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.*;
 import static graphql.schema.idl.ScalarInfo.STANDARD_SCALAR_DEFINITIONS;
 
 public class SchemaIDLTypeDefinitionRegistry {
@@ -246,7 +245,9 @@ public class SchemaIDLTypeDefinitionRegistry {
                                     final String fileName = file.getPath();
                                     final GraphQLFile newIntrospectionFile = (GraphQLFile) psiFileFactory.createFileFromText(fileName, GraphQLLanguage.INSTANCE, introspectionJsonAsGraphQL);
                                     newIntrospectionFile.putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
+                                    newIntrospectionFile.putUserData(GRAPHQL_INTROSPECTION_SDL_TO_JSON, psiFile);
                                     newIntrospectionFile.getVirtualFile().putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
+                                    newIntrospectionFile.getVirtualFile().putUserData(GRAPHQL_INTROSPECTION_SDL_TO_JSON, psiFile);
                                     newIntrospectionFile.getVirtualFile().setWritable(false);
                                     psiFile.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
                                     file.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);

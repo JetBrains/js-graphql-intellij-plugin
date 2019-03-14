@@ -27,6 +27,7 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointConfiguration;
 import com.intellij.notification.Notification;
@@ -720,6 +721,13 @@ public class GraphQLConfigManager {
                             }
                             if (found) {
                                 break;
+                            }
+                        }
+                        if (configBaseDir == null) {
+                            final PsiFile jsonIntrospectionFile = virtualFileWithPath.get().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_SDL_TO_JSON);
+                            if (jsonIntrospectionFile != null && jsonIntrospectionFile.getVirtualFile() != null) {
+                                // the file is the SDL derived from a JSON introspection file, so use the JSON file directory to find the associated config
+                                configBaseDir = jsonIntrospectionFile.getVirtualFile().getParent();
                             }
                         }
                     } else {

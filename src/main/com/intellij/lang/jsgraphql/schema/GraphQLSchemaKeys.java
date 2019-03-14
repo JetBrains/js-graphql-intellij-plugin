@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.util.Key;
+import com.intellij.psi.PsiFile;
 
 public class GraphQLSchemaKeys {
 
@@ -21,6 +22,11 @@ public class GraphQLSchemaKeys {
      * Set on a JSON introspection file (PSI and Virtual) to get the derived GraphQL SDL file
      */
     public static final Key<GraphQLFile> GRAPHQL_INTROSPECTION_JSON_TO_SDL = Key.create("JSGraphQL.IntrospectionJSONToSDL");
+
+    /**
+     * Set on a SDL introspection file (PSI and Virtual) to get the JSON file that the SDL file is derived from
+     */
+    public static final Key<PsiFile> GRAPHQL_INTROSPECTION_SDL_TO_JSON = Key.create("JSGraphQL.IntrospectionSDLToJSON");
 
     /**
      * Set on the PSI File that is the SDL version of a JSON Introspection file
