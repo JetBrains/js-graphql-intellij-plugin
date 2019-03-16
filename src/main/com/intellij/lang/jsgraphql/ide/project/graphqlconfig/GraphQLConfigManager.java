@@ -489,7 +489,9 @@ public class GraphQLConfigManager {
                     });
                 }
             };
-            ProgressManager.getInstance().run(task);
+            if (!myProject.isDisposed()) {
+                ProgressManager.getInstance().run(task);
+            }
         }, ModalityState.NON_MODAL);
     }
 
