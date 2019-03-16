@@ -126,7 +126,6 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
 
     private String getSchemaPath(JsonProperty urlElement, boolean showNotificationOnMissingPath) {
         JsonObject jsonObject = PsiTreeUtil.getParentOfType(urlElement, JsonObject.class);
-        String url = urlElement.getValue() instanceof JsonStringLiteral ? ((JsonStringLiteral) urlElement.getValue()).getValue() : "";
         while (jsonObject != null) {
             JsonProperty schemaPathElement = jsonObject.findProperty("schemaPath");
             if (schemaPathElement != null) {

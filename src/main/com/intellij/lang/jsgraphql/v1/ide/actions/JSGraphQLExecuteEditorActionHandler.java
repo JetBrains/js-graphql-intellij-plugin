@@ -10,7 +10,6 @@ package com.intellij.lang.jsgraphql.v1.ide.actions;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService;
-import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLFile;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;

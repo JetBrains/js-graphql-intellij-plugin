@@ -7,8 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.v1.schema.ide.type;
 
-import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLNamedTypePsiElement;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 
 /**
@@ -24,25 +22,6 @@ public class JSGraphQLPropertyType {
         this.propertyElement = propertyElement;
         this.declaringTypeElement = declaringTypeElement;
         this.propertyValueTypeName = propertyValueTypeName;
-    }
-
-    public JSGraphQLPropertyType(PsiNamedElement propertyElement, JSGraphQLNamedType declaringTypeElement, Class<? extends PsiNamedElement> propertyClass) {
-        this.propertyElement = propertyElement;
-        this.declaringTypeElement = declaringTypeElement;
-        PsiElement nextSibling = propertyElement.getNextSibling();
-        JSGraphQLNamedTypePsiElement valueTypeElement = null;
-        while(nextSibling != null) {
-            if(nextSibling instanceof JSGraphQLNamedTypePsiElement) {
-                // in the schema language, the last named type in a field definition is the value type of the property, e.g. type Foo { myProp(param: String): PropType }
-                valueTypeElement = (JSGraphQLNamedTypePsiElement) nextSibling;
-            }
-            nextSibling = nextSibling.getNextSibling();
-            if(nextSibling != null && propertyClass.isAssignableFrom(nextSibling.getClass())) {
-                // stop before the next property
-                break;
-            }
-        }
-        propertyValueTypeName = valueTypeElement != null ? valueTypeElement.getName() : null;
     }
 
     public String getPropertyName() {

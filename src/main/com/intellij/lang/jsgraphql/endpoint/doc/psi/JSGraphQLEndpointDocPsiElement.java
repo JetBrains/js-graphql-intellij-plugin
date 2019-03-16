@@ -7,14 +7,14 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.doc.psi;
 
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import org.jetbrains.annotations.NotNull;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocLanguage;
-import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLPsiElement;
 
-public abstract class JSGraphQLEndpointDocPsiElement extends JSGraphQLPsiElement {
+public abstract class JSGraphQLEndpointDocPsiElement extends ASTWrapperPsiElement {
 
 	public JSGraphQLEndpointDocPsiElement(@NotNull ASTNode node) {
 		super(node);

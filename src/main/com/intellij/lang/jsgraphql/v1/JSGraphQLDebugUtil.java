@@ -10,12 +10,7 @@ package com.intellij.lang.jsgraphql.v1;
 public class JSGraphQLDebugUtil {
 
     public static final String GRAPHQL_DEBUG = "jsgraphql.debug";
-    public static final String GRAPHQL_DEBUG_LANGUAGE_SERVICE_URL = "jsgraphql.debug.languageServiceUrl";
-    public static final String GRAPHQL_DEBUG_LANGUAGE_SERVICE_DIST_FILE = "jsgraphql.debug.languageServiceDistFile";
 
     public final static boolean debug = "true".equals(System.getProperty(GRAPHQL_DEBUG));
 
-    public final static String languageServiceUrl = (String)System.getProperty(GRAPHQL_DEBUG_LANGUAGE_SERVICE_URL);
-
-    public final static String languageServiceDistFile = (String)System.getProperty(GRAPHQL_DEBUG_LANGUAGE_SERVICE_DIST_FILE);
 }

@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypesSets;
 import com.intellij.lang.jsgraphql.endpoint.lexer.JSGraphQLEndpointLexer;
-import com.intellij.lang.jsgraphql.v1.ide.highlighting.JSGraphQLSyntaxHighlighter;
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
@@ -23,25 +22,46 @@ import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.psi.tree.IElementType;
 
+import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
+
 public class JSGraphQLEndpointSyntaxHighlighter extends SyntaxHighlighterBase {
 
 	private static final Map<IElementType, TextAttributesKey> ATTRIBUTES = new HashMap<>();
 
+	public static final TextAttributesKey KEYWORD = createTextAttributesKey("JSGRAPHQL.KEYWORD", TextAttributesKey.find("JS.KEYWORD"));
+	public static final TextAttributesKey PUNCTUATION = createTextAttributesKey("JSGRAPHQL.PUNCTUATION", TextAttributesKey.find("JS.COMMA"));
+	public static final TextAttributesKey PAREN = createTextAttributesKey("JSGRAPHQL.PAREN", TextAttributesKey.find("JS.PARENTHS"));
+	public static final TextAttributesKey BRACE = createTextAttributesKey("JSGRAPHQL.BRACE", TextAttributesKey.find("JS.BRACES"));
+	public static final TextAttributesKey BRACKET = createTextAttributesKey("JSGRAPHQL.BRACKET", TextAttributesKey.find("JS.BRACKETS"));
+	public static final TextAttributesKey PROPERTY = createTextAttributesKey("JSGRAPHQL.PROPERTY", TextAttributesKey.find("JS.INSTANCE_MEMBER_VARIABLE"));
+	public static final TextAttributesKey DEF = createTextAttributesKey("JSGRAPHQL.DEF", TextAttributesKey.find("JS.GLOBAL_FUNCTION"));
+	public static final TextAttributesKey ATTRIBUTE = createTextAttributesKey("JSGRAPHQL.ATTRIBUTE", TextAttributesKey.find("JS.PARAMETER"));
+	public static final TextAttributesKey VARIABLE = createTextAttributesKey("JSGRAPHQL.VARIABLE", TextAttributesKey.find("JS.INSTANCE_MEMBER_VARIABLE"));
+	public static final TextAttributesKey QUALIFIER = createTextAttributesKey("JSGRAPHQL.QUALIFIER", TextAttributesKey.find("JS.GLOBAL_FUNCTION"));
+	public static final TextAttributesKey NUMBER = createTextAttributesKey("JSGRAPHQL.NUMBER", TextAttributesKey.find("JS.NUMBER"));
+	public static final TextAttributesKey STRING = createTextAttributesKey("JSGRAPHQL.STRING", TextAttributesKey.find("JS.STRING"));
+	public static final TextAttributesKey BUILTIN = createTextAttributesKey("JSGRAPHQL.BUILTIN", TextAttributesKey.find("JS.KEYWORD"));
+	public static final TextAttributesKey COMMENT = createTextAttributesKey("JSGRAPHQL.COMMENT", TextAttributesKey.find("JS.LINE_COMMENT"));
+	public static final TextAttributesKey ATOM = createTextAttributesKey("JSGRAPHQL.ATOM", TextAttributesKey.find("JS.CLASS"));
+	public static final TextAttributesKey BAD_CHARACTER = createTextAttributesKey("JSGRAPHQL.BADCHARACTER", TextAttributesKey.find("JS.BADCHARACTER"));
+
+	public static final TextAttributesKey[] COMMENT_KEYS = new TextAttributesKey[]{COMMENT};
+
 	static {
-		fillMap(ATTRIBUTES, JSGraphQLEndpointTokenTypesSets.KEYWORDS, JSGraphQLSyntaxHighlighter.KEYWORD);
-		fillMap(ATTRIBUTES, JSGraphQLEndpointTokenTypesSets.PUNCTUATION, JSGraphQLSyntaxHighlighter.PUNCTUATION);
-		fillMap(ATTRIBUTES, JSGraphQLEndpointTokenTypesSets.STRING_TOKENS, JSGraphQLSyntaxHighlighter.STRING);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.NAMED_TYPE_DEF, JSGraphQLSyntaxHighlighter.DEF);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.NUMBER, JSGraphQLSyntaxHighlighter.NUMBER);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.TRUE, JSGraphQLSyntaxHighlighter.BUILTIN);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.FALSE, JSGraphQLSyntaxHighlighter.BUILTIN);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LBRACE, JSGraphQLSyntaxHighlighter.BRACE);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.RBRACE, JSGraphQLSyntaxHighlighter.BRACE);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LPAREN, JSGraphQLSyntaxHighlighter.PAREN);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.RPAREN, JSGraphQLSyntaxHighlighter.PAREN);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LBRACKET, JSGraphQLSyntaxHighlighter.BRACKET);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.RBRACKET, JSGraphQLSyntaxHighlighter.BRACKET);
-		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LINE_COMMENT, JSGraphQLSyntaxHighlighter.COMMENT);
+		fillMap(ATTRIBUTES, JSGraphQLEndpointTokenTypesSets.KEYWORDS, KEYWORD);
+		fillMap(ATTRIBUTES, JSGraphQLEndpointTokenTypesSets.PUNCTUATION, PUNCTUATION);
+		fillMap(ATTRIBUTES, JSGraphQLEndpointTokenTypesSets.STRING_TOKENS, STRING);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.NAMED_TYPE_DEF, DEF);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.NUMBER, NUMBER);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.TRUE, BUILTIN);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.FALSE, BUILTIN);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LBRACE, BRACE);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.RBRACE, BRACE);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LPAREN, PAREN);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.RPAREN, PAREN);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LBRACKET, BRACKET);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.RBRACKET, BRACKET);
+		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.LINE_COMMENT, COMMENT);
 		ATTRIBUTES.put(JSGraphQLEndpointTokenTypes.AT_ANNOTATION, DefaultLanguageHighlighterColors.METADATA);
 	}
 

@@ -21,12 +21,7 @@ import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.lang.jsgraphql.psi.GraphQLFile;
-import com.intellij.lang.jsgraphql.v1.JSGraphQLTokenTypes;
-import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLFragmentDefinitionPsiElement;
-import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLNamedTypePsiElement;
-import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLPsiElement;
-import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLSelectionSetPsiElement;
+import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -117,11 +112,11 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
 
             final Color borderColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.TEARLINE_COLOR);
             final TextAttributes textAttributes = new TextAttributes(null, null, borderColor, EffectType.ROUNDED_BOX, Font.PLAIN);
-            final HashSet<JSGraphQLFragmentDefinitionPsiElement> foundFragments = Sets.newHashSet();
+            final HashSet<GraphQLFragmentDefinition> foundFragments = Sets.newHashSet();
             findFragmentsInsideOperation(operationAtCursor, foundFragments, null);
             for (PsiElement psiElement : file.getChildren()) {
                 boolean showAsUsed = false;
-                if (psiElement instanceof JSGraphQLFragmentDefinitionPsiElement) {
+                if (psiElement instanceof GraphQLFragmentDefinition) {
                     showAsUsed = foundFragments.contains(psiElement);
                 } else if (psiElement == operationAtCursor) {
                     showAsUsed = true;
@@ -335,7 +330,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
 
                 final PsiElement operationAtCursor = getOperationAtCursor(psiFile, null);
                 if (operationAtCursor != null) {
-                    final HashSet<JSGraphQLFragmentDefinitionPsiElement> foundFragments = Sets.newHashSet();
+                    final HashSet<GraphQLFragmentDefinition> foundFragments = Sets.newHashSet();
                     findFragmentsInsideOperation(operationAtCursor, foundFragments, null);
                     Set<PsiElement> queryElements = Sets.newHashSet(foundFragments);
                     queryElements.add(operationAtCursor);
@@ -370,14 +365,12 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                             }
                         }
                     }
-                    final JSGraphQLNamedTypePsiElement operationName = PsiTreeUtil.getChildOfType(operationAtCursor, JSGraphQLNamedTypePsiElement.class);
+                    final GraphQLIdentifier operationName = PsiTreeUtil.getChildOfType(operationAtCursor, GraphQLIdentifier.class);
                     if (operationName != null) {
                         showQueryContextHint(editor, "Executed " + getOperationKind(operationName) + " \"" + operationName.getText() + "\"");
-                    } else if (operationAtCursor instanceof JSGraphQLSelectionSetPsiElement) {
-                        if (((JSGraphQLSelectionSetPsiElement) operationAtCursor).isAnonymousQuery()) {
-                            // anonymous query
-                            showQueryContextHint(editor, "Executed anonymous query");
-                        }
+                    } else if (operationAtCursor instanceof GraphQLSelectionSetOperationDefinition) {
+                        // anonymous query
+                        showQueryContextHint(editor, "Executed anonymous query");
                     }
                     return new JSGraphQLQueryContext(query.toString(), null);
                 }
@@ -419,11 +412,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
     /**
      * Determines the kind of operation keyword that preceeds an operation name
      */
-    private static String getOperationKind(JSGraphQLNamedTypePsiElement operationName) {
-        final PsiElement keywordCandidate = PsiTreeUtil.prevVisibleLeaf(operationName);
-        if (keywordCandidate != null && keywordCandidate.getNode().getElementType() == JSGraphQLTokenTypes.KEYWORD) {
-            return keywordCandidate.getText();
-        }
+    private static String getOperationKind(GraphQLIdentifier operationName) {
         return "operation";
     }
 
@@ -444,8 +433,8 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
      * Gets the operation that wraps the current caret position, or <code>null</code> if none is found,
      * e.g. when outside any operation or inside a fragment definition
      */
-    private static PsiElement getOperationAtCursor(PsiFile psiFile, CaretEvent caretEvent) {
-        if(true) {
+    private static GraphQLOperationDefinition getOperationAtCursor(PsiFile psiFile, CaretEvent caretEvent) {
+        if (true) {
             // TODO refactor to v2 PSI
             return null;
         }
@@ -453,7 +442,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
         if (fileEditor instanceof TextEditor) {
             final Editor editor = ((TextEditor) fileEditor).getEditor();
             final int currentOffset;
-            if(caretEvent != null) {
+            if (caretEvent != null) {
                 currentOffset = editor.logicalPositionToOffset(caretEvent.getNewPosition());
             } else {
                 try {
@@ -476,21 +465,21 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
     /**
      * Returns the operation candidate if it's an operation, or <code>null</code>
      */
-    private static PsiElement asOperationOrNull(PsiElement operationCandidate) {
-        if (operationCandidate instanceof JSGraphQLPsiElement) {
-            if (operationCandidate instanceof JSGraphQLFragmentDefinitionPsiElement) {
-                // fragments aren't operations
-                return null;
-            }
-            if (operationCandidate instanceof JSGraphQLSelectionSetPsiElement) {
-                if (!((JSGraphQLSelectionSetPsiElement) operationCandidate).isAnonymousQuery()) {
-                    // selection set is not an anonymous query, so not considered an operation
-                    return null;
-                }
-            }
-            // named queries, mutations, subscriptions
-            return operationCandidate;
-        }
+    private static GraphQLOperationDefinition asOperationOrNull(PsiElement operationCandidate) {
+//        if (operationCandidate instanceof JSGraphQLPsiElement) {
+//            if (operationCandidate instanceof GraphQLFragmentDefinition) {
+//                // fragments aren't operations
+//                return null;
+//            }
+//            if (operationCandidate instanceof JSGraphQLSelectionSetPsiElement) {
+//                if (!((JSGraphQLSelectionSetPsiElement) operationCandidate).isAnonymousQuery()) {
+//                    // selection set is not an anonymous query, so not considered an operation
+//                    return null;
+//                }
+//            }
+//            // named queries, mutations, subscriptions
+//            return operationCandidate;
+//        }
         return null;
     }
 
@@ -506,15 +495,15 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                 if (psiElement instanceof PsiWhiteSpace) {
                     continue;
                 }
-                PsiElement operationOrNull = asOperationOrNull(psiElement);
+                GraphQLOperationDefinition operationOrNull = asOperationOrNull(psiElement);
                 if (operationOrNull != null) {
                     final Project project = editor.getProject();
                     if (project != null) {
                         // try to find the name of the operation
-                        final JSGraphQLNamedTypePsiElement name = PsiTreeUtil.getChildOfType(operationOrNull, JSGraphQLNamedTypePsiElement.class);
-                        if (name != null && name.isDefinition()) {
-                            operationOrNull = name;
-                        }
+//                        final JSGraphQLNamedTypePsiElement name = PsiTreeUtil.getChildOfType(operationOrNull, JSGraphQLNamedTypePsiElement.class);
+//                        if (name != null && name.isDefinition()) {
+//                            operationOrNull = name;
+//                        }
                         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
                         fileEditorManager.openFile(psiFile.getVirtualFile(), true, true);
                         editor.getSelectionModel().removeSelection();
@@ -534,45 +523,45 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
      * @param foundFragments      a set to add the found fragments to
      * @param findMore            optional function to stop once a specific fragment has been found
      */
-    private static void findFragmentsInsideOperation(PsiElement operationOrFragment, Set<JSGraphQLFragmentDefinitionPsiElement> foundFragments,
-                                                     Function<JSGraphQLFragmentDefinitionPsiElement, Boolean> findMore) {
+    private static void findFragmentsInsideOperation(PsiElement operationOrFragment, Set<GraphQLFragmentDefinition> foundFragments,
+                                                     Function<GraphQLFragmentDefinition, Boolean> findMore) {
 
-        operationOrFragment.accept(new PsiRecursiveElementVisitor() {
-
-            private boolean done = false;
-
-            @Override
-            public void visitElement(PsiElement element) {
-                if (done) {
-                    return;
-                }
-                if (element instanceof JSGraphQLNamedTypePsiElement) {
-                    if (((JSGraphQLNamedTypePsiElement) element).isDefinition()) {
-                        final PsiReference reference = element.getReference();
-                        if (reference != null) {
-                            final PsiElement declaration = reference.resolve();
-                            if (declaration instanceof JSGraphQLNamedTypePsiElement) {
-                                JSGraphQLNamedTypePsiElement namedType = (JSGraphQLNamedTypePsiElement) declaration;
-                                if (namedType.getParent() instanceof JSGraphQLFragmentDefinitionPsiElement) {
-                                    final JSGraphQLFragmentDefinitionPsiElement fragment = (JSGraphQLFragmentDefinitionPsiElement) namedType.getParent();
-                                    if (!foundFragments.contains(fragment)) {
-                                        foundFragments.add(fragment);
-                                        if (findMore != null && !findMore.apply(fragment)) {
-                                            // we're done
-                                            done = true;
-                                            return;
-                                        }
-                                        // also look for fragments inside this fragment
-                                        findFragmentsInsideOperation(fragment, foundFragments, findMore);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                super.visitElement(element);
-            }
-        });
+//        operationOrFragment.accept(new PsiRecursiveElementVisitor() {
+//
+//            private boolean done = false;
+//
+//            @Override
+//            public void visitElement(PsiElement element) {
+//                if (done) {
+//                    return;
+//                }
+//                if (element instanceof JSGraphQLNamedTypePsiElement) {
+//                    if (((JSGraphQLNamedTypePsiElement) element).isDefinition()) {
+//                        final PsiReference reference = element.getReference();
+//                        if (reference != null) {
+//                            final PsiElement declaration = reference.resolve();
+//                            if (declaration instanceof JSGraphQLNamedTypePsiElement) {
+//                                JSGraphQLNamedTypePsiElement namedType = (JSGraphQLNamedTypePsiElement) declaration;
+//                                if (namedType.getParent() instanceof GraphQLFragmentDefinition) {
+//                                    final GraphQLFragmentDefinition fragment = (GraphQLFragmentDefinition) namedType.getParent();
+//                                    if (!foundFragments.contains(fragment)) {
+//                                        foundFragments.add(fragment);
+//                                        if (findMore != null && !findMore.apply(fragment)) {
+//                                            // we're done
+//                                            done = true;
+//                                            return;
+//                                        }
+//                                        // also look for fragments inside this fragment
+//                                        findFragmentsInsideOperation(fragment, foundFragments, findMore);
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                super.visitElement(element);
+//            }
+//        });
     }
 
 }

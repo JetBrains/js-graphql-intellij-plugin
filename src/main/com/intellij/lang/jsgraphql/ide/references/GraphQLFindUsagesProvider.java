@@ -71,29 +71,6 @@ public class GraphQLFindUsagesProvider implements FindUsagesProvider {
                 return "directive";
             }
         }
-//        if(element instanceof JSGraphQLNamedPropertyPsiElement) {
-//            return ((JSGraphQLNamedPropertyPsiElement) element).isScalar() ? "scalar field" : "field";
-//        }
-//        if(element instanceof JSGraphQLNamedTypePsiElement) {
-//            final boolean atom = element.getContainingFile() instanceof JSGraphQLSchemaFile || ((JSGraphQLNamedTypePsiElement) element).isAtom();
-//            return atom ? "type" : "definition";
-//        }
-//        if(element instanceof JSGraphQLAttributePsiElement) {
-//            JSGraphQLPsiElement parent = PsiTreeUtil.getParentOfType(element, JSGraphQLPsiElement.class);
-//            while (parent != null) {
-//                final JSGraphQLPsiElement ancestor = PsiTreeUtil.getParentOfType(parent, JSGraphQLPsiElement.class);
-//                if(ancestor == null) {
-//                    break;
-//                }
-//                parent = ancestor;
-//            }
-//            if(parent != null && JSGraphQLKeywords.INPUT.equals(parent.getKeyword())) {
-//                // field of an input type
-//                return "input field";
-//            }
-//            // field argument
-//            return "argument";
-//        }
         return "unknown";
     }
 

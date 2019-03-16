@@ -17,7 +17,6 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaEventListener;
 import com.intellij.lang.jsgraphql.schema.TypeDefinitionRegistryWithErrors;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
-import com.intellij.lang.jsgraphql.v1.psi.JSGraphQLElementType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
@@ -419,9 +418,9 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
                             }
                         }
                         result.put(typeName, namedType);
-                        if (JSGraphQLElementType.QUERY_KIND.equals(typeName)) {
+                        if ("Query".equals(typeName)) {
                             // also use Query for anonymous queries that are selection sets
-                            result.put(JSGraphQLElementType.SELECTION_SET_KIND, namedType);
+                            result.put("SelectionSet", namedType);
                         }
                     }
                 }

@@ -19,7 +19,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDocumentManager;
 
 public class AddColonSpaceInsertHandler implements InsertHandler<LookupElement> {
-  public final static InsertHandler<LookupElement> INSTANCE = new AddColonSpaceInsertHandler(false);
+
   public final static InsertHandler<LookupElement> INSTANCE_WITH_AUTO_POPUP = new AddColonSpaceInsertHandler(true);
 
   private final String myIgnoreOnChars;

@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.v1.ide.project;
 
-import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.codeInsight.CodeSmellInfo;
@@ -15,8 +14,6 @@ import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.projectView.ProjectView;
-import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
@@ -32,9 +29,7 @@ import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationLi
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContext;
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
-import com.intellij.lang.jsgraphql.v1.ide.project.toolwindow.JSGraphQLErrorResult;
 import com.intellij.lang.jsgraphql.v1.ide.project.toolwindow.JSGraphQLLanguageToolWindowManager;
-import com.intellij.lang.jsgraphql.v1.schema.ide.project.JSGraphQLSchemaDirectoryNode;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -133,8 +128,6 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     @NotNull
     private final Project myProject;
 
-    private final Map<String, ImmutableList<JSGraphQLErrorResult>> fileUriToErrors = Maps.newConcurrentMap();
-
     private final Object myLock = new Object();
 
     private FileEditor fileEditor;
@@ -171,16 +164,6 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         // and notify to configure the schema
         project.putUserData(GraphQLParserDefinition.JSGRAPHQL_ACTIVATED, true);
         EditorNotifications.getInstance(project).updateAllNotifications();
-
-        // make sure the GraphQL schema is shown in the project tree if not already
-        if (!JSGraphQLSchemaDirectoryNode.isShownForProject(project)) {
-            StartupManager.getInstance(this.myProject).runWhenProjectIsInitialized(() -> ApplicationManager.getApplication().invokeLater(() -> {
-                final ProjectView projectView = ProjectView.getInstance(project);
-                if (projectView != null && projectView.getCurrentProjectViewPane() instanceof ProjectViewPane) {
-                    projectView.refresh();
-                }
-            }));
-        }
     }
 
 
