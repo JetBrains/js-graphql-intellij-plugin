@@ -43,6 +43,7 @@ import com.intellij.psi.search.PsiSearchHelper;
 import com.intellij.psi.search.UsageSearchContext;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.testFramework.LightVirtualFile;
 import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -143,6 +144,12 @@ public class GraphQLPsiSearchHelper {
         if (virtualFile == null) {
             // in memory PsiFile such as the completion PSI
             virtualFile = containingFile.getOriginalFile().getVirtualFile();
+        } else if (virtualFile instanceof LightVirtualFile) {
+            // in-memory files, e.g. when using "edit GraphQL fragment" on an injected GraphQL tagged template literal
+            VirtualFile originalFile = ((LightVirtualFile) virtualFile).getOriginalFile();
+            if (originalFile != null) {
+                return originalFile;
+            }
         }
         return virtualFile;
     }

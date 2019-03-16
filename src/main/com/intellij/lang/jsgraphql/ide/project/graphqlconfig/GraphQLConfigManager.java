@@ -189,6 +189,13 @@ public class GraphQLConfigManager {
      * Gets the closest .graphqlconfig{.yml,.yaml} file even though it doesn't include the specified file.
      */
     public VirtualFile getClosestConfigFile(VirtualFile virtualFile) {
+        if (virtualFile instanceof LightVirtualFile) {
+            VirtualFile originalFile = ((LightVirtualFile) virtualFile).getOriginalFile();
+            if (originalFile != null) {
+                // need a path on disk to find the closest config, so use the original physical file if one has been set
+                virtualFile = originalFile;
+            }
+        }
         final Set<VirtualFile> contentRoots = getContentRoots(virtualFile);
         VirtualFile directory;
         if (virtualFile.getFileType() == ScratchFileType.INSTANCE) {
@@ -702,19 +709,20 @@ public class GraphQLConfigManager {
                 if (virtualFileWithPath.get().getFileType() != ScratchFileType.INSTANCE) {
                     if (virtualFileWithPath.get() instanceof LightVirtualFile) {
                         // handle entry files
+                        final LightVirtualFile inMemoryVirtualFile = (LightVirtualFile) virtualFileWithPath.get();
                         configBaseDir = null;
                         for (Map.Entry<VirtualFile, GraphQLConfigData> entry : configPathToConfigurations.entrySet()) {
                             final GraphQLConfigData configData = entry.getValue();
                             GraphQLFile entryFile = getConfigurationEntryFile(configData);
                             boolean found = false;
-                            if (entryFile.getVirtualFile().equals(virtualFileWithPath.get())) {
+                            if (entryFile.getVirtualFile().equals(inMemoryVirtualFile)) {
                                 // the virtual file is an entry file for the specific config base (either the root schema or one of the nested graphql-config project schemas)
                                 configBaseDir = entry.getKey();
                                 found = true;
                             } else if (configData.projects != null) {
                                 for (Map.Entry<String, GraphQLResolvedConfigData> projectEntry : configData.projects.entrySet()) {
                                     entryFile = getConfigurationEntryFile(projectEntry.getValue());
-                                    if (entryFile.getVirtualFile().equals(virtualFileWithPath.get())) {
+                                    if (entryFile.getVirtualFile().equals(inMemoryVirtualFile)) {
                                         configBaseDir = entry.getKey();
                                         found = true;
                                         break;
@@ -726,10 +734,13 @@ public class GraphQLConfigManager {
                             }
                         }
                         if (configBaseDir == null) {
-                            final PsiFile jsonIntrospectionFile = virtualFileWithPath.get().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_SDL_TO_JSON);
+                            final PsiFile jsonIntrospectionFile = inMemoryVirtualFile.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_SDL_TO_JSON);
                             if (jsonIntrospectionFile != null && jsonIntrospectionFile.getVirtualFile() != null) {
                                 // the file is the SDL derived from a JSON introspection file, so use the JSON file directory to find the associated config
                                 configBaseDir = jsonIntrospectionFile.getVirtualFile().getParent();
+                            } else if(inMemoryVirtualFile.getOriginalFile() != null) {
+                                // editing of injected fragments produce in-memory mapped version of the original file, e.g. editing GraphQL inside a JS as it's own editing window
+                                configBaseDir = inMemoryVirtualFile.getOriginalFile().getParent();
                             }
                         }
                     } else {

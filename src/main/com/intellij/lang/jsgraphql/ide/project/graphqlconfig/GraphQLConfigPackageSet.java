@@ -17,6 +17,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.scope.packageSet.NamedScopesHolder;
 import com.intellij.psi.search.scope.packageSet.PackageSet;
+import com.intellij.testFramework.LightVirtualFile;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -117,7 +118,17 @@ public class GraphQLConfigPackageSet implements PackageSet {
             // the file is the in-memory SDL derived from a JSON introspection file, so it's included if the JSON file is set as the schemaPath
             return jsonIntrospectionFile.getVirtualFile().getPath().equals(schemaFilePath);
         }
-        return includesFilePath.computeIfAbsent(file.getPath(), filePath -> {
+
+        String inclusionPath = file.getPath();
+        if (file instanceof LightVirtualFile) {
+            // the light file is potentially derived from a file on disk, so we should use the physical path to check for inclusion
+            final VirtualFile originalFile = ((LightVirtualFile) file).getOriginalFile();
+            if (originalFile != null) {
+                inclusionPath = originalFile.getPath();
+            }
+        }
+
+        return includesFilePath.computeIfAbsent(inclusionPath, filePath -> {
             if (filePath.equals(schemaFilePath)) {
                 // fast-path for always including the schema file if present
                 return true;
