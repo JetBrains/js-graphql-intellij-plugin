@@ -31,6 +31,10 @@ public class GraphQLSchemaErrorsListNode extends SimpleNode {
 
     @Override
     public SimpleNode[] getChildren() {
+        if  (!schemaWithErrors.getRegistry().isProcessedGraphQL()) {
+            // no GraphQL PSI files parse yet, so no need to show the "no query defined" error for a non-existing schema
+            return SimpleNode.NO_CHILDREN;
+        }
         final List<SimpleNode> children = Lists.newArrayList();
         for (GraphQLError error : schemaWithErrors.getErrors()) {
             children.add(new GraphQLSchemaErrorNode(this, error));

@@ -58,7 +58,8 @@ public class GraphQLSchemaContentNode extends SimpleNode {
         if (nonEmptyParts.length > 0) {
             getTemplatePresentation().setLocationString("- " + StringUtils.join(nonEmptyParts, ", "));
         } else {
-            getTemplatePresentation().setLocationString(" - schema is empty");
+            final String message = schemaWithErrors.getRegistry().isProcessedGraphQL() ? "- schema is empty" : "- no schema definitions were found";
+            getTemplatePresentation().setLocationString(message);
         }
 
         getTemplatePresentation().setTooltip("Double click or press enter to search the schema registry");

@@ -16,10 +16,12 @@ public class TypeDefinitionRegistryWithErrors {
 
     private final TypeDefinitionRegistry registry;
     private final List<GraphQLException> errors;
+    private final boolean processedGraphQL;
 
-    public TypeDefinitionRegistryWithErrors(TypeDefinitionRegistry registry, List<GraphQLException> errors) {
+    public TypeDefinitionRegistryWithErrors(TypeDefinitionRegistry registry, List<GraphQLException> errors, boolean processedGraphQL) {
         this.registry = registry;
         this.errors = errors;
+        this.processedGraphQL = processedGraphQL;
     }
 
     public TypeDefinitionRegistry getRegistry() {
@@ -28,5 +30,9 @@ public class TypeDefinitionRegistryWithErrors {
 
     public List<GraphQLException> getErrors() {
         return errors;
+    }
+
+    public boolean isProcessedGraphQL() {
+        return processedGraphQL;
     }
 }

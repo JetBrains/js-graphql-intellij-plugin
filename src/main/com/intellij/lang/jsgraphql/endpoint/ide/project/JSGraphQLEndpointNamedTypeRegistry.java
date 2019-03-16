@@ -97,7 +97,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     public TypeDefinitionRegistryWithErrors getTypesAsRegistry(PsiElement scopedElement) {
         final GraphQLNamedScope schemaScope = getSchemaScope(scopedElement);
         if (schemaScope == null) {
-            return new TypeDefinitionRegistryWithErrors(new TypeDefinitionRegistry(), Collections.emptyList());
+            return new TypeDefinitionRegistryWithErrors(new TypeDefinitionRegistry(), Collections.emptyList(), false);
         }
         return projectToRegistry.computeIfAbsent(schemaScope, p -> doGetTypesAsRegistry(scopedElement));
     }
@@ -115,7 +115,6 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
 
         final TypeDefinitionRegistry registry = new TypeDefinitionRegistry();
         final List<GraphQLException> errors = Lists.newArrayList();
-        final TypeDefinitionRegistryWithErrors registryWithErrors = new TypeDefinitionRegistryWithErrors(registry, errors);
 
         final Map<String, JSGraphQLNamedType> namedTypes = computeNamedTypes(scopedElement);
 
@@ -278,7 +277,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
             }
         });
 
-        return registryWithErrors;
+        return new TypeDefinitionRegistryWithErrors(registry, errors, !namedTypes.isEmpty());
     }
 
     private Description getDescription(JSGraphQLEndpointNamedTypeDefinition typeDefinition, SourceLocation sourceLocation) {

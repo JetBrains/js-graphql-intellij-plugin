@@ -35,7 +35,6 @@ import graphql.GraphQLException;
 import graphql.InvalidSyntaxError;
 import graphql.language.Document;
 import graphql.language.SourceLocation;
-import graphql.parser.Parser;
 import graphql.schema.idl.SchemaParser;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.errors.SchemaProblem;
@@ -99,15 +98,16 @@ public class SchemaIDLTypeDefinitionRegistry {
 
         return scopeToRegistry.computeIfAbsent(schemaScope, s -> {
 
-            final Parser parser = new Parser();
-
             final TypeDefinitionRegistry typeRegistry = new TypeDefinitionRegistry();
             final List<GraphQLException> errors = Lists.newArrayList();
+
+            final Ref<Boolean> processedGraphQL = Ref.create(false);
 
             Consumer<PsiFile> processFile = psiFile -> {
                 if (!(psiFile instanceof GraphQLFile)) {
                     return;
                 }
+                processedGraphQL.set(true);
                 final GraphQLTypeSystemDefinition[] typeSystemDefinitions = PsiTreeUtil.getChildrenOfType(psiFile, GraphQLTypeSystemDefinition.class);
                 if (typeSystemDefinitions != null) {
 
@@ -284,7 +284,7 @@ public class SchemaIDLTypeDefinitionRegistry {
                 }
             }
 
-            return new TypeDefinitionRegistryWithErrors(typeRegistry, errors);
+            return new TypeDefinitionRegistryWithErrors(typeRegistry, errors, processedGraphQL.get());
 
         });
 

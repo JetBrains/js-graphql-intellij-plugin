@@ -38,11 +38,11 @@ public class GraphQLDefaultSchemaNode extends SimpleNode {
 
     @Override
     public SimpleNode[] getChildren() {
-        final List<SimpleNode> children = Lists.newArrayList(
-                new GraphQLSchemaContentNode(this, schemaWithErrors),
-                new GraphQLSchemaErrorsListNode(this, schemaWithErrors),
-                new GraphQLSchemaEndpointsListNode(this, null, null)
-        );
+        final List<SimpleNode> children = Lists.newArrayList(new GraphQLSchemaContentNode(this, schemaWithErrors));
+        if (schemaWithErrors.getRegistry().isProcessedGraphQL()) {
+            children.add(new GraphQLSchemaErrorsListNode(this, schemaWithErrors));
+        }
+        children.add(new GraphQLSchemaEndpointsListNode(this, null, null));
         return children.toArray(SimpleNode.NO_CHILDREN);
     }
 

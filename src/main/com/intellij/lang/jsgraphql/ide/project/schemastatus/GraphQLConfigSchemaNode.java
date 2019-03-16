@@ -120,7 +120,9 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
         final List<SimpleNode> children = Lists.newArrayList();
         if (performSchemaDiscovery) {
             children.add(new GraphQLSchemaContentNode(this, schemaWithErrors));
-            children.add(new GraphQLSchemaErrorsListNode(this, schemaWithErrors));
+            if (schemaWithErrors.getRegistry().isProcessedGraphQL()) {
+                children.add(new GraphQLSchemaErrorsListNode(this, schemaWithErrors));
+            }
         }
         if (projectsConfigData != null && !projectsConfigData.isEmpty()) {
             children.add(new GraphQLConfigProjectsNode(this));
