@@ -1,3 +1,12 @@
+## 1.7.3 (2019-01-26)
+
+Fixes:
+
+- Fixed missing syntax highlighting colors due to uninitialized JavaScript colors being referenced from GraphQL (#158)
+- Set default charset to UTF-8 in query result viewer to align with JSON spec (#181)
+- Query result viewer doesn't always reformat the response JSON (#209)
+- Make the Query result viewer work with windows line endings in JSON responses (#191)
+
 ## 1.7.2 (2018-05-29)
 
 Fixes:

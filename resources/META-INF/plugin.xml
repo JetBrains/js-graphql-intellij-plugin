@@ -34,6 +34,7 @@
       <li>2.0.0-alpha-4: Performance improvements, Relay Modern support, MarkDown documentation support, structure view, scratch files, recognize .graphqls, template placeholder support</li>
       <li>2.0.0-alpha-3: graphql-config support</li>
       <li>2.0.0-alpha-2: Language support for GraphQL draft spec as of June 2018. Compatible with Android Studio 3.1 and IntelliJ IDEA Community Edition</li>
+      <li>1.7.3: Fixed missing syntax highlighting colors. Set default charset to UTF-8 in query result viewer. Support windows line endings in query result viewer and fixed reformat timing issue.</li>
     </ul>
     ]]>
   </change-notes>
