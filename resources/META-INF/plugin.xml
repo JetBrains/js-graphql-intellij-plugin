@@ -17,7 +17,7 @@
       <p>GraphQL language support including Relay.QL tagged templates in JavaScript and TypeScript.</p>
       <p>Provides the following features:</p>
       <ul>
-        <li>Schema-aware completion, error highlighting</li>
+        <li>Schema-aware completion, error highlighting, and documentation</li>
         <li>Syntax highlighting, code-formatting, folding, commenter, and brace-matching</li>
         <li>'Find Usages' and 'Go to Declaration' for schema types and fields</li>
         <li>'Go to Implementation' for schema interfaces</li>
@@ -35,6 +35,30 @@
       <li>2.0.0-alpha-3: graphql-config support</li>
       <li>2.0.0-alpha-2: Language support for GraphQL draft spec as of June 2018. Compatible with Android Studio 3.1 and IntelliJ IDEA Community Edition</li>
       <li>1.7.3: Fixed missing syntax highlighting colors. Set default charset to UTF-8 in query result viewer. Support windows line endings in query result viewer and fixed reformat timing issue.</li>
+      <li>1.7.2: Restore whitespace tokens for top level fragment placeholders in Apollo to preserve them during format lines.</li>
+      <li>1.7.1: Node 10 Buffer deprecation warning no longer read by plugin as an error in the language service. Two additional minor bug-fixes.</li>
+      <li>1.7.0: Fixed editor background loading issue. Language Service 1.5.1: Support for strongly typed variable placeholders in GraphQL tagged templates. Support for declaring annotations in Endpoint language.</li>
+      <li>1.6.3: 'Editor > Code Style' never loads In WebStorm 2017.3.</li>
+      <li>1.6.2: Resolve fragment references under progress in annotator to ensure WebStorm 2017.3 compatibility.</li>
+      <li>1.6.1: 2017.3 compatibility.</li>
+      <li>1.6.0: Support for Relay Modern fragments. Language Service 1.5.0: Support for loading the schema from .graphql file (Relay Modern projects).</li>
+      <li>1.5.4: Only show the error console automatically on the first error in the project. Fixes Int variables being sent as floats. Fixes auto-import is not placed on a new line in JS files with GraphQL templates.</li>
+      <li>1.5.3: Support Relay Modern graphql.experimental tag.</li>
+      <li>1.5.2: Pass "variables" in payload to GraphQL server as JSON.</li>
+      <li>1.5.1: Compatible with IntelliJ IDEA 2017.1 EAP tagged template expressions.</li>
+      <li>1.5.0: Language Service 1.4.0 based on graphql 0.9.1 and codemirror-graphql 0.6.2. Experimental support for GraphQL Endpoint Language (.graphqle)</li>
+      <li>1.4.4: Fixes Assertion failed: Caret model is in its update process.</li>
+      <li>1.4.3: GraphQL configuration page for indentation. Language Service 1.3.2: Object literal for variables in getFragment closes Relay.QL template expression.</li>
+      <li>1.4.2: Language Service 1.3.1: Support __schema root in schema.json.</li>
+      <li>1.4.1: Support for gql tagged templates used by Apollo and Lokka GraphQL Clients. Fixes false Error in Relay Mutation.</li>
+      <li>1.4.0: Language Service 1.2.0 based on graphql 0.7.0 and codemirror-graphql 0.5.4. Basic editor support for GraphQL Schema (.graphqls)</li>
+      <li>1.3.3: Fixes compatibility issue with IDEA 2016.2.2</li>
+      <li>1.3.2: Removes GraphQL schema from scratch file formats.</li>
+      <li>1.3.1: Fixes compatibility issue with WebStorm 2016.2 EAP.</li>
+      <li>1.3.0: Adds support for GraphQL Scratch Files. Query results are now formatted.</li>
+      <li>1.2.0: Contextual query support: Execute buffer, selection, or named operations at the caret position in the GraphQL editor</li>
+      <li>1.1.1: Completion after ... fragment spread operator. Language Service 1.1.1 based on graphql 0.4.16 and codemirror-graphql 0.2.2</li>
+      <li>1.1.0: Find usages, schema viewer, structure view</li>
     </ul>
     ]]>
   </change-notes>

@@ -28,12 +28,12 @@ import java.util.Objects;
 public class JSGraphQLEndpointDefinitionsSearchExecutor implements QueryExecutor<PsiElement, PsiElement> {
 
     @Override
-    public boolean execute(@NotNull PsiElement queryParameters, @NotNull Processor<? super PsiElement> consumer) {
+    public boolean execute(@NotNull PsiElement queryParameters, @NotNull Processor<PsiElement> consumer) {
         ApplicationManager.getApplication().runReadAction((Computable) () -> JSGraphQLEndpointDefinitionsSearchExecutor.doExecute(queryParameters, consumer));
         return true;
     }
 
-    private static boolean doExecute(PsiElement sourceElement, final Processor<? super PsiElement> consumer) {
+    private static boolean doExecute(PsiElement sourceElement, final Processor<PsiElement> consumer) {
 
         // must be an interface definition with a named type to be applicable
         final Ref<JSGraphQLEndpointNamedTypeDef> sourceNamedTypeDef = new Ref<>();
