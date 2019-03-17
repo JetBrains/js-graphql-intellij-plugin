@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/js-graphql-intellij-plugin.iml" filepath="$PROJECT_DIR$/js-graphql-intellij-plugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/js-graphql-intellij-plugin.iml" filepath="$PROJECT_DIR$/js-graphql-intellij-plugin.iml" group="js-graphql-intellij-plugin" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/js-graphql-intellij-plugin_main.iml" filepath="$PROJECT_DIR$/.idea/modules/js-graphql-intellij-plugin_main.iml" group="js-graphql-intellij-plugin" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/js-graphql-intellij-plugin_test.iml" filepath="$PROJECT_DIR$/.idea/modules/js-graphql-intellij-plugin_test.iml" group="js-graphql-intellij-plugin" />
     </modules>

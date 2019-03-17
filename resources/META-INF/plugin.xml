@@ -27,6 +27,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>2.0.0-beta-1: Removed unused v1 code. Fixed schema and endpoint resolution for "Edit GraphQL fragment" in own editor tab. Fixed fragment definition resolution in scratch files. Various minor fixes: Completion, syntax highlighting, JSON introspection schema scopes.</li>
       <li>2.0.0-alpha-8: Added intention to add missing schema types in SDL. Fixed error marker positions in gql tags. Moved configuration scan to background tasks. Added support for projects in scratch files. Added completion of variable names. Added completion of enums in lists. Fixed arguments shown as keywords in syntax highlighter. Improved introspection including support for custom scalars.</li>
       <li>2.0.0-alpha-7: Added re-run introspection action to improve remote schema workflow. Added scalars to introspection SDL output. Added __typename completion. Various fixes.</li>
       <li>2.0.0-alpha-6: Added migration of graphql.config.json files. Support schemas based on JSON introspection files. Added automatic introspection notification. Updated Relay Modern directives. Upgraded to graphql-java 11.0.</li>
