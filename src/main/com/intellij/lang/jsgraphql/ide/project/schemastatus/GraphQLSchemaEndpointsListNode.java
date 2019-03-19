@@ -78,7 +78,7 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
             myName = endpoint.name;
             getTemplatePresentation().setTooltip("Endpoints allow you to perform GraphQL introspection, queries and mutations");
             getTemplatePresentation().setLocationString(endpoint.url);
-            setIcon(JSGraphQLIcons.UI.GraphQLNode);
+            setIcon(JSGraphQLIcons.Logos.GraphQL);
         }
 
         @Override

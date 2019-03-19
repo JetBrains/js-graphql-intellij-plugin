@@ -12,5 +12,5 @@ import com.intellij.openapi.util.IconLoader;
 import javax.swing.*;
 
 public class GraphQLIcons {
-  public static final Icon FILE = IconLoader.getIcon("/icons/graphql-file.png");
+  public static final Icon FILE = IconLoader.getIcon("/icons/graphqlFile.svg");
 }
