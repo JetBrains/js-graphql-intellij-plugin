@@ -37,7 +37,7 @@ dependencies {
 }
 
 intellij {
-    version '2018.1.5'
+    version '2018.2'
     type 'IU'
     updateSinceUntilBuild = false
     pluginName 'JS GraphQL'

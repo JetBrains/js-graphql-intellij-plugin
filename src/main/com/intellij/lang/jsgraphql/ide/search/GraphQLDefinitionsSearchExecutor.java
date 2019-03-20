@@ -24,12 +24,12 @@ import org.jetbrains.annotations.NotNull;
 public class GraphQLDefinitionsSearchExecutor implements QueryExecutor<PsiElement, PsiElement> {
 
     @Override
-    public boolean execute(@NotNull PsiElement queryParameters, @NotNull Processor<PsiElement> consumer) {
+    public boolean execute(@NotNull PsiElement queryParameters, @NotNull Processor<? super PsiElement> consumer) {
         ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> GraphQLDefinitionsSearchExecutor.doExecute(queryParameters, consumer));
         return true;
     }
 
-    private static boolean doExecute(PsiElement sourceElement, final Processor<PsiElement> consumer) {
+    private static boolean doExecute(PsiElement sourceElement, final Processor<? super PsiElement> consumer) {
 
         if (sourceElement instanceof GraphQLIdentifier && sourceElement.getParent() instanceof GraphQLTypeNameDefinition) {
             final GraphQLInterfaceTypeDefinition interfaceTypeDefinition = PsiTreeUtil.getParentOfType(sourceElement, GraphQLInterfaceTypeDefinition.class);

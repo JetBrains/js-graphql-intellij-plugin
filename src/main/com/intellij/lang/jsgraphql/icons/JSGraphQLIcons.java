@@ -14,7 +14,7 @@ import javax.swing.*;
 public class JSGraphQLIcons {
 
     public static class Logos {
-        public static final Icon GraphQL = JSGraphQLIcons.load("/icons/graphqlFile.svg");
+        public static final Icon GraphQL = JSGraphQLIcons.load("/icons/graphql.svg");
         public static final Icon Relay = JSGraphQLIcons.load("/icons/relay.svg");
         public static final Icon Apollo = JSGraphQLIcons.load("/icons/apollo.svg");
         public static final Icon Lokka = JSGraphQLIcons.load("/icons/lokka.svg");
@@ -22,12 +22,13 @@ public class JSGraphQLIcons {
 
     public static class Files {
         public static final Icon GraphQL = JSGraphQLIcons.load("/icons/graphqlFile.svg");
-        public static final Icon GraphQLSchema = JSGraphQLIcons.load("/icons/graphqlFile.svg");
+        public static final Icon GraphQLSchema = JSGraphQLIcons.load("/icons/graphqlSchema.svg");
     }
 
     public static class UI {
         public static final Icon GraphQLToolwindow = JSGraphQLIcons.load("/icons/graphqlToolWindow.svg");
         public static final Icon GraphQLVariables = JSGraphQLIcons.load("/icons/variable.svg");
+        public static final Icon GraphQLNode = JSGraphQLIcons.load("/icons/graphqlNode.svg");
     }
 
     public static class Schema {
