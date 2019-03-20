@@ -22,6 +22,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
@@ -88,6 +89,7 @@ public class GraphQLSchemasPanel extends JPanel {
         SimpleTreeStructure.Impl treeStructure = new SimpleTreeStructure.Impl(new GraphQLSchemasRootNode(myProject));
         DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
         SimpleTreeBuilder myBuilder = new SimpleTreeBuilder(myTree, treeModel, treeStructure, IndexComparator.INSTANCE);
+        Disposer.register(myProject, myBuilder);
 
         // debounce tree updates to prevent perf-hit
         final Alarm treeUpdaterAlarm = AlarmFactory.getInstance().create();

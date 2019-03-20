@@ -592,9 +592,9 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
         final ContentImpl content = new ContentImpl(fileEditor.getComponent(), "Query result", true);
         content.setCloseable(false);
+        content.setShouldDisposeContent(false);
         toolWindow.getContentManager().addContent(content);
-
-
+        Disposer.register(content, fileEditor);
     }
 
     private void initToolWindow() {
