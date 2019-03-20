@@ -14,14 +14,13 @@
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
-      <p>GraphQL language support including Relay.QL tagged templates in JavaScript and TypeScript.</p>
-      <p>Provides the following features:</p>
+      <p>GraphQL language support including tagged template literals in JavaScript and TypeScript.</p>
+      <p>Feature highlights:</p>
       <ul>
         <li>Schema-aware completion, error highlighting, and documentation</li>
         <li>Syntax highlighting, code-formatting, folding, commenter, and brace-matching</li>
-        <li>'Find Usages' and 'Go to Declaration' for schema types and fields</li>
-        <li>'Go to Implementation' for schema interfaces</li>
-        <li>Execute queries with variables against configurable endpoints</li>
+        <li>Execute queries and mutations with variables against configurable endpoints</li>
+        <li>Support for multiple schemas using graphql-config</li>
       </ul>
     ]]></description>
 
