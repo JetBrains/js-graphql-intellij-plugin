@@ -10,37 +10,25 @@ package com.intellij.lang.jsgraphql.ide.documentation;
 import com.intellij.lang.documentation.DocumentationProviderEx;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointDocumentationAware;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFile;
-import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLFile;
-import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
-import com.intellij.lang.jsgraphql.psi.GraphQLInputObjectTypeDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLInputObjectTypeExtensionDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLNamedElement;
-import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLType;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
+import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLDirective;
-import graphql.schema.GraphQLEnumType;
 import graphql.schema.GraphQLEnumValueDefinition;
-import graphql.schema.GraphQLInputObjectField;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLInterfaceType;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
+import graphql.schema.*;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+
+import static com.intellij.lang.documentation.DocumentationMarkup.*;
 
 public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
@@ -58,10 +46,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
     @Override
     public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
-        if (isDocumentationSupported(element)) {
-            return createQuickNavigateDocumentation(element, true);
-        }
-        return null;
+        return createQuickNavigateDocumentation(element, true);
     }
 
     @Override
@@ -78,7 +63,6 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
     @Nullable
     private String createQuickNavigateDocumentation(PsiElement element, boolean fullDocumentation) {
-
         if (!isDocumentationSupported(element)) {
             return null;
         }
@@ -100,7 +84,6 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
             if (parent instanceof GraphQLInputValueDefinition) {
                 return getArgumentDocumentation(schema, (GraphQLInputValueDefinition) parent);
-
             }
 
             if (parent instanceof GraphQLEnumValue) {
@@ -114,14 +97,12 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
             return null;
 
         } else if (element instanceof JSGraphQLEndpointDocumentationAware) {
-
             final JSGraphQLEndpointDocumentationAware documentationAware = (JSGraphQLEndpointDocumentationAware) element;
             final String documentation = documentationAware.getDocumentation(fullDocumentation);
-            String doc = "";
+            String doc = DEFINITION_START + documentationAware.getDeclaration() + DEFINITION_END;
             if (documentation != null) {
-                doc += "<div style=\"margin-bottom: 4px\">" + StringEscapeUtils.escapeHtml(documentation) + "</div>";
+                doc += CONTENT_START + StringEscapeUtils.escapeHtml(documentation) + CONTENT_END;
             }
-            doc += "<code>" + documentationAware.getDeclaration() + "</code>";
             return doc;
         }
 
@@ -134,10 +115,16 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
         if (directiveName != null) {
             final GraphQLDirective schemaDirective = schema.getDirective(directiveName.getText());
             if (schemaDirective != null) {
+                final StringBuilder result = new StringBuilder().append(DEFINITION_START);
+                result.append("@").append(schemaDirective.getName());
+                result.append(DEFINITION_END);
                 final String description = schemaDirective.getDescription();
                 if (description != null) {
-                    return GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description);
+                    result.append(CONTENT_START);
+                    result.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
+                    result.append(CONTENT_END);
                 }
+                return result.toString();
             }
         }
         return null;
@@ -150,14 +137,21 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
             graphql.schema.GraphQLType schemaType = schema.getType(enumName);
             if (schemaType instanceof GraphQLEnumType) {
                 final String enumValueName = parent.getName();
+                final StringBuilder result = new StringBuilder().append(DEFINITION_START);
+                result.append(enumName).append(".").append(enumValueName);
+                result.append(DEFINITION_END);
                 for (GraphQLEnumValueDefinition enumValueDefinition : ((GraphQLEnumType) schemaType).getValues()) {
                     if (Objects.equals(enumValueDefinition.getName(), enumValueName)) {
                         final String description = enumValueDefinition.getDescription();
                         if (description != null) {
-                            return GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description);
+                            result.append(CONTENT_START);
+                            result.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
+                            result.append(CONTENT_END);
+                            return result.toString();
                         }
                     }
                 }
+                return result.toString();
             }
         }
         return null;
@@ -190,9 +184,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                         if (Objects.equals(fieldDefinition.getName(), fieldName)) {
                             for (GraphQLArgument argument : fieldDefinition.getArguments()) {
                                 if (Objects.equals(argument.getName(), inputValueName)) {
-                                    if (argument.getDescription() != null) {
-                                        return GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(argument.getDescription());
-                                    }
+                                    return getArgumentDocumentation(inputValueName, argument);
                                 }
                             }
                         }
@@ -207,11 +199,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                     if (schemaDirective != null) {
                         for (GraphQLArgument argument : schemaDirective.getArguments()) {
                             if (inputValueName.equals(argument.getName())) {
-                                final String description = argument.getDescription();
-                                if (description != null) {
-                                    return GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description);
-                                }
-                                break;
+                                return getArgumentDocumentation(inputValueName, argument);
                             }
                         }
                     }
@@ -223,11 +211,15 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                 if (schemaType instanceof GraphQLInputObjectType) {
                     for (GraphQLInputObjectField inputObjectField : ((GraphQLInputObjectType) schemaType).getFieldDefinitions()) {
                         if (inputValueName.equals(inputObjectField.getName())) {
+                            GraphQLInputType type = inputObjectField.getType();
+                            final StringBuilder result = new StringBuilder().append(DEFINITION_START);
+                            result.append(schemaType.getName()).append(".");
+                            result.append(inputValueName).append(type != null ? ": " : "").append(type != null ? type.getName() : "");
+                            result.append(DEFINITION_END);
+
                             final String description = inputObjectField.getDescription();
-                            if (description != null) {
-                                return GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description);
-                            }
-                            break;
+                            appendDescription(result, description);
+                            return result.toString();
                         }
                     }
                 }
@@ -235,6 +227,21 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
         }
 
         return null;
+    }
+
+    @NotNull
+    private String getArgumentDocumentation(String inputValueName, GraphQLArgument argument) {
+        final StringBuilder html = new StringBuilder().append(DEFINITION_START);
+        GraphQLInputType argumentType = argument.getType();
+        html.append(inputValueName).append(argumentType != null ? ": " : " ").append(argumentType != null ? argumentType.getName() : "");
+        html.append(DEFINITION_END);
+        appendDescription(html, GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(argument.getDescription()));
+        return html.toString();
+    }
+
+    private void appendDescription(StringBuilder result, @Nullable String descriptionAsHTML) {
+        if (descriptionAsHTML == null) return;
+        result.append(CONTENT_START).append(descriptionAsHTML).append(CONTENT_END);
     }
 
     @Nullable
@@ -246,10 +253,10 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
             final graphql.schema.GraphQLType schemaType = schema.getType(psiTypeName.getText());
             if (schemaType != null) {
                 final String fieldName = element.getText();
-                final StringBuilder html = new StringBuilder().append("<header><code>");
-                html.append(schemaType.getName()).append(" ");
-                html.append(fieldName).append(": ").append(psiFieldType != null ? psiFieldType.getText() : "");
-                html.append("</code></header>");
+                final StringBuilder html = new StringBuilder().append(DEFINITION_START);
+                html.append(schemaType.getName()).append(".");
+                html.append(fieldName).append(psiFieldType != null ? ": " : "").append(psiFieldType != null ? psiFieldType.getText() : "");
+                html.append(DEFINITION_END);
                 List<graphql.schema.GraphQLFieldDefinition> fieldDefinitions = null;
                 if (schemaType instanceof GraphQLObjectType) {
                     fieldDefinitions = ((GraphQLObjectType) schemaType).getFieldDefinitions();
@@ -259,11 +266,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                 if (fieldDefinitions != null) {
                     for (graphql.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
                         if (fieldName.equals(fieldDefinition.getName())) {
-                            if (fieldDefinition.getDescription() != null) {
-                                html.append("<section>");
-                                html.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(fieldDefinition.getDescription()));
-                                html.append("</section>");
-                            }
+                            appendDescription(html, GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(fieldDefinition.getDescription()));
                             break;
                         }
                     }
@@ -279,19 +282,20 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     private String getTypeDocumentation(PsiElement element, GraphQLTypeDefinitionRegistryServiceImpl typeRegistryService, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
         graphql.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement) element).getName());
         if (schemaType != null) {
+            final StringBuilder html = new StringBuilder().append(DEFINITION_START);
+            PsiElement keyword = PsiTreeUtil.prevVisibleLeaf(parent);
+            if (keyword != null) {
+                html.append(keyword.getText()).append(" ");
+            }
+            html.append(element.getText());
+            html.append(DEFINITION_END);
             final String description = typeRegistryService.getTypeDescription(schemaType);
             if (description != null) {
-                final StringBuilder html = new StringBuilder().append("<header><code>");
-                PsiElement keyword = PsiTreeUtil.prevVisibleLeaf(parent);
-                if (keyword != null) {
-                    html.append(keyword.getText()).append(" ");
-                }
-                html.append(element.getText());
-                html.append("</code></header><section>");
+                html.append(CONTENT_START);
                 html.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
-                html.append("</section>");
-                return html.toString();
+                html.append(CONTENT_END);
             }
+            return html.toString();
         }
         return null;
     }

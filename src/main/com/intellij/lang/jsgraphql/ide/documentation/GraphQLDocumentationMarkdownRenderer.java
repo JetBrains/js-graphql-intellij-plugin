@@ -40,7 +40,7 @@ public class GraphQLDocumentationMarkdownRenderer {
      * @return an HTML representation of the specified markdown
      */
     public static String getDescriptionAsHTML(String description) {
-        return HTML_RENDERER.render(PARSER.parse(description.trim()));
+        return description != null ? HTML_RENDERER.render(PARSER.parse(description.trim())) : null;
     }
 
 }
