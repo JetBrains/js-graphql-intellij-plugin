@@ -28,16 +28,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
+import static com.intellij.lang.documentation.DocumentationMarkup.*;
+
 public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
     private final static String GRAPHQL_DOC_PREFIX = "GraphQL";
     private final static String GRAPHQL_DOC_TYPE = "Type";
-
-    // using this instead of DocumentationMarkup to keep 173 compatibility
-    private static final String DEFINITION_START = "<div class='definition'><pre>";
-    private static final String DEFINITION_END = "</pre></div>";
-    private static final String CONTENT_START = "<div class='content'>";
-    private static final String CONTENT_END = "</div>";
 
     @Nullable
     @Override
@@ -245,7 +241,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
     private void appendDescription(StringBuilder result, @Nullable String descriptionAsHTML) {
         if (descriptionAsHTML == null) return;
-        result.append(GraphQLDocumentationProvider.CONTENT_START).append(descriptionAsHTML).append(GraphQLDocumentationProvider.CONTENT_END);
+        result.append(CONTENT_START).append(descriptionAsHTML).append(CONTENT_END);
     }
 
     @Nullable
