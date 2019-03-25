@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.endpoint.ide.highlighting;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.intellij.lang.javascript.highlighting.JSHighlighter;
 import org.jetbrains.annotations.NotNull;
 
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
@@ -28,7 +29,7 @@ public class JSGraphQLEndpointSyntaxHighlighter extends SyntaxHighlighterBase {
 
 	private static final Map<IElementType, TextAttributesKey> ATTRIBUTES = new HashMap<>();
 
-	public static final TextAttributesKey KEYWORD = createTextAttributesKey("JSGRAPHQL.KEYWORD", TextAttributesKey.find("JS.KEYWORD"));
+	public static final TextAttributesKey KEYWORD = createTextAttributesKey("JSGRAPHQL.KEYWORD", JSHighlighter.JS_KEYWORD);
 	public static final TextAttributesKey PUNCTUATION = createTextAttributesKey("JSGRAPHQL.PUNCTUATION", TextAttributesKey.find("JS.COMMA"));
 	public static final TextAttributesKey PAREN = createTextAttributesKey("JSGRAPHQL.PAREN", TextAttributesKey.find("JS.PARENTHS"));
 	public static final TextAttributesKey BRACE = createTextAttributesKey("JSGRAPHQL.BRACE", TextAttributesKey.find("JS.BRACES"));
