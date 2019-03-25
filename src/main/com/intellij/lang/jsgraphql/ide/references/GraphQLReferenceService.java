@@ -344,17 +344,31 @@ public class GraphQLReferenceService {
                 GraphQLType typeScope = fieldTypeScopeProvider.getTypeScope();
                 if (typeScope != null) {
                     final String namedTypeScope = GraphQLUtil.getUnmodifiedType(typeScope).getName();
-                    return resolveUsingIndex(element, psiNamedElement -> {
+                    final Ref<Boolean> resolved = Ref.create(false);
+                    final PsiReference reference = resolveUsingIndex(element, psiNamedElement -> {
                         if (psiNamedElement.getParent() instanceof GraphQLInputValueDefinition) {
                             final GraphQLInputObjectTypeDefinition inputTypeDefinition = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLInputObjectTypeDefinition.class);
                             if (inputTypeDefinition != null && inputTypeDefinition.getTypeNameDefinition() != null) {
                                 if (namedTypeScope.equals(inputTypeDefinition.getTypeNameDefinition().getName())) {
+                                    resolved.set(true);
                                     return true;
                                 }
                             }
                         }
                         return false;
                     });
+                    if (!resolved.get()) {
+                        // Endpoint language
+                        final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
+                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(namedTypeScope, element);
+                        if (namedType != null) {
+                            final JSGraphQLPropertyType property = namedType.properties.get(field.getName());
+                            if (property != null) {
+                                return createReference(element, property.propertyElement);
+                            }
+                        }
+                    }
+                    return reference;
                 }
             }
         }
@@ -369,17 +383,36 @@ public class GraphQLReferenceService {
                 GraphQLType typeScope = enumTypeScopeProvider.getTypeScope();
                 if (typeScope != null) {
                     final String namedTypeScope = GraphQLUtil.getUnmodifiedType(typeScope).getName();
-                    return resolveUsingIndex(element, psiNamedElement -> {
+                    final Ref<Boolean> resolved = Ref.create(false);
+                    final PsiReference reference = resolveUsingIndex(element, psiNamedElement -> {
                         if (psiNamedElement.getParent() instanceof GraphQLEnumValue) {
                             final GraphQLEnumTypeDefinition enumTypeDefinition = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLEnumTypeDefinition.class);
                             if (enumTypeDefinition != null && enumTypeDefinition.getTypeNameDefinition() != null) {
                                 if (namedTypeScope.equals(enumTypeDefinition.getTypeNameDefinition().getName())) {
+                                    resolved.set(true);
                                     return true;
                                 }
                             }
                         }
                         return false;
                     });
+                    if (!resolved.get()) {
+                        // Endpoint Language
+                        final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
+                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(namedTypeScope, element);
+                        if (namedType.definitionElement instanceof JSGraphQLEndpointEnumTypeDefinition) {
+                            final JSGraphQLEndpointEnumValueDefinitionSet enumValueDefinitionSet = ((JSGraphQLEndpointEnumTypeDefinition) namedType.definitionElement).getEnumValueDefinitionSet();
+                            if (enumValueDefinitionSet != null) {
+                                for (JSGraphQLEndpointEnumValueDefinition enumValueDefinition : enumValueDefinitionSet.getEnumValueDefinitionList()) {
+                                    if (enumValueDefinition.getIdentifier().getText().equals(element.getName())) {
+                                        return createReference(element, enumValueDefinition);
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                    return reference;
                 }
             }
         }
