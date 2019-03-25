@@ -26,6 +26,7 @@ import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
+import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
@@ -287,7 +288,9 @@ public class GraphQLConfigManager {
 
     public JSGraphQLSchemaEndpointConfiguration getEndpointLanguageConfiguration(VirtualFile virtualFile, @Nullable Ref<VirtualFile> configBasedir) {
         if (virtualFile.getFileType() != GraphQLFileType.INSTANCE && virtualFile.getFileType() != JSGraphQLEndpointFileType.INSTANCE && !GraphQLFileType.isGraphQLScratchFile(myProject, virtualFile)) {
-            return null;
+            if (!GraphQLFindUsagesUtil.getService().getIncludedFileTypes().contains(virtualFile.getFileType())) {
+                return null;
+            }
         }
         try {
             readLock.lock();
