@@ -180,7 +180,7 @@ public class GraphQLPsiSearchHelper {
                 // include the fragments in the currently edited scratch file
                 schemaScope = schemaScope.union(GlobalSearchScope.fileScope(scopedElement.getContainingFile()));
             }
-            PsiSearchHelper.SERVICE.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
+            PsiSearchHelper.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
                 if (psiElement.getNode().getElementType() == GraphQLElementTypes.FRAGMENT_KEYWORD) {
                     final GraphQLFragmentDefinition fragmentDefinition = PsiTreeUtil.getParentOfType(psiElement, GraphQLFragmentDefinition.class);
                     if (fragmentDefinition != null && fragmentDefinition.getNameIdentifier() != null) {
@@ -223,7 +223,7 @@ public class GraphQLPsiSearchHelper {
         try {
             final GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
             final Set<GraphQLFile> introspectionFiles = Sets.newLinkedHashSet();
-            PsiSearchHelper.SERVICE.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
+            PsiSearchHelper.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
                 if (psiElement instanceof PsiNamedElement) {
                     return predicate.test((PsiNamedElement) psiElement);
                 }
