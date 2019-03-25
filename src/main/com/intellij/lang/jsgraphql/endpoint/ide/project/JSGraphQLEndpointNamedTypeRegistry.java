@@ -273,6 +273,14 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
                     registry.add(builder.build());
                 }
 
+            } else if (psiDefinition instanceof JSGraphQLEndpointScalarTypeDefinition) {
+                final JSGraphQLEndpointScalarTypeDefinition scalarTypeDefinition = (JSGraphQLEndpointScalarTypeDefinition) psiDefinition;
+                final JSGraphQLEndpointNamedTypeDef scalarName = scalarTypeDefinition.getNamedTypeDef();
+                if (scalarName != null) {
+                    final SourceLocation sourceLocation = getSourceLocation(psiDefinition);
+                    final Description description = getDescription(scalarTypeDefinition, sourceLocation);
+                    registry.add(ScalarTypeDefinition.newScalarTypeDefinition().name(scalarName.getName()).description(description).sourceLocation(sourceLocation).build());
+                }
             }
         });
 
