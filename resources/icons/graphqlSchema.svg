@@ -5,7 +5,7 @@
 	.st0{opacity:0.8;fill:#9AA7B0;enable-background:new    ;}
 	.st1{fill:#DF0098;}
 	.st2{fill-rule:evenodd;clip-rule:evenodd;fill:#DF0098;}
-	.st3{opacity:0.6;fill:#FFFFFF;}
+	.st3{opacity:0.5;fill:#FFFFFF;}
 </style>
 <g id="ear">
 	<title>text</title>
@@ -22,7 +22,7 @@
 	</g>
 </g>
 <g id="schema">
-	<rect y="7" class="st1" width="8" height="7"/>
+	<rect y="8" class="st1" width="8" height="5"/>
 </g>
 <g id="logo">
 	<g transform="translate(1.08 .5)">
@@ -41,11 +41,7 @@
 	</g>
 </g>
 <g id="types">
-	<rect x="1" y="8" class="st3" width="1" height="1"/>
-	<rect x="1" y="10" class="st3" width="1" height="1"/>
-	<rect x="3" y="10" class="st3" width="2" height="1"/>
-	<rect x="3" y="8" class="st3" width="2" height="1"/>
-	<rect x="1" y="12" class="st3" width="1" height="1"/>
-	<rect x="3" y="12" class="st3" width="2" height="1"/>
+	<rect x="1" y="9" class="st3" width="5" height="1"/>
+	<rect x="1" y="11" class="st3" width="5" height="1"/>
 </g>
 </svg>
