@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.actions.ContextHelpAction;
 import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAction;
@@ -23,6 +24,7 @@ import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.Ref;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
@@ -30,8 +32,6 @@ import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.SimpleTreeBuilder;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
-import com.intellij.util.Alarm;
-import com.intellij.util.AlarmFactory;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
@@ -91,12 +91,18 @@ public class GraphQLSchemasPanel extends JPanel {
         SimpleTreeBuilder myBuilder = new SimpleTreeBuilder(myTree, treeModel, treeStructure, IndexComparator.INSTANCE);
         Disposer.register(myProject, myBuilder);
 
-        // debounce tree updates to prevent perf-hit
-        final Alarm treeUpdaterAlarm = AlarmFactory.getInstance().create();
+        // queue tree updates for when the user is idle to prevent perf-hit in the editor
+        final IdeEventQueue ideEventQueue = IdeEventQueue.getInstance();
+        final Ref<Boolean> hasListener = Ref.create(false);
         final Runnable treeUpdater = () -> myBuilder.updateFromRoot(true);
+
         final Runnable queueTreeUpdater = () -> {
-            treeUpdaterAlarm.cancelRequest(treeUpdater);
-            treeUpdaterAlarm.addRequest(treeUpdater, 500);
+            if (hasListener.get()) {
+                ideEventQueue.removeIdleListener(treeUpdater);
+                myBuilder.getUi().cancelUpdate();
+            }
+            ideEventQueue.addIdleListener(treeUpdater, 750);
+            hasListener.set(true);
         };
 
         // update tree on schema or config changes
