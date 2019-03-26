@@ -31,6 +31,10 @@ public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl impl
             // this object value is an argument value, so the type scope is defined by the argument type
             return ((GraphQLTypeScopeProvider) parent).getTypeScope();
         }
+        if(parent instanceof GraphQLArrayValue && parent.getParent() instanceof GraphQLTypeScopeProvider) {
+            // this object value is an argument value inside an array, so the type scope is defined by the argument type
+            return ((GraphQLTypeScopeProvider) parent.getParent()).getTypeScope();
+        }
         if(parent instanceof GraphQLDefaultValue) {
             // this object is the default value
             final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(parent, GraphQLInputValueDefinitionImpl.class);
