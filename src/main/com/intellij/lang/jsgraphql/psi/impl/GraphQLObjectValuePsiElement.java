@@ -33,7 +33,12 @@ public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl impl
         }
         if(parent instanceof GraphQLArrayValue && parent.getParent() instanceof GraphQLTypeScopeProvider) {
             // this object value is an argument value inside an array, so the type scope is defined by the argument type
-            return ((GraphQLTypeScopeProvider) parent.getParent()).getTypeScope();
+            GraphQLType typeScope = ((GraphQLTypeScopeProvider) parent.getParent()).getTypeScope();
+            if (typeScope != null) {
+                // unwrap non-null and array type since this object is an element in the array list type
+                typeScope = GraphQLUtil.getUnmodifiedType(typeScope);
+            }
+            return typeScope;
         }
         if(parent instanceof GraphQLDefaultValue) {
             // this object is the default value
