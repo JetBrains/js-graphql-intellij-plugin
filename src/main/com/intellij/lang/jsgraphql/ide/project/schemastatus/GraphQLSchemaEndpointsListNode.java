@@ -24,6 +24,7 @@ import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.awt.RelativePoint;
+import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 
@@ -39,7 +40,7 @@ import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProj
 /**
  * Tree node which provides a schema endpoints list
  */
-public class GraphQLSchemaEndpointsListNode extends SimpleNode {
+public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
 
     private final String projectKey;
     private final List<GraphQLConfigEndpoint> endpoints;
@@ -53,7 +54,7 @@ public class GraphQLSchemaEndpointsListNode extends SimpleNode {
     }
 
     @Override
-    public SimpleNode[] getChildren() {
+    public SimpleNode[] buildChildren() {
         if (endpoints == null) {
             return new SimpleNode[]{new DefaultEndpointNode(myProject)};
         } else {

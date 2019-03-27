@@ -17,6 +17,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import graphql.language.*;
@@ -34,7 +35,7 @@ import java.util.Optional;
 /**
  * Tree node which provides schema statistics
  */
-public class GraphQLSchemaContentNode extends SimpleNode {
+public class GraphQLSchemaContentNode extends CachingSimpleNode {
 
     private final GraphQLSchemaWithErrors schemaWithErrors;
 
@@ -143,7 +144,7 @@ public class GraphQLSchemaContentNode extends SimpleNode {
     }
 
     @Override
-    public SimpleNode[] getChildren() {
+    public SimpleNode[] buildChildren() {
         return SimpleNode.NO_CHILDREN;
     }
 

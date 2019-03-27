@@ -58,7 +58,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         graphQLConfigManager = GraphQLConfigManager.getService(project);
         project.getMessageBus().connect().subscribe(GraphQLSchemaChangeListener.TOPIC, new GraphQLSchemaEventListener() {
             @Override
-            public void onGraphQLSchemaChanged() {
+            public void onGraphQLSchemaChanged(Integer schemaVersion) {
                 endpointTypesByName.clear();
                 endpointEntryPsiFile.clear();
                 projectToRegistry.clear();

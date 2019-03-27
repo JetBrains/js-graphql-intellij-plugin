@@ -14,6 +14,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,12 +23,12 @@ import java.util.List;
 /**
  * Tree node that represents the default project schema when no .graphqlconfig files exist
  */
-public class GraphQLDefaultSchemaNode extends SimpleNode {
+public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
 
     private final GraphQLSchemaWithErrors schemaWithErrors;
 
-    protected GraphQLDefaultSchemaNode(Project project) {
-        super(project);
+    protected GraphQLDefaultSchemaNode(Project project, GraphQLSchemasRootNode graphQLSchemasRootNode) {
+        super(project, graphQLSchemasRootNode);
         myName = "Default project-wide schema";
         getPresentation().setLocationString(project.getPresentableUrl());
         getPresentation().setIcon(JSGraphQLIcons.Files.GraphQLSchema);
@@ -37,7 +38,7 @@ public class GraphQLDefaultSchemaNode extends SimpleNode {
     }
 
     @Override
-    public SimpleNode[] getChildren() {
+    public SimpleNode[] buildChildren() {
         final List<SimpleNode> children = Lists.newArrayList(new GraphQLSchemaContentNode(this, schemaWithErrors));
         if (schemaWithErrors.getRegistry().isProcessedGraphQL()) {
             children.add(new GraphQLSchemaErrorsListNode(this, schemaWithErrors));

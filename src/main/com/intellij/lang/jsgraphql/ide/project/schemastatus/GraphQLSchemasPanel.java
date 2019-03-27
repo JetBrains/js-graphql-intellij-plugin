@@ -15,16 +15,17 @@ import com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAct
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.DumbServiceImpl;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Ref;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
@@ -43,6 +44,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import java.awt.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Tool window panel that shows the status of the GraphQL schemas discovered in the project.
@@ -57,6 +59,12 @@ public class GraphQLSchemasPanel extends JPanel {
         myProject = project;
         add(createToolPanel(), BorderLayout.WEST);
         add(createTreePanel(), BorderLayout.CENTER);
+    }
+
+    enum TreeUpdate {
+        NONE,
+        UPDATE,
+        REBUILD
     }
 
     private Component createTreePanel() {
@@ -86,43 +94,76 @@ public class GraphQLSchemasPanel extends JPanel {
         TreeUtil.installActions(myTree);
         UIUtil.setLineStyleAngled(myTree);
 
-        SimpleTreeStructure.Impl treeStructure = new SimpleTreeStructure.Impl(new GraphQLSchemasRootNode(myProject));
-        DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
-        SimpleTreeBuilder myBuilder = new SimpleTreeBuilder(myTree, treeModel, treeStructure, IndexComparator.INSTANCE);
+        final Application application = ApplicationManager.getApplication();
+
+        final SimpleTreeStructure.Impl treeStructure = new SimpleTreeStructure.Impl(new GraphQLSchemasRootNode(myProject));
+        final DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
+        final SimpleTreeBuilder myBuilder = new SimpleTreeBuilder(myTree, treeModel, treeStructure, IndexComparator.INSTANCE) {
+            @Override
+            public boolean isToBuildChildrenInBackground(Object element) {
+                // don't block the UI thread when doing schema discovery in the tree
+                return application.isDispatchThread();
+            }
+        };
         Disposer.register(myProject, myBuilder);
 
         // queue tree updates for when the user is idle to prevent perf-hit in the editor
-        final IdeEventQueue ideEventQueue = IdeEventQueue.getInstance();
-        final Ref<Boolean> hasListener = Ref.create(false);
-        final Runnable treeUpdater = () -> myBuilder.updateFromRoot(true);
-
-        final Runnable queueTreeUpdater = () -> {
-            if (hasListener.get()) {
-                ideEventQueue.removeIdleListener(treeUpdater);
-                myBuilder.getUi().cancelUpdate();
+        final AtomicReference<TreeUpdate> shouldUpdateTree = new AtomicReference<>(TreeUpdate.NONE);
+        final AtomicReference<Integer> currentSchemaVersion = new AtomicReference<>(null);
+        final Runnable treeUpdater = () -> {
+            final TreeUpdate updateToPerform = shouldUpdateTree.getAndSet(TreeUpdate.NONE);
+            if (updateToPerform != TreeUpdate.NONE) {
+                final Integer startVersion = currentSchemaVersion.get();
+                myBuilder.cancelUpdate().doWhenProcessed(() -> {
+                    application.executeOnPooledThread(() -> {
+                        // run the schema discovery on a pooled to prevent blocking of the UI thread by asking the nodes for heir child nodes
+                        // the schema caches will be ready when the UI thread then needs to show the tree nodes
+                        try {
+                            application.runReadAction(() -> {
+                                // use read action to enable use of indexes
+                                final GraphQLSchemasRootNode root = (GraphQLSchemasRootNode) treeStructure.getRootElement();
+                                for (SimpleNode schemaNode : root.getChildren()) {
+                                    for (SimpleNode node : schemaNode.getChildren()) {
+                                        node.getChildren();
+                                    }
+                                }
+                                final Integer endVersion = currentSchemaVersion.get();
+                                if (startVersion == null || startVersion.equals(endVersion)) {
+                                    // initial update or we're still on the same version
+                                    // otherwise a new update is pending so don't need to call the updateFromRoot in this thread
+                                    myBuilder.updateFromRoot(updateToPerform == TreeUpdate.REBUILD);
+                                }
+                            });
+                        } catch (IndexNotReadyException | ProcessCanceledException ignored) {
+                            // allowed to happen here -- retry will run later
+                        }
+                    });
+                });
             }
-            ideEventQueue.addIdleListener(treeUpdater, 750);
-            hasListener.set(true);
         };
+
+        // update the tree after being idle for a short while
+        IdeEventQueue.getInstance().addIdleListener(treeUpdater, 750);
 
         // update tree on schema or config changes
         final MessageBusConnection connection = myProject.getMessageBus().connect();
-        connection.subscribe(GraphQLSchemaChangeListener.TOPIC, queueTreeUpdater::run);
-        connection.subscribe(GraphQLConfigManager.TOPIC, queueTreeUpdater::run);
+        connection.subscribe(GraphQLSchemaChangeListener.TOPIC, (schemaVersion) -> {
+            currentSchemaVersion.set(schemaVersion);
+            shouldUpdateTree.compareAndSet(TreeUpdate.NONE, TreeUpdate.UPDATE);
+        });
+        connection.subscribe(GraphQLConfigManager.TOPIC, () -> shouldUpdateTree.set(TreeUpdate.REBUILD));
 
-        // Need indexing to be ready to build schema status
-        DumbServiceImpl.getInstance(myProject).smartInvokeLater(myBuilder::initRootNode);
 
         // update tree in response to indexing changes
         connection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
             @Override
             public void enteredDumbMode() {
-                myBuilder.updateFromRoot(true);
+                shouldUpdateTree.set(TreeUpdate.REBUILD);
             }
 
             @Override
             public void exitDumbMode() {
-                myBuilder.updateFromRoot(true);
+                shouldUpdateTree.set(TreeUpdate.REBUILD);
             }
         });
 
@@ -141,7 +182,7 @@ public class GraphQLSchemasPanel extends JPanel {
                         return false;
                     });
                     if (schemaNode != null) {
-                        myBuilder.updateFromRoot(false); // re-renders from GraphQLConfigSchemaNode.update() being called
+                        shouldUpdateTree.set(TreeUpdate.UPDATE);
                     }
                 }
             }
@@ -214,7 +255,7 @@ public class GraphQLSchemasPanel extends JPanel {
         leftActionGroup.add(new AnAction("Restart schema discovery", "Performs GraphQL schema discovery across the project", AllIcons.Actions.Refresh) {
             @Override
             public void actionPerformed(AnActionEvent e) {
-                myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeListener.TOPIC).onGraphQLSchemaChanged();
+                myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeListener.TOPIC).onGraphQLSchemaChanged(null);
                 GraphQLConfigManager.getService(myProject).buildConfigurationModel(null, null);
             }
         });

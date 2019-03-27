@@ -13,6 +13,7 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.ExceptionUtil;
@@ -25,7 +26,7 @@ import java.util.List;
 /**
  * Tree node for an error in a GraphQL schema
  */
-public class GraphQLSchemaErrorNode extends SimpleNode {
+public class GraphQLSchemaErrorNode extends CachingSimpleNode {
 
     private final GraphQLError error;
 
@@ -55,7 +56,7 @@ public class GraphQLSchemaErrorNode extends SimpleNode {
     }
 
     @Override
-    public SimpleNode[] getChildren() {
+    public SimpleNode[] buildChildren() {
         return SimpleNode.NO_CHILDREN;
     }
 

@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
+import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import graphql.GraphQLError;
 
@@ -18,7 +19,7 @@ import java.util.List;
 /**
  * Tree node with children for each error in a GraphQL schema
  */
-public class GraphQLSchemaErrorsListNode extends SimpleNode {
+public class GraphQLSchemaErrorsListNode extends CachingSimpleNode {
 
     private final GraphQLSchemaWithErrors schemaWithErrors;
 
@@ -30,7 +31,7 @@ public class GraphQLSchemaErrorsListNode extends SimpleNode {
     }
 
     @Override
-    public SimpleNode[] getChildren() {
+    public SimpleNode[] buildChildren() {
         if  (!schemaWithErrors.getRegistry().isProcessedGraphQL()) {
             // no GraphQL PSI files parse yet, so no need to show the "no query defined" error for a non-existing schema
             return SimpleNode.NO_CHILDREN;

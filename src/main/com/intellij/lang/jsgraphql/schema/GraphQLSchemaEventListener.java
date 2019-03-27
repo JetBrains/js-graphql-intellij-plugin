@@ -7,6 +7,8 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.EventListener;
 
 /**
@@ -17,5 +19,5 @@ public interface GraphQLSchemaEventListener extends EventListener {
     /**
      * One or more GraphQL schema changes are likely based on changed to the PSI trees
      */
-    void onGraphQLSchemaChanged();
+    void onGraphQLSchemaChanged(@Nullable Integer schemaVersion);
 }

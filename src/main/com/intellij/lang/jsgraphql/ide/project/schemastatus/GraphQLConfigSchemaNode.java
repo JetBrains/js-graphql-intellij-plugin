@@ -22,9 +22,12 @@ import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceIm
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.intellij.util.ui.UIUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +37,7 @@ import java.util.Map;
 /**
  * Tree node that represents the a graphql-config schema
  */
-public class GraphQLConfigSchemaNode extends SimpleNode {
+public class GraphQLConfigSchemaNode extends CachingSimpleNode {
 
     private final GraphQLSchemaWithErrors schemaWithErrors;
     private final GraphQLConfigManager configManager;
@@ -48,8 +51,8 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
     private Map<String, GraphQLResolvedConfigData> projectsConfigData;
     private boolean performSchemaDiscovery = true;
 
-    protected GraphQLConfigSchemaNode(Project project, GraphQLConfigManager configManager, GraphQLResolvedConfigData configData, VirtualFile configBaseDir) {
-        super(project);
+    protected GraphQLConfigSchemaNode(Project project, SimpleNode parent, GraphQLConfigManager configManager, GraphQLResolvedConfigData configData, VirtualFile configBaseDir) {
+        super(project, parent);
         this.configManager = configManager;
         this.configData = configData;
         this.configBaseDir = configBaseDir;
@@ -116,7 +119,7 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
     }
 
     @Override
-    public SimpleNode[] getChildren() {
+    public SimpleNode[] buildChildren() {
         final List<SimpleNode> children = Lists.newArrayList();
         if (performSchemaDiscovery) {
             children.add(new GraphQLSchemaContentNode(this, schemaWithErrors));
@@ -146,26 +149,31 @@ public class GraphQLConfigSchemaNode extends SimpleNode {
     }
 
     private boolean representsCurrentFile() {
-        return representsFile(FileEditorManagerEx.getInstanceEx(myProject).getCurrentFile());
+        final Ref<Boolean> represents = Ref.create(false);
+        final FileEditorManagerEx fileEditorManagerEx = FileEditorManagerEx.getInstanceEx(myProject);
+        UIUtil.invokeLaterIfNeeded(() -> {
+            represents.set(representsFile(fileEditorManagerEx.getCurrentFile()));
+        });
+        return represents.get();
     }
 
-    private static class GraphQLConfigProjectsNode extends SimpleNode {
+    private static class GraphQLConfigProjectsNode extends CachingSimpleNode {
 
         private final GraphQLConfigSchemaNode parent;
 
         public GraphQLConfigProjectsNode(GraphQLConfigSchemaNode parent) {
-            super(parent.myProject);
+            super(parent.myProject, parent);
             this.parent = parent;
             myName = "Projects";
             setIcon(AllIcons.Nodes.Folder);
         }
 
         @Override
-        public SimpleNode[] getChildren() {
+        public SimpleNode[] buildChildren() {
             if (parent.projectsConfigData != null) {
                 try {
                     return parent.projectsConfigData.values().stream().map(config -> {
-                        return new GraphQLConfigSchemaNode(myProject, parent.configManager, config, parent.configBaseDir);
+                        return new GraphQLConfigSchemaNode(myProject, this, parent.configManager, config, parent.configBaseDir);
                     }).toArray(SimpleNode[]::new);
                 } catch (IndexNotReadyException ignored) {
                     // entered "dumb" mode, so just return no children as the tree view will be rebuilt as empty shortly (GraphQLSchemasRootNode)

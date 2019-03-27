@@ -27,6 +27,7 @@ import com.intellij.util.messages.Topic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Tracks PSI changes that can affect declared GraphQL schemas
@@ -47,6 +48,8 @@ public class GraphQLSchemaChangeListener {
     private final Project myProject;
     private final PsiTreeChangeAdapter listener;
     private final PsiManager psiManager;
+
+    private AtomicInteger schemaVersion = new AtomicInteger(0);
 
     public GraphQLSchemaChangeListener(Project project) {
         myProject = project;
@@ -134,7 +137,8 @@ public class GraphQLSchemaChangeListener {
     }
 
     private void signalSchemaChanged() {
-        myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeListener.TOPIC).onGraphQLSchemaChanged();
+        final int nextVersion = this.schemaVersion.incrementAndGet();
+        myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeListener.TOPIC).onGraphQLSchemaChanged(nextVersion);
     }
 
     /**

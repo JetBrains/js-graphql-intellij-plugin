@@ -43,7 +43,7 @@ public class GraphQLTypeDefinitionRegistryServiceImpl implements GraphQLTypeDefi
         this.project = project;
         project.getMessageBus().connect().subscribe(GraphQLSchemaChangeListener.TOPIC, new GraphQLSchemaEventListener() {
             @Override
-            public void onGraphQLSchemaChanged() {
+            public void onGraphQLSchemaChanged(Integer schemaVersion) {
                 // clear the cache on each PSI change
                 fileNameToRegistry.clear();
                 fileNameToSchema.clear();

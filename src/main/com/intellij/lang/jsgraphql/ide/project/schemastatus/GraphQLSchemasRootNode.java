@@ -45,10 +45,10 @@ public class GraphQLSchemasRootNode extends SimpleNode {
             }
             final List<SimpleNode> children = Lists.newArrayList();
             for (Map.Entry<VirtualFile, GraphQLConfigData> entry : configManager.getConfigurationsByPath().entrySet()) {
-                children.add(new GraphQLConfigSchemaNode(myProject, configManager, entry.getValue(), entry.getKey()));
+                children.add(new GraphQLConfigSchemaNode(myProject, this, configManager, entry.getValue(), entry.getKey()));
             }
             if (children.isEmpty()) {
-                children.add(new GraphQLDefaultSchemaNode(myProject));
+                children.add(new GraphQLDefaultSchemaNode(myProject, this));
             }
             children.sort(Comparator.comparing(PresentableNodeDescriptor::getName));
             return children.toArray(SimpleNode.NO_CHILDREN);
