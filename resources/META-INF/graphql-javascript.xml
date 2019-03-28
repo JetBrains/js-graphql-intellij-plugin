@@ -7,7 +7,7 @@
 
         <!-- Language Injection -->
         <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLTemplateFragmentLanguageInjector" order="first" />
-        <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLJavascriptInjectionSearchHelper" />
+        <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLJavascriptInjectionSearchHelper" />
 
         <!-- Indexing -->
         <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLInjectionIndex"/>

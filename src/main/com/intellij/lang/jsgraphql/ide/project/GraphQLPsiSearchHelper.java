@@ -14,10 +14,12 @@ import com.google.common.collect.Sets;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.json.psi.JsonStringLiteral;
+import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex;
 import com.intellij.lang.jsgraphql.ide.project.scopes.ConditionalGlobalSearchScope;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.*;
@@ -33,6 +35,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.AnyPsiChangeListener;
@@ -44,6 +47,8 @@ import com.intellij.psi.search.UsageSearchContext;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.util.Processor;
+import com.intellij.util.indexing.FileBasedIndex;
 import org.apache.commons.compress.utils.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
  * Enables cross-file searches for PSI references
@@ -76,6 +80,9 @@ public class GraphQLPsiSearchHelper {
     private final GraphQLConfigManager graphQLConfigManager;
 
     private GraphQLFile defaultProjectFile;
+    private PsiManager psiManager;
+    private GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
+    private final InjectedLanguageManager injectedLanguageManager;
 
     public static GraphQLPsiSearchHelper getService(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLPsiSearchHelper.class);
@@ -85,6 +92,9 @@ public class GraphQLPsiSearchHelper {
     public GraphQLPsiSearchHelper(@NotNull final Project project) {
         myProject = project;
         mySettings = GraphQLSettings.getSettings(project);
+        psiManager = PsiManager.getInstance(myProject);
+        graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
+        injectedLanguageManager = InjectedLanguageManager.getInstance(myProject);
         graphQLConfigManager = GraphQLConfigManager.getService(myProject);
         pluginDescriptor = PluginManager.getPlugin(PluginId.getId("com.intellij.lang.jsgraphql"));
 
@@ -180,6 +190,7 @@ public class GraphQLPsiSearchHelper {
                 // include the fragments in the currently edited scratch file
                 schemaScope = schemaScope.union(GlobalSearchScope.fileScope(scopedElement.getContainingFile()));
             }
+            // TODO JKM create fragment index
             PsiSearchHelper.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
                 if (psiElement.getNode().getElementType() == GraphQLElementTypes.FRAGMENT_KEYWORD) {
                     final GraphQLFragmentDefinition fragmentDefinition = PsiTreeUtil.getParentOfType(psiElement, GraphQLFragmentDefinition.class);
@@ -217,32 +228,76 @@ public class GraphQLPsiSearchHelper {
     }
 
     /**
+     * Processes GraphQL identifiers whose name matches the specified word within the given schema scope.
+     * @param schemaScope the schema scope which limits the processing
+     * @param word the word to match identifiers for
+     * @param processor processor called for all GraphQL identifiers whose name match the specified word
+     * @see GraphQLIdentifierIndex
+     */
+    private void processElementsWithWordUsingIdentifierIndex(GlobalSearchScope schemaScope, String word, Processor<PsiNamedElement> processor) {
+        FileBasedIndex.getInstance().getFilesWithKey(GraphQLIdentifierIndex.NAME, Collections.singleton(word), virtualFile -> {
+            final PsiFile psiFile = psiManager.findFile(virtualFile);
+            final Ref<Boolean> continueProcessing = Ref.create(true);
+            if (psiFile != null) {
+                final Set<GraphQLFile> introspectionFiles = Sets.newHashSetWithExpectedSize(1);
+                final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
+                identifierVisitor.set(new PsiRecursiveElementVisitor() {
+                    @Override
+                    public void visitElement(PsiElement element) {
+                        if (!continueProcessing.get()) {
+                            return; // done visiting as the processor returned false
+                        }
+                        if (element instanceof PsiNamedElement) {
+                            final String name = ((PsiNamedElement) element).getName();
+                            if (word.equals(name)) {
+                                // found an element with a name that matches
+                                continueProcessing.set(processor.process((PsiNamedElement) element));
+                            }
+                            if (!continueProcessing.get()) {
+                                return; // no need to visit other elements
+                            }
+                        } else if (element instanceof JsonStringLiteral) {
+                            final GraphQLFile graphQLFile = element.getContainingFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
+                            if (graphQLFile != null && introspectionFiles.add(graphQLFile)) {
+                                // index the associated introspection SDL from a JSON introspection result file
+                                graphQLFile.accept(identifierVisitor.get());
+                            }
+                            return; // no need to visit deeper
+                        } else if (element instanceof PsiLanguageInjectionHost && graphQLInjectionSearchHelper != null) {
+                            if (graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(element)) {
+                                injectedLanguageManager.enumerateEx(element, element.getContainingFile(), false, (injectedPsi, places) -> {
+                                    injectedPsi.accept(identifierVisitor.get());
+                                });
+                                return;
+                            }
+                        }
+                        super.visitElement(element);
+                    }
+                });
+
+                psiFile.accept(identifierVisitor.get());
+            }
+            return continueProcessing.get();
+        }, schemaScope);
+    }
+
+    /**
      * Processes all named elements that match the specified word, e.g. the declaration of a type name
      */
-    public void processElementsWithWord(PsiElement scopedElement, String word, Predicate<PsiNamedElement> predicate) {
+    public void processElementsWithWord(PsiElement scopedElement, String word, Processor<PsiNamedElement> processor) {
         try {
             final GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
-            final Set<GraphQLFile> introspectionFiles = Sets.newLinkedHashSet();
-            PsiSearchHelper.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
-                if (psiElement instanceof PsiNamedElement) {
-                    return predicate.test((PsiNamedElement) psiElement);
-                }
-                if (psiElement instanceof JsonStringLiteral) {
-                    // the word appears in introspection JSON so get the GraphQL SDL file
-                    final GraphQLFile graphQLFile = psiElement.getContainingFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
-                    if (graphQLFile != null) {
-                        introspectionFiles.add(graphQLFile);
-                    }
-                }
-                return true;
-            }, schemaScope, word, UsageSearchContext.IN_CODE, true, true);
+
+            processElementsWithWordUsingIdentifierIndex(schemaScope, word, processor);
 
             // also include the built-in schemas
             final PsiRecursiveElementVisitor builtInFileVisitor = new PsiRecursiveElementVisitor() {
                 @Override
                 public void visitElement(PsiElement element) {
                     if (element instanceof PsiNamedElement && word.equals(element.getText())) {
-                        predicate.test((PsiNamedElement) element);
+                        if (!processor.process((PsiNamedElement) element)) {
+                            return; // done processing
+                        }
                     }
                     super.visitElement(element);
                 }
@@ -250,9 +305,6 @@ public class GraphQLPsiSearchHelper {
 
             // spec schema
             getBuiltInSchema().accept(builtInFileVisitor);
-
-            // introspection files (GraphQL SDL created from JSON)
-            introspectionFiles.forEach(file -> file.accept(builtInFileVisitor));
 
             // relay schema if enabled
             final PsiFile relayModernDirectivesSchema = getRelayModernDirectivesSchema();
@@ -325,7 +377,6 @@ public class GraphQLPsiSearchHelper {
      * @param consumer      a consumer that will be invoked for each injected GraphQL PsiFile
      */
     public void processInjectedGraphQLPsiFiles(PsiElement scopedElement, GlobalSearchScope schemaScope, Consumer<PsiFile> consumer) {
-        GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = ServiceManager.getService(myProject, GraphQLInjectionSearchHelper.class);
         if (graphQLInjectionSearchHelper != null) {
             graphQLInjectionSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, consumer);
         }

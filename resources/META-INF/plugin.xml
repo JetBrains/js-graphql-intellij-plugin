@@ -100,6 +100,9 @@
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" serviceImplementation="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" />
 
+    <!-- Indexing -->
+    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex" />
+
     <!-- Startup -->
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.endpoint.ide.startup.GraphQLStartupActivity" />
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigProjectStartupActivity" />
