@@ -19,6 +19,7 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex;
 import com.intellij.lang.jsgraphql.ide.project.scopes.ConditionalGlobalSearchScope;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
@@ -42,10 +43,7 @@ import com.intellij.psi.impl.AnyPsiChangeListener;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.GlobalSearchScopesCore;
-import com.intellij.psi.search.PsiSearchHelper;
-import com.intellij.psi.search.UsageSearchContext;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
@@ -73,7 +71,6 @@ public class GraphQLPsiSearchHelper {
     private final Project myProject;
     private final GraphQLSettings mySettings;
     private final PluginDescriptor pluginDescriptor;
-    private final Map<String, GraphQLFragmentDefinition> fragmentDefinitionsByName = Maps.newConcurrentMap();
     private final Map<String, GlobalSearchScope> fileNameToSchemaScope = Maps.newConcurrentMap();
     private final GlobalSearchScope searchScope;
     private final GlobalSearchScope allBuiltInSchemaScopes;
@@ -115,7 +112,6 @@ public class GraphQLPsiSearchHelper {
             @Override
             public void beforePsiChanged(boolean isPhysical) {
                 // clear the cache on each PSI change
-                fragmentDefinitionsByName.clear();
                 fileNameToSchemaScope.clear();
             }
         });
@@ -190,21 +186,54 @@ public class GraphQLPsiSearchHelper {
                 // include the fragments in the currently edited scratch file
                 schemaScope = schemaScope.union(GlobalSearchScope.fileScope(scopedElement.getContainingFile()));
             }
-            // TODO JKM create fragment index
-            PsiSearchHelper.getInstance(myProject).processElementsWithWord((psiElement, offsetInElement) -> {
-                if (psiElement.getNode().getElementType() == GraphQLElementTypes.FRAGMENT_KEYWORD) {
-                    final GraphQLFragmentDefinition fragmentDefinition = PsiTreeUtil.getParentOfType(psiElement, GraphQLFragmentDefinition.class);
-                    if (fragmentDefinition != null && fragmentDefinition.getNameIdentifier() != null) {
-                        fragmentDefinitions.add(fragmentDefinition);
-                    }
+
+            final PsiManager psiManager = PsiManager.getInstance(myProject);
+
+            FileBasedIndex.getInstance().processFilesContainingAllKeys(GraphQLFragmentNameIndex.NAME, Collections.singleton(GraphQLFragmentNameIndex.HAS_FRAGMENTS), schemaScope, null, virtualFile -> {
+
+                final PsiFile psiFile = psiManager.findFile(virtualFile);
+                if (psiFile != null) {
+                    final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
+                    identifierVisitor.set(new PsiRecursiveElementVisitor() {
+                        @Override
+                        public void visitElement(PsiElement element) {
+                            if (element instanceof GraphQLDefinition) {
+                                if (element instanceof GraphQLFragmentDefinition) {
+                                    fragmentDefinitions.add((GraphQLFragmentDefinition) element);
+                                }
+                                return; // no need to visit deeper than definitions since fragments are top level
+                            } else if (element instanceof PsiLanguageInjectionHost) {
+                                if (visitLanguageInjectionHost((PsiLanguageInjectionHost) element, identifierVisitor)) {
+                                    return;
+                                }
+                            }
+                            super.visitElement(element);
+                        }
+                    });
+                    psiFile.accept(identifierVisitor.get());
                 }
-                return true;
-            }, schemaScope, "fragment", UsageSearchContext.IN_CODE, true, true);
+
+                return true; // process all known fragments
+            });
             return fragmentDefinitions;
         } catch (IndexNotReadyException e) {
             // can't search yet (e.g. during project startup)
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * Visits the potential GraphQL injection inside an injection host
+     * @return true if the host contained GraphQL and was visited, false otherwise
+     */
+    private boolean visitLanguageInjectionHost(PsiLanguageInjectionHost element, Ref<PsiRecursiveElementVisitor> identifierVisitor) {
+        if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(element)) {
+            injectedLanguageManager.enumerateEx(element, element.getContainingFile(), false, (injectedPsi, places) -> {
+                injectedPsi.accept(identifierVisitor.get());
+            });
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -230,8 +259,8 @@ public class GraphQLPsiSearchHelper {
     /**
      * Processes GraphQL identifiers whose name matches the specified word within the given schema scope.
      * @param schemaScope the schema scope which limits the processing
-     * @param word the word to match identifiers for
-     * @param processor processor called for all GraphQL identifiers whose name match the specified word
+     * @param word        the word to match identifiers for
+     * @param processor   processor called for all GraphQL identifiers whose name match the specified word
      * @see GraphQLIdentifierIndex
      */
     private void processElementsWithWordUsingIdentifierIndex(GlobalSearchScope schemaScope, String word, Processor<PsiNamedElement> processor) {
@@ -263,11 +292,8 @@ public class GraphQLPsiSearchHelper {
                                 graphQLFile.accept(identifierVisitor.get());
                             }
                             return; // no need to visit deeper
-                        } else if (element instanceof PsiLanguageInjectionHost && graphQLInjectionSearchHelper != null) {
-                            if (graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(element)) {
-                                injectedLanguageManager.enumerateEx(element, element.getContainingFile(), false, (injectedPsi, places) -> {
-                                    injectedPsi.accept(identifierVisitor.get());
-                                });
+                        } else if (element instanceof PsiLanguageInjectionHost) {
+                            if (visitLanguageInjectionHost((PsiLanguageInjectionHost) element, identifierVisitor)) {
                                 return;
                             }
                         }
