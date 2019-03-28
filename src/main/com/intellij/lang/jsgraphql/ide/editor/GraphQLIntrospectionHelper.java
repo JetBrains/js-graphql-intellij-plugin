@@ -46,6 +46,7 @@ import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
 import com.intellij.util.ExceptionUtil;
 import graphql.GraphQLException;
+import graphql.Scalars;
 import graphql.introspection.IntrospectionQuery;
 import graphql.language.*;
 import graphql.schema.Coercing;
@@ -66,6 +67,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService.setHeadersFromOptions;
+import static graphql.schema.idl.ScalarInfo.STANDARD_SCALARS;
 
 public class GraphQLIntrospectionHelper {
 
@@ -81,6 +83,16 @@ public class GraphQLIntrospectionHelper {
         if (project != null) {
             project.getMessageBus().connect().subscribe(GraphQLConfigManager.TOPIC, () -> latestIntrospection = null);
         }
+
+        // remove the non-spec "graphql-java" standard scalars since we're building a registry based on the actual types present in introspection results
+        STANDARD_SCALARS.remove(Scalars.GraphQLBigDecimal);
+        STANDARD_SCALARS.remove(Scalars.GraphQLBigInteger);
+        STANDARD_SCALARS.remove(Scalars.GraphQLByte);
+        STANDARD_SCALARS.remove(Scalars.GraphQLChar);
+        STANDARD_SCALARS.remove(Scalars.GraphQLShort);
+        STANDARD_SCALARS.remove(Scalars.GraphQLLong);
+
+
     }
 
     public void performIntrospectionQueryAndUpdateSchemaPathFile(Project project, GraphQLConfigEndpoint endpoint) {
