@@ -118,6 +118,9 @@ public class GraphQLSchemasPanel extends JPanel {
                     application.executeOnPooledThread(() -> {
                         // run the schema discovery on a pooled to prevent blocking of the UI thread by asking the nodes for heir child nodes
                         // the schema caches will be ready when the UI thread then needs to show the tree nodes
+                        if (myProject.isDisposed()) {
+                            return;
+                        }
                         try {
                             application.runReadAction(() -> {
                                 // use read action to enable use of indexes
@@ -144,6 +147,8 @@ public class GraphQLSchemasPanel extends JPanel {
 
         // update the tree after being idle for a short while
         IdeEventQueue.getInstance().addIdleListener(treeUpdater, 750);
+
+        Disposer.register(myProject, () -> IdeEventQueue.getInstance().removeIdleListener(treeUpdater));
 
         // update tree on schema or config changes
         final MessageBusConnection connection = myProject.getMessageBus().connect();
