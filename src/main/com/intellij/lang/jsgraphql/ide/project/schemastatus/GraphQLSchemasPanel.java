@@ -8,8 +8,8 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeEventQueue;
-import com.intellij.ide.actions.ContextHelpAction;
 import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAction;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
@@ -264,7 +264,12 @@ public class GraphQLSchemasPanel extends JPanel {
                 GraphQLConfigManager.getService(myProject).buildConfigurationModel(null, null);
             }
         });
-        leftActionGroup.add(new ContextHelpAction(""));
+        leftActionGroup.add(new AnAction("Help", "Open the JS GraphQL Plugin Documentation", AllIcons.Actions.Help) {
+            @Override
+            public void actionPerformed(AnActionEvent e) {
+                BrowserUtil.browse("https://github.com/jimkyndemeyer/js-graphql-intellij-plugin");
+            }
+        });
 
         final JPanel panel = new JPanel(new BorderLayout());
         final ActionManager actionManager = ActionManager.getInstance();
