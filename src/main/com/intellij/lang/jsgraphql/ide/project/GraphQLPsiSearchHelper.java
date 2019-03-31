@@ -44,6 +44,7 @@ import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.GlobalSearchScopesCore;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
@@ -183,8 +184,8 @@ public class GraphQLPsiSearchHelper {
             final List<GraphQLFragmentDefinition> fragmentDefinitions = Lists.newArrayList();
             GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
             if (GraphQLFileType.isGraphQLScratchFile(myProject, getVirtualFile(scopedElement.getContainingFile()))) {
-                // include the fragments in the currently edited scratch file
-                schemaScope = schemaScope.union(GlobalSearchScope.fileScope(scopedElement.getContainingFile()));
+                // include the fragments defined in the currently edited scratch file (scratch files don't appear to be indexed)
+                fragmentDefinitions.addAll(PsiTreeUtil.getChildrenOfTypeAsList(scopedElement.getContainingFile().getOriginalFile(), GraphQLFragmentDefinition.class));
             }
 
             final PsiManager psiManager = PsiManager.getInstance(myProject);
