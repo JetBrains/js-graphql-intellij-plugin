@@ -1,4 +1,8 @@
-# Developer Guide for JS GraphQL IntelliJ Plugin v2
+---
+id: developer-guide
+title: Developer guide
+sidebar_label: Developer guide
+---
 
 This developer guide covers how to setup your project to get the most out of the GraphQL language tooling in this plugin.
 
@@ -16,7 +20,7 @@ The most important aspect of using the plugin is to configure how schema types a
 If the schema types are not discovered correctly, language features such as completion and error highlighting
 will be based on the wrong type information.
 
-Schemas and their types are declared using [GraphQL Type System Definition Language](http://facebook.github.io/graphql/June2018/#sec-Type-System)
+Schemas and their types are declared using [GraphQL Type System Definition Language](https://graphql.github.io/graphql-spec/June2018/#sec-Type-System)
 which is also widely known as GraphQL Schema Definition Language (often abbreviated as SDL).
 
 If you're authoring your schemas in SDL, the plugin provides the following features:
@@ -42,68 +46,39 @@ scope is to prevent types from being picked up in more than one GraphQL type reg
 errors as types appear to have been declared more than once. In addition, the scopes prevent non-conflicting types from
 showing up in completions and ensure that validation only recognizes the types that belong to the current schema.
 
-The plugin allows you to configure your schema scopes in two different ways:
+The plugin allows you to configure your schema scopes using [graphql-config](https://github.com/prismagraphql/graphql-config) configuration files with `includes` and `excludes` glob patterns
 
-- Using the IDE "Settings" page called "Appearance & Behaviour" > ["Scopes"](https://www.jetbrains.com/help/idea/2018.1/settings-scopes.html) with patterns for inclusion and exclusion
-- Using [graphql-config](https://github.com/prismagraphql/graphql-config) configuration files with `includes` and `excludes` glob patterns 
+### Example projects ###
 
-### Setting up Multi-schema Projects using "Appearance & Behaviour" > "Scopes"
-In a multi-schema project, each schema needs its own separate scope.
-
-The recommended structure for multi-schema projects is to place each schema in a separate project module or folder.
-
-For example:
-
-```
-- project root/
-    - product a (schema one)/
-        - schema files and graphql aware components
-    - product b (schema two)/
-        - schema files and graphql aware components
-```
-
-With this structure there is no need to use exclude patterns.
-
-To setup the project, Open "Settings" > "Language & Frameworks" > "GraphQL" and select the "Multiple schemas".
-
-The scopes can be created via the "Edit scopes" link:
-
-- Click "Add scope"
-- Click Shared scope
-- Name it the same as the folder
-- Select "Project" in the drop down above the project tree
-- Select the "product a (schema one)" folder and click the "Include Recursively" button on the right
-- Repeat for other schemas
-
-Given a file which contains GraphQL, the plugin finds the first matching schema scope based on the file name, and then
-proceeds with schema discovery by processing only the files that the scope accepts.
-
-__Points to consider__:
-- You don't have to restrict the patterns to specific file extensions since the plugin only searches relevant file types
-- If you do limit to file extensions, make sure you include file extensions for components that use injected GraphQL, e.g. `.jsx`
-- When adding scopes, use the "Shared" scopes to create scopes that can be checked into source control and used by other
-  developers on the project
-- If you have created scopes for uses other than GraphQL schema discovery, you should place the GraphQL scopes at the top
-  of the list since the first matching scope is used by this plugin  
+See https://github.com/jimkyndemeyer/graphql-config-examples for example uses of `.graphqlconfig` to control schema discovery.
 
 ### Setting up Multi-schema Projects using graphql-config
-The second option for multi-schema projects is graphql-config. With graphql-config you don't get the scopes UI which
-displays the files in the scopes, but it may be the better option if you use other tools that support graphql-config.
-
-To setup the project, Open "Settings" > "Language & Frameworks" > "GraphQL" and select the "graphql-config".
-
 Please familiarize yourself with the [graphql-config format](https://github.com/prismagraphql/graphql-config/blob/master/specification.md)
 before proceeding.
 
 The next step is to decide where to place the `.graphqlconfig` file. The config file controls schema discovery from the
 directory it's placed in, as well as any sub folders that don't have their own `.graphqlconfig`.
  
-To create a `.graphqlconfig` file, right click a folder and select "New GraphQL Configuration File".
+To create a `.graphqlconfig` file, right click a folder and select "New GraphQL Configuration File" or use the "+" Button in the GraphQL Tool window tab called "Schemas and Project Structure".
 
 Depending on your preference, you can use a single `.graphqlconfig` file in a folder that is a parent to each schema
 folder, or you can place `.graphqlconfig` files in each schema folder.
 
-__Option A: Single config file:__
+__Option A: Multiple config files (recommended):__
+
+```
+- project root/
+    - product a (schema one)/
+        - .graphqlconfig <-----
+        - schema files and graphql aware components
+    - product b (schema two)/
+        - .graphqlconfig <-----
+        - schema files and graphql aware components
+```
+
+With this approach the location of the config files creates separate scopes for the two schemas. 
+
+__Option B: Single config file:__
 
 ```
 - project root/
@@ -129,19 +104,6 @@ With a single config file you need to separate the schemas using the `includes` 
 }
 ```
 
-__Option B: Multiple config files:__
-
-```
-- project root/
-    - product a (schema one)/
-        - .graphqlconfig <-----
-        - schema files and graphql aware components
-    - product b (schema two)/
-        - .graphqlconfig <-----
-        - schema files and graphql aware components
-```
-
-With this approach the location of the config files creates separate scopes for the two schemas. 
 
 ### Working with GraphQL Endpoints and Scratch Files
 
@@ -156,16 +118,26 @@ toolbar button in the top left side of the scratch file editor.
 See https://github.com/prisma/graphql-config#specifying-endpoint-info for the expected format of endpoint details such as
 the URL, headers etc.
 
-GraphQL scratch files use the following rules for schema discovery and endpoints:
+The following example is from [graphql-config-examples/remote-schema-introspection](https://github.com/jimkyndemeyer/graphql-config-examples/tree/master/remote-schema-introspection)
 
-- If there is a single `.graphqlconfig` the scratch file automatically uses the schema and endpoints from that configuration
-- For a project with multiple `.graphqlconfig` files, add the following GraphQL comment to your scratch file to pick the relevant `.graphqlconfig`:
-    - `# .graphqlconfig=<absolute path to your config dir>\.graphqlconfig`
-- In case no matching `.graphqlconfig` was found, the project base dir will be used for schema discovery, and no endpoints
-    will be available for queries or other operations   
+It demonstrates how to use the endpoints configured in `.graphqlconfig` to fetch an existing remote schema.
 
-### ---- TODO BELOW THIS LINE ----
+![](assets/graphql-config-introspect.png)
 
-## Breaking changes from v1
+With `introspect: true` the plugin asks at project startup whether to update the local schema using the configured endpoint.
 
-## Troublshooting
+![](assets/introspect-startup.png)
+
+The update works by sending an introspection query to the endpoint, and then writing the result to the configured `schemaPath`.
+
+The latest introspection query can easily be re-run using the schemas panel:
+
+![](assets/introspect-re-run.png)
+
+Introspection queries can also be executed by double-clicking endpoints in the schemas tree view:
+
+![](assets/introspect-endpoint.png) 
+
+__Notes and comments__
+- If you're both developing the server schema and consuming it in a client, e.g. via component queries, you'll get the best tooling by having your schema expressed using GraphQL Schema Definition Language directly in your project. With that setup the plugin immediately discovers your schema, and you don't have to perform an introspection after server schema changes.
+- Tip: The re-run introspection action can be bound to a keyboard shortcut for convienience

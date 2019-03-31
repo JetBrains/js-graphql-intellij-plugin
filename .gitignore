@@ -71,3 +71,10 @@ resources/META-INF/dist/
 
 .gradle
 build
+
+# documentation website
+website/translated_docs
+website/build/
+website/yarn.lock
+website/node_modules
+website/i18n/*

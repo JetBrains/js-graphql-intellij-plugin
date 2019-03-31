@@ -1,0 +1,78 @@
+/* your custom css */
+
+@media only screen and (min-device-width: 360px) and (max-device-width: 736px) {
+}
+
+@media only screen and (min-width: 1024px) {
+}
+
+@media only screen and (max-width: 1023px) {
+}
+
+@media only screen and (min-width: 1400px) {
+}
+
+@media only screen and (min-width: 1500px) {
+}
+
+html {
+    background: #f5f6f8;
+}
+
+body .fixedHeaderContainer header .headerTitle {
+    margin-top: -4px;
+}
+
+body .fixedHeaderContainer {
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+}
+
+body .fixedHeaderContainer a {
+    color: #3d464f;
+}
+
+body .navigationSlider .slidingNav ul li a {
+    color: #3d464f;
+    transition: none;
+}
+
+body .projectTitle {
+    color: #3d464f;
+}
+
+body .projectTitle img {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+body .projectTitle span {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+body input#search_input_react {
+    background: rgba(0, 0, 0, 0.45) !important;
+}
+
+body .navigationSlider .slidingNav ul li a:focus,
+body .navigationSlider .slidingNav ul li a:hover,
+body .navigationSlider .slidingNav ul li.siteNavItemActive a,
+body .navigationSlider .slidingNav ul li.siteNavGroupActive a {
+    background: transparent;
+    color: #E10098;
+}
+
+body .navigationSlider .slidingNav ul {
+    background: #fff;
+}
+
+body .hljs, body code {
+    background: #ebeef5;
+}
+
+.ide {
+    background: #3c3f41 url("../img/ide.png") no-repeat;
+    height: 675px;
+    margin-bottom: 48px;
+}
