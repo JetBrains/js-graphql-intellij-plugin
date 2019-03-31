@@ -36,7 +36,7 @@ public class JSGraphQLConfigurationProvider {
     }
 
     public VirtualFile getEndpointEntryFile(PsiFile psiFile) {
-        return getEndpointEntryFile(psiFile.getVirtualFile());
+        return getEndpointEntryFile(psiFile.getOriginalFile().getVirtualFile());
     }
 
     public VirtualFile getEndpointEntryFile(VirtualFile virtualFile) {
