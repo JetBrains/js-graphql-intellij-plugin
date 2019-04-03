@@ -1,3 +1,9 @@
+## 1.7.4 (2019-04-03)
+
+Fixes:
+
+- Fixed "DisposalException: Double release of editor" (#211)
+
 ## 1.7.3 (2019-01-26)
 
 Fixes:

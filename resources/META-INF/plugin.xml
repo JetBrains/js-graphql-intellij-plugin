@@ -10,7 +10,7 @@
 <idea-plugin version="2">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>1.7.3</version>
+  <version>1.7.4</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -29,6 +29,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>1.7.4: Fixed "DisposalException: Double release of editor"</li>
       <li>1.7.3: Fixed missing syntax highlighting colors. Set default charset to UTF-8 in query result viewer. Support windows line endings in query result viewer and fixed reformat timing issue.</li>
       <li>1.7.2: Restore whitespace tokens for top level fragment placeholders in Apollo to preserve them during format lines.</li>
       <li>1.7.1: Node 10 Buffer deprecation warning no longer read by plugin as an error in the language service. Two additional minor bug-fixes.</li>
