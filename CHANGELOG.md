@@ -1,3 +1,11 @@
+## 2.0.0 (2019-04-06)
+
+Changes:
+
+- Support for the June 2018 GraphQL specification including SDL (#118, #133, #137, #129, #141, #144, #150, #164)
+- Support for multiple schemas using graphql-config (#84, #125, #140, #145, #164)
+- Replaced Node.js based language service with native parser, lexer, and graphql-java to be compatible with all IDEs based on the IntelliJ Platform (#62, #164)
+
 ## 1.7.4 (2019-04-03)
 
 Fixes:

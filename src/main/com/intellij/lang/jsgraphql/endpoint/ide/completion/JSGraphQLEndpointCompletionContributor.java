@@ -26,15 +26,15 @@ import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.lang.jsgraphql.JSGraphQLScalars;
+import com.intellij.lang.jsgraphql.v1.JSGraphQLScalars;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypesSets;
 import com.intellij.lang.jsgraphql.endpoint.psi.impl.JSGraphQLEndpointImplementsInterfacesImpl;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
-import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLSchemaEndpointAnnotation;
-import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLSchemaEndpointAnnotationArgument;
+import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
+import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotation;
+import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotationArgument;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
@@ -187,8 +187,8 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		if ((parent instanceof JSGraphQLEndpointQuotedString || parent instanceof JSGraphQLEndpointString) && PsiTreeUtil.getParentOfType(parent, JSGraphQLEndpointImportFileReference.class) != null) {
 
 			final Project project = file.getProject();
-			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile();
-			final GlobalSearchScope scope = JSGraphQLEndpointPsiUtil.getImportScopeFromEntryFile(project, entryFile);
+			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile(file);
+			final GlobalSearchScope scope = JSGraphQLEndpointPsiUtil.getImportScopeFromEntryFile(project, entryFile, file);
 			final Collection<VirtualFile> files = FileTypeIndex.getFiles(JSGraphQLEndpointFileType.INSTANCE, scope);
 			for (VirtualFile virtualFile : files) {
 				if(virtualFile.equals(entryFile)) {

@@ -124,7 +124,12 @@ public class JSGraphQLEndpointDocPsiUtil {
 	 */
 	public static String getDocumentation(PsiElement element) {
 		final PsiComment comment = PsiTreeUtil.getPrevSiblingOfType(element, PsiComment.class);
+		final PsiElement previousElement =PsiTreeUtil.getPrevSiblingOfType(element, element.getClass());
 		if(isDocumentationComment(comment)) {
+			if(previousElement != null && previousElement.getTextOffset() > comment.getTextOffset()) {
+				// the comment is for another element of same type so no docs for this element
+				return null;
+			}
 			final List<PsiComment> siblings = Lists.newArrayList(comment);
 			getDocumentationCommentSiblings(comment, siblings, PsiElement::getPrevSibling);
 			Collections.reverse(siblings);

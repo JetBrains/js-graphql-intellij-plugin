@@ -7,22 +7,21 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.psi;
 
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
-import com.intellij.lang.jsgraphql.psi.JSGraphQLPsiElement;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointLanguage;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class JSGraphQLEndpointPsiElement extends JSGraphQLPsiElement {
+public abstract class JSGraphQLEndpointPsiElement extends ASTWrapperPsiElement {
 
-	public JSGraphQLEndpointPsiElement(@NotNull ASTNode node) {
-		super(node);
-	}
+    public JSGraphQLEndpointPsiElement(@NotNull ASTNode node) {
+        super(node);
+    }
 
-	@NotNull
-	@Override
-	public Language getLanguage() {
-		return JSGraphQLEndpointLanguage.INSTANCE;
-	}
+    @NotNull
+    @Override
+    public Language getLanguage() {
+        return JSGraphQLEndpointLanguage.INSTANCE;
+    }
 }

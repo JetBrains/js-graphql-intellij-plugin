@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2015-present, Jim Kynde Meyer
  * All rights reserved.
  *
@@ -10,11 +10,13 @@ package com.intellij.lang.jsgraphql.endpoint.ide.actions;
 import com.intellij.ide.actions.CreateFileFromTemplateAction;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
+import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 
 public class JSGraphQLEndpointNewFileAction extends CreateFileFromTemplateAction implements DumbAware {
@@ -28,8 +30,22 @@ public class JSGraphQLEndpointNewFileAction extends CreateFileFromTemplateAction
         if (!super.isAvailable(dataContext)) {
             return false;
         }
-        final Module module = LangDataKeys.MODULE.getData(dataContext);
-        return module != null;
+
+        final Project myProject = CommonDataKeys.PROJECT.getData(dataContext);
+        if (myProject != null) {
+            final VirtualFile virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext);
+            if (virtualFile != null) {
+                final GraphQLConfigManager configManager = GraphQLConfigManager.getService(myProject);
+                final VirtualFile configFile = configManager.getClosestConfigFile(virtualFile);
+                if (configFile != null) {
+                    final GraphQLConfigData configData = configManager.getConfigurationsByPath().get(configFile.getParent());
+                    if (configData != null && configData.extensions != null) {
+                        return configData.extensions.get(GraphQLConfigManager.ENDPOINT_LANGUAGE_EXTENSION) != null;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     @Override

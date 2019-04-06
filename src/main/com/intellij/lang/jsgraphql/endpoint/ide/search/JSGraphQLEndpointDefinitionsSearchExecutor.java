@@ -56,7 +56,7 @@ public class JSGraphQLEndpointDefinitionsSearchExecutor implements QueryExecutor
             final String interfaceName = sourceNamedTypeDef.get().getText();
 
             final JSGraphQLEndpointNamedTypeRegistry typeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(sourceElement.getProject());
-            typeRegistry.enumerateTypes(jsGraphQLNamedType -> {
+            typeRegistry.enumerateTypes(sourceElement, jsGraphQLNamedType -> {
                 if (jsGraphQLNamedType.definitionElement instanceof JSGraphQLEndpointObjectTypeDefinition) {
                     final JSGraphQLEndpointObjectTypeDefinition typeDefinition = (JSGraphQLEndpointObjectTypeDefinition) jsGraphQLNamedType.definitionElement;
                     final JSGraphQLEndpointImplementsInterfaces implementsInterfaces = typeDefinition.getImplementsInterfaces();

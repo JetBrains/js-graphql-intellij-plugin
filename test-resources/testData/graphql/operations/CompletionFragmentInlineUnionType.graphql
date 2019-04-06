@@ -1,0 +1,5 @@
+fragment MyFragment on Human {
+    search(text: "") {
+        ... on <caret>
+    }
+}

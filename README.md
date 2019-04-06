@@ -2,105 +2,43 @@
 
 # JS GraphQL IntelliJ Plugin
 
-__Note:__ V2.0 is in active development. See the [v2 branch](https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/tree/v2) and [#164]( https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues/164)
+GraphQL language support for WebStorm, IntelliJ IDEA and other IDEs based on the IntelliJ Platform.
 
-GraphQL language support including Relay.QL tagged templates in JavaScript and TypeScript.
+## Features overview
 
-It provides the following features in IntelliJ IDEA, WebStorm, RubyMine, PhpStorm, and PyCharm:
-
+- Full language support for the June 2018 GraphQL Specification including the Type System Definition Language (SDL)
+- The plugin discovers your local schema on the fly. Remote schemas are easily fetched using introspection
+- Schema discovery is configured using [graphql-config](https://github.com/prisma/graphql-config) files, including support for multi-schema projects
+- Built-in support for Relay and Apollo projects: `graphql` and `gql` tagged template literals in JavaScript and TypeScript are automatically recognized as GraphQL
+- Execute queries using variables against configurable endpoints, including support for custom headers and environment variables
 - Schema-aware completion, error highlighting, and documentation
 - Syntax highlighting, code-formatting, folding, commenter, and brace-matching
-- 'Find Usages' and 'Go to Declaration' for schema types and fields
-- Schema viewer and 'Go to Implementation' for schema interfaces
-- 'Structure view' to navigate GraphQL and GraphQL Schema files
-- Configurable GraphQL schema retrieval and reloading based on a local file or a url using 'then-request'
-- Execute queries with variables against configurable endpoints
-
-V1.x depends on [js-graphql-language-service](https://github.com/jimkyndemeyer/js-graphql-language-service) that it manages using a Node.js process handler.
-
-## Installation
-1. Install Node JS
-```
-# Ubuntu
-sudo apt install nodejs
-
-# Mac OS
-brew install node
-```
-
-2. Install Node JS and JS GraphQL Plugin in IntelliJ
-```
-1. File | Settings | Plugins
-2. Search for: nodejs and graphql
-3. Install both plugins and Restart
-```
-
-3. Set Node JS Interpreter in IntelliJ
-```
-1. File | Settings | Languages & Frameworks | Node.js and NPM Node interpreter 
-2. Add... (search for nodejs bin path in your system)
-
-# Ubuntu
-whereis nodejs
-/usr/bin/nodejs
-
-# Mac OS
-which node
-
-# Windows
-where node
-```
-At this point JS GraphQL will recognize your `.graphql` files. However, if you wish to customize your schema, follow the FAQ.
+- 'Find Usages' and 'Go to Declaration' for schema types, fields, and fragments
+- 'Structure view' to navigate GraphQL files
 
 ## Documentation
 
-The plugin uses a `graphql.config.json` file in the project root to configure the location of your GraphQL schema.
+The main documentation site is available at https://jimkyndemeyer.github.io/js-graphql-intellij-plugin/
 
-To get started, please see the [FAQ](#faq).
+## Which IDEs are compatible with the plugin?
 
-## Features demo
+The plugin is compatible with version 2018.2+ (182.711 or later) of all IDEs based on the IntelliJ Platform, including but not limited to WebStorm, IntelliJ IDEA, Android Studio, RubyMine, PhpStorm, and PyCharm.
 
-**Schema setup, completion, error highlighting, documentation**
-![](docs/js-graphql-webstorm-demo.gif)
+## Where can I get the plugin?
 
-**Find usages, schema viewer, structure view**
-![](docs/js-graphql-webstorm-usages-structure-demo.gif)
+The plugin is published to the [JetBrains Plugin Repository](https://plugins.jetbrains.com/plugin/8097?pr=).
 
-## FAQ
+To install it, open your IDE "Settings", "Plugins", "Marketplace" and search for "GraphQL".
 
-**How do I configure the plugin in a project**
+## Acknowledgements
 
-The plugin is activated as soon as you view or edit GraphQL in the editor. This includes GraphQL inside `Relay.QL` and `gql` templates in JavaScript and TypeScript. You can also use `.graphql` physical files and scratch files. These files allow you to query your endpoint directly from your IDE.
+This plugin was heavily inspired by [GraphiQL](https://github.com/graphql/graphiql) from Facebook.
 
-An editor notification bar should prompt you to "Create a graphql.config.json". Accept and edit this config file to point the plugin at your local `schema.json` or your endpoint for introspection. The plugin uses the schema to provide completion and error highlighting.
+A number of language features such as query and schema validation are powered by [graphql-java](https://github.com/graphql-java/graphql-java).
 
-**How do I reload a GraphQL Schema that was loaded from a URL?**
+A thanks also goes out to the [Apollo](https://github.com/apollographql) and [Prisma](https://github.com/prisma) teams for their continued efforts to improve the GraphQL Developer Experience.
 
-In the the GraphQL tool window, select the "Current Errors" tab and click the "Restart JS GraphQL Language Service" button. 
-
-**I clicked "No thanks" when asked to create a graphql.config.json. Now what?**
-
-Download [graphql.config.json](https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/resources/META-INF/graphql.config.json) from this repository and place it in your project root (next to your package.json for JS projects). Re-open the project and edit `graphql.config.json` to point the plugin at your schema.
-
-**Fields are shown as errors with "Cannot query field..." messages**
-
-Make sure you've edited your `graphql.config.json` to point it at your schema. This enables the plugin to properly recognize the available types and their fields.
-
-**Which IDEs are compatible with the plugin?**
-
-The plugin is compatible with version 143+ of IntelliJ IDEA, WebStorm, RubyMine, PhpStorm, and PyCharm.
-
-PyCharm CE is not supported since the plugin depends on two other plugins: NodeJS and JavaScript.
-
-Experimental support for Android Studio is available in the [`android-studio`](https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/tree/android-studio) branch. Download it from there.
-
-**Where can I get the plugin?**
-
-The plugin is available from the JetBrains Plugin Repository at https://plugins.jetbrains.com/plugin/8097?pr=
-
-To install it, open "Settings", "Plugins", "Browse repositories..." and search for "GraphQL".
-
-**Note**: The experimental version in the `android-studio` branch is not available from the JetBrains Plugin Repository.
+And finally, a thank you to the [JetBrains WebStorm team](https://twitter.com/WebStormIDE) and the Alpha/Beta testers for all their help in getting the 2.0 release across the finish line. 
 
 ## License
 MIT

@@ -7,36 +7,17 @@
  */
 package com.intellij.lang.jsgraphql;
 
- import com.intellij.lang.jsgraphql.languageservice.CodeMirrorNodeLanguageServiceClientTest;
- import com.intellij.lang.jsgraphql.languageservice.JSGraphQLNodeLanguageServiceInstance;
  import com.intellij.openapi.command.WriteCommandAction;
  import com.intellij.psi.codeStyle.CodeStyleManager;
  import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
  import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
- import org.junit.Test;
-
- import java.net.URL;
-
+  import org.junit.Test;
 
  public class JSGraphQLCodeInsightTest extends LightCodeInsightFixtureTestCase {
-    @Override
-    protected void setUp() throws Exception {
-
-        // TODO: This test depends on a running JS GraphQL Language service at http://localhost:3000
-        CodeMirrorNodeLanguageServiceClientTest.setLanguageServiceUrl(new URL("http", "localhost", 3000, JSGraphQLNodeLanguageServiceInstance.JSGRAPHQL_LANGUAGE_SERVICE_MAPPING));
-
-        super.setUp();
-    }
-
-     @Override
-     public void tearDown() throws Exception {
-         super.tearDown();
-         CodeMirrorNodeLanguageServiceClientTest.setLanguageServiceUrl(null);
-     }
 
      @Override
     protected String getTestDataPath() {
-        return "test-resources/testData";
+        return "test-resources/testData/graphql";
     }
 
     @Test

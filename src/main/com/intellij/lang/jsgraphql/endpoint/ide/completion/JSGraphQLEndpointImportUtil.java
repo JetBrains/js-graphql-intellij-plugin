@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.completion;
 
-import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
+import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -17,7 +17,7 @@ public class JSGraphQLEndpointImportUtil {
 
 
     public static String getImportName(Project project, PsiFile file) {
-        final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile();
+        final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile(file);
         final VirtualFile entryFileDir = entryFile != null ? entryFile.getParent() : null;
         final String name = StringUtils.substringBeforeLast(file.getName(), ".");
         return getImportName(entryFileDir, file.getVirtualFile(), name);

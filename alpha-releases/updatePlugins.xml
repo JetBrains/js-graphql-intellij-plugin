@@ -1,0 +1,3 @@
+<plugins>
+    <plugin id="com.intellij.lang.jsgraphql" url="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/v2/alpha-releases/JS%20GraphQL-2.0.0-end-of-beta.zip?raw=true" version="2.0.0-end-of-beta"/>
+</plugins>

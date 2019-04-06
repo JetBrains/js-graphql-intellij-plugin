@@ -7,10 +7,10 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.doc.ide.highlighting;
 
+import com.intellij.lang.jsgraphql.endpoint.ide.highlighting.JSGraphQLEndpointSyntaxHighlighter;
 import org.jetbrains.annotations.NotNull;
 
 import com.intellij.lang.jsgraphql.endpoint.doc.lexer.JSGraphQLEndpointDocLexer;
-import com.intellij.lang.jsgraphql.ide.highlighting.JSGraphQLSyntaxHighlighter;
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
@@ -29,6 +29,6 @@ public class JSGraphQLEndpointDocSyntaxHighlighter extends SyntaxHighlighterBase
 	@Override
 	public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
 		// highlight as comment until highlight annotator does a pass
-		return JSGraphQLSyntaxHighlighter.COMMENT_KEYS;
+		return JSGraphQLEndpointSyntaxHighlighter.COMMENT_KEYS;
 	}
 }

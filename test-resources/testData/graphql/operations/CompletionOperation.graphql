@@ -1,0 +1,7 @@
+fragment NodeFragment on Node {
+    id
+}
+
+#comment
+
+<caret>

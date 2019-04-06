@@ -1,0 +1,7 @@
+{
+  "docs": {
+    "Getting Started": ["getting-started"],
+    "Using the Plugin": ["developer-guide"],
+    "Examples": ["graphql-config-examples"]
+  }
+}

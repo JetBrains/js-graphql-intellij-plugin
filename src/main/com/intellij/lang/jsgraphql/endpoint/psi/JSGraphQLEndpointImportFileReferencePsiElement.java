@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
-import com.intellij.lang.jsgraphql.ide.configuration.JSGraphQLConfigurationProvider;
+import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -107,7 +107,7 @@ public class JSGraphQLEndpointImportFileReferencePsiElement extends JSGraphQLEnd
 		@Override
 		public PsiElement resolve() {
 			final Project project = this.getElement().getProject();
-			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile();
+			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile(this.getElement().getContainingFile());
 			if(entryFile != null && entryFile.getParent() != null) {
 				final String fileName = nameIdentifier.getText();
 				if(fileName.startsWith(".") || fileName.startsWith("/")) {

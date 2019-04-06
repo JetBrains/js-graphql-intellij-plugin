@@ -14,137 +14,137 @@ import com.intellij.lang.LightPsiParser;
 @SuppressWarnings({"SimplifiableIfStatement", "UnusedAssignment"})
 public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
 
-  public ASTNode parse(IElementType t, PsiBuilder b) {
-    parseLight(t, b);
-    return b.getTreeBuilt();
+  public ASTNode parse(IElementType root_, PsiBuilder builder_) {
+    parseLight(root_, builder_);
+    return builder_.getTreeBuilt();
   }
 
-  public void parseLight(IElementType t, PsiBuilder b) {
-    boolean r;
-    b = adapt_builder_(t, b, this, EXTENDS_SETS_);
-    Marker m = enter_section_(b, 0, _COLLAPSE_, null);
-    if (t == ANNOTATION) {
-      r = Annotation(b, 0);
+  public void parseLight(IElementType root_, PsiBuilder builder_) {
+    boolean result_;
+    builder_ = adapt_builder_(root_, builder_, this, EXTENDS_SETS_);
+    Marker marker_ = enter_section_(builder_, 0, _COLLAPSE_, null);
+    if (root_ == ANNOTATION) {
+      result_ = Annotation(builder_, 0);
     }
-    else if (t == ANNOTATION_ARGUMENT_LIST_VALUE) {
-      r = AnnotationArgumentListValue(b, 0);
+    else if (root_ == ANNOTATION_ARGUMENT_LIST_VALUE) {
+      result_ = AnnotationArgumentListValue(builder_, 0);
     }
-    else if (t == ANNOTATION_ARGUMENT_OBJECT_FIELD) {
-      r = AnnotationArgumentObjectField(b, 0);
+    else if (root_ == ANNOTATION_ARGUMENT_OBJECT_FIELD) {
+      result_ = AnnotationArgumentObjectField(builder_, 0);
     }
-    else if (t == ANNOTATION_ARGUMENT_OBJECT_VALUE) {
-      r = AnnotationArgumentObjectValue(b, 0);
+    else if (root_ == ANNOTATION_ARGUMENT_OBJECT_VALUE) {
+      result_ = AnnotationArgumentObjectValue(builder_, 0);
     }
-    else if (t == ANNOTATION_ARGUMENT_VALUE) {
-      r = AnnotationArgumentValue(b, 0);
+    else if (root_ == ANNOTATION_ARGUMENT_VALUE) {
+      result_ = AnnotationArgumentValue(builder_, 0);
     }
-    else if (t == ANNOTATION_ARGUMENTS) {
-      r = AnnotationArguments(b, 0);
+    else if (root_ == ANNOTATION_ARGUMENTS) {
+      result_ = AnnotationArguments(builder_, 0);
     }
-    else if (t == ANNOTATION_DEFINITION) {
-      r = AnnotationDefinition(b, 0);
+    else if (root_ == ANNOTATION_DEFINITION) {
+      result_ = AnnotationDefinition(builder_, 0);
     }
-    else if (t == ARGUMENTS_DEFINITION) {
-      r = ArgumentsDefinition(b, 0);
+    else if (root_ == ARGUMENTS_DEFINITION) {
+      result_ = ArgumentsDefinition(builder_, 0);
     }
-    else if (t == COMPOSITE_TYPE) {
-      r = CompositeType(b, 0);
+    else if (root_ == COMPOSITE_TYPE) {
+      result_ = CompositeType(builder_, 0);
     }
-    else if (t == ENUM_TYPE_DEFINITION) {
-      r = EnumTypeDefinition(b, 0);
+    else if (root_ == ENUM_TYPE_DEFINITION) {
+      result_ = EnumTypeDefinition(builder_, 0);
     }
-    else if (t == ENUM_VALUE_DEFINITION) {
-      r = EnumValueDefinition(b, 0);
+    else if (root_ == ENUM_VALUE_DEFINITION) {
+      result_ = EnumValueDefinition(builder_, 0);
     }
-    else if (t == ENUM_VALUE_DEFINITION_SET) {
-      r = EnumValueDefinitionSet(b, 0);
+    else if (root_ == ENUM_VALUE_DEFINITION_SET) {
+      result_ = EnumValueDefinitionSet(builder_, 0);
     }
-    else if (t == FIELD_DEFINITION) {
-      r = FieldDefinition(b, 0);
+    else if (root_ == FIELD_DEFINITION) {
+      result_ = FieldDefinition(builder_, 0);
     }
-    else if (t == FIELD_DEFINITION_SET) {
-      r = FieldDefinitionSet(b, 0);
+    else if (root_ == FIELD_DEFINITION_SET) {
+      result_ = FieldDefinitionSet(builder_, 0);
     }
-    else if (t == IMPLEMENTS_INTERFACES) {
-      r = ImplementsInterfaces(b, 0);
+    else if (root_ == IMPLEMENTS_INTERFACES) {
+      result_ = ImplementsInterfaces(builder_, 0);
     }
-    else if (t == IMPORT_DECLARATION) {
-      r = ImportDeclaration(b, 0);
+    else if (root_ == IMPORT_DECLARATION) {
+      result_ = ImportDeclaration(builder_, 0);
     }
-    else if (t == IMPORT_FILE_REFERENCE) {
-      r = ImportFileReference(b, 0);
+    else if (root_ == IMPORT_FILE_REFERENCE) {
+      result_ = ImportFileReference(builder_, 0);
     }
-    else if (t == INPUT_OBJECT_TYPE_DEFINITION) {
-      r = InputObjectTypeDefinition(b, 0);
+    else if (root_ == INPUT_OBJECT_TYPE_DEFINITION) {
+      result_ = InputObjectTypeDefinition(builder_, 0);
     }
-    else if (t == INPUT_VALUE_DEFINITION) {
-      r = InputValueDefinition(b, 0);
+    else if (root_ == INPUT_VALUE_DEFINITION) {
+      result_ = InputValueDefinition(builder_, 0);
     }
-    else if (t == INPUT_VALUE_DEFINITION_IDENTIFIER) {
-      r = InputValueDefinitionIdentifier(b, 0);
+    else if (root_ == INPUT_VALUE_DEFINITION_IDENTIFIER) {
+      result_ = InputValueDefinitionIdentifier(builder_, 0);
     }
-    else if (t == INPUT_VALUE_DEFINITIONS) {
-      r = InputValueDefinitions(b, 0);
+    else if (root_ == INPUT_VALUE_DEFINITIONS) {
+      result_ = InputValueDefinitions(builder_, 0);
     }
-    else if (t == INTERFACE_TYPE_DEFINITION) {
-      r = InterfaceTypeDefinition(b, 0);
+    else if (root_ == INTERFACE_TYPE_DEFINITION) {
+      result_ = InterfaceTypeDefinition(builder_, 0);
     }
-    else if (t == LIST_TYPE) {
-      r = ListType(b, 0);
+    else if (root_ == LIST_TYPE) {
+      result_ = ListType(builder_, 0);
     }
-    else if (t == NAMED_ANNOTATION_ARGUMENT) {
-      r = NamedAnnotationArgument(b, 0);
+    else if (root_ == NAMED_ANNOTATION_ARGUMENT) {
+      result_ = NamedAnnotationArgument(builder_, 0);
     }
-    else if (t == NAMED_ANNOTATION_ARGUMENTS) {
-      r = NamedAnnotationArguments(b, 0);
+    else if (root_ == NAMED_ANNOTATION_ARGUMENTS) {
+      result_ = NamedAnnotationArguments(builder_, 0);
     }
-    else if (t == NAMED_TYPE) {
-      r = NamedType(b, 0);
+    else if (root_ == NAMED_TYPE) {
+      result_ = NamedType(builder_, 0);
     }
-    else if (t == NAMED_TYPE_DEF) {
-      r = NamedTypeDef(b, 0);
+    else if (root_ == NAMED_TYPE_DEF) {
+      result_ = NamedTypeDef(builder_, 0);
     }
-    else if (t == OBJECT_TYPE_DEFINITION) {
-      r = ObjectTypeDefinition(b, 0);
+    else if (root_ == OBJECT_TYPE_DEFINITION) {
+      result_ = ObjectTypeDefinition(builder_, 0);
     }
-    else if (t == OPERATION_TYPE_DEFINITION) {
-      r = OperationTypeDefinition(b, 0);
+    else if (root_ == OPERATION_TYPE_DEFINITION) {
+      result_ = OperationTypeDefinition(builder_, 0);
     }
-    else if (t == OPERATION_TYPE_DEFINITION_SET) {
-      r = OperationTypeDefinitionSet(b, 0);
+    else if (root_ == OPERATION_TYPE_DEFINITION_SET) {
+      result_ = OperationTypeDefinitionSet(builder_, 0);
     }
-    else if (t == PROPERTY) {
-      r = Property(b, 0);
+    else if (root_ == PROPERTY) {
+      result_ = Property(builder_, 0);
     }
-    else if (t == QUOTED_STRING) {
-      r = QuotedString(b, 0);
+    else if (root_ == QUOTED_STRING) {
+      result_ = QuotedString(builder_, 0);
     }
-    else if (t == SCALAR_TYPE_DEFINITION) {
-      r = ScalarTypeDefinition(b, 0);
+    else if (root_ == SCALAR_TYPE_DEFINITION) {
+      result_ = ScalarTypeDefinition(builder_, 0);
     }
-    else if (t == SCHEMA_DEFINITION) {
-      r = SchemaDefinition(b, 0);
+    else if (root_ == SCHEMA_DEFINITION) {
+      result_ = SchemaDefinition(builder_, 0);
     }
-    else if (t == STRING) {
-      r = String(b, 0);
+    else if (root_ == STRING) {
+      result_ = String(builder_, 0);
     }
-    else if (t == UNION_MEMBER) {
-      r = UnionMember(b, 0);
+    else if (root_ == UNION_MEMBER) {
+      result_ = UnionMember(builder_, 0);
     }
-    else if (t == UNION_MEMBER_SET) {
-      r = UnionMemberSet(b, 0);
+    else if (root_ == UNION_MEMBER_SET) {
+      result_ = UnionMemberSet(builder_, 0);
     }
-    else if (t == UNION_TYPE_DEFINITION) {
-      r = UnionTypeDefinition(b, 0);
+    else if (root_ == UNION_TYPE_DEFINITION) {
+      result_ = UnionTypeDefinition(builder_, 0);
     }
     else {
-      r = parse_root_(t, b, 0);
+      result_ = parse_root_(root_, builder_, 0);
     }
-    exit_section_(b, 0, m, t, r, true, TRUE_CONDITION);
+    exit_section_(builder_, 0, marker_, root_, result_, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType t, PsiBuilder b, int l) {
-    return Document(b, l + 1);
+  protected boolean parse_root_(IElementType root_, PsiBuilder builder_, int level_) {
+    return Document(builder_, level_ + 1);
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
@@ -153,1235 +153,1198 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // AT_ANNOTATION AnnotationArguments?
-  public static boolean Annotation(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Annotation")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ANNOTATION, "<annotation>");
-    r = consumeToken(b, AT_ANNOTATION);
-    p = r; // pin = 1
-    r = r && Annotation_1(b, l + 1);
-    exit_section_(b, l, m, r, p, RecoverAnnotation_parser_);
-    return r || p;
+  public static boolean Annotation(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "Annotation")) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, ANNOTATION, "<annotation>");
+    result_ = consumeToken(builder_, AT_ANNOTATION);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && Annotation_1(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverAnnotation_parser_);
+    return result_ || pinned_;
   }
 
   // AnnotationArguments?
-  private static boolean Annotation_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Annotation_1")) return false;
-    AnnotationArguments(b, l + 1);
+  private static boolean Annotation_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "Annotation_1")) return false;
+    AnnotationArguments(builder_, level_ + 1);
     return true;
   }
 
   /* ********************************************************** */
   // LBRACKET (AnnotationArgumentValue (COMMA AnnotationArgumentValue)*)? RBRACKET
-  public static boolean AnnotationArgumentListValue(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentListValue")) return false;
-    if (!nextTokenIs(b, LBRACKET)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ANNOTATION_ARGUMENT_LIST_VALUE, null);
-    r = consumeToken(b, LBRACKET);
-    p = r; // pin = 1
-    r = r && report_error_(b, AnnotationArgumentListValue_1(b, l + 1));
-    r = p && consumeToken(b, RBRACKET) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean AnnotationArgumentListValue(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentListValue")) return false;
+    if (!nextTokenIs(builder_, LBRACKET)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, ANNOTATION_ARGUMENT_LIST_VALUE, null);
+    result_ = consumeToken(builder_, LBRACKET);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, AnnotationArgumentListValue_1(builder_, level_ + 1));
+    result_ = pinned_ && consumeToken(builder_, RBRACKET) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // (AnnotationArgumentValue (COMMA AnnotationArgumentValue)*)?
-  private static boolean AnnotationArgumentListValue_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentListValue_1")) return false;
-    AnnotationArgumentListValue_1_0(b, l + 1);
+  private static boolean AnnotationArgumentListValue_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentListValue_1")) return false;
+    AnnotationArgumentListValue_1_0(builder_, level_ + 1);
     return true;
   }
 
   // AnnotationArgumentValue (COMMA AnnotationArgumentValue)*
-  private static boolean AnnotationArgumentListValue_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentListValue_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = AnnotationArgumentValue(b, l + 1);
-    r = r && AnnotationArgumentListValue_1_0_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean AnnotationArgumentListValue_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentListValue_1_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = AnnotationArgumentValue(builder_, level_ + 1);
+    result_ = result_ && AnnotationArgumentListValue_1_0_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
   }
 
   // (COMMA AnnotationArgumentValue)*
-  private static boolean AnnotationArgumentListValue_1_0_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentListValue_1_0_1")) return false;
-    int c = current_position_(b);
+  private static boolean AnnotationArgumentListValue_1_0_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentListValue_1_0_1")) return false;
     while (true) {
-      if (!AnnotationArgumentListValue_1_0_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "AnnotationArgumentListValue_1_0_1", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!AnnotationArgumentListValue_1_0_1_0(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "AnnotationArgumentListValue_1_0_1", pos_)) break;
     }
     return true;
   }
 
   // COMMA AnnotationArgumentValue
-  private static boolean AnnotationArgumentListValue_1_0_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentListValue_1_0_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && AnnotationArgumentValue(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean AnnotationArgumentListValue_1_0_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentListValue_1_0_1_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, COMMA);
+    result_ = result_ && AnnotationArgumentValue(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // identifier (EQUALS | COLON) AnnotationArgumentValue
-  public static boolean AnnotationArgumentObjectField(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentObjectField")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
-    r = r && AnnotationArgumentObjectField_1(b, l + 1);
-    r = r && AnnotationArgumentValue(b, l + 1);
-    exit_section_(b, m, ANNOTATION_ARGUMENT_OBJECT_FIELD, r);
-    return r;
+  public static boolean AnnotationArgumentObjectField(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentObjectField")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, IDENTIFIER);
+    result_ = result_ && AnnotationArgumentObjectField_1(builder_, level_ + 1);
+    result_ = result_ && AnnotationArgumentValue(builder_, level_ + 1);
+    exit_section_(builder_, marker_, ANNOTATION_ARGUMENT_OBJECT_FIELD, result_);
+    return result_;
   }
 
   // EQUALS | COLON
-  private static boolean AnnotationArgumentObjectField_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentObjectField_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, EQUALS);
-    if (!r) r = consumeToken(b, COLON);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean AnnotationArgumentObjectField_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentObjectField_1")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, EQUALS);
+    if (!result_) result_ = consumeToken(builder_, COLON);
+    return result_;
   }
 
   /* ********************************************************** */
   // LBRACE (AnnotationArgumentObjectField (COMMA AnnotationArgumentObjectField)*)? RBRACE
-  public static boolean AnnotationArgumentObjectValue(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentObjectValue")) return false;
-    if (!nextTokenIs(b, LBRACE)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ANNOTATION_ARGUMENT_OBJECT_VALUE, null);
-    r = consumeToken(b, LBRACE);
-    p = r; // pin = 1
-    r = r && report_error_(b, AnnotationArgumentObjectValue_1(b, l + 1));
-    r = p && consumeToken(b, RBRACE) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean AnnotationArgumentObjectValue(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentObjectValue")) return false;
+    if (!nextTokenIs(builder_, LBRACE)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, ANNOTATION_ARGUMENT_OBJECT_VALUE, null);
+    result_ = consumeToken(builder_, LBRACE);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, AnnotationArgumentObjectValue_1(builder_, level_ + 1));
+    result_ = pinned_ && consumeToken(builder_, RBRACE) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // (AnnotationArgumentObjectField (COMMA AnnotationArgumentObjectField)*)?
-  private static boolean AnnotationArgumentObjectValue_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentObjectValue_1")) return false;
-    AnnotationArgumentObjectValue_1_0(b, l + 1);
+  private static boolean AnnotationArgumentObjectValue_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentObjectValue_1")) return false;
+    AnnotationArgumentObjectValue_1_0(builder_, level_ + 1);
     return true;
   }
 
   // AnnotationArgumentObjectField (COMMA AnnotationArgumentObjectField)*
-  private static boolean AnnotationArgumentObjectValue_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentObjectValue_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = AnnotationArgumentObjectField(b, l + 1);
-    r = r && AnnotationArgumentObjectValue_1_0_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean AnnotationArgumentObjectValue_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentObjectValue_1_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = AnnotationArgumentObjectField(builder_, level_ + 1);
+    result_ = result_ && AnnotationArgumentObjectValue_1_0_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
   }
 
   // (COMMA AnnotationArgumentObjectField)*
-  private static boolean AnnotationArgumentObjectValue_1_0_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentObjectValue_1_0_1")) return false;
-    int c = current_position_(b);
+  private static boolean AnnotationArgumentObjectValue_1_0_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentObjectValue_1_0_1")) return false;
     while (true) {
-      if (!AnnotationArgumentObjectValue_1_0_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "AnnotationArgumentObjectValue_1_0_1", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!AnnotationArgumentObjectValue_1_0_1_0(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "AnnotationArgumentObjectValue_1_0_1", pos_)) break;
     }
     return true;
   }
 
   // COMMA AnnotationArgumentObjectField
-  private static boolean AnnotationArgumentObjectValue_1_0_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentObjectValue_1_0_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && AnnotationArgumentObjectField(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean AnnotationArgumentObjectValue_1_0_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentObjectValue_1_0_1_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, COMMA);
+    result_ = result_ && AnnotationArgumentObjectField(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // TRUE | FALSE | number | QuotedString | AnnotationArgumentListValue | AnnotationArgumentObjectValue
-  public static boolean AnnotationArgumentValue(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArgumentValue")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _COLLAPSE_, ANNOTATION_ARGUMENT_VALUE, "<annotation argument value>");
-    r = consumeToken(b, TRUE);
-    if (!r) r = consumeToken(b, FALSE);
-    if (!r) r = consumeToken(b, NUMBER);
-    if (!r) r = QuotedString(b, l + 1);
-    if (!r) r = AnnotationArgumentListValue(b, l + 1);
-    if (!r) r = AnnotationArgumentObjectValue(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  public static boolean AnnotationArgumentValue(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArgumentValue")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _COLLAPSE_, ANNOTATION_ARGUMENT_VALUE, "<annotation argument value>");
+    result_ = consumeToken(builder_, TRUE);
+    if (!result_) result_ = consumeToken(builder_, FALSE);
+    if (!result_) result_ = consumeToken(builder_, NUMBER);
+    if (!result_) result_ = QuotedString(builder_, level_ + 1);
+    if (!result_) result_ = AnnotationArgumentListValue(builder_, level_ + 1);
+    if (!result_) result_ = AnnotationArgumentObjectValue(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   /* ********************************************************** */
   // LPAREN (AnnotationArgumentValue | NamedAnnotationArguments) RPAREN
-  public static boolean AnnotationArguments(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArguments")) return false;
-    if (!nextTokenIs(b, LPAREN)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ANNOTATION_ARGUMENTS, null);
-    r = consumeToken(b, LPAREN);
-    p = r; // pin = 1
-    r = r && report_error_(b, AnnotationArguments_1(b, l + 1));
-    r = p && consumeToken(b, RPAREN) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean AnnotationArguments(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArguments")) return false;
+    if (!nextTokenIs(builder_, LPAREN)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, ANNOTATION_ARGUMENTS, null);
+    result_ = consumeToken(builder_, LPAREN);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, AnnotationArguments_1(builder_, level_ + 1));
+    result_ = pinned_ && consumeToken(builder_, RPAREN) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // AnnotationArgumentValue | NamedAnnotationArguments
-  private static boolean AnnotationArguments_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationArguments_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = AnnotationArgumentValue(b, l + 1);
-    if (!r) r = NamedAnnotationArguments(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean AnnotationArguments_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationArguments_1")) return false;
+    boolean result_;
+    result_ = AnnotationArgumentValue(builder_, level_ + 1);
+    if (!result_) result_ = NamedAnnotationArguments(builder_, level_ + 1);
+    return result_;
   }
 
   /* ********************************************************** */
   // ANNOTATION_DEF NamedTypeDef ArgumentsDefinition?
-  public static boolean AnnotationDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationDefinition")) return false;
-    if (!nextTokenIs(b, ANNOTATION_DEF)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ANNOTATION_DEFINITION, null);
-    r = consumeToken(b, ANNOTATION_DEF);
-    p = r; // pin = 1
-    r = r && report_error_(b, NamedTypeDef(b, l + 1));
-    r = p && AnnotationDefinition_2(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean AnnotationDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationDefinition")) return false;
+    if (!nextTokenIs(builder_, ANNOTATION_DEF)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, ANNOTATION_DEFINITION, null);
+    result_ = consumeToken(builder_, ANNOTATION_DEF);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, NamedTypeDef(builder_, level_ + 1));
+    result_ = pinned_ && AnnotationDefinition_2(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // ArgumentsDefinition?
-  private static boolean AnnotationDefinition_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "AnnotationDefinition_2")) return false;
-    ArgumentsDefinition(b, l + 1);
+  private static boolean AnnotationDefinition_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "AnnotationDefinition_2")) return false;
+    ArgumentsDefinition(builder_, level_ + 1);
     return true;
   }
 
   /* ********************************************************** */
   // Annotation*
-  static boolean Annotations(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Annotations")) return false;
-    int c = current_position_(b);
+  static boolean Annotations(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "Annotations")) return false;
     while (true) {
-      if (!Annotation(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "Annotations", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!Annotation(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "Annotations", pos_)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
   // LPAREN InputValueDefinitions RPAREN
-  public static boolean ArgumentsDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ArgumentsDefinition")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ARGUMENTS_DEFINITION, "<arguments definition>");
-    r = consumeToken(b, LPAREN);
-    p = r; // pin = 1
-    r = r && report_error_(b, InputValueDefinitions(b, l + 1));
-    r = p && consumeToken(b, RPAREN) && r;
-    exit_section_(b, l, m, r, p, RecoverArgumentsDefinition_parser_);
-    return r || p;
+  public static boolean ArgumentsDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ArgumentsDefinition")) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, ARGUMENTS_DEFINITION, "<arguments definition>");
+    result_ = consumeToken(builder_, LPAREN);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, InputValueDefinitions(builder_, level_ + 1));
+    result_ = pinned_ && consumeToken(builder_, RPAREN) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverArgumentsDefinition_parser_);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
   // COMMA EnumValueDefinition
-  static boolean CommaEnumValueDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "CommaEnumValueDefinition")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_);
-    r = consumeToken(b, COMMA);
-    p = r; // pin = 1
-    r = r && EnumValueDefinition(b, l + 1);
-    exit_section_(b, l, m, r, p, RecoverCommaEnumValueDefinition_parser_);
-    return r || p;
+  static boolean CommaEnumValueDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "CommaEnumValueDefinition")) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_);
+    result_ = consumeToken(builder_, COMMA);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && EnumValueDefinition(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverCommaEnumValueDefinition_parser_);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
   // COMMA NamedAnnotationArgument
-  static boolean CommaNamedAnnotationArgument(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "CommaNamedAnnotationArgument")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_);
-    r = consumeToken(b, COMMA);
-    p = r; // pin = 1
-    r = r && NamedAnnotationArgument(b, l + 1);
-    exit_section_(b, l, m, r, p, RecoverNamedAnnotationArgument_parser_);
-    return r || p;
+  static boolean CommaNamedAnnotationArgument(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "CommaNamedAnnotationArgument")) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_);
+    result_ = consumeToken(builder_, COMMA);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && NamedAnnotationArgument(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverNamedAnnotationArgument_parser_);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
   // COMMA NamedType
-  static boolean CommaNamedType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "CommaNamedType")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_);
-    r = consumeToken(b, COMMA);
-    p = r; // pin = 1
-    r = r && NamedType(b, l + 1);
-    exit_section_(b, l, m, r, p, RecoverCommaNamedType_parser_);
-    return r || p;
+  static boolean CommaNamedType(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "CommaNamedType")) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_);
+    result_ = consumeToken(builder_, COMMA);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && NamedType(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverCommaNamedType_parser_);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
   // ListType | (NamedType REQUIRED?)
-  public static boolean CompositeType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "CompositeType")) return false;
-    if (!nextTokenIs(b, "<composite type>", LBRACKET, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_, COMPOSITE_TYPE, "<composite type>");
-    r = ListType(b, l + 1);
-    if (!r) r = CompositeType_1(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  public static boolean CompositeType(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "CompositeType")) return false;
+    if (!nextTokenIs(builder_, "<composite type>", IDENTIFIER, LBRACKET)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, COMPOSITE_TYPE, "<composite type>");
+    result_ = ListType(builder_, level_ + 1);
+    if (!result_) result_ = CompositeType_1(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   // NamedType REQUIRED?
-  private static boolean CompositeType_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "CompositeType_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = NamedType(b, l + 1);
-    r = r && CompositeType_1_1(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean CompositeType_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "CompositeType_1")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = NamedType(builder_, level_ + 1);
+    result_ = result_ && CompositeType_1_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
   }
 
   // REQUIRED?
-  private static boolean CompositeType_1_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "CompositeType_1_1")) return false;
-    consumeToken(b, REQUIRED);
+  private static boolean CompositeType_1_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "CompositeType_1_1")) return false;
+    consumeToken(builder_, REQUIRED);
     return true;
   }
 
   /* ********************************************************** */
-  // ObjectTypeDefinition
-  //     |
-  //     InterfaceTypeDefinition
-  //     |
-  //     InputObjectTypeDefinition
-  //     |
-  //     EnumTypeDefinition
-  //     |
-  //     UnionTypeDefinition
-  //     |
-  //     ScalarTypeDefinition
-  //     |
-  //     ImportDeclaration
-  //     |
-  //     SchemaDefinition
-  //     |
+  // ObjectTypeDefinition
+  //     |
+  //     InterfaceTypeDefinition
+  //     |
+  //     InputObjectTypeDefinition
+  //     |
+  //     EnumTypeDefinition
+  //     |
+  //     UnionTypeDefinition
+  //     |
+  //     ScalarTypeDefinition
+  //     |
+  //     ImportDeclaration
+  //     |
+  //     SchemaDefinition
+  //     |
   //     AnnotationDefinition
-  static boolean Definition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Definition")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NONE_);
-    r = ObjectTypeDefinition(b, l + 1);
-    if (!r) r = InterfaceTypeDefinition(b, l + 1);
-    if (!r) r = InputObjectTypeDefinition(b, l + 1);
-    if (!r) r = EnumTypeDefinition(b, l + 1);
-    if (!r) r = UnionTypeDefinition(b, l + 1);
-    if (!r) r = ScalarTypeDefinition(b, l + 1);
-    if (!r) r = ImportDeclaration(b, l + 1);
-    if (!r) r = SchemaDefinition(b, l + 1);
-    if (!r) r = AnnotationDefinition(b, l + 1);
-    exit_section_(b, l, m, r, false, RecoverDefinition_parser_);
-    return r;
+  static boolean Definition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "Definition")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_);
+    result_ = ObjectTypeDefinition(builder_, level_ + 1);
+    if (!result_) result_ = InterfaceTypeDefinition(builder_, level_ + 1);
+    if (!result_) result_ = InputObjectTypeDefinition(builder_, level_ + 1);
+    if (!result_) result_ = EnumTypeDefinition(builder_, level_ + 1);
+    if (!result_) result_ = UnionTypeDefinition(builder_, level_ + 1);
+    if (!result_) result_ = ScalarTypeDefinition(builder_, level_ + 1);
+    if (!result_) result_ = ImportDeclaration(builder_, level_ + 1);
+    if (!result_) result_ = SchemaDefinition(builder_, level_ + 1);
+    if (!result_) result_ = AnnotationDefinition(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, RecoverDefinition_parser_);
+    return result_;
   }
 
   /* ********************************************************** */
   // TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | ANNOTATION_DEF | IMPORT | SCHEMA
-  static boolean DefinitionKeyword(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "DefinitionKeyword")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, TYPE);
-    if (!r) r = consumeToken(b, INTERFACE);
-    if (!r) r = consumeToken(b, INPUT);
-    if (!r) r = consumeToken(b, ENUM);
-    if (!r) r = consumeToken(b, UNION);
-    if (!r) r = consumeToken(b, SCALAR);
-    if (!r) r = consumeToken(b, ANNOTATION_DEF);
-    if (!r) r = consumeToken(b, IMPORT);
-    if (!r) r = consumeToken(b, SCHEMA);
-    exit_section_(b, m, null, r);
-    return r;
+  static boolean DefinitionKeyword(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "DefinitionKeyword")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, TYPE);
+    if (!result_) result_ = consumeToken(builder_, INTERFACE);
+    if (!result_) result_ = consumeToken(builder_, INPUT);
+    if (!result_) result_ = consumeToken(builder_, ENUM);
+    if (!result_) result_ = consumeToken(builder_, UNION);
+    if (!result_) result_ = consumeToken(builder_, SCALAR);
+    if (!result_) result_ = consumeToken(builder_, ANNOTATION_DEF);
+    if (!result_) result_ = consumeToken(builder_, IMPORT);
+    if (!result_) result_ = consumeToken(builder_, SCHEMA);
+    return result_;
   }
 
   /* ********************************************************** */
   // Definition*
-  static boolean Document(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Document")) return false;
-    int c = current_position_(b);
+  static boolean Document(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "Document")) return false;
     while (true) {
-      if (!Definition(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "Document", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!Definition(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "Document", pos_)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
   // Annotations? ENUM NamedTypeDef EnumValueDefinitionSet
-  public static boolean EnumTypeDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "EnumTypeDefinition")) return false;
-    if (!nextTokenIs(b, "<enum type definition>", AT_ANNOTATION, ENUM)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ENUM_TYPE_DEFINITION, "<enum type definition>");
-    r = EnumTypeDefinition_0(b, l + 1);
-    r = r && consumeToken(b, ENUM);
-    p = r; // pin = 2
-    r = r && report_error_(b, NamedTypeDef(b, l + 1));
-    r = p && EnumValueDefinitionSet(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean EnumTypeDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "EnumTypeDefinition")) return false;
+    if (!nextTokenIs(builder_, "<enum type definition>", AT_ANNOTATION, ENUM)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, ENUM_TYPE_DEFINITION, "<enum type definition>");
+    result_ = EnumTypeDefinition_0(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, ENUM);
+    pinned_ = result_; // pin = 2
+    result_ = result_ && report_error_(builder_, NamedTypeDef(builder_, level_ + 1));
+    result_ = pinned_ && EnumValueDefinitionSet(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // Annotations?
-  private static boolean EnumTypeDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "EnumTypeDefinition_0")) return false;
-    Annotations(b, l + 1);
+  private static boolean EnumTypeDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "EnumTypeDefinition_0")) return false;
+    Annotations(builder_, level_ + 1);
     return true;
   }
 
   /* ********************************************************** */
   // identifier
-  public static boolean EnumValueDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "EnumValueDefinition")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, ENUM_VALUE_DEFINITION, r);
-    return r;
+  public static boolean EnumValueDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "EnumValueDefinition")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, IDENTIFIER);
+    exit_section_(builder_, marker_, ENUM_VALUE_DEFINITION, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // LBRACE EnumValueDefinition CommaEnumValueDefinition* RBRACE
-  public static boolean EnumValueDefinitionSet(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "EnumValueDefinitionSet")) return false;
-    if (!nextTokenIs(b, LBRACE)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, ENUM_VALUE_DEFINITION_SET, null);
-    r = consumeToken(b, LBRACE);
-    p = r; // pin = 1
-    r = r && report_error_(b, EnumValueDefinition(b, l + 1));
-    r = p && report_error_(b, EnumValueDefinitionSet_2(b, l + 1)) && r;
-    r = p && consumeToken(b, RBRACE) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean EnumValueDefinitionSet(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "EnumValueDefinitionSet")) return false;
+    if (!nextTokenIs(builder_, LBRACE)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, ENUM_VALUE_DEFINITION_SET, null);
+    result_ = consumeToken(builder_, LBRACE);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, EnumValueDefinition(builder_, level_ + 1));
+    result_ = pinned_ && report_error_(builder_, EnumValueDefinitionSet_2(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && consumeToken(builder_, RBRACE) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // CommaEnumValueDefinition*
-  private static boolean EnumValueDefinitionSet_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "EnumValueDefinitionSet_2")) return false;
-    int c = current_position_(b);
+  private static boolean EnumValueDefinitionSet_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "EnumValueDefinitionSet_2")) return false;
     while (true) {
-      if (!CommaEnumValueDefinition(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "EnumValueDefinitionSet_2", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!CommaEnumValueDefinition(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "EnumValueDefinitionSet_2", pos_)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
   // Annotations? Property ArgumentsDefinition? COLON CompositeType
-  public static boolean FieldDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FieldDefinition")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, FIELD_DEFINITION, "<field definition>");
-    r = FieldDefinition_0(b, l + 1);
-    r = r && Property(b, l + 1);
-    p = r; // pin = 2
-    r = r && report_error_(b, FieldDefinition_2(b, l + 1));
-    r = p && report_error_(b, consumeToken(b, COLON)) && r;
-    r = p && CompositeType(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, RecoverFieldDefinition_parser_);
-    return r || p;
+  public static boolean FieldDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "FieldDefinition")) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, FIELD_DEFINITION, "<field definition>");
+    result_ = FieldDefinition_0(builder_, level_ + 1);
+    result_ = result_ && Property(builder_, level_ + 1);
+    pinned_ = result_; // pin = 2
+    result_ = result_ && report_error_(builder_, FieldDefinition_2(builder_, level_ + 1));
+    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, COLON)) && result_;
+    result_ = pinned_ && CompositeType(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverFieldDefinition_parser_);
+    return result_ || pinned_;
   }
 
   // Annotations?
-  private static boolean FieldDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FieldDefinition_0")) return false;
-    Annotations(b, l + 1);
+  private static boolean FieldDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "FieldDefinition_0")) return false;
+    Annotations(builder_, level_ + 1);
     return true;
   }
 
   // ArgumentsDefinition?
-  private static boolean FieldDefinition_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FieldDefinition_2")) return false;
-    ArgumentsDefinition(b, l + 1);
+  private static boolean FieldDefinition_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "FieldDefinition_2")) return false;
+    ArgumentsDefinition(builder_, level_ + 1);
     return true;
   }
 
   /* ********************************************************** */
   // LBRACE FieldDefinition* RBRACE
-  public static boolean FieldDefinitionSet(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FieldDefinitionSet")) return false;
-    if (!nextTokenIs(b, LBRACE)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, FIELD_DEFINITION_SET, null);
-    r = consumeToken(b, LBRACE);
-    p = r; // pin = 1
-    r = r && report_error_(b, FieldDefinitionSet_1(b, l + 1));
-    r = p && consumeToken(b, RBRACE) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean FieldDefinitionSet(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "FieldDefinitionSet")) return false;
+    if (!nextTokenIs(builder_, LBRACE)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, FIELD_DEFINITION_SET, null);
+    result_ = consumeToken(builder_, LBRACE);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, FieldDefinitionSet_1(builder_, level_ + 1));
+    result_ = pinned_ && consumeToken(builder_, RBRACE) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // FieldDefinition*
-  private static boolean FieldDefinitionSet_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "FieldDefinitionSet_1")) return false;
-    int c = current_position_(b);
+  private static boolean FieldDefinitionSet_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "FieldDefinitionSet_1")) return false;
     while (true) {
-      if (!FieldDefinition(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "FieldDefinitionSet_1", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!FieldDefinition(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "FieldDefinitionSet_1", pos_)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
   // IMPLEMENTS NamedType CommaNamedType*
-  public static boolean ImplementsInterfaces(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ImplementsInterfaces")) return false;
-    if (!nextTokenIs(b, IMPLEMENTS)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, IMPLEMENTS_INTERFACES, null);
-    r = consumeToken(b, IMPLEMENTS);
-    p = r; // pin = 1
-    r = r && report_error_(b, NamedType(b, l + 1));
-    r = p && ImplementsInterfaces_2(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean ImplementsInterfaces(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ImplementsInterfaces")) return false;
+    if (!nextTokenIs(builder_, IMPLEMENTS)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, IMPLEMENTS_INTERFACES, null);
+    result_ = consumeToken(builder_, IMPLEMENTS);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, NamedType(builder_, level_ + 1));
+    result_ = pinned_ && ImplementsInterfaces_2(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // CommaNamedType*
-  private static boolean ImplementsInterfaces_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ImplementsInterfaces_2")) return false;
-    int c = current_position_(b);
+  private static boolean ImplementsInterfaces_2(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ImplementsInterfaces_2")) return false;
     while (true) {
-      if (!CommaNamedType(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "ImplementsInterfaces_2", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!CommaNamedType(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "ImplementsInterfaces_2", pos_)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
   // IMPORT ImportFileReference
-  public static boolean ImportDeclaration(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ImportDeclaration")) return false;
-    if (!nextTokenIs(b, IMPORT)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, IMPORT_DECLARATION, null);
-    r = consumeToken(b, IMPORT);
-    p = r; // pin = 1
-    r = r && ImportFileReference(b, l + 1);
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean ImportDeclaration(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ImportDeclaration")) return false;
+    if (!nextTokenIs(builder_, IMPORT)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, IMPORT_DECLARATION, null);
+    result_ = consumeToken(builder_, IMPORT);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && ImportFileReference(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
   // QuotedString
-  public static boolean ImportFileReference(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ImportFileReference")) return false;
-    if (!nextTokenIs(b, OPEN_QUOTE)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = QuotedString(b, l + 1);
-    exit_section_(b, m, IMPORT_FILE_REFERENCE, r);
-    return r;
+  public static boolean ImportFileReference(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ImportFileReference")) return false;
+    if (!nextTokenIs(builder_, OPEN_QUOTE)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = QuotedString(builder_, level_ + 1);
+    exit_section_(builder_, marker_, IMPORT_FILE_REFERENCE, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // Annotations? INPUT NamedTypeDef FieldDefinitionSet
-  public static boolean InputObjectTypeDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "InputObjectTypeDefinition")) return false;
-    if (!nextTokenIs(b, "<input object type definition>", AT_ANNOTATION, INPUT)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, INPUT_OBJECT_TYPE_DEFINITION, "<input object type definition>");
-    r = InputObjectTypeDefinition_0(b, l + 1);
-    r = r && consumeToken(b, INPUT);
-    p = r; // pin = 2
-    r = r && report_error_(b, NamedTypeDef(b, l + 1));
-    r = p && FieldDefinitionSet(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean InputObjectTypeDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "InputObjectTypeDefinition")) return false;
+    if (!nextTokenIs(builder_, "<input object type definition>", AT_ANNOTATION, INPUT)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, INPUT_OBJECT_TYPE_DEFINITION, "<input object type definition>");
+    result_ = InputObjectTypeDefinition_0(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, INPUT);
+    pinned_ = result_; // pin = 2
+    result_ = result_ && report_error_(builder_, NamedTypeDef(builder_, level_ + 1));
+    result_ = pinned_ && FieldDefinitionSet(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // Annotations?
-  private static boolean InputObjectTypeDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "InputObjectTypeDefinition_0")) return false;
-    Annotations(b, l + 1);
+  private static boolean InputObjectTypeDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "InputObjectTypeDefinition_0")) return false;
+    Annotations(builder_, level_ + 1);
     return true;
   }
 
   /* ********************************************************** */
   // InputValueDefinitionIdentifier COLON CompositeType
-  public static boolean InputValueDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "InputValueDefinition")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, INPUT_VALUE_DEFINITION, null);
-    r = InputValueDefinitionIdentifier(b, l + 1);
-    p = r; // pin = 1
-    r = r && report_error_(b, consumeToken(b, COLON));
-    r = p && CompositeType(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean InputValueDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "InputValueDefinition")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, INPUT_VALUE_DEFINITION, null);
+    result_ = InputValueDefinitionIdentifier(builder_, level_ + 1);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, consumeToken(builder_, COLON));
+    result_ = pinned_ && CompositeType(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
   // identifier
-  public static boolean InputValueDefinitionIdentifier(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "InputValueDefinitionIdentifier")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, INPUT_VALUE_DEFINITION_IDENTIFIER, r);
-    return r;
+  public static boolean InputValueDefinitionIdentifier(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "InputValueDefinitionIdentifier")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, IDENTIFIER);
+    exit_section_(builder_, marker_, INPUT_VALUE_DEFINITION_IDENTIFIER, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // InputValueDefinition (COMMA InputValueDefinition)*
-  public static boolean InputValueDefinitions(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "InputValueDefinitions")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = InputValueDefinition(b, l + 1);
-    r = r && InputValueDefinitions_1(b, l + 1);
-    exit_section_(b, m, INPUT_VALUE_DEFINITIONS, r);
-    return r;
+  public static boolean InputValueDefinitions(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "InputValueDefinitions")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = InputValueDefinition(builder_, level_ + 1);
+    result_ = result_ && InputValueDefinitions_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, INPUT_VALUE_DEFINITIONS, result_);
+    return result_;
   }
 
   // (COMMA InputValueDefinition)*
-  private static boolean InputValueDefinitions_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "InputValueDefinitions_1")) return false;
-    int c = current_position_(b);
+  private static boolean InputValueDefinitions_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "InputValueDefinitions_1")) return false;
     while (true) {
-      if (!InputValueDefinitions_1_0(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "InputValueDefinitions_1", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!InputValueDefinitions_1_0(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "InputValueDefinitions_1", pos_)) break;
     }
     return true;
   }
 
   // COMMA InputValueDefinition
-  private static boolean InputValueDefinitions_1_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "InputValueDefinitions_1_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    r = r && InputValueDefinition(b, l + 1);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean InputValueDefinitions_1_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "InputValueDefinitions_1_0")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, COMMA);
+    result_ = result_ && InputValueDefinition(builder_, level_ + 1);
+    exit_section_(builder_, marker_, null, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // Annotations? INTERFACE NamedTypeDef FieldDefinitionSet
-  public static boolean InterfaceTypeDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "InterfaceTypeDefinition")) return false;
-    if (!nextTokenIs(b, "<interface type definition>", AT_ANNOTATION, INTERFACE)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, INTERFACE_TYPE_DEFINITION, "<interface type definition>");
-    r = InterfaceTypeDefinition_0(b, l + 1);
-    r = r && consumeToken(b, INTERFACE);
-    p = r; // pin = 2
-    r = r && report_error_(b, NamedTypeDef(b, l + 1));
-    r = p && FieldDefinitionSet(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean InterfaceTypeDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "InterfaceTypeDefinition")) return false;
+    if (!nextTokenIs(builder_, "<interface type definition>", AT_ANNOTATION, INTERFACE)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, INTERFACE_TYPE_DEFINITION, "<interface type definition>");
+    result_ = InterfaceTypeDefinition_0(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, INTERFACE);
+    pinned_ = result_; // pin = 2
+    result_ = result_ && report_error_(builder_, NamedTypeDef(builder_, level_ + 1));
+    result_ = pinned_ && FieldDefinitionSet(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // Annotations?
-  private static boolean InterfaceTypeDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "InterfaceTypeDefinition_0")) return false;
-    Annotations(b, l + 1);
+  private static boolean InterfaceTypeDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "InterfaceTypeDefinition_0")) return false;
+    Annotations(builder_, level_ + 1);
     return true;
   }
 
   /* ********************************************************** */
   // LBRACKET NamedType RBRACKET REQUIRED?
-  public static boolean ListType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ListType")) return false;
-    if (!nextTokenIs(b, LBRACKET)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, LIST_TYPE, null);
-    r = consumeToken(b, LBRACKET);
-    p = r; // pin = 1
-    r = r && report_error_(b, NamedType(b, l + 1));
-    r = p && report_error_(b, consumeToken(b, RBRACKET)) && r;
-    r = p && ListType_3(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean ListType(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ListType")) return false;
+    if (!nextTokenIs(builder_, LBRACKET)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, LIST_TYPE, null);
+    result_ = consumeToken(builder_, LBRACKET);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, NamedType(builder_, level_ + 1));
+    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, RBRACKET)) && result_;
+    result_ = pinned_ && ListType_3(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // REQUIRED?
-  private static boolean ListType_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ListType_3")) return false;
-    consumeToken(b, REQUIRED);
+  private static boolean ListType_3(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ListType_3")) return false;
+    consumeToken(builder_, REQUIRED);
     return true;
   }
 
   /* ********************************************************** */
   // identifier (EQUALS | COLON) AnnotationArgumentValue
-  public static boolean NamedAnnotationArgument(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "NamedAnnotationArgument")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, NAMED_ANNOTATION_ARGUMENT, "<named annotation argument>");
-    r = consumeToken(b, IDENTIFIER);
-    p = r; // pin = 1
-    r = r && report_error_(b, NamedAnnotationArgument_1(b, l + 1));
-    r = p && AnnotationArgumentValue(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, RecoverNamedAnnotationArgument_parser_);
-    return r || p;
+  public static boolean NamedAnnotationArgument(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "NamedAnnotationArgument")) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, NAMED_ANNOTATION_ARGUMENT, "<named annotation argument>");
+    result_ = consumeToken(builder_, IDENTIFIER);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, NamedAnnotationArgument_1(builder_, level_ + 1));
+    result_ = pinned_ && AnnotationArgumentValue(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverNamedAnnotationArgument_parser_);
+    return result_ || pinned_;
   }
 
   // EQUALS | COLON
-  private static boolean NamedAnnotationArgument_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "NamedAnnotationArgument_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, EQUALS);
-    if (!r) r = consumeToken(b, COLON);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean NamedAnnotationArgument_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "NamedAnnotationArgument_1")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, EQUALS);
+    if (!result_) result_ = consumeToken(builder_, COLON);
+    return result_;
   }
 
   /* ********************************************************** */
   // NamedAnnotationArgument CommaNamedAnnotationArgument*
-  public static boolean NamedAnnotationArguments(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "NamedAnnotationArguments")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = NamedAnnotationArgument(b, l + 1);
-    r = r && NamedAnnotationArguments_1(b, l + 1);
-    exit_section_(b, m, NAMED_ANNOTATION_ARGUMENTS, r);
-    return r;
+  public static boolean NamedAnnotationArguments(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "NamedAnnotationArguments")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = NamedAnnotationArgument(builder_, level_ + 1);
+    result_ = result_ && NamedAnnotationArguments_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, NAMED_ANNOTATION_ARGUMENTS, result_);
+    return result_;
   }
 
   // CommaNamedAnnotationArgument*
-  private static boolean NamedAnnotationArguments_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "NamedAnnotationArguments_1")) return false;
-    int c = current_position_(b);
+  private static boolean NamedAnnotationArguments_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "NamedAnnotationArguments_1")) return false;
     while (true) {
-      if (!CommaNamedAnnotationArgument(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "NamedAnnotationArguments_1", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!CommaNamedAnnotationArgument(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "NamedAnnotationArguments_1", pos_)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
   // identifier
-  public static boolean NamedType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "NamedType")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, NAMED_TYPE, r);
-    return r;
+  public static boolean NamedType(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "NamedType")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, IDENTIFIER);
+    exit_section_(builder_, marker_, NAMED_TYPE, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // identifier
-  public static boolean NamedTypeDef(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "NamedTypeDef")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, NAMED_TYPE_DEF, r);
-    return r;
+  public static boolean NamedTypeDef(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "NamedTypeDef")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, IDENTIFIER);
+    exit_section_(builder_, marker_, NAMED_TYPE_DEF, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // Annotations? TYPE NamedTypeDef ImplementsInterfaces? FieldDefinitionSet
-  public static boolean ObjectTypeDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ObjectTypeDefinition")) return false;
-    if (!nextTokenIs(b, "<object type definition>", AT_ANNOTATION, TYPE)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, OBJECT_TYPE_DEFINITION, "<object type definition>");
-    r = ObjectTypeDefinition_0(b, l + 1);
-    r = r && consumeToken(b, TYPE);
-    p = r; // pin = 2
-    r = r && report_error_(b, NamedTypeDef(b, l + 1));
-    r = p && report_error_(b, ObjectTypeDefinition_3(b, l + 1)) && r;
-    r = p && FieldDefinitionSet(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean ObjectTypeDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ObjectTypeDefinition")) return false;
+    if (!nextTokenIs(builder_, "<object type definition>", AT_ANNOTATION, TYPE)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, OBJECT_TYPE_DEFINITION, "<object type definition>");
+    result_ = ObjectTypeDefinition_0(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, TYPE);
+    pinned_ = result_; // pin = 2
+    result_ = result_ && report_error_(builder_, NamedTypeDef(builder_, level_ + 1));
+    result_ = pinned_ && report_error_(builder_, ObjectTypeDefinition_3(builder_, level_ + 1)) && result_;
+    result_ = pinned_ && FieldDefinitionSet(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // Annotations?
-  private static boolean ObjectTypeDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ObjectTypeDefinition_0")) return false;
-    Annotations(b, l + 1);
+  private static boolean ObjectTypeDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ObjectTypeDefinition_0")) return false;
+    Annotations(builder_, level_ + 1);
     return true;
   }
 
   // ImplementsInterfaces?
-  private static boolean ObjectTypeDefinition_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ObjectTypeDefinition_3")) return false;
-    ImplementsInterfaces(b, l + 1);
+  private static boolean ObjectTypeDefinition_3(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ObjectTypeDefinition_3")) return false;
+    ImplementsInterfaces(builder_, level_ + 1);
     return true;
   }
 
   /* ********************************************************** */
   // (QUERY | MUTATION | SUBSCRIPTION) COLON NamedType
-  public static boolean OperationTypeDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "OperationTypeDefinition")) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, OPERATION_TYPE_DEFINITION, "<operation type definition>");
-    r = OperationTypeDefinition_0(b, l + 1);
-    p = r; // pin = 1
-    r = r && report_error_(b, consumeToken(b, COLON));
-    r = p && NamedType(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, RecoverOperation_parser_);
-    return r || p;
+  public static boolean OperationTypeDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "OperationTypeDefinition")) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, OPERATION_TYPE_DEFINITION, "<operation type definition>");
+    result_ = OperationTypeDefinition_0(builder_, level_ + 1);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, consumeToken(builder_, COLON));
+    result_ = pinned_ && NamedType(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverOperation_parser_);
+    return result_ || pinned_;
   }
 
   // QUERY | MUTATION | SUBSCRIPTION
-  private static boolean OperationTypeDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "OperationTypeDefinition_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, QUERY);
-    if (!r) r = consumeToken(b, MUTATION);
-    if (!r) r = consumeToken(b, SUBSCRIPTION);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean OperationTypeDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "OperationTypeDefinition_0")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, QUERY);
+    if (!result_) result_ = consumeToken(builder_, MUTATION);
+    if (!result_) result_ = consumeToken(builder_, SUBSCRIPTION);
+    return result_;
   }
 
   /* ********************************************************** */
   // LBRACE OperationTypeDefinition* RBRACE
-  public static boolean OperationTypeDefinitionSet(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "OperationTypeDefinitionSet")) return false;
-    if (!nextTokenIs(b, LBRACE)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, OPERATION_TYPE_DEFINITION_SET, null);
-    r = consumeToken(b, LBRACE);
-    p = r; // pin = 1
-    r = r && report_error_(b, OperationTypeDefinitionSet_1(b, l + 1));
-    r = p && consumeToken(b, RBRACE) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean OperationTypeDefinitionSet(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "OperationTypeDefinitionSet")) return false;
+    if (!nextTokenIs(builder_, LBRACE)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, OPERATION_TYPE_DEFINITION_SET, null);
+    result_ = consumeToken(builder_, LBRACE);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, OperationTypeDefinitionSet_1(builder_, level_ + 1));
+    result_ = pinned_ && consumeToken(builder_, RBRACE) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // OperationTypeDefinition*
-  private static boolean OperationTypeDefinitionSet_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "OperationTypeDefinitionSet_1")) return false;
-    int c = current_position_(b);
+  private static boolean OperationTypeDefinitionSet_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "OperationTypeDefinitionSet_1")) return false;
     while (true) {
-      if (!OperationTypeDefinition(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "OperationTypeDefinitionSet_1", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!OperationTypeDefinition(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "OperationTypeDefinitionSet_1", pos_)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
   // PIPE UnionMember
-  static boolean PipeUnionMember(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "PipeUnionMember")) return false;
-    if (!nextTokenIs(b, PIPE)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_);
-    r = consumeToken(b, PIPE);
-    p = r; // pin = 1
-    r = r && UnionMember(b, l + 1);
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  static boolean PipeUnionMember(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "PipeUnionMember")) return false;
+    if (!nextTokenIs(builder_, PIPE)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_);
+    result_ = consumeToken(builder_, PIPE);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && UnionMember(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
   // identifier
-  public static boolean Property(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "Property")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, PROPERTY, r);
-    return r;
+  public static boolean Property(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "Property")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, IDENTIFIER);
+    exit_section_(builder_, marker_, PROPERTY, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // OPEN_QUOTE String? CLOSING_QUOTE
-  public static boolean QuotedString(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "QuotedString")) return false;
-    if (!nextTokenIs(b, OPEN_QUOTE)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, QUOTED_STRING, null);
-    r = consumeToken(b, OPEN_QUOTE);
-    p = r; // pin = 1
-    r = r && report_error_(b, QuotedString_1(b, l + 1));
-    r = p && consumeToken(b, CLOSING_QUOTE) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean QuotedString(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "QuotedString")) return false;
+    if (!nextTokenIs(builder_, OPEN_QUOTE)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, QUOTED_STRING, null);
+    result_ = consumeToken(builder_, OPEN_QUOTE);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && report_error_(builder_, QuotedString_1(builder_, level_ + 1));
+    result_ = pinned_ && consumeToken(builder_, CLOSING_QUOTE) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // String?
-  private static boolean QuotedString_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "QuotedString_1")) return false;
-    String(b, l + 1);
+  private static boolean QuotedString_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "QuotedString_1")) return false;
+    String(builder_, level_ + 1);
     return true;
   }
 
   /* ********************************************************** */
   // !(RBRACE | AT_ANNOTATION | DefinitionKeyword | identifier )
-  static boolean RecoverAnnotation(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverAnnotation")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !RecoverAnnotation_0(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  static boolean RecoverAnnotation(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverAnnotation")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NOT_);
+    result_ = !RecoverAnnotation_0(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   // RBRACE | AT_ANNOTATION | DefinitionKeyword | identifier
-  private static boolean RecoverAnnotation_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverAnnotation_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, RBRACE);
-    if (!r) r = consumeToken(b, AT_ANNOTATION);
-    if (!r) r = DefinitionKeyword(b, l + 1);
-    if (!r) r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean RecoverAnnotation_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverAnnotation_0")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, RBRACE);
+    if (!result_) result_ = consumeToken(builder_, AT_ANNOTATION);
+    if (!result_) result_ = DefinitionKeyword(builder_, level_ + 1);
+    if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
+    return result_;
   }
 
   /* ********************************************************** */
   // !(COLON | RBRACE | AT_ANNOTATION | DefinitionKeyword | identifier)
-  static boolean RecoverArgumentsDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverArgumentsDefinition")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !RecoverArgumentsDefinition_0(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  static boolean RecoverArgumentsDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverArgumentsDefinition")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NOT_);
+    result_ = !RecoverArgumentsDefinition_0(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   // COLON | RBRACE | AT_ANNOTATION | DefinitionKeyword | identifier
-  private static boolean RecoverArgumentsDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverArgumentsDefinition_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COLON);
-    if (!r) r = consumeToken(b, RBRACE);
-    if (!r) r = consumeToken(b, AT_ANNOTATION);
-    if (!r) r = DefinitionKeyword(b, l + 1);
-    if (!r) r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean RecoverArgumentsDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverArgumentsDefinition_0")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, COLON);
+    if (!result_) result_ = consumeToken(builder_, RBRACE);
+    if (!result_) result_ = consumeToken(builder_, AT_ANNOTATION);
+    if (!result_) result_ = DefinitionKeyword(builder_, level_ + 1);
+    if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
+    return result_;
   }
 
   /* ********************************************************** */
   // !(RBRACE | COMMA | DefinitionKeyword | identifier)
-  static boolean RecoverCommaEnumValueDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverCommaEnumValueDefinition")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !RecoverCommaEnumValueDefinition_0(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  static boolean RecoverCommaEnumValueDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverCommaEnumValueDefinition")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NOT_);
+    result_ = !RecoverCommaEnumValueDefinition_0(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   // RBRACE | COMMA | DefinitionKeyword | identifier
-  private static boolean RecoverCommaEnumValueDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverCommaEnumValueDefinition_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, RBRACE);
-    if (!r) r = consumeToken(b, COMMA);
-    if (!r) r = DefinitionKeyword(b, l + 1);
-    if (!r) r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean RecoverCommaEnumValueDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverCommaEnumValueDefinition_0")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, RBRACE);
+    if (!result_) result_ = consumeToken(builder_, COMMA);
+    if (!result_) result_ = DefinitionKeyword(builder_, level_ + 1);
+    if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
+    return result_;
   }
 
   /* ********************************************************** */
   // !(LBRACE | COMMA | DefinitionKeyword | identifier)
-  static boolean RecoverCommaNamedType(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverCommaNamedType")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !RecoverCommaNamedType_0(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  static boolean RecoverCommaNamedType(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverCommaNamedType")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NOT_);
+    result_ = !RecoverCommaNamedType_0(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   // LBRACE | COMMA | DefinitionKeyword | identifier
-  private static boolean RecoverCommaNamedType_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverCommaNamedType_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, LBRACE);
-    if (!r) r = consumeToken(b, COMMA);
-    if (!r) r = DefinitionKeyword(b, l + 1);
-    if (!r) r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean RecoverCommaNamedType_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverCommaNamedType_0")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, LBRACE);
+    if (!result_) result_ = consumeToken(builder_, COMMA);
+    if (!result_) result_ = DefinitionKeyword(builder_, level_ + 1);
+    if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
+    return result_;
   }
 
   /* ********************************************************** */
   // !(DefinitionKeyword | AT_ANNOTATION)
-  static boolean RecoverDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverDefinition")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !RecoverDefinition_0(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  static boolean RecoverDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverDefinition")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NOT_);
+    result_ = !RecoverDefinition_0(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   // DefinitionKeyword | AT_ANNOTATION
-  private static boolean RecoverDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverDefinition_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = DefinitionKeyword(b, l + 1);
-    if (!r) r = consumeToken(b, AT_ANNOTATION);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean RecoverDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverDefinition_0")) return false;
+    boolean result_;
+    result_ = DefinitionKeyword(builder_, level_ + 1);
+    if (!result_) result_ = consumeToken(builder_, AT_ANNOTATION);
+    return result_;
   }
 
   /* ********************************************************** */
   // !(RBRACE | AT_ANNOTATION | identifier)
-  static boolean RecoverFieldDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverFieldDefinition")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !RecoverFieldDefinition_0(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  static boolean RecoverFieldDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverFieldDefinition")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NOT_);
+    result_ = !RecoverFieldDefinition_0(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   // RBRACE | AT_ANNOTATION | identifier
-  private static boolean RecoverFieldDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverFieldDefinition_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, RBRACE);
-    if (!r) r = consumeToken(b, AT_ANNOTATION);
-    if (!r) r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean RecoverFieldDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverFieldDefinition_0")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, RBRACE);
+    if (!result_) result_ = consumeToken(builder_, AT_ANNOTATION);
+    if (!result_) result_ = consumeToken(builder_, IDENTIFIER);
+    return result_;
   }
 
   /* ********************************************************** */
   // !(COMMA | RPAREN)
-  static boolean RecoverNamedAnnotationArgument(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverNamedAnnotationArgument")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !RecoverNamedAnnotationArgument_0(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  static boolean RecoverNamedAnnotationArgument(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverNamedAnnotationArgument")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NOT_);
+    result_ = !RecoverNamedAnnotationArgument_0(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   // COMMA | RPAREN
-  private static boolean RecoverNamedAnnotationArgument_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverNamedAnnotationArgument_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, COMMA);
-    if (!r) r = consumeToken(b, RPAREN);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean RecoverNamedAnnotationArgument_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverNamedAnnotationArgument_0")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, COMMA);
+    if (!result_) result_ = consumeToken(builder_, RPAREN);
+    return result_;
   }
 
   /* ********************************************************** */
   // !(RBRACE | QUERY | MUTATION | SUBSCRIPTION)
-  static boolean RecoverOperation(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverOperation")) return false;
-    boolean r;
-    Marker m = enter_section_(b, l, _NOT_);
-    r = !RecoverOperation_0(b, l + 1);
-    exit_section_(b, l, m, r, false, null);
-    return r;
+  static boolean RecoverOperation(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverOperation")) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_, level_, _NOT_);
+    result_ = !RecoverOperation_0(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, false, null);
+    return result_;
   }
 
   // RBRACE | QUERY | MUTATION | SUBSCRIPTION
-  private static boolean RecoverOperation_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "RecoverOperation_0")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, RBRACE);
-    if (!r) r = consumeToken(b, QUERY);
-    if (!r) r = consumeToken(b, MUTATION);
-    if (!r) r = consumeToken(b, SUBSCRIPTION);
-    exit_section_(b, m, null, r);
-    return r;
+  private static boolean RecoverOperation_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "RecoverOperation_0")) return false;
+    boolean result_;
+    result_ = consumeToken(builder_, RBRACE);
+    if (!result_) result_ = consumeToken(builder_, QUERY);
+    if (!result_) result_ = consumeToken(builder_, MUTATION);
+    if (!result_) result_ = consumeToken(builder_, SUBSCRIPTION);
+    return result_;
   }
 
   /* ********************************************************** */
   // Annotations? SCALAR NamedTypeDef
-  public static boolean ScalarTypeDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ScalarTypeDefinition")) return false;
-    if (!nextTokenIs(b, "<scalar type definition>", AT_ANNOTATION, SCALAR)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, SCALAR_TYPE_DEFINITION, "<scalar type definition>");
-    r = ScalarTypeDefinition_0(b, l + 1);
-    r = r && consumeToken(b, SCALAR);
-    p = r; // pin = 2
-    r = r && NamedTypeDef(b, l + 1);
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean ScalarTypeDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ScalarTypeDefinition")) return false;
+    if (!nextTokenIs(builder_, "<scalar type definition>", AT_ANNOTATION, SCALAR)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, SCALAR_TYPE_DEFINITION, "<scalar type definition>");
+    result_ = ScalarTypeDefinition_0(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, SCALAR);
+    pinned_ = result_; // pin = 2
+    result_ = result_ && NamedTypeDef(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // Annotations?
-  private static boolean ScalarTypeDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "ScalarTypeDefinition_0")) return false;
-    Annotations(b, l + 1);
+  private static boolean ScalarTypeDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "ScalarTypeDefinition_0")) return false;
+    Annotations(builder_, level_ + 1);
     return true;
   }
 
   /* ********************************************************** */
   // SCHEMA OperationTypeDefinitionSet
-  public static boolean SchemaDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "SchemaDefinition")) return false;
-    if (!nextTokenIs(b, SCHEMA)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, SCHEMA_DEFINITION, null);
-    r = consumeToken(b, SCHEMA);
-    p = r; // pin = 1
-    r = r && OperationTypeDefinitionSet(b, l + 1);
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean SchemaDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "SchemaDefinition")) return false;
+    if (!nextTokenIs(builder_, SCHEMA)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, SCHEMA_DEFINITION, null);
+    result_ = consumeToken(builder_, SCHEMA);
+    pinned_ = result_; // pin = 1
+    result_ = result_ && OperationTypeDefinitionSet(builder_, level_ + 1);
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   /* ********************************************************** */
   // STRING_BODY
-  public static boolean String(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "String")) return false;
-    if (!nextTokenIs(b, STRING_BODY)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, STRING_BODY);
-    exit_section_(b, m, STRING, r);
-    return r;
+  public static boolean String(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "String")) return false;
+    if (!nextTokenIs(builder_, STRING_BODY)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, STRING_BODY);
+    exit_section_(builder_, marker_, STRING, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // identifier
-  public static boolean UnionMember(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "UnionMember")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = consumeToken(b, IDENTIFIER);
-    exit_section_(b, m, UNION_MEMBER, r);
-    return r;
+  public static boolean UnionMember(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "UnionMember")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = consumeToken(builder_, IDENTIFIER);
+    exit_section_(builder_, marker_, UNION_MEMBER, result_);
+    return result_;
   }
 
   /* ********************************************************** */
   // UnionMember PipeUnionMember*
-  public static boolean UnionMemberSet(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "UnionMemberSet")) return false;
-    if (!nextTokenIs(b, IDENTIFIER)) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = UnionMember(b, l + 1);
-    r = r && UnionMemberSet_1(b, l + 1);
-    exit_section_(b, m, UNION_MEMBER_SET, r);
-    return r;
+  public static boolean UnionMemberSet(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "UnionMemberSet")) return false;
+    if (!nextTokenIs(builder_, IDENTIFIER)) return false;
+    boolean result_;
+    Marker marker_ = enter_section_(builder_);
+    result_ = UnionMember(builder_, level_ + 1);
+    result_ = result_ && UnionMemberSet_1(builder_, level_ + 1);
+    exit_section_(builder_, marker_, UNION_MEMBER_SET, result_);
+    return result_;
   }
 
   // PipeUnionMember*
-  private static boolean UnionMemberSet_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "UnionMemberSet_1")) return false;
-    int c = current_position_(b);
+  private static boolean UnionMemberSet_1(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "UnionMemberSet_1")) return false;
     while (true) {
-      if (!PipeUnionMember(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "UnionMemberSet_1", c)) break;
-      c = current_position_(b);
+      int pos_ = current_position_(builder_);
+      if (!PipeUnionMember(builder_, level_ + 1)) break;
+      if (!empty_element_parsed_guard_(builder_, "UnionMemberSet_1", pos_)) break;
     }
     return true;
   }
 
   /* ********************************************************** */
   // Annotations? UNION NamedTypeDef EQUALS UnionMemberSet
-  public static boolean UnionTypeDefinition(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "UnionTypeDefinition")) return false;
-    if (!nextTokenIs(b, "<union type definition>", AT_ANNOTATION, UNION)) return false;
-    boolean r, p;
-    Marker m = enter_section_(b, l, _NONE_, UNION_TYPE_DEFINITION, "<union type definition>");
-    r = UnionTypeDefinition_0(b, l + 1);
-    r = r && consumeToken(b, UNION);
-    p = r; // pin = 2
-    r = r && report_error_(b, NamedTypeDef(b, l + 1));
-    r = p && report_error_(b, consumeToken(b, EQUALS)) && r;
-    r = p && UnionMemberSet(b, l + 1) && r;
-    exit_section_(b, l, m, r, p, null);
-    return r || p;
+  public static boolean UnionTypeDefinition(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "UnionTypeDefinition")) return false;
+    if (!nextTokenIs(builder_, "<union type definition>", AT_ANNOTATION, UNION)) return false;
+    boolean result_, pinned_;
+    Marker marker_ = enter_section_(builder_, level_, _NONE_, UNION_TYPE_DEFINITION, "<union type definition>");
+    result_ = UnionTypeDefinition_0(builder_, level_ + 1);
+    result_ = result_ && consumeToken(builder_, UNION);
+    pinned_ = result_; // pin = 2
+    result_ = result_ && report_error_(builder_, NamedTypeDef(builder_, level_ + 1));
+    result_ = pinned_ && report_error_(builder_, consumeToken(builder_, EQUALS)) && result_;
+    result_ = pinned_ && UnionMemberSet(builder_, level_ + 1) && result_;
+    exit_section_(builder_, level_, marker_, result_, pinned_, null);
+    return result_ || pinned_;
   }
 
   // Annotations?
-  private static boolean UnionTypeDefinition_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "UnionTypeDefinition_0")) return false;
-    Annotations(b, l + 1);
+  private static boolean UnionTypeDefinition_0(PsiBuilder builder_, int level_) {
+    if (!recursion_guard_(builder_, level_, "UnionTypeDefinition_0")) return false;
+    Annotations(builder_, level_ + 1);
     return true;
   }
 
-  final static Parser RecoverAnnotation_parser_ = new Parser() {
-    public boolean parse(PsiBuilder b, int l) {
-      return RecoverAnnotation(b, l + 1);
+  static final Parser RecoverAnnotation_parser_ = new Parser() {
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return RecoverAnnotation(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverArgumentsDefinition_parser_ = new Parser() {
-    public boolean parse(PsiBuilder b, int l) {
-      return RecoverArgumentsDefinition(b, l + 1);
+  static final Parser RecoverArgumentsDefinition_parser_ = new Parser() {
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return RecoverArgumentsDefinition(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverCommaEnumValueDefinition_parser_ = new Parser() {
-    public boolean parse(PsiBuilder b, int l) {
-      return RecoverCommaEnumValueDefinition(b, l + 1);
+  static final Parser RecoverCommaEnumValueDefinition_parser_ = new Parser() {
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return RecoverCommaEnumValueDefinition(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverCommaNamedType_parser_ = new Parser() {
-    public boolean parse(PsiBuilder b, int l) {
-      return RecoverCommaNamedType(b, l + 1);
+  static final Parser RecoverCommaNamedType_parser_ = new Parser() {
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return RecoverCommaNamedType(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverDefinition_parser_ = new Parser() {
-    public boolean parse(PsiBuilder b, int l) {
-      return RecoverDefinition(b, l + 1);
+  static final Parser RecoverDefinition_parser_ = new Parser() {
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return RecoverDefinition(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverFieldDefinition_parser_ = new Parser() {
-    public boolean parse(PsiBuilder b, int l) {
-      return RecoverFieldDefinition(b, l + 1);
+  static final Parser RecoverFieldDefinition_parser_ = new Parser() {
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return RecoverFieldDefinition(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverNamedAnnotationArgument_parser_ = new Parser() {
-    public boolean parse(PsiBuilder b, int l) {
-      return RecoverNamedAnnotationArgument(b, l + 1);
+  static final Parser RecoverNamedAnnotationArgument_parser_ = new Parser() {
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return RecoverNamedAnnotationArgument(builder_, level_ + 1);
     }
   };
-  final static Parser RecoverOperation_parser_ = new Parser() {
-    public boolean parse(PsiBuilder b, int l) {
-      return RecoverOperation(b, l + 1);
+  static final Parser RecoverOperation_parser_ = new Parser() {
+    public boolean parse(PsiBuilder builder_, int level_) {
+      return RecoverOperation(builder_, level_ + 1);
     }
   };
 }

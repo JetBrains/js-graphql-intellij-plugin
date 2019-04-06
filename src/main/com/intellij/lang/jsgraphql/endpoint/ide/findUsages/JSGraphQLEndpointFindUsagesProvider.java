@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.findUsages;
 
+import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointPropertyPsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +52,9 @@ public class JSGraphQLEndpointFindUsagesProvider implements FindUsagesProvider {
     public String getType(@NotNull PsiElement element) {
         if(element instanceof JSGraphQLEndpointInputValueDefinitionIdentifier) {
             return "argument";
+        }
+        if(element instanceof JSGraphQLEndpointPropertyPsiElement) {
+            return "field";
         }
         final JSGraphQLEndpointNamedTypeDefinition definition = PsiTreeUtil.getParentOfType(element, JSGraphQLEndpointNamedTypeDefinition.class);
         if(definition != null) {
