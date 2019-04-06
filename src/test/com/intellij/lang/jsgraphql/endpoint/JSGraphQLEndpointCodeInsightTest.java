@@ -53,6 +53,8 @@ public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTes
 				"\n" +
 				"    }\n" +
 				"}");
+		// use the synchronous method of building the configuration for the unit test
+		GraphQLConfigManager.getService(getProject()).doBuildConfigurationModel(null);
 	}
 
 	@Override
