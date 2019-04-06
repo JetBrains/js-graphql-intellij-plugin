@@ -428,7 +428,7 @@ public class GraphQLIntrospectionHelper {
                 final String header;
                 switch (format) {
                     case SDL:
-                        header = "# This file was generated based on \"" + introspectionSourceFile.getName() + "\" at " + new Date() + ". Do not edit manually.\n\n";
+                        header = "# This file was generated based on \"" + introspectionSourceFile.getName() + "\". Do not edit manually.\n\n";
                         break;
                     case JSON:
                         header = "";
