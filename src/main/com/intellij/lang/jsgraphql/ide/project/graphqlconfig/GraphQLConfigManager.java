@@ -139,6 +139,8 @@ public class GraphQLConfigManager {
     private final Lock writeLock = cacheLock.writeLock();
     private final Lock readLock = cacheLock.readLock();
 
+    private final Ref<Runnable> buildConfigurationModelCallable = Ref.create();
+
     public GraphQLConfigManager(Project myProject) {
         this.myProject = myProject;
         this.projectScope = GlobalSearchScope.projectScope(myProject);
@@ -487,17 +489,41 @@ public class GraphQLConfigManager {
      */
     public void buildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles, @Nullable Runnable onCompleted) {
         ApplicationManager.getApplication().invokeLater(() -> {
+
+            // runs on the UI thread so task scheduling can be considered atomic
+            final boolean hasExistingTask = buildConfigurationModelCallable.get() != null;
+
+            // set the runnable that the task uses to the latest refresh info
+            buildConfigurationModelCallable.set(() -> {
+                doBuildConfigurationModel(changedConfigurationFiles);
+                if (onCompleted != null) {
+                    onCompleted.run();
+                }
+            });
+
+            if (hasExistingTask) {
+                // already queued up the task
+                return;
+            }
+
             final Task.Backgroundable task = new Task.Backgroundable(myProject, "GraphQL Configuration Scan", false) {
                 @Override
                 public void run(@NotNull ProgressIndicator indicator) {
                     indicator.setIndeterminate(true);
                     DumbService.getInstance(myProject).runReadActionInSmartMode(() -> {
-                        doBuildConfigurationModel(changedConfigurationFiles);
-                        if (onCompleted != null) {
-                            onCompleted.run();
+                        final Runnable runnable = buildConfigurationModelCallable.get();
+                        if (runnable != null) {
+                            runnable.run();
                         }
                     });
                 }
+
+                @Override
+                public void onFinished() {
+                    // also called on UI thread
+                    buildConfigurationModelCallable.set(null);
+                }
+
             };
             if (!myProject.isDisposed()) {
                 ProgressManager.getInstance().run(task);
