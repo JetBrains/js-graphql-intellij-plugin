@@ -71,8 +71,8 @@ const siteConfig = {
   repoUrl: 'https://github.com/jimkyndemeyer/js-graphql-intellij-plugin',
 
   algolia: {
-    apiKey: '3a204bad724e39bb9e3921b7f684a541',
-    indexName: 'JS GraphQL IntelliJ Plugin',
+    apiKey: '52de02e8bdcb09834ebc89f561b4cf42',
+    indexName: 'jimkyndemeyer_js-graphql-intellij-plugin',
     algoliaOptions: {}
   },
 
