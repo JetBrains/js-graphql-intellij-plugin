@@ -57,40 +57,41 @@ public class GraphQLIntrospectionResultToSchema {
 
         Map<String, Object> queryType = (Map<String, Object>) schema.get("queryType");
         assertNotNull(queryType, "queryType expected");
-        TypeName query = new TypeName((String) queryType.get("name"));
+        TypeName query = TypeName.newTypeName().name((String) queryType.get("name")).build();
         boolean nonDefaultQueryName = !"Query".equals(query.getName());
 
-        SchemaDefinition schemaDefinition = SchemaDefinition.newSchemaDefinition().operationTypeDefinition(new OperationTypeDefinition("query", query)).build();
+        SchemaDefinition.Builder schemaDefinition = SchemaDefinition.newSchemaDefinition();
+        schemaDefinition.operationTypeDefinition(OperationTypeDefinition.newOperationTypeDefinition().name("query").typeName(query).build());
 
         Map<String, Object> mutationType = (Map<String, Object>) schema.get("mutationType");
         boolean nonDefaultMutationName = false;
         if (mutationType != null) {
-            TypeName mutation = new TypeName((String) mutationType.get("name"));
+            TypeName mutation = TypeName.newTypeName().name((String) mutationType.get("name")).build();
             nonDefaultMutationName = !"Mutation".equals(mutation.getName());
-            schemaDefinition.getOperationTypeDefinitions().add(new OperationTypeDefinition("mutation", mutation));
+            schemaDefinition.operationTypeDefinition(OperationTypeDefinition.newOperationTypeDefinition().name("mutation").typeName(mutation).build());
         }
 
         Map<String, Object> subscriptionType = (Map<String, Object>) schema.get("subscriptionType");
         boolean nonDefaultSubscriptionName = false;
         if (subscriptionType != null) {
-            TypeName subscription = new TypeName((String) subscriptionType.get("name"));
+            TypeName subscription = TypeName.newTypeName().name(((String) subscriptionType.get("name"))).build();
             nonDefaultSubscriptionName = !"Subscription".equals(subscription.getName());
-            schemaDefinition.getOperationTypeDefinitions().add(new OperationTypeDefinition("subscription", subscription));
+            schemaDefinition.operationTypeDefinition(OperationTypeDefinition.newOperationTypeDefinition().name("subscription").typeName(subscription).build());
         }
 
-        Document document = new Document(Lists.newArrayList());
+        Document.Builder document = Document.newDocument();
         if (nonDefaultQueryName || nonDefaultMutationName || nonDefaultSubscriptionName) {
-            document.getDefinitions().add(schemaDefinition);
+            document.definition(schemaDefinition.build());
         }
 
         List<Map<String, Object>> types = (List<Map<String, Object>>) schema.get("types");
         for (Map<String, Object> type : types) {
             TypeDefinition typeDefinition = createTypeDefinition(type);
             if (typeDefinition == null) continue;
-            document.getDefinitions().add(typeDefinition);
+            document.definition(typeDefinition);
         }
 
-        return document;
+        return document.build();
     }
 
     private TypeDefinition createTypeDefinition(Map<String, Object> type) {
@@ -272,11 +273,11 @@ public class GraphQLIntrospectionResultToSchema {
             case "ENUM":
             case "INPUT_OBJECT":
             case "SCALAR":
-                return new TypeName((String) type.get("name"));
+                return TypeName.newTypeName().name((String) type.get("name")).build();
             case "NON_NULL":
-                return new NonNullType(createTypeIndirection((Map<String, Object>) type.get("ofType")));
+                return NonNullType.newNonNullType().type(createTypeIndirection((Map<String, Object>) type.get("ofType"))).build();
             case "LIST":
-                return new ListType(createTypeIndirection((Map<String, Object>) type.get("ofType")));
+                return ListType.newListType().type(createTypeIndirection((Map<String, Object>) type.get("ofType"))).build();
             default:
                 return assertShouldNeverHappen("Unknown kind %s", kind);
         }

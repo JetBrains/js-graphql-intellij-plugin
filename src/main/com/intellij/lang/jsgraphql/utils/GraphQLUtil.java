@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.utils;
 import graphql.language.Document;
 import graphql.language.SourceLocation;
 import graphql.parser.GraphqlAntlrToLanguage;
+import graphql.parser.MultiSourceReader;
 import graphql.parser.antlr.GraphqlLexer;
 import graphql.parser.antlr.GraphqlParser;
 import graphql.schema.GraphQLModifiedType;
@@ -68,8 +69,12 @@ public final class GraphQLUtil {
         parser.setErrorHandler(new BailErrorStrategy());
         GraphqlParser.DocumentContext documentContext = parser.document();
 
+        MultiSourceReader multiSourceReader = MultiSourceReader.newMultiSourceReader()
+                .string(input, sourceName)
+                .trackData(true)
+                .build();
 
-        GraphqlAntlrToLanguage antlrToLanguage = new GraphqlAntlrToLanguage(tokens) {
+        GraphqlAntlrToLanguage antlrToLanguage = new GraphqlAntlrToLanguage(tokens, multiSourceReader) {
             @Override
             protected SourceLocation getSourceLocation(ParserRuleContext parserRuleContext) {
                 Token startToken = parserRuleContext.getStart();
