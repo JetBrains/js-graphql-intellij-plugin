@@ -100,6 +100,9 @@ class Index extends React.Component {
                 <MarkdownBlock>
                     A thanks also goes out to the [Apollo](https://github.com/apollographql) and [Prisma](https://github.com/prisma) teams for their continued efforts to improve the GraphQL Developer Experience.
                 </MarkdownBlock>
+                <MarkdownBlock>
+                    [JProfiler Java profiler](https://www.ej-technologies.com/products/jprofiler/overview.html) license provided by ej-technologies GmbH.
+                </MarkdownBlock>
                 <img src={`${baseUrl}img/js-graphql-logo.png`} alt={siteConfig.title} style={{marginTop: "100px"}}/>
             </div>
         );
