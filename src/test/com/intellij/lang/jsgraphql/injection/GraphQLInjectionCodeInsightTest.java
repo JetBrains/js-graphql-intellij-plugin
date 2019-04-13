@@ -21,7 +21,12 @@ public class GraphQLInjectionCodeInsightTest extends LightCodeInsightFixtureTest
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        myFixture.configureByFiles(".graphqlconfig", "schema.graphql");
+        myFixture.configureByFiles(
+                "schema.graphql",
+                ".graphqlconfig",
+                "lines-1/.graphqlconfig",
+                "lines-2/.graphqlconfig"
+        );
         // use the synchronous method of building the configuration for the unit test
         GraphQLConfigManager.getService(getProject()).doBuildConfigurationModel(null);
     }
@@ -34,11 +39,29 @@ public class GraphQLInjectionCodeInsightTest extends LightCodeInsightFixtureTest
     // ---- highlighting -----
 
     @Test
-    public void testErrorAnnotator() {
+    public void testErrorAnnotatorOnFragments() {
         myFixture.configureByFiles("injection-comment.js");
         final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
         assertEquals("Expected just one error", 1, highlighting.size());
         assertEquals("Unknown fragment name should be the error", "OnlyTheUnknownFragmentShouldBeHighlightedAsError", highlighting.get(0).getText());
+    }
+
+    @Test
+    public void testErrorAnnotatorSourceLines1() {
+        myFixture.configureByFiles("lines-1/injection-source-lines-1.js");
+        final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
+        assertEquals("Expected just one error", 1, highlighting.size());
+        assertEquals("Should mark ServerType with an error", "ServerType", highlighting.get(0).getText());
+        assertEquals("Should mark ServerType in the right injected position", 201, highlighting.get(0).getStartOffset());
+    }
+
+    @Test
+    public void testErrorAnnotatorSourceLines2() {
+        myFixture.configureByFiles("lines-2/injection-source-lines-2.js");
+        final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
+        assertEquals("Expected just one error", 1, highlighting.size());
+        assertEquals("Should mark OutputType with an error", "OutputType", highlighting.get(0).getText());
+        assertEquals("Should mark OutputType in the right injected position", 209, highlighting.get(0).getStartOffset());
     }
 
 }

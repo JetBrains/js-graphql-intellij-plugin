@@ -201,11 +201,9 @@ public class SchemaIDLTypeDefinitionRegistry {
                                 if(e.getCause() instanceof RecognitionException) {
                                     final Token offendingToken = ((RecognitionException) e.getCause()).getOffendingToken();
                                     if(offendingToken != null) {
-                                        final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(
-                                                offendingToken.getLine(),
-                                                offendingToken.getCharPositionInLine() + 1,
-                                                GraphQLPsiSearchHelper.getFileName(psiFile)
-                                        ));
+                                        final List<SourceLocation> sourceLocation = Collections.singletonList(
+                                                GraphQLUtil.createSourceLocationFromDelta(offendingToken, lineDelta.get() + injectionLineDelta, injectedFirstLineColumnDelta)
+                                        );
                                         errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, "Unexpected token: \"" + offendingToken.getText() + "\""))));
                                     }
                                 }

@@ -1,3 +1,4 @@
 {
-  "name": "Injection Test GraphQL Schema"
+  "name": "Injection Test GraphQL Schema",
+  "includes": ["*"]
 }

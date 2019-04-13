@@ -43,6 +43,31 @@ public final class GraphQLUtil {
     }
 
     /**
+     *
+     * Creates a source location based on a token and line/column offsets
+     * @param token the token to create a location for
+     * @param lineDelta the delta line to apply to the document and all child nodes
+     * @param firstLineColumnDelta the column delta for the first line
+     * @return the offset location for the token
+     */
+    public static SourceLocation createSourceLocationFromDelta(Token token, int lineDelta, int firstLineColumnDelta) {
+        String sourceName = token.getTokenSource().getSourceName();
+        if (IntStream.UNKNOWN_SOURCE_NAME.equals(sourceName)) {
+            // UNKNOWN_SOURCE_NAME is Antrl's way of indicating that no source name was given during parsing --
+            // which is the case when queries and other operations are parsed. We don't want this hardcoded
+            // '<unknown>' sourceName to leak to clients when the response is serialized as JSON, so we null it.
+            sourceName = null;
+        }
+        int line = token.getLine();
+        int column = token.getCharPositionInLine() + 1;
+        if(line == 0 && firstLineColumnDelta > 0) {
+            column += firstLineColumnDelta;
+        }
+        line += lineDelta;
+        return new SourceLocation(line, column, sourceName);
+    }
+
+    /**
      * Parses GraphQL string input into a graphql-java Document, shifting the source locations in the specified document with the specified line delta.
      * Shifting of the sourceLocation is required for proper error reporting locations for GraphQL language injections, e.g. GraphQL in a JavaScript file.
      * @param input a GraphQL document represented as a string to be parsed
@@ -77,21 +102,12 @@ public final class GraphQLUtil {
         GraphqlAntlrToLanguage antlrToLanguage = new GraphqlAntlrToLanguage(tokens, multiSourceReader) {
             @Override
             protected SourceLocation getSourceLocation(ParserRuleContext parserRuleContext) {
-                Token startToken = parserRuleContext.getStart();
-                String sourceName = startToken.getTokenSource().getSourceName();
-                if (IntStream.UNKNOWN_SOURCE_NAME.equals(sourceName)) {
-                    // UNKNOWN_SOURCE_NAME is Antrl's way of indicating that no source name was given during parsing --
-                    // which is the case when queries and other operations are parsed. We don't want this hardcoded
-                    // '<unknown>' sourceName to leak to clients when the response is serialized as JSON, so we null it.
-                    sourceName = null;
-                }
-                int line = startToken.getLine();
-                int column = startToken.getCharPositionInLine() + 1;
-                if(line == 1 && firstLineColumnDelta > 0) {
-                    column += firstLineColumnDelta;
-                }
-                line += lineDelta;
-                return new SourceLocation(line, column, sourceName);
+                return createSourceLocationFromDelta(parserRuleContext.getStart(), lineDelta, firstLineColumnDelta);
+            }
+
+            @Override
+            protected SourceLocation getSourceLocation(Token token) {
+                return createSourceLocationFromDelta(token, lineDelta, firstLineColumnDelta);
             }
         };
         Document doc = antlrToLanguage.createDocument(documentContext);

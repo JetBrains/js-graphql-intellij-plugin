@@ -14,6 +14,7 @@ import com.intellij.lang.injection.MultiHostRegistrar;
 import com.intellij.lang.javascript.JSTokenTypes;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -66,7 +67,7 @@ public class GraphQLTemplateFragmentLanguageInjector implements MultiHostInjecto
 
             // update graphql config notifications
             final VirtualFile virtualFile = context.getContainingFile().getVirtualFile();
-            if(virtualFile != null) {
+            if(virtualFile != null && !ApplicationManager.getApplication().isUnitTestMode()) {
                 EditorNotifications.getInstance(context.getProject()).updateNotifications(virtualFile);
             }
         }

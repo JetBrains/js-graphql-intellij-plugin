@@ -186,7 +186,14 @@ public class GraphQLValidationAnnotator implements Annotator {
             // store the editor since we need to translate graphql-java source locations to psi elements
             Editor editor = session.getUserData(EDITOR);
             if (editor == null) {
-                final FileEditor fileEditor = FileEditorManager.getInstance(project).getSelectedEditor(containingFile.getVirtualFile());
+                FileEditor fileEditor = FileEditorManager.getInstance(project).getSelectedEditor(containingFile.getVirtualFile());
+                if (fileEditor == null && containingFile.getContext() != null) {
+                    // injected PsiFile so try to get the editor from the hosting/context file
+                    final PsiFile contextFile = containingFile.getContext().getContainingFile();
+                    if (contextFile != null) {
+                        fileEditor = FileEditorManager.getInstance(project).getSelectedEditor(contextFile.getVirtualFile());
+                    }
+                }
                 if (fileEditor instanceof TextEditor) {
                     editor = ((TextEditor) fileEditor).getEditor();
                     session.putUserData(EDITOR, editor);
