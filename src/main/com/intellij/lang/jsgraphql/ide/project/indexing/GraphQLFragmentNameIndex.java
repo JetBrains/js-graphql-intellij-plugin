@@ -113,7 +113,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
 
     @Override
     public int getVersion() {
-        return 0;
+        return 1;
     }
 
     @NotNull
