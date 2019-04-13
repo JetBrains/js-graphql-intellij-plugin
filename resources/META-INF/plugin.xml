@@ -74,6 +74,7 @@
 
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
+  <depends optional="true" config-file="graphql-intellilang.xml">org.intellij.intelliLang</depends>
 
   <extensionPoints>
     <extensionPoint name="graphQLFindUsagesFileTypeContributor" interface="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesFileTypeContributor" />

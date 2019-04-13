@@ -13,7 +13,9 @@ import com.intellij.lang.javascript.psi.JSExpression;
 import com.intellij.lang.javascript.psi.JSFile;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLCommentBasedInjectionHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
@@ -109,6 +111,11 @@ public class GraphQLLanguageInjectionUtil {
                     }
                     return true;
                 }
+            }
+            // also check for "manual" language=GraphQL injection comments
+            final GraphQLCommentBasedInjectionHelper commentBasedInjectionHelper = ServiceManager.getService(GraphQLCommentBasedInjectionHelper.class);
+            if (commentBasedInjectionHelper != null) {
+                return commentBasedInjectionHelper.isGraphQLInjectedUsingComment(host, envRef);
             }
         }
         return false;

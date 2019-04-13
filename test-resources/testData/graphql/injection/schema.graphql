@@ -1,0 +1,15 @@
+scalar String
+scalar Boolean
+
+type Query {
+    hello: String
+}
+
+type Mutation {
+    login(email: String, pwd: String): Login
+}
+
+type Login {
+    success: Boolean
+    message: String
+}

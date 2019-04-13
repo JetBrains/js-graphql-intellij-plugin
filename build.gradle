@@ -42,7 +42,7 @@ intellij {
     type 'IU'
     updateSinceUntilBuild = false
     pluginName 'JS GraphQL'
-    plugins = ['JavaScriptLanguage', 'CSS']
+    plugins = ['JavaScriptLanguage', 'CSS', 'IntelliLang']
     ideaDependencyCachePath = project.buildDir
 }
 
