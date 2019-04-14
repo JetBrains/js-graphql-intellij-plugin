@@ -71,9 +71,6 @@ public class JSGraphQLToggleVariablesAction extends ToggleAction {
             if (state) {
                 variablesEditor.getContentComponent().grabFocus();
             } else {
-                ApplicationManager.getApplication().runWriteAction(() -> {
-                    variablesEditor.getDocument().setText("");
-                });
                 queryEditor.getContentComponent().grabFocus();
             }
 
