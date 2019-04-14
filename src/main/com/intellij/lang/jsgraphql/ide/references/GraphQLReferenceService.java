@@ -400,7 +400,7 @@ public class GraphQLReferenceService {
                         // Endpoint Language
                         final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
                         final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(namedTypeScope, element);
-                        if (namedType.definitionElement instanceof JSGraphQLEndpointEnumTypeDefinition) {
+                        if (namedType != null && namedType.definitionElement instanceof JSGraphQLEndpointEnumTypeDefinition) {
                             final JSGraphQLEndpointEnumValueDefinitionSet enumValueDefinitionSet = ((JSGraphQLEndpointEnumTypeDefinition) namedType.definitionElement).getEnumValueDefinitionSet();
                             if (enumValueDefinitionSet != null) {
                                 for (JSGraphQLEndpointEnumValueDefinition enumValueDefinition : enumValueDefinitionSet.getEnumValueDefinitionList()) {
