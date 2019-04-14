@@ -1,3 +1,11 @@
+## 2.1.0 (2019-04-14)
+
+Changes:
+- Upgraded to graphql-java 12.0 to improve performance in very large schemas (#238)
+- Reintroduced contextual queries and automatically include referenced fragments across files (#243, #43, #94)
+- Detect manual injections using language=GraphQL comment to discover schema types and fragments (#235)
+- Don't clear the variables editor when the variables window is closed (#83)  
+
 ## 2.0.0 (2019-04-06)
 
 Changes:
