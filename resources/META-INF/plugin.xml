@@ -206,7 +206,7 @@
 
 
     <!-- Query context highlighter -->
-    <!-- Fixme: Breaks internal annotators used in v2: <highlightVisitor implementation="com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor" />-->
+    <highlightVisitor implementation="com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor" />
 
 
     <!-- Formatting -->
