@@ -26,7 +26,7 @@ The plugin is compatible with version 2018.2+ (182.711 or later) of all IDEs bas
 
 ## Where can I get the plugin?
 
-The plugin is published to the [JetBrains Plugin Repository](https://plugins.jetbrains.com/plugin/8097?pr=).
+The plugin is published to the [JetBrains Plugin Repository](https://plugins.jetbrains.com/plugin/8097-js-graphql).
 
 To install it, open your IDE "Settings", "Plugins", "Marketplace" and search for "GraphQL".
 
