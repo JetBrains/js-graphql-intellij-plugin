@@ -32,8 +32,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.event.CaretAdapter;
 import com.intellij.openapi.editor.event.CaretEvent;
+import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.editor.markup.EffectType;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.editor.markup.TextAttributes;
@@ -106,7 +106,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
         // run the default pass first (DefaultHighlightVisitor) which calls annotators etc.
         action.run();
 
-        final PsiElement operationAtCursor = getOperationAtCursor(file, null);
+        final PsiElement operationAtCursor = getOperationAtCursor(file);
         if (operationAtCursor != null && hasMultipleVisibleTopLevelElement(file)) {
 
             // store the range of the current operation for use in the caret listener
@@ -146,7 +146,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
         if (fileEditor instanceof TextEditor) {
             final Editor editor = ((TextEditor) fileEditor).getEditor();
             if (!Boolean.TRUE.equals(editor.getUserData(QUERY_HIGHLIGHT_LISTENER_ADDED))) {
-                editor.getCaretModel().addCaretListener(new CaretAdapter() {
+                editor.getCaretModel().addCaretListener(new CaretListener() {
                     @Override
                     public void caretPositionChanged(CaretEvent e) {
                         // re-highlight when the operation changes
@@ -178,7 +178,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
 
                                 if (!sameOperation) {
                                     // moved to somewhere outside the previous operation
-                                    if (hadOperation || getOperationAtCursor(psiFile, e) != null) {
+                                    if (hadOperation || getOperationAtCursor(psiFile) != null) {
                                         // perform a new highlighting pass
                                         DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
                                     }
@@ -341,7 +341,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
 
                 // no selection -- see if the caret is inside an operation
 
-                final GraphQLOperationDefinition operationAtCursor = getOperationAtCursor(psiFile, null);
+                final GraphQLOperationDefinition operationAtCursor = getOperationAtCursor(psiFile);
                 if (operationAtCursor != null) {
                     final Map<String, GraphQLFragmentDefinition> foundFragments = Maps.newHashMap();
                     findFragmentsInsideOperation(operationAtCursor, foundFragments, null);
@@ -471,27 +471,18 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
      * Gets the operation that wraps the current caret position, or <code>null</code> if none is found,
      * e.g. when outside any operation or inside a fragment definition
      */
-    private static GraphQLOperationDefinition getOperationAtCursor(PsiFile psiFile, CaretEvent caretEvent) {
-        final FileEditor fileEditor = FileEditorManager.getInstance(psiFile.getProject()).getSelectedEditor(psiFile.getVirtualFile());
-        if (fileEditor instanceof TextEditor) {
-            final Editor editor = ((TextEditor) fileEditor).getEditor();
-            final int currentOffset;
-            if (caretEvent != null) {
-                currentOffset = editor.logicalPositionToOffset(caretEvent.getNewPosition());
-            } else {
-                try {
-                    currentOffset = editor.getCaretModel().getOffset();
-                } catch (Throwable e) {
-                    // a caret update is in progress, so can't determine the operation at this time,
-                    // but a new caretPositionChanged event will follow
-                    return null;
-                }
-            }
-            PsiElement currentElement = psiFile.findElementAt(currentOffset);
+    private static GraphQLOperationDefinition getOperationAtCursor(PsiFile psiFile) {
+
+        final Integer caretOffset = psiFile.getUserData(JSGraphQLQueryContextCaretListener.CARET_OFFSET);
+
+        if (caretOffset != null) {
+            PsiElement currentElement = psiFile.findElementAt(caretOffset);
             while (currentElement != null && !(currentElement.getParent() instanceof PsiFile)) {
                 currentElement = currentElement.getParent();
             }
-            return asOperationOrNull(currentElement);
+            if (currentElement != null) {
+                return asOperationOrNull(currentElement);
+            }
         }
         return null;
     }

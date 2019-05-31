@@ -113,6 +113,7 @@
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.endpoint.ide.startup.GraphQLStartupActivity" />
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigProjectStartupActivity" />
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.project.relay.GraphQLRelayModernEnableStartupActivity" />
+    <postStartupActivity implementation="com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextCaretListener" />
 
     <!-- Syntax and error highlighting -->
     <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSyntaxHighlighterFactory"/>
