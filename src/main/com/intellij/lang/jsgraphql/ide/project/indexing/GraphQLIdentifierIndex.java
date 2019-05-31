@@ -118,6 +118,10 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
                         return ((JsonObject) dataProperty.getValue()).findProperty("__schema") != null;
                     }
                 }
+                final JsonProperty schemaProperty = ((JsonObject) child).findProperty("__schema");
+                if(schemaProperty != null) {
+                    return true;
+                }
             }
         }
         return false;
@@ -149,7 +153,7 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
 
     @Override
     public int getVersion() {
-        return 1;
+        return 2;
     }
 
     @NotNull
