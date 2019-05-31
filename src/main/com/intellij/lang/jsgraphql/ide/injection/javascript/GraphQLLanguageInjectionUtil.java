@@ -22,6 +22,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiRecursiveElementVisitor;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -86,15 +87,8 @@ public class GraphQLLanguageInjectionUtil {
     public static boolean isJSGraphQLLanguageInjectionTarget(PsiElement host, @Nullable Ref<String> envRef) {
         if (host instanceof JSStringTemplateExpression) {
             JSStringTemplateExpression template = (JSStringTemplateExpression) host;
-            // check if we're a Relay.QL or graphql tagged template
-            JSReferenceExpression tagExpression = null;
-            if(template.getFirstChild() instanceof JSReferenceExpression) {
-                // up to version 2016.X
-                tagExpression = (JSReferenceExpression) template.getFirstChild();
-            } else if(template.getPrevSibling() instanceof JSReferenceExpression) {
-                // from version 2017.1
-                tagExpression = (JSReferenceExpression) template.getPrevSibling();
-            }
+            // check if we're a graphql tagged template
+            final JSReferenceExpression tagExpression = PsiTreeUtil.getPrevSiblingOfType(template, JSReferenceExpression.class);
             if (tagExpression != null) {
                 final String tagText = tagExpression.getText();
                 if (SUPPORTED_TAG_NAMES.contains(tagText)) {
