@@ -100,7 +100,7 @@ operationType ::= 'query' | 'mutation' | 'subscription'
 
 private description ::= quotedString
 
-enumValue ::= !('true' | 'false' | 'null') identifier {methods=[nameIdentifier="identifier"] extends=value}
+enumValue ::= identifier {methods=[nameIdentifier="identifier"] extends=value}
 
 arrayValue::= '[' arrayValueElement* ']' {pin=1 extends=value}
 

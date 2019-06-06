@@ -751,36 +751,13 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // !('true' | 'false' | 'null') identifier
+  // identifier
   public static boolean enumValue(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "enumValue")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, ENUM_VALUE, "<enum value>");
-    result = enumValue_0(builder, level + 1);
-    result = result && identifier(builder, level + 1);
+    result = identifier(builder, level + 1);
     exit_section_(builder, level, marker, result, false, null);
-    return result;
-  }
-
-  // !('true' | 'false' | 'null')
-  private static boolean enumValue_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "enumValue_0")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder, level, _NOT_);
-    result = !enumValue_0_0(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, null);
-    return result;
-  }
-
-  // 'true' | 'false' | 'null'
-  private static boolean enumValue_0_0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "enumValue_0_0")) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = consumeToken(builder, "true");
-    if (!result) result = consumeToken(builder, "false");
-    if (!result) result = consumeToken(builder, "null");
-    exit_section_(builder, marker, null, result);
     return result;
   }
 

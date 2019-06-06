@@ -175,6 +175,15 @@ public class GraphQLValidationAnnotator implements Annotator {
             }
         }
 
+        // valid enum value names according to spec
+        if (psiElement instanceof GraphQLEnumValue) {
+            final GraphQLIdentifier nameIdentifier = ((GraphQLEnumValue) psiElement).getNameIdentifier();
+            final String enumValueName = nameIdentifier.getText();
+            if ("true".equals(enumValueName) || "false".equals(enumValueName) || "null".equals(enumValueName)) {
+                createErrorAnnotation(annotationHolder, nameIdentifier, "Enum values can not be named \"" + enumValueName + "\"");
+            }
+        }
+
         // validation using graphql-java
         final AnnotationSession session = annotationHolder.getCurrentAnnotationSession();
         final PsiFile containingFile = psiElement.getContainingFile();
