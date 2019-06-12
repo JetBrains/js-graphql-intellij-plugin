@@ -10,7 +10,7 @@
 <idea-plugin>
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>2.1.0</version>
+  <version>2.1.1</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
@@ -26,6 +26,7 @@
 
   <change-notes><![CDATA[
     <ul>
+      <li>2.1.1: Fixed enum value of true breaks schema. Added support for generics in TypeScript GraphQL tagged template literals. Recognize JSON files with top-level __schema field as GraphQL introspection result in GraphQLIdentifierIndex. Compatibility fixes for 2019.2 EAP.</li>
       <li>2.1.0: Upgraded to graphql-java 12.0 to improve performance in very large schemas. Reintroduced contextual queries and automatically include referenced fragments across files. Detect manual injections using language=GraphQL comment to discover schema types and fragments. Don't clear the variables editor when the variables window is closed.</li>
       <li>2.0.0: Support for the June 2018 GraphQL specification including SDL. Support for multiple schemas using graphql-config. Replaced Node.js based language service with native parser, lexer, and graphql-java to be compatible with all IDEs based on the IntelliJ Platform.</li>
       <li>2.0.0-beta-2: Switched to SVG-based icons and added plugin icon. Updated document provider to use new style. Moved schema discovery in Schemas panel off the UI thread. Introduced dedicated GraphQL index to improve performance. Fixed various minor issues: Type scopes in arrays, custom scalars omitted by graphql-java, memory leak in query editor.</li>

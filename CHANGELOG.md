@@ -1,3 +1,12 @@
+## 2.1.1 (2019-06-12)
+
+Changes:
+- Fixed: Enum value of TRUE breaks schema (#244)
+- Add support for generics in TypeScript GraphQL tagged template literals (#200)
+- Store caret position for contextual queries when it changes to avoid using the Editor UI from non-UI thread in query context highlighter (#256)
+- Recognize JSON files with top-level __schema field as GraphQL introspection result in GraphQLIdentifierIndex (#242)
+- Compatibility fixes for 2019.2 EAP (#256, #259)  
+
 ## 2.1.0 (2019-04-14)
 
 Changes:
