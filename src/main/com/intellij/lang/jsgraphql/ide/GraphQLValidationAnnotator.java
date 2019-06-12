@@ -192,27 +192,6 @@ public class GraphQLValidationAnnotator implements Annotator {
         List<? extends GraphQLError> userData = session.getUserData(ERRORS);
         if (userData == null) {
 
-            // store the editor since we need to translate graphql-java source locations to psi elements
-            Editor editor = session.getUserData(EDITOR);
-            if (editor == null) {
-                FileEditor fileEditor = FileEditorManager.getInstance(project).getSelectedEditor(containingFile.getVirtualFile());
-                if (fileEditor == null && containingFile.getContext() != null) {
-                    // injected PsiFile so try to get the editor from the hosting/context file
-                    final PsiFile contextFile = containingFile.getContext().getContainingFile();
-                    if (contextFile != null) {
-                        fileEditor = FileEditorManager.getInstance(project).getSelectedEditor(contextFile.getVirtualFile());
-                    }
-                }
-                if (fileEditor instanceof TextEditor) {
-                    editor = ((TextEditor) fileEditor).getEditor();
-                    session.putUserData(EDITOR, editor);
-                }
-                if (editor == null) {
-                    // no compatible editor found to annotate
-                    return;
-                }
-            }
-
             try {
                 final GraphQLSchemaWithErrors schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(project).getSchemaWithErrors(psiElement);
                 if (!schema.isErrorsPresent()) {
@@ -220,7 +199,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                     int lineDelta = 0;
                     int firsteLineColumDelta = 0;
                     if (containingFile.getContext() != null) {
-                        final LogicalPosition logicalPosition = editor.offsetToLogicalPosition(containingFile.getContext().getTextOffset());
+                        final LogicalPosition logicalPosition = getLogicalPositionFromOffset(containingFile, containingFile.getContext().getTextOffset());
                         if (logicalPosition.line > 0 || logicalPosition.column > 0) {
                             // logical positions can be used as deltas between graphql-java and intellij since graphql-java is 1-based and intellij is 0-based
                             lineDelta = logicalPosition.line;
@@ -238,7 +217,10 @@ public class GraphQLValidationAnnotator implements Annotator {
                             firstSchemaError.set(firstSourceLocation);
                         }
                         if (firstSourceLocation != null && currentFileName.equals(firstSourceLocation.getSourceName())) {
-                            int positionToOffset = getOffsetFromSourceLocation(editor, firstSourceLocation);
+                            int positionToOffset = getOffsetFromSourceLocation(containingFile, firstSourceLocation);
+                            if (positionToOffset == -1) {
+                                continue;
+                            }
                             if (containingFile.getContext() != null) {
                                 // injected file, so adjust the position
                                 positionToOffset = positionToOffset - containingFile.getContext().getTextOffset();
@@ -264,7 +246,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                 session.putUserData(ERRORS, Collections.emptyList());
             }
 
-            if (userData != null && editor != null) {
+            if (userData != null) {
                 for (GraphQLError userDatum : userData) {
                     if (userDatum instanceof ValidationError) {
                         final ValidationError validationError = (ValidationError) userDatum;
@@ -291,7 +273,10 @@ public class GraphQLValidationAnnotator implements Annotator {
                                 case InvalidFragmentType:
                                 case LoneAnonymousOperationViolation:
                                     for (SourceLocation location : validationError.getLocations()) {
-                                        final int positionToOffset = getOffsetFromSourceLocation(editor, location);
+                                        final int positionToOffset = getOffsetFromSourceLocation(containingFile, location);
+                                        if (positionToOffset == -1) {
+                                            continue;
+                                        }
                                         int injectionOffset = 0;
                                         if (containingFile.getContext() != null) {
                                             injectionOffset = containingFile.getContext().getTextOffset();
@@ -464,16 +449,26 @@ public class GraphQLValidationAnnotator implements Annotator {
         return Optional.of(annotationHolder.createErrorAnnotation(errorPsiElement, message));
     }
 
-    private int getOffsetFromSourceLocation(Editor editor, SourceLocation location) {
-        return editor.logicalPositionToOffset(new LogicalPosition(location.getLine() - 1, location.getColumn() - 1));
+    private LogicalPosition getLogicalPositionFromOffset(PsiFile psiFile, int offset) {
+        com.intellij.openapi.editor.Document document = PsiDocumentManager.getInstance(psiFile.getProject()).getDocument(getTopLevelFile(psiFile));
+        if (document != null) {
+            final int lineNumber = document.getLineNumber(offset);
+            final int lineStartOffset = document.getLineStartOffset(lineNumber);
+            return new LogicalPosition(lineNumber, offset - lineStartOffset);
+        }
+        return new LogicalPosition(-1, -1);
     }
 
-    private String formatLocation(List<SourceLocation> locations) {
-        if (!locations.isEmpty()) {
-            final SourceLocation sourceLocation = locations.get(0);
-            return ": " + sourceLocation.getSourceName() + ":" + sourceLocation.getLine() + ":" + sourceLocation.getColumn();
+    private int getOffsetFromSourceLocation(PsiFile psiFile, SourceLocation location) {
+        com.intellij.openapi.editor.Document document = PsiDocumentManager.getInstance(psiFile.getProject()).getDocument(getTopLevelFile(psiFile));
+        return document != null ? document.getLineStartOffset(location.getLine() - 1) + location.getColumn() - 1 : -1;
+    }
+
+    private PsiFile getTopLevelFile(PsiFile psiFile) {
+        if (psiFile.getContext() != null && psiFile.getContext().getContainingFile() != null) {
+            return psiFile.getContext().getContainingFile();
         }
-        return "";
+        return psiFile;
     }
 
     private List<String> getArgumentNameSuggestions(PsiElement argument, graphql.schema.GraphQLType typeScope) {

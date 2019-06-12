@@ -11,13 +11,13 @@ import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import org.junit.Test;
 
 import java.util.List;
 
 
-public class JSGraphQLSchemaCodeInsightTest extends LightCodeInsightFixtureTestCase {
+public class JSGraphQLSchemaCodeInsightTest extends LightPlatformCodeInsightFixtureTestCase {
 
     @Override
     public void setUp() throws Exception {

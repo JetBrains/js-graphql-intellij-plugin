@@ -10,10 +10,10 @@ package com.intellij.lang.jsgraphql;
  import com.intellij.openapi.command.WriteCommandAction;
  import com.intellij.psi.codeStyle.CodeStyleManager;
  import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
- import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-  import org.junit.Test;
+ import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
+ import org.junit.Test;
 
- public class JSGraphQLCodeInsightTest extends LightCodeInsightFixtureTestCase {
+ public class JSGraphQLCodeInsightTest extends LightPlatformCodeInsightFixtureTestCase {
 
      @Override
     protected String getTestDataPath() {

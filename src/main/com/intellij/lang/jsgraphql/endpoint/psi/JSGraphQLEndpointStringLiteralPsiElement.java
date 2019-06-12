@@ -7,18 +7,17 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.psi;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.PsiLiteral;
+import com.intellij.psi.PsiLiteralValue;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A string literal which supports reference providers
  */
-public class JSGraphQLEndpointStringLiteralPsiElement extends JSGraphQLEndpointPsiElement implements PsiLiteral {
+public class JSGraphQLEndpointStringLiteralPsiElement extends JSGraphQLEndpointPsiElement implements PsiLiteralValue {
 
 	public JSGraphQLEndpointStringLiteralPsiElement(@NotNull ASTNode node) {
 		super(node);

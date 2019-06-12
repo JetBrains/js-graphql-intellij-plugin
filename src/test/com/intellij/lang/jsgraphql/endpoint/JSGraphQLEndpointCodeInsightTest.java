@@ -7,20 +7,19 @@
  */
 package com.intellij.lang.jsgraphql.endpoint;
 
-import java.util.List;
-
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import org.junit.Test;
-
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
+import org.junit.Test;
+
+import java.util.List;
 
 
-public class JSGraphQLEndpointCodeInsightTest extends LightCodeInsightFixtureTestCase {
+public class JSGraphQLEndpointCodeInsightTest extends LightPlatformCodeInsightFixtureTestCase {
 
 	@Override
 	public void setUp() throws Exception {

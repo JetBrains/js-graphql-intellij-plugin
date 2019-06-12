@@ -5,7 +5,7 @@ import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameIdentifierOwner;
-import com.intellij.psi.PsiLiteral;
+import com.intellij.psi.PsiLiteralValue;
 
 public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
 
@@ -146,7 +146,7 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitString(@NotNull JSGraphQLEndpointString o) {
-    visitPsiLiteral(o);
+    visitPsiElement(o);
   }
 
   public void visitUnionMember(@NotNull JSGraphQLEndpointUnionMember o) {
@@ -163,10 +163,6 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
 
   public void visitNamedTypeDefinition(@NotNull JSGraphQLEndpointNamedTypeDefinition o) {
     visitPsiElement(o);
-  }
-
-  public void visitPsiLiteral(@NotNull PsiLiteral o) {
-    visitElement(o);
   }
 
   public void visitPsiNameIdentifierOwner(@NotNull PsiNameIdentifierOwner o) {

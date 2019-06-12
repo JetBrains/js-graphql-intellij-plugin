@@ -13,13 +13,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import org.junit.Test;
 
 import java.util.List;
 
 
-public class JSGraphQLOperationsCodeInsightTest extends LightCodeInsightFixtureTestCase {
+public class JSGraphQLOperationsCodeInsightTest extends LightPlatformCodeInsightFixtureTestCase {
 
     private PsiFile[] psiFiles;
 

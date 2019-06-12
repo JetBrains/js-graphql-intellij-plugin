@@ -13,7 +13,7 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManage
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import org.junit.Test;
 
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.concurrent.locks.Lock;
 /**
  * Verifies that two schemas can be separated using graphql-config
  */
-public class JSGraphQLSchemaGraphQLConfigCodeInsightTest extends LightCodeInsightFixtureTestCase {
+public class JSGraphQLSchemaGraphQLConfigCodeInsightTest extends LightPlatformCodeInsightFixtureTestCase {
 
     private PsiFile[] files;
 

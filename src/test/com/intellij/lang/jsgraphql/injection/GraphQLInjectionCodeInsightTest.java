@@ -10,13 +10,13 @@ package com.intellij.lang.jsgraphql.injection;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import org.junit.Test;
 
 import java.util.List;
 
 
-public class GraphQLInjectionCodeInsightTest extends LightCodeInsightFixtureTestCase {
+public class GraphQLInjectionCodeInsightTest extends LightPlatformCodeInsightFixtureTestCase {
 
     @Override
     public void setUp() throws Exception {

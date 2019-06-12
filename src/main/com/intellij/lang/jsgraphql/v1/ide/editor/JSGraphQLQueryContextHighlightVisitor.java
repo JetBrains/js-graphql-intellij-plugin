@@ -49,6 +49,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.ui.LightweightHint;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -142,55 +143,57 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
 
 
         // find the editor that was highlighted and listen for caret changes to update the active operation
-        final FileEditor fileEditor = FileEditorManager.getInstance(file.getProject()).getSelectedEditor(file.getVirtualFile());
-        if (fileEditor instanceof TextEditor) {
-            final Editor editor = ((TextEditor) fileEditor).getEditor();
-            if (!Boolean.TRUE.equals(editor.getUserData(QUERY_HIGHLIGHT_LISTENER_ADDED))) {
-                editor.getCaretModel().addCaretListener(new CaretListener() {
-                    @Override
-                    public void caretPositionChanged(CaretEvent e) {
-                        // re-highlight when the operation changes
+        UIUtil.invokeLaterIfNeeded(() -> {
+            final FileEditor fileEditor = FileEditorManager.getInstance(file.getProject()).getSelectedEditor(file.getVirtualFile());
+            if (fileEditor instanceof TextEditor) {
+                final Editor editor = ((TextEditor) fileEditor).getEditor();
+                if (!Boolean.TRUE.equals(editor.getUserData(QUERY_HIGHLIGHT_LISTENER_ADDED))) {
+                    editor.getCaretModel().addCaretListener(new CaretListener() {
+                        @Override
+                        public void caretPositionChanged(CaretEvent e) {
+                            // re-highlight when the operation changes
 
-                        final Editor currentEditor = e.getEditor();
-                        final Project project = currentEditor.getProject();
-                        if (project != null) {
+                            final Editor currentEditor = e.getEditor();
+                            final Project project = currentEditor.getProject();
+                            if (project != null) {
 
-                            final PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(currentEditor.getDocument());
-                            if (psiFile != null) {
+                                final PsiFile psiFile = PsiDocumentManager.getInstance(project).getPsiFile(currentEditor.getDocument());
+                                if (psiFile != null) {
 
-                                final TextRange previousOperationRange = psiFile.getUserData(QUERY_OPERATION_TEXT_RANGE);
-                                psiFile.putUserData(QUERY_FROM_SELECTION, currentEditor.getSelectionModel().hasSelection());
+                                    final TextRange previousOperationRange = psiFile.getUserData(QUERY_OPERATION_TEXT_RANGE);
+                                    psiFile.putUserData(QUERY_FROM_SELECTION, currentEditor.getSelectionModel().hasSelection());
 
-                                boolean sameOperation = false;
-                                boolean hadOperation = (previousOperationRange != null);
-                                if (hadOperation) {
-                                    // check if we're still inside the range of the previously highlighted op
-                                    final int newOffset = currentEditor.logicalPositionToOffset(e.getNewPosition());
-                                    sameOperation = previousOperationRange.contains(newOffset);
-                                    if (sameOperation && !Boolean.TRUE.equals(psiFile.getUserData(QUERY_FROM_SELECTION))) {
-                                        // still the same op, and we didn't select text before, so no need to proceed
-                                        return;
+                                    boolean sameOperation = false;
+                                    boolean hadOperation = (previousOperationRange != null);
+                                    if (hadOperation) {
+                                        // check if we're still inside the range of the previously highlighted op
+                                        final int newOffset = currentEditor.logicalPositionToOffset(e.getNewPosition());
+                                        sameOperation = previousOperationRange.contains(newOffset);
+                                        if (sameOperation && !Boolean.TRUE.equals(psiFile.getUserData(QUERY_FROM_SELECTION))) {
+                                            // still the same op, and we didn't select text before, so no need to proceed
+                                            return;
+                                        }
                                     }
-                                }
 
-                                // remove existing unused query text range highlights
-                                removeHighlights(currentEditor, project);
+                                    // remove existing unused query text range highlights
+                                    removeHighlights(currentEditor, project);
 
-                                if (!sameOperation) {
-                                    // moved to somewhere outside the previous operation
-                                    if (hadOperation || getOperationAtCursor(psiFile) != null) {
-                                        // perform a new highlighting pass
-                                        DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
+                                    if (!sameOperation) {
+                                        // moved to somewhere outside the previous operation
+                                        if (hadOperation || getOperationAtCursor(psiFile) != null) {
+                                            // perform a new highlighting pass
+                                            DaemonCodeAnalyzer.getInstance(project).restart(psiFile);
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                });
-                // finally indicate we've added the listener
-                editor.putUserData(QUERY_HIGHLIGHT_LISTENER_ADDED, true);
+                    });
+                    // finally indicate we've added the listener
+                    editor.putUserData(QUERY_HIGHLIGHT_LISTENER_ADDED, true);
+                }
             }
-        }
+        });
 
         return true;
     }

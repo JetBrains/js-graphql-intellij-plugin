@@ -4,8 +4,8 @@ package com.intellij.lang.jsgraphql.endpoint.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiLiteral;
+import com.intellij.psi.PsiLiteralValue;
 
-public interface JSGraphQLEndpointString extends PsiLiteral {
+public interface JSGraphQLEndpointString extends PsiElement, PsiLiteralValue {
 
 }

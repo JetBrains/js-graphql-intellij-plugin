@@ -16,6 +16,7 @@ import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -58,6 +59,10 @@ public class GraphQLScopeEditorNotificationProvider extends Provider {
     }
 
     private boolean showNotification(@NotNull VirtualFile file) {
+        if (ApplicationManager.getApplication().isUnitTestMode()) {
+            // injection enumerate below causes missing JSON schemas in 2019.2 for eslint
+            return false;
+        }
         if (!isGraphQLRelatedFile(file) || DumbService.getInstance(myProject).isDumb()) {
             return false;
         }

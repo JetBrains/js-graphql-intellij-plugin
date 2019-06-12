@@ -1,9 +1,9 @@
 package com.intellij.lang.jsgraphql.ide.editor;
 
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import org.junit.Test;
 
-public class GraphQLIntrospectionHelperTest extends LightCodeInsightFixtureTestCase {
+public class GraphQLIntrospectionHelperTest extends LightPlatformCodeInsightFixtureTestCase {
 
     public GraphQLIntrospectionHelperTest() {
         super();

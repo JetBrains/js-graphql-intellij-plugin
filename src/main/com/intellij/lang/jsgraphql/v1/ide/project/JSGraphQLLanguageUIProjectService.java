@@ -36,6 +36,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -218,16 +219,18 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             if (endpoints == null) {
                 continue;
             }
-            ApplicationManager.getApplication().runReadAction(() -> {
-                for (FileEditor editor : fileEditorManager.getEditors(file)) {
-                    if (editor instanceof TextEditor) {
-                        final JSGraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
-                        if (endpointsModel != null) {
-                            endpointsModel.reload(endpoints);
+            GuiUtils.invokeLaterIfNeeded(() -> {
+                ApplicationManager.getApplication().runReadAction(() -> {
+                    for (FileEditor editor : fileEditorManager.getEditors(file)) {
+                        if (editor instanceof TextEditor) {
+                            final JSGraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
+                            if (endpointsModel != null) {
+                                endpointsModel.reload(endpoints);
+                            }
                         }
                     }
-                }
-            });
+                });
+            }, ModalityState.defaultModalityState());
         }
     }
 
@@ -235,21 +238,22 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
     private void insertEditorHeaderComponentIfApplicable(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
         if (file.getFileType() == GraphQLFileType.INSTANCE || GraphQLFileType.isGraphQLScratchFile(source.getProject(), file)) {
-            FileEditor fileEditor = source.getSelectedEditor(file);
-            if (fileEditor instanceof TextEditor) {
-                final Editor editor = ((TextEditor) fileEditor).getEditor();
-                if (editor.getHeaderComponent() instanceof JSGraphQLEditorHeaderComponent) {
-                    return;
-                }
-                UIUtil.invokeLaterIfNeeded(() -> { // ensure components are created on the swing thread
+            UIUtil.invokeLaterIfNeeded(() -> { // ensure components are created on the swing thread
+                FileEditor fileEditor = source.getSelectedEditor(file);
+                if (fileEditor instanceof TextEditor) {
+                    final Editor editor = ((TextEditor) fileEditor).getEditor();
+                    if (editor.getHeaderComponent() instanceof JSGraphQLEditorHeaderComponent) {
+                        return;
+                    }
                     final JComponent headerComponent = createHeaderComponent(fileEditor, editor, file);
                     editor.setHeaderComponent(headerComponent);
                     if (editor instanceof EditorEx) {
                         ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
                     }
                     editor.getScrollingModel().scrollVertically(-1000);
-                });
-            }
+
+                }
+            });
         }
     }
 

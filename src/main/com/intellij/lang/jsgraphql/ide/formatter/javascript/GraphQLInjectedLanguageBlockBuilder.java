@@ -38,7 +38,7 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
     }
 
     @Override
-    public boolean addInjectedBlocks(List<Block> result, ASTNode injectionHost, Wrap wrap, Alignment alignment, Indent indent) {
+    public boolean addInjectedBlocks(List<? super Block> result, ASTNode injectionHost, Wrap wrap, Alignment alignment, Indent indent) {
         boolean added = super.addInjectedBlocks(result, injectionHost, wrap, alignment, indent);
         if(!added) {
             // 'if (places.size() != 1) {' guard in super
@@ -50,12 +50,12 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
 
 
     // based on DefaultInjectedLanguageBlockBuilder.addInjectedBlocks but merges multiple shreds into one
-    private boolean graphQLSupportingAddInjectedBlocks(List<Block> result, ASTNode injectionHost, Wrap wrap, Alignment alignment, Indent indent) {
+    private boolean graphQLSupportingAddInjectedBlocks(List<? super Block> result, ASTNode injectionHost, Wrap wrap, Alignment alignment, Indent indent) {
         final PsiFile[] injectedFile = new PsiFile[1];
-        final Ref<TextRange> injectedRangeInsideHost = new Ref<TextRange>();
-        final Ref<Integer> prefixLength = new Ref<Integer>();
-        final Ref<Integer> suffixLength = new Ref<Integer>();
-        final Ref<ASTNode> injectionHostToUse = new Ref<ASTNode>(injectionHost);
+        final Ref<TextRange> injectedRangeInsideHost = new Ref<>();
+        final Ref<Integer> prefixLength = new Ref<>();
+        final Ref<Integer> suffixLength = new Ref<>();
+        final Ref<ASTNode> injectionHostToUse = new Ref<>(injectionHost);
 
         final PsiLanguageInjectionHost.InjectedPsiVisitor injectedPsiVisitor = (injectedPsi, defaultImplPlaces) -> {
 
