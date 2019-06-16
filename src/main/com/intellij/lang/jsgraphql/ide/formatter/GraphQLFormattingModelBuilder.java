@@ -20,9 +20,6 @@ public class GraphQLFormattingModelBuilder implements FormattingModelBuilder {
   @NotNull
   @Override
   public FormattingModel createModel(PsiElement element, CodeStyleSettings settings) {
-    // TODO: Use code style settings
-    // settings.getIndentOptions().INDENT_SIZE = 2;
-
     return FormattingModelProvider.createFormattingModelForPsiFile(
         element.getContainingFile(),
         new GraphQLBlock(element.getNode(), Wrap.createWrap(WrapType.NONE, false), null),

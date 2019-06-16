@@ -124,6 +124,8 @@
 
     <!-- Formatting and folding -->
     <lang.formatter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLFormattingModelBuilder"/>
+    <langCodeStyleSettingsProvider implementation="com.intellij.lang.jsgraphql.ide.formatter.GraphQLLanguageCodeStyleSettingsProvider"/>
+    <codeStyleSettingsProvider implementation="com.intellij.lang.jsgraphql.ide.formatter.GraphQLCodeStyleSettingsProvider"/>
     <lang.foldingBuilder language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLFoldingBuilder"/>
 
     <!-- Editing -->
