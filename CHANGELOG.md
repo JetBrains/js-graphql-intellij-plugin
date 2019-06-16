@@ -1,3 +1,8 @@
+## 2.2.0 (2019-06-16)
+
+Changes:
+- Added Code Style settings page to control indentation (#258, #92)
+
 ## 2.1.1 (2019-06-12)
 
 Changes:

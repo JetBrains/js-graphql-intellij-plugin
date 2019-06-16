@@ -14,7 +14,7 @@ plugins {
 }
 
 group 'com.intellij.lang.jsgraphql'
-version '2.1.1'
+version '2.2.0'
 
 apply plugin: 'java'
 
@@ -48,6 +48,11 @@ intellij {
 
 runIde {
     jvmArgs '-Xmx2G'
+}
+
+buildSearchableOptions {
+    // workaround for https://youtrack.jetbrains.com/issue/JBR-1550
+    jbrVersion = '11_0_2b159'
 }
 
 patchPluginXml {
