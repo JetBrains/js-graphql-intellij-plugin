@@ -18,6 +18,9 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLNamedScope;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
@@ -31,14 +34,12 @@ import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -56,10 +57,7 @@ import graphql.validation.Validator;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -189,6 +187,22 @@ public class GraphQLValidationAnnotator implements Annotator {
         final PsiFile containingFile = psiElement.getContainingFile();
         final Project project = psiElement.getProject();
 
+        // Map<String, Boolean> ruleIgnores = new HashMap<>();
+        HashSet<String>ruleIgnores = new HashSet<>();
+        try {
+            final VirtualFile psiVirtualFile = psiElement.getContainingFile().getVirtualFile();
+            final GraphQLConfigManager configManager = GraphQLConfigManager.getService(project);
+            final GraphQLNamedScope namedScope = configManager.getSchemaScope(psiVirtualFile);
+            if(namedScope != null) {
+                final GraphQLResolvedConfigData configData = namedScope.getConfigData();
+                final Map<String, Object> validations = (Map<String, Object>) configData.extensions.get("validations");
+                final List<String> rules = (List<String>) validations.get("ignores");
+                ruleIgnores.addAll(rules);
+            }
+        } catch (Exception e) {
+            // No Opt
+        }
+
         List<? extends GraphQLError> userData = session.getUserData(ERRORS);
         if (userData == null) {
 
@@ -212,28 +226,30 @@ public class GraphQLValidationAnnotator implements Annotator {
                     final String currentFileName = GraphQLPsiSearchHelper.getFileName(containingFile);
                     final Ref<SourceLocation> firstSchemaError = new Ref<>();
                     for (GraphQLError error : schema.getErrors()) {
-                        SourceLocation firstSourceLocation = error.getLocations().stream().findFirst().orElse(null);
-                        if (firstSourceLocation != null && firstSchemaError.isNull()) {
-                            firstSchemaError.set(firstSourceLocation);
-                        }
-                        if (firstSourceLocation != null && currentFileName.equals(firstSourceLocation.getSourceName())) {
-                            int positionToOffset = getOffsetFromSourceLocation(containingFile, firstSourceLocation);
-                            if (positionToOffset == -1) {
-                                continue;
+                        if(!ruleIgnores.contains(error.getClass().getSimpleName())) {
+                            SourceLocation firstSourceLocation = error.getLocations().stream().findFirst().orElse(null);
+                            if (firstSourceLocation != null && firstSchemaError.isNull()) {
+                                firstSchemaError.set(firstSourceLocation);
                             }
-                            if (containingFile.getContext() != null) {
-                                // injected file, so adjust the position
-                                positionToOffset = positionToOffset - containingFile.getContext().getTextOffset();
-                            }
-                            PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset);
-                            if (errorPsiElement != null) {
-                                PsiElement nextLeaf = PsiTreeUtil.nextVisibleLeaf(errorPsiElement);
-                                if (nextLeaf != null && nextLeaf.getParent() instanceof GraphQLIdentifier) {
-                                    // graphql-errors typically point to the keywords of definitions, so
-                                    // use the definition identifier in that case
-                                    errorPsiElement = nextLeaf.getParent();
+                            if (firstSourceLocation != null && currentFileName.equals(firstSourceLocation.getSourceName())) {
+                                int positionToOffset = getOffsetFromSourceLocation(containingFile, firstSourceLocation);
+                                if (positionToOffset == -1) {
+                                    continue;
                                 }
-                                createErrorAnnotation(annotationHolder, errorPsiElement, error.getMessage());
+                                if (containingFile.getContext() != null) {
+                                    // injected file, so adjust the position
+                                    positionToOffset = positionToOffset - containingFile.getContext().getTextOffset();
+                                }
+                                PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset);
+                                if (errorPsiElement != null) {
+                                    PsiElement nextLeaf = PsiTreeUtil.nextVisibleLeaf(errorPsiElement);
+                                    if (nextLeaf != null && nextLeaf.getParent() instanceof GraphQLIdentifier) {
+                                        // graphql-errors typically point to the keywords of definitions, so
+                                        // use the definition identifier in that case
+                                        errorPsiElement = nextLeaf.getParent();
+                                    }
+                                    createErrorAnnotation(annotationHolder, errorPsiElement, error.getMessage());
+                                }
                             }
                         }
                     }
