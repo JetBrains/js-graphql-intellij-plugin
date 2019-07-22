@@ -224,11 +224,12 @@ public class GraphQLIntrospectionHelper {
 
     @SuppressWarnings("unchecked")
     public String printIntrospectionJsonAsGraphQL(String introspectionJson) {
-        Map<String, Object> introspectionAsMap = new Gson().fromJson(sanitizeIntrospectionJson(introspectionJson), Map.class);
+        final Gson gson = new Gson();
+        Map<String, Object> introspectionAsMap = gson.fromJson(sanitizeIntrospectionJson(introspectionJson), Map.class);
         if (!introspectionAsMap.containsKey("__schema")) {
             // possibly a full query result
-            if (introspectionAsMap.containsKey("errors")) {
-                throw new IllegalArgumentException("Introspection query returned errors: " + new Gson().toJson(introspectionAsMap.get("errors")));
+            if (introspectionAsMap.containsKey("errors") && !((List) introspectionAsMap.get("errors")).isEmpty()) {
+                throw new IllegalArgumentException("Introspection query returned errors: " + gson.toJson(introspectionAsMap.get("errors")));
             }
             if (!introspectionAsMap.containsKey("data")) {
                 throw new IllegalArgumentException("Expected data key to be present in query result. Got keys: " + introspectionAsMap.keySet());
