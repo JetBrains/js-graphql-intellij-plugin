@@ -25,6 +25,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +61,7 @@ public class GraphQLEditConfigAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         final Project myProject = e.getData(CommonDataKeys.PROJECT);
-        final VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
+        final VirtualFile virtualFile = getVirtualFileOnDisk(e.getData(CommonDataKeys.VIRTUAL_FILE));
         if (myProject != null && virtualFile != null) {
             final GraphQLConfigManager configManager = GraphQLConfigManager.getService(myProject);
             final VirtualFile configFile = configManager.getClosestConfigFile(virtualFile);
@@ -98,6 +99,13 @@ public class GraphQLEditConfigAction extends AnAction {
                 }));
             }
         }
+    }
+
+    private VirtualFile getVirtualFileOnDisk(VirtualFile virtualFile) {
+        if (virtualFile instanceof LightVirtualFile) {
+            return ((LightVirtualFile) virtualFile).getOriginalFile();
+        }
+        return virtualFile;
     }
 
     static class GraphQLConfigDirectoryDialog extends DialogWrapper {
