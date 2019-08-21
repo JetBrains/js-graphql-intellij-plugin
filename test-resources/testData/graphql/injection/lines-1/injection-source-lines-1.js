@@ -19,4 +19,9 @@ const schema1 = gql`
             valueFromServer
         }
     }
+    
+    type EscapedBacktick {
+        "Description with escaped backtick \`"
+        field: Foo
+    }
 `;

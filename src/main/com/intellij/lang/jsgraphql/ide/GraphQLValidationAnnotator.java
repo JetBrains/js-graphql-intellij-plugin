@@ -17,6 +17,7 @@ import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
@@ -28,12 +29,10 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
@@ -371,7 +370,14 @@ public class GraphQLValidationAnnotator implements Annotator {
      * @return the transformed valid GraphQL as a string
      */
     private String replacePlaceholdersWithValidGraphQL(PsiFile graphqlPsiFile) {
-        final StringBuffer buffer = new StringBuffer(graphqlPsiFile.getText());
+        String graphqlText = graphqlPsiFile.getText();
+        if (graphqlPsiFile.getContext() instanceof PsiLanguageInjectionHost) {
+            final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
+            if (graphQLInjectionSearchHelper != null) {
+                graphqlText = graphQLInjectionSearchHelper.applyInjectionDelimitingQuotesEscape(graphqlText);
+            }
+        }
+        final StringBuffer buffer = new StringBuffer(graphqlText);
         final GraphQLVisitor visitor = new GraphQLVisitor() {
             @Override
             public void visitTemplateDefinition(@NotNull GraphQLTemplateDefinition templateDefinition) {

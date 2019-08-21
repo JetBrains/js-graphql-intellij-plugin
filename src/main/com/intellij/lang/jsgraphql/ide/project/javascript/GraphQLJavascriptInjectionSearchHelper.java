@@ -17,6 +17,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.indexing.FileBasedIndex;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
 import java.util.function.Consumer;
@@ -61,5 +62,15 @@ public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionS
         } catch (IndexNotReadyException e) {
             // can't search yet (e.g. during project startup)
         }
+    }
+
+    @Override
+    public String applyInjectionDelimitingQuotesEscape(String rawGraphQLText) {
+        if (rawGraphQLText != null && rawGraphQLText.contains("\\`")) {
+            // replace escaped backticks in template literals with a whitespace and the backtick to preserve token
+            // positions for error mappings etc.
+            return StringUtils.replace(rawGraphQLText, "\\`", " `");
+        }
+        return rawGraphQLText;
     }
 }

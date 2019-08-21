@@ -15,6 +15,7 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper;
+import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
@@ -60,6 +61,7 @@ public class SchemaIDLTypeDefinitionRegistry {
     private final PsiManager psiManager;
     private final JSGraphQLEndpointNamedTypeRegistry graphQLEndpointNamedTypeRegistry;
     private final GraphQLConfigManager graphQLConfigManager;
+    private final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
 
     private final Map<GlobalSearchScope, TypeDefinitionRegistryWithErrors> scopeToRegistry = Maps.newConcurrentMap();
 
@@ -75,6 +77,7 @@ public class SchemaIDLTypeDefinitionRegistry {
         graphQLEndpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(project);
         graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getService(project);
         graphQLConfigManager = GraphQLConfigManager.getService(project);
+        graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
         project.getMessageBus().connect().subscribe(GraphQLSchemaChangeListener.TOPIC, new GraphQLSchemaEventListener() {
             @Override
             public void onGraphQLSchemaChanged(Integer schemaVersion) {
@@ -172,7 +175,10 @@ public class SchemaIDLTypeDefinitionRegistry {
                         }
 
                         try {
-                            final String definitionSourceText = typeSystemDefinition.getText();
+                            String definitionSourceText = typeSystemDefinition.getText();
+                            if (graphQLInjectionSearchHelper != null && psiFile.getContext() instanceof PsiLanguageInjectionHost) {
+                                definitionSourceText = graphQLInjectionSearchHelper.applyInjectionDelimitingQuotesEscape(definitionSourceText);
+                            }
                             final StringBuffer typeSystemDefinitionBuffer = new StringBuffer(definitionPrefix.length() + definitionSourceText.length());
                             typeSystemDefinitionBuffer.append(definitionPrefix).append(definitionSourceText);
                             // if there are syntax errors on optional elements, replace them with whitespace
