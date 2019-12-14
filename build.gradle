@@ -9,7 +9,6 @@ buildscript {
 
 plugins {
     id 'org.jetbrains.intellij' version '0.4.15'
-    id "de.undercouch.download" version "3.4.3"
     id "com.github.ManifestClasspath" version "0.1.0-RELEASE"
 }
 
@@ -33,6 +32,7 @@ dependencies {
     compile "commons-io:commons-io:2.6"
     compile "com.atlassian.commonmark:commonmark:0.12.1"
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.21'
+    compile 'fr.opensagres.js:minimatch.java:1.1.0'
 
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
@@ -123,14 +123,7 @@ task generateGraphQLEndpointDocParser(type: GenerateParser) {
     pathToPsiRoot = 'com/intellij/lang/jsgraphql/endpoint/doc/psi'
 }
 
-task downloadMinimatchNashorn(type: Download) {
-    src 'https://raw.githubusercontent.com/jimkyndemeyer/minimatch-nashorn/1.0.1/dist/minimatch-nashorn.js'
-    dest 'resources/META-INF'
-    overwrite false
-}
-
 compileJava {
-    dependsOn downloadMinimatchNashorn
     dependsOn generateGraphQLEndpointLexer
     dependsOn generateGraphQLEndpointParser
     dependsOn generateGraphQLEndpointDocLexer
