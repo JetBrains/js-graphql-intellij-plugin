@@ -3,12 +3,12 @@ buildscript {
         maven { url 'https://jitpack.io'}
     }
     dependencies{
-        classpath "com.github.JetBrains:gradle-grammar-kit-plugin:2018.3"
+        classpath "com.github.JetBrains:gradle-grammar-kit-plugin:2019.3"
     }
 }
 
 plugins {
-    id 'org.jetbrains.intellij' version '0.4.9'
+    id 'org.jetbrains.intellij' version '0.4.15'
     id "de.undercouch.download" version "3.4.3"
     id "com.github.ManifestClasspath" version "0.1.0-RELEASE"
 }

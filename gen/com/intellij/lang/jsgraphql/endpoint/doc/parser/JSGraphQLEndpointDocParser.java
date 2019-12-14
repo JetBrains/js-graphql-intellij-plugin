@@ -23,16 +23,15 @@ public class JSGraphQLEndpointDocParser implements PsiParser, LightPsiParser {
     boolean result_;
     builder_ = adapt_builder_(root_, builder_, this, null);
     Marker marker_ = enter_section_(builder_, 0, _COLLAPSE_, null);
-    if (root_ == TAG) {
-      result_ = Tag(builder_, 0);
-    }
-    else {
-      result_ = parse_root_(root_, builder_, 0);
-    }
+    result_ = parse_root_(root_, builder_);
     exit_section_(builder_, 0, marker_, root_, result_, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType root_, PsiBuilder builder_, int level_) {
+  protected boolean parse_root_(IElementType root_, PsiBuilder builder_) {
+    return parse_root_(root_, builder_, 0);
+  }
+
+  static boolean parse_root_(IElementType root_, PsiBuilder builder_, int level_) {
     return Document(builder_, level_ + 1);
   }
 
@@ -49,8 +48,8 @@ public class JSGraphQLEndpointDocParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // Tag
-  //     |
+  // Tag
+  //     |
   //     docText
   static boolean Rule(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "Rule")) return false;

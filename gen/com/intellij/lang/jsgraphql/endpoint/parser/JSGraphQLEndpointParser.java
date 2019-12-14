@@ -23,127 +23,15 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     boolean result_;
     builder_ = adapt_builder_(root_, builder_, this, EXTENDS_SETS_);
     Marker marker_ = enter_section_(builder_, 0, _COLLAPSE_, null);
-    if (root_ == ANNOTATION) {
-      result_ = Annotation(builder_, 0);
-    }
-    else if (root_ == ANNOTATION_ARGUMENT_LIST_VALUE) {
-      result_ = AnnotationArgumentListValue(builder_, 0);
-    }
-    else if (root_ == ANNOTATION_ARGUMENT_OBJECT_FIELD) {
-      result_ = AnnotationArgumentObjectField(builder_, 0);
-    }
-    else if (root_ == ANNOTATION_ARGUMENT_OBJECT_VALUE) {
-      result_ = AnnotationArgumentObjectValue(builder_, 0);
-    }
-    else if (root_ == ANNOTATION_ARGUMENT_VALUE) {
-      result_ = AnnotationArgumentValue(builder_, 0);
-    }
-    else if (root_ == ANNOTATION_ARGUMENTS) {
-      result_ = AnnotationArguments(builder_, 0);
-    }
-    else if (root_ == ANNOTATION_DEFINITION) {
-      result_ = AnnotationDefinition(builder_, 0);
-    }
-    else if (root_ == ARGUMENTS_DEFINITION) {
-      result_ = ArgumentsDefinition(builder_, 0);
-    }
-    else if (root_ == COMPOSITE_TYPE) {
-      result_ = CompositeType(builder_, 0);
-    }
-    else if (root_ == ENUM_TYPE_DEFINITION) {
-      result_ = EnumTypeDefinition(builder_, 0);
-    }
-    else if (root_ == ENUM_VALUE_DEFINITION) {
-      result_ = EnumValueDefinition(builder_, 0);
-    }
-    else if (root_ == ENUM_VALUE_DEFINITION_SET) {
-      result_ = EnumValueDefinitionSet(builder_, 0);
-    }
-    else if (root_ == FIELD_DEFINITION) {
-      result_ = FieldDefinition(builder_, 0);
-    }
-    else if (root_ == FIELD_DEFINITION_SET) {
-      result_ = FieldDefinitionSet(builder_, 0);
-    }
-    else if (root_ == IMPLEMENTS_INTERFACES) {
-      result_ = ImplementsInterfaces(builder_, 0);
-    }
-    else if (root_ == IMPORT_DECLARATION) {
-      result_ = ImportDeclaration(builder_, 0);
-    }
-    else if (root_ == IMPORT_FILE_REFERENCE) {
-      result_ = ImportFileReference(builder_, 0);
-    }
-    else if (root_ == INPUT_OBJECT_TYPE_DEFINITION) {
-      result_ = InputObjectTypeDefinition(builder_, 0);
-    }
-    else if (root_ == INPUT_VALUE_DEFINITION) {
-      result_ = InputValueDefinition(builder_, 0);
-    }
-    else if (root_ == INPUT_VALUE_DEFINITION_IDENTIFIER) {
-      result_ = InputValueDefinitionIdentifier(builder_, 0);
-    }
-    else if (root_ == INPUT_VALUE_DEFINITIONS) {
-      result_ = InputValueDefinitions(builder_, 0);
-    }
-    else if (root_ == INTERFACE_TYPE_DEFINITION) {
-      result_ = InterfaceTypeDefinition(builder_, 0);
-    }
-    else if (root_ == LIST_TYPE) {
-      result_ = ListType(builder_, 0);
-    }
-    else if (root_ == NAMED_ANNOTATION_ARGUMENT) {
-      result_ = NamedAnnotationArgument(builder_, 0);
-    }
-    else if (root_ == NAMED_ANNOTATION_ARGUMENTS) {
-      result_ = NamedAnnotationArguments(builder_, 0);
-    }
-    else if (root_ == NAMED_TYPE) {
-      result_ = NamedType(builder_, 0);
-    }
-    else if (root_ == NAMED_TYPE_DEF) {
-      result_ = NamedTypeDef(builder_, 0);
-    }
-    else if (root_ == OBJECT_TYPE_DEFINITION) {
-      result_ = ObjectTypeDefinition(builder_, 0);
-    }
-    else if (root_ == OPERATION_TYPE_DEFINITION) {
-      result_ = OperationTypeDefinition(builder_, 0);
-    }
-    else if (root_ == OPERATION_TYPE_DEFINITION_SET) {
-      result_ = OperationTypeDefinitionSet(builder_, 0);
-    }
-    else if (root_ == PROPERTY) {
-      result_ = Property(builder_, 0);
-    }
-    else if (root_ == QUOTED_STRING) {
-      result_ = QuotedString(builder_, 0);
-    }
-    else if (root_ == SCALAR_TYPE_DEFINITION) {
-      result_ = ScalarTypeDefinition(builder_, 0);
-    }
-    else if (root_ == SCHEMA_DEFINITION) {
-      result_ = SchemaDefinition(builder_, 0);
-    }
-    else if (root_ == STRING) {
-      result_ = String(builder_, 0);
-    }
-    else if (root_ == UNION_MEMBER) {
-      result_ = UnionMember(builder_, 0);
-    }
-    else if (root_ == UNION_MEMBER_SET) {
-      result_ = UnionMemberSet(builder_, 0);
-    }
-    else if (root_ == UNION_TYPE_DEFINITION) {
-      result_ = UnionTypeDefinition(builder_, 0);
-    }
-    else {
-      result_ = parse_root_(root_, builder_, 0);
-    }
+    result_ = parse_root_(root_, builder_);
     exit_section_(builder_, 0, marker_, root_, result_, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType root_, PsiBuilder builder_, int level_) {
+  protected boolean parse_root_(IElementType root_, PsiBuilder builder_) {
+    return parse_root_(root_, builder_, 0);
+  }
+
+  static boolean parse_root_(IElementType root_, PsiBuilder builder_, int level_) {
     return Document(builder_, level_ + 1);
   }
 
@@ -463,22 +351,22 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ObjectTypeDefinition
-  //     |
-  //     InterfaceTypeDefinition
-  //     |
-  //     InputObjectTypeDefinition
-  //     |
-  //     EnumTypeDefinition
-  //     |
-  //     UnionTypeDefinition
-  //     |
-  //     ScalarTypeDefinition
-  //     |
-  //     ImportDeclaration
-  //     |
-  //     SchemaDefinition
-  //     |
+  // ObjectTypeDefinition
+  //     |
+  //     InterfaceTypeDefinition
+  //     |
+  //     InputObjectTypeDefinition
+  //     |
+  //     EnumTypeDefinition
+  //     |
+  //     UnionTypeDefinition
+  //     |
+  //     ScalarTypeDefinition
+  //     |
+  //     ImportDeclaration
+  //     |
+  //     SchemaDefinition
+  //     |
   //     AnnotationDefinition
   static boolean Definition(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "Definition")) return false;

@@ -23,229 +23,15 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     boolean result;
     builder = adapt_builder_(type, builder, this, EXTENDS_SETS_);
     Marker marker = enter_section_(builder, 0, _COLLAPSE_, null);
-    if (type == ALIAS) {
-      result = alias(builder, 0);
-    }
-    else if (type == ARGUMENT) {
-      result = argument(builder, 0);
-    }
-    else if (type == ARGUMENTS) {
-      result = arguments(builder, 0);
-    }
-    else if (type == ARGUMENTS_DEFINITION) {
-      result = argumentsDefinition(builder, 0);
-    }
-    else if (type == ARRAY_VALUE) {
-      result = arrayValue(builder, 0);
-    }
-    else if (type == BOOLEAN_VALUE) {
-      result = booleanValue(builder, 0);
-    }
-    else if (type == DEFAULT_VALUE) {
-      result = defaultValue(builder, 0);
-    }
-    else if (type == DEFINITION) {
-      result = definition(builder, 0);
-    }
-    else if (type == DIRECTIVE) {
-      result = directive(builder, 0);
-    }
-    else if (type == DIRECTIVE_DEFINITION) {
-      result = directiveDefinition(builder, 0);
-    }
-    else if (type == DIRECTIVE_LOCATION) {
-      result = directiveLocation(builder, 0);
-    }
-    else if (type == DIRECTIVE_LOCATIONS) {
-      result = directiveLocations(builder, 0);
-    }
-    else if (type == ENUM_TYPE_DEFINITION) {
-      result = enumTypeDefinition(builder, 0);
-    }
-    else if (type == ENUM_TYPE_EXTENSION_DEFINITION) {
-      result = enumTypeExtensionDefinition(builder, 0);
-    }
-    else if (type == ENUM_VALUE) {
-      result = enumValue(builder, 0);
-    }
-    else if (type == ENUM_VALUE_DEFINITION) {
-      result = enumValueDefinition(builder, 0);
-    }
-    else if (type == ENUM_VALUE_DEFINITIONS) {
-      result = enumValueDefinitions(builder, 0);
-    }
-    else if (type == FIELD) {
-      result = field(builder, 0);
-    }
-    else if (type == FIELD_DEFINITION) {
-      result = fieldDefinition(builder, 0);
-    }
-    else if (type == FIELDS_DEFINITION) {
-      result = fieldsDefinition(builder, 0);
-    }
-    else if (type == FLOAT_VALUE) {
-      result = floatValue(builder, 0);
-    }
-    else if (type == FRAGMENT_DEFINITION) {
-      result = fragmentDefinition(builder, 0);
-    }
-    else if (type == FRAGMENT_SELECTION) {
-      result = fragmentSelection(builder, 0);
-    }
-    else if (type == FRAGMENT_SPREAD) {
-      result = fragmentSpread(builder, 0);
-    }
-    else if (type == IDENTIFIER) {
-      result = identifier(builder, 0);
-    }
-    else if (type == IMPLEMENTS_INTERFACES) {
-      result = implementsInterfaces(builder, 0);
-    }
-    else if (type == INLINE_FRAGMENT) {
-      result = inlineFragment(builder, 0);
-    }
-    else if (type == INPUT_OBJECT_TYPE_DEFINITION) {
-      result = inputObjectTypeDefinition(builder, 0);
-    }
-    else if (type == INPUT_OBJECT_TYPE_EXTENSION_DEFINITION) {
-      result = inputObjectTypeExtensionDefinition(builder, 0);
-    }
-    else if (type == INPUT_OBJECT_VALUE_DEFINITIONS) {
-      result = inputObjectValueDefinitions(builder, 0);
-    }
-    else if (type == INPUT_VALUE_DEFINITION) {
-      result = inputValueDefinition(builder, 0);
-    }
-    else if (type == INT_VALUE) {
-      result = intValue(builder, 0);
-    }
-    else if (type == INTERFACE_TYPE_DEFINITION) {
-      result = interfaceTypeDefinition(builder, 0);
-    }
-    else if (type == INTERFACE_TYPE_EXTENSION_DEFINITION) {
-      result = interfaceTypeExtensionDefinition(builder, 0);
-    }
-    else if (type == LIST_TYPE) {
-      result = listType(builder, 0);
-    }
-    else if (type == NON_NULL_TYPE) {
-      result = nonNullType(builder, 0);
-    }
-    else if (type == NULL_VALUE) {
-      result = nullValue(builder, 0);
-    }
-    else if (type == OBJECT_FIELD) {
-      result = objectField(builder, 0);
-    }
-    else if (type == OBJECT_TYPE_DEFINITION) {
-      result = objectTypeDefinition(builder, 0);
-    }
-    else if (type == OBJECT_TYPE_EXTENSION_DEFINITION) {
-      result = objectTypeExtensionDefinition(builder, 0);
-    }
-    else if (type == OBJECT_VALUE) {
-      result = objectValue(builder, 0);
-    }
-    else if (type == OPERATION_DEFINITION) {
-      result = operationDefinition(builder, 0);
-    }
-    else if (type == OPERATION_TYPE) {
-      result = operationType(builder, 0);
-    }
-    else if (type == OPERATION_TYPE_DEFINITION) {
-      result = operationTypeDefinition(builder, 0);
-    }
-    else if (type == OPERATION_TYPE_DEFINITIONS) {
-      result = operationTypeDefinitions(builder, 0);
-    }
-    else if (type == QUOTED_STRING) {
-      result = quotedString(builder, 0);
-    }
-    else if (type == SCALAR_TYPE_DEFINITION) {
-      result = scalarTypeDefinition(builder, 0);
-    }
-    else if (type == SCALAR_TYPE_EXTENSION_DEFINITION) {
-      result = scalarTypeExtensionDefinition(builder, 0);
-    }
-    else if (type == SCHEMA_DEFINITION) {
-      result = schemaDefinition(builder, 0);
-    }
-    else if (type == SELECTION) {
-      result = selection(builder, 0);
-    }
-    else if (type == SELECTION_SET) {
-      result = selectionSet(builder, 0);
-    }
-    else if (type == SELECTION_SET_OPERATION_DEFINITION) {
-      result = selectionSetOperationDefinition(builder, 0);
-    }
-    else if (type == STRING_VALUE) {
-      result = stringValue(builder, 0);
-    }
-    else if (type == TEMPLATE_DEFINITION) {
-      result = templateDefinition(builder, 0);
-    }
-    else if (type == TEMPLATE_SELECTION) {
-      result = templateSelection(builder, 0);
-    }
-    else if (type == TEMPLATE_VARIABLE) {
-      result = templateVariable(builder, 0);
-    }
-    else if (type == TYPE) {
-      result = type(builder, 0);
-    }
-    else if (type == TYPE_CONDITION) {
-      result = typeCondition(builder, 0);
-    }
-    else if (type == TYPE_DEFINITION) {
-      result = typeDefinition(builder, 0);
-    }
-    else if (type == TYPE_EXTENSION) {
-      result = typeExtension(builder, 0);
-    }
-    else if (type == TYPE_NAME) {
-      result = typeName(builder, 0);
-    }
-    else if (type == TYPE_NAME_DEFINITION) {
-      result = typeNameDefinition(builder, 0);
-    }
-    else if (type == TYPE_SYSTEM_DEFINITION) {
-      result = typeSystemDefinition(builder, 0);
-    }
-    else if (type == TYPED_OPERATION_DEFINITION) {
-      result = typedOperationDefinition(builder, 0);
-    }
-    else if (type == UNION_MEMBERS) {
-      result = unionMembers(builder, 0);
-    }
-    else if (type == UNION_MEMBERSHIP) {
-      result = unionMembership(builder, 0);
-    }
-    else if (type == UNION_TYPE_DEFINITION) {
-      result = unionTypeDefinition(builder, 0);
-    }
-    else if (type == UNION_TYPE_EXTENSION_DEFINITION) {
-      result = unionTypeExtensionDefinition(builder, 0);
-    }
-    else if (type == VALUE) {
-      result = value(builder, 0);
-    }
-    else if (type == VARIABLE) {
-      result = variable(builder, 0);
-    }
-    else if (type == VARIABLE_DEFINITION) {
-      result = variableDefinition(builder, 0);
-    }
-    else if (type == VARIABLE_DEFINITIONS) {
-      result = variableDefinitions(builder, 0);
-    }
-    else {
-      result = parse_root_(type, builder, 0);
-    }
+    result = parse_root_(type, builder);
     exit_section_(builder, 0, marker, type, result, true, TRUE_CONDITION);
   }
 
-  protected boolean parse_root_(IElementType type, PsiBuilder builder, int level) {
+  protected boolean parse_root_(IElementType type, PsiBuilder builder) {
+    return parse_root_(type, builder, 0);
+  }
+
+  static boolean parse_root_(IElementType type, PsiBuilder builder, int level) {
     return document(builder, level + 1);
   }
 
@@ -476,9 +262,9 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // operationDefinition |
-  //     fragmentDefinition |
-  //     typeSystemDefinition |
+  // operationDefinition |
+  //     fragmentDefinition |
+  //     typeSystemDefinition |
   //     templateDefinition
   public static boolean definition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "definition")) return false;
@@ -1862,8 +1648,8 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // field |
-  //     fragmentSelection |
+  // field |
+  //     fragmentSelection |
   //     templateSelection
   public static boolean selection(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "selection")) return false;
@@ -2042,11 +1828,11 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // scalarTypeDefinition |
-  //     objectTypeDefinition |
-  //     interfaceTypeDefinition |
-  //     unionTypeDefinition |
-  //     enumTypeDefinition |
+  // scalarTypeDefinition |
+  //     objectTypeDefinition |
+  //     interfaceTypeDefinition |
+  //     unionTypeDefinition |
+  //     enumTypeDefinition |
   //     inputObjectTypeDefinition
   public static boolean typeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeDefinition")) return false;
@@ -2063,11 +1849,11 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // objectTypeExtensionDefinition |
-  //     interfaceTypeExtensionDefinition |
-  //     unionTypeExtensionDefinition |
-  //     scalarTypeExtensionDefinition |
-  //     enumTypeExtensionDefinition |
+  // objectTypeExtensionDefinition |
+  //     interfaceTypeExtensionDefinition |
+  //     unionTypeExtensionDefinition |
+  //     scalarTypeExtensionDefinition |
+  //     enumTypeExtensionDefinition |
   //     inputObjectTypeExtensionDefinition
   public static boolean typeExtension(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeExtension")) return false;
@@ -2151,9 +1937,9 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // schemaDefinition |
-  //     typeDefinition |
-  //     typeExtension |
+  // schemaDefinition |
+  //     typeDefinition |
+  //     typeExtension |
   //     directiveDefinition
   public static boolean typeSystemDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeSystemDefinition")) return false;
@@ -2318,15 +2104,15 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // templateVariable |
-  //     variable |
-  //     stringValue |
-  //     intValue |
-  //     floatValue |
-  //     booleanValue |
-  //     nullValue |
-  //     enumValue |
-  //     arrayValue |
+  // templateVariable |
+  //     variable |
+  //     stringValue |
+  //     intValue |
+  //     floatValue |
+  //     booleanValue |
+  //     nullValue |
+  //     enumValue |
+  //     arrayValue |
   //     objectValue
   public static boolean value(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "value")) return false;
