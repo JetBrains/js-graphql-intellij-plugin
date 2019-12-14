@@ -250,8 +250,6 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     if (editor instanceof EditorEx) {
                         ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
                     }
-                    editor.getScrollingModel().scrollVertically(-1000);
-
                 }
             });
         }
