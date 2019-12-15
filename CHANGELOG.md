@@ -1,3 +1,12 @@
+## 2.3.0 (2019-12-15)
+
+Changes:
+- Fix for Incompatible API changes in the upcoming IntelliJ Platform 2020.1 (#303)
+- Fix for Nashorn deprecation warning (#287)
+- Fix for Go to Definition always scrolls to the top of the schema (#289)
+- Handle escaped backticks in gql tagged template literals (#279)
+- Fixed assertion error when clicking settings tool button in injected GraphQL fragment editor window (#275)
+
 ## 2.2.0 (2019-06-16)
 
 Changes:
