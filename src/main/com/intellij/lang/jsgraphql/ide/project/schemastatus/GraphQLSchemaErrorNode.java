@@ -34,7 +34,7 @@ public class GraphQLSchemaErrorNode extends CachingSimpleNode {
         super(parent);
         this.error = error;
         myName = error.getMessage();
-        setIcon(AllIcons.Ide.Error);
+        setIcon(AllIcons.Ide.FatalError);
         SourceLocation location = getLocation();
         if (location != null) {
             getTemplatePresentation().setTooltip(location.getSourceName() + ":" + location.getLine() + ":" + location.getColumn());

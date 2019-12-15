@@ -27,7 +27,7 @@ public class GraphQLSchemaErrorsListNode extends CachingSimpleNode {
         super(parent);
         this.schemaWithErrors = schemaWithErrors;
         myName = "Schema errors";
-        setIcon(AllIcons.Nodes.TreeClosed);
+        setIcon(AllIcons.Nodes.Folder);
     }
 
     @Override

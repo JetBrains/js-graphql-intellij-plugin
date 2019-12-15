@@ -65,7 +65,7 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
 
         getTemplatePresentation().setTooltip("Double click or press enter to search the schema registry");
 
-        setIcon(AllIcons.Modules.ModulesNode);
+        setIcon(AllIcons.Nodes.ModuleGroup);
 
     }
 

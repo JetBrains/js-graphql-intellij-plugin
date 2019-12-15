@@ -93,7 +93,7 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
                                     Notifications.Bus.notify(notification.setImportant(true));
                                 }
                             });
-                            return new LineMarkerInfo<>(jsonProperty, jsonProperty.getTextRange(), AllIcons.General.Run, Pass.UPDATE_ALL, o -> "Generate GraphQL SDL schema file", (evt, elt) -> {
+                            return new LineMarkerInfo<>(jsonProperty, jsonProperty.getTextRange(), AllIcons.RunConfigurations.TestState.Run, Pass.UPDATE_ALL, o -> "Generate GraphQL SDL schema file", (evt, elt) -> {
                                 generateAction.get().run();
                             }, GutterIconRenderer.Alignment.CENTER);
                         }

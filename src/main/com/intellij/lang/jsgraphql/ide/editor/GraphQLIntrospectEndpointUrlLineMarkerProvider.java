@@ -55,7 +55,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             final JsonProperty jsonProperty = (JsonProperty) element;
             final Ref<String> urlRef = Ref.create();
             if (isEndpointUrl(jsonProperty, urlRef) && !hasErrors(jsonProperty.getContainingFile())) {
-                return new LineMarkerInfo<>(jsonProperty, jsonProperty.getTextRange(), AllIcons.General.Run, Pass.UPDATE_ALL, o -> "Run introspection query to generate GraphQL SDL schema file", (evt, jsonUrl) -> {
+                return new LineMarkerInfo<>(jsonProperty, jsonProperty.getTextRange(), AllIcons.RunConfigurations.TestState.Run, Pass.UPDATE_ALL, o -> "Run introspection query to generate GraphQL SDL schema file", (evt, jsonUrl) -> {
 
                     String introspectionUtl;
                     if (jsonUrl.getValue() instanceof JsonStringLiteral) {
