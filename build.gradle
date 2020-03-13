@@ -1,20 +1,13 @@
-buildscript {
-    repositories {
-        maven { url 'https://jitpack.io'}
-    }
-    dependencies{
-        classpath "com.github.JetBrains:gradle-grammar-kit-plugin:2019.3"
-    }
-}
-
 plugins {
-    id 'org.jetbrains.intellij' version '0.4.15'
+    id "org.jetbrains.grammarkit" version "2020.1"
+    id 'org.jetbrains.intellij' version '0.4.16'
     id "com.github.ManifestClasspath" version "0.1.0-RELEASE"
 }
 
 group 'com.intellij.lang.jsgraphql'
 version '2.3.0'
 
+apply plugin: 'org.jetbrains.grammarkit'
 apply plugin: 'java'
 
 sourceCompatibility = 1.8
@@ -38,7 +31,7 @@ dependencies {
 }
 
 intellij {
-    version 'LATEST-EAP-SNAPSHOT'
+    version 'IU-193.6494.35'
     type 'IU'
     updateSinceUntilBuild = false
     pluginName 'JS GraphQL'
