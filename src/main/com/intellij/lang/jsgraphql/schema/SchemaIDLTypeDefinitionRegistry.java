@@ -91,6 +91,7 @@ public class SchemaIDLTypeDefinitionRegistry {
         STANDARD_SCALAR_DEFINITIONS.remove("BigDecimal");
         STANDARD_SCALAR_DEFINITIONS.remove("Short");
         STANDARD_SCALAR_DEFINITIONS.remove("Char");
+        STANDARD_SCALAR_DEFINITIONS.remove("Byte");
 
     }
 

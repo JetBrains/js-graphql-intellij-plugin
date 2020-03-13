@@ -107,7 +107,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                         } else if (typeScope instanceof GraphQLInterfaceType) {
                             definitionType = "interface ";
                         }
-                        message += " on " + definitionType + "type \"" + typeScope.getName() + "\"";
+                        message += " on " + definitionType + "type \"" + GraphQLUtil.getName(typeScope) + "\"";
                         final List<String> suggestions = getFieldNameSuggestions(psiElement.getText(), typeScope);
                         if (suggestions != null && !suggestions.isEmpty()) {
                             message += ". Did you mean " + formatSuggestions(suggestions) + "?";
@@ -133,7 +133,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                 } else if (parent instanceof GraphQLObjectField) {
                     message = "Unknown field \"" + psiElement.getText() + "\"";
                     if (typeScope != null) {
-                        message += " on input type \"" + typeScope.getName() + "\"";
+                        message += " on input type \"" + GraphQLUtil.getName(typeScope) + "\"";
                         final List<String> suggestions = getFieldNameSuggestions(psiElement.getText(), typeScope);
                         if (suggestions != null && !suggestions.isEmpty()) {
                             message += ". Did you mean " + formatSuggestions(suggestions) + "?";

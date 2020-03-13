@@ -74,6 +74,8 @@ public class GraphQLIntrospectionHelper {
     private GraphQLIntrospectionTask latestIntrospection = null;
     private Project myProject;
 
+    private static Set<String> DEFAULT_DIRECTIVES = Sets.newHashSet("deprecated", "skip", "include");
+
     public static GraphQLIntrospectionHelper getService(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLIntrospectionHelper.class);
     }
@@ -271,7 +273,11 @@ public class GraphQLIntrospectionHelper {
         }
 
         final Document schemaDefinition = new GraphQLIntrospectionResultToSchema().createSchemaDefinition(introspectionAsMap);
-        final SchemaPrinter.Options options = SchemaPrinter.Options.defaultOptions().includeScalarTypes(false).includeSchemaDefintion(true);
+        final SchemaPrinter.Options options = SchemaPrinter.Options
+                .defaultOptions()
+                .includeScalarTypes(false)
+                .includeSchemaDefinition(true)
+                .includeDirectives(directive -> !DEFAULT_DIRECTIVES.contains(directive.getName()));
         final TypeDefinitionRegistry registry = new SchemaParser().buildRegistry(schemaDefinition);
         final StringBuilder sb = new StringBuilder(new SchemaPrinter(options).print(buildIntrospectionSchema(registry)));
 

@@ -14,6 +14,7 @@ import graphql.parser.MultiSourceReader;
 import graphql.parser.antlr.GraphqlLexer;
 import graphql.parser.antlr.GraphqlParser;
 import graphql.schema.GraphQLModifiedType;
+import graphql.schema.GraphQLNamedType;
 import graphql.schema.GraphQLType;
 import graphql.schema.GraphQLUnmodifiedType;
 import org.antlr.v4.runtime.*;
@@ -127,5 +128,12 @@ public final class GraphQLUtil {
             }
         }
         return doc;
+    }
+
+    public static String getName(GraphQLType graphQLType) {
+        if (graphQLType instanceof GraphQLNamedType) {
+            return ((GraphQLNamedType) graphQLType).getName();
+        }
+        return "";
     }
 }

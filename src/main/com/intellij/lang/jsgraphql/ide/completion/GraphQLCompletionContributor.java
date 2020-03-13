@@ -22,6 +22,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLEnumValueDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLObjectValueImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
@@ -376,7 +377,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                             final GraphQLUnmodifiedType rawType = GraphQLUtil.getUnmodifiedType(typeScope);
                             if (rawType instanceof GraphQLEnumType) {
                                 ((GraphQLEnumType) rawType).getValues().forEach(value -> {
-                                    result.addElement(LookupElementBuilder.create(value.getName()).withTypeText(typeScope.getName()));
+                                    result.addElement(LookupElementBuilder.create(value.getName()).withTypeText(GraphQLUtil.getName(typeScope)));
                                 });
                             } else if (rawType instanceof GraphQLInputObjectType) {
                                 if (parameters.getOriginalPosition() != null && !parameters.getOriginalPosition().getText().equals("{")) {
@@ -412,7 +413,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                         final GraphQLUnmodifiedType rawType = GraphQLUtil.getUnmodifiedType(typeScope);
                         if (rawType instanceof GraphQLEnumType) {
                             ((GraphQLEnumType) rawType).getValues().forEach(value -> {
-                                result.addElement(LookupElementBuilder.create(value.getName()).withTypeText(typeScope.getName()));
+                                result.addElement(LookupElementBuilder.create(value.getName()).withTypeText(rawType.getName()));
                             });
                         }
                     }
@@ -744,9 +745,9 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                         typeScopeProvider = PsiTreeUtil.getParentOfType(typeScopeProvider, GraphQLTypeScopeProvider.class);
                     }
 
-                    GraphQLType typeScope = typeScopeProvider != null ? typeScopeProvider.getTypeScope() : null;
-                    if (typeScope != null) {
-                        typeScope = GraphQLUtil.getUnmodifiedType(typeScope); // unwrap non-null and lists since fragments are about the raw type
+                    GraphQLType rawTypeScope = typeScopeProvider != null ? typeScopeProvider.getTypeScope() : null;
+                    if (rawTypeScope != null) {
+                        GraphQLUnmodifiedType typeScope = GraphQLUtil.getUnmodifiedType(rawTypeScope); // unwrap non-null and lists since fragments are about the raw type
                         final TypeDefinition fragmentType = typeDefinitionRegistry.getType(typeScope.getName()).orElse(null);
                         if (fragmentType != null) {
                             final Ref<Consumer<TypeDefinition<?>>> addTypesRecursive = new Ref<>();
@@ -1133,7 +1134,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         }
 
         final String fragmentTypeName = Optional.ofNullable(typeCondition.getTypeName().getName()).orElse("");
-        if (fragmentTypeName.equals(requiredTypeScope.getName())) {
+        if (fragmentTypeName.equals(GraphQLUtil.getName(requiredTypeScope))) {
             // direct match, e.g. User scope, fragment on User
             return true;
         }
@@ -1147,14 +1148,14 @@ public class GraphQLCompletionContributor extends CompletionContributor {
      * Gets whether a fragment type condition name is compatible with the required type scope
      *
      * @param typeDefinitionRegistry registry with available schema types, used to resolve union members and interface implementations
-     * @param requiredTypeScope      the type scope in which the fragment is a candidate to spread
+     * @param rawRequiredTypeScope      the type scope in which the fragment is a candidate to spread
      * @param fragmentTypeName       the name of the type that a candidate fragment applies to
      * @return true if the candidate type condtion name is compatible inside the required type scope
      */
-    private boolean isCompatibleFragment(TypeDefinitionRegistry typeDefinitionRegistry, GraphQLType requiredTypeScope, String fragmentTypeName) {
+    private boolean isCompatibleFragment(TypeDefinitionRegistry typeDefinitionRegistry, GraphQLType rawRequiredTypeScope, String fragmentTypeName) {
 
         // unwrap non-nullable and list types
-        requiredTypeScope = GraphQLUtil.getUnmodifiedType(requiredTypeScope);
+        GraphQLUnmodifiedType requiredTypeScope = GraphQLUtil.getUnmodifiedType(rawRequiredTypeScope);
 
         if (requiredTypeScope instanceof GraphQLInterfaceType) {
             // also include fragments on types implementing the interface scope
@@ -1169,13 +1170,13 @@ public class GraphQLCompletionContributor extends CompletionContributor {
             }
         } else if (requiredTypeScope instanceof GraphQLObjectType) {
             // include fragments on the interfaces implemented by the object type
-            for (GraphQLOutputType graphQLOutputType : ((GraphQLObjectType) requiredTypeScope).getInterfaces()) {
+            for (GraphQLNamedOutputType graphQLOutputType : ((GraphQLObjectType) requiredTypeScope).getInterfaces()) {
                 if (graphQLOutputType.getName().equals(fragmentTypeName)) {
                     return true;
                 }
             }
         } else if (requiredTypeScope instanceof GraphQLUnionType) {
-            for (GraphQLOutputType graphQLOutputType : ((GraphQLUnionType) requiredTypeScope).getTypes()) {
+            for (GraphQLNamedOutputType graphQLOutputType : ((GraphQLUnionType) requiredTypeScope).getTypes()) {
                 // check each type in the union for compatibility
                 if (graphQLOutputType.getName().equals(fragmentTypeName) || isCompatibleFragment(typeDefinitionRegistry, graphQLOutputType, fragmentTypeName)) {
                     return true;

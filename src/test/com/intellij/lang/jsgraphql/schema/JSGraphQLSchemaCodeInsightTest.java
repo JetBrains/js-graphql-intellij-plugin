@@ -78,12 +78,12 @@ public class JSGraphQLSchemaCodeInsightTest extends LightPlatformCodeInsightFixt
 
     @Test
     public void testCompletionDirective1() {
-        doTestCompletion("CompletionDirective1.graphqls", Lists.newArrayList("foo"));
+        doTestCompletion("CompletionDirective1.graphqls", Lists.newArrayList("deprecated", "foo"));
     }
 
     @Test
     public void testCompletionDirective2() {
-        doTestCompletion("CompletionDirective2.graphqls", Lists.newArrayList("foo"));
+        doTestCompletion("CompletionDirective2.graphqls", Lists.newArrayList("deprecated", "foo"));
     }
 
     @Test

@@ -243,14 +243,14 @@ public class GraphQLReferenceService {
                             final GraphQLTypeDefinition typeDefinition = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLTypeDefinition.class);
                             if (typeDefinition != null) {
                                 final GraphQLTypeNameDefinition typeNameDefinition = PsiTreeUtil.findChildOfType(typeDefinition, GraphQLTypeNameDefinition.class);
-                                isTypeMatch = typeNameDefinition != null && fieldType.getName().equals(typeNameDefinition.getName());
+                                isTypeMatch = typeNameDefinition != null && GraphQLUtil.getName(fieldType).equals(typeNameDefinition.getName());
                             }
                             if (!isTypeMatch) {
                                 // check type extension
                                 final GraphQLTypeExtension typeExtension = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLTypeExtension.class);
                                 if (typeExtension != null) {
                                     final GraphQLTypeName typeName = PsiTreeUtil.findChildOfType(typeExtension, GraphQLTypeName.class);
-                                    isTypeMatch = typeName != null && fieldType.getName().equals(typeName.getName());
+                                    isTypeMatch = typeName != null && GraphQLUtil.getName(fieldType).equals(typeName.getName());
                                 }
                             }
                             if (isTypeMatch) {

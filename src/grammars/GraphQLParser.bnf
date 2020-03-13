@@ -123,7 +123,7 @@ argument ::= identifier ':' value {pin=1 methods=[nameIdentifier="identifier"] r
 
 private argument_recover ::= !(')' | argument)
 
-identifier ::= NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' | 'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' {mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLReferencePsiElement"}
+identifier ::= NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' | 'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on' {mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLReferencePsiElement"}
 
 private templatePlaceholder ::= DOLLAR BRACE_L TEMPLATE_CHAR* BRACE_R
 

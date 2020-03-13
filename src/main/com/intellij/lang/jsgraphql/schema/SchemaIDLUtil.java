@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.schema;
 import graphql.schema.GraphQLList;
 import graphql.schema.GraphQLNonNull;
 import graphql.schema.GraphQLType;
+import graphql.schema.GraphQLUnmodifiedType;
 
 import java.util.Stack;
 
@@ -32,8 +33,11 @@ public class SchemaIDLUtil {
                 type = ((GraphQLList) type).getWrappedType();
                 sb.append("[");
                 stack.push("]");
+            } else if (type instanceof GraphQLUnmodifiedType) {
+                sb.append(((GraphQLUnmodifiedType) type).getName());
+                break;
             } else {
-                sb.append(type.getName());
+                sb.append(type.toString());
                 break;
             }
         }

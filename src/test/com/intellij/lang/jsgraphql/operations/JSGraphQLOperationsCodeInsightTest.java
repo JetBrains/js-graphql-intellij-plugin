@@ -179,7 +179,7 @@ public class JSGraphQLOperationsCodeInsightTest extends LightPlatformCodeInsight
 
     @Test
     public void testCompletionDirectiveOnField() {
-        doTestCompletion("CompletionDirectiveOnField.graphql", Lists.newArrayList("defer", "include", "onField", "skip"));
+        doTestCompletion("CompletionDirectiveOnField.graphql", Lists.newArrayList("include", "onField", "skip"));
     }
 
     @Test

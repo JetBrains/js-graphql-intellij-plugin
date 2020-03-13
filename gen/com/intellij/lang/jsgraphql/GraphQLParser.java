@@ -860,7 +860,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' | 'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive'
+  // NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' | 'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on'
   public static boolean identifier(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "identifier")) return false;
     boolean result;
@@ -880,6 +880,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     if (!result) result = consumeToken(builder, INPUT_KEYWORD);
     if (!result) result = consumeToken(builder, EXTEND_KEYWORD);
     if (!result) result = consumeToken(builder, DIRECTIVE_KEYWORD);
+    if (!result) result = consumeToken(builder, ON_KEYWORD);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
@@ -1874,7 +1875,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // !(definition_keywords) identifier
   public static boolean typeName(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeName")) return false;
-    if (!nextTokenIs(builder, "<type name>", IMPLEMENTS_KEYWORD, NAME)) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, TYPE_NAME, "<type name>");
     result = typeName_0(builder, level + 1);
@@ -1907,7 +1907,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // !(definition_keywords) identifier
   public static boolean typeNameDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeNameDefinition")) return false;
-    if (!nextTokenIs(builder, "<type name definition>", IMPLEMENTS_KEYWORD, NAME)) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_, TYPE_NAME_DEFINITION, "<type name definition>");
     result = typeNameDefinition_0(builder, level + 1);
