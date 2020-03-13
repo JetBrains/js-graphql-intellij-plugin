@@ -1,3 +1,9 @@
+## 2.4.0 (2020-03-13)
+Changes:
+- Allow keywords to be used as field names (#239) (#264)
+  - Upgraded graphql-java to 14.0 (https://github.com/graphql-java/graphql-java/issues/1523)
+  - Refactored breaking changes from graphql-java 12.0 to 14.0
+
 ## 2.3.0 (2019-12-15)
 
 Changes:
