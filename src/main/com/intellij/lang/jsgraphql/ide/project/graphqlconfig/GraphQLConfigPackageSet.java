@@ -67,7 +67,7 @@ public class GraphQLConfigPackageSet implements PackageSet {
 
     /**
      * Removes any unnecessary leading dots and slashes since the globs match relative to the config directory
-     * Based on graphql-config: https://github.com/prismagraphql/graphql-config/blob/b6785a7f0c1b84010cd6e9b94797796254d527b9/src/utils.ts#L45
+     * Based on graphql-config: https://github.com/kamilkisiela/graphql-config/blob/b6785a7f0c1b84010cd6e9b94797796254d527b9/src/utils.ts#L45
      */
     private List<String> normalizeGlobs(List<String> globs) {
         if (globs != null) {
@@ -93,7 +93,7 @@ public class GraphQLConfigPackageSet implements PackageSet {
 
     /**
      * Gets whether a file is included.
-     * Based on graphl-config: https://github.com/prismagraphql/graphql-config/blob/b6785a7f0c1b84010cd6e9b94797796254d527b9/src/GraphQLProjectConfig.ts#L56
+     * Based on graphl-config: https://github.com/kamilkisiela/graphql-config/blob/b6785a7f0c1b84010cd6e9b94797796254d527b9/src/GraphQLProjectConfig.ts#L56
      * Note: Scratch files are always considered to be included since they are associated with a configuration package set but have a path that lies the project sources
      */
     public boolean includesVirtualFile(@NotNull VirtualFile file) {
@@ -145,7 +145,7 @@ public class GraphQLConfigPackageSet implements PackageSet {
     }
 
     /**
-     * Based on graphl-config: https://github.com/prismagraphql/graphql-config/blob/b6785a7f0c1b84010cd6e9b94797796254d527b9/src/utils.ts#L52
+     * Based on graphl-config: https://github.com/kamilkisiela/graphql-config/blob/b6785a7f0c1b84010cd6e9b94797796254d527b9/src/utils.ts#L52
      */
     private boolean matchesGlobs(String filePath, List<String> globs) {
         return Optional.ofNullable(globs).orElse(Collections.emptyList()).stream().anyMatch(glob -> {

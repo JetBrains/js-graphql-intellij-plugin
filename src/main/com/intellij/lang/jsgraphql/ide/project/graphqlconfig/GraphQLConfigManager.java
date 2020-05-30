@@ -91,7 +91,7 @@ import java.util.function.Consumer;
 import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.GRAPHQL_SCRATCH_PROJECT_KEY;
 
 /**
- * Manages integration with graphql-config files. See https://github.com/prismagraphql/graphql-config
+ * Manages integration with graphql-config files. See https://github.com/kamilkisiela/graphql-config/tree/legacy
  */
 public class GraphQLConfigManager {
 
@@ -611,7 +611,7 @@ public class GraphQLConfigManager {
             });
         }
 
-        // apply defaults to projects as spec'ed in https://github.com/prismagraphql/graphql-config/blob/master/specification.md#default-configuration-properties
+        // apply defaults to projects as spec'ed in https://github.com/kamilkisiela/graphql-config/tree/legacyspecification.md#default-configuration-properties
         for (GraphQLConfigData baseConfig : newConfigPathToConfigurations.values()) {
             if (baseConfig.projects != null) {
                 baseConfig.projects.forEach((projectName, projectConfig) -> {
@@ -779,7 +779,7 @@ public class GraphQLConfigManager {
                 } else {
                     configBaseDir = getConfigBaseDirForScratch(virtualFileWithPath.get());
                 }
-                // locate the nearest config file, see https://github.com/prismagraphql/graphql-config/blob/master/src/findGraphQLConfigFile.ts
+                // locate the nearest config file, see https://github.com/kamilkisiela/graphql-config/tree/legacy/src/findGraphQLConfigFile.ts
                 final Set<VirtualFile> contentRoots = getContentRoots(virtualFileWithPath.get());
                 while (configBaseDir != null) {
                     GraphQLConfigData configData = configPathToConfigurations.get(configBaseDir);

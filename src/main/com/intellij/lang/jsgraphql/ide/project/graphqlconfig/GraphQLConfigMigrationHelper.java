@@ -52,7 +52,7 @@ import static com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfi
  */
 public final class GraphQLConfigMigrationHelper {
 
-    public static final String GRAPHQL_CONFIG_DOCS = "https://github.com/prisma/graphql-config";
+    public static final String GRAPHQL_CONFIG_DOCS = "https://github.com/kamilkisiela/graphql-config/tree/legacy";
 
     public static void checkGraphQLConfigJsonMigrations(Project project) {
 

@@ -16,7 +16,7 @@ import java.util.Objects;
 /**
  * graphql-config endpoint extension
  *
- * See https://github.com/prismagraphql/graphql-config/blob/master/specification.md#configuring-graphql-endpoint
+ * See https://github.com/kamilkisiela/graphql-config/tree/legacy/specification.md#configuring-graphql-endpoint
  */
 public class GraphQLConfigEndpoint {
 

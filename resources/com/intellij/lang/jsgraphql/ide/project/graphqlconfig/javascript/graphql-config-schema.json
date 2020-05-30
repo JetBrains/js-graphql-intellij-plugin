@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "JSON schema for .graphlconfig",
-  "id": "https://github.com/prismagraphql/graphql-config/blob/master/specification.md",
+  "id": "https://github.com/kamilkisiela/graphql-config/tree/legacy/specification.md",
   "type": "object",
   "properties": {
     "name": {

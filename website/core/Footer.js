@@ -54,8 +54,8 @@ class Footer extends React.Component {
                         <a href="https://github.com/graphql-java/graphql-java" target="_blank">
                             graphql-java
                         </a>
-                        <a href="https://github.com/prisma/graphql-config" target="_blank">
-                            graphql-config
+                        <a href="https://github.com/kamilkisiela/graphql-config/tree/legacy" target="_blank">
+                            graphql-config v2
                         </a>
                         <a href="https://github.com/chentsulin/awesome-graphql" target="_blank">
                             awesome-graphql

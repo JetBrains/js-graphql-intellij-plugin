@@ -46,14 +46,14 @@ scope is to prevent types from being picked up in more than one GraphQL type reg
 errors as types appear to have been declared more than once. In addition, the scopes prevent non-conflicting types from
 showing up in completions and ensure that validation only recognizes the types that belong to the current schema.
 
-The plugin allows you to configure your schema scopes using [graphql-config](https://github.com/prismagraphql/graphql-config) configuration files with `includes` and `excludes` glob patterns
+The plugin allows you to configure your schema scopes using [graphql-config v2](https://github.com/kamilkisiela/graphql-config/tree/legacy) configuration files with `includes` and `excludes` glob patterns
 
 ### Example projects ###
 
 See https://github.com/jimkyndemeyer/graphql-config-examples for example uses of `.graphqlconfig` to control schema discovery.
 
 ### Setting up Multi-schema Projects using graphql-config
-Please familiarize yourself with the [graphql-config format](https://github.com/prismagraphql/graphql-config/blob/master/specification.md)
+Please familiarize yourself with the [graphql-config v2 format](https://github.com/kamilkisiela/graphql-config/tree/legacy/specification.md)
 before proceeding.
 
 The next step is to decide where to place the `.graphqlconfig` file. The config file controls schema discovery from the
@@ -115,7 +115,7 @@ don't already have a config file, you can create one by right-clicking on your p
 "New" - "GraphQL Configuration File". If you already have a config file, you can jump to it using the "Edit .graphqlconfig"
 toolbar button in the top left side of the scratch file editor.
 
-See https://github.com/prisma/graphql-config#specifying-endpoint-info for the expected format of endpoint details such as
+See https://github.com/kamilkisiela/graphql-config/tree/legacy#specifying-endpoint-info for the expected format of endpoint details such as
 the URL, headers etc.
 
 The following example is from [graphql-config-examples/remote-schema-introspection](https://github.com/jimkyndemeyer/graphql-config-examples/tree/master/remote-schema-introspection)
