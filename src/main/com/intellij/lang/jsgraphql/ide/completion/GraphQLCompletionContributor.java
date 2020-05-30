@@ -1110,6 +1110,8 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 return directivesAware instanceof GraphQLInputObjectTypeDefinition || directivesAware instanceof GraphQLInputObjectTypeExtensionDefinition;
             case INPUT_FIELD_DEFINITION:
                 return directivesAware instanceof GraphQLInputValueDefinition && !(directivesAware.getParent() instanceof GraphQLArgumentsDefinition);
+            case VARIABLE_DEFINITION:
+                return directivesAware instanceof GraphQLVariableDefinition;
         }
         return false;
     }

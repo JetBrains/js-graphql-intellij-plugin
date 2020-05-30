@@ -50,7 +50,6 @@ import java.util.concurrent.CancellationException;
 import java.util.function.Consumer;
 
 import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.*;
-import static graphql.schema.idl.ScalarInfo.STANDARD_SCALAR_DEFINITIONS;
 
 public class SchemaIDLTypeDefinitionRegistry {
 
@@ -84,15 +83,6 @@ public class SchemaIDLTypeDefinitionRegistry {
                 scopeToRegistry.clear();
             }
         });
-
-        // don't want the "Java" scalars to be available without being declared explicitly
-        STANDARD_SCALAR_DEFINITIONS.remove("Long");
-        STANDARD_SCALAR_DEFINITIONS.remove("BigInteger");
-        STANDARD_SCALAR_DEFINITIONS.remove("BigDecimal");
-        STANDARD_SCALAR_DEFINITIONS.remove("Short");
-        STANDARD_SCALAR_DEFINITIONS.remove("Char");
-        STANDARD_SCALAR_DEFINITIONS.remove("Byte");
-
     }
 
     public TypeDefinitionRegistryWithErrors getRegistryWithErrors(PsiElement scopedElement) {

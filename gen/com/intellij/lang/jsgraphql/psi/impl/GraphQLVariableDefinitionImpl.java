@@ -43,4 +43,10 @@ public class GraphQLVariableDefinitionImpl extends GraphQLElementImpl implements
     return findNotNullChildByClass(GraphQLVariable.class);
   }
 
+  @Override
+  @NotNull
+  public List<GraphQLDirective> getDirectives() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLDirective.class);
+  }
+
 }

@@ -46,7 +46,6 @@ import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
 import com.intellij.util.ExceptionUtil;
 import graphql.GraphQLException;
-import graphql.Scalars;
 import graphql.introspection.IntrospectionQuery;
 import graphql.language.*;
 import graphql.schema.Coercing;
@@ -62,19 +61,17 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService.setHeadersFromOptions;
-import static graphql.schema.idl.ScalarInfo.STANDARD_SCALARS;
 
 public class GraphQLIntrospectionHelper {
 
     private GraphQLIntrospectionTask latestIntrospection = null;
     private Project myProject;
 
-    private static Set<String> DEFAULT_DIRECTIVES = Sets.newHashSet("deprecated", "skip", "include");
+    private static Set<String> DEFAULT_DIRECTIVES = Sets.newHashSet("deprecated", "skip", "include", "specifiedBy");
 
     public static GraphQLIntrospectionHelper getService(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLIntrospectionHelper.class);
@@ -85,15 +82,6 @@ public class GraphQLIntrospectionHelper {
         if (project != null) {
             project.getMessageBus().connect().subscribe(GraphQLConfigManager.TOPIC, () -> latestIntrospection = null);
         }
-
-        // remove the non-spec "graphql-java" standard scalars since we're building a registry based on the actual types present in introspection results
-        STANDARD_SCALARS.remove(Scalars.GraphQLBigDecimal);
-        STANDARD_SCALARS.remove(Scalars.GraphQLBigInteger);
-        STANDARD_SCALARS.remove(Scalars.GraphQLByte);
-        STANDARD_SCALARS.remove(Scalars.GraphQLChar);
-        STANDARD_SCALARS.remove(Scalars.GraphQLShort);
-        STANDARD_SCALARS.remove(Scalars.GraphQLLong);
-
 
     }
 
@@ -241,23 +229,6 @@ public class GraphQLIntrospectionHelper {
             }
         }
 
-        // escape descriptions here as the graphql-java SchemaPrinter doesn't at this time
-        Ref<Consumer<Object>> escapeDescriptionsVisitJson = Ref.create();
-        escapeDescriptionsVisitJson.set((value) -> {
-            if (value instanceof Collection) {
-                ((Collection) value).forEach(colValue -> escapeDescriptionsVisitJson.get().consume(colValue));
-            } else if (value instanceof Map) {
-                Map map = (Map) value;
-                String description = (String) map.get("description");
-                if (description != null) {
-                    description = escapeGraphQLStyleString(description, false); // allow descriptions to appear in multi-line block strings
-                    map.put("description", description);
-                }
-                map.values().forEach(mapValue -> escapeDescriptionsVisitJson.get().consume(mapValue));
-            }
-        });
-        escapeDescriptionsVisitJson.get().consume(introspectionAsMap);
-
         if (!GraphQLSettings.getSettings(myProject).isEnableIntrospectionDefaultValues()) {
             // strip out the defaultValues that are potentially non-spec compliant
             Ref<Consumer<Object>> defaultValueVisitJson = Ref.create();
@@ -309,7 +280,7 @@ public class GraphQLIntrospectionHelper {
         final RuntimeWiring runtimeWiring = EchoingWiringFactory.newEchoingWiring(wiring -> {
             Map<String, ScalarTypeDefinition> scalars = registry.scalars();
             scalars.forEach((name, v) -> {
-                if (!ScalarInfo.isStandardScalar(name)) {
+                if (!ScalarInfo.isGraphqlSpecifiedScalar(name)) {
                     wiring.scalar(createCustomIntrospectionScalar(name));
                 }
             });
@@ -346,77 +317,6 @@ public class GraphQLIntrospectionHelper {
                 return input;
             }
         });
-    }
-
-    private static String hex(char ch) {
-        return Integer.toHexString(ch).toUpperCase();
-    }
-
-    /**
-     * Escapes a raw string description for display inside a block or single line GraphQL string.
-     * Note that we ignore '/' since it's in the allowed range of source characters even though it's allowed as an escape, e.g. \/
-     *
-     * @param str the string to escape
-     * @return the escaped string as per https://facebook.github.io/graphql/June2018/#sec-String-Value
-     */
-    private static String escapeGraphQLStyleString(String str, Boolean escapeNewLine) {
-
-        final int sz = str.length();
-        final StringWriter out = new StringWriter(sz);
-
-        for (int i = 0; i < sz; ++i) {
-            char ch = str.charAt(i);
-            if (ch < ' ') {
-                switch (ch) {
-                    case '\b':
-                        out.write('\\');
-                        out.write('b');
-                        break;
-                    case '\t':
-                        out.write('\\');
-                        out.write('t');
-                        break;
-                    case '\n':
-                        if (escapeNewLine) {
-                            out.write('\\');
-                            out.write('n');
-                        } else {
-                            out.write(ch);
-                        }
-                        break;
-                    case '\f':
-                        out.write('\\');
-                        out.write('f');
-                        break;
-                    case '\r':
-                        out.write('\\');
-                        out.write('r');
-                        break;
-                    case '\u000b':
-                    default:
-                        if (ch > 15) {
-                            out.write("\\u00" + hex(ch));
-                        } else {
-                            out.write("\\u000" + hex(ch));
-                        }
-                        break;
-                }
-            } else {
-                switch (ch) {
-                    case '"':
-                        out.write('\\');
-                        out.write('"');
-                        break;
-                    case '\\':
-                        out.write('\\');
-                        out.write('\\');
-                        break;
-                    default:
-                        out.write(ch);
-                }
-            }
-        }
-        return out.toString();
     }
 
     public GraphQLIntrospectionTask getLatestIntrospection() {

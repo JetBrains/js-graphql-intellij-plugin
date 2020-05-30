@@ -2144,7 +2144,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // variable ':' type defaultValue?
+  // variable ':' type defaultValue? directives?
   public static boolean variableDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "variableDefinition")) return false;
     boolean result, pinned;
@@ -2153,7 +2153,8 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 1
     result = result && report_error_(builder, consumeToken(builder, COLON));
     result = pinned && report_error_(builder, type(builder, level + 1)) && result;
-    result = pinned && variableDefinition_3(builder, level + 1) && result;
+    result = pinned && report_error_(builder, variableDefinition_3(builder, level + 1)) && result;
+    result = pinned && variableDefinition_4(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, variableDefinition_recover_parser_);
     return result || pinned;
   }
@@ -2162,6 +2163,13 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   private static boolean variableDefinition_3(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "variableDefinition_3")) return false;
     defaultValue(builder, level + 1);
+    return true;
+  }
+
+  // directives?
+  private static boolean variableDefinition_4(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "variableDefinition_4")) return false;
+    directives(builder, level + 1);
     return true;
   }
 

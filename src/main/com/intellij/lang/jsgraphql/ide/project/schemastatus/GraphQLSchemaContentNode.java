@@ -50,7 +50,7 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
         parts.add(registry.getTypes(InputObjectTypeDefinition.class).size() + " inputs");
         parts.add(registry.getTypes(EnumTypeDefinition.class).size() + " enums");
         parts.add(registry.getTypes(UnionTypeDefinition.class).size() + " unions");
-        parts.add(registry.scalars().size() - ScalarInfo.STANDARD_SCALAR_DEFINITIONS.size() + " scalars");
+        parts.add(registry.scalars().size() - ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS.size() + " scalars");
         parts.add(registry.getDirectiveDefinitions().size() + " directives");
 
         myName = "Schema discovery summary";

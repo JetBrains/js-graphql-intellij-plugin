@@ -319,7 +319,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
   }
 
   public void visitVariableDefinition(@NotNull GraphQLVariableDefinition o) {
-    visitElement(o);
+    visitDirectivesAware(o);
   }
 
   public void visitVariableDefinitions(@NotNull GraphQLVariableDefinitions o) {

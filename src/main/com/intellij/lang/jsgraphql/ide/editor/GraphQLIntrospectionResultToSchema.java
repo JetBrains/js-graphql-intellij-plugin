@@ -51,12 +51,12 @@ public class GraphQLIntrospectionResultToSchema {
      */
     @SuppressWarnings("unchecked")
     public Document createSchemaDefinition(Map<String, Object> introspectionResult) {
-        assertTrue(introspectionResult.get("__schema") != null, "__schema expected");
+        assertTrue(introspectionResult.get("__schema") != null, () -> "__schema expected");
         Map<String, Object> schema = (Map<String, Object>) introspectionResult.get("__schema");
 
 
         Map<String, Object> queryType = (Map<String, Object>) schema.get("queryType");
-        assertNotNull(queryType, "queryType expected");
+        assertNotNull(queryType, () -> "queryType expected");
         TypeName query = TypeName.newTypeName().name((String) queryType.get("name")).build();
         boolean nonDefaultQueryName = !"Query".equals(query.getName());
 
@@ -118,7 +118,7 @@ public class GraphQLIntrospectionResultToSchema {
 
     private TypeDefinition createScalar(Map<String, Object> input) {
         String name = (String) input.get("name");
-        if (ScalarInfo.isStandardScalar(name)) {
+        if (ScalarInfo.isGraphqlSpecifiedScalar(name)) {
             return null;
         }
         return ScalarTypeDefinition.newScalarTypeDefinition().name(name).description(getDescription(input)).build();
@@ -127,7 +127,7 @@ public class GraphQLIntrospectionResultToSchema {
 
     @SuppressWarnings("unchecked")
     UnionTypeDefinition createUnion(Map<String, Object> input) {
-        assertTrue(input.get("kind").equals("UNION"), "wrong input");
+        assertTrue(input.get("kind").equals("UNION"), () -> "wrong input");
 
         final List<Map<String, Object>> possibleTypes = (List<Map<String, Object>>) input.get("possibleTypes");
         final List<Type> memberTypes = Lists.newArrayList();
@@ -145,7 +145,7 @@ public class GraphQLIntrospectionResultToSchema {
 
     @SuppressWarnings("unchecked")
     EnumTypeDefinition createEnum(Map<String, Object> input) {
-        assertTrue(input.get("kind").equals("ENUM"), "wrong input");
+        assertTrue(input.get("kind").equals("ENUM"), () -> "wrong input");
 
         final List<Map<String, Object>> enumValues = (List<Map<String, Object>>) input.get("enumValues");
         final List<EnumValueDefinition> enumValueDefinitions = Lists.newArrayList();
@@ -169,7 +169,7 @@ public class GraphQLIntrospectionResultToSchema {
 
     @SuppressWarnings("unchecked")
     InterfaceTypeDefinition createInterface(Map<String, Object> input) {
-        assertTrue(input.get("kind").equals("INTERFACE"), "wrong input");
+        assertTrue(input.get("kind").equals("INTERFACE"), () -> "wrong input");
 
         final List<Map<String, Object>> fields = (List<Map<String, Object>>) input.get("fields");
         final InterfaceTypeDefinition interfaceTypeDefinition = InterfaceTypeDefinition.newInterfaceTypeDefinition()
@@ -184,7 +184,7 @@ public class GraphQLIntrospectionResultToSchema {
 
     @SuppressWarnings("unchecked")
     InputObjectTypeDefinition createInputObject(Map<String, Object> input) {
-        assertTrue(input.get("kind").equals("INPUT_OBJECT"), "wrong input");
+        assertTrue(input.get("kind").equals("INPUT_OBJECT"), () -> "wrong input");
         final List<Map<String, Object>> fields = (List<Map<String, Object>>) input.get("inputFields");
         final InputObjectTypeDefinition inputObjectTypeDefinition = InputObjectTypeDefinition.newInputObjectDefinition()
                 .name((String) input.get("name"))
@@ -197,7 +197,7 @@ public class GraphQLIntrospectionResultToSchema {
 
     @SuppressWarnings("unchecked")
     ObjectTypeDefinition createObject(Map<String, Object> input) {
-        assertTrue(input.get("kind").equals("OBJECT"), "wrong input");
+        assertTrue(input.get("kind").equals("OBJECT"), () -> "wrong input");
 
         ObjectTypeDefinition.Builder builder = ObjectTypeDefinition.newObjectTypeDefinition()
                 .name((String) input.get("name"))

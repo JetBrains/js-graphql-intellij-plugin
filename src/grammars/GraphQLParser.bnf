@@ -178,7 +178,7 @@ typedOperationDefinition ::= operationType identifier? variableDefinitions? dire
 
 variableDefinitions ::= '(' variableDefinition+ ')' {pin=1 methods=[variableDefinitions="variableDefinition"]}
 
-variableDefinition ::= variable ':' type defaultValue? {pin=1 recoverWhile=variableDefinition_recover}
+variableDefinition ::= variable ':' type defaultValue? directives? {pin=1 recoverWhile=variableDefinition_recover methods=[directives="directive"] implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"}
 
 private variableDefinition_recover ::= !(')' | root_tokens | variableDefinition)
 
