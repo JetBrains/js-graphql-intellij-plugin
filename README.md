@@ -8,7 +8,7 @@ GraphQL language support for WebStorm, IntelliJ IDEA and other IDEs based on the
 
 - Full language support for the June 2018 GraphQL Specification including the Type System Definition Language (SDL)
 - The plugin discovers your local schema on the fly. Remote schemas are easily fetched using introspection
-- Schema discovery is configured using [graphql-config](https://github.com/prisma/graphql-config) files, including support for multi-schema projects
+- Schema discovery is configured using [graphql-config v2](https://github.com/kamilkisiela/graphql-config/tree/legacy) files, including support for multi-schema projects
 - Built-in support for Relay and Apollo projects: `graphql` and `gql` tagged template literals in JavaScript and TypeScript are automatically recognized as GraphQL
 - Execute queries using variables against configurable endpoints, including support for custom headers and environment variables
 - Schema-aware completion, error highlighting, and documentation
