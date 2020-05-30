@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.intellij.lang.jsgraphql'
-version '2.4.0'
+version '2.5.0'
 
 apply plugin: 'org.jetbrains.grammarkit'
 apply plugin: 'java'

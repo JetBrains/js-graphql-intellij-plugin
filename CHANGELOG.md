@@ -1,3 +1,11 @@
+## 2.5.0 (2020-05-30)
+Changes:
+- Upgraded to graphql-java 15.0 (#341)
+    - Interfaces can implement other interfaces
+    - Directive support on variable definitions
+    - New specifiedBy scalar
+    - Allow nullable arguments to be introduced on fields from interfaces when implemented in types (#338)
+  
 ## 2.4.0 (2020-03-13)
 Changes:
 - Allow keywords to be used as field names (#239) (#264)
