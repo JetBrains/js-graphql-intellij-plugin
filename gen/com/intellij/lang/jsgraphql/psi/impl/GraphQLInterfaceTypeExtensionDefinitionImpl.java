@@ -33,6 +33,12 @@ public class GraphQLInterfaceTypeExtensionDefinitionImpl extends GraphQLTypeExte
 
   @Override
   @Nullable
+  public GraphQLImplementsInterfaces getImplementsInterfaces() {
+    return findChildByClass(GraphQLImplementsInterfaces.class);
+  }
+
+  @Override
+  @Nullable
   public GraphQLTypeName getTypeName() {
     return findChildByClass(GraphQLTypeName.class);
   }

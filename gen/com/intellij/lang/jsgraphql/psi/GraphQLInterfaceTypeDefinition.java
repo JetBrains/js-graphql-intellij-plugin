@@ -14,6 +14,9 @@ public interface GraphQLInterfaceTypeDefinition extends GraphQLTypeDefinition, G
   GraphQLFieldsDefinition getFieldsDefinition();
 
   @Nullable
+  GraphQLImplementsInterfaces getImplementsInterfaces();
+
+  @Nullable
   GraphQLTypeNameDefinition getTypeNameDefinition();
 
   @Nullable

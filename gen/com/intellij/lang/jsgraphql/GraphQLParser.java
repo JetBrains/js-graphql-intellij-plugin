@@ -1111,7 +1111,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // description? 'interface' typeNameDefinition directives? fieldsDefinition?
+  // description? 'interface' typeNameDefinition implementsInterfaces? directives? fieldsDefinition?
   public static boolean interfaceTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "interfaceTypeDefinition")) return false;
     if (!nextTokenIs(builder, "<interface type definition>", INTERFACE_KEYWORD, OPEN_QUOTE)) return false;
@@ -1122,7 +1122,8 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 2
     result = result && report_error_(builder, typeNameDefinition(builder, level + 1));
     result = pinned && report_error_(builder, interfaceTypeDefinition_3(builder, level + 1)) && result;
-    result = pinned && interfaceTypeDefinition_4(builder, level + 1) && result;
+    result = pinned && report_error_(builder, interfaceTypeDefinition_4(builder, level + 1)) && result;
+    result = pinned && interfaceTypeDefinition_5(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, null);
     return result || pinned;
   }
@@ -1134,22 +1135,29 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // directives?
+  // implementsInterfaces?
   private static boolean interfaceTypeDefinition_3(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "interfaceTypeDefinition_3")) return false;
+    implementsInterfaces(builder, level + 1);
+    return true;
+  }
+
+  // directives?
+  private static boolean interfaceTypeDefinition_4(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "interfaceTypeDefinition_4")) return false;
     directives(builder, level + 1);
     return true;
   }
 
   // fieldsDefinition?
-  private static boolean interfaceTypeDefinition_4(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "interfaceTypeDefinition_4")) return false;
+  private static boolean interfaceTypeDefinition_5(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "interfaceTypeDefinition_5")) return false;
     fieldsDefinition(builder, level + 1);
     return true;
   }
 
   /* ********************************************************** */
-  // 'extend' 'interface' typeName directives? fieldsDefinition?
+  // 'extend' 'interface' typeName implementsInterfaces? directives? fieldsDefinition?
   public static boolean interfaceTypeExtensionDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "interfaceTypeExtensionDefinition")) return false;
     if (!nextTokenIs(builder, EXTEND_KEYWORD)) return false;
@@ -1159,21 +1167,29 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 2
     result = result && report_error_(builder, typeName(builder, level + 1));
     result = pinned && report_error_(builder, interfaceTypeExtensionDefinition_3(builder, level + 1)) && result;
-    result = pinned && interfaceTypeExtensionDefinition_4(builder, level + 1) && result;
+    result = pinned && report_error_(builder, interfaceTypeExtensionDefinition_4(builder, level + 1)) && result;
+    result = pinned && interfaceTypeExtensionDefinition_5(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, null);
     return result || pinned;
   }
 
-  // directives?
+  // implementsInterfaces?
   private static boolean interfaceTypeExtensionDefinition_3(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "interfaceTypeExtensionDefinition_3")) return false;
+    implementsInterfaces(builder, level + 1);
+    return true;
+  }
+
+  // directives?
+  private static boolean interfaceTypeExtensionDefinition_4(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "interfaceTypeExtensionDefinition_4")) return false;
     directives(builder, level + 1);
     return true;
   }
 
   // fieldsDefinition?
-  private static boolean interfaceTypeExtensionDefinition_4(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "interfaceTypeExtensionDefinition_4")) return false;
+  private static boolean interfaceTypeExtensionDefinition_5(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "interfaceTypeExtensionDefinition_5")) return false;
     fieldsDefinition(builder, level + 1);
     return true;
   }

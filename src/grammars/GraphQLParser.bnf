@@ -282,9 +282,9 @@ inputValueDefinition ::= description? identifier ':' type defaultValue? directiv
 
 private inputValueDefinition_recover ::= !(')' | '}' | inputValueDefinition)
 
-interfaceTypeDefinition ::= description? 'interface' typeNameDefinition directives? fieldsDefinition? {pin=2 extends=typeDefinition implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement" methods=[description="quotedString" directives="directive"]}
+interfaceTypeDefinition ::= description? 'interface' typeNameDefinition implementsInterfaces? directives? fieldsDefinition? {pin=2 extends=typeDefinition implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement" methods=[description="quotedString" directives="directive"]}
 
-interfaceTypeExtensionDefinition ::= 'extend' 'interface' typeName directives? fieldsDefinition? {pin=2 extends=typeExtension implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement" methods=[directives="directive"]}
+interfaceTypeExtensionDefinition ::= 'extend' 'interface' typeName implementsInterfaces? directives? fieldsDefinition? {pin=2 extends=typeExtension implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement" methods=[directives="directive"]}
 
 
 unionTypeDefinition ::= description? 'union' typeNameDefinition directives? unionMembership? {pin=2 extends=typeDefinition implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement" methods=[description="quotedString" directives="directive"]}

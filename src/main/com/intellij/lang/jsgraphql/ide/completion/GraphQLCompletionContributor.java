@@ -338,11 +338,17 @@ public class GraphQLCompletionContributor extends CompletionContributor {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
-                final GraphQLTypeSystemDefinition typeDefinition = PsiTreeUtil.getParentOfType(completionElement, GraphQLObjectTypeDefinition.class, GraphQLObjectTypeExtensionDefinition.class);
+                final GraphQLTypeSystemDefinition typeDefinition = PsiTreeUtil.getParentOfType(completionElement, GraphQLObjectTypeDefinition.class, GraphQLObjectTypeExtensionDefinition.class, GraphQLInterfaceTypeDefinition.class, GraphQLInterfaceTypeExtensionDefinition.class);
                 if (typeDefinition instanceof GraphQLObjectTypeDefinition && ((GraphQLObjectTypeDefinition) typeDefinition).getImplementsInterfaces() != null) {
                     return;
                 }
                 if (typeDefinition instanceof GraphQLObjectTypeExtensionDefinition && ((GraphQLObjectTypeExtensionDefinition) typeDefinition).getImplementsInterfaces() != null) {
+                    return;
+                }
+                if (typeDefinition instanceof GraphQLInterfaceTypeDefinition && ((GraphQLInterfaceTypeDefinition) typeDefinition).getImplementsInterfaces() != null) {
+                    return;
+                }
+                if (typeDefinition instanceof GraphQLInterfaceTypeExtensionDefinition && ((GraphQLInterfaceTypeExtensionDefinition) typeDefinition).getImplementsInterfaces() != null) {
                     return;
                 }
                 result.addElement(LookupElementBuilder.create("implements").withBoldness(true).withInsertHandler(AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP));
@@ -350,7 +356,9 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         };
         final ElementPattern<PsiElement> insideTypeDefElement = PlatformPatterns.or(
                 psiElement().inside(GraphQLObjectTypeDefinition.class),
-                psiElement().inside(GraphQLObjectTypeExtensionDefinition.class)
+                psiElement().inside(GraphQLObjectTypeExtensionDefinition.class),
+                psiElement().inside(GraphQLInterfaceTypeDefinition.class),
+                psiElement().inside(GraphQLInterfaceTypeExtensionDefinition.class)
         );
         extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.NAME).afterLeaf(psiElement(GraphQLElementTypes.NAME).inside(insideTypeDefElement)), provider);
     }
