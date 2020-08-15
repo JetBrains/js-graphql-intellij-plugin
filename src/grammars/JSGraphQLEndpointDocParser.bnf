@@ -30,9 +30,6 @@
 
 Document ::= Rule*
 
-private Rule ::=
-    Tag
-    |
-    docText
+private Rule ::= Tag | docText
 
 Tag ::= docName docValue {pin=1}

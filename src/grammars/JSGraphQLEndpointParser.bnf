@@ -61,22 +61,14 @@ Document ::= Definition*
 
 private Definition ::=
     ObjectTypeDefinition
-    |
-    InterfaceTypeDefinition
-    |
-    InputObjectTypeDefinition
-    |
-    EnumTypeDefinition
-    |
-    UnionTypeDefinition
-    |
-    ScalarTypeDefinition
-    |
-    ImportDeclaration
-    |
-    SchemaDefinition
-    |
-    AnnotationDefinition
+    | InterfaceTypeDefinition
+    | InputObjectTypeDefinition
+    | EnumTypeDefinition
+    | UnionTypeDefinition
+    | ScalarTypeDefinition
+    | ImportDeclaration
+    | SchemaDefinition
+    | AnnotationDefinition
     {recoverWhile=RecoverDefinition}
 
 private DefinitionKeyword ::= TYPE | INTERFACE | INPUT | ENUM | UNION | SCALAR | ANNOTATION_DEF | IMPORT | SCHEMA

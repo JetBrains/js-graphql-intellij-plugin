@@ -40,8 +40,7 @@ import java.util.List;
 public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMarkerProvider {
     @Nullable
     @Override
-    @SuppressWarnings(value = "unchecked")
-    public LineMarkerInfo getLineMarkerInfo(@NotNull PsiElement element) {
+    public LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
         final VirtualFile virtualFile = element.isValid() ? element.getContainingFile().getVirtualFile() : null;
         if (virtualFile != null && !virtualFile.isInLocalFileSystem()) {
             // skip in-memory JSON files such as the query result viewer
@@ -102,10 +101,5 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
             }
         }
         return null;
-    }
-
-    @Override
-    public void collectSlowLineMarkers(@NotNull List<PsiElement> elements, @NotNull Collection<LineMarkerInfo> result) {
-
     }
 }

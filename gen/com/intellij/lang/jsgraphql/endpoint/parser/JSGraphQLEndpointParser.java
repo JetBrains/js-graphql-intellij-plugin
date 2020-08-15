@@ -351,23 +351,15 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ObjectTypeDefinition
-  //     |
-  //     InterfaceTypeDefinition
-  //     |
-  //     InputObjectTypeDefinition
-  //     |
-  //     EnumTypeDefinition
-  //     |
-  //     UnionTypeDefinition
-  //     |
-  //     ScalarTypeDefinition
-  //     |
-  //     ImportDeclaration
-  //     |
-  //     SchemaDefinition
-  //     |
-  //     AnnotationDefinition
+  // ObjectTypeDefinition
+  //     | InterfaceTypeDefinition
+  //     | InputObjectTypeDefinition
+  //     | EnumTypeDefinition
+  //     | UnionTypeDefinition
+  //     | ScalarTypeDefinition
+  //     | ImportDeclaration
+  //     | SchemaDefinition
+  //     | AnnotationDefinition
   static boolean Definition(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "Definition")) return false;
     boolean result_;

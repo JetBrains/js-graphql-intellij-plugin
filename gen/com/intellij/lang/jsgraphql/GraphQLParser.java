@@ -228,10 +228,8 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   private static boolean arrayValueElement_recover_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "arrayValueElement_recover_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeToken(builder, BRACKET_R);
     if (!result) result = value(builder, level + 1);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -262,9 +260,9 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // operationDefinition |
-  //     fragmentDefinition |
-  //     typeSystemDefinition |
+  // operationDefinition |
+  //     fragmentDefinition |
+  //     typeSystemDefinition |
   //     templateDefinition
   public static boolean definition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "definition")) return false;
@@ -283,7 +281,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   static boolean definition_keywords(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "definition_keywords")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = operationType(builder, level + 1);
     if (!result) result = consumeToken(builder, FRAGMENT_KEYWORD);
     if (!result) result = consumeToken(builder, SCHEMA_KEYWORD);
@@ -295,7 +292,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     if (!result) result = consumeToken(builder, SCALAR_KEYWORD);
     if (!result) result = consumeToken(builder, DIRECTIVE_KEYWORD);
     if (!result) result = consumeToken(builder, EXTEND_KEYWORD);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -1282,10 +1278,8 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   private static boolean objectField_recover_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "objectField_recover_0")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
     result = consumeToken(builder, BRACE_R);
     if (!result) result = value(builder, level + 1);
-    exit_section_(builder, marker, null, result);
     return result;
   }
 
@@ -1665,8 +1659,8 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // field |
-  //     fragmentSelection |
+  // field |
+  //     fragmentSelection |
   //     templateSelection
   public static boolean selection(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "selection")) return false;
@@ -1845,11 +1839,11 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // scalarTypeDefinition |
-  //     objectTypeDefinition |
-  //     interfaceTypeDefinition |
-  //     unionTypeDefinition |
-  //     enumTypeDefinition |
+  // scalarTypeDefinition |
+  //     objectTypeDefinition |
+  //     interfaceTypeDefinition |
+  //     unionTypeDefinition |
+  //     enumTypeDefinition |
   //     inputObjectTypeDefinition
   public static boolean typeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeDefinition")) return false;
@@ -1866,11 +1860,11 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // objectTypeExtensionDefinition |
-  //     interfaceTypeExtensionDefinition |
-  //     unionTypeExtensionDefinition |
-  //     scalarTypeExtensionDefinition |
-  //     enumTypeExtensionDefinition |
+  // objectTypeExtensionDefinition |
+  //     interfaceTypeExtensionDefinition |
+  //     unionTypeExtensionDefinition |
+  //     scalarTypeExtensionDefinition |
+  //     enumTypeExtensionDefinition |
   //     inputObjectTypeExtensionDefinition
   public static boolean typeExtension(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeExtension")) return false;
@@ -1952,9 +1946,9 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // schemaDefinition |
-  //     typeDefinition |
-  //     typeExtension |
+  // schemaDefinition |
+  //     typeDefinition |
+  //     typeExtension |
   //     directiveDefinition
   public static boolean typeSystemDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeSystemDefinition")) return false;
@@ -2119,15 +2113,15 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // templateVariable |
-  //     variable |
-  //     stringValue |
-  //     intValue |
-  //     floatValue |
-  //     booleanValue |
-  //     nullValue |
-  //     enumValue |
-  //     arrayValue |
+  // templateVariable |
+  //     variable |
+  //     stringValue |
+  //     intValue |
+  //     floatValue |
+  //     booleanValue |
+  //     nullValue |
+  //     enumValue |
+  //     arrayValue |
   //     objectValue
   public static boolean value(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "value")) return false;
