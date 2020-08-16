@@ -1,0 +1,37 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Author {
+  firstName: String
+  id: Int!
+  lastName: String
+  posts: [Post]
+}
+
+"this schema allows the following mutation:"
+type Mutation {
+  upvotePost(postId: Int!): Post
+}
+
+type Post {
+  author: Author
+  id: Int!
+  title: String
+  votes: Long
+}
+
+"the schema allows the following query:"
+type Query {
+  author(id: Int!): Author
+  "Лорем ипсум долор [\\d]"
+  posts: [Post]
+}
+
+
+"Java Long scalar [\"\\d]\""
+scalar Long
+
+"The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)."
+scalar JSON
