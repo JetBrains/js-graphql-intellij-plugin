@@ -4,9 +4,9 @@ package com.intellij.lang.jsgraphql.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
 import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
+import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import com.intellij.psi.PsiNamedElement;
 

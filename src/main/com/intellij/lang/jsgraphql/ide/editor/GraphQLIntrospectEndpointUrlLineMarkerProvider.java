@@ -47,7 +47,7 @@ import java.util.stream.Stream;
 public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarkerProvider {
     @Nullable
     @Override
-    public LineMarkerInfo getLineMarkerInfo(@NotNull PsiElement element) {
+    public LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
         if (!GraphQLConfigManager.GRAPHQLCONFIG.equals(element.getContainingFile().getName())) {
             return null;
         }
@@ -176,10 +176,5 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Configuration Error", e.getMessage(), NotificationType.ERROR), urlJsonProperty.getProject());
         }
         return null;
-    }
-
-    @Override
-    public void collectSlowLineMarkers(@NotNull List<PsiElement> elements, @NotNull Collection<LineMarkerInfo> result) {
-
     }
 }

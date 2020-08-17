@@ -1,6 +1,6 @@
 plugins {
-    id "org.jetbrains.grammarkit" version "2020.1"
-    id 'org.jetbrains.intellij' version '0.4.16'
+    id "org.jetbrains.grammarkit" version "2020.2.1"
+    id 'org.jetbrains.intellij' version '0.4.21'
     id "com.github.ManifestClasspath" version "0.1.0-RELEASE"
 }
 
@@ -31,7 +31,7 @@ dependencies {
 }
 
 intellij {
-    version 'IU-193.6494.35'
+    version 'IU-LATEST-EAP-SNAPSHOT'
     type 'IU'
     updateSinceUntilBuild = false
     pluginName 'JS GraphQL'
