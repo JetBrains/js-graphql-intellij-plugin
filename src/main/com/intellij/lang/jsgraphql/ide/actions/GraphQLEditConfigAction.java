@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.actions;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
+import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.notification.Notification;
@@ -48,14 +49,12 @@ public class GraphQLEditConfigAction extends AnAction {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
         super.update(e);
         final VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
-        if (virtualFile != null && Boolean.TRUE.equals(virtualFile.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_SDL))) {
-            e.getPresentation().setEnabled(false);
-        } else {
-            e.getPresentation().setEnabled(true);
-        }
+        boolean isEnabled = virtualFile == null
+                || !Boolean.TRUE.equals(virtualFile.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_SDL));
+        e.getPresentation().setEnabled(isEnabled);
     }
 
     @Override
@@ -96,14 +95,18 @@ public class GraphQLEditConfigAction extends AnAction {
                             }
                         }
                     }
-                }));
+                }), myProject);
             }
         }
     }
 
-    private VirtualFile getVirtualFileOnDisk(VirtualFile virtualFile) {
+    @Nullable
+    private VirtualFile getVirtualFileOnDisk(@Nullable VirtualFile virtualFile) {
         if (virtualFile instanceof LightVirtualFile) {
-            return ((LightVirtualFile) virtualFile).getOriginalFile();
+            virtualFile = ((LightVirtualFile) virtualFile).getOriginalFile();
+        }
+        if (virtualFile instanceof VirtualFileWindow) {
+            virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
         }
         return virtualFile;
     }
