@@ -52,6 +52,7 @@ import graphql.schema.Coercing;
 import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.*;
+import graphql.util.EscapeUtil;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
@@ -265,7 +266,7 @@ public class GraphQLIntrospectionHelper {
                         if (description.isMultiLine()) {
                             sb.append("\"\"\"").append(description.getContent()).append("\"\"\"");
                         } else {
-                            sb.append("\"").append(description.getContent()).append("\"");
+                            sb.append("\"").append(EscapeUtil.escapeJsonString(description.getContent())).append("\"");
                         }
                         sb.append("\n");
                     }
