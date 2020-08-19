@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -54,7 +54,7 @@ public class GraphQLTypeDefinitionRegistryServiceImpl implements GraphQLTypeDefi
 
     @Override
     public TypeDefinitionRegistryWithErrors getRegistryWithErrors(PsiElement psiElement) { ;
-        return fileNameToRegistry.computeIfAbsent(GraphQLPsiSearchHelper.getFileName(psiElement.getContainingFile()), fileName -> {
+        return fileNameToRegistry.computeIfAbsent(GraphQLPsiUtil.getFileName(psiElement.getContainingFile()), fileName -> {
             return SchemaIDLTypeDefinitionRegistry.getService(project).getRegistryWithErrors(psiElement);
         });
     }
@@ -66,7 +66,7 @@ public class GraphQLTypeDefinitionRegistryServiceImpl implements GraphQLTypeDefi
 
     @Override
     public GraphQLSchemaWithErrors getSchemaWithErrors(PsiElement psiElement) {
-        return fileNameToSchema.computeIfAbsent(GraphQLPsiSearchHelper.getFileName(psiElement.getContainingFile()), fileName -> {
+        return fileNameToSchema.computeIfAbsent(GraphQLPsiUtil.getFileName(psiElement.getContainingFile()), fileName -> {
             final TypeDefinitionRegistryWithErrors registryWithErrors = getRegistryWithErrors(psiElement);
             try {
                 final GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryWithErrors.getRegistry());

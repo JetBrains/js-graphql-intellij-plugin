@@ -22,7 +22,6 @@ import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -202,7 +201,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
         if (definition == null) {
             return "";
         }
-        return GraphQLPsiSearchHelper.getFileName(definition.getContainingFile()) + ":" + definition.getName();
+        return GraphQLPsiUtil.getFileName(definition.getContainingFile()) + ":" + definition.getName();
     }
 
     private static void removeHighlights(Editor editor, Project project) {
@@ -393,7 +392,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                     // include fragments from other PsiFiles
                     for (PsiElement queryElement : queryElements) {
                         query.append("\n\n# ---- fragment automatically included from \"");
-                        query.append(GraphQLPsiSearchHelper.getFileName(queryElement.getContainingFile())).append("\" ----\n");
+                        query.append(GraphQLPsiUtil.getFileName(queryElement.getContainingFile())).append("\" ----\n");
                         query.append(queryElement.getText());
                     }
 

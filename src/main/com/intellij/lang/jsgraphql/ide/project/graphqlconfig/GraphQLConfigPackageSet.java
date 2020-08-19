@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 
 import com.google.common.collect.Maps;
-import com.intellij.ide.scratch.ScratchFileType;
+import com.intellij.ide.scratch.ScratchUtil;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
@@ -78,7 +78,7 @@ public class GraphQLConfigPackageSet implements PackageSet {
 
     @Override
     public boolean contains(@NotNull PsiFile file, NamedScopesHolder holder) {
-        if(file.equals(configEntryFile)) {
+        if (file.equals(configEntryFile)) {
             return true;
         }
         VirtualFile virtualFile = file.getVirtualFile();
@@ -97,15 +97,15 @@ public class GraphQLConfigPackageSet implements PackageSet {
      * Note: Scratch files are always considered to be included since they are associated with a configuration package set but have a path that lies the project sources
      */
     public boolean includesVirtualFile(@NotNull VirtualFile file) {
-        if(file.getFileType() == ScratchFileType.INSTANCE) {
+        if (ScratchUtil.isScratch(file)) {
             // if a scratch file has been associated with a configuration it is considered to be included
             return true;
         }
-        if(file.equals(configEntryFile.getVirtualFile())) {
+        if (file.equals(configEntryFile.getVirtualFile())) {
             // the "entry" file is always considered included
             return true;
         }
-        if(JsonFileType.INSTANCE.equals(file.getFileType())) {
+        if (JsonFileType.INSTANCE.equals(file.getFileType())) {
             // the only JSON file that can be considered included is an introspection JSON file referenced as schemaPath
             if (schemaFilePath == null && Boolean.TRUE.equals(file.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON))) {
                 // new file created from introspection, so update schemaFilePath accordingly
@@ -193,9 +193,9 @@ public class GraphQLConfigPackageSet implements PackageSet {
         if (o == null || getClass() != o.getClass()) return false;
         GraphQLConfigPackageSet that = (GraphQLConfigPackageSet) o;
         return hasIncludes == that.hasIncludes &&
-                Objects.equals(configData, that.configData) &&
-                Objects.equals(configBaseDirPath, that.configBaseDirPath) &&
-                Objects.equals(schemaFilePath, that.schemaFilePath);
+            Objects.equals(configData, that.configData) &&
+            Objects.equals(configBaseDirPath, that.configBaseDirPath) &&
+            Objects.equals(schemaFilePath, that.schemaFilePath);
     }
 
     @Override

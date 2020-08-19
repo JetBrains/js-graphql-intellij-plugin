@@ -9,7 +9,6 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
@@ -20,6 +19,7 @@ import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.components.ServiceManager;
@@ -187,7 +187,7 @@ public class SchemaIDLTypeDefinitionRegistry {
                             });
 
                             // adjust line numbers in source locations if there's a line delta compared to the original file buffer
-                            final Document document = GraphQLUtil.parseDocument(typeSystemDefinitionBuffer.toString(), GraphQLPsiSearchHelper.getFileName(psiFile), lineDelta.get() + injectionLineDelta, injectedFirstLineColumnDelta);
+                            final Document document = GraphQLUtil.parseDocument(typeSystemDefinitionBuffer.toString(), GraphQLPsiUtil.getFileName(psiFile), lineDelta.get() + injectionLineDelta, injectedFirstLineColumnDelta);
 
                             typeRegistry.merge(new SchemaParser().buildRegistry(document));
                         } catch (GraphQLException | CancellationException e) {
@@ -250,7 +250,7 @@ public class SchemaIDLTypeDefinitionRegistry {
                                 }
                             }
                         } catch (Exception e) {
-                            final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(1, 1, GraphQLPsiSearchHelper.getFileName(psiFile)));
+                            final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(1, 1, GraphQLPsiUtil.getFileName(psiFile)));
                             errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, e.getMessage()))));
                         }
                     }
@@ -265,11 +265,8 @@ public class SchemaIDLTypeDefinitionRegistry {
             graphQLPsiSearchHelper.processAdditionalBuiltInPsiFiles(schemaScope, processFile);
 
             // Types defined using GraphQL Endpoint Language
-            VirtualFile virtualFile = scopedElement.getContainingFile().getOriginalFile().getVirtualFile();
-            while (virtualFile instanceof VirtualFileWindow) {
-                virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
-            }
-            if (graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, null) != null) {
+            VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFile(scopedElement.getContainingFile());
+            if (virtualFile != null && graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, null) != null) {
                 final TypeDefinitionRegistryWithErrors endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry(scopedElement);
                 try {
                     typeRegistry.merge(endpointTypesAsRegistry.getRegistry());

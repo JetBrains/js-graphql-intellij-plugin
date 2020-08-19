@@ -208,7 +208,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                     final Document document = GraphQLUtil.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile), lineDelta, firsteLineColumDelta);
                     userData = new Validator().validateDocument(schema.getSchema(), document);
                 } else {
-                    final String currentFileName = GraphQLPsiSearchHelper.getFileName(containingFile);
+                    final String currentFileName = GraphQLPsiUtil.getFileName(containingFile);
                     final Ref<SourceLocation> firstSchemaError = new Ref<>();
                     for (GraphQLError error : schema.getErrors()) {
                         SourceLocation firstSourceLocation = error.getLocations().stream().findFirst().orElse(null);
