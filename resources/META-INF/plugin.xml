@@ -10,11 +10,11 @@
 <idea-plugin>
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
-  <version>2.5.0</version>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
       <p>GraphQL language support including tagged template literals in JavaScript and TypeScript.</p>
+      <br />
       <p>Feature highlights:</p>
       <ul>
         <li>Schema-aware completion, error highlighting, and documentation</li>
@@ -22,61 +22,8 @@
         <li>Execute queries and mutations with variables against configurable endpoints</li>
         <li>Support for multiple schemas using graphql-config</li>
       </ul>
-    ]]></description>
-
-  <change-notes><![CDATA[
-    <ul>
-      <li>2.5.0: Upgraded to graphql-java 15.0: Interfaces can implement other interfaces. Directive support on variable definitions. New specifiedBy scalar. Allow nullable arguments to be introduced on fields from interfaces when implemented in types.</li>
-      <li>2.4.0: Upgraded to graphql-java 14.0 to allow keywords to be used as field names</li>
-      <li>2.3.0: Various fixes: Incompatible API changes in the upcoming IntelliJ Platform 2020.1, Nashorn deprecation warning, Go to Definition always scrolls to the top of the schema, Handle escaped backticks in gql tagged template literals, Assertion error when clicking settings tool button in injected GraphQL fragment editor window</li>
-      <li>2.2.0: Added Code Style settings page to control indentation</li>
-      <li>2.1.1: Fixed enum value of true breaks schema. Added support for generics in TypeScript GraphQL tagged template literals. Recognize JSON files with top-level __schema field as GraphQL introspection result in GraphQLIdentifierIndex. Compatibility fixes for 2019.2 EAP.</li>
-      <li>2.1.0: Upgraded to graphql-java 12.0 to improve performance in very large schemas. Reintroduced contextual queries and automatically include referenced fragments across files. Detect manual injections using language=GraphQL comment to discover schema types and fragments. Don't clear the variables editor when the variables window is closed.</li>
-      <li>2.0.0: Support for the June 2018 GraphQL specification including SDL. Support for multiple schemas using graphql-config. Replaced Node.js based language service with native parser, lexer, and graphql-java to be compatible with all IDEs based on the IntelliJ Platform.</li>
-      <li>2.0.0-beta-2: Switched to SVG-based icons and added plugin icon. Updated document provider to use new style. Moved schema discovery in Schemas panel off the UI thread. Introduced dedicated GraphQL index to improve performance. Fixed various minor issues: Type scopes in arrays, custom scalars omitted by graphql-java, memory leak in query editor.</li>
-      <li>2.0.0-beta-1: Removed unused v1 code. Fixed schema and endpoint resolution for "Edit GraphQL fragment" in own editor tab. Fixed fragment definition resolution in scratch files. Various minor fixes: Completion, syntax highlighting, JSON introspection schema scopes.</li>
-      <li>2.0.0-alpha-8: Added intention to add missing schema types in SDL. Fixed error marker positions in gql tags. Moved configuration scan to background tasks. Added support for projects in scratch files. Added completion of variable names. Added completion of enums in lists. Fixed arguments shown as keywords in syntax highlighter. Improved introspection including support for custom scalars.</li>
-      <li>2.0.0-alpha-7: Added re-run introspection action to improve remote schema workflow. Added scalars to introspection SDL output. Added __typename completion. Various fixes.</li>
-      <li>2.0.0-alpha-6: Added migration of graphql.config.json files. Support schemas based on JSON introspection files. Added automatic introspection notification. Updated Relay Modern directives. Upgraded to graphql-java 11.0.</li>
-      <li>2.0.0-alpha-5: Simplified schema discovery to only support graphql-config and introduced new schema discovery UI</li>
-      <li>2.0.0-alpha-4: Performance improvements, Relay Modern support, MarkDown documentation support, structure view, scratch files, recognize .graphqls, template placeholder support</li>
-      <li>2.0.0-alpha-3: graphql-config support</li>
-      <li>2.0.0-alpha-2: Language support for GraphQL draft spec as of June 2018. Compatible with Android Studio 3.1 and IntelliJ IDEA Community Edition</li>
-      <li>1.7.4: Fixed "DisposalException: Double release of editor"</li>
-      <li>1.7.3: Fixed missing syntax highlighting colors. Set default charset to UTF-8 in query result viewer. Support windows line endings in query result viewer and fixed reformat timing issue.</li>
-      <li>1.7.2: Restore whitespace tokens for top level fragment placeholders in Apollo to preserve them during format lines.</li>
-      <li>1.7.1: Node 10 Buffer deprecation warning no longer read by plugin as an error in the language service. Two additional minor bug-fixes.</li>
-      <li>1.7.0: Fixed editor background loading issue. Language Service 1.5.1: Support for strongly typed variable placeholders in GraphQL tagged templates. Support for declaring annotations in Endpoint language.</li>
-      <li>1.6.3: 'Editor > Code Style' never loads In WebStorm 2017.3.</li>
-      <li>1.6.2: Resolve fragment references under progress in annotator to ensure WebStorm 2017.3 compatibility.</li>
-      <li>1.6.1: 2017.3 compatibility.</li>
-      <li>1.6.0: Support for Relay Modern fragments. Language Service 1.5.0: Support for loading the schema from .graphql file (Relay Modern projects).</li>
-      <li>1.5.4: Only show the error console automatically on the first error in the project. Fixes Int variables being sent as floats. Fixes auto-import is not placed on a new line in JS files with GraphQL templates.</li>
-      <li>1.5.3: Support Relay Modern graphql.experimental tag.</li>
-      <li>1.5.2: Pass "variables" in payload to GraphQL server as JSON.</li>
-      <li>1.5.1: Compatible with IntelliJ IDEA 2017.1 EAP tagged template expressions.</li>
-      <li>1.5.0: Language Service 1.4.0 based on graphql 0.9.1 and codemirror-graphql 0.6.2. Experimental support for GraphQL Endpoint Language (.graphqle)</li>
-      <li>1.4.4: Fixes Assertion failed: Caret model is in its update process.</li>
-      <li>1.4.3: GraphQL configuration page for indentation. Language Service 1.3.2: Object literal for variables in getFragment closes Relay.QL template expression.</li>
-      <li>1.4.2: Language Service 1.3.1: Support __schema root in schema.json.</li>
-      <li>1.4.1: Support for gql tagged templates used by Apollo and Lokka GraphQL Clients. Fixes false Error in Relay Mutation.</li>
-      <li>1.4.0: Language Service 1.2.0 based on graphql 0.7.0 and codemirror-graphql 0.5.4. Basic editor support for GraphQL Schema (.graphqls)</li>
-      <li>1.3.3: Fixes compatibility issue with IDEA 2016.2.2</li>
-      <li>1.3.2: Removes GraphQL schema from scratch file formats.</li>
-      <li>1.3.1: Fixes compatibility issue with WebStorm 2016.2 EAP.</li>
-      <li>1.3.0: Adds support for GraphQL Scratch Files. Query results are now formatted.</li>
-      <li>1.2.0: Contextual query support: Execute buffer, selection, or named operations at the caret position in the GraphQL editor</li>
-      <li>1.1.1: Completion after ... fragment spread operator. Language Service 1.1.1 based on graphql 0.4.16 and codemirror-graphql 0.2.2</li>
-      <li>1.1.0: Find usages, schema viewer, structure view</li>
-    </ul>
     ]]>
-  </change-notes>
-
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-  <idea-version since-build="182.711"/>
-
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-       on how to target different products -->
+  </description>
 
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>

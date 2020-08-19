@@ -10,6 +10,7 @@ js-graphql-intellij-plugin.jar
 # Package Files #
 *.jar
 !lib/*.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.war
 *.ear
 
@@ -68,6 +69,7 @@ $RECYCLE.BIN/
 *.lnk
 .idea
 resources/META-INF/dist/
+*.iml
 
 .gradle
 build

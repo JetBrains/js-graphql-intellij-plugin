@@ -1,157 +1,175 @@
-## 2.5.0 (2020-05-30)
-Changes:
+<!-- Keep a Changelog guide -> https://keepachangelog.com -->
+
+# Changelog
+
+## [2.5.0] - 2020-05-30
+
+### Changed
+
 - Upgraded to graphql-java 15.0 (#341)
     - Interfaces can implement other interfaces
     - Directive support on variable definitions
     - New specifiedBy scalar
     - Allow nullable arguments to be introduced on fields from interfaces when implemented in types (#338)
-  
-## 2.4.0 (2020-03-13)
-Changes:
+
+## [2.4.0] - 2020-03-13
+
+### Changed
+
 - Allow keywords to be used as field names (#239) (#264)
-  - Upgraded graphql-java to 14.0 (https://github.com/graphql-java/graphql-java/issues/1523)
-  - Refactored breaking changes from graphql-java 12.0 to 14.0
+- Upgraded graphql-java to 14.0 (https://github.com/graphql-java/graphql-java/issues/1523)
+- Refactored breaking changes from graphql-java 12.0 to 14.0
 
-## 2.3.0 (2019-12-15)
+## [2.3.0] - 2019-12-15
 
-Changes:
+### Changed
+
 - Fix for Incompatible API changes in the upcoming IntelliJ Platform 2020.1 (#303)
 - Fix for Nashorn deprecation warning (#287)
 - Fix for Go to Definition always scrolls to the top of the schema (#289)
 - Handle escaped backticks in gql tagged template literals (#279)
 - Fixed assertion error when clicking settings tool button in injected GraphQL fragment editor window (#275)
 
-## 2.2.0 (2019-06-16)
+## [2.2.0] - 2019-06-16
 
-Changes:
+### Changed
+
 - Added Code Style settings page to control indentation (#258, #92)
 
-## 2.1.1 (2019-06-12)
+## [2.1.1] - 2019-06-12
 
-Changes:
+### Changed
+
 - Fixed: Enum value of TRUE breaks schema (#244)
 - Add support for generics in TypeScript GraphQL tagged template literals (#200)
-- Store caret position for contextual queries when it changes to avoid using the Editor UI from non-UI thread in query context highlighter (#256)
+- Store caret position for contextual queries when it changes to avoid using the Editor UI from non-UI thread in query
+  context highlighter (#256)
 - Recognize JSON files with top-level __schema field as GraphQL introspection result in GraphQLIdentifierIndex (#242)
-- Compatibility fixes for 2019.2 EAP (#256, #259)  
+- Compatibility fixes for 2019.2 EAP (#256, #259)
 
-## 2.1.0 (2019-04-14)
+## [2.1.0] - 2019-04-14
 
-Changes:
+### Changed
+
 - Upgraded to graphql-java 12.0 to improve performance in very large schemas (#238)
 - Reintroduced contextual queries and automatically include referenced fragments across files (#243, #43, #94)
 - Detect manual injections using language=GraphQL comment to discover schema types and fragments (#235)
-- Don't clear the variables editor when the variables window is closed (#83)  
+- Don't clear the variables editor when the variables window is closed (#83)
 
-## 2.0.0 (2019-04-06)
+## [2.0.0] - 2019-04-06
 
-Changes:
+### Changed
 
 - Support for the June 2018 GraphQL specification including SDL (#118, #133, #137, #129, #141, #144, #150, #164)
 - Support for multiple schemas using graphql-config (#84, #125, #140, #145, #164)
-- Replaced Node.js based language service with native parser, lexer, and graphql-java to be compatible with all IDEs based on the IntelliJ Platform (#62, #164)
+- Replaced Node.js based language service with native parser, lexer, and graphql-java to be compatible with all IDEs
+  based on the IntelliJ Platform (#62, #164)
 
-## 1.7.4 (2019-04-03)
+## [1.7.4] - 2019-04-03
 
-Fixes:
+### Fixed
 
 - Fixed "DisposalException: Double release of editor" (#211)
 
-## 1.7.3 (2019-01-26)
+## [1.7.3] - 2019-01-26
 
-Fixes:
+### Fixed
 
 - Fixed missing syntax highlighting colors due to uninitialized JavaScript colors being referenced from GraphQL (#158)
 - Set default charset to UTF-8 in query result viewer to align with JSON spec (#181)
 - Query result viewer doesn't always reformat the response JSON (#209)
 - Make the Query result viewer work with windows line endings in JSON responses (#191)
 
-## 1.7.2 (2018-05-29)
+## [1.7.2] - 2018-05-29
 
-Fixes:
+### Fixed
 
 - Restore whitespace tokens for top level fragment placeholders in Apollo to preserve them during format lines (#162)
 
-## 1.7.1 (2018-05-11)
+## [1.7.1] - 2018-05-11
 
-Fixes:
+### Fixed
 
-- Node.js outputs deprecation warnings using the error console, so silence them on order to be able to detect real errors when creating the process handler (#153)
-- Fixed indentation issue with strongly typed placeholders by sending the current GraphQL environment to the language service (#130) 
-- Removed 400 px large svg GraphQL and Relay logos used by Rider for the line marker (#147) 
+- Node.js outputs deprecation warnings using the error console, so silence them on order to be able to detect real
+  errors when creating the process handler (#153)
+- Fixed indentation issue with strongly typed placeholders by sending the current GraphQL environment to the language
+  service (#130)
+- Removed 400 px large svg GraphQL and Relay logos used by Rider for the line marker (#147)
 
-## 1.7.0 (2018-03-04)
+## [1.7.0] - 2018-03-04
 
-Features:
+### Added
 
 - Language Service 1.5.1: Support for strongly typed variable placeholders in GraphQL tagged templates (#130)
 - Support for declaring annotations in Endpoint language (#15)
 
-Fixes:
+### Fixed
 
 - Editor tab loaded on background thread during startup causes dispatch thread assertion error (#124)
 
-## 1.6.3 (2018-01-02)
+## [1.6.3] - 2018-01-02
 
-Fixes:
+### Fixed
 
 - 'Editor > Code Style' never loads In WebStorm 2017.3 (#120)
 
-## 1.6.2 (2017-11-28)
+## [1.6.2] - 2017-11-28
 
-Fixes:
+### Fixed
 
 - Resolve fragment references under progress in annotator to ensure WebStorm 2017.3 compatibility (#115)
 
-## 1.6.1 (2017-10-04)
+## [1.6.1] - 2017-10-04
 
-Fixes:
+### Fixed
 
 - 2017.3 compatibility (#105)
 
-## 1.6.0 (2017-09-20)
+## [1.6.0] - 2017-09-20
 
-Features:
+### Added
 
 - Support for Relay Modern fragments (#74)
-- Language Service 1.5.0: Support for loading the schema from .graphql file (Relay Modern projects) 
+- Language Service 1.5.0: Support for loading the schema from .graphql file (Relay Modern projects)
 
-Fixes:
+### Fixed
 
 - Fix 'Find Usages' dialog for non-GraphQL entities (#93)
 - Fix case where the annotator would attempt to access an editor that is already disposed (#75)
 - Show a notification when the Node.js process fails to start (#100)
-- Remove Schema IDL warnings in .graphql files since this is the file extension Facebook uses to print schemas in Relay Modern (#85)
+- Remove Schema IDL warnings in .graphql files since this is the file extension Facebook uses to print schemas in Relay
+  Modern (#85)
 
-## 1.5.4 (2017-07-02)
+## [1.5.4] - 2017-07-02
 
-Fixes:
+### Fixed
 
 - Only show the error console automatically on the first error in the project (#80) (#90)
-- Send the variables editor text as-is since Gson always deserializes a JSON number as a Double (This turns a variable value of 1 into 1.0, making the value incompatible with the Int schema type) (#86)
+- Send the variables editor text as-is since Gson always deserializes a JSON number as a Double (This turns a variable
+  value of 1 into 1.0, making the value incompatible with the Int schema type) (#86)
 - Auto-import is not placed on a new line in JS files with GraphQL templates (#91)
 
-## 1.5.3 (2017-06-13)
+## [1.5.3] - 2017-06-13
 
-Features:
+### Added
 
 - Support Relay Modern graphql.experimental tag (#74)
 
-## 1.5.2 (2017-03-16)
+## [1.5.2] - 2017-03-16
 
-Fixes:
+### Fixed
 
 - Pass "variables" in payload to GraphQL server as JSON. (#64)
 
-## 1.5.1 (2017-02-12)
+## [1.5.1] - 2017-02-12
 
-Fixes:
+### Fixed
 
 - 2017.1 EAP Not detecting Relay.QL usage (#60)
 
-## 1.5.0 (2017-01-29)
+## [1.5.0] - 2017-01-29
 
-Features:
+### Added
 
 - Language Service 1.4.0 based on graphql 0.9.1 and codemirror-graphql 0.6.2
 - Experimental support for GraphQL Endpoint Language (#15)
@@ -159,100 +177,98 @@ Features:
 - Support for top level Apollo fragments template placeholders (#44)
 - Keyboard shortcut can now be assigned to the restart language service action (#49)
 
-## 1.4.4 (2016-11-28)
+## [1.4.4] - 2016-11-28
 
-Fixes:
+### Fixed
 
 - Assertion failed: Caret model is in its update process. All requests are illegal at this point. (#42)
 
-## 1.4.3 (2016-10-30)
+## [1.4.3] - 2016-10-30
 
-Features:
+### Added
 
 - Add GraphQL configuration page for indentation (#29)
 
-Fixes:
+### Fixed
 
 - Language Service 1.3.2: Object literal for variables in getFragment closes Relay.QL template expression.
 
-## 1.4.2 (2016-09-25)
+## [1.4.2] - 2016-09-25
 
-Features:
+### Added
 
 - Language Service 1.3.1: Support __schema root in schema.json (compatible with graphene)
 
-Changes:
+### Changed
 
 - Fixes formatting exception when using ".if" live template in JSFile with injected GraphQL (#26)
 
-## 1.4.1 (2016-09-11)
+## [1.4.1] - 2016-09-11
 
-Features:
+### Added
 
 - Support for gql tagged templates used by Apollo and Lokka GraphQL Clients (#25)
 - Language Service 1.3.0 with Lokka and Apollo gql support (#25)
 - Persist endpoint selection to project configuration
 
-Changes:
+### Changed
 
 - Fixes false Error in Relay Mutation (#23)
 
+## [1.4.0] - 2016-08-28
 
-## 1.4.0 (2016-08-28)
-
-Features:
+### Added
 
 - Language Service 1.2.0 based on graphql 0.7.0 and codemirror-graphql 0.5.4 (#22)
 - Basic editor support for GraphQL Schema files (.graphqls) (#22)
 
-## 1.3.3 (2016-08-17)
+## [1.3.3] - 2016-08-17
 
-Changes:
+### Changed
 
 - Fixes compatibility issue with IDEA 2016.2.2 (#18)
 
-## 1.3.2 (2016-06-23)
+## [1.3.2] - 2016-06-23
 
-Changes:
+### Changed
 
 - Remove GraphQL schema from scratch file formats (#14)
 
-## 1.3.1 (2016-06-09)
+## [1.3.1] - 2016-06-09
 
-Changes:
+### Changed
 
 - JSLanguageCompilerToolWindowManager: NoClassDefFoundError in WebStorm 2016.2 EAP (#13)
 - Language Service 1.1.2 increases maximum size of JSON schema from 100kb to 32mb
 
-## 1.3.0 (2016-05-21)
+## [1.3.0] - 2016-05-21
 
-Features:
+### Added
 
 - Support for GraphQL scratch files
 - Invoke reformat code action on query result
 
-## 1.2.0 (2016-03-14)
+## [1.2.0] - 2016-03-14
 
-Features:
+### Added
 
 - Contextual query support: Execute buffer, selection, or named operations at the caret position in the GraphQL editor
 
-## 1.1.1 (2016-02-03)
+## [1.1.1] - 2016-02-03
 
-Changes:
+### Changed
 
 - Completion after ... fragment spread operator. (#4)
 - Language Service 1.1.1 based on graphql 0.4.16 and codemirror-graphql 0.2.2
 
-## 1.1.0 (2016-01-31)
+## [1.1.0] - 2016-01-31
 
-Features:
+### Added
 
 - Support for GraphQL Schema Language
 
+## [v1.0.0] - 2015-12-13
 
-## v1.0.0 (2015-12-13)
-
-Features:
+### Added
 
 - Initial release.

@@ -1,14 +1,16 @@
 plugins {
-    id "org.jetbrains.grammarkit" version "2020.2.1"
+    id 'org.jetbrains.grammarkit' version '2020.2.1'
     id 'org.jetbrains.intellij' version '0.4.21'
-    id "com.github.ManifestClasspath" version "0.1.0-RELEASE"
+    id 'com.github.ManifestClasspath' version '0.1.0-RELEASE'
+    id 'org.jetbrains.changelog' version '0.4.0'
 }
 
-group 'com.intellij.lang.jsgraphql'
-version '2.5.0'
+group pluginGroup
+version pluginVersion
 
 apply plugin: 'org.jetbrains.grammarkit'
 apply plugin: 'java'
+apply plugin: 'org.jetbrains.changelog'
 
 sourceCompatibility = 1.8
 
@@ -17,26 +19,39 @@ repositories {
 }
 
 dependencies {
-    compile ("com.graphql-java:graphql-java:15.0") {
-        exclude group: "org.reactivestreams", module: "reactive-streams"
-        exclude group: "com.graphql-java", module: "java-dataloader"
-        exclude group: "org.slf4j", module: "slf4j-api"
+    implementation ('com.graphql-java:graphql-java:15.0') {
+        exclude group: 'org.reactivestreams', module: 'reactive-streams'
+        exclude group: 'com.graphql-java', module: 'java-dataloader'
+        exclude group: 'org.slf4j', module: 'slf4j-api'
     }
-    compile "commons-io:commons-io:2.6"
-    compile "com.atlassian.commonmark:commonmark:0.12.1"
-    compile group: 'org.yaml', name: 'snakeyaml', version: '1.21'
-    compile 'fr.opensagres.js:minimatch.java:1.1.0'
+    implementation 'commons-io:commons-io:2.6'
+    implementation 'com.atlassian.commonmark:commonmark:0.12.1'
+    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.21'
+    implementation 'fr.opensagres.js:minimatch.java:1.1.0'
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
 }
 
 intellij {
-    version 'IU-LATEST-EAP-SNAPSHOT'
-    type 'IU'
-    updateSinceUntilBuild = false
-    pluginName 'JS GraphQL'
+    version platformVersion
+    type platformType
+    pluginName pluginName
     plugins = ['JavaScriptLanguage', 'CSS', 'IntelliLang', 'java']
     ideaDependencyCachePath = project.buildDir
+
+    patchPluginXml {
+        version pluginVersion
+        sinceBuild pluginSinceBuild
+
+        changeNotes """
+            <p><b>New in $pluginVersion</b></p>
+            <p>
+            ${changelog.get(pluginVersion).toHTML()}
+            </p>
+            <br />
+            <p>See the <a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/README.md">CHANGELOG</a> for more details and history.</p>
+        """.stripIndent()
+    }
 }
 
 runIde {
@@ -46,10 +61,6 @@ runIde {
 buildSearchableOptions {
     // workaround for https://youtrack.jetbrains.com/issue/JBR-1550
     jbrVersion = '11_0_2b159'
-}
-
-patchPluginXml {
-
 }
 
 sourceSets {
@@ -76,7 +87,7 @@ task generateGraphQLLexer(type: GenerateLexer) {
 }
 
 task generateGraphQLParser(type: GenerateParser) {
-    source "src/grammars/GraphQLParser.bnf"
+    source 'src/grammars/GraphQLParser.bnf'
     targetRoot = 'gen/'
     purgeOldFiles = true
     pathToParser = 'com/intellij/lang/jsgraphql/GraphQLParser'
@@ -92,7 +103,7 @@ task generateGraphQLEndpointLexer(type: GenerateLexer) {
 }
 
 task generateGraphQLEndpointParser(type: GenerateParser) {
-    source "src/grammars/JSGraphQLEndpointParser.bnf"
+    source 'src/grammars/JSGraphQLEndpointParser.bnf'
     targetRoot = 'gen/'
     purgeOldFiles = true
     pathToParser = 'com/intellij/lang/jsgraphql/endpoint/parser/JSGraphQLEndpointParser'
@@ -109,7 +120,7 @@ task generateGraphQLEndpointDocLexer(type: GenerateLexer) {
 }
 
 task generateGraphQLEndpointDocParser(type: GenerateParser) {
-    source "src/grammars/JSGraphQLEndpointDocParser.bnf"
+    source 'src/grammars/JSGraphQLEndpointDocParser.bnf'
     targetRoot = 'gen/'
     purgeOldFiles = true
     pathToParser = 'com/intellij/lang/jsgraphql/endpoint/doc/JSGraphQLEndpointDocParser'
