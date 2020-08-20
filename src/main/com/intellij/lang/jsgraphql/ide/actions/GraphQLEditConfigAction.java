@@ -10,8 +10,8 @@ package com.intellij.lang.jsgraphql.ide.actions;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
-import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -26,7 +26,6 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
-import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import org.jetbrains.annotations.NotNull;
@@ -53,14 +52,14 @@ public class GraphQLEditConfigAction extends AnAction {
         super.update(e);
         final VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
         boolean isEnabled = virtualFile == null
-                || !Boolean.TRUE.equals(virtualFile.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_SDL));
+            || !Boolean.TRUE.equals(virtualFile.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_SDL));
         e.getPresentation().setEnabled(isEnabled);
     }
 
     @Override
     public void actionPerformed(AnActionEvent e) {
         final Project myProject = e.getData(CommonDataKeys.PROJECT);
-        final VirtualFile virtualFile = getVirtualFileOnDisk(e.getData(CommonDataKeys.VIRTUAL_FILE));
+        final VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFile(e.getData(CommonDataKeys.VIRTUAL_FILE));
         if (myProject != null && virtualFile != null) {
             final GraphQLConfigManager configManager = GraphQLConfigManager.getService(myProject);
             final VirtualFile configFile = configManager.getClosestConfigFile(virtualFile);
@@ -98,17 +97,6 @@ public class GraphQLEditConfigAction extends AnAction {
                 }), myProject);
             }
         }
-    }
-
-    @Nullable
-    private VirtualFile getVirtualFileOnDisk(@Nullable VirtualFile virtualFile) {
-        if (virtualFile instanceof LightVirtualFile) {
-            virtualFile = ((LightVirtualFile) virtualFile).getOriginalFile();
-        }
-        if (virtualFile instanceof VirtualFileWindow) {
-            virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
-        }
-        return virtualFile;
     }
 
     static class GraphQLConfigDirectoryDialog extends DialogWrapper {

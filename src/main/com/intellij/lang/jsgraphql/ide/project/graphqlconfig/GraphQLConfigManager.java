@@ -16,8 +16,7 @@ import com.google.gson.JsonSyntaxException;
 import com.intellij.ProjectTopics;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.ide.scratch.ScratchFileType;
-import com.intellij.injected.editor.VirtualFileWindow;
+import com.intellij.ide.scratch.ScratchUtil;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
@@ -28,6 +27,7 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointConfiguration;
@@ -49,6 +49,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -98,9 +99,9 @@ public class GraphQLConfigManager {
     private final static Logger log = Logger.getInstance(GraphQLConfigManager.class);
 
     public final static Topic<GraphQLConfigFileEventListener> TOPIC = new Topic<>(
-            "GraphQL Configuration File Change Events",
-            GraphQLConfigFileEventListener.class,
-            Topic.BroadcastDirection.TO_PARENT
+        "GraphQL Configuration File Change Events",
+        GraphQLConfigFileEventListener.class,
+        Topic.BroadcastDirection.TO_PARENT
     );
 
     public static final String ENDPOINTS_EXTENSION = "endpoints";
@@ -113,9 +114,9 @@ public class GraphQLConfigManager {
     private static final String GRAPHQLCONFIG_YAML = ".graphqlconfig.yaml";
 
     public static final String[] GRAPHQLCONFIG_FILE_NAMES = {
-            GRAPHQLCONFIG,
-            GRAPHQLCONFIG_YML,
-            GRAPHQLCONFIG_YAML
+        GRAPHQLCONFIG,
+        GRAPHQLCONFIG_YML,
+        GRAPHQLCONFIG_YAML
     };
 
     private static final Set<String> GRAPHQLCONFIG_FILE_NAMES_SET = Sets.newHashSet(GRAPHQLCONFIG_FILE_NAMES);
@@ -201,7 +202,7 @@ public class GraphQLConfigManager {
         }
         final Set<VirtualFile> contentRoots = getContentRoots(virtualFile);
         VirtualFile directory;
-        if (virtualFile.getFileType() == ScratchFileType.INSTANCE) {
+        if (ScratchUtil.isScratch(virtualFile)) {
             directory = getConfigBaseDirForScratch(virtualFile);
         } else {
             directory = virtualFile.isDirectory() ? virtualFile : virtualFile.getParent();
@@ -335,49 +336,56 @@ public class GraphQLConfigManager {
      */
     @SuppressWarnings("unchecked")
     public List<GraphQLConfigEndpoint> getEndpoints(VirtualFile virtualFile) {
-
         if (virtualFile.getFileType() != GraphQLFileType.INSTANCE && !GraphQLFileType.isGraphQLScratchFile(myProject, virtualFile)) {
             return null;
         }
+
         try {
             readLock.lock();
+            // NOTE: modifiable list since it powers the endpoint UI and must support item operations
+            ArrayList<GraphQLConfigEndpoint> emptyList = Lists.newArrayListWithExpectedSize(1);
+
             final GraphQLNamedScope schemaScope = initialized ? getSchemaScope(virtualFile) : null;
-            if (schemaScope != null) {
-                GraphQLConfigPackageSet packageSet = (GraphQLConfigPackageSet) schemaScope.getValue();
-                if (packageSet != null && packageSet.getConfigData() != null) {
-                    Map<String, Object> extensions = packageSet.getConfigData().extensions;
-                    if (extensions != null) {
-                        final Object endpointsValue = extensions.get(ENDPOINTS_EXTENSION);
-                        if (endpointsValue instanceof Map) {
-                            final List<GraphQLConfigEndpoint> result = Lists.newArrayList();
-                            ((Map<String, Object>) endpointsValue).forEach((key, value) -> {
-                                if (value instanceof String) {
-                                    result.add(new GraphQLConfigEndpoint(packageSet, key, (String) value));
-                                } else if (value instanceof Map) {
-                                    final Map endpointAsMap = (Map) value;
-                                    final Object url = endpointAsMap.get("url");
-                                    if (url instanceof String) {
-                                        GraphQLConfigEndpoint endpoint = new GraphQLConfigEndpoint(packageSet, key, (String) url);
-                                        Object headers = endpointAsMap.get("headers");
-                                        if (headers instanceof Map) {
-                                            endpoint.headers = (Map<String, Object>) headers;
-                                        }
-                                        Boolean introspect = (Boolean) endpointAsMap.get("introspect");
-                                        if (introspect != null) {
-                                            endpoint.introspect = introspect;
-                                        }
-                                        result.add(endpoint);
-                                    }
-                                }
-                            });
-                            return result;
-                        }
-                    }
-                }
+            if (schemaScope == null) {
+                return emptyList;
+            }
+            GraphQLConfigPackageSet packageSet = (GraphQLConfigPackageSet) schemaScope.getValue();
+            if (packageSet == null || packageSet.getConfigData() == null) {
+                return emptyList;
             }
 
-            // NOTE: modifiable list since it powers the endpoint UI and must support item operations
-            return Lists.newArrayListWithExpectedSize(1);
+            Map<String, Object> extensions = packageSet.getConfigData().extensions;
+            if (extensions == null) {
+                return emptyList;
+            }
+            final Object endpointsValue = extensions.get(ENDPOINTS_EXTENSION);
+
+            if (endpointsValue instanceof Map) {
+                final List<GraphQLConfigEndpoint> result = Lists.newArrayList();
+                ((Map<String, Object>) endpointsValue).forEach((key, value) -> {
+                    if (value instanceof String) {
+                        result.add(new GraphQLConfigEndpoint(packageSet, key, (String) value));
+                    } else if (value instanceof Map) {
+                        final Map<String, Object> endpointAsMap = (Map<String, Object>) value;
+                        final Object url = endpointAsMap.get("url");
+                        if (url instanceof String) {
+                            GraphQLConfigEndpoint endpoint = new GraphQLConfigEndpoint(packageSet, key, (String) url);
+                            Object headers = endpointAsMap.get("headers");
+                            if (headers instanceof Map) {
+                                endpoint.headers = (Map<String, Object>) headers;
+                            }
+                            Boolean introspect = (Boolean) endpointAsMap.get("introspect");
+                            if (introspect != null) {
+                                endpoint.introspect = introspect;
+                            }
+                            result.add(endpoint);
+                        }
+                    }
+                });
+                return result;
+            }
+
+            return emptyList;
         } finally {
             readLock.unlock();
         }
@@ -458,7 +466,7 @@ public class GraphQLConfigManager {
 
             @Override
             public void childReplaced(@NotNull PsiTreeChangeEvent event) {
-                if (event.getFile() instanceof GraphQLFile && event.getFile().getVirtualFile().getFileType() == ScratchFileType.INSTANCE) {
+                if (event.getFile() instanceof GraphQLFile && ScratchUtil.isScratch(event.getFile().getVirtualFile())) {
                     if (hasGraphQLConfigComment(event.getNewChild()) || hasGraphQLConfigComment(event.getOldChild())) {
                         // updated the .graphqlconfig comment in a scratch comment which associates the scratch with a scope
                         // so clear the cached path to scope entry in virtualFilePathToScopes
@@ -481,11 +489,11 @@ public class GraphQLConfigManager {
 
     /**
      * Builds a model of the .graphqlconfig files in the project using an asynchronous background task.
-     *
+     * <p>
      * Can safely be invoked from the AWT UI thread.
      *
      * @param changedConfigurationFiles config files that were changed in the Virtual File System and should be explicitly processed given that they haven't been indexed yet
-     * @param onCompleted optional runnable to execute when the config model has been built
+     * @param onCompleted               optional runnable to execute when the config model has been built
      */
     public void buildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles, @Nullable Runnable onCompleted) {
         ApplicationManager.getApplication().invokeLater(() -> {
@@ -533,7 +541,7 @@ public class GraphQLConfigManager {
 
     /**
      * Builds a model of the .graphqlconfig files in the project.
-     *
+     * <p>
      * NOTE!: This is a potentially long-running process that is executed synchronously, so it should NOT be invoked outside unit tests.
      * Use the asynchronous {@link GraphQLConfigManager#buildConfigurationModel(List, Runnable)} for all other use cases.
      *
@@ -546,7 +554,7 @@ public class GraphQLConfigManager {
 
         // JSON format
         final Collection<VirtualFile> jsonFiles = ApplicationManager.getApplication().runReadAction(
-                (Computable<Collection<VirtualFile>>) () -> Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, projectScope))
+            (Computable<Collection<VirtualFile>>) () -> Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, projectScope))
         );
         if (changedConfigurationFiles != null) {
             for (VirtualFile configurationFile : changedConfigurationFiles) {
@@ -577,11 +585,11 @@ public class GraphQLConfigManager {
 
         // YAML format
         final Collection<VirtualFile> yamlFiles = ApplicationManager.getApplication().runReadAction(
-                (Computable<Collection<VirtualFile>>) () -> {
-                    final LinkedHashSet<VirtualFile> files = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, projectScope));
-                    files.addAll(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YAML, projectScope));
-                    return files;
-                }
+            (Computable<Collection<VirtualFile>>) () -> {
+                final LinkedHashSet<VirtualFile> files = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, projectScope));
+                files.addAll(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YAML, projectScope));
+                return files;
+            }
         );
         if (changedConfigurationFiles != null) {
             for (VirtualFile configurationFile : changedConfigurationFiles) {
@@ -718,27 +726,23 @@ public class GraphQLConfigManager {
         if (module != null) {
             return Sets.newHashSet(ModuleRootManager.getInstance(module).getContentRoots());
         } else {
-            return Sets.newHashSet(myProject.getBaseDir());
+            return Sets.newHashSet(ProjectUtil.guessProjectDir(myProject));
         }
     }
 
     @Nullable
     public GraphQLNamedScope getSchemaScope(VirtualFile virtualFile) {
-        final Ref<VirtualFile> virtualFileWithPath = new Ref<>(virtualFile);
-        while (virtualFileWithPath.get() instanceof VirtualFileWindow) {
-            // injected virtual files
-            virtualFileWithPath.set(((VirtualFileWindow) virtualFileWithPath.get()).getDelegate());
-        }
+        VirtualFile virtualFileWithPath = GraphQLPsiUtil.getVirtualFile(virtualFile);
+        if (virtualFileWithPath == null) return null;
+
         try {
-
             readLock.lock();
-
-            GraphQLNamedScope namedScope = virtualFilePathToScopes.computeIfAbsent(virtualFileWithPath.get().getPath(), path -> {
+            GraphQLNamedScope namedScope = virtualFilePathToScopes.computeIfAbsent(virtualFileWithPath.getPath(), path -> {
                 VirtualFile configBaseDir;
-                if (virtualFileWithPath.get().getFileType() != ScratchFileType.INSTANCE) {
-                    if (virtualFileWithPath.get() instanceof LightVirtualFile) {
+                if (!ScratchUtil.isScratch(virtualFileWithPath)) {
+                    if (virtualFileWithPath instanceof LightVirtualFile) {
                         // handle entry files
-                        final LightVirtualFile inMemoryVirtualFile = (LightVirtualFile) virtualFileWithPath.get();
+                        final LightVirtualFile inMemoryVirtualFile = (LightVirtualFile) virtualFileWithPath;
                         configBaseDir = null;
                         for (Map.Entry<VirtualFile, GraphQLConfigData> entry : configPathToConfigurations.entrySet()) {
                             final GraphQLConfigData configData = entry.getValue();
@@ -767,29 +771,29 @@ public class GraphQLConfigManager {
                             if (jsonIntrospectionFile != null && jsonIntrospectionFile.getVirtualFile() != null) {
                                 // the file is the SDL derived from a JSON introspection file, so use the JSON file directory to find the associated config
                                 configBaseDir = jsonIntrospectionFile.getVirtualFile().getParent();
-                            } else if(inMemoryVirtualFile.getOriginalFile() != null) {
+                            } else if (inMemoryVirtualFile.getOriginalFile() != null) {
                                 // editing of injected fragments produce in-memory mapped version of the original file, e.g. editing GraphQL inside a JS as it's own editing window
                                 configBaseDir = inMemoryVirtualFile.getOriginalFile().getParent();
                             }
                         }
                     } else {
                         // on-disk file, so use the containing directory to look for config files
-                        configBaseDir = virtualFileWithPath.get().getParent();
+                        configBaseDir = virtualFileWithPath.getParent();
                     }
                 } else {
-                    configBaseDir = getConfigBaseDirForScratch(virtualFileWithPath.get());
+                    configBaseDir = getConfigBaseDirForScratch(virtualFileWithPath);
                 }
                 // locate the nearest config file, see https://github.com/kamilkisiela/graphql-config/tree/legacy/src/findGraphQLConfigFile.ts
-                final Set<VirtualFile> contentRoots = getContentRoots(virtualFileWithPath.get());
+                final Set<VirtualFile> contentRoots = getContentRoots(virtualFileWithPath);
                 while (configBaseDir != null) {
                     GraphQLConfigData configData = configPathToConfigurations.get(configBaseDir);
                     if (configData != null) {
                         final VirtualFile effectiveConfigBaseDir = configBaseDir;
                         // check projects first
                         if (configData.projects != null) {
-                            final String projectKey = virtualFileWithPath.get().getUserData(GRAPHQL_SCRATCH_PROJECT_KEY);
+                            final String projectKey = virtualFileWithPath.getUserData(GRAPHQL_SCRATCH_PROJECT_KEY);
                             for (Map.Entry<String, GraphQLResolvedConfigData> entry : configData.projects.entrySet()) {
-                                if(projectKey != null && !projectKey.trim().isEmpty() && !projectKey.equals(entry.getKey())) {
+                                if (projectKey != null && !projectKey.trim().isEmpty() && !projectKey.equals(entry.getKey())) {
                                     // associated with another project so skip ahead
                                     continue;
                                 }
@@ -798,7 +802,7 @@ public class GraphQLConfigManager {
                                     final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
                                     return new GraphQLConfigPackageSet(effectiveConfigBaseDir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
                                 });
-                                if (packageSet.includesVirtualFile(virtualFileWithPath.get())) {
+                                if (packageSet.includesVirtualFile(virtualFileWithPath)) {
                                     return new GraphQLNamedScope("graphql-config:" + configBaseDir.getPath() + ":" + entry.getKey(), packageSet);
                                 }
                             }
@@ -808,7 +812,7 @@ public class GraphQLConfigManager {
                             final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
                             return new GraphQLConfigPackageSet(effectiveConfigBaseDir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
                         });
-                        if (packageSet.includesVirtualFile(virtualFileWithPath.get())) {
+                        if (packageSet.includesVirtualFile(virtualFileWithPath)) {
                             return new GraphQLNamedScope("graphql-config:" + configBaseDir.getPath(), packageSet);
                         }
                         return NONE;
@@ -856,7 +860,7 @@ public class GraphQLConfigManager {
                     if (commentText.contains(GRAPHQLCONFIG_COMMENT)) {
                         String configFileName = StringUtil.substringAfter(commentText, GRAPHQLCONFIG_COMMENT);
                         if (configFileName != null) {
-                            if(configFileName.contains("!")) {
+                            if (configFileName.contains("!")) {
                                 final String projectKey = StringUtils.substringAfterLast(configFileName, "!");
                                 scratchVirtualFile.putUserData(GRAPHQL_SCRATCH_PROJECT_KEY, projectKey);
                                 configFileName = StringUtils.substringBeforeLast(configFileName, "!");

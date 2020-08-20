@@ -12,7 +12,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.plugins.PluginManager;
-import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
@@ -45,7 +44,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.GlobalSearchScopesCore;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.apache.commons.compress.utils.IOUtils;
@@ -103,8 +101,8 @@ public class GraphQLPsiSearchHelper {
         GlobalSearchScope builtInSchemaScope = GlobalSearchScope.fileScope(project, getBuiltInSchema().getVirtualFile());
         GlobalSearchScope builtInRelaySchemaScope = GlobalSearchScope.fileScope(project, getRelayModernDirectivesSchema().getVirtualFile());
         allBuiltInSchemaScopes = builtInSchemaScope
-                .union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, mySettings::isEnableRelayModernFrameworkSupport))
-                .union(defaultProjectFileScope)
+            .union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, mySettings::isEnableRelayModernFrameworkSupport))
+            .union(defaultProjectFileScope)
         ;
 
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
@@ -130,9 +128,9 @@ public class GraphQLPsiSearchHelper {
      */
     public GlobalSearchScope getSchemaScope(PsiElement element) {
 
-        return fileNameToSchemaScope.computeIfAbsent(getFileName(element.getContainingFile()), fileName -> {
+        return fileNameToSchemaScope.computeIfAbsent(GraphQLPsiUtil.getFileName(element.getContainingFile()), fileName -> {
 
-            final VirtualFile virtualFile = getVirtualFile(element.getContainingFile());
+            final VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFileFromPsiFile(element.getContainingFile());
             final NamedScope schemaScope = graphQLConfigManager.getSchemaScope(virtualFile);
             if (schemaScope != null) {
                 final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
@@ -144,21 +142,6 @@ public class GraphQLPsiSearchHelper {
 
         });
 
-    }
-
-    private static VirtualFile getVirtualFile(PsiFile containingFile) {
-        VirtualFile virtualFile = containingFile.getVirtualFile();
-        if (virtualFile == null) {
-            // in memory PsiFile such as the completion PSI
-            virtualFile = containingFile.getOriginalFile().getVirtualFile();
-        } else if (virtualFile instanceof LightVirtualFile) {
-            // in-memory files, e.g. when using "edit GraphQL fragment" on an injected GraphQL tagged template literal
-            VirtualFile originalFile = ((LightVirtualFile) virtualFile).getOriginalFile();
-            if (originalFile != null) {
-                return originalFile;
-            }
-        }
-        return virtualFile;
     }
 
     /**
@@ -183,7 +166,7 @@ public class GraphQLPsiSearchHelper {
         try {
             final List<GraphQLFragmentDefinition> fragmentDefinitions = Lists.newArrayList();
             GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
-            if (GraphQLFileType.isGraphQLScratchFile(myProject, getVirtualFile(scopedElement.getContainingFile()))) {
+            if (GraphQLFileType.isGraphQLScratchFile(myProject, GraphQLPsiUtil.getVirtualFileFromPsiFile(scopedElement.getContainingFile()))) {
                 // include the fragments defined in the currently edited scratch file (scratch files don't appear to be indexed)
                 fragmentDefinitions.addAll(PsiTreeUtil.getChildrenOfTypeAsList(scopedElement.getContainingFile().getOriginalFile(), GraphQLFragmentDefinition.class));
             }
@@ -225,6 +208,7 @@ public class GraphQLPsiSearchHelper {
 
     /**
      * Visits the potential GraphQL injection inside an injection host
+     *
      * @return true if the host contained GraphQL and was visited, false otherwise
      */
     private boolean visitLanguageInjectionHost(PsiLanguageInjectionHost element, Ref<PsiRecursiveElementVisitor> identifierVisitor) {
@@ -259,6 +243,7 @@ public class GraphQLPsiSearchHelper {
 
     /**
      * Processes GraphQL identifiers whose name matches the specified word within the given schema scope.
+     *
      * @param schemaScope the schema scope which limits the processing
      * @param word        the word to match identifiers for
      * @param processor   processor called for all GraphQL identifiers whose name match the specified word
@@ -340,7 +325,7 @@ public class GraphQLPsiSearchHelper {
             }
 
             // finally, look in the current scratch file
-            if (GraphQLFileType.isGraphQLScratchFile(myProject, getVirtualFile(scopedElement.getContainingFile()))) {
+            if (GraphQLFileType.isGraphQLScratchFile(myProject, GraphQLPsiUtil.getVirtualFileFromPsiFile(scopedElement.getContainingFile()))) {
                 scopedElement.getContainingFile().accept(builtInFileVisitor);
             }
 
@@ -354,9 +339,9 @@ public class GraphQLPsiSearchHelper {
      */
     public PsiFile getBuiltInSchema() {
         return getGraphQLPsiFileFromResources(
-                "graphql specification schema.graphql",
-                "GraphQL Specification Schema",
-                GRAPHQL_BUILT_IN_SCHEMA_PSI_FILE
+            "graphql specification schema.graphql",
+            "GraphQL Specification Schema",
+            GRAPHQL_BUILT_IN_SCHEMA_PSI_FILE
         );
     }
 
@@ -365,9 +350,9 @@ public class GraphQLPsiSearchHelper {
      */
     public PsiFile getRelayModernDirectivesSchema() {
         return getGraphQLPsiFileFromResources(
-                "relay modern directives schema.graphql",
-                "Relay Modern Directives Schema",
-                RELAY_MODERN_DIRECTIVES_SCHEMA_PSI_FILE
+            "relay modern directives schema.graphql",
+            "Relay Modern Directives Schema",
+            RELAY_MODERN_DIRECTIVES_SCHEMA_PSI_FILE
         );
     }
 
@@ -420,21 +405,6 @@ public class GraphQLPsiSearchHelper {
         if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
             consumer.accept(relayModernDirectivesSchema);
         }
-    }
-
-    /**
-     * Gets the virtual file system path of a PSI file
-     */
-    public static String getFileName(PsiFile psiFile) {
-        VirtualFile virtualFile = getVirtualFile(psiFile);
-        if (virtualFile != null) {
-            while (virtualFile instanceof VirtualFileWindow) {
-                // injected virtual files
-                virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
-            }
-            return virtualFile.getPath();
-        }
-        return psiFile.getName();
     }
 
 }

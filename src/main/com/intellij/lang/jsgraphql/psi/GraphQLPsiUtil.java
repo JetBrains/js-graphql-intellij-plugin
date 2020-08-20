@@ -7,11 +7,16 @@
  */
 package com.intellij.lang.jsgraphql.psi;
 
+import com.intellij.injected.editor.VirtualFileWindow;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.testFramework.LightVirtualFile;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GraphQLPsiUtil {
@@ -48,4 +53,54 @@ public class GraphQLPsiUtil {
         return null;
     }
 
+    @Nullable
+    public static VirtualFile getVirtualFileFromPsiFile(@Nullable PsiFile containingFile) {
+        if (containingFile == null || !containingFile.isValid()) return null;
+
+        VirtualFile file = containingFile.getVirtualFile();
+        if (file == null) {
+            PsiFile originalFile = containingFile.getOriginalFile();
+            if (originalFile != containingFile && originalFile.isValid()) {
+                file = originalFile.getVirtualFile();
+            }
+        }
+
+        return file;
+    }
+
+    @Nullable
+    public static VirtualFile getVirtualFile(@Nullable VirtualFile virtualFile) {
+        if (virtualFile == null) return null;
+
+        if (virtualFile instanceof LightVirtualFile) {
+            VirtualFile originalFile = ((LightVirtualFile) virtualFile).getOriginalFile();
+            if (originalFile != null) {
+                virtualFile = originalFile;
+            }
+        }
+
+        if (virtualFile instanceof VirtualFileWindow) {
+            // injected virtual files
+            virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
+        }
+        return virtualFile;
+    }
+
+    @Nullable
+    public static VirtualFile getVirtualFile(@Nullable PsiFile psiFile) {
+        if (psiFile == null) return null;
+        return getVirtualFile(getVirtualFileFromPsiFile(psiFile));
+    }
+
+    /**
+     * Gets the virtual file system path of a PSI file
+     */
+    @NotNull
+    public static String getFileName(@NotNull PsiFile psiFile) {
+        VirtualFile virtualFile = getVirtualFile(psiFile);
+        if (virtualFile != null) {
+            return virtualFile.getPath();
+        }
+        return psiFile.getName();
+    }
 }
