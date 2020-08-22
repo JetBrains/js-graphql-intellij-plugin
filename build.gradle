@@ -115,7 +115,7 @@ task generateGraphQLEndpointParser(type: GenerateParser) {
 task generateGraphQLEndpointDocLexer(type: GenerateLexer) {
     source 'src/grammars/JSGraphQLEndpointDocLexer.flex'
     targetDir 'gen/com/intellij/lang/jsgraphql/endpoint/doc/lexer/'
-    targetClass 'GraphQLLexer'
+    targetClass 'JSGraphQLEndpointDocLexer'
     purgeOldFiles = true
 }
 
