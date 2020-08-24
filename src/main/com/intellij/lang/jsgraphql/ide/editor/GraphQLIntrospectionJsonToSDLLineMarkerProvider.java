@@ -31,9 +31,6 @@ import graphql.GraphQLException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-
 /**
  * Line marker which shows an action to turn a GraphQL Introspection JSON result into a GraphQL schema expressed in GraphQL SDL.
  */
@@ -57,17 +54,17 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
                     for (JsonProperty property : ((JsonObject) jsonProperty.getValue()).getPropertyList()) {
                         if ("types".equals(property.getName()) && property.getValue() instanceof JsonArray) {
                             // likely a GraphQL schema with a { __schema: { types: [] } }
-                            final GraphQLIntrospectionHelper graphQLIntrospectionHelper = GraphQLIntrospectionHelper.getService(project);
+                            final GraphQLIntrospectionService graphQLIntrospectionService = GraphQLIntrospectionService.getInstance(project);
                             final Ref<Runnable> generateAction = Ref.create();
                             generateAction.set(() -> {
                                 try {
                                     final String introspectionJson = element.getContainingFile().getText();
-                                    final String schemaAsSDL = graphQLIntrospectionHelper.printIntrospectionJsonAsGraphQL(introspectionJson);
+                                    final String schemaAsSDL = graphQLIntrospectionService.printIntrospectionJsonAsGraphQL(introspectionJson);
 
                                     final VirtualFile jsonFile = element.getContainingFile().getVirtualFile();
                                     final String outputFileName = jsonFile.getName() + ".graphql";
 
-                                    graphQLIntrospectionHelper.createOrUpdateIntrospectionOutputFile(schemaAsSDL, GraphQLIntrospectionHelper.IntrospectionOutputFormat.SDL, jsonFile, outputFileName);
+                                    graphQLIntrospectionService.createOrUpdateIntrospectionOutputFile(schemaAsSDL, GraphQLIntrospectionService.IntrospectionOutputFormat.SDL, jsonFile, outputFileName);
 
                                 } catch (Exception e) {
                                     Notification notification = new Notification("GraphQL", "Unable to create GraphQL SDL", e.getMessage(), NotificationType.ERROR);
@@ -88,7 +85,7 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
                                             notification.addAction(retryWithoutDefaultValues);
                                         }
                                     }
-                                    graphQLIntrospectionHelper.addIntrospectionStackTraceAction(notification, e);
+                                    graphQLIntrospectionService.addIntrospectionStackTraceAction(notification, e);
                                     Notifications.Bus.notify(notification.setImportant(true));
                                 }
                             });

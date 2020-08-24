@@ -16,6 +16,8 @@ import com.intellij.json.psi.JsonObject;
 import com.intellij.json.psi.JsonProperty;
 import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.json.psi.JsonValue;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
+import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
@@ -25,6 +27,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiErrorElement;
@@ -35,8 +38,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -69,14 +70,14 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
                     }
 
                     String schemaPath = getSchemaPath(jsonProperty, true);
-                    if (schemaPath == null || schemaPath.trim().isEmpty()) {
+                    if (StringUtil.isEmptyOrSpaces(schemaPath)) {
                         return;
                     }
 
                     final Project project = element.getProject();
                     final VirtualFile introspectionSourceFile = element.getContainingFile().getVirtualFile();
 
-                    GraphQLIntrospectionHelper.getService(project).performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile);
+                    GraphQLIntrospectionService.getInstance(project).performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile);
 
                 }, GutterIconRenderer.Alignment.CENTER);
             }
@@ -124,15 +125,20 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
         }
     }
 
-    private String getSchemaPath(JsonProperty urlElement, boolean showNotificationOnMissingPath) {
+    @Nullable
+    private String getSchemaPath(@NotNull JsonProperty urlElement, boolean showNotificationOnMissingPath) {
         JsonObject jsonObject = PsiTreeUtil.getParentOfType(urlElement, JsonObject.class);
         while (jsonObject != null) {
             JsonProperty schemaPathElement = jsonObject.findProperty("schemaPath");
             if (schemaPathElement != null) {
                 if (schemaPathElement.getValue() instanceof JsonStringLiteral) {
                     String schemaPath = ((JsonStringLiteral) schemaPathElement.getValue()).getValue();
-                    if (schemaPath.trim().isEmpty()) {
-                        Notifications.Bus.notify(new Notification("GraphQL", "Unable to perform introspection", "Please set a non-empty 'schemaPath' field", NotificationType.WARNING), urlElement.getProject());
+                    if (StringUtil.isEmptyOrSpaces(schemaPath)) {
+                        GraphQLNotificationUtil.showInvalidConfigurationNotification(
+                            GraphQLBundle.message("graphql.notification.empty.schema.path"),
+                            null,
+                            urlElement.getProject()
+                        );
                     }
                     return schemaPath;
                 } else {
@@ -142,14 +148,17 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             jsonObject = PsiTreeUtil.getParentOfType(jsonObject, JsonObject.class);
         }
         if (showNotificationOnMissingPath) {
-            Notifications.Bus.notify(new Notification("GraphQL", "Unable to perform introspection", "Please set a non-empty 'schemaPath' field. The introspection result will be written to that file.", NotificationType.WARNING), urlElement.getProject());
+            GraphQLNotificationUtil.showInvalidConfigurationNotification(
+                GraphQLBundle.message("graphql.notification.empty.schema.path"),
+                null,
+                urlElement.getProject()
+            );
         }
         return null;
     }
 
     private GraphQLConfigVariableAwareEndpoint getEndpoint(String url, JsonProperty urlJsonProperty) {
         try {
-
             // if the endpoint is just the url string, headers are not supported
             final JsonProperty parent = PsiTreeUtil.getParentOfType(urlJsonProperty, JsonProperty.class);
             final boolean supportsHeaders = parent != null && !"endpoints".equals(parent.getName());

@@ -21,7 +21,7 @@ import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
-import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper;
+import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
@@ -693,7 +693,7 @@ public class GraphQLConfigManager {
                             introspect.addAction(new NotificationAction("Introspect '" + endpoint.url + "'") {
                                 @Override
                                 public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                                    GraphQLIntrospectionHelper.getService(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
+                                    GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
                                 }
                             });
                             String schemaFilePath = endpoint.configPackageSet.getSchemaFilePath();
