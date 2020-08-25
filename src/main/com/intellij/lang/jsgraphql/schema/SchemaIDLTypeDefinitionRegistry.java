@@ -13,7 +13,7 @@ import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
-import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper;
+import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
@@ -230,7 +230,7 @@ public class SchemaIDLTypeDefinitionRegistry {
                     if (psiFile != null) {
                         try {
                             synchronized (GRAPHQL_INTROSPECTION_JSON_TO_SDL) {
-                                final String introspectionJsonAsGraphQL = GraphQLIntrospectionHelper.getService(project).printIntrospectionJsonAsGraphQL(psiFile.getText());
+                                final String introspectionJsonAsGraphQL = GraphQLIntrospectionService.getInstance(project).printIntrospectionJsonAsGraphQL(psiFile.getText());
                                 final GraphQLFile currentSDLPsiFile = psiFile.getUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL);
                                 if (currentSDLPsiFile != null && currentSDLPsiFile.getText().equals(introspectionJsonAsGraphQL)) {
                                     // already have a PSI file that matches the introspection SDL

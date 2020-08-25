@@ -29,6 +29,8 @@
   <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
   <depends optional="true" config-file="graphql-intellilang.xml">org.intellij.intelliLang</depends>
 
+  <resource-bundle>messages.GraphQLMessages</resource-bundle>
+
   <extensionPoints>
     <extensionPoint name="graphQLFindUsagesFileTypeContributor" interface="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesFileTypeContributor" />
   </extensionPoints>
@@ -53,7 +55,7 @@
     <projectService serviceInterface="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.GraphQLSettings" serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService" serviceImplementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" serviceImplementation="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" />
 

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-public class GraphQLIntrospectionHelperTest extends BasePlatformTestCase {
+public class GraphQLIntrospectionServiceTest extends BasePlatformTestCase {
 
     @Override
     protected String getTestDataPath() {
@@ -21,7 +21,7 @@ public class GraphQLIntrospectionHelperTest extends BasePlatformTestCase {
     private void doTest(@NotNull String source, @NotNull String expected) {
         myFixture.configureByText(
                 "result.graphql",
-                new GraphQLIntrospectionHelper(getProject()).printIntrospectionJsonAsGraphQL(readSchemaJson(source))
+                new GraphQLIntrospectionService(getProject()).printIntrospectionJsonAsGraphQL(readSchemaJson(source))
         );
         myFixture.checkResultByFile(expected);
     }

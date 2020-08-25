@@ -11,7 +11,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionHelper;
+import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -93,7 +93,7 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
                 public PopupStep onChosen(String selectedValue, boolean finalChoice) {
                     return doFinalStep(() -> {
                         if (introspect.equals(selectedValue)) {
-                            GraphQLIntrospectionHelper.getService(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
+                            GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
                         } else if (createScratch.equals(selectedValue)) {
                             final String configBaseDir = endpoint.configPackageSet.getConfigBaseDir().getPresentableUrl();
                             final String text = "# " + GRAPHQLCONFIG_COMMENT + configBaseDir + "!" + Optional.ofNullable(projectKey).orElse("") + "\n\nquery ScratchQuery {\n\n}";

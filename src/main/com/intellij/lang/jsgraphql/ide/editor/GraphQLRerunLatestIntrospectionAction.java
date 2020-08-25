@@ -13,7 +13,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 
 public class GraphQLRerunLatestIntrospectionAction extends AnAction {
 
-    private static final String TEXT = "Update the local schema by re-running the latest introspection query";
+    private static final String TEXT = "Update the Local Schema by Running Introspection Query";
 
     public GraphQLRerunLatestIntrospectionAction() {
         super(TEXT, "Re-runs the latest introspection query that was performed to update the local schema, e.g. when a remote schema has been changed", AllIcons.Actions.Rerun);
@@ -25,7 +25,7 @@ public class GraphQLRerunLatestIntrospectionAction extends AnAction {
         boolean enabled = false;
         e.getPresentation().setText(TEXT);
         if (e.getProject() != null) {
-            final GraphQLIntrospectionTask latestIntrospection = GraphQLIntrospectionHelper.getService(e.getProject()).getLatestIntrospection();
+            final GraphQLIntrospectionTask latestIntrospection = GraphQLIntrospectionService.getInstance(e.getProject()).getLatestIntrospection();
             if (latestIntrospection != null) {
                 enabled = true;
                 e.getPresentation().setText(TEXT + " (" + latestIntrospection.getEndpoint().getName() + ")");
@@ -37,7 +37,7 @@ public class GraphQLRerunLatestIntrospectionAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         if (e.getProject() != null) {
-            GraphQLIntrospectionTask latestIntrospection = GraphQLIntrospectionHelper.getService(e.getProject()).getLatestIntrospection();
+            GraphQLIntrospectionTask latestIntrospection = GraphQLIntrospectionService.getInstance(e.getProject()).getLatestIntrospection();
             if (latestIntrospection != null) {
                 latestIntrospection.getRunnable().run();
             }
