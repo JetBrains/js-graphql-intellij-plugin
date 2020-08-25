@@ -7,8 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.v1.ide.project;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 import com.intellij.codeInsight.CodeSmellInfo;
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
@@ -74,7 +73,6 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpClientParams;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.jetbrains.annotations.NotNull;
@@ -86,10 +84,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Collection;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Provides the project-specific GraphQL tool window, including errors view, console, and query result editor.
@@ -346,9 +342,11 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             if (selectedEndpoint != null && selectedEndpoint.url != null) {
                 final GraphQLConfigVariableAwareEndpoint endpoint = new GraphQLConfigVariableAwareEndpoint(selectedEndpoint, myProject);
                 final JSGraphQLQueryContext context = JSGraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
-                String variables;
+
+                Map<String, Object> requestData = new HashMap<>();
+                requestData.put("query", context.query);
                 try {
-                    variables = getQueryVariables(editor);
+                    requestData.put("variables", getQueryVariables(editor));
                 } catch (JsonSyntaxException jse) {
                     Editor errorEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
                     String errorMessage = jse.getMessage();
@@ -373,7 +371,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     hintManager.showEditorHint(lightweightHint, editor, hintPosition, 0, 10000, false, HintManager.UNDER);
                     return;
                 }
-                final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(context.query) + "\", \"variables\":" + variables + "}";
+                String requestJson = createQueryJsonSerializer().toJson(requestData);
                 final HttpClientParams params = new HttpClientParams();
                 params.setContentCharset("UTF-8"); // set fallback charset to align with JSON spec
                 final HttpClient httpClient = new HttpClient(params);
@@ -455,6 +453,26 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         }
     }
 
+    @NotNull
+    private static Gson createQueryJsonSerializer() {
+        return new GsonBuilder()
+            .registerTypeAdapter(Double.class, (JsonSerializer<Double>) (number, type, jsonSerializationContext) -> {
+                if (!Double.isFinite(number)) {
+                    throw new IllegalArgumentException(String.format("'%s' is not a valid number", number));
+                }
+
+                // convert `12.0` to `12` to conform Int types
+                if (number == Math.rint(number)) {
+                    return new JsonPrimitive(number.intValue());
+                }
+
+                return new JsonPrimitive(number);
+            })
+            // explicit nulls could be a part of a service api
+            .serializeNulls()
+            .create();
+    }
+
     public enum QueryResultDisplay {
         ALWAYS,
         ON_ERRORS_ONLY
@@ -513,13 +531,12 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         return null;
     }
 
-    private String getQueryVariables(Editor editor) {
+    private Object getQueryVariables(Editor editor) {
         final Editor variablesEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
         if (variablesEditor != null) {
             final String variables = variablesEditor.getDocument().getText();
             if (!StringUtils.isBlank(variables)) {
-                new Gson().fromJson(variables, Map.class);
-                return variables;
+                return new Gson().fromJson(variables, Map.class);
             }
         }
         return null;
