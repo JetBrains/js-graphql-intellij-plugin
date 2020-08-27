@@ -364,8 +364,10 @@ public class GraphQLIntrospectionService implements Disposable {
 
     private void setEditorTextAndFormatLines(String text, FileEditor fileEditor) {
         if (fileEditor instanceof TextEditor) {
+            // IntelliJ only allows the \n linebreak inside editor documents.
+            final String normalizedText = StringUtil.convertLineSeparators(text);
             final Editor editor = ((TextEditor) fileEditor).getEditor();
-            editor.getDocument().setText(text);
+            editor.getDocument().setText(normalizedText);
             AnAction reformatCode = ActionManager.getInstance().getAction("ReformatCode");
             if (reformatCode != null) {
                 final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
