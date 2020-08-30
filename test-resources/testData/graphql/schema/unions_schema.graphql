@@ -1,0 +1,13 @@
+union U @four @one @three @two = A | B | C | D | E
+
+type A
+
+type B
+
+type C
+
+type D
+
+type E
+
+type Query

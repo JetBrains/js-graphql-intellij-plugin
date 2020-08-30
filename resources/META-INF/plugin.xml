@@ -37,7 +37,7 @@
 
   <extensions defaultExtensionNs="com.intellij">
 
-    <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil" serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil" />
+    <applicationService serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil" />
 
     <!-- Language registration -->
     <fileTypeFactory implementation="com.intellij.lang.jsgraphql.GraphQLFileTypeFactory"/>
@@ -47,17 +47,17 @@
     <iconProvider implementation="com.intellij.lang.jsgraphql.GraphQLIconProvider" />
 
     <!-- Project services -->
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl" serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.SchemaIDLTypeDefinitionRegistry" serviceImplementation="com.intellij.lang.jsgraphql.schema.SchemaIDLTypeDefinitionRegistry" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener" serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService" serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.GraphQLSettings" serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService" serviceImplementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService" />
+    <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider" serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLSchemaProviderImpl" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLRegistryProvider" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" serviceImplementation="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" />
 
     <!-- Indexing -->
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex" />

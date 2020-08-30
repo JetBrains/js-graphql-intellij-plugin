@@ -1,0 +1,4 @@
+type Query
+
+"S"
+scalar S @four @one @three @two

@@ -1,0 +1,24 @@
+union U @one = A | B
+
+union U @one @two = A | C
+
+extend union U @three = C | D
+
+extend union U @three @four = D | E
+
+enum U {
+    VALUE
+}
+
+directive @one on UNION
+directive @two on UNION
+directive @three on UNION
+directive @four on UNION
+
+type A
+type B
+type C
+type D
+type E
+
+type Query

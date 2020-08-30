@@ -13,6 +13,7 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManage
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
 import org.junit.Test;
 
@@ -23,7 +24,7 @@ import java.util.concurrent.locks.Lock;
 /**
  * Verifies that two schemas can be separated using graphql-config
  */
-public class JSGraphQLSchemaGraphQLConfigCodeInsightTest extends LightPlatformCodeInsightFixtureTestCase {
+public class GraphQLSchemaConfigTest extends BasePlatformTestCase {
 
     private PsiFile[] files;
 
@@ -48,9 +49,6 @@ public class JSGraphQLSchemaGraphQLConfigCodeInsightTest extends LightPlatformCo
         return "test-resources/testData/graphql/graphql-config";
     }
 
-    // ---- completion ----
-
-    @Test
     public void testCompletionSchemas() {
         doTestCompletion("schema-one/query-one.graphql", Lists.newArrayList("fieldOne"));
         doTestCompletion("schema-two/query-two.graphql", Lists.newArrayList("fieldTwo"));

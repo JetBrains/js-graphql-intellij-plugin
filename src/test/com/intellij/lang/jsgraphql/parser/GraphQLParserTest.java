@@ -11,13 +11,12 @@ import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.testFramework.ParsingTestCase;
 import org.junit.Test;
 
-public class JSGraphQLParserTest extends ParsingTestCase {
+public class GraphQLParserTest extends ParsingTestCase {
 
-    public JSGraphQLParserTest() {
+    public GraphQLParserTest() {
         super("", "graphql", new GraphQLParserDefinition());
     }
 
-    @Test
     public void testParsingTestData() {
         doTest(true);
     }

@@ -1,0 +1,26 @@
+schema @one {
+    query: MyQuery
+}
+
+schema @two {
+    query: OtherQuery
+    mutation: MyMutation
+}
+
+type MyQuery
+
+type OtherQuery
+
+type MyMutation
+
+type MySubscription
+
+directive @one on SCHEMA
+directive @two on SCHEMA
+directive @three on SCHEMA
+
+
+# TODO: schema extensions are not supported by our parser now
+# extend schema @two @three {
+#     subscription: MySubscription
+# }

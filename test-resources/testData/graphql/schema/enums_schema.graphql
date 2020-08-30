@@ -1,0 +1,9 @@
+type Query
+
+enum User @four @one @three @two {
+  ADDRESS
+  AGE
+  NAME
+  PHONE
+  ZIP
+}

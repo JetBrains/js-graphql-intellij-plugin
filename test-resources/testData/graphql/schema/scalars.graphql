@@ -1,0 +1,16 @@
+scalar S @one
+
+scalar S @two
+
+extend scalar S @three @four
+
+enum S {
+    VALUE
+}
+
+directive @one on SCALAR
+directive @two on SCALAR
+directive @three on SCALAR
+directive @four on SCALAR
+
+type Query

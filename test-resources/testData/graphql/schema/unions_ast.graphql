@@ -1,0 +1,18 @@
+union U @one @two = A | B | C
+
+extend union U @three = D
+
+extend union U @four = E
+
+type A {}
+
+type B {}
+
+type C {}
+
+type D {}
+
+type E {}
+
+type Query {}
+

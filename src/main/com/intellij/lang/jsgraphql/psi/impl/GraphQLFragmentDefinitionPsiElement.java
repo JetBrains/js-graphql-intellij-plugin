@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
@@ -23,11 +23,11 @@ public abstract class GraphQLFragmentDefinitionPsiElement extends GraphQLNamedEl
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(getProject()).getSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
         if (schema != null) {
-            if(getTypeCondition() != null) {
+            if (getTypeCondition() != null) {
                 final GraphQLTypeName typeName = getTypeCondition().getTypeName();
-                if(typeName != null) {
+                if (typeName != null) {
                     return schema.getType(typeName.getText());
                 }
             }

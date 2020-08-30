@@ -1,0 +1,33 @@
+input User @one {
+    name: Int
+    id: ID
+    id: ID
+}
+
+input User @two {
+    name: Int
+    phone: String
+}
+
+extend input User @one {
+    address: String
+    phone: String
+}
+
+extend input User @three
+
+extend input User @three
+
+extend input User {
+    zip: String
+}
+
+enum User {
+    VALUE
+}
+
+directive @one on INPUT_OBJECT
+directive @two on INPUT_OBJECT
+directive @three on INPUT_OBJECT
+
+type Query

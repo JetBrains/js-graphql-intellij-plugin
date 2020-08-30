@@ -25,9 +25,9 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
@@ -151,12 +151,12 @@ public class GraphQLValidationAnnotator implements Annotator {
                         if (!fixes.isEmpty()) {
                             final InspectionManager inspectionManager = InspectionManager.getInstance(psiElement.getProject());
                             final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
-                                    psiElement,
-                                    psiElement,
-                                    message,
-                                    ProblemHighlightType.ERROR,
-                                    true,
-                                    LocalQuickFix.EMPTY_ARRAY
+                                psiElement,
+                                psiElement,
+                                message,
+                                ProblemHighlightType.ERROR,
+                                true,
+                                LocalQuickFix.EMPTY_ARRAY
                             );
                             fixes.forEach(fix -> annotation.get().registerFix(fix, null, null, problemDescriptor));
                         }
@@ -192,20 +192,20 @@ public class GraphQLValidationAnnotator implements Annotator {
         if (userData == null) {
 
             try {
-                final GraphQLSchemaWithErrors schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(project).getSchemaWithErrors(psiElement);
+                final GraphQLValidatedSchema schema = GraphQLSchemaProvider.getInstance(project).getValidatedSchema(psiElement);
                 if (!schema.isErrorsPresent()) {
                     // adjust source locations for injected GraphQL since the annotator works on the entire editor buffer (e.g. tsx with graphql tagged templates)
                     int lineDelta = 0;
-                    int firsteLineColumDelta = 0;
+                    int firstLineColumnDelta = 0;
                     if (containingFile.getContext() != null) {
                         final LogicalPosition logicalPosition = getLogicalPositionFromOffset(containingFile, containingFile.getContext().getTextOffset());
                         if (logicalPosition.line > 0 || logicalPosition.column > 0) {
                             // logical positions can be used as deltas between graphql-java and intellij since graphql-java is 1-based and intellij is 0-based
                             lineDelta = logicalPosition.line;
-                            firsteLineColumDelta = logicalPosition.column;
+                            firstLineColumnDelta = logicalPosition.column;
                         }
                     }
-                    final Document document = GraphQLUtil.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile), lineDelta, firsteLineColumDelta);
+                    final Document document = GraphQLUtil.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile), lineDelta, firstLineColumnDelta);
                     userData = new Validator().validateDocument(schema.getSchema(), document);
                 } else {
                     final String currentFileName = GraphQLPsiUtil.getFileName(containingFile);
@@ -314,7 +314,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                                                         continue;
                                                     }
                                                 }
-                                                if(validationErrorType == ValidationErrorType.SubSelectionRequired) {
+                                                if (validationErrorType == ValidationErrorType.SubSelectionRequired) {
                                                     // apollo client 2.5 doesn't require sub selections for client fields
                                                     final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLDirectivesAware.class);
                                                     if (directivesAware != null) {
@@ -352,8 +352,8 @@ public class GraphQLValidationAnnotator implements Annotator {
      */
     boolean isInsideTemplateElement(PsiElement psiElement) {
         return PsiTreeUtil.findFirstParent(
-                psiElement, false,
-                el -> el instanceof GraphQLTemplateDefinition || el instanceof GraphQLTemplateSelection || el instanceof GraphQLTemplateVariable
+            psiElement, false,
+            el -> el instanceof GraphQLTemplateDefinition || el instanceof GraphQLTemplateSelection || el instanceof GraphQLTemplateVariable
         ) != null;
     }
 
@@ -435,7 +435,9 @@ public class GraphQLValidationAnnotator implements Annotator {
         return buffer.toString();
     }
 
-    private Optional<Annotation> createErrorAnnotation(@NotNull AnnotationHolder annotationHolder, PsiElement errorPsiElement, String message) {
+    private Optional<Annotation> createErrorAnnotation(@NotNull AnnotationHolder annotationHolder,
+                                                       PsiElement errorPsiElement,
+                                                       String message) {
         if (GraphQLRelayModernAnnotationFilter.getService(errorPsiElement.getProject()).errorIsIgnored(errorPsiElement)) {
             return Optional.empty();
         }
@@ -514,10 +516,10 @@ public class GraphQLValidationAnnotator implements Annotator {
     @NotNull
     private List<String> getSuggestions(String text, List<String> candidates) {
         return candidates.stream()
-                .map(suggestion -> new Pair<>(suggestion, EditDistance.optimalAlignment(text, suggestion, false)))
-                .filter(p -> p.second <= 2)
-                .sorted(Comparator.comparingInt(p -> p.second))
-                .map(p -> p.first).collect(Collectors.toList());
+            .map(suggestion -> new Pair<>(suggestion, EditDistance.optimalAlignment(text, suggestion, false)))
+            .filter(p -> p.second <= 2)
+            .sorted(Comparator.comparingInt(p -> p.second))
+            .map(p -> p.first).collect(Collectors.toList());
 
     }
 

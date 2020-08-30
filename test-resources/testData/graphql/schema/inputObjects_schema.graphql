@@ -1,0 +1,9 @@
+type Query
+
+input User @one @three @two {
+  address: String
+  id: ID
+  name: Int
+  phone: String
+  zip: String
+}

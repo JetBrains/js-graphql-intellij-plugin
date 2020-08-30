@@ -9,13 +9,14 @@ package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import graphql.schema.*;
+import graphql.schema.GraphQLInputFieldsContainer;
+import graphql.schema.GraphQLInputObjectField;
+import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,11 +28,11 @@ public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl impl
     @Override
     public GraphQLType getTypeScope() {
         final PsiElement parent = getParent();
-        if(parent instanceof GraphQLArgument && parent instanceof GraphQLTypeScopeProvider) {
+        if (parent instanceof GraphQLArgument && parent instanceof GraphQLTypeScopeProvider) {
             // this object value is an argument value, so the type scope is defined by the argument type
             return ((GraphQLTypeScopeProvider) parent).getTypeScope();
         }
-        if(parent instanceof GraphQLArrayValue && parent.getParent() instanceof GraphQLTypeScopeProvider) {
+        if (parent instanceof GraphQLArrayValue && parent.getParent() instanceof GraphQLTypeScopeProvider) {
             // this object value is an argument value inside an array, so the type scope is defined by the argument type
             GraphQLType typeScope = ((GraphQLTypeScopeProvider) parent.getParent()).getTypeScope();
             if (typeScope != null) {
@@ -40,14 +41,14 @@ public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl impl
             }
             return typeScope;
         }
-        if(parent instanceof GraphQLDefaultValue) {
+        if (parent instanceof GraphQLDefaultValue) {
             // this object is the default value
             final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(parent, GraphQLInputValueDefinitionImpl.class);
-            if(typeScopeProvider != null) {
+            if (typeScopeProvider != null) {
                 return typeScopeProvider.getTypeScope();
             }
         }
-        final GraphQLSchema schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(getProject()).getSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
         if (schema != null) {
             // the type scope for an object value is a parent object value or the argument it's a value for
             final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLObjectValueImpl.class);

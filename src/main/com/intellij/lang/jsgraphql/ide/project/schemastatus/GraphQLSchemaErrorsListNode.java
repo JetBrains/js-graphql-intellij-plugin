@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
+import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import graphql.GraphQLError;
@@ -21,23 +21,23 @@ import java.util.List;
  */
 public class GraphQLSchemaErrorsListNode extends CachingSimpleNode {
 
-    private final GraphQLSchemaWithErrors schemaWithErrors;
+    private final GraphQLValidatedSchema myValidatedSchema;
 
-    public GraphQLSchemaErrorsListNode(SimpleNode parent, GraphQLSchemaWithErrors schemaWithErrors) {
+    public GraphQLSchemaErrorsListNode(SimpleNode parent, GraphQLValidatedSchema validatedSchema) {
         super(parent);
-        this.schemaWithErrors = schemaWithErrors;
+        this.myValidatedSchema = validatedSchema;
         myName = "Schema errors";
         setIcon(AllIcons.Nodes.Folder);
     }
 
     @Override
     public SimpleNode[] buildChildren() {
-        if  (!schemaWithErrors.getRegistry().isProcessedGraphQL()) {
+        if  (!myValidatedSchema.getRegistry().isProcessedGraphQL()) {
             // no GraphQL PSI files parse yet, so no need to show the "no query defined" error for a non-existing schema
             return SimpleNode.NO_CHILDREN;
         }
         final List<SimpleNode> children = Lists.newArrayList();
-        for (GraphQLError error : schemaWithErrors.getErrors()) {
+        for (GraphQLError error : myValidatedSchema.getErrors()) {
             children.add(new GraphQLSchemaErrorNode(this, error));
         }
         if (children.isEmpty()) {

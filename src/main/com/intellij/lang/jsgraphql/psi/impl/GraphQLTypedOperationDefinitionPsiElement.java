@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypedOperationDefinition;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
 import com.intellij.psi.tree.IElementType;
 import graphql.schema.GraphQLSchema;
@@ -24,7 +24,7 @@ public abstract class GraphQLTypedOperationDefinitionPsiElement extends GraphQLN
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(getProject()).getSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
         if (schema != null) {
             final IElementType operationType = getOperationType().getNode().getFirstChildNode().getElementType();
             if (operationType == GraphQLElementTypes.QUERY_KEYWORD) {

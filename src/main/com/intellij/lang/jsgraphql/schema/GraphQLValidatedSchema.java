@@ -15,15 +15,15 @@ import graphql.schema.idl.errors.SchemaProblem;
 
 import java.util.List;
 
-public class GraphQLSchemaWithErrors {
+public class GraphQLValidatedSchema {
 
     private final GraphQLSchema schema;
     private final List<GraphQLException> exceptions;
-    private final TypeDefinitionRegistryWithErrors registry;
+    private final GraphQLValidatedTypeDefinitionRegistry registry;
 
-    public GraphQLSchemaWithErrors(GraphQLSchema schema, List<GraphQLException> errros, TypeDefinitionRegistryWithErrors registry) {
+    public GraphQLValidatedSchema(GraphQLSchema schema, List<GraphQLException> errors, GraphQLValidatedTypeDefinitionRegistry registry) {
         this.schema = schema;
-        this.exceptions = errros;
+        this.exceptions = errors;
         this.registry = registry;
     }
 
@@ -35,7 +35,7 @@ public class GraphQLSchemaWithErrors {
         return exceptions;
     }
 
-    public TypeDefinitionRegistryWithErrors getRegistry() {
+    public GraphQLValidatedTypeDefinitionRegistry getRegistry() {
         return registry;
     }
 

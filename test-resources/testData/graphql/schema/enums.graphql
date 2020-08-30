@@ -1,0 +1,26 @@
+enum User @one {
+    NAME PHONE
+}
+
+enum User @two {
+    PHONE ADDRESS
+}
+
+extend enum User @one @three {
+    ADDRESS ZIP
+}
+
+extend enum User @three @four {
+    ZIP AGE
+}
+
+input User {
+    id: ID
+}
+
+directive @one on ENUM
+directive @two on ENUM
+directive @three on ENUM
+directive @four on ENUM
+
+type Query
