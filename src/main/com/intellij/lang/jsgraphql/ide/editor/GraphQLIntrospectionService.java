@@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.intellij.ide.actions.CreateFileAction;
 import com.intellij.ide.impl.DataManagerImpl;
+import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.json.JsonLanguage;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
@@ -32,6 +33,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorBundle;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -78,6 +80,7 @@ import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProj
 public class GraphQLIntrospectionService implements Disposable {
 
     private static final Set<String> DEFAULT_DIRECTIVES = Sets.newHashSet("deprecated", "skip", "include", "specifiedBy");
+    private static final String DISABLE_EMPTY_ERRORS_WARNING_KEY = "graphql.empty.errors.warning.disabled";
 
     private GraphQLIntrospectionTask latestIntrospection = null;
     private final Project myProject;
@@ -210,7 +213,25 @@ public class GraphQLIntrospectionService implements Disposable {
         if (!introspectionAsMap.containsKey("__schema")) {
             // possibly a full query result
             if (introspectionAsMap.containsKey("errors")) {
-                throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.errors", new Gson().toJson(introspectionAsMap.get("errors"))));
+                final Object errorsValue = introspectionAsMap.get("errors");
+                if (errorsValue instanceof List && ((List<?>) errorsValue).size() == 0) {
+                    if (!PropertiesComponent.getInstance().isTrueValue(DISABLE_EMPTY_ERRORS_WARNING_KEY)) {
+                        final Notification emptyErrorNotification = new Notification("GraphQL", "GraphQL Configuration Warning", "Encountered empty error array, which does not conform to the GraphQL spec.", NotificationType.WARNING);
+
+                        final AnAction dontShowAgainAction = new NotificationAction(EditorBundle.message("notification.dont.show.again.message")) {
+                            @Override
+                            public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+                                PropertiesComponent.getInstance().setValue(DISABLE_EMPTY_ERRORS_WARNING_KEY, "true");
+                                notification.hideBalloon();
+                            }
+                        };
+
+                        emptyErrorNotification.addAction(dontShowAgainAction);
+                        Notifications.Bus.notify(emptyErrorNotification, myProject);
+                    }
+                } else {
+                    throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.errors", new Gson().toJson(introspectionAsMap.get("errors"))));
+                }
             }
             if (!introspectionAsMap.containsKey("data")) {
                 throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.data"));

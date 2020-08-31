@@ -4,6 +4,7 @@ import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Assert;
 
 import java.io.IOException;
 
@@ -16,6 +17,21 @@ public class GraphQLIntrospectionServiceTest extends BasePlatformTestCase {
 
     public void testPrintIntrospectionJsonAsGraphQL() {
         doTest("schema.json", "schema.graphql");
+    }
+
+    public void testPrintIntrospectionJsonWithEmptyErrorsAsGraphQL() {
+        doTest("schemaWithEmptyErrors.json", "schema.graphql");
+    }
+
+    public void testPrintIntrospectionJsonWithErrorsAsGraphQL() {
+        try {
+            doTest("schemaWithErrors.json", "schema.graphql");
+        } catch (IllegalArgumentException exception) {
+            Assert.assertEquals("Introspection query returned errors: [{\"message\":\"Error\"}]", exception.getMessage());
+            return;
+        }
+
+        throw new RuntimeException("Expected errors exception, found none.");
     }
 
     private void doTest(@NotNull String source, @NotNull String expected) {
