@@ -66,7 +66,6 @@ import java.util.stream.Collectors;
 public class GraphQLValidationAnnotator implements Annotator {
 
     private static final Key<List<? extends GraphQLError>> ERRORS = Key.create(GraphQLValidationAnnotator.class.getName() + ".errors");
-    private static final Key<Editor> EDITOR = Key.create(GraphQLValidationAnnotator.class.getName() + ".editor");
 
     @Override
     public void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
@@ -245,106 +244,121 @@ public class GraphQLValidationAnnotator implements Annotator {
                 session.putUserData(ERRORS, Collections.emptyList());
             }
 
-            if (userData != null) {
-                for (GraphQLError userDatum : userData) {
-                    if (userDatum instanceof ValidationError) {
-                        final ValidationError validationError = (ValidationError) userDatum;
-                        final ValidationErrorType validationErrorType = validationError.getValidationErrorType();
-                        if (validationErrorType != null) {
-                            switch (validationErrorType) {
-                                case DefaultForNonNullArgument:
-                                case WrongType:
-                                case SubSelectionRequired:
-                                case SubSelectionNotAllowed:
-                                case BadValueForDefaultArg:
-                                case InlineFragmentTypeConditionInvalid:
-                                case FragmentTypeConditionInvalid:
-                                case UnknownArgument:
-                                case NonInputTypeOnVariable:
-                                case MissingFieldArgument:
-                                case MissingDirectiveArgument:
-                                case VariableTypeMismatch:
-                                case MisplacedDirective:
-                                case UndefinedVariable:
-                                case UnusedVariable:
-                                case FragmentCycle:
-                                case FieldsConflict:
-                                case InvalidFragmentType:
-                                case LoneAnonymousOperationViolation:
-                                    for (SourceLocation location : validationError.getLocations()) {
-                                        final int positionToOffset = getOffsetFromSourceLocation(containingFile, location);
-                                        if (positionToOffset == -1) {
-                                            continue;
-                                        }
-                                        int injectionOffset = 0;
-                                        if (containingFile.getContext() != null) {
-                                            injectionOffset = containingFile.getContext().getTextOffset();
-                                        }
-                                        PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset - injectionOffset);
-                                        if (errorPsiElement != null) {
-                                            final IElementType elementType = errorPsiElement.getNode().getElementType();
-                                            if (elementType == GraphQLElementTypes.SPREAD) {
-                                                // graphql-java uses the '...' as source location on fragments, so find the fragment name or type condition
-                                                final GraphQLFragmentSelection fragmentSelection = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLFragmentSelection.class);
-                                                if (fragmentSelection != null) {
-                                                    if (fragmentSelection.getFragmentSpread() != null) {
-                                                        errorPsiElement = fragmentSelection.getFragmentSpread().getNameIdentifier();
-                                                    } else if (fragmentSelection.getInlineFragment() != null) {
-                                                        final GraphQLTypeCondition typeCondition = fragmentSelection.getInlineFragment().getTypeCondition();
-                                                        if (typeCondition != null) {
-                                                            errorPsiElement = typeCondition.getTypeName();
-                                                        }
-                                                    }
-                                                }
-                                            } else if (elementType == GraphQLElementTypes.AT) {
-                                                // mark the directive and not only the '@'
-                                                if (validationErrorType == ValidationErrorType.MisplacedDirective) {
-                                                    // graphql-java KnownDirectives rule only recognizes executable directive locations, so ignore
-                                                    // the error if we're inside a type definition
-                                                    if (PsiTreeUtil.getTopmostParentOfType(errorPsiElement, GraphQLTypeSystemDefinition.class) != null) {
-                                                        continue;
-                                                    }
-                                                }
-                                                errorPsiElement = errorPsiElement.getParent();
-                                            }
-                                            if (errorPsiElement != null) {
-                                                if (isInsideTemplateElement(errorPsiElement)) {
-                                                    // error due to template placeholder replacement, so we can ignore it for '___' replacement variables
-                                                    if (validationErrorType == ValidationErrorType.UndefinedVariable) {
-                                                        continue;
-                                                    }
-                                                }
-                                                if (validationErrorType == ValidationErrorType.SubSelectionRequired) {
-                                                    // apollo client 2.5 doesn't require sub selections for client fields
-                                                    final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLDirectivesAware.class);
-                                                    if (directivesAware != null) {
-                                                        boolean ignoreError = false;
-                                                        for (GraphQLDirective directive : directivesAware.getDirectives()) {
-                                                            if ("client".equals(directive.getName())) {
-                                                                ignoreError = true;
-                                                            }
-                                                        }
-                                                        if (ignoreError) {
-                                                            continue;
-                                                        }
-                                                    }
-                                                }
-                                                final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
-                                                createErrorAnnotation(annotationHolder, errorPsiElement, message);
-                                            }
+            if (userData == null) {
+                return;
+            }
+
+            for (GraphQLError userDatum : userData) {
+                if (!(userDatum instanceof ValidationError)) {
+                    continue;
+                }
+
+                final ValidationError validationError = (ValidationError) userDatum;
+                final ValidationErrorType validationErrorType = validationError.getValidationErrorType();
+                if (validationErrorType == null) {
+                    continue;
+                }
+
+                switch (validationErrorType) {
+                    case DefaultForNonNullArgument:
+                    case WrongType:
+                    case SubSelectionRequired:
+                    case SubSelectionNotAllowed:
+                    case BadValueForDefaultArg:
+                    case InlineFragmentTypeConditionInvalid:
+                    case FragmentTypeConditionInvalid:
+                    case UnknownArgument:
+                    case NonInputTypeOnVariable:
+                    case MissingFieldArgument:
+                    case MissingDirectiveArgument:
+                    case VariableTypeMismatch:
+                    case MisplacedDirective:
+                    case UndefinedVariable:
+                    case UnusedVariable:
+                    case FragmentCycle:
+                    case FieldsConflict:
+                    case InvalidFragmentType:
+                    case LoneAnonymousOperationViolation:
+                        for (SourceLocation location : validationError.getLocations()) {
+                            final int positionToOffset = getOffsetFromSourceLocation(containingFile, location);
+                            if (positionToOffset == -1) {
+                                continue;
+                            }
+                            int injectionOffset = 0;
+                            if (containingFile.getContext() != null) {
+                                injectionOffset = containingFile.getContext().getTextOffset();
+                            }
+                            PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset - injectionOffset);
+                            if (errorPsiElement == null) {
+                                continue;
+                            }
+
+                            if (isIgnored(validationErrorType, errorPsiElement)) {
+                                continue;
+                            }
+
+                            final IElementType elementType = errorPsiElement.getNode().getElementType();
+                            if (elementType == GraphQLElementTypes.SPREAD) {
+                                // graphql-java uses the '...' as source location on fragments, so find the fragment name or type condition
+                                final GraphQLFragmentSelection fragmentSelection = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLFragmentSelection.class);
+                                if (fragmentSelection != null) {
+                                    if (fragmentSelection.getFragmentSpread() != null) {
+                                        errorPsiElement = fragmentSelection.getFragmentSpread().getNameIdentifier();
+                                    } else if (fragmentSelection.getInlineFragment() != null) {
+                                        final GraphQLTypeCondition typeCondition = fragmentSelection.getInlineFragment().getTypeCondition();
+                                        if (typeCondition != null) {
+                                            errorPsiElement = typeCondition.getTypeName();
                                         }
                                     }
-                                    break;
-                                default:
-                                    // remaining rules are handled above using psi references
-                                    break;
+                                }
+                            } else if (elementType == GraphQLElementTypes.AT) {
+                                // mark the directive and not only the '@'
+                                errorPsiElement = errorPsiElement.getParent();
+                            }
+                            if (errorPsiElement != null) {
+                                if (isInsideTemplateElement(errorPsiElement)) {
+                                    // error due to template placeholder replacement, so we can ignore it for '___' replacement variables
+                                    if (validationErrorType == ValidationErrorType.UndefinedVariable) {
+                                        continue;
+                                    }
+                                }
+                                if (validationErrorType == ValidationErrorType.SubSelectionRequired) {
+                                    // apollo client 2.5 doesn't require sub selections for client fields
+                                    final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLDirectivesAware.class);
+                                    if (directivesAware != null) {
+                                        boolean ignoreError = false;
+                                        for (GraphQLDirective directive : directivesAware.getDirectives()) {
+                                            if ("client".equals(directive.getName())) {
+                                                ignoreError = true;
+                                            }
+                                        }
+                                        if (ignoreError) {
+                                            continue;
+                                        }
+                                    }
+                                }
+                                final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
+                                createErrorAnnotation(annotationHolder, errorPsiElement, message);
                             }
                         }
-                    }
+                        break;
+                    default:
+                        // remaining rules are handled above using psi references
+                        break;
                 }
             }
 
         }
+    }
+
+    private static boolean isIgnored(@NotNull ValidationErrorType errorType, @NotNull PsiElement element) {
+        if (errorType == ValidationErrorType.MisplacedDirective) {
+            // graphql-java KnownDirectives rule only recognizes executable directive locations, so ignore
+            // the error if we're inside a type definition
+            return PsiTreeUtil.getParentOfType(element, GraphQLTypeSystemDefinition.class) != null;
+        }
+
+        return false;
     }
 
     /**
