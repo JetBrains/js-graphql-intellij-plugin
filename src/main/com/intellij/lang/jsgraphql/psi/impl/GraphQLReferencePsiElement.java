@@ -48,7 +48,7 @@ public abstract class GraphQLReferencePsiElement extends GraphQLNamedElementImpl
             PsiElement context = psiFile.getContext();
             if(context != null && context.getLanguage() != this.getLanguage()) {
                 // this PSI element is part of injected GraphQL, so we have to expand the use scope which defaults to the current file only
-                useScope = useScope.union(GraphQLPsiSearchHelper.getService(getProject()).getUseScope(this));
+                useScope = useScope.union(GraphQLPsiSearchHelper.getInstance(getProject()).getUseScope(this));
             }
         }
         return useScope;

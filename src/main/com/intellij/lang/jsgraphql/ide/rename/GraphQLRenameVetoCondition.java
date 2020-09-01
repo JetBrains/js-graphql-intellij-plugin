@@ -18,7 +18,7 @@ import com.intellij.psi.PsiFile;
 public class GraphQLRenameVetoCondition implements Condition<PsiElement> {
     @Override
     public boolean value(PsiElement psiElement) {
-        final PsiFile builtInSchema = GraphQLPsiSearchHelper.getService(psiElement.getProject()).getBuiltInSchema();
+        final PsiFile builtInSchema = GraphQLPsiSearchHelper.getInstance(psiElement.getProject()).getBuiltInSchema();
         return builtInSchema == psiElement.getContainingFile();
     }
 }
