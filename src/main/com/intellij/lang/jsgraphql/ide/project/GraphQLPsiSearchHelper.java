@@ -28,6 +28,7 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginDescriptor;
@@ -62,7 +63,7 @@ import java.util.function.Consumer;
 /**
  * Enables cross-file searches for PSI references
  */
-public class GraphQLPsiSearchHelper {
+public class GraphQLPsiSearchHelper implements Disposable {
 
     private static final Key<PsiFile> GRAPHQL_BUILT_IN_SCHEMA_PSI_FILE = Key.create("JSGraphQL.built-in.schema.psi-file");
     private static final Key<PsiFile> RELAY_MODERN_DIRECTIVES_SCHEMA_PSI_FILE = Key.create("JSGraphQL.relay.modern.directives.schema.psi-file");
@@ -72,7 +73,7 @@ public class GraphQLPsiSearchHelper {
     private final Project myProject;
     private final Map<String, GlobalSearchScope> fileNameToSchemaScope = Maps.newConcurrentMap();
     private final PluginDescriptor pluginDescriptor;
-    private final GlobalSearchScope myGlobalSearchScope;
+    private final GlobalSearchScope myGlobalScope;
     private final GlobalSearchScope allBuiltInSchemaScopes;
     private final GraphQLConfigManager graphQLConfigManager;
 
@@ -106,8 +107,11 @@ public class GraphQLPsiSearchHelper {
             .union(defaultProjectFileScope);
 
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
-        myGlobalSearchScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes).union(allBuiltInSchemaScopes);
-        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
+        myGlobalScope = GlobalSearchScope
+            .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes)
+            .union(allBuiltInSchemaScopes);
+
+        project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
             public void beforePsiChanged(boolean isPhysical) {
                 // clear the cache on each PSI change
@@ -135,11 +139,11 @@ public class GraphQLPsiSearchHelper {
             final NamedScope schemaScope = graphQLConfigManager.getSchemaScope(virtualFile);
             if (schemaScope != null) {
                 final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
-                return myGlobalSearchScope.intersectWith(filterSearchScope.union(allBuiltInSchemaScopes));
+                return myGlobalScope.intersectWith(filterSearchScope.union(allBuiltInSchemaScopes));
             }
 
             // default is entire project limited by relevant file types
-            return myGlobalSearchScope;
+            return myGlobalScope;
         });
     }
 
@@ -152,7 +156,7 @@ public class GraphQLPsiSearchHelper {
         if (element.getContainingFile().getVirtualFile() != null) {
             return getSchemaScope(element);
         } else {
-            return myGlobalSearchScope;
+            return myGlobalScope;
         }
     }
 
@@ -423,5 +427,9 @@ public class GraphQLPsiSearchHelper {
         if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
             consumer.accept(relayModernDirectivesSchema);
         }
+    }
+
+    @Override
+    public void dispose() {
     }
 }

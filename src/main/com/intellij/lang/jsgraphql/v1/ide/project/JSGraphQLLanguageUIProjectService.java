@@ -211,10 +211,10 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
         final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
         for (VirtualFile file : fileEditorManager.getOpenFiles()) {
-            final List<GraphQLConfigEndpoint> endpoints = graphQLConfigManager.getEndpoints(file);
-            if (endpoints == null) {
+            if (!GraphQLFileType.isGraphQLFile(myProject, file)) {
                 continue;
             }
+            final List<GraphQLConfigEndpoint> endpoints = graphQLConfigManager.getEndpoints(file);
             GuiUtils.invokeLaterIfNeeded(() -> {
                 ApplicationManager.getApplication().runReadAction(() -> {
                     for (FileEditor editor : fileEditorManager.getEditors(file)) {

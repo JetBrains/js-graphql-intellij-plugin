@@ -70,7 +70,7 @@ public class GraphQLEditConfigAction extends AnAction {
                 // no config associated, ask to create one
                 String message = "Searched current and parent directories.<br><a href=\"create\">Create .graphqlconfig file</a>";
                 Notifications.Bus.notify(new Notification("GraphQL", "No .graphqlconfig file found", message, NotificationType.INFORMATION, (notification, event) -> {
-                    final Set<VirtualFile> contentRoots = Optional.ofNullable(configManager.getContentRoots(virtualFile)).orElse(Collections.emptySet());
+                    final Set<VirtualFile> contentRoots = configManager.getContentRoots(virtualFile);
                     VirtualFile directory = virtualFile.getParent();
                     assert directory != null;
                     final List<VirtualFile> configDirectoryCandidates = Lists.newArrayList(directory);

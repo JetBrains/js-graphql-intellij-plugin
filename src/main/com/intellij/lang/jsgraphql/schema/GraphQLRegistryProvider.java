@@ -82,7 +82,7 @@ public class GraphQLRegistryProvider implements Disposable {
         jsonIntrospectionScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), JsonFileType.INSTANCE);
         psiManager = PsiManager.getInstance(project);
         graphQLEndpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(project);
-        graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getService(project);
+        graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
         graphQLConfigManager = GraphQLConfigManager.getService(project);
         graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
 
