@@ -40,11 +40,6 @@ public class GraphQLInterfaceTypeDefinitionBuilder
         );
     }
 
-    @Override
-    protected @NotNull Class<InterfaceTypeDefinition> getDefinitionClass() {
-        return InterfaceTypeDefinition.class;
-    }
-
     @NotNull
     @Override
     protected Collection<InterfaceTypeExtensionDefinition> buildExtensionsImpl() {
@@ -59,10 +54,5 @@ public class GraphQLInterfaceTypeDefinitionBuilder
                 builder.directives(toList(directives)).definitions(toList(definitions)).implementz(toList(implementz))
             );
         });
-    }
-
-    @Override
-    protected @NotNull Class<InterfaceTypeExtensionDefinition> getExtensionClass() {
-        return InterfaceTypeExtensionDefinition.class;
     }
 }

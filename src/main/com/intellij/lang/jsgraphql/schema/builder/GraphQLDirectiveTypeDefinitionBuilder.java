@@ -13,9 +13,4 @@ public class GraphQLDirectiveTypeDefinitionBuilder extends GraphQLDefinitionBuil
         return ContainerUtil.getFirstItem(myDefinitions);
     }
 
-    @Override
-    protected @NotNull Class<DirectiveDefinition> getDefinitionClass() {
-        return DirectiveDefinition.class;
-    }
-
 }

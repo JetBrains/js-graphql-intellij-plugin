@@ -14,10 +14,9 @@ public abstract class GraphQLExtendableDefinitionBuilder<T extends SDLDefinition
     @Nullable
     protected Collection<E> myBuiltExtensions;
 
-    public void addExtension(@NotNull SDLDefinition<?> extension) {
-        if (isExpectedExtensionType(extension)) {
-            //noinspection unchecked
-            myExtensions.add((E) extension);
+    public void addExtension(@Nullable E extension) {
+        if (extension != null) {
+            myExtensions.add(extension);
         }
     }
 
@@ -44,16 +43,9 @@ public abstract class GraphQLExtendableDefinitionBuilder<T extends SDLDefinition
         return myBuiltExtensions = ContainerUtil.unmodifiableOrEmptyCollection(buildExtensionsImpl());
     }
 
-    public boolean isExpectedExtensionType(@NotNull SDLDefinition<?> definition) {
-        return getExtensionClass().isAssignableFrom(definition.getClass());
-    }
-
     /**
      * Called only when at least one extension definition is added.
      */
     @NotNull
     protected abstract Collection<E> buildExtensionsImpl();
-
-    @NotNull
-    protected abstract Class<E> getExtensionClass();
 }

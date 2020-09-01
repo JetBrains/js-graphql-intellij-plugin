@@ -14,10 +14,9 @@ public abstract class GraphQLDefinitionBuilder<T extends SDLDefinition<T>> {
     @Nullable
     protected T myBuiltDefinition;
 
-    public void addDefinition(@NotNull SDLDefinition<?> definition) {
-        if (isExpectedDefinitionType(definition)) {
-            //noinspection unchecked
-            myDefinitions.add((T) definition);
+    public void addDefinition(@Nullable T definition) {
+        if (definition != null) {
+            myDefinitions.add(definition);
         }
     }
 
@@ -40,18 +39,8 @@ public abstract class GraphQLDefinitionBuilder<T extends SDLDefinition<T>> {
     }
 
     /**
-     * Note that a definition extension is a subtype of the definition itself.
-     */
-    public boolean isExpectedDefinitionType(@NotNull SDLDefinition<?> definition) {
-        return getDefinitionClass().isAssignableFrom(definition.getClass());
-    }
-
-    /**
      * Called only when at least one type definition is added.
      */
     @NotNull
     protected abstract T buildDefinitionImpl();
-
-    @NotNull
-    protected abstract Class<T> getDefinitionClass();
 }

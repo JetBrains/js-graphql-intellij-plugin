@@ -36,11 +36,6 @@ public class GraphQLSchemaTypeDefinitionBuilder
         );
     }
 
-    @Override
-    protected @NotNull Class<SchemaDefinition> getDefinitionClass() {
-        return SchemaDefinition.class;
-    }
-
     @NotNull
     @Override
     protected Collection<SchemaExtensionDefinition> buildExtensionsImpl() {
@@ -53,10 +48,5 @@ public class GraphQLSchemaTypeDefinitionBuilder
                 builder.directives(toList(directives)).operationTypeDefinitions(toList(operationTypeDefinitions))
             );
         });
-    }
-
-    @Override
-    protected @NotNull Class<SchemaExtensionDefinition> getExtensionClass() {
-        return SchemaExtensionDefinition.class;
     }
 }

@@ -43,11 +43,6 @@ public class GraphQLObjectTypeDefinitionBuilder extends GraphQLExtendableDefinit
         );
     }
 
-    @Override
-    protected @NotNull Class<ObjectTypeDefinition> getDefinitionClass() {
-        return ObjectTypeDefinition.class;
-    }
-
     @NotNull
     @Override
     protected Collection<ObjectTypeExtensionDefinition> buildExtensionsImpl() {
@@ -62,10 +57,5 @@ public class GraphQLObjectTypeDefinitionBuilder extends GraphQLExtendableDefinit
                 builder.directives(toList(directives)).fieldDefinitions(toList(fieldDefinitions)).implementz(toList(implementz))
             );
         });
-    }
-
-    @Override
-    protected @NotNull Class<ObjectTypeExtensionDefinition> getExtensionClass() {
-        return ObjectTypeExtensionDefinition.class;
     }
 }

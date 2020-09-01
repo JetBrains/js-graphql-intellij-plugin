@@ -42,11 +42,6 @@ public class GraphQLUnionTypeDefinitionBuilder
         );
     }
 
-    @Override
-    protected @NotNull Class<UnionTypeDefinition> getDefinitionClass() {
-        return UnionTypeDefinition.class;
-    }
-
     @NotNull
     @Override
     protected Collection<UnionTypeExtensionDefinition> buildExtensionsImpl() {
@@ -59,10 +54,5 @@ public class GraphQLUnionTypeDefinitionBuilder
                 builder.directives(toList(directives)).memberTypes(toList(memberTypes))
             );
         });
-    }
-
-    @Override
-    protected @NotNull Class<UnionTypeExtensionDefinition> getExtensionClass() {
-        return UnionTypeExtensionDefinition.class;
     }
 }

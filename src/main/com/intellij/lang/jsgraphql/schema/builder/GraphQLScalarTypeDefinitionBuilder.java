@@ -29,11 +29,6 @@ public class GraphQLScalarTypeDefinitionBuilder
         return definition.transform(builder -> builder.directives(toList(directives)));
     }
 
-    @Override
-    protected @NotNull Class<ScalarTypeDefinition> getDefinitionClass() {
-        return ScalarTypeDefinition.class;
-    }
-
     @NotNull
     @Override
     protected Collection<ScalarTypeExtensionDefinition> buildExtensionsImpl() {
@@ -42,10 +37,5 @@ public class GraphQLScalarTypeDefinitionBuilder
 
             return extension.transformExtension(builder -> builder.directives(toList(directives)));
         });
-    }
-
-    @Override
-    protected @NotNull Class<ScalarTypeExtensionDefinition> getExtensionClass() {
-        return ScalarTypeExtensionDefinition.class;
     }
 }

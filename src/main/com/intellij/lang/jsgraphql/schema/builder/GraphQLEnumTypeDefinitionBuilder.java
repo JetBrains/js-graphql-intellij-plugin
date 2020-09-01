@@ -42,12 +42,6 @@ public class GraphQLEnumTypeDefinitionBuilder
 
     @NotNull
     @Override
-    protected Class<EnumTypeDefinition> getDefinitionClass() {
-        return EnumTypeDefinition.class;
-    }
-
-    @NotNull
-    @Override
     protected Collection<EnumTypeExtensionDefinition> buildExtensionsImpl() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
@@ -58,11 +52,5 @@ public class GraphQLEnumTypeDefinitionBuilder
                 builder.directives(toList(directives)).enumValueDefinitions(toList(enumValueDefinitions))
             );
         });
-    }
-
-    @NotNull
-    @Override
-    protected Class<EnumTypeExtensionDefinition> getExtensionClass() {
-        return EnumTypeExtensionDefinition.class;
     }
 }

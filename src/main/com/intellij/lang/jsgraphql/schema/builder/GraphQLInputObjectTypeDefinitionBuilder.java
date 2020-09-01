@@ -40,11 +40,6 @@ public class GraphQLInputObjectTypeDefinitionBuilder
         );
     }
 
-    @Override
-    protected @NotNull Class<InputObjectTypeDefinition> getDefinitionClass() {
-        return InputObjectTypeDefinition.class;
-    }
-
     @NotNull
     @Override
     protected Collection<InputObjectTypeExtensionDefinition> buildExtensionsImpl() {
@@ -57,10 +52,5 @@ public class GraphQLInputObjectTypeDefinitionBuilder
                 builder.directives(toList(directives)).inputValueDefinitions(toList(inputValueDefinitions))
             );
         });
-    }
-
-    @Override
-    protected @NotNull Class<InputObjectTypeExtensionDefinition> getExtensionClass() {
-        return InputObjectTypeExtensionDefinition.class;
     }
 }
