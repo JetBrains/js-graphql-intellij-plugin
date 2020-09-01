@@ -54,7 +54,6 @@ import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.ObjectUtils;
-import graphql.GraphQLException;
 import graphql.introspection.IntrospectionQuery;
 import graphql.language.*;
 import graphql.schema.Coercing;
@@ -73,7 +72,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService.setHeadersFromOptions;
 
@@ -110,7 +112,9 @@ public class GraphQLIntrospectionService implements Disposable {
 
     }
 
-    public void performIntrospectionQueryAndUpdateSchemaPathFile(GraphQLConfigVariableAwareEndpoint endpoint, String schemaPath, VirtualFile introspectionSourceFile) {
+    public void performIntrospectionQueryAndUpdateSchemaPathFile(GraphQLConfigVariableAwareEndpoint endpoint,
+                                                                 String schemaPath,
+                                                                 VirtualFile introspectionSourceFile) {
         latestIntrospection = new GraphQLIntrospectionTask(endpoint, () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile));
 
         final NotificationAction retry = new NotificationAction(GraphQLBundle.message("graphql.notification.retry")) {
@@ -148,26 +152,6 @@ public class GraphQLIntrospectionService implements Disposable {
             ProgressManager.getInstance().run(task);
         } catch (UnsupportedEncodingException | IllegalStateException | IllegalArgumentException e) {
             GraphQLNotificationUtil.showRequestExceptionNotification(retry, url, GraphQLNotificationUtil.formatExceptionMessage(e), NotificationType.ERROR, myProject);
-        }
-    }
-
-    private void addRetryWithoutDefaultValuesAction(@NotNull Notification notification,
-                                                    @NotNull GraphQLSettings graphQLSettings,
-                                                    @NotNull GraphQLConfigVariableAwareEndpoint endpoint,
-                                                    @NotNull String schemaPath,
-                                                    @NotNull VirtualFile introspectionSourceFile) {
-        if (graphQLSettings.isEnableIntrospectionDefaultValues()) {
-            // suggest retrying without the default values as they're a common cause of spec compliance issues
-            NotificationAction retryWithoutDefaultValues = new NotificationAction(GraphQLBundle.message("graphql.notification.retry.without.defaults")) {
-                @Override
-                public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                    graphQLSettings.setEnableIntrospectionDefaultValues(false);
-                    ApplicationManager.getApplication().saveSettings();
-                    notification.expire();
-                    performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile);
-                }
-            };
-            notification.addAction(retryWithoutDefaultValues);
         }
     }
 
@@ -341,7 +325,10 @@ public class GraphQLIntrospectionService implements Disposable {
         SDL
     }
 
-    void createOrUpdateIntrospectionOutputFile(String schemaText, IntrospectionOutputFormat format, VirtualFile introspectionSourceFile, String outputFileName) {
+    void createOrUpdateIntrospectionOutputFile(String schemaText,
+                                               IntrospectionOutputFormat format,
+                                               VirtualFile introspectionSourceFile,
+                                               String outputFileName) {
         ApplicationManager.getApplication().runWriteAction(() -> {
             try {
                 final String header;
@@ -455,10 +442,8 @@ public class GraphQLIntrospectionService implements Disposable {
                             NotificationType.WARNING
                         ).addAction(retry).setImportant(true);
 
-                        if (e instanceof GraphQLException) {
-                            notification.setContent(GraphQLBundle.message("graphql.notification.introspection.spec.error.body", GraphQLNotificationUtil.formatExceptionMessage(e)));
-                            addRetryWithoutDefaultValuesAction(notification, graphQLSettings, endpoint, schemaPath, introspectionSourceFile);
-                        }
+                        GraphQLNotificationUtil.addRetryFailedSchemaIntrospectionAction(notification, graphQLSettings, e,
+                            () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile));
                         addShowResponseTextAction(notification, responseJson);
                         addIntrospectionStackTraceAction(notification, e);
 

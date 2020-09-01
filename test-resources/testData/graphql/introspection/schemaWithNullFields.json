@@ -1,0 +1,25 @@
+{
+    "data": {
+        "__schema": {
+            "queryType": {
+                "name": "Query",
+                "description": "查询",
+                "kind": "OBJECT",
+                "fields": null
+            },
+            "subscriptionType": null,
+            "types": [
+                {
+                    "name": "Query",
+                    "kind": "OBJECT"
+                },
+                {
+                    "name": "CM_InforLevel",
+                    "description": "信息级别",
+                    "kind": "ENUM",
+                    "fields": null
+                }
+            ]
+        }
+    }
+}

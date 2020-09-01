@@ -34,6 +34,10 @@ public class GraphQLIntrospectionServiceTest extends BasePlatformTestCase {
         throw new RuntimeException("Expected errors exception, found none.");
     }
 
+    public void testPrintIntrospectionWithNullFields() {
+        doTest("schemaWithNullFields.json", "schemaWithNullFields.graphql");
+    }
+
     private void doTest(@NotNull String source, @NotNull String expected) {
         myFixture.configureByText(
                 "result.graphql",
