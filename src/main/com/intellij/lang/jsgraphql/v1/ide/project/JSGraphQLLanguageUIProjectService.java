@@ -473,24 +473,16 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             .create();
     }
 
-    public enum QueryResultDisplay {
-        ALWAYS,
-        ON_ERRORS_ONLY
-    }
-
-    public void showQueryResult(String jsonResponse, QueryResultDisplay display) {
-        if (fileEditor instanceof TextEditor) {
-            final TextEditor fileEditor = (TextEditor) this.fileEditor;
-            updateQueryResultEditor(jsonResponse, fileEditor, true);
-            if (display == QueryResultDisplay.ON_ERRORS_ONLY) {
-                final Integer errorCount = getErrorCount(jsonResponse);
-                if (errorCount == null || errorCount > 0) {
-                    showQueryResultEditor(fileEditor);
-                }
-            } else {
-                showQueryResultEditor(fileEditor);
-            }
+    public void showQueryResult(@NotNull String jsonResponse) {
+        if (!(fileEditor instanceof TextEditor)) {
+            return;
         }
+
+        ApplicationManager.getApplication().invokeLater(() -> {
+            TextEditor textEditor = (TextEditor) fileEditor;
+            updateQueryResultEditor(jsonResponse, textEditor, true);
+            showQueryResultEditor(textEditor);
+        });
     }
 
     private void showQueryResultEditor(TextEditor textEditor) {

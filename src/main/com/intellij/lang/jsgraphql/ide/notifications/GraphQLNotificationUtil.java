@@ -42,20 +42,19 @@ public class GraphQLNotificationUtil {
         Notifications.Bus.notify(notification);
     }
 
-    public static void showRequestExceptionNotification(@NotNull NotificationAction retry,
-                                                        @NotNull String url,
-                                                        @NotNull String error,
-                                                        @NotNull NotificationType notificationType,
-                                                        @NotNull Project project) {
-        Notifications.Bus.notify(
-            new Notification(
-                NOTIFICATION_GROUP_ID,
-                GraphQLBundle.message("graphql.notification.error.title"),
-                url + ": " + error,
-                notificationType
-            ).addAction(retry),
-            project
-        );
+    public static void showGraphQLRequestErrorNotification(@NotNull NotificationAction retry,
+                                                           @NotNull String url,
+                                                           @NotNull Exception error,
+                                                           @NotNull NotificationType notificationType,
+                                                           @NotNull Project project) {
+        Notification notification = new Notification(
+            NOTIFICATION_GROUP_ID,
+            GraphQLBundle.message("graphql.notification.error.title"),
+            url + ": " + GraphQLNotificationUtil.formatExceptionMessage(error),
+            notificationType
+        ).addAction(retry);
+
+        Notifications.Bus.notify(notification, project);
     }
 
     public static void addRetryFailedSchemaIntrospectionAction(@NotNull Notification notification,

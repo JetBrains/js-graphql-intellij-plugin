@@ -65,7 +65,7 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
                 generateAction.set(() -> {
                     try {
                         final String introspectionJson = element.getContainingFile().getText();
-                        final String schemaAsSDL = graphQLIntrospectionService.printIntrospectionJsonAsGraphQL(introspectionJson);
+                        final String schemaAsSDL = graphQLIntrospectionService.printIntrospectionAsGraphQL(introspectionJson);
 
                         final VirtualFile jsonFile = element.getContainingFile().getVirtualFile();
                         final String outputFileName = jsonFile.getName() + ".graphql";
