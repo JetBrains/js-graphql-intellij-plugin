@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
+import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLNamedScope;
@@ -30,6 +31,7 @@ import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -45,6 +47,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     private final VirtualFile configBaseDir;
     private final VirtualFile configFile;
 
+    @Nullable
     private final List<GraphQLConfigEndpoint> endpoints;
     private final GraphQLFile configurationEntryFile;
 
@@ -82,7 +85,8 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
         if (performSchemaDiscovery) {
             final GraphQLSchemaProvider registry = GraphQLSchemaProvider.getInstance(myProject);
             configurationEntryFile = configManager.getConfigurationEntryFile(configData);
-            endpoints = configManager.getEndpoints(configurationEntryFile.getVirtualFile());
+            endpoints = GraphQLFileType.isGraphQLFile(project, configurationEntryFile.getVirtualFile())
+                ? configManager.getEndpoints(configurationEntryFile.getVirtualFile()) : null;
             myValidatedSchema = registry.getValidatedSchema(configurationEntryFile);
         } else {
             myValidatedSchema = null;

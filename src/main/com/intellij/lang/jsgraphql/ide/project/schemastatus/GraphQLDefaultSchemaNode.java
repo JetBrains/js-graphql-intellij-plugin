@@ -33,7 +33,7 @@ public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
         myName = "Default project-wide schema";
         getPresentation().setLocationString(project.getPresentableUrl());
         getPresentation().setIcon(JSGraphQLIcons.Files.GraphQLSchema);
-        final GraphQLFile defaultProjectFile = GraphQLPsiSearchHelper.getService(myProject).getDefaultProjectFile();
+        final GraphQLFile defaultProjectFile = GraphQLPsiSearchHelper.getInstance(myProject).getDefaultProjectFile();
         final GraphQLSchemaProvider registry = GraphQLSchemaProvider.getInstance(myProject);
         myValidatedSchema = registry.getValidatedSchema(defaultProjectFile);
     }

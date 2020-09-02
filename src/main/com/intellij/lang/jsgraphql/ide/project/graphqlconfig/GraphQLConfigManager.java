@@ -18,10 +18,12 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.scratch.ScratchUtil;
 import com.intellij.json.JsonFileType;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
@@ -35,6 +37,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -43,7 +46,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -75,6 +78,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.error.YAMLException;
@@ -94,9 +98,9 @@ import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.GRAPHQL_SCRAT
 /**
  * Manages integration with graphql-config files. See https://github.com/kamilkisiela/graphql-config/tree/legacy
  */
-public class GraphQLConfigManager {
+public class GraphQLConfigManager implements Disposable {
 
-    private final static Logger log = Logger.getInstance(GraphQLConfigManager.class);
+    private final static Logger LOG = Logger.getInstance(GraphQLConfigManager.class);
 
     public final static Topic<GraphQLConfigFileEventListener> TOPIC = new Topic<>(
         "GraphQL Configuration File Change Events",
@@ -130,9 +134,9 @@ public class GraphQLConfigManager {
 
     private volatile boolean initialized = false;
 
-    private volatile Map<VirtualFile, GraphQLConfigData> configPathToConfigurations = Maps.newConcurrentMap();
-    private volatile Map<GraphQLResolvedConfigData, GraphQLFile> configDataToEntryFiles = Maps.newConcurrentMap();
-    private volatile Map<GraphQLResolvedConfigData, GraphQLConfigPackageSet> configDataToPackageset = Maps.newConcurrentMap();
+    private volatile Map<VirtualFile, GraphQLConfigData> configFilesToConfigurations = Maps.newConcurrentMap();
+    private final Map<GraphQLResolvedConfigData, GraphQLFile> configDataToEntryFiles = Maps.newConcurrentMap();
+    private final Map<GraphQLResolvedConfigData, GraphQLConfigPackageSet> configDataToPackageSet = Maps.newConcurrentMap();
     private final Map<String, GraphQLNamedScope> virtualFilePathToScopes = Maps.newConcurrentMap();
     private final Map<GraphQLNamedScope, JSGraphQLSchemaEndpointConfiguration> scopeToSchemaEndpointLanguageConfiguration = Maps.newConcurrentMap();
 
@@ -146,6 +150,7 @@ public class GraphQLConfigManager {
         this.myProject = myProject;
         this.projectScope = GlobalSearchScope.projectScope(myProject);
         this.graphQLConfigGlobMatcher = ServiceManager.getService(myProject, GraphQLConfigGlobMatcher.class);
+        //noinspection deprecation
         this.pluginDescriptor = PluginManager.getPlugin(PluginId.getId("com.intellij.lang.jsgraphql"));
     }
 
@@ -162,6 +167,7 @@ public class GraphQLConfigManager {
         }
     }
 
+    @TestOnly
     public Lock getReadLock() {
         return readLock;
     }
@@ -172,7 +178,8 @@ public class GraphQLConfigManager {
      * @param virtualFile the file to get the config file for
      * @return the closest config file that includes the specified virtualFile, or null if none found or not included
      */
-    public VirtualFile getClosestIncludingConfigFile(VirtualFile virtualFile) {
+    @Nullable
+    public VirtualFile getClosestIncludingConfigFile(@Nullable VirtualFile virtualFile) {
         GraphQLNamedScope schemaScope = getSchemaScope(virtualFile);
         if (schemaScope == null) {
             return null;
@@ -192,7 +199,10 @@ public class GraphQLConfigManager {
     /**
      * Gets the closest .graphqlconfig{.yml,.yaml} file even though it doesn't include the specified file.
      */
-    public VirtualFile getClosestConfigFile(VirtualFile virtualFile) {
+    @Nullable
+    public VirtualFile getClosestConfigFile(@Nullable VirtualFile virtualFile) {
+        if (virtualFile == null) return null;
+
         if (virtualFile instanceof LightVirtualFile) {
             VirtualFile originalFile = ((LightVirtualFile) virtualFile).getOriginalFile();
             if (originalFile != null) {
@@ -214,7 +224,7 @@ public class GraphQLConfigManager {
                     return configFile;
                 }
             }
-            if (contentRoots != null && contentRoots.contains(directory)) {
+            if (contentRoots.contains(directory)) {
                 // don't step outside the module content roots
                 break;
             }
@@ -223,7 +233,7 @@ public class GraphQLConfigManager {
         return null;
     }
 
-    public void createAndOpenConfigFile(VirtualFile configBaseDir, Boolean openEditor) {
+    public void createAndOpenConfigFile(@NotNull VirtualFile configBaseDir, Boolean openEditor) {
         createAndOpenConfigFile(configBaseDir, openEditor, outputStream -> {
             try (InputStream inputStream = pluginDescriptor.getPluginClassLoader().getResourceAsStream("/META-INF/" + GRAPHQLCONFIG)) {
                 if (inputStream != null) {
@@ -236,7 +246,9 @@ public class GraphQLConfigManager {
     }
 
 
-    public void createAndOpenConfigFile(VirtualFile configBaseDir, Boolean openEditor, Consumer<OutputStream> outputStreamConsumer) {
+    public void createAndOpenConfigFile(@NotNull VirtualFile configBaseDir,
+                                        Boolean openEditor,
+                                        @NotNull Consumer<OutputStream> outputStreamConsumer) {
         ApplicationManager.getApplication().runWriteAction(() -> {
             try {
                 final VirtualFile configFile = configBaseDir.createChildData(this, GRAPHQLCONFIG);
@@ -244,9 +256,7 @@ public class GraphQLConfigManager {
                     outputStreamConsumer.accept(stream);
                 }
                 if (openEditor) {
-                    UIUtil.invokeLaterIfNeeded(() -> {
-                        FileEditorManager.getInstance(myProject).openFile(configFile, true, true);
-                    });
+                    UIUtil.invokeLaterIfNeeded(() -> FileEditorManager.getInstance(myProject).openFile(configFile, true, true));
                 }
             } catch (IOException e) {
                 Notifications.Bus.notify(new Notification("GraphQL", "Unable to create " + GRAPHQLCONFIG, "Unable to create file '" + GRAPHQLCONFIG + "' in directory '" + configBaseDir.getPath() + "': " + e.getMessage(), NotificationType.ERROR));
@@ -259,10 +269,11 @@ public class GraphQLConfigManager {
      *
      * @see #buildConfigurationModel(List, Runnable)
      */
+    @NotNull
     public Map<VirtualFile, GraphQLConfigData> getConfigurationsByPath() {
         try {
             readLock.lock();
-            return configPathToConfigurations;
+            return configFilesToConfigurations;
         } finally {
             readLock.unlock();
         }
@@ -272,24 +283,24 @@ public class GraphQLConfigManager {
      * Gets a GraphQL PSI file that will be considered included in the specified configuration.
      * This file can be used as "the entry file" to get the corresponding schema scope.
      */
-    public GraphQLFile getConfigurationEntryFile(GraphQLResolvedConfigData configData) {
+    @NotNull
+    public GraphQLFile getConfigurationEntryFile(@NotNull GraphQLResolvedConfigData configData) {
         try {
             readLock.lock();
             return configDataToEntryFiles.computeIfAbsent(configData, cd -> {
                 final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
-                return ApplicationManager.getApplication().runReadAction(new Computable<GraphQLFile>() {
-                    @Override
-                    public GraphQLFile compute() {
-                        return (GraphQLFile) psiFileFactory.createFileFromText("graphql-config:" + UUID.randomUUID().toString(), GraphQLLanguage.INSTANCE, "");
-                    }
-                });
+                return ApplicationManager.getApplication().runReadAction(
+                    (Computable<GraphQLFile>) () -> (GraphQLFile) psiFileFactory
+                        .createFileFromText("graphql-config:" + UUID.randomUUID().toString(), GraphQLLanguage.INSTANCE, ""));
             });
         } finally {
             readLock.unlock();
         }
     }
 
-    public JSGraphQLSchemaEndpointConfiguration getEndpointLanguageConfiguration(VirtualFile virtualFile, @Nullable Ref<VirtualFile> configBasedir) {
+    @Nullable
+    public JSGraphQLSchemaEndpointConfiguration getEndpointLanguageConfiguration(@NotNull VirtualFile virtualFile,
+                                                                                 @Nullable Ref<VirtualFile> configBasedir) {
         if (virtualFile.getFileType() != GraphQLFileType.INSTANCE && virtualFile.getFileType() != JSGraphQLEndpointFileType.INSTANCE && !GraphQLFileType.isGraphQLScratchFile(myProject, virtualFile)) {
             if (!GraphQLFindUsagesUtil.getService().getIncludedFileTypes().contains(virtualFile.getFileType())) {
                 return null;
@@ -305,12 +316,10 @@ public class GraphQLConfigManager {
                         if (extensions != null && extensions.containsKey(ENDPOINT_LANGUAGE_EXTENSION)) {
                             try {
                                 final Gson gson = new Gson();
-                                final JSGraphQLSchemaEndpointConfiguration config = gson.fromJson(gson.toJsonTree(extensions.get(ENDPOINT_LANGUAGE_EXTENSION)), JSGraphQLSchemaEndpointConfiguration.class);
-                                return config;
+                                return gson.fromJson(gson.toJsonTree(extensions.get(ENDPOINT_LANGUAGE_EXTENSION)), JSGraphQLSchemaEndpointConfiguration.class);
                             } catch (JsonSyntaxException je) {
-                                log.warn("Invalid JSON in config file", je);
+                                LOG.warn("Invalid JSON in config file", je);
                             }
-
                         }
                     }
                     // using sentinel value to avoid re-computing values which happens on nulls
@@ -331,19 +340,19 @@ public class GraphQLConfigManager {
 
     /**
      * Gets the endpoints that are within scope for the specified GraphQL virtual file.
-     * <p>
-     * If the file is not a GraphQL file, null is returned
      */
     @SuppressWarnings("unchecked")
-    public List<GraphQLConfigEndpoint> getEndpoints(VirtualFile virtualFile) {
-        if (virtualFile.getFileType() != GraphQLFileType.INSTANCE && !GraphQLFileType.isGraphQLScratchFile(myProject, virtualFile)) {
-            return null;
+    @NotNull
+    public List<GraphQLConfigEndpoint> getEndpoints(@NotNull VirtualFile virtualFile) {
+        // NOTE: modifiable list since it powers the endpoint UI and must support item operations
+        ArrayList<GraphQLConfigEndpoint> emptyList = Lists.newArrayListWithExpectedSize(1);
+
+        if (!GraphQLFileType.isGraphQLFile(myProject, virtualFile)) {
+            return emptyList;
         }
 
         try {
             readLock.lock();
-            // NOTE: modifiable list since it powers the endpoint UI and must support item operations
-            ArrayList<GraphQLConfigEndpoint> emptyList = Lists.newArrayListWithExpectedSize(1);
 
             final GraphQLNamedScope schemaScope = initialized ? getSchemaScope(virtualFile) : null;
             if (schemaScope == null) {
@@ -392,10 +401,10 @@ public class GraphQLConfigManager {
     }
 
     void initialize() {
-        final MessageBusConnection connection = myProject.getMessageBus().connect();
+        final MessageBusConnection connection = myProject.getMessageBus().connect(this);
         connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
             @Override
-            public void rootsChanged(ModuleRootEvent event) {
+            public void rootsChanged(@NotNull ModuleRootEvent event) {
                 // rebuild configuration when the project structure is changed, e.g. excludes
                 ApplicationManager.getApplication().invokeLater(() -> {
                     // let queued updates complete
@@ -416,7 +425,7 @@ public class GraphQLConfigManager {
                             if (!configurationsChanged) {
                                 try {
                                     readLock.lock();
-                                    for (VirtualFile configPathDir : configPathToConfigurations.keySet()) {
+                                    for (VirtualFile configPathDir : configFilesToConfigurations.keySet()) {
                                         if (!configPathDir.isValid() || file.getPath().startsWith(configPathDir.getPath())) {
                                             configurationsChanged = true;
                                             break;
@@ -474,13 +483,13 @@ public class GraphQLConfigManager {
                     }
                 }
             }
-        });
+        }, this);
 
         buildConfigurationModel(null, this::introspectEndpoints);
 
     }
 
-    private boolean hasGraphQLConfigComment(PsiElement psiElement) {
+    private static boolean hasGraphQLConfigComment(@Nullable PsiElement psiElement) {
         if (psiElement instanceof PsiComment) {
             return psiElement.getText().contains(GRAPHQLCONFIG_COMMENT);
         }
@@ -514,7 +523,11 @@ public class GraphQLConfigManager {
                 return;
             }
 
-            final Task.Backgroundable task = new Task.Backgroundable(myProject, "GraphQL Configuration Scan", false) {
+            final Task.Backgroundable task = new Task.Backgroundable(
+                myProject,
+                GraphQLBundle.message("graphql.progress.configuration.scan"),
+                false
+            ) {
                 @Override
                 public void run(@NotNull ProgressIndicator indicator) {
                     indicator.setIndeterminate(true);
@@ -650,10 +663,10 @@ public class GraphQLConfigManager {
 
         try {
             writeLock.lock();
-            this.configPathToConfigurations = newConfigPathToConfigurations;
+            this.configFilesToConfigurations = newConfigPathToConfigurations;
             this.virtualFilePathToScopes.clear();
             this.configDataToEntryFiles.clear();
-            this.configDataToPackageset.clear();
+            this.configDataToPackageSet.clear();
             this.scopeToSchemaEndpointLanguageConfiguration.clear();
             // finally mark as initialized
             initialized = true;
@@ -671,7 +684,7 @@ public class GraphQLConfigManager {
         final List<GraphQLResolvedConfigData> configDataList = Lists.newArrayList();
         try {
             readLock.lock();
-            for (GraphQLConfigData configData : configPathToConfigurations.values()) {
+            for (GraphQLConfigData configData : configFilesToConfigurations.values()) {
                 configDataList.add(configData);
                 if (configData.projects != null) {
                     configDataList.addAll(configData.projects.values());
@@ -683,46 +696,52 @@ public class GraphQLConfigManager {
         configDataList.forEach(configData -> {
             final GraphQLFile entryFile = getConfigurationEntryFile(configData);
             final List<GraphQLConfigEndpoint> endpoints = getEndpoints(entryFile.getVirtualFile());
-            if (endpoints != null) {
-                for (GraphQLConfigEndpoint endpoint : endpoints) {
-                    if (Boolean.TRUE.equals(endpoint.introspect)) {
-                        // endpoint should be automatically introspected
-                        final String schemaPath = endpoint.configPackageSet.getConfigData().schemaPath;
-                        if (schemaPath != null && !schemaPath.trim().isEmpty()) {
-                            final Notification introspect = new Notification("GraphQL", "Get GraphQL Schema from Endpoint now?", "Introspect '" + endpoint.name + "' to update the local schema file.", NotificationType.INFORMATION).setImportant(true);
-                            introspect.addAction(new NotificationAction("Introspect '" + endpoint.url + "'") {
-                                @Override
-                                public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                                    GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
-                                }
-                            });
-                            String schemaFilePath = endpoint.configPackageSet.getSchemaFilePath();
-                            if (schemaFilePath != null) {
-                                final VirtualFile schemaFile = LocalFileSystem.getInstance().findFileByPath(schemaFilePath);
-                                if (schemaFile != null) {
-                                    introspect.addAction(new NotificationAction("Open schema file") {
-                                        @Override
-                                        public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                                            if (schemaFile.isValid()) {
-                                                FileEditorManager.getInstance(myProject).openFile(schemaFile, true);
-                                            } else {
-                                                notification.expire();
-                                            }
-                                        }
-                                    });
-                                }
+            for (GraphQLConfigEndpoint endpoint : endpoints) {
+                if (Boolean.TRUE.equals(endpoint.introspect)) {
+                    // endpoint should be automatically introspected
+                    final String schemaPath = endpoint.configPackageSet.getConfigData().schemaPath;
+                    if (schemaPath != null && !schemaPath.trim().isEmpty()) {
+                        final Notification introspect = new Notification(
+                            GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                            GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.title"),
+                            GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.body", endpoint.name),
+                            NotificationType.INFORMATION
+                        ).setImportant(true);
+
+                        introspect.addAction(new NotificationAction(GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.action", endpoint.url)) {
+                            @Override
+                            public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+                                GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
                             }
-                            Notifications.Bus.notify(introspect);
+                        });
+                        String schemaFilePath = endpoint.configPackageSet.getSchemaFilePath();
+                        if (schemaFilePath != null) {
+                            final VirtualFile schemaFile = LocalFileSystem.getInstance().findFileByPath(schemaFilePath);
+                            if (schemaFile != null) {
+                                introspect.addAction(new NotificationAction("Open schema file") {
+                                    @Override
+                                    public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+                                        if (schemaFile.isValid()) {
+                                            FileEditorManager.getInstance(myProject).openFile(schemaFile, true);
+                                        } else {
+                                            notification.expire();
+                                        }
+                                    }
+                                });
+                            }
                         }
+                        Notifications.Bus.notify(introspect);
                     }
                 }
             }
         });
     }
 
-    @Nullable
-    public Set<VirtualFile> getContentRoots(VirtualFile virtualFile) {
-        final Module module = ModuleUtil.findModuleForFile(virtualFile, myProject);
+    @NotNull
+    public Set<VirtualFile> getContentRoots(@Nullable VirtualFile virtualFile) {
+        if (virtualFile == null) return Collections.emptySet();
+
+        final Module module = ModuleUtilCore.findModuleForFile(virtualFile, myProject);
         if (module != null) {
             return Sets.newHashSet(ModuleRootManager.getInstance(module).getContentRoots());
         } else {
@@ -731,62 +750,21 @@ public class GraphQLConfigManager {
     }
 
     @Nullable
-    public GraphQLNamedScope getSchemaScope(VirtualFile virtualFile) {
+    public GraphQLNamedScope getSchemaScope(@Nullable VirtualFile virtualFile) {
         VirtualFile virtualFileWithPath = GraphQLPsiUtil.getVirtualFile(virtualFile);
         if (virtualFileWithPath == null) return null;
 
         try {
             readLock.lock();
             GraphQLNamedScope namedScope = virtualFilePathToScopes.computeIfAbsent(virtualFileWithPath.getPath(), path -> {
-                VirtualFile configBaseDir;
-                if (!ScratchUtil.isScratch(virtualFileWithPath)) {
-                    if (virtualFileWithPath instanceof LightVirtualFile) {
-                        // handle entry files
-                        final LightVirtualFile inMemoryVirtualFile = (LightVirtualFile) virtualFileWithPath;
-                        configBaseDir = null;
-                        for (Map.Entry<VirtualFile, GraphQLConfigData> entry : configPathToConfigurations.entrySet()) {
-                            final GraphQLConfigData configData = entry.getValue();
-                            GraphQLFile entryFile = getConfigurationEntryFile(configData);
-                            boolean found = false;
-                            if (entryFile.getVirtualFile().equals(inMemoryVirtualFile)) {
-                                // the virtual file is an entry file for the specific config base (either the root schema or one of the nested graphql-config project schemas)
-                                configBaseDir = entry.getKey();
-                                found = true;
-                            } else if (configData.projects != null) {
-                                for (Map.Entry<String, GraphQLResolvedConfigData> projectEntry : configData.projects.entrySet()) {
-                                    entryFile = getConfigurationEntryFile(projectEntry.getValue());
-                                    if (entryFile.getVirtualFile().equals(inMemoryVirtualFile)) {
-                                        configBaseDir = entry.getKey();
-                                        found = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (found) {
-                                break;
-                            }
-                        }
-                        if (configBaseDir == null) {
-                            final PsiFile jsonIntrospectionFile = inMemoryVirtualFile.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_SDL_TO_JSON);
-                            if (jsonIntrospectionFile != null && jsonIntrospectionFile.getVirtualFile() != null) {
-                                // the file is the SDL derived from a JSON introspection file, so use the JSON file directory to find the associated config
-                                configBaseDir = jsonIntrospectionFile.getVirtualFile().getParent();
-                            } else if (inMemoryVirtualFile.getOriginalFile() != null) {
-                                // editing of injected fragments produce in-memory mapped version of the original file, e.g. editing GraphQL inside a JS as it's own editing window
-                                configBaseDir = inMemoryVirtualFile.getOriginalFile().getParent();
-                            }
-                        }
-                    } else {
-                        // on-disk file, so use the containing directory to look for config files
-                        configBaseDir = virtualFileWithPath.getParent();
-                    }
-                } else {
-                    configBaseDir = getConfigBaseDirForScratch(virtualFileWithPath);
-                }
+                VirtualFile configBaseDir = !ScratchUtil.isScratch(virtualFileWithPath)
+                    ? getConfigBaseDir(virtualFileWithPath)
+                    : getConfigBaseDirForScratch(virtualFileWithPath);
+
                 // locate the nearest config file, see https://github.com/kamilkisiela/graphql-config/tree/legacy/src/findGraphQLConfigFile.ts
                 final Set<VirtualFile> contentRoots = getContentRoots(virtualFileWithPath);
                 while (configBaseDir != null) {
-                    GraphQLConfigData configData = configPathToConfigurations.get(configBaseDir);
+                    GraphQLConfigData configData = configFilesToConfigurations.get(configBaseDir);
                     if (configData != null) {
                         final VirtualFile effectiveConfigBaseDir = configBaseDir;
                         // check projects first
@@ -798,7 +776,7 @@ public class GraphQLConfigManager {
                                     continue;
                                 }
                                 final GraphQLResolvedConfigData projectConfigData = entry.getValue();
-                                final GraphQLConfigPackageSet packageSet = configDataToPackageset.computeIfAbsent(projectConfigData, dataKey -> {
+                                final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(projectConfigData, dataKey -> {
                                     final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
                                     return new GraphQLConfigPackageSet(effectiveConfigBaseDir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
                                 });
@@ -808,7 +786,7 @@ public class GraphQLConfigManager {
                             }
                         }
                         // then top level config
-                        final GraphQLConfigPackageSet packageSet = configDataToPackageset.computeIfAbsent(configData, dataKey -> {
+                        final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(configData, dataKey -> {
                             final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
                             return new GraphQLConfigPackageSet(effectiveConfigBaseDir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
                         });
@@ -817,7 +795,7 @@ public class GraphQLConfigManager {
                         }
                         return NONE;
                     } else {
-                        if (contentRoots != null && contentRoots.contains(configBaseDir)) {
+                        if (contentRoots.contains(configBaseDir)) {
                             // don't step outside the module content roots
                             break;
                         }
@@ -837,13 +815,61 @@ public class GraphQLConfigManager {
         }
     }
 
+    @Nullable
+    private VirtualFile getConfigBaseDir(@NotNull VirtualFile virtualFile) {
+        VirtualFile configBaseDir = null;
+
+        if (virtualFile instanceof LightVirtualFile) {
+            // handle entry files
+            final LightVirtualFile inMemoryVirtualFile = (LightVirtualFile) virtualFile;
+            for (Map.Entry<VirtualFile, GraphQLConfigData> entry : configFilesToConfigurations.entrySet()) {
+                final GraphQLConfigData configData = entry.getValue();
+                GraphQLFile entryFile = getConfigurationEntryFile(configData);
+                boolean found = false;
+                if (entryFile.getVirtualFile().equals(inMemoryVirtualFile)) {
+                    // the virtual file is an entry file for the specific config base (either the root schema or one of the nested graphql-config project schemas)
+                    configBaseDir = entry.getKey();
+                    found = true;
+                } else if (configData.projects != null) {
+                    for (Map.Entry<String, GraphQLResolvedConfigData> projectEntry : configData.projects.entrySet()) {
+                        entryFile = getConfigurationEntryFile(projectEntry.getValue());
+                        if (entryFile.getVirtualFile().equals(inMemoryVirtualFile)) {
+                            configBaseDir = entry.getKey();
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (found) {
+                    break;
+                }
+            }
+
+            if (configBaseDir == null) {
+                final PsiFile jsonIntrospectionFile = inMemoryVirtualFile.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_SDL_TO_JSON);
+                if (jsonIntrospectionFile != null && jsonIntrospectionFile.getVirtualFile() != null) {
+                    // the file is the SDL derived from a JSON introspection file, so use the JSON file directory to find the associated config
+                    configBaseDir = jsonIntrospectionFile.getVirtualFile().getParent();
+                } else if (inMemoryVirtualFile.getOriginalFile() != null) {
+                    // editing of injected fragments produce in-memory mapped version of the original file, e.g. editing GraphQL inside a JS as it's own editing window
+                    configBaseDir = inMemoryVirtualFile.getOriginalFile().getParent();
+                }
+            }
+        } else {
+            // on-disk file, so use the containing directory to look for config files
+            configBaseDir = virtualFile.getParent();
+        }
+        return configBaseDir;
+    }
+
     /**
      * Resolves the logical configuration base dir for a scratch file that is placed outside the project by IntelliJ
      *
      * @param scratchVirtualFile the scratch file to resolve a configuration dir for
      * @return the resolved configuration base dir or null if none was found
      */
-    private VirtualFile getConfigBaseDirForScratch(VirtualFile scratchVirtualFile) {
+    @Nullable
+    private VirtualFile getConfigBaseDirForScratch(@NotNull VirtualFile scratchVirtualFile) {
 
         final PsiFile psiFile = PsiManager.getInstance(myProject).findFile(scratchVirtualFile);
 
@@ -887,30 +913,40 @@ public class GraphQLConfigManager {
             // - the project base dir
             try {
                 readLock.lock();
-                if (configPathToConfigurations.size() == 1) {
-                    final VirtualFile singleConfigPath = configPathToConfigurations.keySet().iterator().next();
+                if (configFilesToConfigurations.size() == 1) {
+                    final VirtualFile singleConfigPath = configFilesToConfigurations.keySet().iterator().next();
                     baseDir.set(singleConfigPath);
                 }
             } finally {
                 readLock.unlock();
             }
             if (baseDir.get() == null) {
-                baseDir.set(myProject.getBaseDir());
+                baseDir.set(ProjectUtil.guessProjectDir(myProject));
             }
         }
 
         return baseDir.get();
     }
 
-    private void createParseErrorNotification(VirtualFile file, Exception e) {
-        Notifications.Bus.notify(new Notification("GraphQL", "Unable to parse " + file.getName(), "<a href=\"" + file.getUrl() + "\">" + file.getPresentableUrl() + "</a>: " + e.getMessage(), NotificationType.WARNING, (notification, event) -> {
-            VirtualFile virtualFile = VirtualFileManager.getInstance().findFileByUrl(event.getURL().toString());
-            if (virtualFile != null) {
-                FileEditorManager.getInstance(myProject).openFile(virtualFile, true, true);
-            } else {
-                notification.expire();
-            }
-        }));
+    private void createParseErrorNotification(@NotNull VirtualFile file, @NotNull Exception e) {
+        Notification notification = new Notification(
+            GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+            GraphQLBundle.message("graphql.notification.unable.to.parse.file", file.getName()),
+            "<a href=\"" + file.getUrl() + "\">" + file.getPresentableUrl() + "</a>: " + GraphQLNotificationUtil.formatExceptionMessage(e),
+            NotificationType.WARNING,
+            (n, event) -> {
+                VirtualFile virtualFile = VirtualFileManager.getInstance().findFileByUrl(event.getURL().toString());
+                if (virtualFile != null) {
+                    FileEditorManager.getInstance(myProject).openFile(virtualFile, true, true);
+                } else {
+                    n.expire();
+                }
+            });
+
+        Notifications.Bus.notify(notification);
     }
 
+    @Override
+    public void dispose() {
+    }
 }

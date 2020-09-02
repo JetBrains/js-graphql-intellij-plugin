@@ -27,6 +27,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -43,9 +44,11 @@ import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProj
 public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
 
     private final String projectKey;
+
+    @Nullable
     private final List<GraphQLConfigEndpoint> endpoints;
 
-    public GraphQLSchemaEndpointsListNode(SimpleNode parent, String projectKey, List<GraphQLConfigEndpoint> endpoints) {
+    public GraphQLSchemaEndpointsListNode(SimpleNode parent, String projectKey, @Nullable List<GraphQLConfigEndpoint> endpoints) {
         super(parent);
         this.projectKey = projectKey;
         this.endpoints = endpoints;

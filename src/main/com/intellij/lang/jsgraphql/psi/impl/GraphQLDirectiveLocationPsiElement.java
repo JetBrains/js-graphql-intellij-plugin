@@ -32,7 +32,7 @@ public abstract class GraphQLDirectiveLocationPsiElement extends GraphQLElementI
         final Ref<PsiReference> reference = new Ref<>();
         final GraphQLDirectiveLocationPsiElement psiElement = this;
         final String locationName = psiElement.getText();
-        GraphQLPsiSearchHelper.getService(getProject()).getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
+        GraphQLPsiSearchHelper.getInstance(getProject()).getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
             @Override
             public void visitElement(PsiElement element) {
                 if(element instanceof GraphQLEnumValue && element.getText().equals(locationName)) {

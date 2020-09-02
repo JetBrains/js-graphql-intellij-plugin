@@ -491,7 +491,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 if (directiveLocations != null) {
                     final Set<String> currentLocations = Sets.newHashSet();
                     directiveLocations.getDirectiveLocationList().forEach(location -> currentLocations.add(location.getText()));
-                    final PsiFile builtInSchema = GraphQLPsiSearchHelper.getService(completionElement.getProject()).getBuiltInSchema();
+                    final PsiFile builtInSchema = GraphQLPsiSearchHelper.getInstance(completionElement.getProject()).getBuiltInSchema();
 
                     builtInSchema.accept(new PsiRecursiveElementVisitor() {
                         @Override
@@ -718,7 +718,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                         // fragment must be compatible with the type in scope
                         final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(parameters.getOriginalFile());
 
-                        final List<GraphQLFragmentDefinition> knownFragmentDefinitions = GraphQLPsiSearchHelper.getService(completionElement.getProject()).getKnownFragmentDefinitions(parameters.getOriginalFile());
+                        final List<GraphQLFragmentDefinition> knownFragmentDefinitions = GraphQLPsiSearchHelper.getInstance(completionElement.getProject()).getKnownFragmentDefinitions(parameters.getOriginalFile());
                         for (GraphQLFragmentDefinition fragmentDefinition : knownFragmentDefinitions) {
                             final String name = fragmentDefinition.getName();
                             if (name != null) {

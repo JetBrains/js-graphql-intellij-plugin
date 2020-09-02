@@ -65,7 +65,7 @@ public class GraphQLReferenceService {
     }
 
     public GraphQLReferenceService(@NotNull final Project project) {
-        psiSearchHelper = GraphQLPsiSearchHelper.getService(project);
+        psiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
         project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
             @Override
             public void beforePsiChanged(boolean isPhysical) {
@@ -213,7 +213,7 @@ public class GraphQLReferenceService {
         final String name = element.getName();
         Ref<PsiReference> reference = new Ref<>();
         if (name != null) {
-            final GraphQLPsiSearchHelper graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getService(element.getProject());
+            final GraphQLPsiSearchHelper graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(element.getProject());
             if (name.startsWith("__")) {
                 // __typename or introspection fields __schema and __type which implicitly extends the query root type
                 graphQLPsiSearchHelper.getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
