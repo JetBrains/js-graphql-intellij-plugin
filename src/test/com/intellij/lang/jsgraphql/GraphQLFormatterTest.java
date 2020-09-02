@@ -1,26 +1,25 @@
- /**
- *  Copyright (c) 2015-present, Jim Kynde Meyer
- *  All rights reserved.
- *
- *  This source code is licensed under the MIT license found in the
- *  LICENSE file in the root directory of this source tree.
+/**
+ * Copyright (c) 2015-present, Jim Kynde Meyer
+ * All rights reserved.
+ * <p>
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.intellij.lang.jsgraphql;
 
- import com.intellij.openapi.command.WriteCommandAction;
- import com.intellij.psi.codeStyle.CodeStyleManager;
- import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
- import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
- import org.junit.Test;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import org.junit.Test;
 
- public class JSGraphQLCodeInsightTest extends LightPlatformCodeInsightFixtureTestCase {
+public class GraphQLFormatterTest extends BasePlatformTestCase {
 
-     @Override
+    @Override
     protected String getTestDataPath() {
         return "test-resources/testData/graphql";
     }
 
-    @Test
     public void testFormatter() {
         myFixture.configureByFiles("FormatterTestData.graphql");
         CodeStyleSettingsManager.getSettings(getProject()).KEEP_BLANK_LINES_IN_CODE = 2;

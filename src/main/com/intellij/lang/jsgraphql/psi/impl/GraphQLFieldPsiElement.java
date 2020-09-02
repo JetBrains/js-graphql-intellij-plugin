@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.psi.GraphQLField;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -27,7 +27,7 @@ public abstract class GraphQLFieldPsiElement extends GraphQLNamedElementImpl imp
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(getProject()).getSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
         final String fieldName = this.getName();
         if (schema != null && fieldName != null) {
             // the type scope for a field is the output type of the field, given the name of the field and its parent

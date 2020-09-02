@@ -1,0 +1,43 @@
+interface User implements WithID @one {
+    id: ID
+    id: ID
+}
+
+interface User implements WithID @two {
+    id: ID
+    name: String
+}
+
+extend interface User implements WithID & Named @three {
+    name: String
+    phone: String
+}
+
+extend interface User implements WithID & Named @three @four {
+    name: String
+    phone: String
+    zip: String
+}
+
+interface WithID {
+    id: ID
+}
+
+interface Named {
+    name: String
+}
+
+interface Inter implements Named {
+    name: String
+}
+
+enum User {
+    VALUE
+}
+
+directive @one on INTERFACE
+directive @two on INTERFACE
+directive @three on INTERFACE
+directive @four on INTERFACE
+
+type Query

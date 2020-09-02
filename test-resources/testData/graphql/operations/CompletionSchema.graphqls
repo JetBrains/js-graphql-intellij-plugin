@@ -8,6 +8,7 @@ type Query {
     human(id: ID!): Human
     node(id: ID!): Node
     nodes(ids: [ID]!): [Node]
+    user: User
 }
 
 type Mutation {
@@ -53,4 +54,18 @@ input MyInput {
 
 input MyNestedInput {
     val: Float
+}
+
+type User {
+    name: String
+}
+
+type User {
+    name: String
+    age: Int!
+}
+
+extend type User {
+    age: Int
+    address: String
 }

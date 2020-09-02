@@ -17,8 +17,8 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
+import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
@@ -39,7 +39,7 @@ import java.util.Map;
  */
 public class GraphQLConfigSchemaNode extends CachingSimpleNode {
 
-    private final GraphQLSchemaWithErrors schemaWithErrors;
+    private final GraphQLValidatedSchema myValidatedSchema;
     private final GraphQLConfigManager configManager;
     private final GraphQLResolvedConfigData configData;
     private final VirtualFile configBaseDir;
@@ -51,7 +51,11 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     private Map<String, GraphQLResolvedConfigData> projectsConfigData;
     private boolean performSchemaDiscovery = true;
 
-    protected GraphQLConfigSchemaNode(Project project, SimpleNode parent, GraphQLConfigManager configManager, GraphQLResolvedConfigData configData, VirtualFile configBaseDir) {
+    protected GraphQLConfigSchemaNode(Project project,
+                                      SimpleNode parent,
+                                      GraphQLConfigManager configManager,
+                                      GraphQLResolvedConfigData configData,
+                                      VirtualFile configBaseDir) {
         super(project, parent);
         this.configManager = configManager;
         this.configData = configData;
@@ -76,12 +80,12 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
         }
 
         if (performSchemaDiscovery) {
-            final GraphQLTypeDefinitionRegistryServiceImpl registry = GraphQLTypeDefinitionRegistryServiceImpl.getService(myProject);
+            final GraphQLSchemaProvider registry = GraphQLSchemaProvider.getInstance(myProject);
             configurationEntryFile = configManager.getConfigurationEntryFile(configData);
             endpoints = configManager.getEndpoints(configurationEntryFile.getVirtualFile());
-            schemaWithErrors = registry.getSchemaWithErrors(configurationEntryFile);
+            myValidatedSchema = registry.getValidatedSchema(configurationEntryFile);
         } else {
-            schemaWithErrors = null;
+            myValidatedSchema = null;
             endpoints = null;
             configurationEntryFile = null;
         }
@@ -122,9 +126,9 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     public SimpleNode[] buildChildren() {
         final List<SimpleNode> children = Lists.newArrayList();
         if (performSchemaDiscovery) {
-            children.add(new GraphQLSchemaContentNode(this, schemaWithErrors));
-            if (schemaWithErrors.getRegistry().isProcessedGraphQL()) {
-                children.add(new GraphQLSchemaErrorsListNode(this, schemaWithErrors));
+            children.add(new GraphQLSchemaContentNode(this, myValidatedSchema));
+            if (myValidatedSchema.getRegistry().isProcessedGraphQL()) {
+                children.add(new GraphQLSchemaErrorsListNode(this, myValidatedSchema));
             }
         }
         if (projectsConfigData != null && !projectsConfigData.isEmpty()) {
@@ -145,7 +149,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     @NotNull
     @Override
     public Object[] getEqualityObjects() {
-        return new Object[]{configData, schemaWithErrors};
+        return new Object[]{configData, myValidatedSchema};
     }
 
     private boolean representsCurrentFile() {

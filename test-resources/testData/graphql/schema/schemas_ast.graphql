@@ -1,0 +1,13 @@
+schema {
+  query: MyQuery
+  mutation: MyMutation
+}
+
+type MyMutation {}
+
+type MyQuery {}
+
+type MySubscription {}
+
+type OtherQuery {}
+

@@ -9,11 +9,14 @@ package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLObjectField;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.util.PsiTreeUtil;
-import graphql.schema.*;
+import graphql.schema.GraphQLInputFieldsContainer;
+import graphql.schema.GraphQLInputObjectField;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLObjectFieldPsiElement extends GraphQLNamedElementImpl implements GraphQLObjectField, GraphQLTypeScopeProvider {
@@ -23,7 +26,7 @@ public abstract class GraphQLObjectFieldPsiElement extends GraphQLNamedElementIm
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLTypeDefinitionRegistryServiceImpl.getService(getProject()).getSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
         if (schema != null && this.getName() != null) {
             // the type scope for an object field the type of the field as defined in the parent type scope
             final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLTypeScopeProvider.class);

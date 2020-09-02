@@ -1,0 +1,32 @@
+interface Named {
+  name: Int
+}
+
+interface Other {
+  phone: String
+}
+
+interface WithPhone {
+  phone: String
+}
+
+type Query {}
+
+type User implements Named @one @two {
+  name: Int
+  id: ID
+  phone: String
+}
+
+extend type User implements WithPhone {
+  address: String
+}
+
+extend type User @three {}
+
+extend type User implements Other {}
+
+extend type User {
+  zip: String
+}
+

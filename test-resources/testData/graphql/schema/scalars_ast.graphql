@@ -1,0 +1,4 @@
+type Query {}
+
+scalar S @one @two
+

@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import java.util.List;
 
-public class GraphQLInjectionCodeInsightTest extends BasePlatformTestCase {
+public class GraphQLInjectionHighlightingTest extends BasePlatformTestCase {
 
     @Override
     public void setUp() throws Exception {
@@ -35,9 +35,6 @@ public class GraphQLInjectionCodeInsightTest extends BasePlatformTestCase {
         return "test-resources/testData/graphql/injection";
     }
 
-    // ---- highlighting -----
-
-    @Test
     public void testErrorAnnotatorOnFragments() {
         myFixture.configureByFiles("injection-comment.js");
         final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
@@ -45,7 +42,6 @@ public class GraphQLInjectionCodeInsightTest extends BasePlatformTestCase {
         assertEquals("Unknown fragment name should be the error", "OnlyTheUnknownFragmentShouldBeHighlightedAsError", highlighting.get(0).getText());
     }
 
-    @Test
     public void testErrorAnnotatorSourceLines1() {
         myFixture.configureByFiles("lines-1/injection-source-lines-1.js");
         final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
@@ -54,7 +50,6 @@ public class GraphQLInjectionCodeInsightTest extends BasePlatformTestCase {
         assertEquals("Should mark ServerType in the right injected position", 201, highlighting.get(0).getStartOffset());
     }
 
-    @Test
     public void testErrorAnnotatorSourceLines2() {
         myFixture.configureByFiles("lines-2/injection-source-lines-2.js");
         final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);

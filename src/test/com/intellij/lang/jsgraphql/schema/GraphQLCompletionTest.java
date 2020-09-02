@@ -11,94 +11,72 @@ import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase;
-import org.junit.Test;
+import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 
 import java.util.List;
 
 
-public class JSGraphQLSchemaCodeInsightTest extends LightPlatformCodeInsightFixtureTestCase {
-
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-    }
+public class GraphQLCompletionTest extends BasePlatformTestCase {
 
     @Override
     protected String getTestDataPath() {
-        return "test-resources/testData/graphql/schema";
+        return "test-resources/testData/graphql/completion";
     }
 
-    // ---- completion ----
-
-    @Test
     public void testCompletionImplementsFirstInterface() {
         doTestCompletion("CompletionImplementsFirstInterface.graphqls", Lists.newArrayList("KnownInterface1", "KnownInterface2"));
     }
 
-    @Test
     public void testCompletionImplementsSecondInterface() {
         doTestCompletion("CompletionImplementsSecondInterface.graphqls", Lists.newArrayList("KnownInterface2"));
     }
 
-    @Test
     public void testCompletionTopLevelKeywords() {
         doTestCompletion("CompletionTopLevelKeywords.graphqls", Lists.newArrayList("directive", "enum", "extend", "fragment", "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union", "{"));
     }
 
-    @Test
     public void testCompletionImplementsKeyword1() {
         doTestCompletion("CompletionImplementsKeyword1.graphqls", Lists.newArrayList("implements"));
     }
 
-    @Test
     public void testCompletionImplementsKeyword2() {
         doTestCompletion("CompletionImplementsKeyword2.graphqls", Lists.newArrayList("implements"));
     }
 
-    @Test
     public void testCompletionFieldType() {
         doTestCompletion("CompletionFieldType.graphqls", Lists.newArrayList("AnotherKnownType", "Boolean", "Float", "ID", "Int", "KnownInterface", "KnownType", "MyEnum", "MyUnion", "String"));
     }
 
-    @Test
     public void testCompletionInputFieldType() {
         doTestCompletion("CompletionInputFieldType.graphqls", Lists.newArrayList("Boolean", "Float", "ID", "Int", "MyEnum", "MyInput1", "String"));
     }
 
-    @Test
     public void testCompletionArgumentType() {
         doTestCompletion("CompletionArgumentType.graphqls", Lists.newArrayList("Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String"));
     }
 
-    @Test
     public void testCompletionSecondArgumentType() {
         doTestCompletion("CompletionSecondArgumentType.graphqls", Lists.newArrayList("Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String"));
     }
 
-    @Test
     public void testCompletionDirective1() {
         doTestCompletion("CompletionDirective1.graphqls", Lists.newArrayList("deprecated", "foo"));
     }
 
-    @Test
     public void testCompletionDirective2() {
         doTestCompletion("CompletionDirective2.graphqls", Lists.newArrayList("deprecated", "foo"));
     }
 
-    @Test
     public void testCompletionDirective3() {
         // TODO: currently not supported by the completion contributor
         //doTestCompletion("CompletionDirective3.graphqls", Lists.newArrayList("arg"));
     }
 
-    @Test
     public void testCompletionDirective4() {
         // TODO: currently not supported by the completion contributor
         //doTestCompletion("CompletionDirective4.graphqls", Lists.newArrayList("false", "true"));
     }
 
-    @Test
     public void testCompletionFieldOverride() {
         doTestCompletion("CompletionFieldOverride.graphqls", Lists.newArrayList("fieldToImpl2: Boolean"));
     }
@@ -113,15 +91,5 @@ public class JSGraphQLSchemaCodeInsightTest extends LightPlatformCodeInsightFixt
             PsiDocumentManager.getInstance(myFixture.getProject()).commitAllDocuments();
         });
     }
-
-
-    // ---- highlighting -----
-
-    // TODO
-//    @Test
-//    public void testErrorAnnotator() {
-//        myFixture.configureByFiles("ErrorAnnotator.graphqls");
-//        myFixture.checkHighlighting(false, false, false);
-//    }
 
 }

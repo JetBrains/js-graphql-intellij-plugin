@@ -12,13 +12,13 @@ import graphql.schema.idl.TypeDefinitionRegistry;
 
 import java.util.List;
 
-public class TypeDefinitionRegistryWithErrors {
+public class GraphQLValidatedTypeDefinitionRegistry {
 
     private final TypeDefinitionRegistry registry;
     private final List<GraphQLException> errors;
     private final boolean processedGraphQL;
 
-    public TypeDefinitionRegistryWithErrors(TypeDefinitionRegistry registry, List<GraphQLException> errors, boolean processedGraphQL) {
+    public GraphQLValidatedTypeDefinitionRegistry(TypeDefinitionRegistry registry, List<GraphQLException> errors, boolean processedGraphQL) {
         this.registry = registry;
         this.errors = errors;
         this.processedGraphQL = processedGraphQL;

@@ -14,7 +14,8 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLType;
 import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistryServiceImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
@@ -69,15 +70,15 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
             return null;
         }
 
-        final GraphQLTypeDefinitionRegistryServiceImpl typeRegistryService = GraphQLTypeDefinitionRegistryServiceImpl.getService(element.getProject());
-        final GraphQLSchema schema = typeRegistryService.getSchema(element);
+        final GraphQLSchemaProvider typeRegistryService = GraphQLSchemaProvider.getInstance(element.getProject());
+        final GraphQLSchema schema = typeRegistryService.getTolerantSchema(element);
 
         if (element instanceof GraphQLNamedElement) {
 
             final PsiElement parent = element.getParent();
 
             if (parent instanceof GraphQLTypeNameDefinition) {
-                return getTypeDocumentation(element, typeRegistryService, schema, (GraphQLTypeNameDefinition) parent);
+                return getTypeDocumentation(element, schema, (GraphQLTypeNameDefinition) parent);
             }
 
             if (parent instanceof GraphQLFieldDefinition) {
@@ -281,7 +282,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     }
 
     @Nullable
-    private String getTypeDocumentation(PsiElement element, GraphQLTypeDefinitionRegistryServiceImpl typeRegistryService, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
+    private String getTypeDocumentation(PsiElement element, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
         graphql.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement) element).getName());
         if (schemaType != null) {
             final StringBuilder html = new StringBuilder().append(DEFINITION_START);
@@ -291,7 +292,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
             }
             html.append(element.getText());
             html.append(DEFINITION_END);
-            final String description = typeRegistryService.getTypeDescription(schemaType);
+            final String description = GraphQLSchemaUtil.getTypeDescription(schemaType);
             if (description != null) {
                 html.append(CONTENT_START);
                 html.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));

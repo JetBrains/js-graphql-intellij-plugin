@@ -126,7 +126,8 @@ public class GraphQLPsiSearchHelper {
     /**
      * Uses custom editable scopes to limit the schema and reference resolution of a GraphQL psi element
      */
-    public GlobalSearchScope getSchemaScope(PsiElement element) {
+    @NotNull
+    public GlobalSearchScope getSchemaScope(@NotNull PsiElement element) {
 
         return fileNameToSchemaScope.computeIfAbsent(GraphQLPsiUtil.getFileName(element.getContainingFile()), fileName -> {
 

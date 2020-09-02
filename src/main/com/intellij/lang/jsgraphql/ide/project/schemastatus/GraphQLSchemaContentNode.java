@@ -12,7 +12,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.gotoByName.ChooseByNamePopup;
 import com.intellij.ide.util.gotoByName.ChooseByNamePopupComponent;
 import com.intellij.ide.util.gotoByName.SimpleChooseByNameModel;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaWithErrors;
+import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -37,14 +37,14 @@ import java.util.Optional;
  */
 public class GraphQLSchemaContentNode extends CachingSimpleNode {
 
-    private final GraphQLSchemaWithErrors schemaWithErrors;
+    private final GraphQLValidatedSchema myValidatedSchema;
 
-    public GraphQLSchemaContentNode(SimpleNode parent, GraphQLSchemaWithErrors schemaWithErrors) {
+    public GraphQLSchemaContentNode(SimpleNode parent, GraphQLValidatedSchema validatedSchema) {
         super(parent);
-        this.schemaWithErrors = schemaWithErrors;
+        myValidatedSchema = validatedSchema;
 
         final List<String> parts = Lists.newArrayList();
-        TypeDefinitionRegistry registry = schemaWithErrors.getRegistry().getRegistry();
+        TypeDefinitionRegistry registry = validatedSchema.getRegistry().getRegistry();
         parts.add(registry.getTypes(ObjectTypeDefinition.class).size() + " types");
         parts.add(registry.getTypes(InterfaceTypeDefinition.class).size() + " interfaces");
         parts.add(registry.getTypes(InputObjectTypeDefinition.class).size() + " inputs");
@@ -59,7 +59,7 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
         if (nonEmptyParts.length > 0) {
             getTemplatePresentation().setLocationString("- " + StringUtils.join(nonEmptyParts, ", "));
         } else {
-            final String message = schemaWithErrors.getRegistry().isProcessedGraphQL() ? "- schema is empty" : "- no schema definitions were found";
+            final String message = validatedSchema.getRegistry().isProcessedGraphQL() ? "- schema is empty" : "- no schema definitions were found";
             getTemplatePresentation().setLocationString(message);
         }
 
@@ -75,15 +75,15 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
             @Override
             public String[] getNames() {
                 final List<String> names = Lists.newArrayList();
-                schemaWithErrors.getRegistry().getRegistry().types().values().forEach(type -> names.add(type.getName()));
-                schemaWithErrors.getRegistry().getRegistry().scalars().values().forEach(type -> names.add(type.getName()));
-                schemaWithErrors.getRegistry().getRegistry().getDirectiveDefinitions().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistry().getRegistry().types().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistry().getRegistry().scalars().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistry().getRegistry().getDirectiveDefinitions().values().forEach(type -> names.add(type.getName()));
                 return names.toArray(new String[]{});
             }
 
             @Override
             protected Object[] getElementsByName(String name, String pattern) {
-                final TypeDefinitionRegistry registry = schemaWithErrors.getRegistry().getRegistry();
+                final TypeDefinitionRegistry registry = myValidatedSchema.getRegistry().getRegistry();
                 Optional<TypeDefinition> type = registry.getType(name);
                 if (type.isPresent()) {
                     return new Object[]{type.get()};

@@ -1,0 +1,16 @@
+type Query {}
+
+enum User @one @two {
+  PHONE
+  NAME
+  ADDRESS
+}
+
+extend enum User @three {
+  ZIP
+}
+
+extend enum User @four {
+  AGE
+}
+

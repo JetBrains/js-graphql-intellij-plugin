@@ -1,0 +1,45 @@
+type User implements Named @one {
+    name: Int
+    id: ID
+    id: ID
+}
+
+type User implements Named @two {
+    name: Int
+    phone: String
+}
+
+extend type User implements Named & WithPhone @one {
+    address: String
+    phone: String
+}
+
+extend type User implements WithPhone @three
+
+extend type User implements Other @three
+
+extend type User {
+    zip: String
+}
+
+enum User {
+    VALUE
+}
+
+interface Named {
+    name: Int
+}
+
+interface WithPhone {
+    phone: String
+}
+
+interface Other {
+    phone: String
+}
+
+directive @one on OBJECT
+directive @two on OBJECT
+directive @three on OBJECT
+
+type Query

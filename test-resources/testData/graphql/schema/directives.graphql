@@ -1,0 +1,10 @@
+directive @one on SCALAR
+directive @one on SCALAR
+directive @one on OBJECT
+directive @two on INPUT_OBJECT
+
+enum Two {
+    VALUE
+}
+
+type Query
