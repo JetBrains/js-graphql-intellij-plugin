@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig.javascript;
 
 import com.intellij.lang.javascript.EmbeddedJsonSchemaFileProvider;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.openapi.project.Project;
 import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider;
@@ -25,12 +26,14 @@ public class GraphQLConfigJsonSchemaProvider implements JsonSchemaProviderFactor
     @Override
     public List<JsonSchemaFileProvider> getProviders(@NotNull Project project) {
         return Collections.singletonList(
-                new EmbeddedJsonSchemaFileProvider(
-                        "graphql-config-schema.json"
-                        , GraphQLConfigJsonSchemaProvider.class
-                        , ""
-                        , GraphQLConfigManager.GRAPHQLCONFIG
-                )
+            new EmbeddedJsonSchemaFileProvider(
+                "graphql-config-schema.json",
+                GraphQLBundle.message("graphql.config"),
+                null,
+                GraphQLConfigJsonSchemaProvider.class,
+                "/schemas/",
+                GraphQLConfigManager.GRAPHQLCONFIG
+            )
         );
     }
 }
