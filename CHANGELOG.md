@@ -2,6 +2,25 @@
 
 # Changelog
 
+
+## [2.6.0] - 2020-09-03
+
+### Changed
+
+- Basic support for schema splitting with GraphQL Modules and similar tools (<a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/pull/374">#374</a>)
+- Improved error handling for introspection queries
+- Updated for compatibility with IntelliJ IDEA 2020.2
+- Allow introspection query results with empty errors in the response (#272)
+
+### Fixed
+
+- Fix incorrect escaping of characters in scalar descriptions (#358)
+- Fix wrong line separators error (#347)
+- Fix escaping of GraphQL query variables (#364)
+- Fix query execution and config creation for GraphQL fragments editor (#365, #356)
+- Fix UI freeze during a request for a large introspection schema
+ 
+
 ## [2.5.0] - 2020-05-30
 
 ### Changed

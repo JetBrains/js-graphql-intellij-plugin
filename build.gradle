@@ -49,7 +49,7 @@ intellij {
             ${changelog.get(pluginVersion).toHTML()}
             </p>
             <br />
-            <p>See the <a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/README.md">CHANGELOG</a> for more details and history.</p>
+            <p>See the <a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/CHANGELOG.md">CHANGELOG</a> for more details and history.</p>
         """.stripIndent()
     }
 }
