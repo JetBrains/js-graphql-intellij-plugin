@@ -38,6 +38,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -185,5 +187,11 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Configuration Error", e.getMessage(), NotificationType.ERROR), urlJsonProperty.getProject());
         }
         return null;
+    }
+
+    @Override
+    public void collectSlowLineMarkers(@NotNull List<? extends PsiElement> elements,
+                                       @NotNull Collection<? super LineMarkerInfo<?>> result) {
+        // compatibility with 182
     }
 }

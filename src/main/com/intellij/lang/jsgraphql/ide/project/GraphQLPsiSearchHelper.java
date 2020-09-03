@@ -117,6 +117,10 @@ public class GraphQLPsiSearchHelper implements Disposable {
                 // clear the cache on each PSI change
                 fileNameToSchemaScope.clear();
             }
+
+            @Override
+            public void afterPsiChanged(boolean isPhysical) {
+            }
         });
     }
 

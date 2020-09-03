@@ -29,6 +29,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Line marker which shows an action to turn a GraphQL Introspection JSON result into a GraphQL schema expressed in GraphQL SDL.
  */
@@ -97,5 +100,11 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
             }
         }
         return null;
+    }
+
+    @Override
+    public void collectSlowLineMarkers(@NotNull List<? extends PsiElement> elements,
+                                       @NotNull Collection<? super LineMarkerInfo<?>> result) {
+        // compatibility with 182
     }
 }

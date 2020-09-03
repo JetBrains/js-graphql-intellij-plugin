@@ -276,7 +276,7 @@ public class GraphQLIntrospectionService implements Disposable {
                 NotificationType.WARNING
             );
 
-            final AnAction dontShowAgainAction = new NotificationAction(EditorBundle.message("notification.dont.show.again.message")) {
+            final AnAction dontShowAgainAction = new NotificationAction(GraphQLBundle.message("graphql.notification.dont.show.again.message")) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                     PropertiesComponent.getInstance().setValue(DISABLE_EMPTY_ERRORS_WARNING_KEY, "true");
