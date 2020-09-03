@@ -1,12 +1,13 @@
 package com.intellij.lang.jsgraphql.ide.editor;
 
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Assert;
 
 import java.io.IOException;
+import java.util.Objects;
 
 public class GraphQLIntrospectionServiceTest extends BasePlatformTestCase {
 
@@ -40,8 +41,8 @@ public class GraphQLIntrospectionServiceTest extends BasePlatformTestCase {
 
     private void doTest(@NotNull String source, @NotNull String expected) {
         myFixture.configureByText(
-                "result.graphql",
-                new GraphQLIntrospectionService(getProject()).printIntrospectionJsonAsGraphQL(readSchemaJson(source))
+            "result.graphql",
+            new GraphQLIntrospectionService(getProject()).printIntrospectionAsGraphQL(Objects.requireNonNull(readSchemaJson(source)))
         );
         myFixture.checkResultByFile(expected);
     }
@@ -49,7 +50,7 @@ public class GraphQLIntrospectionServiceTest extends BasePlatformTestCase {
     @Nullable
     private String readSchemaJson(@NotNull String path) {
         try {
-            return VfsUtil.loadText(myFixture.copyFileToProject(path));
+            return VfsUtilCore.loadText(myFixture.copyFileToProject(path));
         } catch (IOException e) {
             return null;
         }

@@ -162,7 +162,7 @@ public class GraphQLRegistryProvider implements Disposable {
                     if (psiFile != null) {
                         try {
                             synchronized (GRAPHQL_INTROSPECTION_JSON_TO_SDL) {
-                                final String introspectionJsonAsGraphQL = GraphQLIntrospectionService.getInstance(project).printIntrospectionJsonAsGraphQL(psiFile.getText());
+                                final String introspectionJsonAsGraphQL = GraphQLIntrospectionService.getInstance(project).printIntrospectionAsGraphQL(psiFile.getText());
                                 final GraphQLFile currentSDLPsiFile = psiFile.getUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL);
                                 if (currentSDLPsiFile != null && currentSDLPsiFile.getText().equals(introspectionJsonAsGraphQL)) {
                                     // already have a PSI file that matches the introspection SDL
