@@ -11,7 +11,6 @@ import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.ide.actions.CreateFileAction;
-import com.intellij.ide.impl.DataManagerImpl;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
@@ -26,14 +25,12 @@ import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorBundle;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -49,8 +46,10 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
 import com.intellij.util.ExceptionUtil;
@@ -245,43 +244,49 @@ public class GraphQLIntrospectionService implements Disposable {
     @SuppressWarnings("unchecked")
     @NotNull
     private Map<String, Object> getIntrospectionSchemaData(@NotNull Map<String, Object> introspection) {
-        if (!introspection.containsKey("__schema")) {
-            // possibly a full query result
-            if (introspection.containsKey("errors")) {
-                final Object errorsValue = introspection.get("errors");
-                if (errorsValue instanceof List && ((List<?>) errorsValue).size() == 0) {
-                    if (!PropertiesComponent.getInstance().isTrueValue(DISABLE_EMPTY_ERRORS_WARNING_KEY)) {
-                        final Notification emptyErrorNotification = new Notification(
-                            GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
-                            GraphQLBundle.message("graphql.notification.introspection.error.title"),
-                            GraphQLBundle.message("graphql.notification.introspection.empty.errors"),
-                            NotificationType.WARNING
-                        );
+        if (introspection.containsKey("__schema")) {
+            return introspection;
+        }
 
-                        final AnAction dontShowAgainAction = new NotificationAction(EditorBundle.message("notification.dont.show.again.message")) {
-                            @Override
-                            public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                                PropertiesComponent.getInstance().setValue(DISABLE_EMPTY_ERRORS_WARNING_KEY, "true");
-                                notification.hideBalloon();
-                            }
-                        };
-
-                        emptyErrorNotification.addAction(dontShowAgainAction);
-                        Notifications.Bus.notify(emptyErrorNotification, myProject);
-                    }
-                } else {
-                    throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.errors", new Gson().toJson(introspection.get("errors"))));
-                }
-            }
-            if (!introspection.containsKey("data")) {
-                throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.data"));
-            }
-            introspection = (Map<String, Object>) introspection.get("data");
-            if (!introspection.containsKey("__schema")) {
-                throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.schema"));
+        // possibly a full query result
+        if (introspection.containsKey("errors")) {
+            final Object errorsValue = introspection.get("errors");
+            if (errorsValue instanceof List && ((List<?>) errorsValue).size() == 0) {
+                showEmptyErrorsNotification();
+            } else {
+                throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.errors", new Gson().toJson(introspection.get("errors"))));
             }
         }
+        if (!introspection.containsKey("data")) {
+            throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.data"));
+        }
+        introspection = (Map<String, Object>) introspection.get("data");
+        if (!introspection.containsKey("__schema")) {
+            throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.schema"));
+        }
         return introspection;
+    }
+
+    private void showEmptyErrorsNotification() {
+        if (!PropertiesComponent.getInstance().isTrueValue(DISABLE_EMPTY_ERRORS_WARNING_KEY)) {
+            final Notification emptyErrorNotification = new Notification(
+                GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                GraphQLBundle.message("graphql.notification.introspection.error.title"),
+                GraphQLBundle.message("graphql.notification.introspection.empty.errors"),
+                NotificationType.WARNING
+            );
+
+            final AnAction dontShowAgainAction = new NotificationAction(EditorBundle.message("notification.dont.show.again.message")) {
+                @Override
+                public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+                    PropertiesComponent.getInstance().setValue(DISABLE_EMPTY_ERRORS_WARNING_KEY, "true");
+                    notification.hideBalloon();
+                }
+            };
+
+            emptyErrorNotification.addAction(dontShowAgainAction);
+            Notifications.Bus.notify(emptyErrorNotification, myProject);
+        }
     }
 
     private GraphQLSchema buildIntrospectionSchema(TypeDefinitionRegistry registry) {
@@ -340,64 +345,72 @@ public class GraphQLIntrospectionService implements Disposable {
                                                @NotNull IntrospectionOutputFormat format,
                                                @NotNull VirtualFile introspectionSourceFile,
                                                @NotNull String outputFileName) {
-        WriteAction.run(() -> {
-            try {
-                final String header;
-                switch (format) {
-                    case SDL:
-                        header = "# This file was generated based on \"" + introspectionSourceFile.getName() + "\". Do not edit manually.\n\n";
-                        break;
-                    case JSON:
-                        header = "";
-                        break;
-                    default:
-                        throw new IllegalArgumentException("unsupported output format: " + format);
-                }
-                String relativeOutputFileName = FileUtil.toSystemIndependentName(outputFileName);
-                VirtualFile outputFile = introspectionSourceFile.getParent().findFileByRelativePath(relativeOutputFileName);
-                if (outputFile == null) {
-                    PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(introspectionSourceFile.getParent());
-                    CreateFileAction.MkDirs dirs = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
-                    outputFile = dirs.directory.getVirtualFile().createChildData(introspectionSourceFile, dirs.newName);
-                }
-                outputFile.putUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON, true);
-                final FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(outputFile, true, true);
-                if (fileEditors.length > 0) {
-                    final FileEditor fileEditor = fileEditors[0];
-                    setEditorTextAndFormatLines(header + schemaText, fileEditor);
-                } else {
-                    Notifications.Bus.notify(new Notification(GraphQLNotificationUtil.NOTIFICATION_GROUP_ID, GraphQLBundle.message("graphql.notification.error.title"),
-                        GraphQLBundle.message("graphql.notification.unable.to.open.editor", outputFile.getPath()), NotificationType.ERROR));
-                }
-            } catch (IOException ioe) {
-                Notifications.Bus.notify(new Notification(
-                    GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
-                    GraphQLBundle.message("graphql.notification.error.title"),
-                    GraphQLBundle.message("graphql.notification.unable.to.create.file",
-                        outputFileName, introspectionSourceFile.getParent().getPath(), GraphQLNotificationUtil.formatExceptionMessage(ioe)),
-                    NotificationType.ERROR
-                ));
+        try {
+            final String header;
+            switch (format) {
+                case SDL:
+                    header = "# This file was generated based on \"" + introspectionSourceFile.getName() + "\". Do not edit manually.\n\n";
+                    break;
+                case JSON:
+                    header = "";
+                    break;
+                default:
+                    throw new IllegalArgumentException("unsupported output format: " + format);
             }
-        });
+
+            VirtualFile outputFile = createSchemaFile(introspectionSourceFile, FileUtil.toSystemIndependentName(outputFileName));
+
+            final FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(outputFile, true, true);
+            if (fileEditors.length == 0) {
+                showUnableToOpenEditorNotification(outputFile);
+                return;
+            }
+
+            TextEditor textEditor = ObjectUtils.tryCast(fileEditors[0], TextEditor.class);
+            if (textEditor == null) {
+                showUnableToOpenEditorNotification(outputFile);
+                return;
+            }
+
+            WriteCommandAction.runWriteCommandAction(myProject, () -> {
+                com.intellij.openapi.editor.Document document = textEditor.getEditor().getDocument();
+                document.setText(StringUtil.convertLineSeparators(header + schemaText));
+                PsiDocumentManager.getInstance(myProject).commitDocument(document);
+
+                PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
+                if (psiFile != null) {
+                    CodeStyleManager.getInstance(myProject).reformat(psiFile);
+                }
+            });
+        } catch (IOException ioe) {
+            Notifications.Bus.notify(new Notification(
+                GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                GraphQLBundle.message("graphql.notification.error.title"),
+                GraphQLBundle.message("graphql.notification.unable.to.create.file",
+                    outputFileName, introspectionSourceFile.getParent().getPath(), GraphQLNotificationUtil.formatExceptionMessage(ioe)),
+                NotificationType.ERROR
+            ));
+        }
     }
 
-    private void setEditorTextAndFormatLines(String text, FileEditor fileEditor) {
-        if (fileEditor instanceof TextEditor) {
-            // IntelliJ only allows the \n linebreak inside editor documents.
-            final String normalizedText = StringUtil.convertLineSeparators(text);
-            final Editor editor = ((TextEditor) fileEditor).getEditor();
-            editor.getDocument().setText(normalizedText);
-            AnAction reformatCode = ActionManager.getInstance().getAction("ReformatCode");
-            if (reformatCode != null) {
-                final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
-                    ActionPlaces.UNKNOWN,
-                    null,
-                    new DataManagerImpl.MyDataContext(editor.getComponent())
-                );
-                reformatCode.actionPerformed(actionEvent);
-            }
+    private void showUnableToOpenEditorNotification(@NotNull VirtualFile outputFile) {
+        Notifications.Bus.notify(new Notification(GraphQLNotificationUtil.NOTIFICATION_GROUP_ID, GraphQLBundle.message("graphql.notification.error.title"),
+            GraphQLBundle.message("graphql.notification.unable.to.open.editor", outputFile.getPath()), NotificationType.ERROR));
+    }
 
+    @NotNull
+    private VirtualFile createSchemaFile(@NotNull VirtualFile introspectionSourceFile,
+                                         @NotNull String relativeOutputFileName) throws IOException {
+        VirtualFile outputFile = introspectionSourceFile.getParent().findFileByRelativePath(relativeOutputFileName);
+        if (outputFile == null) {
+            outputFile = WriteAction.compute(() -> {
+                PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(introspectionSourceFile.getParent());
+                CreateFileAction.MkDirs dirs = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
+                return dirs.directory.getVirtualFile().createChildData(introspectionSourceFile, dirs.newName);
+            });
         }
+        outputFile.putUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON, true);
+        return outputFile;
     }
 
     @Override
