@@ -42,6 +42,7 @@ intellij {
     patchPluginXml {
         version pluginVersion
         sinceBuild pluginSinceBuild
+        untilBuild pluginUntilBuild
 
         changeNotes """
             <p><b>New in $pluginVersion</b></p>
