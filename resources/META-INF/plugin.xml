@@ -42,8 +42,12 @@
     <applicationService serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil" />
 
     <!-- Language registration -->
-    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.GraphQLFileTypeFactory"/>
+    <fileType name="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLFileType" fieldName="INSTANCE" language="GraphQL"
+              extensions="graphql;graphqls;gql"/>
     <lang.parserDefinition language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLParserDefinition"/>
+
+    <!-- File templates -->
+    <internalFileTemplate name="GraphQL File"/>
 
     <!-- Icons -->
     <iconProvider implementation="com.intellij.lang.jsgraphql.GraphQLIconProvider" />
@@ -107,10 +111,7 @@
     <projectConfigurable groupId="language" instance="com.intellij.lang.jsgraphql.ui.GraphQLProjectConfigurable" />
 
     <!-- .graphqlconfig JSON -->
-    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigFileTypeFactory" />
-
-    <!-- recognize .graphqls as GraphQL for legacy reasons -->
-    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.ide.project.GraphQLSLegacyFileTypeFactory" />
+    <fileType name="JSON" extensions="graphqlconfig"/>
 
     <!-- Editor notifications -->
     <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.notifications.GraphQLScopeEditorNotificationProvider"/>
@@ -122,8 +123,8 @@
       <editorTabTitleProvider implementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionEditorTabTitleProvider" />
 
     <!-- Project Language services -->
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider" serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider" />
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry" serviceImplementation="com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry" />
 
 
     <!-- Spellchecking and to-do view-->
@@ -131,11 +132,11 @@
     <todoIndexer filetype="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTodoIndexer"/>
 
 
-    <!-- File types -->
-    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileTypeFactory"/>
-    <fileTypeFactory implementation="com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocFileTypeFactory"/>
-    <internalFileTemplate name="GraphQL File"/>
-
+    <!-- Endpoint File types -->
+    <fileType name="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType"
+              language="GraphQL Endpoint" extensions="graphqle"/>
+    <fileType name="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocFileType"
+              language="GraphQL Endpoint Doc" extensions="graphqld"/>
 
     <!-- Language -->
 
