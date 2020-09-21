@@ -72,13 +72,6 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
 
             try {
                 final GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryWithErrors.getRegistry());
-                for (GraphQLDirective directive : schema.getDirectives()) {
-                    if (Directives.DeferDirective.getName().equals(directive.getName()) && directive != Directives.DeferDirective) {
-                        // more than one @defer (one was declared in addition to the built-in one from graphql-java)
-                        removeBuiltInDirective(schema, Directives.DeferDirective);
-                        break;
-                    }
-                }
                 return new GraphQLValidatedSchema(schema, Collections.emptyList(), registryWithErrors);
             } catch (GraphQLException e) {
                 if (LOG.isDebugEnabled()) {
@@ -108,35 +101,6 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
             }
         });
     }
-
-    // ---- https://github.com/graphql-java/graphql-java/issues/1399 ----
-    // Remove graphql-java built-in @defer since it declares valid locations that can conflict with frameworks such as Relay Modern.
-    // Unfortunately no API to do this without reflection right now.
-    private static Field directives = getDirectivesField();
-
-    private static Field getDirectivesField() {
-        try {
-            Field directives = GraphQLSchema.class.getDeclaredField("directives");
-            directives.setAccessible(true);
-            return directives;
-        } catch (NoSuchFieldException ignored) {
-        }
-        return null;
-    }
-
-    private static void removeBuiltInDirective(GraphQLSchema graphQLSchema, GraphQLDirective directiveToRemove) {
-        if (directives != null) {
-            try {
-                final Object knownDirectives = directives.get(graphQLSchema);
-                if (knownDirectives instanceof Collection) {
-                    ((Collection) knownDirectives).remove(directiveToRemove);
-                }
-            } catch (IllegalAccessException ignored) {
-            }
-        }
-    }
-
-    // ----
 
     @Override
     public void dispose() {
