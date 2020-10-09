@@ -12,6 +12,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
+import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.psi.PsiElement;
@@ -76,6 +77,9 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
             @Override
             public void visitField(@NotNull GraphQLField field) {
+                if (field.isDeprecated()) {
+                    applyTextAttributes(field.getNameIdentifier(), CodeInsightColors.DEPRECATED_ATTRIBUTES);
+                }
                 applyTextAttributes(field.getNameIdentifier(), FIELD_NAME);
                 super.visitField(field);
             }
