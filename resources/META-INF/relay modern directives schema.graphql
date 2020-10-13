@@ -37,6 +37,8 @@ directive @relay(
     mask: Boolean
 ) on FRAGMENT_DEFINITION | FRAGMENT_SPREAD
 
+directive @inline on FRAGMENT_DEFINITION
+
 directive @match on FIELD
 
 directive @module(
@@ -57,3 +59,5 @@ directive @stream(
     initial_count: Int!
     if: Boolean = true
 ) on FIELD
+
+@preloadable on QUERY
