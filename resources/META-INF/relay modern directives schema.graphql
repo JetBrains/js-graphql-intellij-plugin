@@ -60,4 +60,4 @@ directive @stream(
     if: Boolean = true
 ) on FIELD
 
-@preloadable on QUERY
+directive @preloadable on QUERY
