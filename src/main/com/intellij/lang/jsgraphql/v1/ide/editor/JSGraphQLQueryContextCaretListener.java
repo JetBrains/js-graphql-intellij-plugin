@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.v1.ide.editor;
 
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.CaretEvent;
@@ -24,25 +25,38 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Updates the current caret position in GraphQL files to enable contextual queries and highlighting of included fragments
  */
-public class JSGraphQLQueryContextCaretListener implements StartupActivity, DumbAware {
+public class JSGraphQLQueryContextCaretListener implements Disposable {
 
     static final Key<Integer> CARET_OFFSET = Key.create("JSGraphQL.QueryContext.CaretOffset");
 
-    @Override
-    public void runActivity(@NotNull Project project) {
-        if (!ApplicationManager.getApplication().isHeadlessEnvironment()) {
-            final EditorEventMulticaster eventMulticaster = EditorFactory.getInstance().getEventMulticaster();
-            final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
-            eventMulticaster.addCaretListener(new CaretListener() {
-                @Override
-                public void caretPositionChanged(CaretEvent e) {
-                    final PsiFile psiFile = psiDocumentManager.getPsiFile(e.getEditor().getDocument());
-                    if (psiFile instanceof GraphQLFile) {
-                        int offset = e.getEditor().logicalPositionToOffset(e.getNewPosition());
-                        psiFile.putUserData(CARET_OFFSET, offset);
-                    }
-                }
-            }, project);
+    public JSGraphQLQueryContextCaretListener(@NotNull Project project) {
+        listen(project);
+    }
+
+    private void listen(@NotNull Project project) {
+        if (ApplicationManager.getApplication().isHeadlessEnvironment()) {
+            return;
         }
+
+        final EditorEventMulticaster eventMulticaster = EditorFactory.getInstance().getEventMulticaster();
+        final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
+        eventMulticaster.addCaretListener(new CaretListener() {
+            @Override
+            public void caretPositionChanged(@NotNull CaretEvent e) {
+                if (project.isDisposed() || project != e.getEditor().getProject()) {
+                    return;
+                }
+
+                final PsiFile psiFile = psiDocumentManager.getPsiFile(e.getEditor().getDocument());
+                if (psiFile instanceof GraphQLFile) {
+                    int offset = e.getEditor().logicalPositionToOffset(e.getNewPosition());
+                    psiFile.putUserData(CARET_OFFSET, offset);
+                }
+            }
+        }, this);
+    }
+
+    @Override
+    public void dispose() {
     }
 }
