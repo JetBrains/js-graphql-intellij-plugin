@@ -61,3 +61,14 @@ directive @stream(
 ) on FIELD
 
 directive @preloadable on QUERY
+
+enum RequiredFieldAction {
+    NONE
+    LOG
+    THROW
+}
+
+directive @required(
+    action: RequiredFieldAction!
+) on FIELD
+
