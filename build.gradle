@@ -1,8 +1,8 @@
 plugins {
     id 'org.jetbrains.grammarkit' version '2020.2.1'
-    id 'org.jetbrains.intellij' version '0.4.21'
+    id 'org.jetbrains.intellij' version '0.6.3'
     id 'com.github.ManifestClasspath' version '0.1.0-RELEASE'
-    id 'org.jetbrains.changelog' version '0.4.0'
+    id 'org.jetbrains.changelog' version '0.6.2'
 }
 
 group pluginGroup
@@ -47,7 +47,7 @@ intellij {
         changeNotes """
             <p><b>New in $pluginVersion</b></p>
             <p>
-            ${changelog.get(pluginVersion).toHTML()}
+            ${changelog.get(pluginVersion.toString()).toHTML()}
             </p>
             <br />
             <p>See the <a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/CHANGELOG.md">CHANGELOG</a> for more details and history.</p>

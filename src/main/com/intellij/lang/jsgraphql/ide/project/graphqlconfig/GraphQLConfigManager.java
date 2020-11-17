@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -560,7 +559,7 @@ public class GraphQLConfigManager implements Disposable {
      *
      * @param changedConfigurationFiles config files that were changed in the Virtual File System and should be explicitly processed given that they haven't been indexed yet
      */
-    @VisibleForTesting
+    @TestOnly
     public void doBuildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles) {
 
         final Map<VirtualFile, GraphQLConfigData> newConfigPathToConfigurations = Maps.newConcurrentMap();

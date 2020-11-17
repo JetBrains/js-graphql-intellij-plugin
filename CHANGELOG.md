@@ -286,7 +286,7 @@
 
 - Support for GraphQL Schema Language
 
-## [v1.0.0] - 2015-12-13
+## [1.0.0] - 2015-12-13
 
 ### Added
 
