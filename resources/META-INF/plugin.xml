@@ -134,9 +134,9 @@
 
     <!-- Endpoint File types -->
     <fileType name="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType"
-              language="GraphQL Endpoint" extensions="graphqle"/>
+              fieldName="INSTANCE" language="GraphQL Endpoint" extensions="graphqle"/>
     <fileType name="GraphQL Endpoint Doc" implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocFileType"
-              language="GraphQL Endpoint Doc" extensions="graphqld"/>
+              fieldName="INSTANCE" language="GraphQL Endpoint Doc" extensions="graphqld"/>
 
     <!-- Language -->
 
