@@ -30,7 +30,6 @@ import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.project.Project;
@@ -210,7 +209,9 @@ public class GraphQLValidationAnnotator implements Annotator {
                     final String currentFileName = GraphQLPsiUtil.getFileName(containingFile);
                     final Ref<SourceLocation> firstSchemaError = new Ref<>();
                     for (GraphQLError error : schema.getErrors()) {
-                        SourceLocation firstSourceLocation = error.getLocations().stream().findFirst().orElse(null);
+                        List<SourceLocation> errorLocations = error.getLocations();
+                        SourceLocation firstSourceLocation = errorLocations != null
+                            ? errorLocations.stream().findFirst().orElse(null) : null;
                         if (firstSourceLocation != null && firstSchemaError.isNull()) {
                             firstSchemaError.set(firstSourceLocation);
                         }
