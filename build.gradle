@@ -55,6 +55,10 @@ intellij {
     }
 }
 
+runPluginVerifier {
+    ideVersions = ['IU-2019.2.4', 'IU-2019.3.4', 'IU-2020.2.4']
+}
+
 runIde {
     jvmArgs '-Xmx2G'
 }

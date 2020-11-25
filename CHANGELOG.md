@@ -2,6 +2,15 @@
 
 # Changelog
 
+## [2.7.0] - 2020-11-25
+
+### Fixed
+- Compatibility with 2020.3
+- Exception when using default parameter values (#412)
+
+### Added
+- @required, @inline and @preloadable directives for Relay
+- Support for .gql file types
 
 ## [2.6.0] - 2020-09-03
 
