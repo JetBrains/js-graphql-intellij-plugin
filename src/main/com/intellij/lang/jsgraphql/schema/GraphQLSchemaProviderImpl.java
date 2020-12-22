@@ -12,19 +12,16 @@ import com.google.common.collect.Maps;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import graphql.Directives;
 import graphql.GraphQLException;
-import graphql.schema.GraphQLDirective;
 import graphql.schema.GraphQLObjectType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.TypeDefinitionRegistry;
 import graphql.schema.idl.UnExecutableSchemaGenerator;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
@@ -73,6 +70,8 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
             try {
                 final GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryWithErrors.getRegistry());
                 return new GraphQLValidatedSchema(schema, Collections.emptyList(), registryWithErrors);
+            } catch (ProcessCanceledException e) {
+                throw e;
             } catch (GraphQLException e) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Schema build error:", e);
@@ -93,6 +92,8 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
         return fileNameToTolerantSchema.computeIfAbsent(GraphQLPsiUtil.getFileName(psiElement.getContainingFile()), fileName -> {
             try {
                 return UnExecutableSchemaGenerator.makeUnExecutableSchema(getTolerantRegistry(psiElement));
+            } catch (ProcessCanceledException e) {
+                throw e;
             } catch (Exception e) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Schema build error:", e);

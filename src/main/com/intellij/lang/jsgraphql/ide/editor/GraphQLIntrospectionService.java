@@ -31,12 +31,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.editor.EditorBundle;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -474,6 +474,8 @@ public class GraphQLIntrospectionService implements Disposable {
                 // always try to print the schema to validate it since that will be done in schema discovery of the JSON anyway
                 final String schemaAsSDL = printIntrospectionAsGraphQL(introspection);
                 schemaText = format == IntrospectionOutputFormat.SDL ? schemaAsSDL : responseJson;
+            } catch (ProcessCanceledException exception) {
+                throw exception;
             } catch (Exception exception) {
                 handleIntrospectionError(exception, null, responseJson);
                 return;
@@ -482,6 +484,8 @@ public class GraphQLIntrospectionService implements Disposable {
             ApplicationManager.getApplication().invokeLater(() -> {
                 try {
                     createOrUpdateIntrospectionOutputFile(schemaText, format, introspectionSourceFile, schemaPath);
+                } catch (ProcessCanceledException exception) {
+                    throw exception;
                 } catch (Exception e) {
                     handleIntrospectionError(e, null, responseJson);
                 }
