@@ -87,10 +87,8 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
             @Override
             public void visitInputValueDefinition(@NotNull GraphQLInputValueDefinition element) {
-
                 // first reset the bold font display from keywords such as input/type being used as field name
-                Annotation annotation = holder.createInfoAnnotation(element.getNameIdentifier(), null);
-                annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
+                resetAttributes(element.getNameIdentifier(), holder);
 
                 final GraphQLArgumentsDefinition arguments = PsiTreeUtil.getParentOfType(element, GraphQLArgumentsDefinition.class);
                 if (arguments != null) {
@@ -104,10 +102,8 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
             @Override
             public void visitArgument(@NotNull GraphQLArgument argument) {
-
                 // first reset the bold font display from keywords such as input/type being used as argument name
-                Annotation annotation = holder.createInfoAnnotation(argument.getNameIdentifier(), null);
-                annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
+                resetAttributes(argument.getNameIdentifier(), holder);
 
                 // then apply argument font style
                 applyTextAttributes(argument.getNameIdentifier(), ARGUMENT);
@@ -150,8 +146,7 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             @Override
             public void visitObjectField(@NotNull GraphQLObjectField objectField) {
                 // first reset the bold font display from keywords such as input/type being used as object field name
-                Annotation annotation = holder.createInfoAnnotation(objectField.getNameIdentifier(), null);
-                annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
+                resetAttributes(objectField.getNameIdentifier(), holder);
 
                 // then apply argument font style
                 applyTextAttributes(objectField.getNameIdentifier(), ARGUMENT);
@@ -163,5 +158,10 @@ public class GraphQLSyntaxAnnotator implements Annotator {
                 annotation.setTextAttributes(attributes);
             }
         });
+    }
+
+    private void resetAttributes(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+        Annotation annotation = holder.createInfoAnnotation(element, null);
+        annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
     }
 }

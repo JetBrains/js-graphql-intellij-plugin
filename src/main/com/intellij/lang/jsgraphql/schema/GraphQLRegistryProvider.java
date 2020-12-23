@@ -278,7 +278,7 @@ public class GraphQLRegistryProvider implements Disposable {
                 if (graphQLInjectionSearchHelper != null && psiFile.getContext() instanceof PsiLanguageInjectionHost) {
                     definitionSourceText = graphQLInjectionSearchHelper.applyInjectionDelimitingQuotesEscape(definitionSourceText);
                 }
-                final StringBuffer typeSystemDefinitionBuffer = new StringBuffer(definitionPrefix.length() + definitionSourceText.length());
+                StringBuilder typeSystemDefinitionBuffer = new StringBuilder(definitionPrefix.length() + definitionSourceText.length());
                 typeSystemDefinitionBuffer.append(definitionPrefix).append(definitionSourceText);
                 // if there are syntax errors on optional elements, replace them with whitespace
                 PsiTreeUtil.findChildrenOfType(typeSystemDefinition, PsiErrorElement.class).forEach(error -> {

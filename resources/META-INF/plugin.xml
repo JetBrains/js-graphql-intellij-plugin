@@ -79,6 +79,7 @@
     <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSyntaxHighlighterFactory"/>
     <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSyntaxAnnotator" />
     <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLValidationAnnotator" />
+    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSchemaValidationAnnotator" />
     <colorSettingsPage implementation="com.intellij.lang.jsgraphql.ide.GraphQLColorSettingsPage"/>
 
     <!-- Formatting and folding -->

@@ -382,7 +382,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
         if (psiFile == null) {
             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
             String specSchemaText = "";
-            try (InputStream inputStream = pluginDescriptor.getPluginClassLoader().getResourceAsStream("/META-INF/" + resourceName)) {
+            try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("META-INF/" + resourceName)) {
                 if (inputStream != null) {
                     specSchemaText = new String(IOUtils.toByteArray(inputStream));
                 }

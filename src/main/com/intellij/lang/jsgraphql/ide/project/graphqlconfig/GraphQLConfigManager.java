@@ -234,7 +234,7 @@ public class GraphQLConfigManager implements Disposable {
 
     public void createAndOpenConfigFile(@NotNull VirtualFile configBaseDir, Boolean openEditor) {
         createAndOpenConfigFile(configBaseDir, openEditor, outputStream -> {
-            try (InputStream inputStream = pluginDescriptor.getPluginClassLoader().getResourceAsStream("/META-INF/" + GRAPHQLCONFIG)) {
+            try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("META-INF/" + GRAPHQLCONFIG)) {
                 if (inputStream != null) {
                     IOUtils.copy(inputStream, outputStream);
                 }

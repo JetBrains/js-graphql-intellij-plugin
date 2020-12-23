@@ -34,18 +34,18 @@ public class GraphQLRelayModernAnnotationFilter {
 
 
     public boolean errorIsIgnored(PsiElement errorPsiElement) {
-        if (settings.isEnableRelayModernFrameworkSupport()) {
-            final GraphQLArguments graphQLArguments = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLArguments.class);
-            if (graphQLArguments != null) {
-                final GraphQLDirective directive = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLDirective.class);
-                if (directive != null) {
-                    final String directiveName = directive.getName();
-                    if ("argumentDefinitions".equals(directiveName) || "arguments".equals(directiveName)) {
-                        // ignore errors inside on the dynamically named arguments to @argumentDefinitions and @arguments
-                        // since the SDL can express this dynamic aspect
-                        return true;
-                    }
-                }
+        if (!settings.isEnableRelayModernFrameworkSupport()) {
+            return false;
+        }
+
+        final GraphQLArguments graphQLArguments = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLArguments.class);
+        if (graphQLArguments != null) {
+            final GraphQLDirective directive = PsiTreeUtil.getParentOfType(errorPsiElement, GraphQLDirective.class);
+            if (directive != null) {
+                final String directiveName = directive.getName();
+                // ignore errors inside on the dynamically named arguments to @argumentDefinitions and @arguments
+                // since the SDL can express this dynamic aspect
+                return "argumentDefinitions".equals(directiveName) || "arguments".equals(directiveName);
             }
         }
         return false;
