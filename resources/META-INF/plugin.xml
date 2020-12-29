@@ -63,7 +63,7 @@
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager" />
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService" />
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl" />
-    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.GraphQLRelayModernAnnotationFilter" />
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayModernAnnotationFilter" />
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextCaretListener" />
 
     <!-- Indexing -->
@@ -73,14 +73,14 @@
     <!-- Startup -->
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.endpoint.ide.startup.GraphQLStartupActivity" />
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigProjectStartupActivity" />
-    <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.project.relay.GraphQLRelayModernEnableStartupActivity" />
+    <postStartupActivity implementation="com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayModernEnableStartupActivity" />
 
     <!-- Syntax and error highlighting -->
-    <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSyntaxHighlighterFactory"/>
-    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSyntaxAnnotator" />
-    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLValidationAnnotator" />
-    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLSchemaValidationAnnotator" />
-    <colorSettingsPage implementation="com.intellij.lang.jsgraphql.ide.GraphQLColorSettingsPage"/>
+    <lang.syntaxHighlighterFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxHighlighterFactory"/>
+    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxAnnotator" />
+    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLValidationAnnotator" />
+    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLSchemaValidationAnnotator" />
+    <colorSettingsPage implementation="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLColorSettingsPage"/>
 
     <!-- Formatting and folding -->
     <lang.formatter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLFormattingModelBuilder"/>
@@ -89,7 +89,7 @@
     <lang.foldingBuilder language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLFoldingBuilder"/>
 
     <!-- Editing -->
-    <lang.braceMatcher language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.GraphQLBraceMatcher" />
+    <lang.braceMatcher language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLBraceMatcher" />
     <lang.quoteHandler language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLQuoteHandler" />
     <lang.commenter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLCommenter"/>
     <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.GraphQLEnterInEmptyListHandler"/>

@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide;
+package com.intellij.lang.jsgraphql.ide.validation;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.quickfix.RenameElementFix;
@@ -16,6 +16,8 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.jsgraphql.ide.validation.fixes.GraphQLMissingTypeFix;
+import com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayModernAnnotationFilter;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;

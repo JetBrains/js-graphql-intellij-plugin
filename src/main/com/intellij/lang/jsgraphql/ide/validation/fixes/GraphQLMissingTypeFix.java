@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide;
+package com.intellij.lang.jsgraphql.ide.validation.fixes;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFixAndIntentionActionOnPsiElement;
@@ -113,7 +113,7 @@ public class GraphQLMissingTypeFix extends LocalQuickFixAndIntentionActionOnPsiE
         return "Create missing type definition";
     }
 
-    static List<GraphQLMissingTypeFix> getApplicableFixes(GraphQLIdentifier typeName) {
+    public static List<GraphQLMissingTypeFix> getApplicableFixes(GraphQLIdentifier typeName) {
         final List<GraphQLMissingTypeFix> fixes = Lists.newArrayList();
         final GraphQLInputValueDefinition inputValueDefinition = PsiTreeUtil.getParentOfType(typeName, GraphQLInputValueDefinition.class);
         if (inputValueDefinition != null) {
