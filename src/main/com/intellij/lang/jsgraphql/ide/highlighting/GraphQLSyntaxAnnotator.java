@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.highlighting;
 
+import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -88,7 +89,7 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             @Override
             public void visitInputValueDefinition(@NotNull GraphQLInputValueDefinition element) {
                 // first reset the bold font display from keywords such as input/type being used as field name
-                resetAttributes(element.getNameIdentifier(), holder);
+                resetAttributes(element.getNameIdentifier());
 
                 final GraphQLArgumentsDefinition arguments = PsiTreeUtil.getParentOfType(element, GraphQLArgumentsDefinition.class);
                 if (arguments != null) {
@@ -103,7 +104,7 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             @Override
             public void visitArgument(@NotNull GraphQLArgument argument) {
                 // first reset the bold font display from keywords such as input/type being used as argument name
-                resetAttributes(argument.getNameIdentifier(), holder);
+                resetAttributes(argument.getNameIdentifier());
 
                 // then apply argument font style
                 applyTextAttributes(argument.getNameIdentifier(), ARGUMENT);
@@ -146,7 +147,7 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             @Override
             public void visitObjectField(@NotNull GraphQLObjectField objectField) {
                 // first reset the bold font display from keywords such as input/type being used as object field name
-                resetAttributes(objectField.getNameIdentifier(), holder);
+                resetAttributes(objectField.getNameIdentifier());
 
                 // then apply argument font style
                 applyTextAttributes(objectField.getNameIdentifier(), ARGUMENT);
@@ -154,14 +155,19 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
             private void applyTextAttributes(@Nullable PsiElement element, @NotNull TextAttributesKey attributes) {
                 if (element == null) return;
-                Annotation annotation = holder.createInfoAnnotation(element, null);
+
+                Annotation annotation =
+                    holder.createAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY, element.getTextRange(), null);
                 annotation.setTextAttributes(attributes);
             }
-        });
-    }
 
-    private void resetAttributes(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-        Annotation annotation = holder.createInfoAnnotation(element, null);
-        annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
+            private void resetAttributes(@Nullable PsiElement element) {
+                if (element == null) return;
+
+                Annotation annotation =
+                    holder.createAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY, element.getTextRange(), null);
+                annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
+            }
+        });
     }
 }
