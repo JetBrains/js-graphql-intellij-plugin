@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;

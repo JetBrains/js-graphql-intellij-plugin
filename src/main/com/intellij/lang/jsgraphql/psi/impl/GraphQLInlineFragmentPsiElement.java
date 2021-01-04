@@ -11,7 +11,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLInlineFragment;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
 import com.intellij.psi.util.PsiTreeUtil;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.GraphQLType;
