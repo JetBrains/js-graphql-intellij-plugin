@@ -2,6 +2,13 @@
 
 # Changelog
 
+## [2.7.1] - 2021-01-15
+
+### Fixed
+- Compatibility with 2021.1
+- Possible cause of the broken auto-complete
+- Fixed semantic highlighting when errors are in the same range (#383)
+
 ## [2.7.0] - 2020-11-25
 
 ### Fixed
