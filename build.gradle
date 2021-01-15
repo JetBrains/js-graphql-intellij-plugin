@@ -28,6 +28,7 @@ dependencies {
     implementation 'com.atlassian.commonmark:commonmark:0.12.1'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.21'
     implementation 'fr.opensagres.js:minimatch.java:1.1.0'
+    implementation 'io.github.cdimascio:dotenv-kotlin:6.2.2'
 
     testImplementation group: 'junit', name: 'junit', version: '4.12'
 }

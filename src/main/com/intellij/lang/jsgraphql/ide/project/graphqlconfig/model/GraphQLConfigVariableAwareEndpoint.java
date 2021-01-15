@@ -16,6 +16,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,7 +96,23 @@ public class GraphQLConfigVariableAwareEndpoint {
                 Notifications.Bus.notify(new Notification("GraphQL", "Unsupported variable source", "Supported variables sources are 'env', but got: " + varSource, NotificationType.ERROR));
                 continue;
             }
+
+            // Try to load the variable from the system
             String varValue = GET_ENV_VAR.apply(varName);
+
+            // If the variable wasn't found in the system try to see if the user has a .env file with the variable
+            if (varValue == null || varValue.trim().isEmpty()) {
+                Dotenv dotenv = Dotenv
+                    .configure()
+                    .directory(project.getBasePath())
+                    .ignoreIfMalformed()
+                    .ignoreIfMissing()
+                    .load();
+
+                varValue = dotenv.get(varName);
+            }
+
+            // If it still wasn't found present the user with a dialog to enter the variable
             if (varValue == null || varValue.trim().isEmpty()) {
                 final VariableDialog dialog = new VariableDialog(project, varName);
                 if (dialog.showAndGet()) {
@@ -104,6 +121,7 @@ public class GraphQLConfigVariableAwareEndpoint {
                     continue;
                 }
             }
+
             matcher.appendReplacement(sb, varValue);
         }
         matcher.appendTail(sb);
