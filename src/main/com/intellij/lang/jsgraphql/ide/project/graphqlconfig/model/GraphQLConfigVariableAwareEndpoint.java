@@ -13,6 +13,7 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
@@ -37,17 +38,12 @@ public class GraphQLConfigVariableAwareEndpoint {
 
     private final GraphQLConfigEndpoint endpoint;
     private final Project project;
-    private String pathOfConfigFileParent;
+    private final VirtualFile configFile;
 
-    public GraphQLConfigVariableAwareEndpoint(GraphQLConfigEndpoint endpoint, Project project) {
+    public GraphQLConfigVariableAwareEndpoint(GraphQLConfigEndpoint endpoint, Project project, VirtualFile configFile) {
         this.endpoint = endpoint;
         this.project = project;
-    }
-
-    public GraphQLConfigVariableAwareEndpoint(GraphQLConfigEndpoint endpoint, Project project, String pathOfConfigFileParent) {
-        this.endpoint = endpoint;
-        this.project = project;
-        this.pathOfConfigFileParent = pathOfConfigFileParent;
+        this.configFile = configFile;
     }
 
     public String getName() {
@@ -120,17 +116,21 @@ public class GraphQLConfigVariableAwareEndpoint {
                 varValue = dotenv.get(varName);
 
                 // If that didn't resolve try to load the env file from the parent of the .graphqlconfig file (e.g. multiproject setups)
-                if (varValue == null && pathOfConfigFileParent != null) {
-                    dotenv = Dotenv
-                        .configure()
-                        .directory(pathOfConfigFileParent)
-                        .ignoreIfMalformed()
-                        .ignoreIfMissing()
-                        .load();
+                if (varValue == null && configFile != null) {
+                    String pathOfConfigFileParent = null;
+                    VirtualFile parentDir = configFile.getParent();
+                    if (parentDir != null) pathOfConfigFileParent = parentDir.getPath();
+                    if (pathOfConfigFileParent != null) {
+                        dotenv = Dotenv
+                            .configure()
+                            .directory(pathOfConfigFileParent)
+                            .ignoreIfMalformed()
+                            .ignoreIfMissing()
+                            .load();
 
-                    varValue = dotenv.get(varName);
+                        varValue = dotenv.get(varName);
+                    }
                 }
-
             }
 
             // If it still wasn't found present the user with a dialog to enter the variable

@@ -69,10 +69,8 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
                     } else {
                         return;
                     }
-                    String pathOfConfigFileParent = null;
-                    PsiDirectory parentDir = element.getContainingFile().getParent();
-                    if (parentDir != null) pathOfConfigFileParent = parentDir.getVirtualFile().getPath();
-                    final GraphQLConfigVariableAwareEndpoint endpoint = getEndpoint(introspectionUrl, jsonProperty, pathOfConfigFileParent);
+
+                    final GraphQLConfigVariableAwareEndpoint endpoint = getEndpoint(introspectionUrl, jsonProperty, element.getContainingFile().getVirtualFile());
                     if (endpoint == null) {
                         return;
                     }
@@ -165,7 +163,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
         return null;
     }
 
-    private GraphQLConfigVariableAwareEndpoint getEndpoint(String url, JsonProperty urlJsonProperty, String pathOfConfigFileParent) {
+    private GraphQLConfigVariableAwareEndpoint getEndpoint(String url, JsonProperty urlJsonProperty, VirtualFile configFile) {
         try {
             // if the endpoint is just the url string, headers are not supported
             final JsonProperty parent = PsiTreeUtil.getParentOfType(urlJsonProperty, JsonProperty.class);
@@ -187,7 +185,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             }
 
 
-            return new GraphQLConfigVariableAwareEndpoint(endpointConfig, urlJsonProperty.getProject(), pathOfConfigFileParent);
+            return new GraphQLConfigVariableAwareEndpoint(endpointConfig, urlJsonProperty.getProject(), configFile);
 
         } catch (Exception e) {
             Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Configuration Error", e.getMessage(), NotificationType.ERROR), urlJsonProperty.getProject());

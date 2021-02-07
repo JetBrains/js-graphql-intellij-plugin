@@ -340,7 +340,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         if (endpointsModel != null) {
             final GraphQLConfigEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
             if (selectedEndpoint != null && selectedEndpoint.url != null) {
-                final GraphQLConfigVariableAwareEndpoint endpoint = new GraphQLConfigVariableAwareEndpoint(selectedEndpoint, myProject);
+                final GraphQLConfigVariableAwareEndpoint endpoint = new GraphQLConfigVariableAwareEndpoint(selectedEndpoint, myProject, virtualFile);
                 final JSGraphQLQueryContext context = JSGraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
 
                 Map<String, Object> requestData = new HashMap<>();
