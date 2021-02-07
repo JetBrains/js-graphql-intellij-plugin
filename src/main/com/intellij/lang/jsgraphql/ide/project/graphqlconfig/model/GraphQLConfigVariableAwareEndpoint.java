@@ -105,18 +105,10 @@ public class GraphQLConfigVariableAwareEndpoint {
 
             // If the variable wasn't found in the system try to see if the user has a .env file with the variable
             if (varValue == null || varValue.trim().isEmpty()) {
-                // Try to load the env file from the root of the project
-                Dotenv dotenv = Dotenv
-                    .configure()
-                    .directory(project.getBasePath())
-                    .ignoreIfMalformed()
-                    .ignoreIfMissing()
-                    .load();
-
-                varValue = dotenv.get(varName);
-
-                // If that didn't resolve try to load the env file from the parent of the .graphqlconfig file (e.g. multiproject setups)
-                if (varValue == null && configFile != null) {
+                Dotenv dotenv;
+                
+                // Let's try to load the env file closest to the config file first
+                if (configFile != null) {
                     String pathOfConfigFileParent = null;
                     VirtualFile parentDir = configFile.getParent();
                     if (parentDir != null) pathOfConfigFileParent = parentDir.getPath();
@@ -130,6 +122,18 @@ public class GraphQLConfigVariableAwareEndpoint {
 
                         varValue = dotenv.get(varName);
                     }
+                }
+
+                // If that didn't resolve try to load the env file from the root of the project
+                if (varValue == null) {
+                    dotenv = Dotenv
+                        .configure()
+                        .directory(project.getBasePath())
+                        .ignoreIfMalformed()
+                        .ignoreIfMissing()
+                        .load();
+
+                    varValue = dotenv.get(varName);
                 }
             }
 
