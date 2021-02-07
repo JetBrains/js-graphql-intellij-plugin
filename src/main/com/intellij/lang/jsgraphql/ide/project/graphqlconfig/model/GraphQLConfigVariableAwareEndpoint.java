@@ -37,10 +37,17 @@ public class GraphQLConfigVariableAwareEndpoint {
 
     private final GraphQLConfigEndpoint endpoint;
     private final Project project;
+    private String pathOfConfigFileParent;
 
     public GraphQLConfigVariableAwareEndpoint(GraphQLConfigEndpoint endpoint, Project project) {
         this.endpoint = endpoint;
         this.project = project;
+    }
+
+    public GraphQLConfigVariableAwareEndpoint(GraphQLConfigEndpoint endpoint, Project project, String pathOfConfigFileParent) {
+        this.endpoint = endpoint;
+        this.project = project;
+        this.pathOfConfigFileParent = pathOfConfigFileParent;
     }
 
     public String getName() {
@@ -102,6 +109,7 @@ public class GraphQLConfigVariableAwareEndpoint {
 
             // If the variable wasn't found in the system try to see if the user has a .env file with the variable
             if (varValue == null || varValue.trim().isEmpty()) {
+                // Try to load the env file from the root of the project
                 Dotenv dotenv = Dotenv
                     .configure()
                     .directory(project.getBasePath())
@@ -110,6 +118,19 @@ public class GraphQLConfigVariableAwareEndpoint {
                     .load();
 
                 varValue = dotenv.get(varName);
+
+                // If that didn't resolve try to load the env file from the parent of the .graphqlconfig file (e.g. multiproject setups)
+                if (varValue == null && pathOfConfigFileParent != null) {
+                    dotenv = Dotenv
+                        .configure()
+                        .directory(pathOfConfigFileParent)
+                        .ignoreIfMalformed()
+                        .ignoreIfMissing()
+                        .load();
+
+                    varValue = dotenv.get(varName);
+                }
+
             }
 
             // If it still wasn't found present the user with a dialog to enter the variable
