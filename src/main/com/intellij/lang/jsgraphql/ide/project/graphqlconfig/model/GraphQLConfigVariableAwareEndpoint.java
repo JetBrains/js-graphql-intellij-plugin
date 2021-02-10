@@ -105,36 +105,7 @@ public class GraphQLConfigVariableAwareEndpoint {
 
             // If the variable wasn't found in the system try to see if the user has a .env file with the variable
             if (varValue == null || varValue.trim().isEmpty()) {
-                Dotenv dotenv;
-                
-                // Let's try to load the env file closest to the config file first
-                if (configFile != null) {
-                    String pathOfConfigFileParent = null;
-                    VirtualFile parentDir = configFile.getParent();
-                    if (parentDir != null) pathOfConfigFileParent = parentDir.getPath();
-                    if (pathOfConfigFileParent != null) {
-                        dotenv = Dotenv
-                            .configure()
-                            .directory(pathOfConfigFileParent)
-                            .ignoreIfMalformed()
-                            .ignoreIfMissing()
-                            .load();
-
-                        varValue = dotenv.get(varName);
-                    }
-                }
-
-                // If that didn't resolve try to load the env file from the root of the project
-                if (varValue == null) {
-                    dotenv = Dotenv
-                        .configure()
-                        .directory(project.getBasePath())
-                        .ignoreIfMalformed()
-                        .ignoreIfMissing()
-                        .load();
-
-                    varValue = dotenv.get(varName);
-                }
+                varValue = tryToGetVariableFromDotEnvFile(varName, varValue);
             }
 
             // If it still wasn't found present the user with a dialog to enter the variable
@@ -151,6 +122,40 @@ public class GraphQLConfigVariableAwareEndpoint {
         }
         matcher.appendTail(sb);
         return sb.toString();
+    }
+
+    @Nullable
+    private String tryToGetVariableFromDotEnvFile(String varName, String varValue) {
+        Dotenv dotenv;
+
+        // Let's try to load the env file closest to the config file first
+        if (configFile != null) {
+            VirtualFile parentDir = configFile.getParent();
+            if (parentDir != null) {
+                dotenv = Dotenv
+                    .configure()
+                    .directory(parentDir.getPath())
+                    .ignoreIfMalformed()
+                    .ignoreIfMissing()
+                    .load();
+
+                varValue = dotenv.get(varName);
+            }
+        }
+
+        // If that didn't resolve try to load the env file from the root of the project
+        String projectBasePath = project.getBasePath();
+        if (varValue == null && projectBasePath != null) {
+            dotenv = Dotenv
+                .configure()
+                .directory(projectBasePath)
+                .ignoreIfMalformed()
+                .ignoreIfMissing()
+                .load();
+
+            varValue = dotenv.get(varName);
+        }
+        return varValue;
     }
 
     static class VariableDialog extends DialogWrapper {
