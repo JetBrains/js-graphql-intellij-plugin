@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
@@ -48,6 +49,8 @@ import java.util.stream.Stream;
  * Line marker for running an introspection against a configured endpoint url in a .graphqlconfig file
  */
 public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarkerProvider {
+    private String pathOfConfigFileParent;
+
     @Nullable
     @Override
     public LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
@@ -60,13 +63,14 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             if (isEndpointUrl(jsonProperty, urlRef) && !hasErrors(jsonProperty.getContainingFile())) {
                 return new LineMarkerInfo<>(jsonProperty, jsonProperty.getTextRange(), AllIcons.RunConfigurations.TestState.Run, Pass.UPDATE_ALL, o -> "Run introspection query to generate GraphQL SDL schema file", (evt, jsonUrl) -> {
 
-                    String introspectionUtl;
+                    String introspectionUrl;
                     if (jsonUrl.getValue() instanceof JsonStringLiteral) {
-                        introspectionUtl = ((JsonStringLiteral) jsonUrl.getValue()).getValue();
+                        introspectionUrl = ((JsonStringLiteral) jsonUrl.getValue()).getValue();
                     } else {
                         return;
                     }
-                    final GraphQLConfigVariableAwareEndpoint endpoint = getEndpoint(introspectionUtl, jsonProperty);
+
+                    final GraphQLConfigVariableAwareEndpoint endpoint = getEndpoint(introspectionUrl, jsonProperty, element.getContainingFile().getVirtualFile());
                     if (endpoint == null) {
                         return;
                     }
@@ -159,7 +163,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
         return null;
     }
 
-    private GraphQLConfigVariableAwareEndpoint getEndpoint(String url, JsonProperty urlJsonProperty) {
+    private GraphQLConfigVariableAwareEndpoint getEndpoint(String url, JsonProperty urlJsonProperty, VirtualFile configFile) {
         try {
             // if the endpoint is just the url string, headers are not supported
             final JsonProperty parent = PsiTreeUtil.getParentOfType(urlJsonProperty, JsonProperty.class);
@@ -181,7 +185,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             }
 
 
-            return new GraphQLConfigVariableAwareEndpoint(endpointConfig, urlJsonProperty.getProject());
+            return new GraphQLConfigVariableAwareEndpoint(endpointConfig, urlJsonProperty.getProject(), configFile);
 
         } catch (Exception e) {
             Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Configuration Error", e.getMessage(), NotificationType.ERROR), urlJsonProperty.getProject());

@@ -107,7 +107,7 @@ public class GraphQLIntrospectionService implements Disposable {
                 return;
             }
 
-            performIntrospectionQueryAndUpdateSchemaPathFile(new GraphQLConfigVariableAwareEndpoint(endpoint, project), schemaPath, configFile);
+            performIntrospectionQueryAndUpdateSchemaPathFile(new GraphQLConfigVariableAwareEndpoint(endpoint, project, configFile), schemaPath, configFile);
         }
 
     }

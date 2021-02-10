@@ -13,9 +13,11 @@ import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,10 +38,12 @@ public class GraphQLConfigVariableAwareEndpoint {
 
     private final GraphQLConfigEndpoint endpoint;
     private final Project project;
+    private final VirtualFile configFile;
 
-    public GraphQLConfigVariableAwareEndpoint(GraphQLConfigEndpoint endpoint, Project project) {
+    public GraphQLConfigVariableAwareEndpoint(GraphQLConfigEndpoint endpoint, Project project, VirtualFile configFile) {
         this.endpoint = endpoint;
         this.project = project;
+        this.configFile = configFile;
     }
 
     public String getName() {
@@ -95,7 +99,16 @@ public class GraphQLConfigVariableAwareEndpoint {
                 Notifications.Bus.notify(new Notification("GraphQL", "Unsupported variable source", "Supported variables sources are 'env', but got: " + varSource, NotificationType.ERROR));
                 continue;
             }
+
+            // Try to load the variable from the system
             String varValue = GET_ENV_VAR.apply(varName);
+
+            // If the variable wasn't found in the system try to see if the user has a .env file with the variable
+            if (varValue == null || varValue.trim().isEmpty()) {
+                varValue = tryToGetVariableFromDotEnvFile(varName, varValue);
+            }
+
+            // If it still wasn't found present the user with a dialog to enter the variable
             if (varValue == null || varValue.trim().isEmpty()) {
                 final VariableDialog dialog = new VariableDialog(project, varName);
                 if (dialog.showAndGet()) {
@@ -104,10 +117,45 @@ public class GraphQLConfigVariableAwareEndpoint {
                     continue;
                 }
             }
+
             matcher.appendReplacement(sb, varValue);
         }
         matcher.appendTail(sb);
         return sb.toString();
+    }
+
+    @Nullable
+    private String tryToGetVariableFromDotEnvFile(String varName, String varValue) {
+        Dotenv dotenv;
+
+        // Let's try to load the env file closest to the config file first
+        if (configFile != null) {
+            VirtualFile parentDir = configFile.getParent();
+            if (parentDir != null) {
+                dotenv = Dotenv
+                    .configure()
+                    .directory(parentDir.getPath())
+                    .ignoreIfMalformed()
+                    .ignoreIfMissing()
+                    .load();
+
+                varValue = dotenv.get(varName);
+            }
+        }
+
+        // If that didn't resolve try to load the env file from the root of the project
+        String projectBasePath = project.getBasePath();
+        if (varValue == null && projectBasePath != null) {
+            dotenv = Dotenv
+                .configure()
+                .directory(projectBasePath)
+                .ignoreIfMalformed()
+                .ignoreIfMissing()
+                .load();
+
+            varValue = dotenv.get(varName);
+        }
+        return varValue;
     }
 
     static class VariableDialog extends DialogWrapper {
