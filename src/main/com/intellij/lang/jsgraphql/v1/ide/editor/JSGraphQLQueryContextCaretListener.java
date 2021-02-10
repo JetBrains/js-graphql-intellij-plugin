@@ -10,13 +10,12 @@ package com.intellij.lang.jsgraphql.v1.ide.editor;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.editor.event.EditorEventMulticaster;
-import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.Key;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -29,21 +28,27 @@ public class JSGraphQLQueryContextCaretListener implements Disposable {
 
     static final Key<Integer> CARET_OFFSET = Key.create("JSGraphQL.QueryContext.CaretOffset");
 
+    private final Project myProject;
+
     public JSGraphQLQueryContextCaretListener(@NotNull Project project) {
-        listen(project);
+        myProject = project;
     }
 
-    private void listen(@NotNull Project project) {
+    public static JSGraphQLQueryContextCaretListener getInstance(@NotNull Project project) {
+        return ServiceManager.getService(project, JSGraphQLQueryContextCaretListener.class);
+    }
+
+    public void listen() {
         if (ApplicationManager.getApplication().isHeadlessEnvironment()) {
             return;
         }
 
         final EditorEventMulticaster eventMulticaster = EditorFactory.getInstance().getEventMulticaster();
-        final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
+        final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
         eventMulticaster.addCaretListener(new CaretListener() {
             @Override
             public void caretPositionChanged(@NotNull CaretEvent e) {
-                if (project.isDisposed() || project != e.getEditor().getProject()) {
+                if (myProject.isDisposed() || myProject != e.getEditor().getProject()) {
                     return;
                 }
 
