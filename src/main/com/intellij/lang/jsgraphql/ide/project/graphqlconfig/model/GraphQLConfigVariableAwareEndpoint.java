@@ -11,6 +11,8 @@ import com.google.common.collect.Maps;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -105,7 +107,7 @@ public class GraphQLConfigVariableAwareEndpoint {
 
             // If the variable wasn't found in the system try to see if the user has a .env file with the variable
             if (varValue == null || varValue.trim().isEmpty()) {
-                varValue = tryToGetVariableFromDotEnvFile(varName, varValue);
+                varValue = tryToGetVariableFromDotEnvFile(varName);
             }
 
             // If it still wasn't found present the user with a dialog to enter the variable
@@ -125,8 +127,15 @@ public class GraphQLConfigVariableAwareEndpoint {
     }
 
     @Nullable
-    private String tryToGetVariableFromDotEnvFile(String varName, String varValue) {
+    private String tryToGetVariableFromDotEnvFile(String varName) {
+        String varValue = null;
         Dotenv dotenv;
+
+        // commit changes to the file system before the Dotenv is used
+        FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+        if (ApplicationManager.getApplication().isDispatchThread() && fileDocumentManager.getUnsavedDocuments().length > 0) {
+            fileDocumentManager.saveAllDocuments();
+        }
 
         // Let's try to load the env file closest to the config file first
         if (configFile != null) {
