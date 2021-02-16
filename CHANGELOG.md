@@ -2,6 +2,14 @@
 
 # Changelog
 
+## [2.8.0] - 2021-02-16
+
+### Added
+- Loading env variables from .env file (#426)
+
+### Fixed
+- Executing a single selected query (#418)
+
 ## [2.7.1] - 2021-01-15
 
 ### Fixed
