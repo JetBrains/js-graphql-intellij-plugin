@@ -16,6 +16,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
@@ -75,6 +76,8 @@ public class GraphQLRelayModernEnableStartupActivity implements StartupActivity 
                         }
                     }
                 }
+            } catch (ProcessCanceledException e) {
+                throw e;
             } catch (Exception e) {
                 LOG.error("Unable to detect Relay Modern", e);
             }
