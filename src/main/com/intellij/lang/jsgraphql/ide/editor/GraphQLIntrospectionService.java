@@ -61,17 +61,20 @@ import graphql.schema.GraphQLScalarType;
 import graphql.schema.GraphQLSchema;
 import graphql.schema.idl.*;
 import graphql.util.EscapeUtil;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -143,16 +146,22 @@ public class GraphQLIntrospectionService implements Disposable {
             }
 
             final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
-
-            final PostMethod method = new PostMethod(url);
-            method.setRequestEntity(new StringRequestEntity(requestJson, "application/json", "UTF-8"));
-            setHeadersFromOptions(endpoint, method);
-
-            Task.Backgroundable task = new IntrospectionQueryTask(method, schemaPath, introspectionSourceFile, retry, graphQLSettings, endpoint, url);
+            HttpPost request = createRequest(endpoint, url, requestJson);
+            Task.Backgroundable task = new IntrospectionQueryTask(request, schemaPath, introspectionSourceFile, retry, graphQLSettings, endpoint, url);
             ProgressManager.getInstance().run(task);
-        } catch (UnsupportedEncodingException | IllegalStateException | IllegalArgumentException e) {
-            GraphQLNotificationUtil.showGraphQLRequestErrorNotification(retry, url, e, NotificationType.ERROR, myProject);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.ERROR, retry);
         }
+    }
+
+    @NotNull
+    public static HttpPost createRequest(@NotNull GraphQLConfigVariableAwareEndpoint endpoint,
+                                         @NotNull String url,
+                                         @NotNull String requestJson) {
+        HttpPost request = new HttpPost(url);
+        request.setEntity(new StringEntity(requestJson, ContentType.APPLICATION_JSON));
+        setHeadersFromOptions(endpoint, request);
+        return request;
     }
 
     public void addIntrospectionStackTraceAction(@NotNull Notification notification, @NotNull Exception exception) {
@@ -418,7 +427,7 @@ public class GraphQLIntrospectionService implements Disposable {
     }
 
     private class IntrospectionQueryTask extends Task.Backgroundable {
-        private final PostMethod method;
+        private final HttpUriRequest request;
         private final String schemaPath;
         private final VirtualFile introspectionSourceFile;
         private final NotificationAction retry;
@@ -426,7 +435,7 @@ public class GraphQLIntrospectionService implements Disposable {
         private final GraphQLConfigVariableAwareEndpoint endpoint;
         private final String url;
 
-        public IntrospectionQueryTask(@NotNull PostMethod method,
+        public IntrospectionQueryTask(@NotNull HttpUriRequest request,
                                       @NotNull String schemaPath,
                                       @NotNull VirtualFile introspectionSourceFile,
                                       @NotNull NotificationAction retry,
@@ -434,7 +443,7 @@ public class GraphQLIntrospectionService implements Disposable {
                                       @NotNull GraphQLConfigVariableAwareEndpoint endpoint,
                                       @NotNull String url) {
             super(GraphQLIntrospectionService.this.myProject, GraphQLBundle.message("graphql.progress.executing.introspection.query"), false);
-            this.method = method;
+            this.request = request;
             this.schemaPath = schemaPath;
             this.introspectionSourceFile = introspectionSourceFile;
             this.retry = retry;
@@ -448,12 +457,11 @@ public class GraphQLIntrospectionService implements Disposable {
             indicator.setIndeterminate(true);
             String responseJson;
 
-            try {
-                HttpClient httpClient = new HttpClient(new HttpClientParams());
-                httpClient.executeMethod(method);
-                responseJson = ObjectUtils.coalesce(method.getResponseBodyAsString(), "");
+            try (final CloseableHttpClient httpClient = HttpClients.createDefault();
+                 final CloseableHttpResponse response = httpClient.execute(request)) {
+                responseJson = ObjectUtils.coalesce(EntityUtils.toString(response.getEntity()), "");
             } catch (IOException e) {
-                GraphQLNotificationUtil.showGraphQLRequestErrorNotification(retry, url, e, NotificationType.WARNING, myProject);
+                GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.WARNING, retry);
                 return;
             }
 

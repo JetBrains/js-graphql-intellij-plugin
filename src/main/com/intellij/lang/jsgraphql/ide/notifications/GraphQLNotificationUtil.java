@@ -42,17 +42,21 @@ public class GraphQLNotificationUtil {
         Notifications.Bus.notify(notification);
     }
 
-    public static void showGraphQLRequestErrorNotification(@NotNull NotificationAction retry,
+    public static void showGraphQLRequestErrorNotification(@NotNull Project project,
                                                            @NotNull String url,
                                                            @NotNull Exception error,
                                                            @NotNull NotificationType notificationType,
-                                                           @NotNull Project project) {
+                                                           @Nullable NotificationAction retry) {
         Notification notification = new Notification(
             NOTIFICATION_GROUP_ID,
             GraphQLBundle.message("graphql.notification.error.title"),
             url + ": " + GraphQLNotificationUtil.formatExceptionMessage(error),
             notificationType
-        ).addAction(retry);
+        );
+
+        if (retry != null) {
+            notification.addAction(retry);
+        }
 
         Notifications.Bus.notify(notification, project);
     }

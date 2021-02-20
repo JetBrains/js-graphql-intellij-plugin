@@ -19,6 +19,8 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
+import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
@@ -29,9 +31,7 @@ import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContext;
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.v1.ide.project.toolwindow.JSGraphQLLanguageToolWindowManager;
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,6 +51,7 @@ import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vcs.CodeSmellDetector;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -68,13 +69,15 @@ import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
-import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
-import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
+import org.apache.http.Header;
+import org.apache.http.HttpRequest;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -83,9 +86,10 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the project-specific GraphQL tool window, including errors view, console, and query result editor.
@@ -372,84 +376,85 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     return;
                 }
                 String requestJson = createQueryJsonSerializer().toJson(requestData);
-                final HttpClientParams params = new HttpClientParams();
-                params.setContentCharset("UTF-8"); // set fallback charset to align with JSON spec
-                final HttpClient httpClient = new HttpClient(params);
                 final String url = endpoint.getUrl();
                 try {
-                    final PostMethod method = new PostMethod(url);
-                    setHeadersFromOptions(endpoint, method);
-                    method.setRequestEntity(new StringRequestEntity(requestJson, "application/json", "UTF-8"));
-
-                    final Runnable executeQuery = () -> {
-                        try {
-                            try {
-                                editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, true);
-                                StopWatch sw = new StopWatch();
-                                sw.start();
-                                httpClient.executeMethod(method);
-                                final String responseJson = Optional.ofNullable(method.getResponseBodyAsString()).orElse("");
-                                sw.stop();
-                                final Header responseHeader = method.getResponseHeader("Content-Type");
-                                final boolean reformatJson = responseHeader != null && responseHeader.getValue() != null && responseHeader.getValue().startsWith("application/json");
-                                final Integer errorCount = getErrorCount(responseJson);
-                                if (fileEditor instanceof TextEditor) {
-                                    final TextEditor textEditor = (TextEditor) fileEditor;
-                                    UIUtil.invokeLaterIfNeeded(() -> {
-                                        updateQueryResultEditor(responseJson, textEditor, reformatJson);
-                                        final StringBuilder queryResultText = new StringBuilder(virtualFile.getName()).
-                                                append(": ").
-                                                append(sw.getTime()).
-                                                append(" ms execution time, ").
-                                                append(bytesToDisplayString(responseJson.length())).
-                                                append(" response");
-
-                                        if (errorCount != null && errorCount > 0) {
-                                            queryResultText.append(", ").append(errorCount).append(" error").append(errorCount > 1 ? "s" : "");
-                                            if (context.onError != null) {
-                                                context.onError.run();
-                                            }
-                                        }
-
-                                        queryResultLabel.setText(queryResultText.toString());
-                                        queryResultLabel.putClientProperty(FILE_URL_PROPERTY, virtualFile.getUrl());
-                                        if (!queryResultLabel.isVisible()) {
-                                            queryResultLabel.setVisible(true);
-                                        }
-
-                                        querySuccessLabel.setVisible(errorCount != null);
-                                        if (querySuccessLabel.isVisible()) {
-                                            if (errorCount == 0) {
-                                                querySuccessLabel.setBorder(BorderFactory.createEmptyBorder(2, 8, 0, 0));
-                                                querySuccessLabel.setIcon(AllIcons.General.InspectionsOK);
-                                            } else {
-                                                querySuccessLabel.setBorder(BorderFactory.createEmptyBorder(2, 12, 0, 4));
-                                                querySuccessLabel.setIcon(AllIcons.Ide.ErrorPoint);
-                                            }
-                                        }
-                                        showQueryResultEditor(textEditor);
-                                    });
-                                }
-                            } finally {
-                                editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, null);
-                            }
-                        } catch (IOException | IllegalArgumentException e) {
-                            Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", url + ": " + e.getMessage(), NotificationType.WARNING), myProject);
-                        }
-                    };
+                    final HttpPost request = GraphQLIntrospectionService.createRequest(endpoint, url, requestJson);
                     final Task.Backgroundable task = new Task.Backgroundable(myProject, "Executing GraphQL", false) {
                         @Override
                         public void run(@NotNull ProgressIndicator indicator) {
                             indicator.setIndeterminate(true);
-                            executeQuery.run();
+                            runQuery(editor, virtualFile, context, url, request);
                         }
                     };
                     ProgressManager.getInstance().run(task);
-                } catch (UnsupportedEncodingException | IllegalStateException | IllegalArgumentException e) {
-                    Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Query Error", url + ": " + e.getMessage(), NotificationType.ERROR), myProject);
+                } catch (IllegalStateException | IllegalArgumentException e) {
+                    GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.ERROR, null);
                 }
 
             }
+        }
+    }
+
+    private void runQuery(Editor editor, VirtualFile virtualFile, JSGraphQLQueryContext context, String url, HttpPost request) {
+        try {
+            try (final CloseableHttpClient httpClient = HttpClients.createDefault()) {
+                editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, true);
+
+                String responseJson;
+                Header contentType;
+                StopWatch sw = new StopWatch();
+                sw.start();
+                try (final CloseableHttpResponse response = httpClient.execute(request)) {
+                    responseJson = StringUtil.notNullize(EntityUtils.toString(response.getEntity()));
+                    contentType = response.getFirstHeader("Content-Type");
+                } finally {
+                    sw.stop();
+                }
+
+                final boolean reformatJson = contentType != null && contentType.getValue() != null && contentType.getValue().startsWith("application/json");
+                final Integer errorCount = getErrorCount(responseJson);
+                if (fileEditor instanceof TextEditor) {
+                    final TextEditor textEditor = (TextEditor) fileEditor;
+                    UIUtil.invokeLaterIfNeeded(() -> {
+                        updateQueryResultEditor(responseJson, textEditor, reformatJson);
+                        final StringBuilder queryResultText = new StringBuilder(virtualFile.getName()).
+                            append(": ").
+                            append(sw.getTime()).
+                            append(" ms execution time, ").
+                            append(bytesToDisplayString(responseJson.length())).
+                            append(" response");
+
+                        if (errorCount != null && errorCount > 0) {
+                            queryResultText.append(", ").append(errorCount).append(" error").append(errorCount > 1 ? "s" : "");
+                            if (context.onError != null) {
+                                context.onError.run();
+                            }
+                        }
+
+                        queryResultLabel.setText(queryResultText.toString());
+                        queryResultLabel.putClientProperty(FILE_URL_PROPERTY, virtualFile.getUrl());
+                        if (!queryResultLabel.isVisible()) {
+                            queryResultLabel.setVisible(true);
+                        }
+
+                        querySuccessLabel.setVisible(errorCount != null);
+                        if (querySuccessLabel.isVisible()) {
+                            if (errorCount == 0) {
+                                querySuccessLabel.setBorder(BorderFactory.createEmptyBorder(2, 8, 0, 0));
+                                querySuccessLabel.setIcon(AllIcons.General.InspectionsOK);
+                            } else {
+                                querySuccessLabel.setBorder(BorderFactory.createEmptyBorder(2, 12, 0, 4));
+                                querySuccessLabel.setIcon(AllIcons.Ide.ErrorPoint);
+                            }
+                        }
+                        showQueryResultEditor(textEditor);
+                    });
+                }
+            } finally {
+                editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, null);
+            }
+        } catch (IOException | IllegalArgumentException e) {
+            GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.WARNING, null);
         }
     }
 
@@ -541,11 +546,11 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         return String.format("%.1f %sb", bytes / Math.pow(1000, exp), pre);
     }
 
-    public static void setHeadersFromOptions(GraphQLConfigVariableAwareEndpoint endpoint, PostMethod method) {
+    public static void setHeadersFromOptions(GraphQLConfigVariableAwareEndpoint endpoint, HttpRequest request) {
         final Map<String, Object> headers = endpoint.getHeaders();
         if (headers != null) {
             for (Map.Entry<String, Object> entry : headers.entrySet()) {
-                method.setRequestHeader(entry.getKey(), String.valueOf(entry.getValue()));
+                request.setHeader(entry.getKey(), String.valueOf(entry.getValue()));
             }
         }
     }
