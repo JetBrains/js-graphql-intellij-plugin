@@ -102,10 +102,11 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
     }
 
     private GraphQLNamedScope getSchemaScope(PsiElement scopedElement) {
-        VirtualFile virtualFile = scopedElement.getContainingFile().getVirtualFile();
+        PsiFile containingFile = scopedElement.getContainingFile();
+        VirtualFile virtualFile = containingFile.getVirtualFile();
         if (virtualFile == null) {
             // in memory PsiFile such as the completion PSI
-            virtualFile = scopedElement.getContainingFile().getOriginalFile().getVirtualFile();
+            virtualFile = containingFile.getOriginalFile().getVirtualFile();
         }
         return virtualFile != null ? graphQLConfigManager.getSchemaScope(virtualFile) : null;
     }

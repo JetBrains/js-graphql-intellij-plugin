@@ -44,8 +44,6 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -54,7 +52,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
@@ -68,8 +66,10 @@ import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import com.intellij.psi.*;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.EditorNotifications;
+import com.intellij.util.Processor;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
@@ -209,27 +209,55 @@ public class GraphQLConfigManager implements Disposable {
                 virtualFile = originalFile;
             }
         }
-        final Set<VirtualFile> contentRoots = getContentRoots(virtualFile);
-        VirtualFile directory;
+        VirtualFile initialDirectory;
         if (ScratchUtil.isScratch(virtualFile)) {
-            directory = getConfigBaseDirForScratch(virtualFile);
+            initialDirectory = getConfigBaseDirForScratch(virtualFile);
         } else {
-            directory = virtualFile.isDirectory() ? virtualFile : virtualFile.getParent();
+            initialDirectory = virtualFile.isDirectory() ? virtualFile : virtualFile.getParent();
         }
-        while (directory != null && directory.isValid()) {
+
+        if (initialDirectory == null) return null;
+
+        Ref<VirtualFile> result = Ref.create();
+        processDirectoriesUpToContentRoot(myProject, initialDirectory, dir -> {
             for (String fileName : GRAPHQLCONFIG_FILE_NAMES) {
-                VirtualFile configFile = directory.findChild(fileName);
+                VirtualFile configFile = dir.findChild(fileName);
                 if (configFile != null) {
-                    return configFile;
+                    result.set(configFile);
+                    return false;
                 }
             }
-            if (contentRoots.contains(directory)) {
-                // don't step outside the module content roots
-                break;
-            }
-            directory = directory.getParent();
+            return true;
+        });
+        return result.get();
+    }
+
+    public static void processDirectoriesUpToContentRoot(@NotNull Project project,
+                                                         @NotNull VirtualFile fileOrDir,
+                                                         @NotNull Processor<? super VirtualFile> directoryProcessor) {
+        if (project.isDisposed()) {
+            return;
         }
-        return null;
+        ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
+        VirtualFile dir = fileOrDir.isDirectory() ? fileOrDir : fileOrDir.getParent();
+        if (dir == null) {
+            return;
+        }
+        VirtualFile contentRoot = fileIndex.getContentRootForFile(dir, false);
+        while (dir != null && contentRoot != null) {
+            if (!directoryProcessor.process(dir)) {
+                return;
+            }
+            if (dir.equals(contentRoot)) {
+                dir = dir.getParent();
+                if (dir == null) {
+                    return;
+                }
+                contentRoot = fileIndex.getContentRootForFile(dir, false);
+            } else {
+                dir = dir.getParent();
+            }
+        }
     }
 
     public void createAndOpenConfigFile(@NotNull VirtualFile configBaseDir, Boolean openEditor) {
@@ -736,18 +764,6 @@ public class GraphQLConfigManager implements Disposable {
         });
     }
 
-    @NotNull
-    public Set<VirtualFile> getContentRoots(@Nullable VirtualFile virtualFile) {
-        if (virtualFile == null) return Collections.emptySet();
-
-        final Module module = ModuleUtilCore.findModuleForFile(virtualFile, myProject);
-        if (module != null) {
-            return Sets.newHashSet(ModuleRootManager.getInstance(module).getContentRoots());
-        } else {
-            return Sets.newHashSet(ProjectUtil.guessProjectDir(myProject));
-        }
-    }
-
     @Nullable
     public GraphQLNamedScope getSchemaScope(@Nullable VirtualFile virtualFile) {
         VirtualFile virtualFileWithPath = GraphQLPsiUtil.getVirtualFile(virtualFile);
@@ -759,56 +775,52 @@ public class GraphQLConfigManager implements Disposable {
                 VirtualFile configBaseDir = !ScratchUtil.isScratch(virtualFileWithPath)
                     ? getConfigBaseDir(virtualFileWithPath)
                     : getConfigBaseDirForScratch(virtualFileWithPath);
+                if (configBaseDir == null) return NONE;
 
                 // locate the nearest config file, see https://github.com/kamilkisiela/graphql-config/tree/legacy/src/findGraphQLConfigFile.ts
-                final Set<VirtualFile> contentRoots = getContentRoots(virtualFileWithPath);
-                while (configBaseDir != null) {
-                    GraphQLConfigData configData = configFilesToConfigurations.get(configBaseDir);
-                    if (configData != null) {
-                        final VirtualFile effectiveConfigBaseDir = configBaseDir;
-                        // check projects first
-                        if (configData.projects != null) {
-                            final String projectKey = virtualFileWithPath.getUserData(GRAPHQL_SCRATCH_PROJECT_KEY);
-                            for (Map.Entry<String, GraphQLResolvedConfigData> entry : configData.projects.entrySet()) {
-                                if (projectKey != null && !projectKey.trim().isEmpty() && !projectKey.equals(entry.getKey())) {
-                                    // associated with another project so skip ahead
-                                    continue;
-                                }
-                                final GraphQLResolvedConfigData projectConfigData = entry.getValue();
-                                final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(projectConfigData, dataKey -> {
-                                    final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
-                                    return new GraphQLConfigPackageSet(effectiveConfigBaseDir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
-                                });
-                                if (packageSet.includesVirtualFile(virtualFileWithPath)) {
-                                    return new GraphQLNamedScope("graphql-config:" + configBaseDir.getPath() + ":" + entry.getKey(), packageSet);
-                                }
+                Ref<GraphQLNamedScope> scopeRef = Ref.create(NONE);
+                processDirectoriesUpToContentRoot(myProject, configBaseDir, dir -> {
+                    GraphQLConfigData configData = configFilesToConfigurations.get(dir);
+                    if (configData == null) {
+                        return true;
+                    }
+
+                    // check projects first
+                    if (configData.projects != null) {
+                        final String projectKey = virtualFileWithPath.getUserData(GRAPHQL_SCRATCH_PROJECT_KEY);
+                        for (Map.Entry<String, GraphQLResolvedConfigData> entry : configData.projects.entrySet()) {
+                            if (projectKey != null && !projectKey.trim().isEmpty() && !projectKey.equals(entry.getKey())) {
+                                // associated with another project so skip ahead
+                                continue;
+                            }
+                            final GraphQLResolvedConfigData projectConfigData = entry.getValue();
+                            final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(projectConfigData, dataKey -> {
+                                final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
+                                return new GraphQLConfigPackageSet(dir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
+                            });
+                            if (packageSet.includesVirtualFile(virtualFileWithPath)) {
+                                scopeRef.set(new GraphQLNamedScope("graphql-config:" + dir.getPath() + ":" + entry.getKey(), packageSet));
+                                return false;
                             }
                         }
-                        // then top level config
-                        final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(configData, dataKey -> {
-                            final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
-                            return new GraphQLConfigPackageSet(effectiveConfigBaseDir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
-                        });
-                        if (packageSet.includesVirtualFile(virtualFileWithPath)) {
-                            return new GraphQLNamedScope("graphql-config:" + configBaseDir.getPath(), packageSet);
-                        }
-                        return NONE;
-                    } else {
-                        if (contentRoots.contains(configBaseDir)) {
-                            // don't step outside the module content roots
-                            break;
-                        }
-                        configBaseDir = configBaseDir.getParent();
                     }
-                }
-                // can't return null here because computeIfAbsent doesn't consider that as a
-                return NONE;
-            });
-            if (namedScope != NONE) {
-                return namedScope;
-            }
-            return null;
 
+                    // then top level config
+                    final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(configData, dataKey -> {
+                        final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
+                        return new GraphQLConfigPackageSet(dir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
+                    });
+                    if (packageSet.includesVirtualFile(virtualFileWithPath)) {
+                        scopeRef.set(new GraphQLNamedScope("graphql-config:" + dir.getPath(), packageSet));
+                        return false;
+                    }
+                    return false;
+                });
+
+                return scopeRef.get();
+            });
+
+            return namedScope != NONE ? namedScope : null;
         } finally {
             readLock.unlock();
         }
@@ -869,62 +881,42 @@ public class GraphQLConfigManager implements Disposable {
      */
     @Nullable
     private VirtualFile getConfigBaseDirForScratch(@NotNull VirtualFile scratchVirtualFile) {
-
         final PsiFile psiFile = PsiManager.getInstance(myProject).findFile(scratchVirtualFile);
-
-        // by default we'll use the directory of the scratch file
-        final Ref<VirtualFile> baseDir = new Ref<>();
 
         // but look for a GRAPHQLCONFIG_COMMENT to override it
         if (psiFile != null) {
             scratchVirtualFile.putUserData(GRAPHQL_SCRATCH_PROJECT_KEY, null);
-            PsiElement element = psiFile.getFirstChild();
-            while (element != null) {
-                if (element instanceof PsiComment) {
-                    final String commentText = element.getText().trim();
-                    if (commentText.contains(GRAPHQLCONFIG_COMMENT)) {
-                        String configFileName = StringUtil.substringAfter(commentText, GRAPHQLCONFIG_COMMENT);
-                        if (configFileName != null) {
-                            if (configFileName.contains("!")) {
-                                final String projectKey = StringUtils.substringAfterLast(configFileName, "!");
-                                scratchVirtualFile.putUserData(GRAPHQL_SCRATCH_PROJECT_KEY, projectKey);
-                                configFileName = StringUtils.substringBeforeLast(configFileName, "!");
-                            }
-                            final VirtualFile configVirtualFile = scratchVirtualFile.getFileSystem().findFileByPath(configFileName.trim());
-                            if (configVirtualFile != null) {
-                                if (configVirtualFile.isDirectory()) {
-                                    baseDir.set(configVirtualFile);
-                                } else {
-                                    baseDir.set(configVirtualFile.getParent());
-                                }
-                                break;
-                            }
+            PsiElement child = psiFile.getFirstChild();
+            PsiElement element = child instanceof PsiComment ? child : PsiTreeUtil.skipWhitespacesForward(child);
+            if (element instanceof PsiComment) {
+                final String commentText = element.getText().trim();
+                if (commentText.contains(GRAPHQLCONFIG_COMMENT)) {
+                    String configFileName = StringUtil.substringAfter(commentText, GRAPHQLCONFIG_COMMENT);
+                    if (configFileName != null) {
+                        if (configFileName.contains("!")) {
+                            final String projectKey = StringUtils.substringAfterLast(configFileName, "!");
+                            scratchVirtualFile.putUserData(GRAPHQL_SCRATCH_PROJECT_KEY, projectKey);
+                            configFileName = StringUtils.substringBeforeLast(configFileName, "!");
+                        }
+                        final VirtualFile configVirtualFile = scratchVirtualFile.getFileSystem().findFileByPath(configFileName.trim());
+                        if (configVirtualFile != null) {
+                            return configVirtualFile.isDirectory() ? configVirtualFile : configVirtualFile.getParent();
                         }
                     }
                 }
-                element = element.getNextSibling();
             }
         }
 
-        if (baseDir.get() == null) {
-            // fallback to either:
-            // - a single config
-            // - the project base dir
-            try {
-                readLock.lock();
-                if (configFilesToConfigurations.size() == 1) {
-                    final VirtualFile singleConfigPath = configFilesToConfigurations.keySet().iterator().next();
-                    baseDir.set(singleConfigPath);
-                }
-            } finally {
-                readLock.unlock();
+        try {
+            readLock.lock();
+            if (configFilesToConfigurations.size() == 1) {
+                return configFilesToConfigurations.keySet().iterator().next();
             }
-            if (baseDir.get() == null) {
-                baseDir.set(ProjectUtil.guessProjectDir(myProject));
-            }
+        } finally {
+            readLock.unlock();
         }
 
-        return baseDir.get();
+        return ProjectUtil.guessProjectDir(myProject);
     }
 
     private void createParseErrorNotification(@NotNull VirtualFile file, @NotNull Exception e) {
