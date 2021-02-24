@@ -2,6 +2,15 @@
 
 # Changelog
 
+## [2.9.0] - 2021-02-24
+
+### Added
+- GZip response handling (#427)
+
+### Fixed
+- Startup exception caused by Relay detection (#431)
+- Search for configuration through the whole project root hierarchy (#423)
+
 ## [2.8.0] - 2021-02-16
 
 ### Added
