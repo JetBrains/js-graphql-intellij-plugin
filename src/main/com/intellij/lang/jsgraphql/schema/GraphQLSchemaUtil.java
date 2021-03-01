@@ -7,8 +7,8 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
-import graphql.language.*;
-import graphql.schema.*;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

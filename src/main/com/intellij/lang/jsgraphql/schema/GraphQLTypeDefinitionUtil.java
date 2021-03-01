@@ -1,9 +1,9 @@
 package com.intellij.lang.jsgraphql.schema;
 
-import graphql.language.AstPrinter;
-import graphql.language.NamedNode;
-import graphql.language.Node;
-import graphql.language.Type;
+import com.intellij.lang.jsgraphql.types.language.AstPrinter;
+import com.intellij.lang.jsgraphql.types.language.NamedNode;
+import com.intellij.lang.jsgraphql.types.language.Node;
+import com.intellij.lang.jsgraphql.types.language.Type;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

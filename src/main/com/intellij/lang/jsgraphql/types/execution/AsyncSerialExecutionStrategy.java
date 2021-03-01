@@ -1,0 +1,54 @@
+package com.intellij.lang.jsgraphql.types.execution;
+
+import com.google.common.collect.ImmutableList;
+import com.intellij.lang.jsgraphql.types.ExecutionResult;
+import com.intellij.lang.jsgraphql.types.PublicApi;
+import com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentation;
+import com.intellij.lang.jsgraphql.types.execution.instrumentation.InstrumentationContext;
+import com.intellij.lang.jsgraphql.types.execution.instrumentation.parameters.InstrumentationExecutionStrategyParameters;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+/**
+ * Async non-blocking execution, but serial: only one field at the the time will be resolved.
+ * See {@link AsyncExecutionStrategy} for a non serial (parallel) execution of every field.
+ */
+@PublicApi
+public class AsyncSerialExecutionStrategy extends AbstractAsyncExecutionStrategy {
+
+    public AsyncSerialExecutionStrategy() {
+        super(new SimpleDataFetcherExceptionHandler());
+    }
+
+    public AsyncSerialExecutionStrategy(DataFetcherExceptionHandler exceptionHandler) {
+        super(exceptionHandler);
+    }
+
+    @Override
+    @SuppressWarnings({"TypeParameterUnusedInFormals", "FutureReturnValueIgnored"})
+    public CompletableFuture<ExecutionResult> execute(ExecutionContext executionContext, ExecutionStrategyParameters parameters) throws NonNullableFieldWasNullException {
+
+        Instrumentation instrumentation = executionContext.getInstrumentation();
+        InstrumentationExecutionStrategyParameters instrumentationParameters = new InstrumentationExecutionStrategyParameters(executionContext, parameters);
+        InstrumentationContext<ExecutionResult> executionStrategyCtx = instrumentation.beginExecutionStrategy(instrumentationParameters);
+        MergedSelectionSet fields = parameters.getFields();
+        ImmutableList<String> fieldNames = ImmutableList.copyOf(fields.keySet());
+
+        CompletableFuture<List<ExecutionResult>> resultsFuture = Async.eachSequentially(fieldNames, (fieldName, index, prevResults) -> {
+            MergedField currentField = fields.getSubField(fieldName);
+            ResultPath fieldPath = parameters.getPath().segment(mkNameForPath(currentField));
+            ExecutionStrategyParameters newParameters = parameters
+                    .transform(builder -> builder.field(currentField).path(fieldPath));
+            return resolveField(executionContext, newParameters);
+        });
+
+        CompletableFuture<ExecutionResult> overallResult = new CompletableFuture<>();
+        executionStrategyCtx.onDispatched(overallResult);
+
+        resultsFuture.whenComplete(handleResults(executionContext, fieldNames, overallResult));
+        overallResult.whenComplete(executionStrategyCtx::onCompleted);
+        return overallResult;
+    }
+
+}

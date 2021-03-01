@@ -1,10 +1,10 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
 import com.intellij.util.containers.ContainerUtil;
-import graphql.language.Directive;
-import graphql.language.EnumTypeDefinition;
-import graphql.language.EnumTypeExtensionDefinition;
-import graphql.language.EnumValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.EnumTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.EnumTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

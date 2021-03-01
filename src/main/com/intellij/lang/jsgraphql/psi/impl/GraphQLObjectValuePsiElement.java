@@ -14,10 +14,10 @@ import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import graphql.schema.GraphQLInputFieldsContainer;
-import graphql.schema.GraphQLInputObjectField;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputFieldsContainer;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl implements GraphQLObjectValue, GraphQLTypeScopeProvider {

@@ -15,10 +15,10 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.util.PsiTreeUtil;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLFieldsContainer;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLArgumentPsiElement extends GraphQLNamedElementImpl implements GraphQLArgument, GraphQLTypeScopeProvider {

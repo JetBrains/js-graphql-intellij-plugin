@@ -11,8 +11,8 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

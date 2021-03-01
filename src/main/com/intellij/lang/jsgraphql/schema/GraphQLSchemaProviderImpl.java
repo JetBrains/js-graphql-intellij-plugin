@@ -15,11 +15,11 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import graphql.GraphQLException;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.TypeDefinitionRegistry;
-import graphql.schema.idl.UnExecutableSchemaGenerator;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.schema.idl.UnExecutableSchemaGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;

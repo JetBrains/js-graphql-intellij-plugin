@@ -7,8 +7,8 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
-import graphql.GraphQLException;
-import graphql.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 
 import java.util.List;
 

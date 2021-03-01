@@ -12,10 +12,10 @@ import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
 import com.intellij.psi.util.PsiTreeUtil;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLNonNull;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLList;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLInputValueDefinitionPsiElement extends GraphQLNamedElementImpl implements GraphQLInputValueDefinition, GraphQLTypeScopeProvider {

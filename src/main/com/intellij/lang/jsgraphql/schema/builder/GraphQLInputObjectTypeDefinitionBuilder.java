@@ -1,10 +1,10 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
 import com.intellij.util.containers.ContainerUtil;
-import graphql.language.Directive;
-import graphql.language.InputObjectTypeDefinition;
-import graphql.language.InputObjectTypeExtensionDefinition;
-import graphql.language.InputValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.InputObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputObjectTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

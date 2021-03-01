@@ -7,9 +7,9 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
-import graphql.ErrorType;
-import graphql.GraphQLError;
-import graphql.language.SourceLocation;
+import com.intellij.lang.jsgraphql.types.ErrorType;
+import com.intellij.lang.jsgraphql.types.GraphQLError;
+import com.intellij.lang.jsgraphql.types.language.SourceLocation;
 
 import java.util.Collections;
 import java.util.List;

@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
 import com.intellij.util.containers.ContainerUtil;
-import graphql.language.*;
+import com.intellij.lang.jsgraphql.types.language.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

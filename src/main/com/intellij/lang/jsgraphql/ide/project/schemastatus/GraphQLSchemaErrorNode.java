@@ -17,8 +17,8 @@ import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.ExceptionUtil;
-import graphql.GraphQLError;
-import graphql.language.SourceLocation;
+import com.intellij.lang.jsgraphql.types.GraphQLError;
+import com.intellij.lang.jsgraphql.types.language.SourceLocation;
 
 import java.awt.event.InputEvent;
 import java.util.List;

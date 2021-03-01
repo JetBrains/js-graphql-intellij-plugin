@@ -25,10 +25,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
-import graphql.GraphQLException;
-import graphql.introspection.Introspection;
-import graphql.language.*;
-import graphql.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
+import com.intellij.lang.jsgraphql.types.introspection.Introspection;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 

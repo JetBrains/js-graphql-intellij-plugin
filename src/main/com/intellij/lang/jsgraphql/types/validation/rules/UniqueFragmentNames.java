@@ -1,0 +1,43 @@
+package com.intellij.lang.jsgraphql.types.validation.rules;
+
+import com.intellij.lang.jsgraphql.types.Internal;
+import com.intellij.lang.jsgraphql.types.VisibleForTesting;
+import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
+import com.intellij.lang.jsgraphql.types.validation.AbstractRule;
+import com.intellij.lang.jsgraphql.types.validation.ValidationContext;
+import com.intellij.lang.jsgraphql.types.validation.ValidationErrorCollector;
+import com.intellij.lang.jsgraphql.types.validation.ValidationErrorType;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+@Internal
+public class UniqueFragmentNames extends AbstractRule {
+
+
+    private Set<String> fragmentNames = new LinkedHashSet<>();
+
+
+    public UniqueFragmentNames(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
+        super(validationContext, validationErrorCollector);
+    }
+
+    @Override
+    public void checkFragmentDefinition(FragmentDefinition fragmentDefinition) {
+        String name = fragmentDefinition.getName();
+        if (name == null) {
+            return;
+        }
+
+        if (fragmentNames.contains(name)) {
+            addError(ValidationErrorType.DuplicateFragmentName, fragmentDefinition.getSourceLocation(), duplicateFragmentName(name));
+        } else {
+            fragmentNames.add(name);
+        }
+    }
+
+    @VisibleForTesting
+    static String duplicateFragmentName(String fragmentName) {
+        return String.format("There can be only one fragment named '%s'", fragmentName);
+    }
+}

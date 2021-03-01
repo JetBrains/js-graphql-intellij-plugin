@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
 import com.intellij.util.containers.ContainerUtil;
-import graphql.language.DirectiveDefinition;
+import com.intellij.lang.jsgraphql.types.language.DirectiveDefinition;
 import org.jetbrains.annotations.NotNull;
 
 public class GraphQLDirectiveTypeDefinitionBuilder extends GraphQLDefinitionBuilder<DirectiveDefinition> {

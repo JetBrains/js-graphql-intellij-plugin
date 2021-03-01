@@ -1,9 +1,9 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
 import com.intellij.util.containers.ContainerUtil;
-import graphql.language.Directive;
-import graphql.language.ScalarTypeDefinition;
-import graphql.language.ScalarTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.ScalarTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.ScalarTypeExtensionDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

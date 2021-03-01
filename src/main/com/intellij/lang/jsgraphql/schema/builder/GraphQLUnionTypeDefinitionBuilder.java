@@ -1,10 +1,10 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
 import com.intellij.util.containers.ContainerUtil;
-import graphql.language.Directive;
-import graphql.language.Type;
-import graphql.language.UnionTypeDefinition;
-import graphql.language.UnionTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.Type;
+import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.UnionTypeExtensionDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

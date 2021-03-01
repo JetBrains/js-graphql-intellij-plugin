@@ -16,7 +16,7 @@ import com.intellij.openapi.vfs.StandardFileSystems;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import graphql.language.SourceLocation;
+import com.intellij.lang.jsgraphql.types.language.SourceLocation;
 
 public final class GraphQLTreeNodeNavigationUtil {
 

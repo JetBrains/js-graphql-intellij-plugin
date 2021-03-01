@@ -42,12 +42,12 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Consumer;
 import com.intellij.util.ProcessingContext;
-import graphql.introspection.Introspection;
-import graphql.language.*;
-import graphql.schema.GraphQLType;
-import graphql.schema.*;
-import graphql.schema.idl.TypeDefinitionRegistry;
-import graphql.validation.rules.VariablesTypesMatcher;
+import com.intellij.lang.jsgraphql.types.introspection.Introspection;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.validation.rules.VariablesTypesMatcher;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

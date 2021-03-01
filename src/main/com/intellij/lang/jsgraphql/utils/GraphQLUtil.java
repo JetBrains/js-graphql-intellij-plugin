@@ -7,16 +7,16 @@
  */
 package com.intellij.lang.jsgraphql.utils;
 
-import graphql.language.Document;
-import graphql.language.SourceLocation;
-import graphql.parser.GraphqlAntlrToLanguage;
-import graphql.parser.MultiSourceReader;
-import graphql.parser.antlr.GraphqlLexer;
-import graphql.parser.antlr.GraphqlParser;
-import graphql.schema.GraphQLModifiedType;
-import graphql.schema.GraphQLNamedType;
-import graphql.schema.GraphQLType;
-import graphql.schema.GraphQLUnmodifiedType;
+import com.intellij.lang.jsgraphql.types.language.Document;
+import com.intellij.lang.jsgraphql.types.language.SourceLocation;
+import com.intellij.lang.jsgraphql.types.parser.GraphqlAntlrToLanguage;
+import com.intellij.lang.jsgraphql.types.parser.MultiSourceReader;
+import com.intellij.lang.jsgraphql.types.parser.antlr.GraphqlLexer;
+import com.intellij.lang.jsgraphql.types.parser.antlr.GraphqlParser;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLModifiedType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNamedType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLUnmodifiedType;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.misc.ParseCancellationException;

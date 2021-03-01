@@ -8,10 +8,10 @@
 package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
-import graphql.GraphQLError;
-import graphql.GraphQLException;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.errors.SchemaProblem;
+import com.intellij.lang.jsgraphql.types.GraphQLError;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 
 import java.util.List;
 

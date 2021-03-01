@@ -13,8 +13,8 @@ import com.intellij.lang.jsgraphql.psi.GraphQLTypedOperationDefinition;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
 import com.intellij.psi.tree.IElementType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLTypedOperationDefinitionPsiElement extends GraphQLNamedElementImpl implements GraphQLTypedOperationDefinition, GraphQLTypeScopeProvider {

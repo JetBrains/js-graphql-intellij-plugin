@@ -3,11 +3,11 @@ package com.intellij.lang.jsgraphql.schema;
 import com.intellij.lang.jsgraphql.schema.builder.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ObjectUtils;
-import graphql.GraphQLError;
-import graphql.GraphQLException;
-import graphql.language.*;
-import graphql.schema.idl.TypeDefinitionRegistry;
-import graphql.schema.idl.errors.SchemaProblem;
+import com.intellij.lang.jsgraphql.types.GraphQLError;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

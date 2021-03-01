@@ -10,8 +10,8 @@ package com.intellij.lang.jsgraphql.schema;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import org.jetbrains.annotations.NotNull;
 
 public interface GraphQLSchemaProvider {

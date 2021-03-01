@@ -12,7 +12,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
-import graphql.GraphQLError;
+import com.intellij.lang.jsgraphql.types.GraphQLError;
 
 import java.util.List;
 

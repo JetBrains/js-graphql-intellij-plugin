@@ -2,7 +2,7 @@ package com.intellij.lang.jsgraphql.schema.builder;
 
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
-import graphql.language.SDLDefinition;
+import com.intellij.lang.jsgraphql.types.language.SDLDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
