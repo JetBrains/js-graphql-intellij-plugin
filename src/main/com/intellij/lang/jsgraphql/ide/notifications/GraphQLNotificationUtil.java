@@ -2,12 +2,14 @@ package com.intellij.lang.jsgraphql.ide.notifications;
 
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
+import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
@@ -17,7 +19,10 @@ import graphql.GraphQLException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.net.ssl.SSLException;
+
 public class GraphQLNotificationUtil {
+    private static final Logger LOG = Logger.getInstance(GraphQLNotificationUtil.class);
     public static final String NOTIFICATION_GROUP_ID = "GraphQL";
 
     public static void showInvalidConfigurationNotification(@NotNull String message,
@@ -46,16 +51,30 @@ public class GraphQLNotificationUtil {
                                                            @NotNull String url,
                                                            @NotNull Exception error,
                                                            @NotNull NotificationType notificationType,
-                                                           @Nullable NotificationAction retry) {
+                                                           @Nullable NotificationAction action) {
+        LOG.warn(error);
+
+        boolean isSSLError = error instanceof SSLException;
+        final String message = isSSLError
+            ? GraphQLBundle.message("graphql.notification.ssl.cert.error.title")
+            : GraphQLBundle.message("graphql.notification.error.title");
+
         Notification notification = new Notification(
             NOTIFICATION_GROUP_ID,
-            GraphQLBundle.message("graphql.notification.error.title"),
+            message,
             url + ": " + GraphQLNotificationUtil.formatExceptionMessage(error),
             notificationType
         );
 
-        if (retry != null) {
-            notification.addAction(retry);
+        if (isSSLError) {
+            NotificationAction trustAction = GraphQLIntrospectionService.getInstance(project).createTrustAllHostsAction();
+            if (trustAction != null) {
+                notification.addAction(trustAction);
+            }
+        }
+
+        if (action != null) {
+            notification.addAction(action);
         }
 
         Notifications.Bus.notify(notification, project);

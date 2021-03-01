@@ -76,7 +76,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -86,6 +85,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -396,8 +396,9 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     }
 
     private void runQuery(Editor editor, VirtualFile virtualFile, JSGraphQLQueryContext context, String url, HttpPost request) {
+        GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
         try {
-            try (final CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            try (final CloseableHttpClient httpClient = introspectionService.createHttpClient()) {
                 editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, true);
 
                 String responseJson;
@@ -453,7 +454,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             } finally {
                 editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, null);
             }
-        } catch (IOException | IllegalArgumentException e) {
+        } catch (IOException | GeneralSecurityException e) {
             GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.WARNING, null);
         }
     }

@@ -31,6 +31,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
@@ -66,15 +67,23 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -83,9 +92,11 @@ import java.util.Set;
 import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService.setHeadersFromOptions;
 
 public class GraphQLIntrospectionService implements Disposable {
+    private static final Logger LOG = Logger.getInstance(GraphQLIntrospectionService.class);
 
     private static final Set<String> DEFAULT_DIRECTIVES = Sets.newHashSet("deprecated", "skip", "include", "specifiedBy");
     private static final String DISABLE_EMPTY_ERRORS_WARNING_KEY = "graphql.empty.errors.warning.disabled";
+    public static final String GRAPHQL_TRUST_ALL_HOSTS = "graphql.trust.all.hosts";
 
     private GraphQLIntrospectionTask latestIntrospection = null;
     private final Project myProject;
@@ -162,6 +173,27 @@ public class GraphQLIntrospectionService implements Disposable {
         request.setEntity(new StringEntity(requestJson, ContentType.APPLICATION_JSON));
         setHeadersFromOptions(endpoint, request);
         return request;
+    }
+
+    @NotNull
+    public CloseableHttpClient createHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+        HttpClientBuilder builder = HttpClients.custom();
+        if (PropertiesComponent.getInstance(myProject).isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) {
+            builder
+                .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
+                .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
+        }
+        return builder.build();
+    }
+
+    @Nullable
+    public NotificationAction createTrustAllHostsAction() {
+        final PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
+        if (propertiesComponent.isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) return null;
+
+        return NotificationAction.createSimpleExpiring(
+            GraphQLBundle.message("graphql.notification.trust.all.hosts"),
+            () -> propertiesComponent.setValue(GRAPHQL_TRUST_ALL_HOSTS, true));
     }
 
     public void addIntrospectionStackTraceAction(@NotNull Notification notification, @NotNull Exception exception) {
@@ -392,6 +424,7 @@ public class GraphQLIntrospectionService implements Disposable {
                 }
             });
         } catch (IOException ioe) {
+            LOG.warn(ioe);
             Notifications.Bus.notify(new Notification(
                 GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
                 GraphQLBundle.message("graphql.notification.error.title"),
@@ -457,10 +490,10 @@ public class GraphQLIntrospectionService implements Disposable {
             indicator.setIndeterminate(true);
             String responseJson;
 
-            try (final CloseableHttpClient httpClient = HttpClients.createDefault();
+            try (final CloseableHttpClient httpClient = createHttpClient();
                  final CloseableHttpResponse response = httpClient.execute(request)) {
                 responseJson = ObjectUtils.coalesce(EntityUtils.toString(response.getEntity()), "");
-            } catch (IOException e) {
+            } catch (IOException | GeneralSecurityException e) {
                 GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.WARNING, retry);
                 return;
             }
