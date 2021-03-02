@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
  * on each source. Note that this forgoes any performance benefits of batching,
  * so regular DataFetchers should normally only be used if they are in-memory.
  *
- * @deprecated This has been deprecated in favour of using {@link graphql.execution.AsyncExecutionStrategy} and {@link graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation}
+ * @deprecated This has been deprecated in favour of using {@link com.intellij.lang.jsgraphql.types.execution.AsyncExecutionStrategy} and {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation}
  */
 @Deprecated
 @PublicApi

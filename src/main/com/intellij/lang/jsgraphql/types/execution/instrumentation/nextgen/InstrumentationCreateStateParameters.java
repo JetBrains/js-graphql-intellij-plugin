@@ -5,7 +5,7 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 
 /**
- * Parameters sent to {@link graphql.execution.instrumentation.nextgen.Instrumentation} methods
+ * Parameters sent to {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.nextgen.Instrumentation} methods
  */
 @Internal
 public class InstrumentationCreateStateParameters {

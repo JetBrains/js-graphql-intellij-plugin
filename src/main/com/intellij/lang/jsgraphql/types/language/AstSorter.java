@@ -43,9 +43,9 @@ public class AstSorter {
      * will be sorted alphabetically by name.
      *
      * @param nodeToBeSorted the node to be sorted
-     * @param <T>            of type {@link graphql.language.Node}
+     * @param <T>            of type {@link com.intellij.lang.jsgraphql.types.language.Node}
      *
-     * @return a new sorted node (because {@link graphql.language.Node}s are immutable)
+     * @return a new sorted node (because {@link com.intellij.lang.jsgraphql.types.language.Node}s are immutable)
      */
     public <T extends Node> T sort(T nodeToBeSorted) {
 

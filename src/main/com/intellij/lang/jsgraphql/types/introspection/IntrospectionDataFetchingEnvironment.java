@@ -7,7 +7,7 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import java.util.Map;
 
 /**
- * Extracted from {@link graphql.schema.DataFetchingEnvironment} to only capture
+ * Extracted from {@link com.intellij.lang.jsgraphql.types.schema.DataFetchingEnvironment} to only capture
  * the data really needed for {@link Introspection}
  */
 @Internal

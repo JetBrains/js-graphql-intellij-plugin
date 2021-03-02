@@ -117,7 +117,7 @@ public interface TraverserContext<T> {
     boolean isVisited();
 
     /**
-     * Obtains all visited nodes and values received by the {@link TraverserVisitor#enter(graphql.util.TraverserContext) }
+     * Obtains all visited nodes and values received by the {@link TraverserVisitor#enter(com.intellij.lang.jsgraphql.types.util.TraverserContext) }
      * method
      *
      * @return a map containg all nodes visited and values passed when visiting nodes for the first time

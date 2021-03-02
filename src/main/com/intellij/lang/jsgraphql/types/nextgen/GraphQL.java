@@ -36,7 +36,7 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 @SuppressWarnings("Duplicates")
 @Internal
 public class GraphQL {
-    private static final Logger log = LoggerFactory.getLogger(graphql.GraphQL.class);
+    private static final Logger log = LoggerFactory.getLogger(com.intellij.lang.jsgraphql.types.GraphQL.class);
     private static final Logger logNotSafe = LogKit.getNotPrivacySafeLogger(ExecutionStrategy.class);
 
     private final GraphQLSchema graphQLSchema;

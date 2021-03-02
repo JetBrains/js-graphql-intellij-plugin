@@ -16,7 +16,7 @@ public interface PreparsedDocumentProvider {
      * can be called to parse and validate the query.
      * <p>
      * Note - the "parseAndValidateFunction" MUST be called if you dont have a per parsed version of the query because it not only parses
-     * and validates the query, it invokes {@link graphql.execution.instrumentation.Instrumentation} calls as well for parsing and validation.
+     * and validates the query, it invokes {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentation} calls as well for parsing and validation.
      * if you dont make a call back on this then these wont happen.
      *
      * @param executionInput           The {@link ExecutionInput} containing the query

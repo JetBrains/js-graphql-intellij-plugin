@@ -17,7 +17,7 @@ import static com.intellij.lang.jsgraphql.types.schema.idl.TypeInfo.typeInfo;
 /**
  * The SchemaDiff is called with a {@link DiffSet} and will report the
  * differences in the graphql schema APIs by raising events to a
- * {@link graphql.schema.diff.reporting.DifferenceReporter}
+ * {@link com.intellij.lang.jsgraphql.types.schema.diff.reporting.DifferenceReporter}
  */
 @SuppressWarnings("ConstantConditions")
 @PublicSpi

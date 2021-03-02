@@ -15,14 +15,14 @@ import static java.util.Collections.emptyList;
  * <p>
  * There are access methods here that get the two different types.
  *
- * @see graphql.language.DirectiveDefinition
+ * @see com.intellij.lang.jsgraphql.types.language.DirectiveDefinition
  * @see DirectiveDefinition#isRepeatable()
  */
 @PublicApi
 public interface DirectivesContainer<T extends DirectivesContainer> extends Node<T> {
 
     /**
-     * This will return a list of all the directives that have been put on {@link graphql.language.Node} as a flat list, which may contain repeatable
+     * This will return a list of all the directives that have been put on {@link com.intellij.lang.jsgraphql.types.language.Node} as a flat list, which may contain repeatable
      * and non repeatable directives.
      *
      * @return a list of all the directives associated with this Node
@@ -30,7 +30,7 @@ public interface DirectivesContainer<T extends DirectivesContainer> extends Node
     List<Directive> getDirectives();
 
     /**
-     * This will return a Map of the all directives that are associated with a {@link graphql.language.Node}, including both repeatable and non repeatable directives.
+     * This will return a Map of the all directives that are associated with a {@link com.intellij.lang.jsgraphql.types.language.Node}, including both repeatable and non repeatable directives.
      *
      * @return a map of all directives by directive name
      */

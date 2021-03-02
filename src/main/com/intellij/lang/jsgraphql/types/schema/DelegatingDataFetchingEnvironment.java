@@ -19,7 +19,7 @@ import java.util.Map;
 
 
 /**
- * DelegatingDataFetchingEnvironment implements {@link graphql.schema.DataFetchingEnvironment} by delegating
+ * DelegatingDataFetchingEnvironment implements {@link com.intellij.lang.jsgraphql.types.schema.DataFetchingEnvironment} by delegating
  * to an underlying instance.  You can use this class to wrap the environment and perhaps change
  * values and behavior more easily.
  */
@@ -30,7 +30,7 @@ public class DelegatingDataFetchingEnvironment implements DataFetchingEnvironmen
     protected final DataFetchingEnvironment delegateEnvironment;
 
     /**
-     * Called to wrap an existing {@link graphql.schema.DataFetchingEnvironment}.
+     * Called to wrap an existing {@link com.intellij.lang.jsgraphql.types.schema.DataFetchingEnvironment}.
      *
      * @param delegateEnvironment the environment to wrap and delegate all method called to
      */

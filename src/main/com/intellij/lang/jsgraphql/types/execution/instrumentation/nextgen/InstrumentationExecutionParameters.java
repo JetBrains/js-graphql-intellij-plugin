@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Parameters sent to {@link graphql.execution.instrumentation.nextgen.Instrumentation} methods
+ * Parameters sent to {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.nextgen.Instrumentation} methods
  */
 @Internal
 public class InstrumentationExecutionParameters {

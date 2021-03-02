@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A base class for graphql runtime exceptions that also implement {@link graphql.GraphQLError} and can be used
+ * A base class for graphql runtime exceptions that also implement {@link com.intellij.lang.jsgraphql.types.GraphQLError} and can be used
  * in a general sense direct or have specialisations made of it.
  * <p>
  * This is aimed amongst other reasons at Kotlin consumers due to https://github.com/graphql-java/graphql-java/issues/1690

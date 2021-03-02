@@ -32,11 +32,11 @@ import static com.intellij.lang.jsgraphql.types.execution.ExecutionIdProvider.DE
 
 /**
  * This class is where all graphql-java query execution begins.  It combines the objects that are needed
- * to make a successful graphql query, with the most important being the {@link graphql.schema.GraphQLSchema schema}
- * and the {@link graphql.execution.ExecutionStrategy execution strategy}
+ * to make a successful graphql query, with the most important being the {@link com.intellij.lang.jsgraphql.types.schema.GraphQLSchema schema}
+ * and the {@link com.intellij.lang.jsgraphql.types.execution.ExecutionStrategy execution strategy}
  * <p>
  * Building this object is very cheap and can be done on each execution if necessary.  Building the schema is often not
- * as cheap, especially if its parsed from graphql IDL schema format via {@link graphql.schema.idl.SchemaParser}.
+ * as cheap, especially if its parsed from graphql IDL schema format via {@link com.intellij.lang.jsgraphql.types.schema.idl.SchemaParser}.
  * <p>
  * The data for a query is returned via {@link ExecutionResult#getData()} and any errors encountered as placed in
  * {@link ExecutionResult#getErrors()}.
@@ -46,19 +46,19 @@ import static com.intellij.lang.jsgraphql.types.execution.ExecutionIdProvider.DE
  * Runtime exceptions can be thrown by the graphql engine if certain situations are encountered.  These are not errors
  * in execution but rather totally unacceptable conditions in which to execute a graphql query.
  * <ul>
- * <li>{@link graphql.schema.CoercingSerializeException} - is thrown when a value cannot be serialised by a Scalar type, for example
+ * <li>{@link com.intellij.lang.jsgraphql.types.schema.CoercingSerializeException} - is thrown when a value cannot be serialised by a Scalar type, for example
  * a String value being coerced as an Int.
  * </li>
  *
- * <li>{@link graphql.execution.UnresolvedTypeException} - is thrown if a {@link graphql.schema.TypeResolver} fails to provide a concrete
+ * <li>{@link com.intellij.lang.jsgraphql.types.execution.UnresolvedTypeException} - is thrown if a {@link com.intellij.lang.jsgraphql.types.schema.TypeResolver} fails to provide a concrete
  * object type given a interface or union type.
  * </li>
  *
- * <li>{@link graphql.schema.validation.InvalidSchemaException} - is thrown if the schema is not valid when built via
- * {@link graphql.schema.GraphQLSchema.Builder#build()}
+ * <li>{@link com.intellij.lang.jsgraphql.types.schema.validation.InvalidSchemaException} - is thrown if the schema is not valid when built via
+ * {@link com.intellij.lang.jsgraphql.types.schema.GraphQLSchema.Builder#build()}
  * </li>
  *
- * <li>{@link graphql.GraphQLException} - is thrown as a general purpose runtime exception, for example if the code cant
+ * <li>{@link com.intellij.lang.jsgraphql.types.GraphQLException} - is thrown as a general purpose runtime exception, for example if the code cant
  * access a named field when examining a POJO.
  * </li>
  *
@@ -166,8 +166,8 @@ public class GraphQL {
         }
 
         /**
-         * This allows you to set a default {@link graphql.execution.DataFetcherExceptionHandler} that will be used to handle exceptions that happen
-         * in {@link graphql.schema.DataFetcher} invocations.
+         * This allows you to set a default {@link com.intellij.lang.jsgraphql.types.execution.DataFetcherExceptionHandler} that will be used to handle exceptions that happen
+         * in {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} invocations.
          *
          * @param dataFetcherExceptionHandler the default handler for data fetching exception
          * @return this builder
@@ -194,7 +194,7 @@ public class GraphQL {
 
         /**
          * For performance reasons you can opt into situation where the default instrumentations (such
-         * as {@link graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation} will not be
+         * as {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation} will not be
          * automatically added into the graphql instance.
          * <p>
          * For most situations this is not needed unless you are really pushing the boundaries of performance
@@ -248,7 +248,7 @@ public class GraphQL {
      * Info: This sets context = root to be backwards compatible.
      *
      * @param query   the query/mutation/subscription
-     * @param context custom object provided to each {@link graphql.schema.DataFetcher}
+     * @param context custom object provided to each {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
      * @return an {@link ExecutionResult} which can include errors
      * @deprecated Use {@link #execute(ExecutionInput)}
      */
@@ -267,7 +267,7 @@ public class GraphQL {
      *
      * @param query         the query/mutation/subscription
      * @param operationName the name of the operation to execute
-     * @param context       custom object provided to each {@link graphql.schema.DataFetcher}
+     * @param context       custom object provided to each {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
      * @return an {@link ExecutionResult} which can include errors
      * @deprecated Use {@link #execute(ExecutionInput)}
      */
@@ -286,7 +286,7 @@ public class GraphQL {
      * Info: This sets context = root to be backwards compatible.
      *
      * @param query     the query/mutation/subscription
-     * @param context   custom object provided to each {@link graphql.schema.DataFetcher}
+     * @param context   custom object provided to each {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
      * @param variables variable values uses as argument
      * @return an {@link ExecutionResult} which can include errors
      * @deprecated Use {@link #execute(ExecutionInput)}
@@ -307,7 +307,7 @@ public class GraphQL {
      *
      * @param query         the query/mutation/subscription
      * @param operationName name of the operation to execute
-     * @param context       custom object provided to each {@link graphql.schema.DataFetcher}
+     * @param context       custom object provided to each {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
      * @param variables     variable values uses as argument
      * @return an {@link ExecutionResult} which can include errors
      * @deprecated Use {@link #execute(ExecutionInput)}

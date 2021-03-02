@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * This is the base error that indicates that a non null field value was in fact null.
  *
- * @see graphql.execution.NonNullableFieldWasNullException for details
+ * @see com.intellij.lang.jsgraphql.types.execution.NonNullableFieldWasNullException for details
  */
 @Internal
 public class NonNullableFieldWasNullError implements GraphQLError {

@@ -562,7 +562,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 // directive including the built-in ones from a valid and working schema
                 final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantSchema(completionElement);
                 if (schema != null) {
-                    for (graphql.schema.GraphQLDirective graphQLDirective : schema.getDirectives()) {
+                    for (com.intellij.lang.jsgraphql.types.schema.GraphQLDirective graphQLDirective : schema.getDirectives()) {
                         if (!addedDirectiveNames.add(graphQLDirective.getName())) {
                             continue;
                         }
@@ -570,7 +570,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                             continue;
                         }
                         LookupElementBuilder element = LookupElementBuilder.create(graphQLDirective.getName());
-                        for (graphql.schema.GraphQLArgument directiveArgument : graphQLDirective.getArguments()) {
+                        for (com.intellij.lang.jsgraphql.types.schema.GraphQLArgument directiveArgument : graphQLDirective.getArguments()) {
                             if (directiveArgument.getType() instanceof GraphQLNonNull) {
                                 // found a required argument so insert the '()' for arguments
                                 element = element.withInsertHandler((ctx, item) -> {
@@ -644,7 +644,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     if (directive.getName() != null) {
                         final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantSchema(completionElement);
                         if (schema != null) {
-                            graphql.schema.GraphQLDirective directiveDefinition = schema.getDirective(directive.getName());
+                            com.intellij.lang.jsgraphql.types.schema.GraphQLDirective directiveDefinition = schema.getDirective(directive.getName());
                             if (directiveDefinition != null) {
 
                                 final Set<String> existingArgumentNames = Sets.newHashSet();
@@ -653,7 +653,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                         existingArgumentNames.add(directiveArgument.getName());
                                     }
                                 }
-                                for (graphql.schema.GraphQLArgument graphQLArgument : directiveDefinition.getArguments()) {
+                                for (com.intellij.lang.jsgraphql.types.schema.GraphQLArgument graphQLArgument : directiveDefinition.getArguments()) {
                                     final String name = graphQLArgument.getName();
                                     if (!existingArgumentNames.contains(name)) {
                                         result.addElement(LookupElementBuilder.create(name).withTypeText(GraphQLSchemaUtil.typeString(graphQLArgument.getType())).withInsertHandler(AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP));
@@ -673,7 +673,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                         }
                         if (typeScope != null) {
                             if (typeScope instanceof GraphQLFieldsContainer) {
-                                final graphql.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) typeScope).getFieldDefinition(field.getName());
+                                final com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) typeScope).getFieldDefinition(field.getName());
                                 if (fieldDefinition != null && field.getArguments() != null) {
                                     final Set<String> existingArgumentNames = field.getArguments().getArgumentList().stream().map(PsiNamedElement::getName).collect(Collectors.toSet());
                                     fieldDefinition.getArguments().forEach(argumentDefinition -> {
@@ -891,7 +891,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                         element = element.withTailText(" - Deprecated: " + deprecationReason, true);
                                     }
                                 }
-                                for (graphql.schema.GraphQLArgument fieldArgument : field.getArguments()) {
+                                for (com.intellij.lang.jsgraphql.types.schema.GraphQLArgument fieldArgument : field.getArguments()) {
                                     if (fieldArgument.getType() instanceof GraphQLNonNull) {
                                         // on of the field arguments are required, so add the '()' for arguments
                                         element = element.withInsertHandler((ctx, item) -> {

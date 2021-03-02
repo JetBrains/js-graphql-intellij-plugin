@@ -38,7 +38,7 @@ public abstract class GraphQLFieldPsiElement extends GraphQLNamedElementImpl imp
                     // found a parent operation, field, or fragment
                     parentType = GraphQLUtil.getUnmodifiedType(parentType); // unwrap list, non-null since we want a specific field
                     if (parentType instanceof GraphQLFieldsContainer) {
-                        final graphql.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) parentType).getFieldDefinition(fieldName);
+                        final com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) parentType).getFieldDefinition(fieldName);
                         if (fieldDefinition != null) {
                             return fieldDefinition.getType();
                         } else if (fieldName.equals(GraphQLConstants.__TYPE)) {

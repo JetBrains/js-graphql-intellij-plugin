@@ -191,7 +191,7 @@ public class ExecutionStepInfo {
     /**
      * This allows you to morph a type into a more specialized form yet return the same
      * parent and non-null ness, for example taking a {@link GraphQLInterfaceType}
-     * and turning it into a specific {@link graphql.schema.GraphQLObjectType}
+     * and turning it into a specific {@link com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType}
      * after type resolution has occurred
      *
      * @param newType the new type to be

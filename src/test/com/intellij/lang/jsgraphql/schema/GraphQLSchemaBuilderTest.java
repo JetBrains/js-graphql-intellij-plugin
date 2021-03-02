@@ -1,8 +1,8 @@
 package com.intellij.lang.jsgraphql.schema;
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.SchemaPrinter;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

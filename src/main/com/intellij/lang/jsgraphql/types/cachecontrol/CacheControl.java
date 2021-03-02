@@ -18,11 +18,11 @@ import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
 /**
  * This class implements the graphql Cache Control specification as outlined in https://github.com/apollographql/apollo-cache-control
  * <p>
- * To best use this class you need to pass a CacheControl object to each {@link graphql.schema.DataFetcher} and have them decide on
+ * To best use this class you need to pass a CacheControl object to each {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} and have them decide on
  * the caching hint values.
  * <p>
- * The easiest way to do this is create a CacheControl object at query start and pass it in as a "context" object via {@link graphql.ExecutionInput#getContext()} and then have
- * each {@link graphql.schema.DataFetcher} that wants to make cache control hints use that.
+ * The easiest way to do this is create a CacheControl object at query start and pass it in as a "context" object via {@link com.intellij.lang.jsgraphql.types.ExecutionInput#getContext()} and then have
+ * each {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} that wants to make cache control hints use that.
  * <p>
  * Then at the end of the query you would call {@link #addTo(ExecutionResult)} to record the cache control hints into the {@link ExecutionResult}
  * extensions map as per the specification.

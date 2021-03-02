@@ -137,7 +137,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     private String getEnumValueDocumentation(GraphQLSchema schema, GraphQLEnumValue parent) {
         final String enumName = GraphQLPsiUtil.getTypeName(parent, null);
         if (enumName != null) {
-            graphql.schema.GraphQLType schemaType = schema.getType(enumName);
+            com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(enumName);
             if (schemaType instanceof GraphQLEnumType) {
                 final String enumValueName = parent.getName();
                 final StringBuilder result = new StringBuilder().append(DEFINITION_START);
@@ -173,8 +173,8 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
                 final String typeName = GraphQLPsiUtil.getTypeName(parent, null);
                 if (typeName != null) {
-                    final graphql.schema.GraphQLType schemaType = schema.getType(typeName);
-                    List<graphql.schema.GraphQLFieldDefinition> fieldDefinitions;
+                    final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(typeName);
+                    List<com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition> fieldDefinitions;
                     if (schemaType instanceof GraphQLObjectType) {
                         fieldDefinitions = ((GraphQLObjectType) schemaType).getFieldDefinitions();
                     } else if (schemaType instanceof GraphQLInterfaceType) {
@@ -183,7 +183,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                         return null;
                     }
                     final String fieldName = ((GraphQLFieldDefinition) definition).getName();
-                    for (graphql.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
+                    for (com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
                         if (Objects.equals(fieldDefinition.getName(), fieldName)) {
                             for (GraphQLArgument argument : fieldDefinition.getArguments()) {
                                 if (Objects.equals(argument.getName(), inputValueName)) {
@@ -210,7 +210,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
             } else if (definition instanceof GraphQLInputObjectTypeDefinition || definition instanceof GraphQLInputObjectTypeExtensionDefinition) {
 
                 final String inputTypeName = GraphQLPsiUtil.getTypeName(parent, null);
-                final graphql.schema.GraphQLType schemaType = schema.getType(inputTypeName);
+                final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(inputTypeName);
                 if (schemaType instanceof GraphQLInputObjectType) {
                     for (GraphQLInputObjectField inputObjectField : ((GraphQLInputObjectType) schemaType).getFieldDefinitions()) {
                         if (inputValueName.equals(inputObjectField.getName())) {
@@ -253,21 +253,21 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
         final GraphQLTypeSystemDefinition psiDefinition = PsiTreeUtil.getParentOfType(parent, GraphQLTypeSystemDefinition.class);
         final GraphQLNamedElement psiTypeName = PsiTreeUtil.findChildOfType(psiDefinition, GraphQLNamedElement.class);
         if (psiTypeName != null) {
-            final graphql.schema.GraphQLType schemaType = schema.getType(psiTypeName.getText());
+            final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(psiTypeName.getText());
             if (schemaType != null) {
                 final String fieldName = element.getText();
                 final StringBuilder html = new StringBuilder().append(DEFINITION_START);
                 html.append(GraphQLUtil.getName(schemaType)).append(".");
                 html.append(fieldName).append(psiFieldType != null ? ": " : "").append(psiFieldType != null ? psiFieldType.getText() : "");
                 html.append(DEFINITION_END);
-                List<graphql.schema.GraphQLFieldDefinition> fieldDefinitions = null;
+                List<com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition> fieldDefinitions = null;
                 if (schemaType instanceof GraphQLObjectType) {
                     fieldDefinitions = ((GraphQLObjectType) schemaType).getFieldDefinitions();
                 } else if (schemaType instanceof GraphQLInterfaceType) {
                     fieldDefinitions = ((GraphQLInterfaceType) schemaType).getFieldDefinitions();
                 }
                 if (fieldDefinitions != null) {
-                    for (graphql.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
+                    for (com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
                         if (fieldName.equals(fieldDefinition.getName())) {
                             appendDescription(html, GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(fieldDefinition.getDescription()));
                             break;
@@ -283,7 +283,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
     @Nullable
     private String getTypeDocumentation(PsiElement element, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
-        graphql.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement) element).getName());
+        com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement) element).getName());
         if (schemaType != null) {
             final StringBuilder html = new StringBuilder().append(DEFINITION_START);
             PsiElement keyword = PsiTreeUtil.prevVisibleLeaf(parent);

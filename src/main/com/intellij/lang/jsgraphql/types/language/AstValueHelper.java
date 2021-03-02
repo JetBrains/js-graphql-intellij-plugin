@@ -164,7 +164,7 @@ public class AstValueHelper {
 
 
     /**
-     * Parses an AST value literal into the correct {@link graphql.language.Value} which
+     * Parses an AST value literal into the correct {@link com.intellij.lang.jsgraphql.types.language.Value} which
      * MUST be of the correct shape eg '"string"' or 'true' or '1' or '{ "object", "form" }'
      * or '[ "array", "form" ]' otherwise an exception is thrown
      *

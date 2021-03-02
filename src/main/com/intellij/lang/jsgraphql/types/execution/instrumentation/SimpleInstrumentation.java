@@ -10,14 +10,14 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * An implementation of {@link graphql.execution.instrumentation.Instrumentation} that does nothing.  It can be used
+ * An implementation of {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentation} that does nothing.  It can be used
  * as a base for derived classes where you only implement the methods you want to
  */
 @PublicApi
 public class SimpleInstrumentation implements Instrumentation {
 
     /**
-     * A singleton instance of a {@link graphql.execution.instrumentation.Instrumentation} that does nothing
+     * A singleton instance of a {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentation} that does nothing
      */
     public static final SimpleInstrumentation INSTANCE = new SimpleInstrumentation();
 

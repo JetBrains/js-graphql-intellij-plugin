@@ -20,7 +20,7 @@ import static com.intellij.lang.jsgraphql.types.util.FpKit.getByName;
 
 /**
  * Fields are the ways you get data values in graphql and a field definition represents a field, its type, the arguments it takes
- * and the {@link graphql.schema.DataFetcher} used to get data values for that field.
+ * and the {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} used to get data values for that field.
  * <p>
  * Fields can be thought of as functions in graphql, they have a name, take defined arguments and return a value.
  * <p>
@@ -315,13 +315,13 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
         }
 
         /**
-         * Sets the {@link graphql.schema.DataFetcher} to use with this field.
+         * Sets the {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} to use with this field.
          *
          * @param dataFetcher the data fetcher to use
          *
          * @return this builder
          *
-         * @deprecated use {@link graphql.schema.GraphQLCodeRegistry} instead
+         * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instead
          */
         @Deprecated
         public Builder dataFetcher(DataFetcher<?> dataFetcher) {
@@ -331,13 +331,13 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
         }
 
         /**
-         * Sets the {@link graphql.schema.DataFetcherFactory} to use with this field.
+         * Sets the {@link com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory} to use with this field.
          *
          * @param dataFetcherFactory the data fetcher factory
          *
          * @return this builder
          *
-         * @deprecated use {@link graphql.schema.GraphQLCodeRegistry} instead
+         * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instead
          */
         @Deprecated
         public Builder dataFetcherFactory(DataFetcherFactory<?> dataFetcherFactory) {
@@ -353,7 +353,7 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
          *
          * @return this builder
          *
-         * @deprecated use {@link graphql.schema.GraphQLCodeRegistry} instead
+         * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instead
          */
         @Deprecated
         public Builder staticValue(final Object value) {

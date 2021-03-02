@@ -62,7 +62,7 @@ public class NodeParentTree<T extends Node> {
     }
 
     /**
-     * @return a path of names for nodes thar are {@link graphql.language.NamedNode}s
+     * @return a path of names for nodes thar are {@link com.intellij.lang.jsgraphql.types.language.NamedNode}s
      */
     public List<String> getPath() {
         return path;

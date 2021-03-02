@@ -6,7 +6,7 @@ import com.intellij.lang.jsgraphql.types.execution.ExecutionStrategyParameters;
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.InstrumentationState;
 
 /**
- * Parameters sent to {@link graphql.execution.instrumentation.Instrumentation} methods
+ * Parameters sent to {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentation} methods
  */
 @PublicApi
 public class InstrumentationExecutionStrategyParameters {

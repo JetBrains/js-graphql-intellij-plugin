@@ -167,13 +167,13 @@ public class GraphQLSchema {
     }
 
     /**
-     * Called to return a named {@link graphql.schema.GraphQLObjectType} from the schema
+     * Called to return a named {@link com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType} from the schema
      *
      * @param typeName the name of the type
      *
      * @return a graphql object type or null if there is one
      *
-     * @throws graphql.GraphQLException if the type is NOT a object type
+     * @throws com.intellij.lang.jsgraphql.types.GraphQLException if the type is NOT a object type
      */
     public GraphQLObjectType getObjectType(String typeName) {
         GraphQLType graphQLType = typeMap.get(typeName);
@@ -193,7 +193,7 @@ public class GraphQLSchema {
     }
 
     /**
-     * This will return the list of {@link graphql.schema.GraphQLObjectType} types that implement the given
+     * This will return the list of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType} types that implement the given
      * interface type.
      *
      * @param type interface type to obtain implementations of.
@@ -344,7 +344,7 @@ public class GraphQLSchema {
 
     /**
      * This returns the named directive that have been explicitly put on the
-     * schema object.  Note that {@link graphql.schema.GraphQLDirectiveContainer#getDirective(String)} will return
+     * schema object.  Note that {@link com.intellij.lang.jsgraphql.types.schema.GraphQLDirectiveContainer#getDirective(String)} will return
      * directives for all schema elements, whereas this is just for the schema
      * element itself
      *
@@ -478,7 +478,7 @@ public class GraphQLSchema {
          *
          * @return this builder
          *
-         * @deprecated use {@link graphql.schema.GraphQLCodeRegistry.Builder#fieldVisibility(graphql.schema.visibility.GraphqlFieldVisibility)} instead
+         * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry.Builder#fieldVisibility(com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility)} instead
          */
         @Deprecated
         public Builder fieldVisibility(GraphqlFieldVisibility fieldVisibility) {

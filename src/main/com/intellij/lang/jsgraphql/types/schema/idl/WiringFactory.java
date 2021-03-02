@@ -83,7 +83,7 @@ public interface WiringFactory {
     }
 
     /**
-     * This is called to ask if this factory can provide a {@link graphql.schema.DataFetcherFactory} for the definition
+     * This is called to ask if this factory can provide a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory} for the definition
      *
      * @param environment the wiring environment
      *
@@ -94,12 +94,12 @@ public interface WiringFactory {
     }
 
     /**
-     * Returns a {@link graphql.schema.DataFetcherFactory} given the type definition
+     * Returns a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory} given the type definition
      *
      * @param environment the wiring environment
      * @param <T>         the type of the data fetcher
      *
-     * @return a {@link graphql.schema.DataFetcherFactory}
+     * @return a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory}
      */
     default <T> DataFetcherFactory<T> getDataFetcherFactory(FieldWiringEnvironment environment) {
         return assertShouldNeverHappen();
@@ -120,11 +120,11 @@ public interface WiringFactory {
     }
 
     /**
-     * Returns a {@link graphql.schema.idl.SchemaDirectiveWiring} given the environment
+     * Returns a {@link com.intellij.lang.jsgraphql.types.schema.idl.SchemaDirectiveWiring} given the environment
      *
      * @param environment the calling environment
      *
-     * @return a {@link graphql.schema.idl.SchemaDirectiveWiring}
+     * @return a {@link com.intellij.lang.jsgraphql.types.schema.idl.SchemaDirectiveWiring}
      */
     default SchemaDirectiveWiring getSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment environment) {
         return assertShouldNeverHappen();

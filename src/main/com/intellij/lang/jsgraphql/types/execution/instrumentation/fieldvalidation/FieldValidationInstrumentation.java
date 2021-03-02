@@ -13,7 +13,7 @@ import java.util.List;
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 
 /**
- * This {@link graphql.execution.instrumentation.Instrumentation} allows you to validate the fields
+ * This {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentation} allows you to validate the fields
  * of the query before the query is executed.  You need to provide an implementation of
  * {@link FieldValidation} that is called to validate fields.  If it returns errors
  * then the query execution will be aborted and the errors will be returned

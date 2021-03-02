@@ -56,7 +56,7 @@ public class GraphQLValidationAnnotator implements Annotator {
             if (reference == null || reference.resolve() == null) {
                 final PsiElement parent = psiElement.getParent();
                 final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(parent, GraphQLTypeScopeProvider.class);
-                graphql.schema.GraphQLType typeScope = null;
+                com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope = null;
                 if (typeScopeProvider != null) {
                     typeScope = typeScopeProvider.getTypeScope();
                     if (typeScope != null) {
@@ -174,7 +174,7 @@ public class GraphQLValidationAnnotator implements Annotator {
         return annotationHolder.createErrorAnnotation(errorPsiElement, message);
     }
 
-    private List<String> getArgumentNameSuggestions(PsiElement argument, graphql.schema.GraphQLType typeScope) {
+    private List<String> getArgumentNameSuggestions(PsiElement argument, com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope) {
         final GraphQLField field = PsiTreeUtil.getParentOfType(argument, GraphQLField.class);
         final GraphQLIdentifier fieldDefinitionIdentifier = GraphQLPsiSearchHelper.getResolvedReference(field);
         if (fieldDefinitionIdentifier != null) {
@@ -195,10 +195,10 @@ public class GraphQLValidationAnnotator implements Annotator {
         return Collections.emptyList();
     }
 
-    private List<String> getFieldNameSuggestions(String fieldName, graphql.schema.GraphQLType typeScope) {
+    private List<String> getFieldNameSuggestions(String fieldName, com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope) {
         List<String> fieldNames = null;
         if (typeScope instanceof GraphQLFieldsContainer) {
-            fieldNames = ((GraphQLFieldsContainer) typeScope).getFieldDefinitions().stream().map(graphql.schema.GraphQLFieldDefinition::getName).collect(Collectors.toList());
+            fieldNames = ((GraphQLFieldsContainer) typeScope).getFieldDefinitions().stream().map(com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition::getName).collect(Collectors.toList());
         } else if (typeScope instanceof GraphQLInputFieldsContainer) {
             fieldNames = ((GraphQLInputFieldsContainer) typeScope).getFieldDefinitions().stream().map(GraphQLInputObjectField::getName).collect(Collectors.toList());
         }

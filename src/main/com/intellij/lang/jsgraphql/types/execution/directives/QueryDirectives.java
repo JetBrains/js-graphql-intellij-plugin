@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This gives you access to the immediate directives on a {@link graphql.execution.MergedField}.  This does not include directives on parent
+ * This gives you access to the immediate directives on a {@link com.intellij.lang.jsgraphql.types.execution.MergedField}.  This does not include directives on parent
  * fields or fragment containers.
  * <p>
- * Because a {@link graphql.execution.MergedField} can actually have multiple fields and hence
+ * Because a {@link com.intellij.lang.jsgraphql.types.execution.MergedField} can actually have multiple fields and hence
  * directives on each field instance its possible that there is more than one directive named "foo"
  * on the merged field.  How you decide which one to use is up to your code.
  * <p>
@@ -20,7 +20,7 @@ import java.util.Map;
  * to give access to immediate field directives and provide this holder interface so we can
  * add the other directives in the future
  *
- * @see graphql.execution.MergedField
+ * @see com.intellij.lang.jsgraphql.types.execution.MergedField
  */
 @PublicApi
 public interface QueryDirectives {
@@ -45,7 +45,7 @@ public interface QueryDirectives {
     List<GraphQLDirective> getImmediateDirective(String directiveName);
 
     /**
-     * This will return a map of the {@link graphql.language.Field}s inside a {@link graphql.execution.MergedField}
+     * This will return a map of the {@link com.intellij.lang.jsgraphql.types.language.Field}s inside a {@link com.intellij.lang.jsgraphql.types.execution.MergedField}
      * and the immediate directives that are on each specific field
      *
      * @return a map of all directives on each field inside this

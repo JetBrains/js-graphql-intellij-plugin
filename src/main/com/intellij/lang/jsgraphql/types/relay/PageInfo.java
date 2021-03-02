@@ -3,8 +3,8 @@ package com.intellij.lang.jsgraphql.types.relay;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 
 /**
- * Represents pagination information in Relay about {@link graphql.relay.Edge edges} when used
- * inside a {@link graphql.relay.Connection connection}
+ * Represents pagination information in Relay about {@link com.intellij.lang.jsgraphql.types.relay.Edge edges} when used
+ * inside a {@link com.intellij.lang.jsgraphql.types.relay.Connection connection}
  *
  * See <a href="https://facebook.github.io/relay/graphql/connections.htm#sec-undefined.PageInfo">https://facebook.github.io/relay/graphql/connections.htm#sec-undefined.PageInfo</a>
  */

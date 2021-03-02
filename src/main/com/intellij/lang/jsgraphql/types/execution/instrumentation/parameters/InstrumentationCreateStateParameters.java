@@ -5,7 +5,7 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 
 /**
- * Parameters sent to {@link graphql.execution.instrumentation.Instrumentation} methods
+ * Parameters sent to {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentation} methods
  */
 @PublicApi
 public class InstrumentationCreateStateParameters {

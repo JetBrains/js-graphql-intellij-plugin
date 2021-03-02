@@ -71,7 +71,7 @@ public interface DataFetchingEnvironment extends IntrospectionDataFetchingEnviro
     <T> T getArgumentOrDefault(String name, T defaultValue);
 
     /**
-     * Returns a context argument that is set up when the {@link graphql.GraphQL#execute(graphql.ExecutionInput)} )} method
+     * Returns a context argument that is set up when the {@link com.intellij.lang.jsgraphql.types.GraphQL#execute(com.intellij.lang.jsgraphql.types.ExecutionInput)} )} method
      * is invoked.
      * <p>
      * This is a info object which is provided to all DataFetchers, but never used by graphql-java itself.
@@ -83,7 +83,7 @@ public interface DataFetchingEnvironment extends IntrospectionDataFetchingEnviro
 
     /**
      * This returns a context object that parent fields may have returned returned
-     * via {@link graphql.execution.DataFetcherResult#getLocalContext()} which can be used to pass down extra information to
+     * via {@link com.intellij.lang.jsgraphql.types.execution.DataFetcherResult#getLocalContext()} which can be used to pass down extra information to
      * fields beyond the normal {@link #getSource()}
      * <p>
      * This differs from {@link #getContext()} in that its field specific and passed from parent field to child field,
@@ -190,8 +190,8 @@ public interface DataFetchingEnvironment extends IntrospectionDataFetchingEnviro
     /**
      * This gives you access to the directives related to this field
      *
-     * @return the {@link graphql.execution.directives.QueryDirectives} for the currently executing field
-     * @see graphql.execution.directives.QueryDirectives for more information
+     * @return the {@link com.intellij.lang.jsgraphql.types.execution.directives.QueryDirectives} for the currently executing field
+     * @see com.intellij.lang.jsgraphql.types.execution.directives.QueryDirectives for more information
      */
     QueryDirectives getQueryDirectives();
 
@@ -238,7 +238,7 @@ public interface DataFetchingEnvironment extends IntrospectionDataFetchingEnviro
      * The field arguments are created by interpolating any referenced variables and AST literals and resolving them into the arguments.
      * <p>
      * Also note that the raw query variables are "coerced" into a map where the leaf scalar and enum types are called to create
-     * input coerced values.  So the values you get here are not exactly as passed via {@link graphql.ExecutionInput#getVariables()}
+     * input coerced values.  So the values you get here are not exactly as passed via {@link com.intellij.lang.jsgraphql.types.ExecutionInput#getVariables()}
      * but have been processed.
      *
      * @return the coerced variables that have been passed to the query that is being executed

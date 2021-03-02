@@ -55,7 +55,7 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotEmpty;
  * </pre>
  * These examples make clear that you need to consider all merged fields together to have the full picture.
  *
- * The actual logic when fields can successfully merged together is implemented in {#graphql.validation.rules.OverlappingFieldsCanBeMerged}
+ * The actual logic when fields can successfully merged together is implemented in {#com.intellij.lang.jsgraphql.types.validation.rules.OverlappingFieldsCanBeMerged}
  */
 @PublicApi
 public class MergedField {

@@ -52,7 +52,7 @@ public class QueryTransformer {
     }
 
     /**
-     * Visits the Document in pre-order and allows to transform it using {@link graphql.util.TreeTransformerUtil}
+     * Visits the Document in pre-order and allows to transform it using {@link com.intellij.lang.jsgraphql.types.util.TreeTransformerUtil}
      * methods. Please note that fragment spreads are not followed and need to be
      * processed explicitly by supplying them as root.
      *

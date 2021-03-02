@@ -10,21 +10,21 @@ import java.lang.annotation.Target;
 
 /**
  * <p>
- * When placed on {@link graphql.schema.DataFetcher#get(DataFetchingEnvironment)}, indicates that this DataFetcher is batched.
+ * When placed on {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher#get(DataFetchingEnvironment)}, indicates that this DataFetcher is batched.
  * This annotation must be used in conjunction with {@link BatchedExecutionStrategy}. Batching is valuable in many
- * situations, such as when a {@link graphql.schema.DataFetcher} must make a network or file system request.
+ * situations, such as when a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} must make a network or file system request.
  * </p>
  * <p>
- * When a {@link graphql.schema.DataFetcher} is batched, the {@link DataFetchingEnvironment#getSource()} method is
- * guaranteed to return a {@link java.util.List}.  The {@link graphql.schema.DataFetcher#get(DataFetchingEnvironment)}
- * method MUST return a parallel {@link java.util.List} which is equivalent to running a {@link graphql.schema.DataFetcher}
+ * When a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} is batched, the {@link DataFetchingEnvironment#getSource()} method is
+ * guaranteed to return a {@link java.util.List}.  The {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher#get(DataFetchingEnvironment)}
+ * method MUST return a parallel {@link java.util.List} which is equivalent to running a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
  * over each input element individually.
  * </p>
  * <p>
- * Using the {@link Batched} annotation is equivalent to implementing {@link BatchedDataFetcher} instead of {@link graphql.schema.DataFetcher}.
+ * Using the {@link Batched} annotation is equivalent to implementing {@link BatchedDataFetcher} instead of {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}.
  * It is preferred to use the {@link Batched} annotation.
  * </p>
- * For example, the following two {@link graphql.schema.DataFetcher} objects are interchangeable if used with a
+ * For example, the following two {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} objects are interchangeable if used with a
  * {@link BatchedExecutionStrategy}.
  * <pre>
  * <code>
@@ -52,7 +52,7 @@ import java.lang.annotation.Target;
  * </code>
  * </pre>
  *
- * @deprecated This has been deprecated in favour of using {@link graphql.execution.AsyncExecutionStrategy} and {@link graphql.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation}
+ * @deprecated This has been deprecated in favour of using {@link com.intellij.lang.jsgraphql.types.execution.AsyncExecutionStrategy} and {@link com.intellij.lang.jsgraphql.types.execution.instrumentation.dataloader.DataLoaderDispatcherInstrumentation}
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

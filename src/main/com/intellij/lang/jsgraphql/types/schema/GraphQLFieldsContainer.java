@@ -8,8 +8,8 @@ import java.util.List;
 /**
  * Types that can contain output fields are marked with this interface
  *
- * @see graphql.schema.GraphQLObjectType
- * @see graphql.schema.GraphQLInterfaceType
+ * @see com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType
+ * @see com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType
  */
 @PublicApi
 public interface GraphQLFieldsContainer extends GraphQLCompositeType {

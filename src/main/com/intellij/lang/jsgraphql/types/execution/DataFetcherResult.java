@@ -20,7 +20,7 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
  *
  * This also allows you to pass down new local context objects between parent and child fields.  If you return a
  * {@link #getLocalContext()} value then it will be passed down into any child fields via
- * {@link graphql.schema.DataFetchingEnvironment#getLocalContext()}
+ * {@link com.intellij.lang.jsgraphql.types.schema.DataFetchingEnvironment#getLocalContext()}
  *
  * @param <T> The type of the data fetched
  */

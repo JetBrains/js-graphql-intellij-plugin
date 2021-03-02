@@ -202,7 +202,7 @@ public class SchemaPrinter {
         }
 
         /**
-         * This flag controls whether schema printer will use the {@link graphql.schema.GraphQLType}'s original Ast {@link graphql.language.TypeDefinition}s when printing the type.  This
+         * This flag controls whether schema printer will use the {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType}'s original Ast {@link com.intellij.lang.jsgraphql.types.language.TypeDefinition}s when printing the type.  This
          * allows access to any `extend type` declarations that might have been originally made.
          *
          * @param flag whether to print via AST type definitions

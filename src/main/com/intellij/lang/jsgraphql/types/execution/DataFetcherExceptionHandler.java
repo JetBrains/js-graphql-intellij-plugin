@@ -5,7 +5,7 @@ import com.intellij.lang.jsgraphql.types.schema.DataFetcher;
 import com.intellij.lang.jsgraphql.types.schema.DataFetchingEnvironment;
 
 /**
- * This is called when an exception is thrown during {@link graphql.schema.DataFetcher#get(DataFetchingEnvironment)} execution
+ * This is called when an exception is thrown during {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher#get(DataFetchingEnvironment)} execution
  */
 @PublicSpi
 public interface DataFetcherExceptionHandler {
@@ -16,7 +16,7 @@ public interface DataFetcherExceptionHandler {
      *
      * @param handlerParameters the parameters to this callback
      *
-     * @return a result that can contain custom formatted {@link graphql.GraphQLError}s
+     * @return a result that can contain custom formatted {@link com.intellij.lang.jsgraphql.types.GraphQLError}s
      */
     DataFetcherExceptionHandlerResult onException(DataFetcherExceptionHandlerParameters handlerParameters);
 }

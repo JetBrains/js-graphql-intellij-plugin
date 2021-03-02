@@ -36,9 +36,9 @@ public abstract class GraphQLArgumentPsiElement extends GraphQLNamedElementImpl 
             if (directive != null) {
                 final String directiveName = directive.getName();
                 if (directiveName != null) {
-                    final graphql.schema.GraphQLDirective schemaDirective = schema.getDirective(directiveName);
+                    final com.intellij.lang.jsgraphql.types.schema.GraphQLDirective schemaDirective = schema.getDirective(directiveName);
                     if (schemaDirective != null) {
-                        final graphql.schema.GraphQLArgument schemaDirectiveArgument = schemaDirective.getArgument(argumentName);
+                        final com.intellij.lang.jsgraphql.types.schema.GraphQLArgument schemaDirectiveArgument = schemaDirective.getArgument(argumentName);
                         if (schemaDirectiveArgument != null) {
                             return schemaDirectiveArgument.getType();
                         }
@@ -55,7 +55,7 @@ public abstract class GraphQLArgumentPsiElement extends GraphQLNamedElementImpl 
                     if (typeScope instanceof GraphQLFieldsContainer) {
                         final GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) typeScope).getFieldDefinition(field.getName());
                         if (fieldDefinition != null) {
-                            graphql.schema.GraphQLArgument argumentDefinition = fieldDefinition.getArgument(argumentName);
+                            com.intellij.lang.jsgraphql.types.schema.GraphQLArgument argumentDefinition = fieldDefinition.getArgument(argumentName);
                             if (argumentDefinition != null) {
                                 return argumentDefinition.getType();
                             }

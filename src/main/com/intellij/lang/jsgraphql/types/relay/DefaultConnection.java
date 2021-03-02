@@ -9,7 +9,7 @@ import java.util.List;
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 
 /**
- * A default implementation of {@link graphql.relay.Connection}
+ * A default implementation of {@link com.intellij.lang.jsgraphql.types.relay.Connection}
  */
 @PublicApi
 public class DefaultConnection<T> implements Connection<T> {

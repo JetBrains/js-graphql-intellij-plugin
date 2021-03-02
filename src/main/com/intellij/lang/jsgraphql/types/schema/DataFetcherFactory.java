@@ -3,7 +3,7 @@ package com.intellij.lang.jsgraphql.types.schema;
 import com.intellij.lang.jsgraphql.types.PublicSpi;
 
 /**
- * A DataFetcherFactory allows a level of indirection in providing {@link graphql.schema.DataFetcher}s for graphql fields.
+ * A DataFetcherFactory allows a level of indirection in providing {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}s for graphql fields.
  *
  * For example if you are using an IoC container such as Spring or Guice, you can use this indirection to give you
  * per request late binding of a data fetcher with its dependencies injected in.
@@ -14,7 +14,7 @@ import com.intellij.lang.jsgraphql.types.PublicSpi;
 public interface DataFetcherFactory<T> {
 
     /**
-     * Returns a {@link graphql.schema.DataFetcher}
+     * Returns a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
      *
      * @param environment the environment that needs the data fetcher
      *

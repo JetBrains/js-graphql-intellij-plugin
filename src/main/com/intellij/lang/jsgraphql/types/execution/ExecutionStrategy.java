@@ -148,7 +148,7 @@ public abstract class ExecutionStrategy {
 
     /**
      * Called to fetch a value for a field and its extra runtime info and resolve it further in terms of the graphql query.  This will call
-     * #fetchField followed by #completeField and the completed {@link graphql.execution.FieldValueInfo} is returned.
+     * #fetchField followed by #completeField and the completed {@link com.intellij.lang.jsgraphql.types.execution.FieldValueInfo} is returned.
      * <p>
      * An execution strategy can iterate the fields to be executed and call this method for each one
      * <p>

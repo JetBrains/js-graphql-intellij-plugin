@@ -48,7 +48,7 @@ public class ExecutionContextBuilder {
     ExecutionInput executionInput;
 
     /**
-     * @return a new builder of {@link graphql.execution.ExecutionContext}s
+     * @return a new builder of {@link com.intellij.lang.jsgraphql.types.execution.ExecutionContext}s
      */
     public static ExecutionContextBuilder newExecutionContextBuilder() {
         return new ExecutionContextBuilder();
@@ -59,7 +59,7 @@ public class ExecutionContextBuilder {
      *
      * @param other the previous execution to clone
      *
-     * @return a new builder of {@link graphql.execution.ExecutionContext}s
+     * @return a new builder of {@link com.intellij.lang.jsgraphql.types.execution.ExecutionContext}s
      */
     public static ExecutionContextBuilder newExecutionContextBuilder(ExecutionContext other) {
         return new ExecutionContextBuilder(other);

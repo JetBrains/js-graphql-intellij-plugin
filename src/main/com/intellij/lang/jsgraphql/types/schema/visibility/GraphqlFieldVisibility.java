@@ -21,7 +21,7 @@ public interface GraphqlFieldVisibility {
      *
      * @param fieldsContainer the type in play
      *
-     * @return a non null list of {@link graphql.schema.GraphQLFieldDefinition}s
+     * @return a non null list of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}s
      */
     List<GraphQLFieldDefinition> getFieldDefinitions(GraphQLFieldsContainer fieldsContainer);
 
@@ -31,7 +31,7 @@ public interface GraphqlFieldVisibility {
      * @param fieldsContainer the type in play
      * @param fieldName       the name of the desired field
      *
-     * @return a {@link graphql.schema.GraphQLFieldDefinition} or null if its not visible
+     * @return a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition} or null if its not visible
      */
     GraphQLFieldDefinition getFieldDefinition(GraphQLFieldsContainer fieldsContainer, String fieldName);
 
@@ -41,7 +41,7 @@ public interface GraphqlFieldVisibility {
      *
      * @param fieldsContainer the type in play
      *
-     * @return a non null list of {@link graphql.schema.GraphQLInputObjectField}s
+     * @return a non null list of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField}s
      */
     default List<GraphQLInputObjectField> getFieldDefinitions(GraphQLInputFieldsContainer fieldsContainer) {
         return fieldsContainer.getFieldDefinitions();
@@ -53,7 +53,7 @@ public interface GraphqlFieldVisibility {
      * @param fieldsContainer the type in play
      * @param fieldName       the name of the desired field
      *
-     * @return a {@link graphql.schema.GraphQLInputObjectField} or null if its not visible
+     * @return a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField} or null if its not visible
      */
     default GraphQLInputObjectField getFieldDefinition(GraphQLInputFieldsContainer fieldsContainer, String fieldName) {
         return fieldsContainer.getFieldDefinition(fieldName);
