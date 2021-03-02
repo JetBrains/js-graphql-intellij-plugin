@@ -13,8 +13,6 @@ import com.intellij.lang.jsgraphql.types.schema.DataFetcher;
 import org.dataloader.DataLoader;
 import org.dataloader.DataLoaderRegistry;
 import org.dataloader.stats.Statistics;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -38,8 +36,6 @@ import java.util.concurrent.CompletableFuture;
 @PublicApi
 public class DataLoaderDispatcherInstrumentation extends SimpleInstrumentation {
 
-    private static final Logger log = LoggerFactory.getLogger(DataLoaderDispatcherInstrumentation.class);
-
     private final DataLoaderDispatcherInstrumentationOptions options;
 
     /**
@@ -61,7 +57,7 @@ public class DataLoaderDispatcherInstrumentation extends SimpleInstrumentation {
 
     @Override
     public InstrumentationState createState(InstrumentationCreateStateParameters parameters) {
-        return new DataLoaderDispatcherInstrumentationState(log, parameters.getExecutionInput().getDataLoaderRegistry());
+        return new DataLoaderDispatcherInstrumentationState(parameters.getExecutionInput().getDataLoaderRegistry());
     }
 
     @Override
@@ -158,11 +154,6 @@ public class DataLoaderDispatcherInstrumentation extends SimpleInstrumentation {
         Map<Object, Object> statsMap = new LinkedHashMap<>(currentExt == null ? Collections.emptyMap() : currentExt);
         Map<Object, Object> dataLoaderStats = buildStatsMap(state);
         statsMap.put("dataloader", dataLoaderStats);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Data loader stats : {}", dataLoaderStats);
-        }
-
         return CompletableFuture.completedFuture(new ExecutionResultImpl(executionResult.getData(), executionResult.getErrors(), statsMap));
     }
 

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static java.lang.String.format;
 
 @PublicApi
 public class SerializationError implements GraphQLError {

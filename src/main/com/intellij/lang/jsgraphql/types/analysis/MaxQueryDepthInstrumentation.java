@@ -6,8 +6,6 @@ import com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentati
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.SimpleInstrumentation;
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.parameters.InstrumentationValidationParameters;
 import com.intellij.lang.jsgraphql.types.validation.ValidationError;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.function.Function;
@@ -22,8 +20,6 @@ import static com.intellij.lang.jsgraphql.types.execution.instrumentation.Simple
  */
 @PublicApi
 public class MaxQueryDepthInstrumentation extends SimpleInstrumentation {
-
-    private static final Logger log = LoggerFactory.getLogger(MaxQueryDepthInstrumentation.class);
 
     private final int maxDepth;
     private final Function<QueryDepthInfo, Boolean> maxQueryDepthExceededFunction;
@@ -56,9 +52,6 @@ public class MaxQueryDepthInstrumentation extends SimpleInstrumentation {
             }
             QueryTraverser queryTraverser = newQueryTraverser(parameters);
             int depth = queryTraverser.reducePreOrder((env, acc) -> Math.max(getPathLength(env.getParentEnvironment()), acc), 0);
-            if (log.isDebugEnabled()) {
-                log.debug("Query depth info: {}", depth);
-            }
             if (depth > maxDepth) {
                 QueryDepthInfo queryDepthInfo = QueryDepthInfo.newQueryDepthInfo()
                         .depth(depth)

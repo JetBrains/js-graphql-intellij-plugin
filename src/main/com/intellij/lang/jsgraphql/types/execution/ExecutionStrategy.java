@@ -16,9 +16,6 @@ import com.intellij.lang.jsgraphql.types.normalized.NormalizedField;
 import com.intellij.lang.jsgraphql.types.normalized.NormalizedQueryTree;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
-import com.intellij.lang.jsgraphql.types.util.LogKit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -89,9 +86,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 @PublicSpi
 @SuppressWarnings("FutureReturnValueIgnored")
 public abstract class ExecutionStrategy {
-
-    private static final Logger log = LoggerFactory.getLogger(ExecutionStrategy.class);
-    private static final Logger logNotSafe = LogKit.getNotPrivacySafeLogger(ExecutionStrategy.class);
 
     protected final ValuesResolver valuesResolver = new ValuesResolver();
     protected final FieldCollector fieldCollector = new FieldCollector();
@@ -239,9 +233,6 @@ public abstract class ExecutionStrategy {
             Object fetchedValueRaw = dataFetcher.get(environment);
             fetchedValue = Async.toCompletableFuture(fetchedValueRaw);
         } catch (Exception e) {
-            if (logNotSafe.isDebugEnabled()) {
-                logNotSafe.debug(String.format("'%s', field '%s' fetch threw exception", executionId, executionStepInfo.get().getPath()), e);
-            }
 
             fetchedValue = new CompletableFuture<>();
             fetchedValue.completeExceptionally(e);
@@ -352,9 +343,6 @@ public abstract class ExecutionStrategy {
                         .nonNullFieldValidator(nonNullableFieldValidator)
         );
 
-        if (log.isDebugEnabled()) {
-            log.debug("'{}' completing field '{}'...", executionContext.getExecutionId(), executionStepInfo.getPath());
-        }
 
         FieldValueInfo fieldValueInfo = completeValue(executionContext, newParameters);
 
@@ -418,7 +406,6 @@ public abstract class ExecutionStrategy {
 
     private void handleUnresolvedTypeProblem(ExecutionContext context, ExecutionStrategyParameters parameters, UnresolvedTypeException e) {
         UnresolvedTypeError error = new UnresolvedTypeError(parameters.getPath(), parameters.getExecutionStepInfo(), e);
-        logNotSafe.warn(error.getMessage(), e);
         context.addError(error);
 
     }
@@ -618,7 +605,6 @@ public abstract class ExecutionStrategy {
     @SuppressWarnings("SameReturnValue")
     private Object handleCoercionProblem(ExecutionContext context, ExecutionStrategyParameters parameters, CoercingSerializeException e) {
         SerializationError error = new SerializationError(parameters.getPath(), e);
-        logNotSafe.warn(error.getMessage(), e);
         context.addError(error);
 
 
@@ -654,7 +640,6 @@ public abstract class ExecutionStrategy {
 
     private void handleTypeMismatchProblem(ExecutionContext context, ExecutionStrategyParameters parameters, Object result) {
         TypeMismatchError error = new TypeMismatchError(parameters.getPath(), parameters.getExecutionStepInfo().getUnwrappedNonNullType());
-        logNotSafe.warn("{} got {}", error.getMessage(), result.getClass());
         context.addError(error);
 
     }

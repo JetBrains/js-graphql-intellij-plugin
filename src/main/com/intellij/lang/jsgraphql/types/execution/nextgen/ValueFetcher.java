@@ -14,9 +14,6 @@ import com.intellij.lang.jsgraphql.types.normalized.NormalizedField;
 import com.intellij.lang.jsgraphql.types.normalized.NormalizedQueryTree;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
-import com.intellij.lang.jsgraphql.types.util.LogKit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,9 +31,6 @@ public class ValueFetcher {
 
 
     ValuesResolver valuesResolver = new ValuesResolver();
-
-    private static final Logger log = LoggerFactory.getLogger(ValueFetcher.class);
-    private static final Logger logNotSafe = LogKit.getNotPrivacySafeLogger(ExecutionStrategy.class);
 
     public static final Object NULL_VALUE = new Object();
 
@@ -152,18 +146,9 @@ public class ValueFetcher {
         CompletableFuture<Object> result = new CompletableFuture<>();
         try {
             DataFetcher dataFetcher = codeRegistry.getDataFetcher(parentType, fieldDef);
-            if (log.isDebugEnabled()) {
-                log.debug("'{}' fetching field '{}' using data fetcher '{}'...", executionId, path, dataFetcher.getClass().getName());
-            }
             Object fetchedValueRaw = dataFetcher.get(environment);
-            if (logNotSafe.isDebugEnabled()) {
-                logNotSafe.debug("'{}' field '{}' fetch returned '{}'", executionId, path, fetchedValueRaw == null ? "null" : fetchedValueRaw.getClass().getName());
-            }
             handleFetchedValue(fetchedValueRaw, result);
         } catch (Exception e) {
-            if (logNotSafe.isDebugEnabled()) {
-                logNotSafe.debug("'{}', field '{}' fetch threw exception", executionId, path, e);
-            }
             result.completeExceptionally(e);
         }
         return result;

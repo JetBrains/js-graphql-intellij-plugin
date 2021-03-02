@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static java.lang.String.format;
 
 /**
  * This graphql error will be used if a runtime exception is encountered while a data fetcher is invoked

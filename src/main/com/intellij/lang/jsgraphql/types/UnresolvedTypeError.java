@@ -9,6 +9,7 @@ import java.util.List;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.simplePrint;
+import static java.lang.String.format;
 
 @PublicApi
 public class UnresolvedTypeError implements GraphQLError {

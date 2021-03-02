@@ -19,10 +19,7 @@ import com.intellij.lang.jsgraphql.types.execution.preparsed.PreparsedDocumentEn
 import com.intellij.lang.jsgraphql.types.execution.preparsed.PreparsedDocumentProvider;
 import com.intellij.lang.jsgraphql.types.language.Document;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
-import com.intellij.lang.jsgraphql.types.util.LogKit;
 import com.intellij.lang.jsgraphql.types.validation.ValidationError;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -36,9 +33,6 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 @SuppressWarnings("Duplicates")
 @Internal
 public class GraphQL {
-    private static final Logger log = LoggerFactory.getLogger(com.intellij.lang.jsgraphql.types.GraphQL.class);
-    private static final Logger logNotSafe = LogKit.getNotPrivacySafeLogger(ExecutionStrategy.class);
-
     private final GraphQLSchema graphQLSchema;
     private final ExecutionStrategy executionStrategy;
     private final ExecutionIdProvider idProvider;
@@ -143,10 +137,6 @@ public class GraphQL {
      */
     public CompletableFuture<ExecutionResult> executeAsync(ExecutionInput executionInput) {
         try {
-            if (logNotSafe.isDebugEnabled()) {
-                logNotSafe.debug("Executing request. operation name: '{}'. query: '{}'. variables '{}'", executionInput.getOperationName(), executionInput.getQuery(), executionInput.getVariables());
-            }
-
             InstrumentationState instrumentationState = instrumentation.createState(new InstrumentationCreateStateParameters(this.graphQLSchema, executionInput));
 
             InstrumentationExecutionParameters inputInstrumentationParameters = new InstrumentationExecutionParameters(executionInput, this.graphQLSchema, instrumentationState);
@@ -189,12 +179,8 @@ public class GraphQL {
         ExecutionInput executionInput = executionInputRef.get();
         String query = executionInput.getQuery();
 
-        if (logNotSafe.isDebugEnabled()) {
-            logNotSafe.debug("Parsing query: '{}'...", query);
-        }
         ParseAndValidateResult parseResult = parse(executionInput, graphQLSchema, instrumentationState);
         if (parseResult.isFailure()) {
-            logNotSafe.warn("Query failed to parse : '{}'", executionInput.getQuery());
             return new PreparsedDocumentEntry(parseResult.getSyntaxException().toInvalidSyntaxError());
         } else {
             final Document document = parseResult.getDocument();
@@ -202,12 +188,8 @@ public class GraphQL {
             executionInput = executionInput.transform(builder -> builder.variables(parseResult.getVariables()));
             executionInputRef.set(executionInput);
 
-            if (logNotSafe.isDebugEnabled()) {
-                logNotSafe.debug("Validating query: '{}'", query);
-            }
             final List<ValidationError> errors = validate(executionInput, document, graphQLSchema, instrumentationState);
             if (!errors.isEmpty()) {
-                logNotSafe.warn("Query failed to validate : '{}'", query);
                 return new PreparsedDocumentEntry(errors);
             }
 
@@ -256,25 +238,7 @@ public class GraphQL {
         Execution execution = new Execution();
         ExecutionId executionId = idProvider.provide(query, operationName, context);
 
-        if (logNotSafe.isDebugEnabled()) {
-            logNotSafe.debug("Executing '{}'. operation name: '{}'. query: '{}'. variables '{}'", executionId, executionInput.getOperationName(), executionInput.getQuery(), executionInput.getVariables());
-        }
-        CompletableFuture<ExecutionResult> future = execution.execute(executionStrategy, document, graphQLSchema, executionId, executionInput, instrumentationState);
-        future = future.whenComplete((result, throwable) -> {
-            if (throwable != null) {
-                log.error(String.format("Execution '%s' threw exception when executing : query : '%s'. variables '%s'", executionId, executionInput.getQuery(), executionInput.getVariables()), throwable);
-            } else {
-                if (log.isDebugEnabled()) {
-                    int errorCount = result.getErrors().size();
-                    if (errorCount > 0) {
-                        log.debug("Execution '{}' completed with '{}' errors", executionId, errorCount);
-                    } else {
-                        log.debug("Execution '{}' completed with zero errors", executionId);
-                    }
-                }
-            }
-        });
-        return future;
+        return execution.execute(executionStrategy, document, graphQLSchema, executionId, executionInput, instrumentationState);
     }
 
     /**

@@ -14,6 +14,7 @@ import java.util.Map;
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.unwrapAll;
 import static com.intellij.lang.jsgraphql.types.util.TraverserContext.Phase.LEAVE;
+import static java.lang.String.format;
 
 /**
  * Internally used node visitor which delegates to a {@link QueryVisitor} with type

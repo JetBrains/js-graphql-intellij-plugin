@@ -6,8 +6,6 @@ import com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentati
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.SimpleInstrumentation;
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.parameters.InstrumentationValidationParameters;
 import com.intellij.lang.jsgraphql.types.validation.ValidationError;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,8 +24,6 @@ import static java.util.Optional.ofNullable;
  */
 @PublicApi
 public class MaxQueryComplexityInstrumentation extends SimpleInstrumentation {
-
-    private static final Logger log = LoggerFactory.getLogger(MaxQueryComplexityInstrumentation.class);
 
     private final int maxComplexity;
     private final FieldComplexityCalculator fieldComplexityCalculator;
@@ -97,9 +93,6 @@ public class MaxQueryComplexityInstrumentation extends SimpleInstrumentation {
                 }
             });
             int totalComplexity = valuesByParent.getOrDefault(null, 0);
-            if (log.isDebugEnabled()) {
-                log.debug("Query complexity: {}", totalComplexity);
-            }
             if (totalComplexity > maxComplexity) {
                 QueryComplexityInfo queryComplexityInfo = QueryComplexityInfo.newQueryComplexityInfo()
                         .complexity(totalComplexity)

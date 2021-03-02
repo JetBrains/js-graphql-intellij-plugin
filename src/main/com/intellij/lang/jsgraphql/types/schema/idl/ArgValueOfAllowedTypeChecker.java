@@ -7,8 +7,6 @@ import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError;
-import com.intellij.lang.jsgraphql.types.util.LogKit;
-import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Map;
@@ -26,8 +24,6 @@ import static java.util.stream.Collectors.*;
  */
 @Internal
 class ArgValueOfAllowedTypeChecker {
-
-    private static final Logger logNotSafe = LogKit.getNotPrivacySafeLogger(ArgValueOfAllowedTypeChecker.class);
 
     private final Directive directive;
     private final Node<?> element;
@@ -251,9 +247,6 @@ class ArgValueOfAllowedTypeChecker {
             scalarType.getCoercing().parseLiteral(instanceValue);
             return true;
         } catch (CoercingParseLiteralException ex) {
-            if (logNotSafe.isDebugEnabled()) {
-                logNotSafe.debug("Attempted parsing literal into '{}' but got the following error: ", scalarType.getName(), ex);
-            }
             return false;
         }
     }

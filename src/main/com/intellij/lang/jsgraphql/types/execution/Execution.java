@@ -10,8 +10,6 @@ import com.intellij.lang.jsgraphql.types.execution.instrumentation.parameters.In
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
-import com.intellij.lang.jsgraphql.types.util.LogKit;
-import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,8 +25,6 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @Internal
 public class Execution {
-    private static final Logger logNotSafe = LogKit.getNotPrivacySafeLogger(Execution.class);
-
     private final FieldCollector fieldCollector = new FieldCollector();
     private final ValuesResolver valuesResolver = new ValuesResolver();
     private final ExecutionStrategy queryStrategy;
@@ -148,9 +144,6 @@ public class Execution {
                 executionStrategy = executionContext.getSubscriptionStrategy();
             } else {
                 executionStrategy = executionContext.getQueryStrategy();
-            }
-            if (logNotSafe.isDebugEnabled()) {
-                logNotSafe.debug("Executing '{}' query operation: '{}' using '{}' execution strategy", executionContext.getExecutionId(), operation, executionStrategy.getClass().getName());
             }
             result = executionStrategy.execute(executionContext, parameters);
         } catch (NonNullableFieldWasNullException e) {

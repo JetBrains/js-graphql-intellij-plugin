@@ -13,6 +13,8 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil;
 import java.util.Collections;
 import java.util.List;
 
+import static java.lang.String.format;
+
 /**
  * This is thrown if a non nullable value is coerced to a null value
  */

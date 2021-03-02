@@ -28,6 +28,7 @@ import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
+import static java.lang.String.format;
 
 @Internal
 public class SchemaGeneratorHelper {

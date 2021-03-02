@@ -11,7 +11,6 @@ import com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentati
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.parameters.InstrumentationExecutionStrategyParameters;
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.parameters.InstrumentationFieldFetchParameters;
 import org.dataloader.DataLoaderRegistry;
-import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -23,7 +22,6 @@ import java.util.function.Supplier;
 @Internal
 public class FieldLevelTrackingApproach {
     private final Supplier<DataLoaderRegistry> dataLoaderRegistrySupplier;
-    private final Logger log;
 
     private static class CallStack implements InstrumentationState {
 
@@ -110,9 +108,8 @@ public class FieldLevelTrackingApproach {
         }
     }
 
-    public FieldLevelTrackingApproach(Logger log, Supplier<DataLoaderRegistry> dataLoaderRegistrySupplier) {
+    public FieldLevelTrackingApproach(Supplier<DataLoaderRegistry> dataLoaderRegistrySupplier) {
         this.dataLoaderRegistrySupplier = dataLoaderRegistrySupplier;
-        this.log = log;
     }
 
     public InstrumentationState createState() {
@@ -237,9 +234,6 @@ public class FieldLevelTrackingApproach {
 
     void dispatch() {
         DataLoaderRegistry dataLoaderRegistry = getDataLoaderRegistry();
-        if (log.isDebugEnabled()) {
-            log.debug("Dispatching data loaders ({})", dataLoaderRegistry.getKeys());
-        }
         dataLoaderRegistry.dispatchAll();
     }
 

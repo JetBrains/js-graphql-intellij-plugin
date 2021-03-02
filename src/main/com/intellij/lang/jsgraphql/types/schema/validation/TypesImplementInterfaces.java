@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
 import static com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidationErrorType.ObjectDoesNotImplementItsInterfaces;
+import static java.lang.String.format;
 
 /**
  * Schema validation rule ensuring object and interface types have all the fields that they need to

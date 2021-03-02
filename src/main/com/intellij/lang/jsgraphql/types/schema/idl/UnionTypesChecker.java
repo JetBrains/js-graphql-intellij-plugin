@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
+
 /**
  * UnionType check, details in https://spec.graphql.org/June2018/#sec-Type-System.
  * <pre>
