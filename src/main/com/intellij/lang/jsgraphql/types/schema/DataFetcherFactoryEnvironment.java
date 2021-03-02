@@ -3,8 +3,8 @@ package com.intellij.lang.jsgraphql.types.schema;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 
 /**
- * This is passed to a {@link graphql.schema.DataFetcherFactory} when it is invoked to
- * get a {@link graphql.schema.DataFetcher}
+ * This is passed to a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory} when it is invoked to
+ * get a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
  */
 @PublicApi
 public class DataFetcherFactoryEnvironment {
@@ -15,7 +15,7 @@ public class DataFetcherFactoryEnvironment {
     }
 
     /**
-     * @return the field that needs a {@link graphql.schema.DataFetcher}
+     * @return the field that needs a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
      */
     public GraphQLFieldDefinition getFieldDefinition() {
         return fieldDefinition;

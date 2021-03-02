@@ -10,7 +10,7 @@ import java.util.List;
 
 /**
  * A number of problems can occur when using the schema tools like {@link SchemaParser}
- * or {@link graphql.schema.idl.SchemaGenerator} classes and they are reported via this
+ * or {@link com.intellij.lang.jsgraphql.types.schema.idl.SchemaGenerator} classes and they are reported via this
  * exception as a list of {@link GraphQLError}s
  */
 @Internal

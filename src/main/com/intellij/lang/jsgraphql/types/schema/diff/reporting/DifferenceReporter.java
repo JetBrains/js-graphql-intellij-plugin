@@ -4,7 +4,7 @@ import com.intellij.lang.jsgraphql.types.PublicSpi;
 import com.intellij.lang.jsgraphql.types.schema.diff.DiffEvent;
 
 /**
- * This is called with each different encountered (including info ones) by a {@link graphql.schema.diff.SchemaDiff} operation
+ * This is called with each different encountered (including info ones) by a {@link com.intellij.lang.jsgraphql.types.schema.diff.SchemaDiff} operation
  */
 @PublicSpi
 public interface DifferenceReporter {

@@ -18,9 +18,9 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertValidName;
 import static java.util.Collections.emptyList;
 
 /**
- * Input objects defined via {@link graphql.schema.GraphQLInputObjectType} contains these input fields.
+ * Input objects defined via {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectType} contains these input fields.
  *
- * There are similar to {@link graphql.schema.GraphQLFieldDefinition} however they can ONLY be used on input objects, that
+ * There are similar to {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition} however they can ONLY be used on input objects, that
  * is to describe values that are fed into a graphql mutation.
  *
  * See http://graphql.org/learn/schema/#input-types for more details on the concept.

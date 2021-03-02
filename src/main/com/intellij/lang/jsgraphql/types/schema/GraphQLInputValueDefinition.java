@@ -6,9 +6,9 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
  * Named schema elements that contain input type information.
  *
  *
- * @see graphql.schema.GraphQLInputType
- * @see graphql.schema.GraphQLInputObjectField
- * @see graphql.schema.GraphQLArgument
+ * @see com.intellij.lang.jsgraphql.types.schema.GraphQLInputType
+ * @see com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField
+ * @see com.intellij.lang.jsgraphql.types.schema.GraphQLArgument
  */
 @PublicApi
 public interface GraphQLInputValueDefinition extends GraphQLDirectiveContainer {

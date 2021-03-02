@@ -14,7 +14,7 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
 
 /**
- * This contains the helper code that allows {@link graphql.schema.idl.SchemaDirectiveWiring} implementations
+ * This contains the helper code that allows {@link com.intellij.lang.jsgraphql.types.schema.idl.SchemaDirectiveWiring} implementations
  * to be invoked during schema generation.
  */
 @SuppressWarnings("DuplicatedCode")

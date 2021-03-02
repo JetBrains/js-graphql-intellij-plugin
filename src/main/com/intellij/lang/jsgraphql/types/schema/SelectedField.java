@@ -5,8 +5,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import java.util.Map;
 
 /**
- * A {@link graphql.schema.SelectedField} represents a field that occurred in a query selection set during
- * execution and they are returned from using the {@link graphql.schema.DataFetchingFieldSelectionSet}
+ * A {@link com.intellij.lang.jsgraphql.types.schema.SelectedField} represents a field that occurred in a query selection set during
+ * execution and they are returned from using the {@link com.intellij.lang.jsgraphql.types.schema.DataFetchingFieldSelectionSet}
  * interface returned via {@link DataFetchingEnvironment#getSelectionSet()}
  */
 @PublicApi

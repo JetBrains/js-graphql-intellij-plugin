@@ -10,7 +10,7 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertValidName;
 
 /**
  * A field in graphql is uniquely located within a parent type and hence code elements
- * like {@link graphql.schema.DataFetcher} need to be specified using those coordinates.
+ * like {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} need to be specified using those coordinates.
  */
 @PublicApi
 public class FieldCoordinates {

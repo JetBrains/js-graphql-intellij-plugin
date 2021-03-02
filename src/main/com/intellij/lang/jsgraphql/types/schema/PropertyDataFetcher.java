@@ -28,7 +28,7 @@ import java.util.function.Function;
  * You can write your own data fetchers to get data from some other backing system
  * if you need highly customised behaviour.
  *
- * @see graphql.schema.DataFetcher
+ * @see com.intellij.lang.jsgraphql.types.schema.DataFetcher
  */
 @PublicApi
 public class PropertyDataFetcher<T> implements DataFetcher<T>, TrivialDataFetcher<T> {

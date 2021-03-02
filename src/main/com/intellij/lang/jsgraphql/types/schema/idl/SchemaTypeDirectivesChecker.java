@@ -117,7 +117,7 @@ class SchemaTypeDirectivesChecker {
 
     private boolean inRightLocation(DirectiveLocation expectedLocation, DirectiveDefinition directiveDefinition) {
         List<String> names = directiveDefinition.getDirectiveLocations()
-                .stream().map(graphql.language.DirectiveLocation::getName)
+                .stream().map(com.intellij.lang.jsgraphql.types.language.DirectiveLocation::getName)
                 .map(String::toUpperCase)
                 .collect(Collectors.toList());
 

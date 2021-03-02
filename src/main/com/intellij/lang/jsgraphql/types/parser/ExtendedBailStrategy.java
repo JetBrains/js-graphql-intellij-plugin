@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.types.parser;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.SourceLocation;
 import org.antlr.v4.runtime.BailErrorStrategy;
+import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -37,8 +38,8 @@ public class ExtendedBailStrategy extends BailErrorStrategy {
         SourceLocation sourceLocation = AntlrHelper.createSourceLocation(multiSourceReader, token);
         String sourcePreview = AntlrHelper.createPreview(multiSourceReader, token.getLine());
         return new InvalidSyntaxException(sourceLocation,
-                "There are more tokens in the query that have not been consumed",
-                sourcePreview, token.getText(), null);
+            "There are more tokens in the query that have not been consumed",
+            sourcePreview, token.getText(), null);
     }
 
 

@@ -25,7 +25,7 @@ import static java.util.Collections.emptyList;
 /**
  * A union type is a polymorphic type that dynamically represents one of more concrete object types.
  * <p>
- * At runtime a {@link graphql.schema.TypeResolver} is used to take an union object value and decide what {@link graphql.schema.GraphQLObjectType}
+ * At runtime a {@link com.intellij.lang.jsgraphql.types.schema.TypeResolver} is used to take an union object value and decide what {@link com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType}
  * represents this union of types.
  * <p>
  * Note that members of a union type need to be concrete object types; you can't create a union type out of interfaces or other unions.

@@ -74,7 +74,7 @@ public class DataFetchingEnvironmentImpl implements DataFetchingEnvironment {
     }
 
     /**
-     * @return a new {@link graphql.schema.DataFetchingEnvironmentImpl.Builder}
+     * @return a new {@link com.intellij.lang.jsgraphql.types.schema.DataFetchingEnvironmentImpl.Builder}
      */
     public static Builder newDataFetchingEnvironment() {
         return new Builder();

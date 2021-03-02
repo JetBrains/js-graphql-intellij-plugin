@@ -18,15 +18,15 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.Assert.assertValidName;
 
 /**
- * This defines an argument that can be supplied to a graphql field (via {@link graphql.schema.GraphQLFieldDefinition}.
+ * This defines an argument that can be supplied to a graphql field (via {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}.
  * <p>
  * Fields can be thought of as "functions" that take arguments and return a value.
  * <p>
  * See http://graphql.org/learn/queries/#arguments for more details on the concept.
  * <p>
- * {@link graphql.schema.GraphQLArgument} is used in two contexts, one context is graphql queries where it represents the arguments that can be
+ * {@link com.intellij.lang.jsgraphql.types.schema.GraphQLArgument} is used in two contexts, one context is graphql queries where it represents the arguments that can be
  * set on a field and the other is in Schema Definition Language (SDL) where it can be used to represent the argument value instances
- * that have been supplied on a {@link graphql.schema.GraphQLDirective}.
+ * that have been supplied on a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLDirective}.
  * <p>
  * The difference is the 'value' and 'defaultValue' properties.  In a query argument, the 'value' is never in the GraphQLArgument
  * object but rather in the AST direct or in the query variables map and the 'defaultValue' represents a value to use if both of these are
@@ -121,7 +121,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
     }
 
     /**
-     * An argument has a default value when it represents the logical argument structure that a {@link graphql.schema.GraphQLFieldDefinition}
+     * An argument has a default value when it represents the logical argument structure that a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}
      * can have and it can also have a default value when used in a schema definition language (SDL) where the
      * default value comes via the directive definition.
      *

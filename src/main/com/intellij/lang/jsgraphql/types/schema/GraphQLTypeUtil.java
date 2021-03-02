@@ -9,7 +9,7 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
 
 /**
- * A utility class that helps work with {@link graphql.schema.GraphQLType}s
+ * A utility class that helps work with {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType}s
  */
 @PublicApi
 public class GraphQLTypeUtil {

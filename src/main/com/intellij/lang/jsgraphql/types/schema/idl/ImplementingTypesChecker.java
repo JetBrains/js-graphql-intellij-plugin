@@ -16,7 +16,7 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * A support class to help break up the large SchemaTypeChecker class. This handles
- * the checking of {@link graphql.language.ImplementingTypeDefinition}s.
+ * the checking of {@link com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition}s.
  */
 @Internal
 class ImplementingTypesChecker {

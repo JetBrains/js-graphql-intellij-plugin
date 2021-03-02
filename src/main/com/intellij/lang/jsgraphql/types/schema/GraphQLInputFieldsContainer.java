@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Types that can contain input fields are marked with this interface
  *
- * @see graphql.schema.GraphQLInputType
+ * @see com.intellij.lang.jsgraphql.types.schema.GraphQLInputType
  */
 @PublicApi
 public interface GraphQLInputFieldsContainer extends GraphQLNamedType {

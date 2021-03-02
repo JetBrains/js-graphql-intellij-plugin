@@ -85,9 +85,9 @@ import java.util.Map;
  * }
  * </pre>
  * <p>
- * In the example above the `selectionSet.getFields("name")` actually returns three {@link graphql.schema.SelectedField}s,
+ * In the example above the `selectionSet.getFields("name")` actually returns three {@link com.intellij.lang.jsgraphql.types.schema.SelectedField}s,
  * one for `Dog.name`, one for `Cat.name` and one for `Dog.name` with an alias of `aliasedName`.  The arguments can
- * differ on {@link graphql.schema.SelectedField}s that have different {@link SelectedField#getResultKey()}s, hence the multiple
+ * differ on {@link com.intellij.lang.jsgraphql.types.schema.SelectedField}s that have different {@link SelectedField#getResultKey()}s, hence the multiple
  * selected fields returned.
  * <p>
  * To help you there is the {@link #getFieldsGroupedByResultKey()} that returns a {@code Map<String,List<SelectedField>>} keyed
@@ -179,7 +179,7 @@ public interface DataFetchingFieldSelectionSet {
     List<SelectedField> getFields(String fieldGlobPattern, String... fieldGlobPatterns);
 
     /**
-     * The result key of a selected field represents what the graphql return value will be.  The same {@link graphql.schema.GraphQLFieldDefinition}
+     * The result key of a selected field represents what the graphql return value will be.  The same {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}
      * may lead to a field being asked for multiple times (with differing arguments) if field aliases are used.  This method
      * helps you get all possible field invocations grouped by their result key.  The arguments are guaranteed to be the same if
      * the result key is the same, otherwise the query would not have validated correctly.
@@ -189,7 +189,7 @@ public interface DataFetchingFieldSelectionSet {
     Map<String, List<SelectedField>> getFieldsGroupedByResultKey();
 
     /**
-     * The result key of a selected field represents what the graphql return value will be.  The same {@link graphql.schema.GraphQLFieldDefinition}
+     * The result key of a selected field represents what the graphql return value will be.  The same {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}
      * may lead to a field being asked for multiple times (with differing arguments) if field aliases are used.  This method
      * helps you get all possible field invocations grouped by their result key.  The arguments are guaranteed to be the same if
      * the result key is the same, otherwise the query would not have validated correctly.

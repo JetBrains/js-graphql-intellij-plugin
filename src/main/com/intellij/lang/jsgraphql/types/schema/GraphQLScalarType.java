@@ -31,9 +31,9 @@ import static java.util.Collections.emptyList;
  * From the spec : http://facebook.github.io/graphql/#sec-Scalars
  * </blockquote>
  * <p>
- * graphql-java ships with a set of predefined scalar types via {@link graphql.Scalars}
+ * graphql-java ships with a set of predefined scalar types via {@link com.intellij.lang.jsgraphql.types.Scalars}
  *
- * @see graphql.Scalars
+ * @see com.intellij.lang.jsgraphql.types.Scalars
  */
 @PublicApi
 public class GraphQLScalarType implements GraphQLNamedInputType, GraphQLNamedOutputType, GraphQLUnmodifiedType, GraphQLNullableType, GraphQLDirectiveContainer {

@@ -28,7 +28,7 @@ import static java.util.Collections.emptyList;
  * by the graphql system.
  * <p>
  * Those fields can themselves by object types and so on until you reach the leaf nodes of the type tree represented
- * by {@link graphql.schema.GraphQLScalarType}s.
+ * by {@link com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType}s.
  * <p>
  * See http://graphql.org/learn/schema/#object-types-and-fields for more details on the concept.
  */

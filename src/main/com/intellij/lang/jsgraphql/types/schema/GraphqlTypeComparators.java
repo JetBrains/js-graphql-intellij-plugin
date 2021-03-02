@@ -12,7 +12,7 @@ import java.util.List;
 public class GraphqlTypeComparators {
 
     /**
-     * This sorts the list of {@link graphql.schema.GraphQLType} objects (by name) and allocates a new sorted
+     * This sorts the list of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType} objects (by name) and allocates a new sorted
      * list back.
      *
      * @param <T>        the type of type
@@ -28,18 +28,18 @@ public class GraphqlTypeComparators {
     }
 
     /**
-     * Returns a comparator that laves {@link graphql.schema.GraphQLType} objects as they are
+     * Returns a comparator that laves {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType} objects as they are
      *
-     * @return a comparator that laves {@link graphql.schema.GraphQLType} objects as they are
+     * @return a comparator that laves {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType} objects as they are
      */
     public static Comparator<? super GraphQLSchemaElement> asIsOrder() {
         return (o1, o2) -> 0;
     }
 
     /**
-     * Returns a comparator that compares {@link graphql.schema.GraphQLType} objects by ascending name
+     * Returns a comparator that compares {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType} objects by ascending name
      *
-     * @return a comparator that compares {@link graphql.schema.GraphQLType} objects by ascending name
+     * @return a comparator that compares {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType} objects by ascending name
      */
     public static Comparator<? super GraphQLSchemaElement> byNameAsc() {
         return Comparator.comparing(graphQLSchemaElement -> ((GraphQLNamedSchemaElement) graphQLSchemaElement).getName());

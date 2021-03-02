@@ -58,7 +58,7 @@ public class SchemaUtil {
      *
      * This helps in accelerates/simplifies collecting types that implement a certain interface
      *
-     * Provided to replace {@link #findImplementations(graphql.schema.GraphQLSchema, graphql.schema.GraphQLInterfaceType)}
+     * Provided to replace {@link #findImplementations(com.intellij.lang.jsgraphql.types.schema.GraphQLSchema, com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType)}
      *
      */
     Map<String, List<GraphQLObjectType>> groupImplementations(GraphQLSchema schema) {
@@ -105,7 +105,7 @@ public class SchemaUtil {
      *
      * @return List of object types implementing provided interface
      *
-     * @deprecated use {@link graphql.schema.GraphQLSchema#getImplementations(GraphQLInterfaceType)} instead
+     * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLSchema#getImplementations(GraphQLInterfaceType)} instead
      */
     @Deprecated
     public List<GraphQLObjectType> findImplementations(GraphQLSchema schema, GraphQLInterfaceType interfaceType) {

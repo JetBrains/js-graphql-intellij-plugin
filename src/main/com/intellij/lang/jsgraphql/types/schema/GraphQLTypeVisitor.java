@@ -36,7 +36,7 @@ public interface GraphQLTypeVisitor {
     TraversalControl visitGraphQLUnionType(GraphQLUnionType node, TraverserContext<GraphQLSchemaElement> context);
 
     /**
-     * Called when a node is visited more than once within a context.  {@link graphql.util.TraverserContext#thisNode()} contains
+     * Called when a node is visited more than once within a context.  {@link com.intellij.lang.jsgraphql.types.util.TraverserContext#thisNode()} contains
      * the node
      *
      * @param context the traversal context

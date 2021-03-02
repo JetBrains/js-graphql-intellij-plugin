@@ -17,9 +17,9 @@ import static com.intellij.lang.jsgraphql.types.schema.visibility.DefaultGraphql
 
 
 /**
- * The {@link graphql.schema.GraphQLCodeRegistry} holds that execution code that is associated with graphql types, namely
- * the {@link graphql.schema.DataFetcher}s associated with fields, the {@link graphql.schema.TypeResolver}s associated with
- * abstract types and the {@link graphql.schema.visibility.GraphqlFieldVisibility}
+ * The {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} holds that execution code that is associated with graphql types, namely
+ * the {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}s associated with fields, the {@link com.intellij.lang.jsgraphql.types.schema.TypeResolver}s associated with
+ * abstract types and the {@link com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility}
  * <p>
  * For legacy reasons these code functions can still exist on the original type objects but this will be removed in a future version.  Once
  * removed the type system objects will be able have proper hashCode/equals methods and be checked for proper equality.
@@ -42,7 +42,7 @@ public class GraphQLCodeRegistry {
     }
 
     /**
-     * @return the {@link graphql.schema.visibility.GraphqlFieldVisibility}
+     * @return the {@link com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility}
      */
     public GraphqlFieldVisibility getFieldVisibility() {
         return fieldVisibility;
@@ -101,7 +101,7 @@ public class GraphQLCodeRegistry {
      * Returns the type resolver associated with this interface type
      *
      * @param interfaceType the interface type
-     * @return a non null {@link graphql.schema.TypeResolver}
+     * @return a non null {@link com.intellij.lang.jsgraphql.types.schema.TypeResolver}
      */
     public TypeResolver getTypeResolver(GraphQLInterfaceType interfaceType) {
         return getTypeResolverForInterface(interfaceType, typeResolverMap);
@@ -111,7 +111,7 @@ public class GraphQLCodeRegistry {
      * Returns the type resolver associated with this union type
      *
      * @param unionType the union type
-     * @return a non null {@link graphql.schema.TypeResolver}
+     * @return a non null {@link com.intellij.lang.jsgraphql.types.schema.TypeResolver}
      */
 
     public TypeResolver getTypeResolver(GraphQLUnionType unionType) {
@@ -137,7 +137,7 @@ public class GraphQLCodeRegistry {
     }
 
     /**
-     * This helps you transform the current {@link graphql.schema.GraphQLCodeRegistry} object into another one by starting a builder with all
+     * This helps you transform the current {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} object into another one by starting a builder with all
      * the current values and allows you to transform it how you want.
      *
      * @param builderConsumer the consumer code that will be given a builder to transform
@@ -150,17 +150,17 @@ public class GraphQLCodeRegistry {
     }
 
     /**
-     * @return a new builder of {@link graphql.schema.GraphQLCodeRegistry} objects
+     * @return a new builder of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} objects
      */
     public static Builder newCodeRegistry() {
         return new Builder();
     }
 
     /**
-     * Returns a new builder of {@link graphql.schema.GraphQLCodeRegistry} objects based on the existing one
+     * Returns a new builder of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} objects based on the existing one
      *
      * @param existingCodeRegistry the existing code registry to use
-     * @return a new builder of {@link graphql.schema.GraphQLCodeRegistry} objects
+     * @return a new builder of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} objects
      */
     public static Builder newCodeRegistry(GraphQLCodeRegistry existingCodeRegistry) {
         return new Builder(existingCodeRegistry);
@@ -220,7 +220,7 @@ public class GraphQLCodeRegistry {
          * Returns the type resolver associated with this interface type
          *
          * @param interfaceType the interface type
-         * @return a non null {@link graphql.schema.TypeResolver}
+         * @return a non null {@link com.intellij.lang.jsgraphql.types.schema.TypeResolver}
          */
         public TypeResolver getTypeResolver(GraphQLInterfaceType interfaceType) {
             return getTypeResolverForInterface(interfaceType, typeResolverMap);
@@ -240,7 +240,7 @@ public class GraphQLCodeRegistry {
          * Returns the type resolver associated with this union type
          *
          * @param unionType the union type
-         * @return a non null {@link graphql.schema.TypeResolver}
+         * @return a non null {@link com.intellij.lang.jsgraphql.types.schema.TypeResolver}
          */
         public TypeResolver getTypeResolver(GraphQLUnionType unionType) {
             return getTypeResolverForUnion(unionType, typeResolverMap);
@@ -327,7 +327,7 @@ public class GraphQLCodeRegistry {
 
         /**
          * This is the default data fetcher factory that will be used for fields that do not have specific data fetchers attached.  By default
-         * {@link graphql.schema.PropertyDataFetcher} is used but you can have your own default via this method.
+         * {@link com.intellij.lang.jsgraphql.types.schema.PropertyDataFetcher} is used but you can have your own default via this method.
          *
          * @param defaultDataFetcherFactory the default data fetcher factory used
          * @return this builder

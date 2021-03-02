@@ -5,7 +5,7 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.TrivialDataFetcher;
 
 /**
- * A {@link graphql.schema.DataFetcher} that always returns the same value
+ * A {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} that always returns the same value
  */
 @PublicApi
 public class StaticDataFetcher implements DataFetcher, TrivialDataFetcher {

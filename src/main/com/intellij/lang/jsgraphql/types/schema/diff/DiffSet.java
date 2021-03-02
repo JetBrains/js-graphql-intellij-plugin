@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * Represents 2 schemas that can be diffed.  The {@link SchemaDiff} code
  * assumes that that schemas to be diffed are the result of a
- * {@link graphql.introspection.IntrospectionQuery}.
+ * {@link com.intellij.lang.jsgraphql.types.introspection.IntrospectionQuery}.
  */
 @PublicApi
 public class DiffSet {

@@ -147,7 +147,7 @@ public class RuntimeWiring {
         }
 
         /**
-         * This allows you to seed in your own {@link graphql.schema.GraphQLCodeRegistry} instance
+         * This allows you to seed in your own {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instance
          *
          * @param codeRegistry the code registry to use
          *
@@ -159,7 +159,7 @@ public class RuntimeWiring {
         }
 
         /**
-         * This allows you to seed in your own {@link graphql.schema.GraphQLCodeRegistry} instance
+         * This allows you to seed in your own {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instance
          *
          * @param codeRegistry the code registry to use
          *
@@ -251,7 +251,7 @@ public class RuntimeWiring {
          * with the specified name.
          * <p>
          * To be called back for every directive the use {@link #directiveWiring(SchemaDirectiveWiring)} or
-         * use {@link graphql.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)}
+         * use {@link com.intellij.lang.jsgraphql.types.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)}
          * instead.
          *
          * @param directiveName         the name of the directive to wire
@@ -260,8 +260,8 @@ public class RuntimeWiring {
          * @return the runtime wiring builder
          *
          * @see #directiveWiring(SchemaDirectiveWiring)
-         * @see graphql.schema.idl.SchemaDirectiveWiring
-         * @see graphql.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)
+         * @see com.intellij.lang.jsgraphql.types.schema.idl.SchemaDirectiveWiring
+         * @see com.intellij.lang.jsgraphql.types.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)
          */
         public Builder directive(String directiveName, SchemaDirectiveWiring schemaDirectiveWiring) {
             registeredDirectiveWiring.put(directiveName, schemaDirectiveWiring);
@@ -280,8 +280,8 @@ public class RuntimeWiring {
          * @return the runtime wiring builder
          *
          * @see #directive(String, SchemaDirectiveWiring)
-         * @see graphql.schema.idl.SchemaDirectiveWiring
-         * @see graphql.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)
+         * @see com.intellij.lang.jsgraphql.types.schema.idl.SchemaDirectiveWiring
+         * @see com.intellij.lang.jsgraphql.types.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)
          */
         public Builder directiveWiring(SchemaDirectiveWiring schemaDirectiveWiring) {
             directiveWiring.add(schemaDirectiveWiring);
@@ -289,7 +289,7 @@ public class RuntimeWiring {
         }
 
         /**
-         * You can specify your own sort order of graphql types via {@link graphql.schema.GraphqlTypeComparatorRegistry}
+         * You can specify your own sort order of graphql types via {@link com.intellij.lang.jsgraphql.types.schema.GraphqlTypeComparatorRegistry}
          * which will tell you what type of objects you are to sort when
          * it asks for a comparator.
          *

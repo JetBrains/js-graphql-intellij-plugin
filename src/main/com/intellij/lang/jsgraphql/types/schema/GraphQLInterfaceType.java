@@ -27,7 +27,7 @@ import static java.util.Collections.emptyList;
  * In graphql, an interface is an abstract type that defines the set of fields that a type must include to
  * implement that interface.
  * <p>
- * At runtime a {@link graphql.schema.TypeResolver} is used to take an interface object value and decide what {@link graphql.schema.GraphQLObjectType}
+ * At runtime a {@link com.intellij.lang.jsgraphql.types.schema.TypeResolver} is used to take an interface object value and decide what {@link com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType}
  * represents this interface type.
  * <p>
  * See http://graphql.org/learn/schema/#interfaces for more details on the concept.

@@ -23,7 +23,7 @@ import static java.util.Collections.emptyList;
  * <p>
  * See http://graphql.org/learn/schema/#enumeration-types for more details
  *
- * @see graphql.schema.GraphQLEnumType
+ * @see com.intellij.lang.jsgraphql.types.schema.GraphQLEnumType
  */
 @PublicApi
 public class GraphQLEnumValueDefinition implements GraphQLNamedSchemaElement, GraphQLDirectiveContainer {

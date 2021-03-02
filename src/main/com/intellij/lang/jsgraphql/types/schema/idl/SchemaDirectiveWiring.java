@@ -8,13 +8,13 @@ import com.intellij.lang.jsgraphql.types.schema.*;
  * element in the Schema Definition Language (SDL).
  * <p>
  * It can enhance the graphql runtime element and add new behaviour for example by changing
- * the fields {@link graphql.schema.DataFetcher}
+ * the fields {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
  * <p>
  * The SchemaDirectiveWiring objects are called in a specific order based on registration:
  * <ol>
- * <li>{@link graphql.schema.idl.RuntimeWiring.Builder#directive(String, SchemaDirectiveWiring)} which work against a specific named directive are called first</li>
- * <li>{@link graphql.schema.idl.RuntimeWiring.Builder#directiveWiring(SchemaDirectiveWiring)} which work against all directives are called next</li>
- * <li>{@link graphql.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)} which work against all directives are called last</li>
+ * <li>{@link com.intellij.lang.jsgraphql.types.schema.idl.RuntimeWiring.Builder#directive(String, SchemaDirectiveWiring)} which work against a specific named directive are called first</li>
+ * <li>{@link com.intellij.lang.jsgraphql.types.schema.idl.RuntimeWiring.Builder#directiveWiring(SchemaDirectiveWiring)} which work against all directives are called next</li>
+ * <li>{@link com.intellij.lang.jsgraphql.types.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)} which work against all directives are called last</li>
  * </ol>
  */
 @PublicApi
