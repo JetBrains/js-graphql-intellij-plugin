@@ -14,6 +14,7 @@ import com.intellij.lang.jsgraphql.types.util.FpKit;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
@@ -1177,8 +1178,10 @@ public class SchemaGeneratorHelper {
     }
 
     private List<Directive> directivesOf(List<? extends TypeDefinition> typeDefinitions) {
-        return typeDefinitions.stream()
-                .map(TypeDefinition::getDirectives).filter(Objects::nonNull)
-                .<Directive>flatMap(List::stream).collect(Collectors.toList());
+        //noinspection RedundantTypeArguments
+        Stream<Directive> stream = typeDefinitions.stream()
+            .map(TypeDefinition::getDirectives).filter(Objects::nonNull)
+            .<Directive>flatMap(List::stream);
+        return stream.collect(Collectors.toList());
     }
 }

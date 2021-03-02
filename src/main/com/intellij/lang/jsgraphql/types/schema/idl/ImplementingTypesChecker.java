@@ -3,9 +3,23 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceFieldArgumentNotOptionalError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceFieldArgumentRedefinitionError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceFieldRedefinitionError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceImplementedMoreThanOnceError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceImplementingItselfError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceWithCircularImplementationHierarchyError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingInterfaceFieldArgumentsError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingInterfaceFieldError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingTransitiveInterfaceError;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -41,9 +55,10 @@ class ImplementingTypesChecker {
         List<InterfaceTypeDefinition> interfaces = typeRegistry.getTypes(InterfaceTypeDefinition.class);
         List<ObjectTypeDefinition> objects = typeRegistry.getTypes(ObjectTypeDefinition.class);
 
+        //noinspection RedundantCast
         Stream.of(interfaces.stream(), objects.stream())
                 .flatMap(Function.identity())
-                .forEach(type -> checkImplementingType(errors, typeRegistry, type));
+                .forEach(type -> checkImplementingType(errors, typeRegistry, ((ImplementingTypeDefinition) type)));
     }
 
     private void checkImplementingType(
