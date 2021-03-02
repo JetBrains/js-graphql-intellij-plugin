@@ -5,6 +5,8 @@ import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
 import com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
 
+import static java.lang.String.format;
+
 @Internal
 public class MissingInterfaceFieldError extends BaseError {
     public MissingInterfaceFieldError(String typeOfType, ImplementingTypeDefinition objectType, InterfaceTypeDefinition interfaceTypeDef, FieldDefinition interfaceFieldDef) {

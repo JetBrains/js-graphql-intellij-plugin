@@ -4,6 +4,8 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.TypeName;
 
+import static java.lang.String.format;
+
 @Internal
 public class MissingInterfaceTypeError extends BaseError {
 
