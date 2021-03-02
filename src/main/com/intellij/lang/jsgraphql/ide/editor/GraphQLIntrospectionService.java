@@ -424,7 +424,7 @@ public class GraphQLIntrospectionService implements Disposable {
                 }
             });
         } catch (IOException ioe) {
-            LOG.warn(ioe);
+            LOG.info(ioe);
             Notifications.Bus.notify(new Notification(
                 GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
                 GraphQLBundle.message("graphql.notification.error.title"),

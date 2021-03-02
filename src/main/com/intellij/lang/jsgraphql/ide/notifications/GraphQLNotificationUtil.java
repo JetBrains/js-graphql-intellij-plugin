@@ -52,7 +52,7 @@ public class GraphQLNotificationUtil {
                                                            @NotNull Exception error,
                                                            @NotNull NotificationType notificationType,
                                                            @Nullable NotificationAction action) {
-        LOG.warn(error);
+        LOG.info(error);
 
         boolean isSSLError = error instanceof SSLException;
         final String message = isSSLError
