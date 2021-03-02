@@ -2,6 +2,11 @@
 
 # Changelog
 
+## [2.9.1] - 2021-03-02
+
+### Fixed
+- SSL certificate check could be disabled (#435)
+
 ## [2.9.0] - 2021-02-24
 
 ### Added
