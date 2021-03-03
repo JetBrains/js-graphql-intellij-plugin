@@ -25,7 +25,7 @@ public class GraphQLSchemaErrorsListNode extends CachingSimpleNode {
 
     public GraphQLSchemaErrorsListNode(SimpleNode parent, GraphQLValidatedSchema validatedSchema) {
         super(parent);
-        this.myValidatedSchema = validatedSchema;
+        myValidatedSchema = validatedSchema;
         myName = "Schema errors";
         setIcon(AllIcons.Nodes.Folder);
     }

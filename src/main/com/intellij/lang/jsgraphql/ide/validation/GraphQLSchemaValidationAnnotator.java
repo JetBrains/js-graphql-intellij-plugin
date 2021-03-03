@@ -19,6 +19,7 @@ import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.LogicalPosition;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
@@ -55,7 +56,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
         List<? extends GraphQLError> userData;
         try {
             userData = runExternalValidator(psiElement, annotationHolder, containingFile, project);
-        } catch (SchemaProblem | CancellationException | InvalidSchemaException | AssertException e) {
+        } catch (SchemaProblem | CancellationException | ProcessCanceledException | InvalidSchemaException | AssertException e) {
             return;
         }
 

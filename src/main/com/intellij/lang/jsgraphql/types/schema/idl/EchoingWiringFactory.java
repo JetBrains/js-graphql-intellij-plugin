@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.Scalars;
+import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
 
 import java.math.BigDecimal;
@@ -119,6 +120,17 @@ public class EchoingWiringFactory implements WiringFactory {
 
             @Override
             public Object parseLiteral(Object input) {
+                if (input instanceof ScalarValue) {
+                    if (input instanceof IntValue) {
+                        return ((IntValue) input).getValue();
+                    } else if (input instanceof FloatValue) {
+                        return ((FloatValue) input).getValue();
+                    } else if (input instanceof StringValue) {
+                        return ((StringValue) input).getValue();
+                    } else if (input instanceof BooleanValue) {
+                        return ((BooleanValue) input).isValue();
+                    }
+                }
                 return input;
             }
         });

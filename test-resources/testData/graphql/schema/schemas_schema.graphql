@@ -1,4 +1,4 @@
-schema {
+schema @one @two{
   query: MyQuery
   mutation: MyMutation
 }
