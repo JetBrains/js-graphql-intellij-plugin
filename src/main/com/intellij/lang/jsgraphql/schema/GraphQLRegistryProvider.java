@@ -178,7 +178,6 @@ public class GraphQLRegistryProvider implements Disposable {
                                     newIntrospectionFile.getVirtualFile().putUserData(GRAPHQL_INTROSPECTION_SDL_TO_JSON, psiFile);
                                     newIntrospectionFile.getVirtualFile().setWritable(false);
                                     psiFile.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
-                                    file.putUserData(GRAPHQL_INTROSPECTION_JSON_TO_SDL, newIntrospectionFile);
                                     processFile.accept(newIntrospectionFile);
                                 }
                             }
