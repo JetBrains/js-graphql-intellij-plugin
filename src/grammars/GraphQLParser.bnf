@@ -94,7 +94,7 @@ private definition_keywords ::= operationType | 'fragment' | 'schema' | 'type' |
 
 templateDefinition ::= templatePlaceholder {extends=definition}
 
-// common 
+// common
 
 operationType ::= 'query' | 'mutation' | 'subscription'
 
@@ -146,10 +146,10 @@ variable ::= VARIABLE_NAME {pin=1 extends=value implements="com.intellij.psi.Psi
 defaultValue ::= '=' value {pin=1}
 
 stringValue ::= quotedString {extends=value}
- 
+
 type ::= nonNullType | listType | typeName
 
-typeName ::= !(definition_keywords) identifier {extends=type methods=[nameIdentifier="identifier"] mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNamePsiElement"}
+typeName ::= !(definition_keywords) identifier {extends=type methods=[nameIdentifier="identifier"] mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameMixin"}
 listType ::= '[' type ']' {extends=type}
 nonNullType ::= typeName BANG | listType BANG {extends=type}
 
@@ -166,7 +166,7 @@ private quotedStringBody ::= REGULAR_STRING_PART+
 intValue ::= NUMBER {extends=value}
 
 floatValue ::= NUMBER {extends=value}
- 
+
 
 // operations
 

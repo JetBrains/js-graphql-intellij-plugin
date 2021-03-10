@@ -11,8 +11,8 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLTypeNamePsiElement extends GraphQLNamedElementImpl implements GraphQLTypeName {
-    public GraphQLTypeNamePsiElement(@NotNull ASTNode node) {
+public abstract class GraphQLTypeNameMixin extends GraphQLNamedElementImpl implements GraphQLTypeName {
+    public GraphQLTypeNameMixin(@NotNull ASTNode node) {
         super(node);
     }
 }

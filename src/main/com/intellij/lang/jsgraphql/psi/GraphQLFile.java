@@ -12,9 +12,11 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.Collection;
 
 public class GraphQLFile extends PsiFileBase {
   public GraphQLFile(@NotNull FileViewProvider viewProvider) {
@@ -35,5 +37,10 @@ public class GraphQLFile extends PsiFileBase {
   @Override
   public Icon getIcon(int flags) {
     return super.getIcon(flags);
+  }
+
+  @NotNull
+  public Collection<GraphQLDefinition> getDefinitions() {
+      return PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLDefinition.class);
   }
 }
