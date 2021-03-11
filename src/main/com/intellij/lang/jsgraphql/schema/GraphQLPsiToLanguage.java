@@ -3,45 +3,47 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.parser.antlr.GraphqlParser;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
-import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.emptyList;
-import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.*;
 import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseSingleQuotedString;
 import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseTripleQuotedString;
 
+@SuppressWarnings("rawtypes")
 public class GraphQLPsiToLanguage {
 
     public @NotNull Document createDocument(@NotNull GraphQLFile file) {
         Document.Builder document = Document.newDocument();
         addCommonData(document, file);
-        document.definitions(map(file.getDefinitions(), this::createDefinition));
+        document.definitions(mapNotNull(file.getDefinitions(), this::createDefinition));
         return document.build();
     }
 
-    protected @NotNull Definition createDefinition(@NotNull GraphQLDefinition definition) {
+    protected @Nullable Definition createDefinition(@NotNull GraphQLDefinition definition) {
         if (definition instanceof GraphQLOperationDefinition) {
             return createOperationDefinition(((GraphQLOperationDefinition) definition));
         } else if (definition instanceof GraphQLFragmentDefinition) {
             return createFragmentDefinition(((GraphQLFragmentDefinition) definition));
         } else if (definition instanceof GraphQLTypeExtension) {
-            return createTypeSystemExtension(((GraphQLTypeExtension) definition));
-        } else if (definition instanceof GraphQLTypeSystemDefinition) {
+            return createTypeExtension(((GraphQLTypeExtension) definition));
+        } /*else if (definition instanceof GraphQLSchemaExtension) {
+            TODO: [intellij] schema extension
+        } */ else if (definition instanceof GraphQLTypeSystemDefinition) {
             return createTypeSystemDefinition(((GraphQLTypeSystemDefinition) definition));
+        } else if (definition instanceof GraphQLTemplateDefinition) {
+            return null;
         } else {
             return assertShouldNeverHappen();
         }
@@ -52,10 +54,10 @@ public class GraphQLPsiToLanguage {
         addCommonData(operationDefinition, definition);
         if (definition instanceof GraphQLSelectionSetOperationDefinition) {
             operationDefinition.operation(OperationDefinition.Operation.QUERY);
-            final GraphQLSelectionSetOperationDefinition selectionSetOperation = (GraphQLSelectionSetOperationDefinition) definition;
+            GraphQLSelectionSetOperationDefinition selectionSetOperation = (GraphQLSelectionSetOperationDefinition) definition;
             operationDefinition.selectionSet(createSelectionSet(selectionSetOperation.getSelectionSet()));
         } else if (definition instanceof GraphQLTypedOperationDefinition) {
-            final GraphQLTypedOperationDefinition typedOperation = (GraphQLTypedOperationDefinition) definition;
+            GraphQLTypedOperationDefinition typedOperation = (GraphQLTypedOperationDefinition) definition;
             operationDefinition.operation(parseOperation(typedOperation));
             operationDefinition.name(typedOperation.getName());
 
@@ -82,10 +84,10 @@ public class GraphQLPsiToLanguage {
         }
     }
 
-    protected FragmentSpread createFragmentSpread(GraphqlParser.FragmentSpreadContext ctx) {
-        FragmentSpread.Builder fragmentSpread = FragmentSpread.newFragmentSpread().name(ctx.fragmentName().getText());
-        addCommonData(fragmentSpread, ctx);
-        fragmentSpread.directives(createDirectives(ctx.directives()));
+    protected @NotNull FragmentSpread createFragmentSpread(@NotNull GraphQLFragmentSpread fragment) {
+        FragmentSpread.Builder fragmentSpread = FragmentSpread.newFragmentSpread().name(fragment.getName());
+        addCommonData(fragmentSpread, fragment);
+        fragmentSpread.directives(createDirectives(fragment.getDirectives()));
         return fragmentSpread.build();
     }
 
@@ -100,12 +102,15 @@ public class GraphQLPsiToLanguage {
         VariableDefinition.Builder variableDefinition = VariableDefinition.newVariableDefinition();
         addCommonData(variableDefinition, definition);
         variableDefinition.name(definition.getVariable().getName());
-        final GraphQLDefaultValue defaultValue = definition.getDefaultValue();
+        GraphQLDefaultValue defaultValue = definition.getDefaultValue();
         if (defaultValue != null) {
             variableDefinition.defaultValue(createValue(defaultValue.getValue()));
         }
-        variableDefinition.type(createType(definition.getType()));
-        variableDefinition.directives(createDirectives(definition.directives()));
+        GraphQLType type = definition.getType();
+        if (type != null) {
+            variableDefinition.type(createType(type));
+        }
+        variableDefinition.directives(createDirectives(definition.getDirectives()));
         return variableDefinition.build();
 
     }
@@ -113,31 +118,51 @@ public class GraphQLPsiToLanguage {
     protected @NotNull FragmentDefinition createFragmentDefinition(@NotNull GraphQLFragmentDefinition definition) {
         FragmentDefinition.Builder fragmentDefinition = FragmentDefinition.newFragmentDefinition();
         addCommonData(fragmentDefinition, definition);
-        fragmentDefinition.name(definition.fragmentName().getText());
-        fragmentDefinition.typeCondition(TypeName.newTypeName().name(definition.typeCondition().typeName().getText()).build());
-        fragmentDefinition.directives(createDirectives(definition.directives()));
-        fragmentDefinition.selectionSet(createSelectionSet(definition.selectionSet()));
+        fragmentDefinition.name(definition.getName());
+
+        GraphQLTypeCondition typeCondition = definition.getTypeCondition();
+        if (typeCondition != null) {
+            GraphQLTypeName typeName = typeCondition.getTypeName();
+            if (typeName != null) {
+                fragmentDefinition.typeCondition(TypeName.newTypeName().name(typeName.getName()).build());
+            }
+        }
+
+        fragmentDefinition.directives(createDirectives(definition.getDirectives()));
+        fragmentDefinition.selectionSet(createSelectionSet(definition.getSelectionSet()));
         return fragmentDefinition.build();
     }
 
 
-    protected SelectionSet createSelectionSet(@Nullable GraphQLSelectionSet selectionSet) {
+    protected @Nullable SelectionSet createSelectionSet(@Nullable GraphQLSelectionSet selectionSet) {
         if (selectionSet == null) {
             return null;
         }
         SelectionSet.Builder builder = SelectionSet.newSelectionSet();
         addCommonData(builder, selectionSet);
-        List<Selection> selections = map(selectionSet.selection(), selectionContext -> {
-            if (selectionContext.field() != null) {
-                return createField(selectionContext.field());
+        List<Selection> selections = mapNotNull(selectionSet.getSelectionList(), selection -> {
+            GraphQLTemplateSelection templateSelection = selection.getTemplateSelection();
+            // ignore templates
+            if (templateSelection != null) return null;
+
+            GraphQLField field = selection.getField();
+            if (field != null) {
+                return createField(field);
             }
-            if (selectionContext.fragmentSpread() != null) {
-                return createFragmentSpread(selectionContext.fragmentSpread());
+
+            GraphQLFragmentSelection fragmentSelection = selection.getFragmentSelection();
+            if (fragmentSelection != null) {
+                GraphQLFragmentSpread fragmentSpread = fragmentSelection.getFragmentSpread();
+                if (fragmentSpread != null) {
+                    return createFragmentSpread(fragmentSpread);
+                }
+
+                GraphQLInlineFragment inlineFragment = fragmentSelection.getInlineFragment();
+                if (inlineFragment != null) {
+                    return createInlineFragment(inlineFragment);
+                }
             }
-            if (selectionContext.inlineFragment() != null) {
-                return createInlineFragment(selectionContext.inlineFragment());
-            }
-            return (Selection) Assert.assertShouldNeverHappen();
+            return assertShouldNeverHappen();
 
         });
         builder.selections(selections);
@@ -145,95 +170,85 @@ public class GraphQLPsiToLanguage {
     }
 
 
-    protected Field createField(GraphqlParser.FieldContext ctx) {
+    protected @NotNull Field createField(@NotNull GraphQLField field) {
         Field.Builder builder = Field.newField();
-        addCommonData(builder, ctx);
-        builder.name(ctx.name().getText());
-        if (ctx.alias() != null) {
-            builder.alias(ctx.alias().name().getText());
+        addCommonData(builder, field);
+        builder.name(field.getName());
+        GraphQLAlias alias = field.getAlias();
+        if (alias != null) {
+            builder.alias(alias.getIdentifier().getText());
         }
 
-        builder.directives(createDirectives(ctx.directives()));
-        builder.arguments(createArguments(ctx.arguments()));
-        builder.selectionSet(createSelectionSet(ctx.selectionSet()));
+        builder.directives(createDirectives(field.getDirectives()));
+        builder.arguments(createArguments(field.getArguments()));
+        builder.selectionSet(createSelectionSet(field.getSelectionSet()));
         return builder.build();
     }
 
 
-    protected InlineFragment createInlineFragment(GraphqlParser.InlineFragmentContext ctx) {
+    protected @NotNull InlineFragment createInlineFragment(@NotNull GraphQLInlineFragment fragment) {
         InlineFragment.Builder inlineFragment = InlineFragment.newInlineFragment();
-        addCommonData(inlineFragment, ctx);
-        if (ctx.typeCondition() != null) {
-            inlineFragment.typeCondition(createTypeName(ctx.typeCondition().typeName()));
+        addCommonData(inlineFragment, fragment);
+        GraphQLTypeCondition typeCondition = fragment.getTypeCondition();
+        if (typeCondition != null) {
+            GraphQLTypeName typeName = typeCondition.getTypeName();
+            if (typeName != null) {
+                inlineFragment.typeCondition(createTypeName(typeName));
+            }
         }
-        inlineFragment.directives(createDirectives(ctx.directives()));
-        inlineFragment.selectionSet(createSelectionSet(ctx.selectionSet()));
+        inlineFragment.directives(createDirectives(fragment.getDirectives()));
+        inlineFragment.selectionSet(createSelectionSet(fragment.getSelectionSet()));
         return inlineFragment.build();
     }
 
-    protected SDLDefinition createTypeSystemDefinition(GraphQLTypeSystemDefinition definition) {
-        if (definition.schemaDefinition() != null) {
-            return createSchemaDefinition(definition.schemaDefinition());
-        } else if (definition.directiveDefinition() != null) {
-            return createDirectiveDefinition(definition.directiveDefinition());
-        } else if (definition.typeDefinition() != null) {
-            return createTypeDefinition(definition.typeDefinition());
+    protected @NotNull SDLDefinition createTypeSystemDefinition(@NotNull GraphQLTypeSystemDefinition definition) {
+        if (definition instanceof GraphQLSchemaDefinition) {
+            return createSchemaDefinition((GraphQLSchemaDefinition) definition);
+        } else if (definition instanceof GraphQLDirectiveDefinition) {
+            return createDirectiveDefinition((GraphQLDirectiveDefinition) definition);
+        } else if (definition instanceof GraphQLTypeDefinition) {
+            return createTypeDefinition((GraphQLTypeDefinition) definition);
         } else {
             return assertShouldNeverHappen();
         }
     }
 
-    protected SDLDefinition createTypeSystemExtension(GraphQLTypeExtension extension) {
-        if (extension.typeExtension() != null) {
-            return createTypeExtension(extension.typeExtension());
-        } else if (extension.schemaExtension() != null) {
-            return creationSchemaExtension(extension.schemaExtension());
+    protected @NotNull TypeDefinition createTypeExtension(@NotNull GraphQLTypeExtension extension) {
+        if (extension instanceof GraphQLEnumTypeExtensionDefinition) {
+            return createEnumTypeExtensionDefinition(((GraphQLEnumTypeExtensionDefinition) extension));
+        } else if (extension instanceof GraphQLObjectTypeExtensionDefinition) {
+            return createObjectTypeExtensionDefinition(((GraphQLObjectTypeExtensionDefinition) extension));
+        } else if (extension instanceof GraphQLInputObjectTypeExtensionDefinition) {
+            return createInputObjectTypeExtensionDefinition(((GraphQLInputObjectTypeExtensionDefinition) extension));
+        } else if (extension instanceof GraphQLInterfaceTypeExtensionDefinition) {
+            return createInterfaceTypeExtensionDefinition(((GraphQLInterfaceTypeExtensionDefinition) extension));
+        } else if (extension instanceof GraphQLScalarTypeExtensionDefinition) {
+            return createScalarTypeExtensionDefinition(((GraphQLScalarTypeExtensionDefinition) extension));
+        } else if (extension instanceof GraphQLUnionTypeExtensionDefinition) {
+            return createUnionTypeExtensionDefinition(((GraphQLUnionTypeExtensionDefinition) extension));
         } else {
             return assertShouldNeverHappen();
         }
     }
 
-    protected TypeDefinition createTypeExtension(GraphqlParser.TypeExtensionContext ctx) {
-        if (ctx.enumTypeExtensionDefinition() != null) {
-            return createEnumTypeExtensionDefinition(ctx.enumTypeExtensionDefinition());
+    protected @NotNull TypeDefinition createTypeDefinition(@NotNull GraphQLTypeDefinition definition) {
+        if (definition instanceof GraphQLEnumTypeDefinition) {
+            return createEnumTypeDefinition(((GraphQLEnumTypeDefinition) definition));
 
-        } else if (ctx.objectTypeExtensionDefinition() != null) {
-            return createObjectTypeExtensionDefinition(ctx.objectTypeExtensionDefinition());
+        } else if (definition instanceof GraphQLObjectTypeDefinition) {
+            return createObjectTypeDefinition(((GraphQLObjectTypeDefinition) definition));
 
-        } else if (ctx.inputObjectTypeExtensionDefinition() != null) {
-            return createInputObjectTypeExtensionDefinition(ctx.inputObjectTypeExtensionDefinition());
+        } else if (definition instanceof GraphQLInputObjectTypeDefinition) {
+            return createInputObjectTypeDefinition(((GraphQLInputObjectTypeDefinition) definition));
 
-        } else if (ctx.interfaceTypeExtensionDefinition() != null) {
-            return createInterfaceTypeExtensionDefinition(ctx.interfaceTypeExtensionDefinition());
+        } else if (definition instanceof GraphQLInterfaceTypeDefinition) {
+            return createInterfaceTypeDefinition(((GraphQLInterfaceTypeDefinition) definition));
 
-        } else if (ctx.scalarTypeExtensionDefinition() != null) {
-            return createScalarTypeExtensionDefinition(ctx.scalarTypeExtensionDefinition());
+        } else if (definition instanceof GraphQLScalarTypeDefinition) {
+            return createScalarTypeDefinition(((GraphQLScalarTypeDefinition) definition));
 
-        } else if (ctx.unionTypeExtensionDefinition() != null) {
-            return createUnionTypeExtensionDefinition(ctx.unionTypeExtensionDefinition());
-        } else {
-            return assertShouldNeverHappen();
-        }
-    }
-
-    protected TypeDefinition createTypeDefinition(GraphqlParser.TypeDefinitionContext ctx) {
-        if (ctx.enumTypeDefinition() != null) {
-            return createEnumTypeDefinition(ctx.enumTypeDefinition());
-
-        } else if (ctx.objectTypeDefinition() != null) {
-            return createObjectTypeDefinition(ctx.objectTypeDefinition());
-
-        } else if (ctx.inputObjectTypeDefinition() != null) {
-            return createInputObjectTypeDefinition(ctx.inputObjectTypeDefinition());
-
-        } else if (ctx.interfaceTypeDefinition() != null) {
-            return createInterfaceTypeDefinition(ctx.interfaceTypeDefinition());
-
-        } else if (ctx.scalarTypeDefinition() != null) {
-            return createScalarTypeDefinition(ctx.scalarTypeDefinition());
-
-        } else if (ctx.unionTypeDefinition() != null) {
-            return createUnionTypeDefinition(ctx.unionTypeDefinition());
+        } else if (definition instanceof GraphQLUnionTypeDefinition) {
+            return createUnionTypeDefinition(((GraphQLUnionTypeDefinition) definition));
 
         } else {
             return assertShouldNeverHappen();
@@ -246,8 +261,8 @@ public class GraphQLPsiToLanguage {
             return createTypeName(((GraphQLTypeName) type));
         } else if (type instanceof GraphQLNonNullType) {
             return createNonNullType(((GraphQLNonNullType) type));
-        } else if (type.listType() != null) {
-            return createListType(type.listType());
+        } else if (type instanceof GraphQLListType) {
+            return createListType(((GraphQLListType) type));
         } else {
             return assertShouldNeverHappen();
         }
@@ -263,20 +278,21 @@ public class GraphQLPsiToLanguage {
     protected @NotNull NonNullType createNonNullType(@NotNull GraphQLNonNullType nonNullType) {
         NonNullType.Builder builder = NonNullType.newNonNullType();
         addCommonData(builder, nonNullType);
-        if (nonNullType.listType() != null) {
-            builder.type(createListType(nonNullType.listType()));
-        } else if (nonNullType.typeName() != null) {
-            builder.type(createTypeName(nonNullType.typeName()));
+        GraphQLType type = nonNullType.getType();
+        if (type instanceof GraphQLListType) {
+            builder.type(createListType((GraphQLListType) type));
+        } else if (type instanceof GraphQLTypeName) {
+            builder.type(createTypeName((GraphQLTypeName) type));
         } else {
             return assertShouldNeverHappen();
         }
         return builder.build();
     }
 
-    protected ListType createListType(GraphqlParser.ListTypeContext ctx) {
+    protected @NotNull ListType createListType(@NotNull GraphQLListType listType) {
         ListType.Builder builder = ListType.newListType();
-        addCommonData(builder, ctx);
-        builder.type(createType(ctx.type()));
+        addCommonData(builder, listType);
+        builder.type(createType(listType.getType()));
         return builder.build();
     }
 
@@ -308,274 +324,329 @@ public class GraphQLPsiToLanguage {
         return builder.build();
     }
 
-    protected SchemaDefinition createSchemaDefinition(GraphqlParser.SchemaDefinitionContext ctx) {
+    protected @NotNull SchemaDefinition createSchemaDefinition(@NotNull GraphQLSchemaDefinition schemaDefinition) {
         SchemaDefinition.Builder def = SchemaDefinition.newSchemaDefinition();
-        addCommonData(def, ctx);
-        def.directives(createDirectives(ctx.directives()));
-        def.description(newDescription(ctx.description()));
-        def.operationTypeDefinitions(map(ctx.operationTypeDefinition(), this::createOperationTypeDefinition));
-        return def.build();
-    }
-
-    private SDLDefinition creationSchemaExtension(GraphqlParser.SchemaExtensionContext ctx) {
-        SchemaExtensionDefinition.Builder def = SchemaExtensionDefinition.newSchemaExtensionDefinition();
-        addCommonData(def, ctx);
-
-        List<Directive> directives = new ArrayList<>();
-        List<GraphqlParser.DirectivesContext> directivesCtx = ctx.directives();
-        for (GraphqlParser.DirectivesContext directiveCtx : directivesCtx) {
-            directives.addAll(createDirectives(directiveCtx));
+        addCommonData(def, schemaDefinition);
+        def.directives(createDirectives(schemaDefinition.getDirectives()));
+        // TODO: [intellij] schema description
+//        def.description(newDescription(schemaDefinition.description()));
+        GraphQLOperationTypeDefinitions operationTypeDefinitions = schemaDefinition.getOperationTypeDefinitions();
+        if (operationTypeDefinitions != null) {
+            def.operationTypeDefinitions(map(operationTypeDefinitions.getOperationTypeDefinitionList(), this::createOperationTypeDefinition));
         }
-        def.directives(directives);
-
-        List<OperationTypeDefinition> operationTypeDefs = map(ctx.operationTypeDefinition(), this::createOperationTypeDefinition);
-        def.operationTypeDefinitions(operationTypeDefs);
         return def.build();
     }
 
+    // TODO: [intellij] schema extension
+//    private SDLDefinition creationSchemaExtension(GraphqlParser.SchemaExtensionContext ctx) {
+//        SchemaExtensionDefinition.Builder def = SchemaExtensionDefinition.newSchemaExtensionDefinition();
+//        addCommonData(def, ctx);
+//
+//        List<Directive> directives = new ArrayList<>();
+//        List<GraphqlParser.DirectivesContext> directivesCtx = ctx.directives();
+//        for (GraphqlParser.DirectivesContext directiveCtx : directivesCtx) {
+//            directives.addAll(createDirectives(directiveCtx));
+//        }
+//        def.directives(directives);
+//
+//        List<OperationTypeDefinition> operationTypeDefs = map(ctx.operationTypeDefinition(), this::createOperationTypeDefinition);
+//        def.operationTypeDefinitions(operationTypeDefs);
+//        return def.build();
+//    }
 
-    protected OperationTypeDefinition createOperationTypeDefinition(GraphqlParser.OperationTypeDefinitionContext ctx) {
+
+    protected @NotNull OperationTypeDefinition createOperationTypeDefinition(@NotNull GraphQLOperationTypeDefinition definition) {
         OperationTypeDefinition.Builder def = OperationTypeDefinition.newOperationTypeDefinition();
-        def.name(ctx.operationType().getText());
-        def.typeName(createTypeName(ctx.typeName()));
-        addCommonData(def, ctx);
+        GraphQLOperationType operationType = definition.getOperationType();
+        if (operationType != null) {
+            def.name(operationType.getText());
+        }
+        GraphQLTypeName typeName = definition.getTypeName();
+        if (typeName != null) {
+            def.typeName(createTypeName(typeName));
+        }
+        addCommonData(def, definition);
         return def.build();
     }
 
-    protected ScalarTypeDefinition createScalarTypeDefinition(GraphqlParser.ScalarTypeDefinitionContext ctx) {
+    protected @NotNull ScalarTypeDefinition createScalarTypeDefinition(@NotNull GraphQLScalarTypeDefinition typeDefinition) {
         ScalarTypeDefinition.Builder def = ScalarTypeDefinition.newScalarTypeDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
-        def.directives(createDirectives(ctx.directives()));
+        GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
+        if (typeNameDefinition != null) {
+            def.name(typeNameDefinition.getName());
+        }
+        addCommonData(def, typeDefinition);
+        def.description(newDescription(typeDefinition.getDescription()));
+        def.directives(createDirectives(typeDefinition.getDirectives()));
         return def.build();
     }
 
-    protected ScalarTypeExtensionDefinition createScalarTypeExtensionDefinition(GraphqlParser.ScalarTypeExtensionDefinitionContext ctx) {
+    protected @NotNull ScalarTypeExtensionDefinition createScalarTypeExtensionDefinition(@NotNull GraphQLScalarTypeExtensionDefinition extensionDefinition) {
         ScalarTypeExtensionDefinition.Builder def = ScalarTypeExtensionDefinition.newScalarTypeExtensionDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.directives(createDirectives(ctx.directives()));
+        GraphQLTypeName typeName = extensionDefinition.getTypeName();
+        if (typeName != null) {
+            def.name(typeName.getName());
+        }
+        addCommonData(def, extensionDefinition);
+        def.directives(createDirectives(extensionDefinition.getDirectives()));
         return def.build();
     }
 
-    protected ObjectTypeDefinition createObjectTypeDefinition(GraphqlParser.ObjectTypeDefinitionContext ctx) {
+    protected @NotNull ObjectTypeDefinition createObjectTypeDefinition(@NotNull GraphQLObjectTypeDefinition typeDefinition) {
         ObjectTypeDefinition.Builder def = ObjectTypeDefinition.newObjectTypeDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
-        def.directives(createDirectives(ctx.directives()));
-        GraphqlParser.ImplementsInterfacesContext implementsInterfacesContext = ctx.implementsInterfaces();
-        List<Type> implementz = getImplementz(implementsInterfacesContext);
-        def.implementz(implementz);
-        if (ctx.fieldsDefinition() != null) {
-            def.fieldDefinitions(createFieldDefinitions(ctx.fieldsDefinition()));
+        GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
+        if (typeNameDefinition != null) {
+            def.name(typeNameDefinition.getName());
         }
+        addCommonData(def, typeDefinition);
+        def.description(newDescription(typeDefinition.getDescription()));
+        def.directives(createDirectives(typeDefinition.getDirectives()));
+        def.implementz(getImplements(typeDefinition.getImplementsInterfaces()));
+        def.fieldDefinitions(createFieldDefinitions(typeDefinition.getFieldsDefinition()));
         return def.build();
     }
 
-    protected ObjectTypeExtensionDefinition createObjectTypeExtensionDefinition(GraphqlParser.ObjectTypeExtensionDefinitionContext ctx) {
+    protected @NotNull ObjectTypeExtensionDefinition createObjectTypeExtensionDefinition(@NotNull GraphQLObjectTypeExtensionDefinition extensionDefinition) {
         ObjectTypeExtensionDefinition.Builder def = ObjectTypeExtensionDefinition.newObjectTypeExtensionDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.directives(createDirectives(ctx.directives()));
-        GraphqlParser.ImplementsInterfacesContext implementsInterfacesContext = ctx.implementsInterfaces();
-        List<Type> implementz = getImplementz(implementsInterfacesContext);
-        def.implementz(implementz);
-        if (ctx.extensionFieldsDefinition() != null) {
-            def.fieldDefinitions(createFieldDefinitions(ctx.extensionFieldsDefinition()));
+        GraphQLTypeName typeName = extensionDefinition.getTypeName();
+        if (typeName != null) {
+            def.name(typeName.getName());
+        }
+        addCommonData(def, extensionDefinition);
+        def.directives(createDirectives(extensionDefinition.getDirectives()));
+        GraphQLImplementsInterfaces implementsInterfacesContext = extensionDefinition.getImplementsInterfaces();
+        def.implementz(getImplements(implementsInterfacesContext));
+        GraphQLFieldsDefinition fieldsDefinition = extensionDefinition.getFieldsDefinition();
+        if (fieldsDefinition != null) {
+            def.fieldDefinitions(createFieldDefinitions(fieldsDefinition));
         }
         return def.build();
     }
 
-    protected List<FieldDefinition> createFieldDefinitions(GraphqlParser.FieldsDefinitionContext ctx) {
-        if (ctx == null) {
+    protected @NotNull List<FieldDefinition> createFieldDefinitions(@Nullable GraphQLFieldsDefinition fieldsDefinition) {
+        if (fieldsDefinition == null) {
             return emptyList();
         }
-        return map(ctx.fieldDefinition(), this::createFieldDefinition);
+        return map(fieldsDefinition.getFieldDefinitionList(), this::createFieldDefinition);
     }
 
-    protected List<FieldDefinition> createFieldDefinitions(GraphqlParser.ExtensionFieldsDefinitionContext ctx) {
-        if (ctx == null) {
-            return emptyList();
-        }
-        return map(ctx.fieldDefinition(), this::createFieldDefinition);
-    }
-
-
-    protected FieldDefinition createFieldDefinition(GraphqlParser.FieldDefinitionContext ctx) {
+    protected @NotNull FieldDefinition createFieldDefinition(@NotNull GraphQLFieldDefinition fieldDefinition) {
         FieldDefinition.Builder def = FieldDefinition.newFieldDefinition();
-        def.name(ctx.name().getText());
-        def.type(createType(ctx.type()));
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
-        def.directives(createDirectives(ctx.directives()));
-        if (ctx.argumentsDefinition() != null) {
-            def.inputValueDefinitions(createInputValueDefinitions(ctx.argumentsDefinition().inputValueDefinition()));
+        def.name(fieldDefinition.getName());
+        GraphQLType type = fieldDefinition.getType();
+        if (type != null) {
+            def.type(createType(type));
+        }
+        addCommonData(def, fieldDefinition);
+        def.description(newDescription(fieldDefinition.getDescription()));
+        def.directives(createDirectives(fieldDefinition.getDirectives()));
+        GraphQLArgumentsDefinition argumentsDefinition = fieldDefinition.getArgumentsDefinition();
+        if (argumentsDefinition != null) {
+            def.inputValueDefinitions(createInputValueDefinitions(argumentsDefinition.getInputValueDefinitionList()));
         }
         return def.build();
     }
 
-    protected List<InputValueDefinition> createInputValueDefinitions(List<GraphqlParser.InputValueDefinitionContext> defs) {
+    protected @NotNull List<InputValueDefinition> createInputValueDefinitions(@NotNull List<GraphQLInputValueDefinition> defs) {
         return map(defs, this::createInputValueDefinition);
     }
 
-    protected InputValueDefinition createInputValueDefinition(GraphqlParser.InputValueDefinitionContext ctx) {
+    protected @NotNull InputValueDefinition createInputValueDefinition(@NotNull GraphQLInputValueDefinition valueDefinition) {
         InputValueDefinition.Builder def = InputValueDefinition.newInputValueDefinition();
-        def.name(ctx.name().getText());
-        def.type(createType(ctx.type()));
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
-        if (ctx.defaultValue() != null) {
-            def.defaultValue(createValue(ctx.defaultValue().value()));
+        def.name(valueDefinition.getName());
+        GraphQLType type = valueDefinition.getType();
+        if (type != null) {
+            def.type(createType(type));
         }
-        def.directives(createDirectives(ctx.directives()));
+        addCommonData(def, valueDefinition);
+        def.description(newDescription(valueDefinition.getDescription()));
+        GraphQLDefaultValue defaultValue = valueDefinition.getDefaultValue();
+        if (defaultValue != null) {
+            def.defaultValue(createValue(defaultValue.getValue()));
+        }
+        def.directives(createDirectives(valueDefinition.getDirectives()));
         return def.build();
     }
 
-    protected InterfaceTypeDefinition createInterfaceTypeDefinition(GraphqlParser.InterfaceTypeDefinitionContext ctx) {
+    protected @NotNull InterfaceTypeDefinition createInterfaceTypeDefinition(@NotNull GraphQLInterfaceTypeDefinition typeDefinition) {
         InterfaceTypeDefinition.Builder def = InterfaceTypeDefinition.newInterfaceTypeDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
-        def.directives(createDirectives(ctx.directives()));
-        GraphqlParser.ImplementsInterfacesContext implementsInterfacesContext = ctx.implementsInterfaces();
-        List<Type> implementz = getImplementz(implementsInterfacesContext);
-        def.implementz(implementz);
-        def.definitions(createFieldDefinitions(ctx.fieldsDefinition()));
+        GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
+        if (typeNameDefinition != null) {
+            def.name(typeNameDefinition.getName());
+        }
+        addCommonData(def, typeDefinition);
+        def.description(newDescription(typeDefinition.getDescription()));
+        def.directives(createDirectives(typeDefinition.getDirectives()));
+        GraphQLImplementsInterfaces implementsInterfacesContext = typeDefinition.getImplementsInterfaces();
+        def.implementz(getImplements(implementsInterfacesContext));
+        def.definitions(createFieldDefinitions(typeDefinition.getFieldsDefinition()));
         return def.build();
     }
 
-    protected InterfaceTypeExtensionDefinition createInterfaceTypeExtensionDefinition(GraphqlParser.InterfaceTypeExtensionDefinitionContext ctx) {
+    protected @NotNull InterfaceTypeExtensionDefinition createInterfaceTypeExtensionDefinition(@NotNull GraphQLInterfaceTypeExtensionDefinition extensionDefinition) {
         InterfaceTypeExtensionDefinition.Builder def = InterfaceTypeExtensionDefinition.newInterfaceTypeExtensionDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.directives(createDirectives(ctx.directives()));
-        GraphqlParser.ImplementsInterfacesContext implementsInterfacesContext = ctx.implementsInterfaces();
-        List<Type> implementz = getImplementz(implementsInterfacesContext);
-        def.implementz(implementz);
-        def.definitions(createFieldDefinitions(ctx.extensionFieldsDefinition()));
+        GraphQLTypeName typeName = extensionDefinition.getTypeName();
+        if (typeName != null) {
+            def.name(typeName.getName());
+        }
+        addCommonData(def, extensionDefinition);
+        def.directives(createDirectives(extensionDefinition.getDirectives()));
+        GraphQLImplementsInterfaces implementsInterfacesContext = extensionDefinition.getImplementsInterfaces();
+        def.implementz(getImplements(implementsInterfacesContext));
+        def.definitions(createFieldDefinitions(extensionDefinition.getFieldsDefinition()));
         return def.build();
     }
 
-    protected UnionTypeDefinition createUnionTypeDefinition(GraphqlParser.UnionTypeDefinitionContext ctx) {
+    protected @NotNull UnionTypeDefinition createUnionTypeDefinition(@NotNull GraphQLUnionTypeDefinition typeDefinition) {
         UnionTypeDefinition.Builder def = UnionTypeDefinition.newUnionTypeDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
-        def.directives(createDirectives(ctx.directives()));
+        GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
+        if (typeNameDefinition != null) {
+            def.name(typeNameDefinition.getName());
+        }
+        addCommonData(def, typeDefinition);
+        def.description(newDescription(typeDefinition.getDescription()));
+        def.directives(createDirectives(typeDefinition.getDirectives()));
         List<Type> members = new ArrayList<>();
-        GraphqlParser.UnionMembershipContext unionMembership = ctx.unionMembership();
+        GraphQLUnionMembership unionMembership = typeDefinition.getUnionMembership();
         if (unionMembership != null) {
-            GraphqlParser.UnionMembersContext unionMembersContext = unionMembership.unionMembers();
-            while (unionMembersContext != null) {
-                members.add(0, createTypeName(unionMembersContext.typeName()));
-                unionMembersContext = unionMembersContext.unionMembers();
+            GraphQLUnionMembers unionMembers = unionMembership.getUnionMembers();
+            if (unionMembers != null) {
+                for (GraphQLTypeName typeName : unionMembers.getTypeNameList()) {
+                    members.add(createTypeName(typeName));
+                }
             }
         }
         def.memberTypes(members);
         return def.build();
     }
 
-    protected UnionTypeExtensionDefinition createUnionTypeExtensionDefinition(GraphqlParser.UnionTypeExtensionDefinitionContext ctx) {
+    protected @NotNull UnionTypeExtensionDefinition createUnionTypeExtensionDefinition(@NotNull GraphQLUnionTypeExtensionDefinition extensionDefinition) {
         UnionTypeExtensionDefinition.Builder def = UnionTypeExtensionDefinition.newUnionTypeExtensionDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.directives(createDirectives(ctx.directives()));
+        GraphQLTypeName typeName = extensionDefinition.getTypeName();
+        if (typeName != null) {
+            def.name(typeName.getName());
+        }
+        addCommonData(def, extensionDefinition);
+        def.directives(createDirectives(extensionDefinition.getDirectives()));
         List<Type> members = new ArrayList<>();
-        if (ctx.unionMembership() != null) {
-            GraphqlParser.UnionMembersContext unionMembersContext = ctx.unionMembership().unionMembers();
-            while (unionMembersContext != null) {
-                members.add(0, createTypeName(unionMembersContext.typeName()));
-                unionMembersContext = unionMembersContext.unionMembers();
+        GraphQLUnionMembership unionMembership = extensionDefinition.getUnionMembership();
+        if (unionMembership != null) {
+            GraphQLUnionMembers unionMembers = unionMembership.getUnionMembers();
+            if (unionMembers != null) {
+                for (GraphQLTypeName name : unionMembers.getTypeNameList()) {
+                    members.add(createTypeName(name));
+                }
             }
             def.memberTypes(members);
         }
         return def.build();
     }
 
-    protected EnumTypeDefinition createEnumTypeDefinition(GraphqlParser.EnumTypeDefinitionContext ctx) {
+    protected @NotNull EnumTypeDefinition createEnumTypeDefinition(@NotNull GraphQLEnumTypeDefinition enumTypeDefinition) {
         EnumTypeDefinition.Builder def = EnumTypeDefinition.newEnumTypeDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
-        def.directives(createDirectives(ctx.directives()));
-        if (ctx.enumValueDefinitions() != null) {
+        GraphQLTypeNameDefinition typeNameDefinition = enumTypeDefinition.getTypeNameDefinition();
+        if (typeNameDefinition != null) {
+            def.name(typeNameDefinition.getName());
+        }
+        addCommonData(def, enumTypeDefinition);
+        def.description(newDescription(enumTypeDefinition.getDescription()));
+        def.directives(createDirectives(enumTypeDefinition.getDirectives()));
+        GraphQLEnumValueDefinitions enumValueDefinitions = enumTypeDefinition.getEnumValueDefinitions();
+        if (enumValueDefinitions != null) {
             def.enumValueDefinitions(
-                map(ctx.enumValueDefinitions().enumValueDefinition(), this::createEnumValueDefinition));
+                map(enumValueDefinitions.getEnumValueDefinitionList(), this::createEnumValueDefinition));
         }
         return def.build();
     }
 
-    protected EnumTypeExtensionDefinition createEnumTypeExtensionDefinition(GraphqlParser.EnumTypeExtensionDefinitionContext ctx) {
+    protected @NotNull EnumTypeExtensionDefinition createEnumTypeExtensionDefinition(@NotNull GraphQLEnumTypeExtensionDefinition extensionDefinition) {
         EnumTypeExtensionDefinition.Builder def = EnumTypeExtensionDefinition.newEnumTypeExtensionDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.directives(createDirectives(ctx.directives()));
-        if (ctx.extensionEnumValueDefinitions() != null) {
-            def.enumValueDefinitions(
-                map(ctx.extensionEnumValueDefinitions().enumValueDefinition(), this::createEnumValueDefinition));
+        GraphQLTypeName typeName = extensionDefinition.getTypeName();
+        if (typeName != null) {
+            def.name(typeName.getName());
+        }
+        addCommonData(def, extensionDefinition);
+        def.directives(createDirectives(extensionDefinition.getDirectives()));
+        GraphQLEnumValueDefinitions enumValueDefinitions = extensionDefinition.getEnumValueDefinitions();
+        if (enumValueDefinitions != null) {
+            def.enumValueDefinitions(map(enumValueDefinitions.getEnumValueDefinitionList(), this::createEnumValueDefinition));
         }
         return def.build();
     }
 
-    protected EnumValueDefinition createEnumValueDefinition(GraphqlParser.EnumValueDefinitionContext ctx) {
+    protected @NotNull EnumValueDefinition createEnumValueDefinition(@NotNull GraphQLEnumValueDefinition valueDefinition) {
         EnumValueDefinition.Builder def = EnumValueDefinition.newEnumValueDefinition();
-        def.name(ctx.enumValue().getText());
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
-        def.directives(createDirectives(ctx.directives()));
+        def.name(valueDefinition.getEnumValue().getName());
+        addCommonData(def, valueDefinition);
+        def.description(newDescription(valueDefinition.getDescription()));
+        def.directives(createDirectives(valueDefinition.getDirectives()));
         return def.build();
     }
 
-    protected InputObjectTypeDefinition createInputObjectTypeDefinition(GraphqlParser.InputObjectTypeDefinitionContext ctx) {
+    protected @NotNull InputObjectTypeDefinition createInputObjectTypeDefinition(@NotNull GraphQLInputObjectTypeDefinition typeDefinition) {
         InputObjectTypeDefinition.Builder def = InputObjectTypeDefinition.newInputObjectDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
-        def.directives(createDirectives(ctx.directives()));
-        if (ctx.inputObjectValueDefinitions() != null) {
-            def.inputValueDefinitions(createInputValueDefinitions(ctx.inputObjectValueDefinitions().inputValueDefinition()));
+        GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
+        if (typeNameDefinition != null) {
+            def.name(typeNameDefinition.getName());
+        }
+        addCommonData(def, typeDefinition);
+        def.description(newDescription(typeDefinition.getDescription()));
+        def.directives(createDirectives(typeDefinition.getDirectives()));
+        GraphQLInputObjectValueDefinitions valueDefinitions = typeDefinition.getInputObjectValueDefinitions();
+        if (valueDefinitions != null) {
+            def.inputValueDefinitions(createInputValueDefinitions(valueDefinitions.getInputValueDefinitionList()));
         }
         return def.build();
     }
 
-    protected InputObjectTypeExtensionDefinition createInputObjectTypeExtensionDefinition(GraphqlParser.InputObjectTypeExtensionDefinitionContext ctx) {
+    protected @NotNull InputObjectTypeExtensionDefinition createInputObjectTypeExtensionDefinition(@NotNull GraphQLInputObjectTypeExtensionDefinition extensionDefinition) {
         InputObjectTypeExtensionDefinition.Builder def = InputObjectTypeExtensionDefinition.newInputObjectTypeExtensionDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.directives(createDirectives(ctx.directives()));
-        if (ctx.extensionInputObjectValueDefinitions() != null) {
-            def.inputValueDefinitions(createInputValueDefinitions(ctx.extensionInputObjectValueDefinitions().inputValueDefinition()));
+        GraphQLTypeName typeName = extensionDefinition.getTypeName();
+        if (typeName != null) {
+            def.name(typeName.getName());
+        }
+        addCommonData(def, extensionDefinition);
+        def.directives(createDirectives(extensionDefinition.getDirectives()));
+        GraphQLInputObjectValueDefinitions valueDefinitions = extensionDefinition.getInputObjectValueDefinitions();
+        if (valueDefinitions != null) {
+            def.inputValueDefinitions(createInputValueDefinitions(valueDefinitions.getInputValueDefinitionList()));
         }
         return def.build();
     }
 
-    protected DirectiveDefinition createDirectiveDefinition(GraphqlParser.DirectiveDefinitionContext ctx) {
+    protected @NotNull DirectiveDefinition createDirectiveDefinition(@NotNull GraphQLDirectiveDefinition directiveDefinition) {
         DirectiveDefinition.Builder def = DirectiveDefinition.newDirectiveDefinition();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
-        def.description(newDescription(ctx.description()));
+        GraphQLIdentifier nameIdentifier = directiveDefinition.getNameIdentifier();
+        if (nameIdentifier != null) {
+            def.name(nameIdentifier.getText());
+        }
+        addCommonData(def, directiveDefinition);
+        def.description(newDescription(directiveDefinition.getDescription()));
 
-        def.repeatable(ctx.REPEATABLE() != null);
+        // TODO: [intellij] repeatable directives
+//        def.repeatable(directiveDefinition.REPEATABLE() != null);
 
-        GraphqlParser.DirectiveLocationsContext directiveLocationsContext = ctx.directiveLocations();
+        GraphQLDirectiveLocations directiveLocationsContext = directiveDefinition.getDirectiveLocations();
         List<DirectiveLocation> directiveLocations = new ArrayList<>();
-        while (directiveLocationsContext != null) {
-            directiveLocations.add(0, createDirectiveLocation(directiveLocationsContext.directiveLocation()));
-            directiveLocationsContext = directiveLocationsContext.directiveLocations();
+        if (directiveLocationsContext != null) {
+            List<GraphQLDirectiveLocation> directiveLocationList = directiveLocationsContext.getDirectiveLocationList();
+            for (GraphQLDirectiveLocation directiveLocation : directiveLocationList) {
+                directiveLocations.add(createDirectiveLocation(directiveLocation));
+            }
         }
         def.directiveLocations(directiveLocations);
-        if (ctx.argumentsDefinition() != null) {
-            def.inputValueDefinitions(createInputValueDefinitions(ctx.argumentsDefinition().inputValueDefinition()));
+
+        GraphQLArgumentsDefinition argumentsDefinition = directiveDefinition.getArgumentsDefinition();
+        if (argumentsDefinition != null) {
+            def.inputValueDefinitions(createInputValueDefinitions(argumentsDefinition.getInputValueDefinitionList()));
         }
         return def.build();
     }
 
-    protected DirectiveLocation createDirectiveLocation(GraphqlParser.DirectiveLocationContext ctx) {
+    protected @NotNull DirectiveLocation createDirectiveLocation(@NotNull GraphQLDirectiveLocation directiveLocation) {
         DirectiveLocation.Builder def = DirectiveLocation.newDirectiveLocation();
-        def.name(ctx.name().getText());
-        addCommonData(def, ctx);
+        def.name(directiveLocation.getText());
+        addCommonData(def, directiveLocation);
         return def.build();
     }
 
@@ -634,58 +705,8 @@ public class GraphQLPsiToLanguage {
         return assertShouldNeverHappen();
     }
 
-    protected Value createValue(GraphqlParser.ValueContext ctx) {
-        if (ctx.IntValue() != null) {
-            IntValue.Builder intValue = IntValue.newIntValue().value(new BigInteger(ctx.IntValue().getText()));
-            addCommonData(intValue, ctx);
-            return intValue.build();
-        } else if (ctx.FloatValue() != null) {
-            FloatValue.Builder floatValue = FloatValue.newFloatValue().value(new BigDecimal(ctx.FloatValue().getText()));
-            addCommonData(floatValue, ctx);
-            return floatValue.build();
-        } else if (ctx.BooleanValue() != null) {
-            BooleanValue.Builder booleanValue = BooleanValue.newBooleanValue().value(Boolean.parseBoolean(ctx.BooleanValue().getText()));
-            addCommonData(booleanValue, ctx);
-            return booleanValue.build();
-        } else if (ctx.NullValue() != null) {
-            NullValue.Builder nullValue = NullValue.newNullValue();
-            addCommonData(nullValue, ctx);
-            return nullValue.build();
-        } else if (ctx.StringValue() != null) {
-            StringValue.Builder stringValue = StringValue.newStringValue().value(quotedString(ctx.StringValue()));
-            addCommonData(stringValue, ctx);
-            return stringValue.build();
-        } else if (ctx.enumValue() != null) {
-            EnumValue.Builder enumValue = EnumValue.newEnumValue().name(ctx.enumValue().getText());
-            addCommonData(enumValue, ctx);
-            return enumValue.build();
-        } else if (ctx.arrayValue() != null) {
-            ArrayValue.Builder arrayValue = ArrayValue.newArrayValue();
-            addCommonData(arrayValue, ctx);
-            List<Value> values = new ArrayList<>();
-            for (GraphqlParser.ValueContext valueContext : ctx.arrayValue().value()) {
-                values.add(createValue(valueContext));
-            }
-            return arrayValue.values(values).build();
-        } else if (ctx.objectValue() != null) {
-            ObjectValue.Builder objectValue = ObjectValue.newObjectValue();
-            addCommonData(objectValue, ctx);
-            List<ObjectField> objectFields = new ArrayList<>();
-            for (GraphqlParser.ObjectFieldContext objectFieldContext :
-                ctx.objectValue().objectField()) {
-                ObjectField objectField = ObjectField.newObjectField()
-                    .name(objectFieldContext.name().getText())
-                    .value(createValue(objectFieldContext.value()))
-                    .build();
-                objectFields.add(objectField);
-            }
-            return objectValue.objectFields(objectFields).build();
-        }
-        return assertShouldNeverHappen();
-    }
-
     static @NotNull String quotedString(@NotNull GraphQLQuotedString quotedString) {
-        final String text = quotedString.getText();
+        String text = quotedString.getText();
         boolean multiLine = text.startsWith("\"\"\"");
         if (multiLine) {
             return parseTripleQuotedString(text);
@@ -698,27 +719,24 @@ public class GraphQLPsiToLanguage {
         nodeBuilder.sourceLocation(getSourceLocation(element));
     }
 
-    protected Description newDescription(GraphqlParser.DescriptionContext descriptionCtx) {
-        if (descriptionCtx == null) {
+    protected @Nullable Description newDescription(@Nullable GraphQLQuotedString description) {
+        if (description == null) {
             return null;
         }
-        TerminalNode terminalNode = descriptionCtx.StringValue();
-        if (terminalNode == null) {
-            return null;
-        }
-        String content = terminalNode.getText();
+
+        String content = description.getText();
         boolean multiLine = content.startsWith("\"\"\"");
         if (multiLine) {
             content = parseTripleQuotedString(content);
         } else {
             content = parseSingleQuotedString(content);
         }
-        SourceLocation sourceLocation = getSourceLocation(descriptionCtx);
+        SourceLocation sourceLocation = getSourceLocation(description);
         return new Description(content, sourceLocation, multiLine);
     }
 
-    protected SourceLocation getSourceLocation(PsiElement element) {
-        final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(element.getProject());
+    protected @NotNull SourceLocation getSourceLocation(@NotNull PsiElement element) {
+        InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(element.getProject());
         PsiFile file = injectedLanguageManager.getTopLevelFile(element);
         if (file == null) return new SourceLocation(1, 1, "Unknown");
         com.intellij.openapi.editor.Document document = PsiDocumentManager.getInstance(element.getProject()).getDocument(file);
@@ -729,13 +747,12 @@ public class GraphQLPsiToLanguage {
         return new SourceLocation(lineNumber + 1, column + 1);
     }
 
-    private List<Type> getImplementz(GraphqlParser.ImplementsInterfacesContext implementsInterfacesContext) {
-        List<Type> implementz = new ArrayList<>();
-        while (implementsInterfacesContext != null) {
-            List<TypeName> typeNames = map(implementsInterfacesContext.typeName(), this::createTypeName);
+    private @NotNull List<Type> getImplements(@Nullable GraphQLImplementsInterfaces implementsInterfaces) {
+        if (implementsInterfaces == null) return Collections.emptyList();
 
-            implementz.addAll(0, typeNames);
-            implementsInterfacesContext = implementsInterfacesContext.implementsInterfaces();
+        List<Type> implementz = new ArrayList<>();
+        for (GraphQLTypeName typeName : implementsInterfaces.getTypeNameList()) {
+            implementz.add(this.createTypeName(typeName));
         }
         return implementz;
     }

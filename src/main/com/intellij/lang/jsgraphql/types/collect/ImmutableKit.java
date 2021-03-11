@@ -36,7 +36,6 @@ public final class ImmutableKit {
      * @param startingMap the starting input map
      * @param <K>         for key
      * @param <V>         for victory
-     *
      * @return and Immutable map of ImmutableList values
      */
 
@@ -71,16 +70,31 @@ public final class ImmutableKit {
      * @param mapper   the mapper function
      * @param <T>      for two
      * @param <R>      for result
-     *
      * @return a map immutable list of results
      */
     public static <T, R> ImmutableList<R> map(Iterable<? extends T> iterable, Function<? super T, ? extends R> mapper) {
+        return mapImpl(iterable, mapper, false);
+    }
+
+    public static <T, R> ImmutableList<R> mapNotNull(Iterable<? extends T> iterable, Function<? super T, ? extends R> mapper) {
+        return mapImpl(iterable, mapper, true);
+    }
+
+    private static <T, R> ImmutableList<R> mapImpl(Iterable<? extends T> iterable,
+                                                   Function<? super T, ? extends R> mapper,
+                                                   boolean ignoreNulls) {
         assertNotNull(iterable);
         assertNotNull(mapper);
         @SuppressWarnings("RedundantTypeArguments")
         ImmutableList.Builder<R> builder = ImmutableList.<R>builder();
         for (T t : iterable) {
             R r = mapper.apply(t);
+            if (r == null) {
+                if (ignoreNulls) {
+                    continue;
+                }
+                throw new NullPointerException();
+            }
             builder.add(r);
         }
         return builder.build();
@@ -93,7 +107,6 @@ public final class ImmutableKit {
      * @param newValue    the new value to add
      * @param extraValues more values to add
      * @param <T>         for two
-     *
      * @return an Immutable list with the extra effort.
      */
     public static <T> ImmutableList<T> addToList(Collection<? extends T> existing, T newValue, T... extraValues) {

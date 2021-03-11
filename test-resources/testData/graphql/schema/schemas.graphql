@@ -20,7 +20,7 @@ directive @two on SCHEMA
 directive @three on SCHEMA
 
 
-# TODO: schema extensions are not supported by our parser now
+# TODO: [intellij] schema extensions are not supported by our parser now
 # extend schema @two @three {
 #     subscription: MySubscription
 # }

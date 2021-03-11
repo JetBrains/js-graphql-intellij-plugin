@@ -195,7 +195,7 @@ selection ::=
 
 private selection_recover ::= !('}' | root_tokens | selection)
 
-field ::= alias? identifier arguments? directives? selectionSet? {methods=[directives="directive" nameIdentifier="identifier"] implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware" mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldPsiElement"}
+field ::= alias? identifier arguments? directives? selectionSet? {methods=[directives="directive" nameIdentifier="identifier"] implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware" mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldMixin"}
 
 alias ::= identifier ':'
 
@@ -207,7 +207,7 @@ fragmentSpread ::= fragmentName directives? {pin=1 implements="com.intellij.lang
 
 inlineFragment ::= typeCondition? directives? selectionSet {pin=1 methods=[directives="directive"] implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware" mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLInlineFragmentPsiElement"}
 
-fragmentDefinition ::= 'fragment' fragmentName typeCondition directives? selectionSet {pin=1 extends=definition implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware" methods=[directives="directive" nameIdentifier="identifier"] mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLFragmentDefinitionPsiElement"}
+fragmentDefinition ::= 'fragment' fragmentName typeCondition directives? selectionSet {pin=1 extends=definition implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware" methods=[directives="directive" nameIdentifier="identifier"] mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLFragmentDefinitionMixin"}
 
 private fragmentName ::=  !'on' identifier
 

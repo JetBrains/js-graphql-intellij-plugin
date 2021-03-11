@@ -20,8 +20,8 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLFieldPsiElement extends GraphQLNamedElementImpl implements GraphQLField, GraphQLTypeScopeProvider {
-    public GraphQLFieldPsiElement(@NotNull ASTNode node) {
+public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implements GraphQLField, GraphQLTypeScopeProvider {
+    public GraphQLFieldMixin(@NotNull ASTNode node) {
         super(node);
     }
 
@@ -29,7 +29,7 @@ public abstract class GraphQLFieldPsiElement extends GraphQLNamedElementImpl imp
     public GraphQLType getTypeScope() {
         final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
         final String fieldName = this.getName();
-        if (schema != null && fieldName != null) {
+        if (fieldName != null) {
             // the type scope for a field is the output type of the field, given the name of the field and its parent
             final GraphQLTypeScopeProvider parentTypeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLTypeScopeProvider.class);
             if (parentTypeScopeProvider != null) {

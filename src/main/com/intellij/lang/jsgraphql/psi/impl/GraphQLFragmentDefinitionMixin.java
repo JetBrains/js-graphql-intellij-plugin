@@ -16,20 +16,18 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLFragmentDefinitionPsiElement extends GraphQLNamedElementImpl implements GraphQLFragmentDefinition, GraphQLTypeScopeProvider {
-    public GraphQLFragmentDefinitionPsiElement(@NotNull ASTNode node) {
+public abstract class GraphQLFragmentDefinitionMixin extends GraphQLNamedElementImpl implements GraphQLFragmentDefinition, GraphQLTypeScopeProvider {
+    public GraphQLFragmentDefinitionMixin(@NotNull ASTNode node) {
         super(node);
     }
 
     @Override
     public GraphQLType getTypeScope() {
         final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
-        if (schema != null) {
-            if (getTypeCondition() != null) {
-                final GraphQLTypeName typeName = getTypeCondition().getTypeName();
-                if (typeName != null) {
-                    return schema.getType(typeName.getText());
-                }
+        if (getTypeCondition() != null) {
+            final GraphQLTypeName typeName = getTypeCondition().getTypeName();
+            if (typeName != null) {
+                return schema.getType(typeName.getText());
             }
         }
         return null;
