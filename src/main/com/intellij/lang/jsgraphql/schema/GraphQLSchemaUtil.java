@@ -87,4 +87,14 @@ public class GraphQLSchemaUtil {
         }
         return description;
     }
+
+    public static boolean isExtension(@Nullable SDLDefinition<?> definition) {
+        return definition instanceof SchemaExtensionDefinition ||
+            definition instanceof InputObjectTypeExtensionDefinition ||
+            definition instanceof ObjectTypeExtensionDefinition ||
+            definition instanceof InterfaceTypeExtensionDefinition ||
+            definition instanceof ScalarTypeExtensionDefinition ||
+            definition instanceof UnionTypeExtensionDefinition ||
+            definition instanceof EnumTypeExtensionDefinition;
+    }
 }

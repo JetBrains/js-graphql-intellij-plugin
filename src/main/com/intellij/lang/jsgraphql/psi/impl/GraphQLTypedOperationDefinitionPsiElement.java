@@ -24,7 +24,7 @@ public abstract class GraphQLTypedOperationDefinitionPsiElement extends GraphQLN
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
         if (schema != null) {
             final IElementType operationType = getOperationType().getNode().getFirstChildNode().getElementType();
             if (operationType == GraphQLElementTypes.QUERY_KEYWORD) {

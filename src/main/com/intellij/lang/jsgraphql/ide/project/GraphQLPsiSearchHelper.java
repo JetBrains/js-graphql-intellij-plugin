@@ -410,13 +410,13 @@ public class GraphQLPsiSearchHelper implements Disposable {
      *
      * @param scopedElement the starting point of the enumeration settings the scopedElement of the processing
      * @param schemaScope   the search scope to use for limiting the schema definitions
-     * @param consumer      a consumer that will be invoked for each injected GraphQL PsiFile
+     * @param processor      a processor that will be invoked for each injected GraphQL PsiFile
      */
     public void processInjectedGraphQLPsiFiles(@NotNull PsiElement scopedElement,
                                                @NotNull GlobalSearchScope schemaScope,
-                                               @NotNull Consumer<PsiFile> consumer) {
+                                               @NotNull Processor<PsiFile> processor) {
         if (graphQLInjectionSearchHelper != null) {
-            graphQLInjectionSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, consumer);
+            graphQLInjectionSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, processor);
         }
     }
 
@@ -424,12 +424,12 @@ public class GraphQLPsiSearchHelper implements Disposable {
      * Process built-in GraphQL PsiFiles that are not the spec schema
      *
      * @param schemaScope the search scope to use for limiting the schema definitions
-     * @param consumer    a consumer that will be invoked for each injected GraphQL PsiFile
+     * @param processor    a processor that will be invoked for each injected GraphQL PsiFile
      */
-    public void processAdditionalBuiltInPsiFiles(@NotNull GlobalSearchScope schemaScope, @NotNull Consumer<PsiFile> consumer) {
+    public void processAdditionalBuiltInPsiFiles(@NotNull GlobalSearchScope schemaScope, @NotNull Processor<PsiFile> processor) {
         final PsiFile relayModernDirectivesSchema = getRelayModernDirectivesSchema();
         if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
-            consumer.accept(relayModernDirectivesSchema);
+            processor.process(relayModernDirectivesSchema);
         }
     }
 

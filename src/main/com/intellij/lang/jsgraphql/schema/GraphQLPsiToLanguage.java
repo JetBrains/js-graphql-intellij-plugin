@@ -23,6 +23,7 @@ import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseT
 
 @SuppressWarnings("rawtypes")
 public class GraphQLPsiToLanguage {
+    public static final GraphQLPsiToLanguage INSTANCE = new GraphQLPsiToLanguage();
 
     public @NotNull Document createDocument(@NotNull GraphQLFile file) {
         Document.Builder document = Document.newDocument();

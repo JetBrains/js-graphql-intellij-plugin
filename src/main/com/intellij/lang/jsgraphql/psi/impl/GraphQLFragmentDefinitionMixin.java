@@ -23,7 +23,7 @@ public abstract class GraphQLFragmentDefinitionMixin extends GraphQLNamedElement
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
         if (getTypeCondition() != null) {
             final GraphQLTypeName typeName = getTypeCondition().getTypeName();
             if (typeName != null) {

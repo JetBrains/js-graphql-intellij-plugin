@@ -28,7 +28,7 @@ public abstract class GraphQLArgumentPsiElement extends GraphQLNamedElementImpl 
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
         final String argumentName = this.getName();
         if (schema != null && argumentName != null) {
             // the type scope for an argument is the argument definition type in a field or directive definition

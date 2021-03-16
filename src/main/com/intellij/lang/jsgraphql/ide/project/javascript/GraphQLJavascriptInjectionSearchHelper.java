@@ -16,11 +16,11 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
-import java.util.function.Consumer;
 
 public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionSearchHelper {
 
@@ -31,12 +31,11 @@ public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionS
 
     /**
      * Uses the {@link GraphQLInjectionIndex} to process injected GraphQL PsiFiles
-     *
-     * @param scopedElement the starting point of the enumeration settings the scopedElement of the processing
+     *  @param scopedElement the starting point of the enumeration settings the scopedElement of the processing
      * @param schemaScope   the search scope to use for limiting the schema definitions
-     * @param consumer      a consumer that will be invoked for each injected GraphQL PsiFile
+     * @param processor      a processor that will be invoked for each injected GraphQL PsiFile
      */
-    public void processInjectedGraphQLPsiFiles(PsiElement scopedElement, GlobalSearchScope schemaScope, Consumer<PsiFile> consumer) {
+    public void processInjectedGraphQLPsiFiles(PsiElement scopedElement, GlobalSearchScope schemaScope, Processor<PsiFile> processor) {
         try {
             final PsiManager psiManager = PsiManager.getInstance(scopedElement.getProject());
             final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(scopedElement.getProject());
@@ -48,7 +47,7 @@ public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionS
                         public void visitElement(PsiElement element) {
                             if (GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
                                 injectedLanguageManager.enumerate(element, (injectedPsi, places) -> {
-                                    consumer.accept(injectedPsi);
+                                    processor.process(injectedPsi);
                                 });
                             } else {
                                 // visit deeper until injection found

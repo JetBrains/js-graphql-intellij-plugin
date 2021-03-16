@@ -10,14 +10,14 @@ import java.util.*;
 
 import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 
-public class GraphQLScalarTypeDefinitionBuilder
-    extends GraphQLExtendableDefinitionBuilder<ScalarTypeDefinition, ScalarTypeExtensionDefinition> {
+public class GraphQLScalarTypeCompositeDefinition
+    extends GraphQLExtendableCompositeDefinition<ScalarTypeDefinition, ScalarTypeExtensionDefinition> {
 
     private final Set<String> myDirectives = new HashSet<>();
 
     @NotNull
     @Override
-    protected ScalarTypeDefinition buildDefinitionImpl() {
+    protected ScalarTypeDefinition mergeDefinitions() {
         Map<String, Directive> directives = new LinkedHashMap<>();
 
         for (ScalarTypeDefinition definition : myDefinitions) {
@@ -31,7 +31,7 @@ public class GraphQLScalarTypeDefinitionBuilder
 
     @NotNull
     @Override
-    protected Collection<ScalarTypeExtensionDefinition> buildExtensionsImpl() {
+    protected Collection<ScalarTypeExtensionDefinition> buildExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
 

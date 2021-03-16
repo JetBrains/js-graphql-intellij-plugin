@@ -48,7 +48,7 @@ public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl impl
                 return typeScopeProvider.getTypeScope();
             }
         }
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
         if (schema != null) {
             // the type scope for an object value is a parent object value or the argument it's a value for
             final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLObjectValueImpl.class);

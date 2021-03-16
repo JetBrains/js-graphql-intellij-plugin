@@ -11,15 +11,15 @@ import java.util.*;
 
 import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 
-public class GraphQLUnionTypeDefinitionBuilder
-    extends GraphQLExtendableDefinitionBuilder<UnionTypeDefinition, UnionTypeExtensionDefinition> {
+public class GraphQLUnionTypeCompositeDefinition
+    extends GraphQLExtendableCompositeDefinition<UnionTypeDefinition, UnionTypeExtensionDefinition> {
 
     private final Set<String> myDirectives = new HashSet<>();
     private final Set<String> myMemberTypes = new HashSet<>();
 
     @NotNull
     @Override
-    protected UnionTypeDefinition buildDefinitionImpl() {
+    protected UnionTypeDefinition mergeDefinitions() {
         Map<String, Directive> directives = new LinkedHashMap<>();
 
         @SuppressWarnings("rawtypes")
@@ -44,7 +44,7 @@ public class GraphQLUnionTypeDefinitionBuilder
 
     @NotNull
     @Override
-    protected Collection<UnionTypeExtensionDefinition> buildExtensionsImpl() {
+    protected Collection<UnionTypeExtensionDefinition> buildExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             @SuppressWarnings({"unchecked", "rawtypes"})

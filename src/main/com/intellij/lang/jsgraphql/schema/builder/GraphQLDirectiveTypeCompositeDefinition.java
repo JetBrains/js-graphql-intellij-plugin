@@ -4,11 +4,11 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.lang.jsgraphql.types.language.DirectiveDefinition;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLDirectiveTypeDefinitionBuilder extends GraphQLDefinitionBuilder<DirectiveDefinition> {
+public class GraphQLDirectiveTypeCompositeDefinition extends GraphQLCompositeDefinition<DirectiveDefinition> {
 
     @NotNull
     @Override
-    protected DirectiveDefinition buildDefinitionImpl() {
+    protected DirectiveDefinition mergeDefinitions() {
         // ignore multiple definitions
         return ContainerUtil.getFirstItem(myDefinitions);
     }

@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveRedefinitionError;
@@ -9,6 +10,7 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Function;
@@ -25,7 +27,6 @@ import static java.util.Optional.ofNullable;
 @SuppressWarnings({"rawtypes", "UnusedReturnValue"})
 @PublicApi
 public class TypeDefinitionRegistry {
-
     private final Map<String, List<ObjectTypeExtensionDefinition>> objectTypeExtensions = new LinkedHashMap<>();
     private final Map<String, List<InterfaceTypeExtensionDefinition>> interfaceTypeExtensions = new LinkedHashMap<>();
     private final Map<String, List<UnionTypeExtensionDefinition>> unionTypeExtensions = new LinkedHashMap<>();
@@ -39,6 +40,16 @@ public class TypeDefinitionRegistry {
     private SchemaDefinition schema;
     private final List<SchemaExtensionDefinition> schemaExtensionDefinitions = new ArrayList<>();
 
+    private final List<GraphQLException> myErrors = new ArrayList<>();
+
+    public @NotNull List<GraphQLException> getErrors() {
+        return Collections.unmodifiableList(myErrors);
+    }
+
+    public void addError(@NotNull GraphQLException error) {
+        myErrors.add(error);
+    }
+
     /**
      * This will merge these type registries together and return this one
      *
@@ -46,29 +57,21 @@ public class TypeDefinitionRegistry {
      * @return this registry
      * @throws SchemaProblem if there are problems merging the types such as redefinitions
      */
-    public TypeDefinitionRegistry merge(TypeDefinitionRegistry typeRegistry) throws SchemaProblem {
-        List<GraphQLError> errors = new ArrayList<>();
-
+    public TypeDefinitionRegistry merge(TypeDefinitionRegistry typeRegistry) {
         Map<String, TypeDefinition> tempTypes = new LinkedHashMap<>();
         typeRegistry.types.values().forEach(newEntry -> {
-            Optional<GraphQLError> defined = define(this.types, tempTypes, newEntry);
-            defined.ifPresent(errors::add);
+            define(this.types, tempTypes, newEntry);
         });
 
         Map<String, DirectiveDefinition> tempDirectiveDefs = new LinkedHashMap<>();
         typeRegistry.directiveDefinitions.values().forEach(newEntry -> {
-            Optional<GraphQLError> defined = define(this.directiveDefinitions, tempDirectiveDefs, newEntry);
-            defined.ifPresent(errors::add);
+            define(this.directiveDefinitions, tempDirectiveDefs, newEntry);
         });
 
         Map<String, ScalarTypeDefinition> tempScalarTypes = new LinkedHashMap<>();
-        typeRegistry.scalarTypes.values().forEach(newEntry -> define(this.scalarTypes, tempScalarTypes, newEntry).ifPresent(errors::add));
+        typeRegistry.scalarTypes.values().forEach(newEntry -> define(this.scalarTypes, tempScalarTypes, newEntry));
 
-        checkMergeSchemaDefs(typeRegistry, errors);
-
-        if (!errors.isEmpty()) {
-            throw new SchemaProblem(errors);
-        }
+        checkMergeSchemaDefs(typeRegistry);
 
         if (this.schema == null) {
             // ensure schema is not overwritten by merge
@@ -116,8 +119,8 @@ public class TypeDefinitionRegistry {
         return this;
     }
 
-    private Map<String, OperationTypeDefinition> checkMergeSchemaDefs(TypeDefinitionRegistry toBeMergedTypeRegistry,
-                                                                      List<GraphQLError> errors) {
+    private Map<String, OperationTypeDefinition> checkMergeSchemaDefs(TypeDefinitionRegistry toBeMergedTypeRegistry) {
+        List<GraphQLError> errors = new ArrayList<>();
         if (toBeMergedTypeRegistry.schema != null && this.schema != null) {
             errors.add(new SchemaRedefinitionError(this.schema, toBeMergedTypeRegistry.schema));
         }
@@ -126,17 +129,20 @@ public class TypeDefinitionRegistry {
         Map<String, OperationTypeDefinition> mergedOperationDefs = gatherOperationDefs(errors, toBeMergedTypeRegistry.schema, toBeMergedTypeRegistry.schemaExtensionDefinitions);
 
         defineOperationDefs(errors, mergedOperationDefs.values(), tempOperationDefs);
+
+        if (!errors.isEmpty()) {
+            myErrors.add(new SchemaProblem(errors));
+        }
+
         return tempOperationDefs;
     }
 
-
-    private Optional<GraphQLError> checkAddOperationDefs() {
+    private void checkAddOperationDefs() {
         List<GraphQLError> errors = new ArrayList<>();
         gatherOperationDefs(errors, this.schema, this.schemaExtensionDefinitions);
         if (!errors.isEmpty()) {
-            return Optional.of(errors.get(0));
+            myErrors.add(new SchemaProblem(errors));
         }
-        return Optional.empty();
     }
 
 
@@ -146,14 +152,10 @@ public class TypeDefinitionRegistry {
      * @param definitions the definitions to add
      * @return an optional error for the first problem, typically type redefinition
      */
-    public Optional<GraphQLError> addAll(Collection<SDLDefinition> definitions) {
+    public void addAll(Collection<SDLDefinition> definitions) {
         for (SDLDefinition definition : definitions) {
-            Optional<GraphQLError> error = add(definition);
-            if (error.isPresent()) {
-                return error;
-            }
+            add(definition);
         }
-        return Optional.empty();
     }
 
     /**
@@ -162,86 +164,76 @@ public class TypeDefinitionRegistry {
      * @param definition the definition to add
      * @return an optional error
      */
-    public Optional<GraphQLError> add(SDLDefinition definition) {
+    public void add(SDLDefinition definition) {
         // extensions
         if (definition instanceof ObjectTypeExtensionDefinition) {
             ObjectTypeExtensionDefinition newEntry = (ObjectTypeExtensionDefinition) definition;
-            return defineExt(objectTypeExtensions, newEntry, ObjectTypeExtensionDefinition::getName);
+            defineExt(objectTypeExtensions, newEntry, ObjectTypeExtensionDefinition::getName);
         } else if (definition instanceof InterfaceTypeExtensionDefinition) {
             InterfaceTypeExtensionDefinition newEntry = (InterfaceTypeExtensionDefinition) definition;
-            return defineExt(interfaceTypeExtensions, newEntry, InterfaceTypeExtensionDefinition::getName);
+            defineExt(interfaceTypeExtensions, newEntry, InterfaceTypeExtensionDefinition::getName);
         } else if (definition instanceof UnionTypeExtensionDefinition) {
             UnionTypeExtensionDefinition newEntry = (UnionTypeExtensionDefinition) definition;
-            return defineExt(unionTypeExtensions, newEntry, UnionTypeExtensionDefinition::getName);
+            defineExt(unionTypeExtensions, newEntry, UnionTypeExtensionDefinition::getName);
         } else if (definition instanceof EnumTypeExtensionDefinition) {
             EnumTypeExtensionDefinition newEntry = (EnumTypeExtensionDefinition) definition;
-            return defineExt(enumTypeExtensions, newEntry, EnumTypeExtensionDefinition::getName);
+            defineExt(enumTypeExtensions, newEntry, EnumTypeExtensionDefinition::getName);
         } else if (definition instanceof ScalarTypeExtensionDefinition) {
             ScalarTypeExtensionDefinition newEntry = (ScalarTypeExtensionDefinition) definition;
-            return defineExt(scalarTypeExtensions, newEntry, ScalarTypeExtensionDefinition::getName);
+            defineExt(scalarTypeExtensions, newEntry, ScalarTypeExtensionDefinition::getName);
         } else if (definition instanceof InputObjectTypeExtensionDefinition) {
             InputObjectTypeExtensionDefinition newEntry = (InputObjectTypeExtensionDefinition) definition;
-            return defineExt(inputObjectTypeExtensions, newEntry, InputObjectTypeExtensionDefinition::getName);
+            defineExt(inputObjectTypeExtensions, newEntry, InputObjectTypeExtensionDefinition::getName);
         } else if (definition instanceof SchemaExtensionDefinition) {
             schemaExtensionDefinitions.add((SchemaExtensionDefinition) definition);
-            Optional<GraphQLError> error = checkAddOperationDefs();
-            if (error.isPresent()) {
-                return error;
-            }
+            checkAddOperationDefs();
         } else if (definition instanceof ScalarTypeDefinition) {
             ScalarTypeDefinition newEntry = (ScalarTypeDefinition) definition;
-            return define(scalarTypes, scalarTypes, newEntry);
+            define(scalarTypes, scalarTypes, newEntry);
         } else if (definition instanceof TypeDefinition) {
             TypeDefinition newEntry = (TypeDefinition) definition;
-            return define(types, types, newEntry);
+            define(types, types, newEntry);
         } else if (definition instanceof DirectiveDefinition) {
             DirectiveDefinition newEntry = (DirectiveDefinition) definition;
-            return define(directiveDefinitions, directiveDefinitions, newEntry);
+            define(directiveDefinitions, directiveDefinitions, newEntry);
         } else if (definition instanceof SchemaDefinition) {
             SchemaDefinition newSchema = (SchemaDefinition) definition;
             if (schema != null) {
-                return Optional.of(new SchemaRedefinitionError(this.schema, newSchema));
+                myErrors.add(new SchemaRedefinitionError(this.schema, newSchema));
             } else {
                 schema = newSchema;
             }
-            Optional<GraphQLError> error = checkAddOperationDefs();
-            if (error.isPresent()) {
-                return error;
-            }
+            checkAddOperationDefs();
         } else {
-            return Assert.assertShouldNeverHappen();
+            Assert.assertShouldNeverHappen();
         }
-        return Optional.empty();
     }
 
-    private <T extends TypeDefinition> Optional<GraphQLError> define(Map<String, T> source, Map<String, T> target, T newEntry) {
+    private <T extends TypeDefinition> void define(Map<String, T> source, Map<String, T> target, T newEntry) {
         String name = newEntry.getName();
 
         T olderEntry = source.get(name);
         if (olderEntry != null) {
-            return Optional.of(handleReDefinition(olderEntry, newEntry));
+            handleReDefinition(olderEntry, newEntry);
         } else {
             target.put(name, newEntry);
         }
-        return Optional.empty();
     }
 
-    private <T extends DirectiveDefinition> Optional<GraphQLError> define(Map<String, T> source, Map<String, T> target, T newEntry) {
+    private <T extends DirectiveDefinition> void define(Map<String, T> source, Map<String, T> target, T newEntry) {
         String name = newEntry.getName();
 
         T olderEntry = source.get(name);
         if (olderEntry != null) {
-            return Optional.of(handleReDefinition(olderEntry, newEntry));
+            handleReDefinition(olderEntry, newEntry);
         } else {
             target.put(name, newEntry);
         }
-        return Optional.empty();
     }
 
-    private <T> Optional<GraphQLError> defineExt(Map<String, List<T>> typeExtensions, T newEntry, Function<T, String> namerFunc) {
+    private <T> void defineExt(Map<String, List<T>> typeExtensions, T newEntry, Function<T, String> namerFunc) {
         List<T> currentList = typeExtensions.computeIfAbsent(namerFunc.apply(newEntry), k -> new ArrayList<>());
         currentList.add(newEntry);
-        return Optional.empty();
     }
 
     public Map<String, TypeDefinition> types() {
@@ -286,12 +278,12 @@ public class TypeDefinitionRegistry {
         return new ArrayList<>(schemaExtensionDefinitions);
     }
 
-    private GraphQLError handleReDefinition(TypeDefinition oldEntry, TypeDefinition newEntry) {
-        return new TypeRedefinitionError(newEntry, oldEntry);
+    private void handleReDefinition(TypeDefinition oldEntry, TypeDefinition newEntry) {
+        myErrors.add(new TypeRedefinitionError(newEntry, oldEntry));
     }
 
-    private GraphQLError handleReDefinition(DirectiveDefinition oldEntry, DirectiveDefinition newEntry) {
-        return new DirectiveRedefinitionError(newEntry, oldEntry);
+    private void handleReDefinition(DirectiveDefinition oldEntry, DirectiveDefinition newEntry) {
+        myErrors.add(new DirectiveRedefinitionError(newEntry, oldEntry));
     }
 
     public Optional<DirectiveDefinition> getDirectiveDefinition(String directiveName) {

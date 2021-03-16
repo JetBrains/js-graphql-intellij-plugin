@@ -19,9 +19,9 @@ public class GraphQLValidatedSchema {
 
     private final GraphQLSchema schema;
     private final List<GraphQLException> exceptions;
-    private final GraphQLValidatedTypeDefinitionRegistry registry;
+    private final GraphQLTypeDefinitionRegistry registry;
 
-    public GraphQLValidatedSchema(GraphQLSchema schema, List<GraphQLException> errors, GraphQLValidatedTypeDefinitionRegistry registry) {
+    public GraphQLValidatedSchema(GraphQLSchema schema, List<GraphQLException> errors, GraphQLTypeDefinitionRegistry registry) {
         this.schema = schema;
         this.exceptions = errors;
         this.registry = registry;
@@ -35,7 +35,7 @@ public class GraphQLValidatedSchema {
         return exceptions;
     }
 
-    public GraphQLValidatedTypeDefinitionRegistry getRegistry() {
+    public GraphQLTypeDefinitionRegistry getRegistry() {
         return registry;
     }
 

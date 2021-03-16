@@ -8,13 +8,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-public abstract class GraphQLDefinitionBuilder<T extends SDLDefinition<T>> {
+public abstract class GraphQLCompositeDefinition<T extends SDLDefinition<T>> {
     protected final Collection<T> myDefinitions = new SmartList<>();
 
     @Nullable
-    protected T myBuiltDefinition;
+    protected T myMergedDefinition;
 
     public void addDefinition(@Nullable T definition) {
+        myMergedDefinition = null;
+
         if (definition != null) {
             myDefinitions.add(definition);
         }
@@ -26,21 +28,21 @@ public abstract class GraphQLDefinitionBuilder<T extends SDLDefinition<T>> {
     }
 
     @Nullable
-    public final T buildDefinition() {
-        if (myBuiltDefinition != null) {
-            return myBuiltDefinition;
+    public final T getMergedDefinition() {
+        if (myMergedDefinition != null) {
+            return myMergedDefinition;
         }
 
         if (myDefinitions.isEmpty()) {
             return null;
         }
 
-        return myBuiltDefinition = buildDefinitionImpl();
+        return myMergedDefinition = mergeDefinitions();
     }
 
     /**
      * Called only when at least one type definition is added.
      */
     @NotNull
-    protected abstract T buildDefinitionImpl();
+    protected abstract T mergeDefinitions();
 }

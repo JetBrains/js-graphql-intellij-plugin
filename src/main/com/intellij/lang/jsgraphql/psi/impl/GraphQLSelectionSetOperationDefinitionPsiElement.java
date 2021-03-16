@@ -30,7 +30,7 @@ public abstract class GraphQLSelectionSetOperationDefinitionPsiElement extends G
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
         if (schema != null) {
             // selection set operation definition is an anonymous query
             return schema.getQueryType();

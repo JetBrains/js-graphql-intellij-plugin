@@ -11,15 +11,15 @@ import java.util.*;
 
 import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 
-public class GraphQLInputObjectTypeDefinitionBuilder
-    extends GraphQLExtendableDefinitionBuilder<InputObjectTypeDefinition, InputObjectTypeExtensionDefinition> {
+public class GraphQLInputObjectTypeCompositeDefinition
+    extends GraphQLExtendableCompositeDefinition<InputObjectTypeDefinition, InputObjectTypeExtensionDefinition> {
 
     private final Set<String> myDirectives = new HashSet<>();
     private final Set<String> myInputValueDefinitions = new HashSet<>();
 
     @NotNull
     @Override
-    protected InputObjectTypeDefinition buildDefinitionImpl() {
+    protected InputObjectTypeDefinition mergeDefinitions() {
         Map<String, Directive> directives = new LinkedHashMap<>();
         Map<String, InputValueDefinition> inputValueDefinitions = new LinkedHashMap<>();
 
@@ -42,7 +42,7 @@ public class GraphQLInputObjectTypeDefinitionBuilder
 
     @NotNull
     @Override
-    protected Collection<InputObjectTypeExtensionDefinition> buildExtensionsImpl() {
+    protected Collection<InputObjectTypeExtensionDefinition> buildExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             Map<String, InputValueDefinition> inputValueDefinitions =

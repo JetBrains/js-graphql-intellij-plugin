@@ -26,7 +26,7 @@ public abstract class GraphQLObjectFieldPsiElement extends GraphQLNamedElementIm
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
         if (schema != null && this.getName() != null) {
             // the type scope for an object field the type of the field as defined in the parent type scope
             final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLTypeScopeProvider.class);

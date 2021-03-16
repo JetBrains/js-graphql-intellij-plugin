@@ -117,15 +117,15 @@ public class SchemaParser {
         List<Definition> definitions = document.getDefinitions();
         for (Definition definition : definitions) {
             if (definition instanceof SDLDefinition) {
-                typeRegistry.add((SDLDefinition) definition).ifPresent(errors::add);
+                typeRegistry.add((SDLDefinition) definition);
             } else {
                 errors.add(new NonSDLDefinitionError(definition));
             }
         }
+
         if (errors.size() > 0) {
-            throw new SchemaProblem(errors);
-        } else {
-            return typeRegistry;
+            typeRegistry.addError(new SchemaProblem(errors));
         }
+        return typeRegistry;
     }
 }

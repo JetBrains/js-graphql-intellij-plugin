@@ -8,15 +8,15 @@ import java.util.*;
 
 import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 
-public class GraphQLSchemaTypeDefinitionBuilder
-    extends GraphQLExtendableDefinitionBuilder<SchemaDefinition, SchemaExtensionDefinition> {
+public class GraphQLSchemaTypeCompositeDefinition
+    extends GraphQLExtendableCompositeDefinition<SchemaDefinition, SchemaExtensionDefinition> {
 
     private final Set<String> myDirectives = new HashSet<>();
     private final Set<String> myOperationTypeDefinitions = new HashSet<>();
 
     @NotNull
     @Override
-    protected SchemaDefinition buildDefinitionImpl() {
+    protected SchemaDefinition mergeDefinitions() {
         Map<String, Directive> directives = new LinkedHashMap<>();
         Map<String, OperationTypeDefinition> operationTypeDefinitions = new LinkedHashMap<>();
 
@@ -38,7 +38,7 @@ public class GraphQLSchemaTypeDefinitionBuilder
 
     @NotNull
     @Override
-    protected Collection<SchemaExtensionDefinition> buildExtensionsImpl() {
+    protected Collection<SchemaExtensionDefinition> buildExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             Map<String, OperationTypeDefinition> operationTypeDefinitions =

@@ -27,7 +27,7 @@ public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implemen
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
         final String fieldName = this.getName();
         if (fieldName != null) {
             // the type scope for a field is the output type of the field, given the name of the field and its parent

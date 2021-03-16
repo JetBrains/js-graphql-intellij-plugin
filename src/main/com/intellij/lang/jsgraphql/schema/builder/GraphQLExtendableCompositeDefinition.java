@@ -8,13 +8,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-public abstract class GraphQLExtendableDefinitionBuilder<T extends SDLDefinition<T>, E extends T> extends GraphQLDefinitionBuilder<T> {
+public abstract class GraphQLExtendableCompositeDefinition<T extends SDLDefinition<T>, E extends T> extends GraphQLCompositeDefinition<T> {
     protected final Collection<E> myExtensions = new SmartList<>();
 
     @Nullable
-    protected Collection<E> myBuiltExtensions;
+    protected Collection<E> myMergedExtensions;
 
     public void addExtension(@Nullable E extension) {
+        myMergedExtensions = null;
+
         if (extension != null) {
             myExtensions.add(extension);
         }
@@ -26,26 +28,26 @@ public abstract class GraphQLExtendableDefinitionBuilder<T extends SDLDefinition
     }
 
     @NotNull
-    public final Collection<E> buildExtensions() {
-        if (myBuiltExtensions != null) {
-            return myBuiltExtensions;
+    public final Collection<E> getBuiltExtensions() {
+        if (myMergedExtensions != null) {
+            return myMergedExtensions;
         }
 
         if (myExtensions.isEmpty()) {
-            return myBuiltExtensions = ContainerUtil.emptyList();
+            return myMergedExtensions = ContainerUtil.emptyList();
         }
 
-        buildDefinition();
-        if (myBuiltDefinition == null) {
-            return myBuiltExtensions = ContainerUtil.emptyList();
+        getMergedDefinition();
+        if (myMergedDefinition == null) {
+            return myMergedExtensions = ContainerUtil.emptyList();
         }
 
-        return myBuiltExtensions = ContainerUtil.unmodifiableOrEmptyCollection(buildExtensionsImpl());
+        return myMergedExtensions = ContainerUtil.unmodifiableOrEmptyCollection(buildExtensions());
     }
 
     /**
      * Called only when at least one extension definition is added.
      */
     @NotNull
-    protected abstract Collection<E> buildExtensionsImpl();
+    protected abstract Collection<E> buildExtensions();
 }

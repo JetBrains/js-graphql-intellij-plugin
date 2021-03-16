@@ -30,7 +30,7 @@ public abstract class GraphQLInputValueDefinitionPsiElement extends GraphQLNamed
         if (psiType != null) {
             final GraphQLIdentifier typeIdentifier = PsiTreeUtil.findChildOfType(psiType, GraphQLIdentifier.class);
             if (typeIdentifier != null) {
-                final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getTolerantSchema(this);
+                final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
                 if (schema != null) {
                     GraphQLType schemaType = schema.getType(typeIdentifier.getText());
                     if (schemaType != null) {

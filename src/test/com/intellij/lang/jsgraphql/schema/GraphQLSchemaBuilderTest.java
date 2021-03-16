@@ -55,7 +55,7 @@ public class GraphQLSchemaBuilderTest extends BasePlatformTestCase {
     private void doTest(@Nullable UnaryOperator<SchemaPrinter.Options> optionsBuilder) {
         myFixture.configureByFile(getTestName(true) + ".graphql");
         GraphQLSchemaProvider schemaProvider = GraphQLSchemaProvider.getInstance(myFixture.getProject());
-        GraphQLSchema schema = schemaProvider.getTolerantSchema(myFixture.getFile());
+        GraphQLSchema schema = schemaProvider.getSchema(myFixture.getFile());
 
         myFixture.configureByText("schema.graphql", new SchemaPrinter(getOptions(optionsBuilder)).print(schema));
         myFixture.checkResultByFile(getTestName(true) + "_schema.graphql");

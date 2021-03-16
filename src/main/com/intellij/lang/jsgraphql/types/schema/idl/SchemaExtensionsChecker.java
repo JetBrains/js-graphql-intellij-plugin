@@ -17,9 +17,7 @@ public class SchemaExtensionsChecker {
 
     static Map<String, OperationTypeDefinition> gatherOperationDefs(TypeDefinitionRegistry typeRegistry) {
         List<GraphQLError> noErrors = new ArrayList<>();
-        Map<String, OperationTypeDefinition> operationTypeDefinitionMap = gatherOperationDefs(noErrors, typeRegistry.schemaDefinition().orElse(null), typeRegistry.getSchemaExtensionDefinitions());
-        Assert.assertTrue(noErrors.isEmpty(), () -> "If you call this method it MUST have previously been error checked");
-        return operationTypeDefinitionMap;
+        return gatherOperationDefs(noErrors, typeRegistry.schemaDefinition().orElse(null), typeRegistry.getSchemaExtensionDefinitions());
     }
 
     static Map<String, OperationTypeDefinition> gatherOperationDefs(List<GraphQLError> errors, SchemaDefinition schema, List<SchemaExtensionDefinition> schemaExtensionDefinitions) {

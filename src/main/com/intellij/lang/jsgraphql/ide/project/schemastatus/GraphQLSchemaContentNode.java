@@ -44,7 +44,7 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
         myValidatedSchema = validatedSchema;
 
         final List<String> parts = Lists.newArrayList();
-        TypeDefinitionRegistry registry = validatedSchema.getRegistry().getRegistry();
+        TypeDefinitionRegistry registry = validatedSchema.getRegistry().getTypeDefinitionRegistry();
         parts.add(registry.getTypes(ObjectTypeDefinition.class).size() + " types");
         parts.add(registry.getTypes(InterfaceTypeDefinition.class).size() + " interfaces");
         parts.add(registry.getTypes(InputObjectTypeDefinition.class).size() + " inputs");
@@ -75,15 +75,15 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
             @Override
             public String[] getNames() {
                 final List<String> names = Lists.newArrayList();
-                myValidatedSchema.getRegistry().getRegistry().types().values().forEach(type -> names.add(type.getName()));
-                myValidatedSchema.getRegistry().getRegistry().scalars().values().forEach(type -> names.add(type.getName()));
-                myValidatedSchema.getRegistry().getRegistry().getDirectiveDefinitions().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistry().getTypeDefinitionRegistry().types().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistry().getTypeDefinitionRegistry().scalars().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistry().getTypeDefinitionRegistry().getDirectiveDefinitions().values().forEach(type -> names.add(type.getName()));
                 return names.toArray(new String[]{});
             }
 
             @Override
             protected Object[] getElementsByName(String name, String pattern) {
-                final TypeDefinitionRegistry registry = myValidatedSchema.getRegistry().getRegistry();
+                final TypeDefinitionRegistry registry = myValidatedSchema.getRegistry().getTypeDefinitionRegistry();
                 Optional<TypeDefinition> type = registry.getType(name);
                 if (type.isPresent()) {
                     return new Object[]{type.get()};

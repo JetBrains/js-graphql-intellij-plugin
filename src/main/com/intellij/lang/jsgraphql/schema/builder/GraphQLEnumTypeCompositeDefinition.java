@@ -11,15 +11,15 @@ import java.util.*;
 
 import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 
-public class GraphQLEnumTypeDefinitionBuilder
-    extends GraphQLExtendableDefinitionBuilder<EnumTypeDefinition, EnumTypeExtensionDefinition> {
+public class GraphQLEnumTypeCompositeDefinition
+    extends GraphQLExtendableCompositeDefinition<EnumTypeDefinition, EnumTypeExtensionDefinition> {
 
     private final Set<String> myDirectives = new HashSet<>();
     private final Set<String> myEnumValueDefinitions = new HashSet<>();
 
     @NotNull
     @Override
-    protected EnumTypeDefinition buildDefinitionImpl() {
+    protected EnumTypeDefinition mergeDefinitions() {
         Map<String, Directive> directives = new LinkedHashMap<>();
         Map<String, EnumValueDefinition> enumValueDefinitions = new LinkedHashMap<>();
 
@@ -42,7 +42,7 @@ public class GraphQLEnumTypeDefinitionBuilder
 
     @NotNull
     @Override
-    protected Collection<EnumTypeExtensionDefinition> buildExtensionsImpl() {
+    protected Collection<EnumTypeExtensionDefinition> buildExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             Map<String, EnumValueDefinition> enumValueDefinitions =
