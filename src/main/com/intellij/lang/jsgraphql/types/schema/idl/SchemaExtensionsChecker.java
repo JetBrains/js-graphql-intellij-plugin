@@ -20,15 +20,22 @@ public class SchemaExtensionsChecker {
         return gatherOperationDefs(noErrors, typeRegistry.schemaDefinition().orElse(null), typeRegistry.getSchemaExtensionDefinitions());
     }
 
-    static Map<String, OperationTypeDefinition> gatherOperationDefs(List<GraphQLError> errors, SchemaDefinition schema, List<SchemaExtensionDefinition> schemaExtensionDefinitions) {
+    public static Map<String, OperationTypeDefinition> gatherOperationDefs(List<GraphQLError> errors, SchemaDefinition schema, List<SchemaExtensionDefinition> schemaExtensionDefinitions) {
         Map<String, OperationTypeDefinition> operationDefs = new LinkedHashMap<>();
+        gatherOperationDefs(operationDefs, errors, schema, schemaExtensionDefinitions);
+        return operationDefs;
+    }
+
+    public static void gatherOperationDefs(Map<String, OperationTypeDefinition> operationDefs,
+                                           List<GraphQLError> errors,
+                                           SchemaDefinition schema,
+                                           List<SchemaExtensionDefinition> schemaExtensionDefinitions) {
         if (schema != null) {
             defineOperationDefs(errors, schema.getOperationTypeDefinitions(), operationDefs);
         }
         for (SchemaExtensionDefinition schemaExtensionDefinition : schemaExtensionDefinitions) {
             defineOperationDefs(errors, schemaExtensionDefinition.getOperationTypeDefinitions(), operationDefs);
         }
-        return operationDefs;
     }
 
     static void defineOperationDefs(List<GraphQLError> errors, Collection<OperationTypeDefinition> newOperationDefs, Map<String, OperationTypeDefinition> existingOperationDefs) {

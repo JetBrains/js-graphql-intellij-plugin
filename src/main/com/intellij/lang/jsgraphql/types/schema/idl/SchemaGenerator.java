@@ -87,13 +87,12 @@ public class SchemaGenerator {
         schemaGeneratorHelper.addDirectivesIncludedByDefault(typeRegistryCopy);
 
         List<GraphQLError> errors = typeChecker.checkTypeRegistry(typeRegistryCopy, wiring);
-        if (!errors.isEmpty()) {
-            throw new SchemaProblem(errors);
-        }
 
         Map<String, OperationTypeDefinition> operationTypeDefinitions = SchemaExtensionsChecker.gatherOperationDefs(typeRegistry);
 
-        return makeExecutableSchemaImpl(typeRegistryCopy, wiring, operationTypeDefinitions);
+        GraphQLSchema schema = makeExecutableSchemaImpl(typeRegistryCopy, wiring, operationTypeDefinitions);
+        schema.addError(new SchemaProblem(errors));
+        return schema;
     }
 
     private GraphQLSchema makeExecutableSchemaImpl(TypeDefinitionRegistry typeRegistry, RuntimeWiring wiring, Map<String, OperationTypeDefinition> operationTypeDefinitions) {

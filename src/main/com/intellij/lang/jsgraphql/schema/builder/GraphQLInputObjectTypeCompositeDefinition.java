@@ -40,9 +40,8 @@ public class GraphQLInputObjectTypeCompositeDefinition
         );
     }
 
-    @NotNull
     @Override
-    protected Collection<InputObjectTypeExtensionDefinition> buildExtensions() {
+    protected @NotNull List<InputObjectTypeExtensionDefinition> processExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             Map<String, InputValueDefinition> inputValueDefinitions =

@@ -7,9 +7,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
 
 public abstract class GraphQLCompositeDefinition<T extends SDLDefinition<T>> {
-    protected final Collection<T> myDefinitions = new SmartList<>();
+    protected final List<T> myDefinitions = new SmartList<>();
 
     @Nullable
     protected T myMergedDefinition;
@@ -23,8 +24,8 @@ public abstract class GraphQLCompositeDefinition<T extends SDLDefinition<T>> {
     }
 
     @NotNull
-    public Collection<T> getSourceDefinitions() {
-        return ContainerUtil.unmodifiableOrEmptyCollection(myDefinitions);
+    public List<T> getSourceDefinitions() {
+        return ContainerUtil.unmodifiableOrEmptyList(myDefinitions);
     }
 
     @Nullable

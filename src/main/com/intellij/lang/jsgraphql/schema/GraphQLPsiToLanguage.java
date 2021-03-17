@@ -4,6 +4,7 @@ package com.intellij.lang.jsgraphql.schema;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -745,7 +746,8 @@ public class GraphQLPsiToLanguage {
         int offset = injectedLanguageManager.injectedToHost(element, element.getTextOffset());
         int lineNumber = document.getLineNumber(offset);
         int column = offset - document.getLineStartOffset(lineNumber);
-        return new SourceLocation(lineNumber + 1, column + 1);
+        VirtualFile virtualFile = file.getVirtualFile();
+        return new SourceLocation(lineNumber + 1, column + 1, virtualFile != null ? virtualFile.getPath() : null);
     }
 
     private @NotNull List<Type> getImplements(@Nullable GraphQLImplementsInterfaces implementsInterfaces) {

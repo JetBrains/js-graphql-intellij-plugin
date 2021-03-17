@@ -108,7 +108,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
         List<? extends GraphQLError> userData;
 
         final GraphQLValidatedSchema schema = GraphQLSchemaProvider.getInstance(project).getValidatedSchema(psiElement);
-        if (!schema.isErrorsPresent()) {
+        if (!schema.hasErrors()) {
             // adjust source locations for injected GraphQL since the annotator works on the entire editor buffer (e.g. tsx with graphql tagged templates)
             int lineDelta = 0;
             int firstLineColumnDelta = 0;

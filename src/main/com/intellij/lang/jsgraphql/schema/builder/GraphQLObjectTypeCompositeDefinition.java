@@ -43,9 +43,8 @@ public class GraphQLObjectTypeCompositeDefinition extends GraphQLExtendableCompo
         );
     }
 
-    @NotNull
     @Override
-    protected Collection<ObjectTypeExtensionDefinition> buildExtensions() {
+    protected @NotNull List<ObjectTypeExtensionDefinition> processExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             Map<String, FieldDefinition> fieldDefinitions =

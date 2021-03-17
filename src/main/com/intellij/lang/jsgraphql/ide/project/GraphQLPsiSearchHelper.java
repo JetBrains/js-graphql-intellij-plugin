@@ -58,7 +58,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * Enables cross-file searches for PSI references
@@ -72,9 +71,8 @@ public class GraphQLPsiSearchHelper implements Disposable {
 
     private final Project myProject;
     private final Map<String, GlobalSearchScope> fileNameToSchemaScope = Maps.newConcurrentMap();
-    private final PluginDescriptor pluginDescriptor;
     private final GlobalSearchScope myGlobalScope;
-    private final GlobalSearchScope allBuiltInSchemaScopes;
+    private final GlobalSearchScope myBuiltInSchemaScopes;
     private final GraphQLConfigManager graphQLConfigManager;
 
     private final GraphQLFile defaultProjectFile;
@@ -92,7 +90,6 @@ public class GraphQLPsiSearchHelper implements Disposable {
         graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
         injectedLanguageManager = InjectedLanguageManager.getInstance(myProject);
         graphQLConfigManager = GraphQLConfigManager.getService(myProject);
-        pluginDescriptor = PluginManager.getPlugin(PluginId.getId("com.intellij.lang.jsgraphql"));
 
         final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
         defaultProjectFile = (GraphQLFile) psiFileFactory.createFileFromText("Default schema file", GraphQLLanguage.INSTANCE, "");
@@ -102,14 +99,14 @@ public class GraphQLPsiSearchHelper implements Disposable {
         GlobalSearchScope builtInRelaySchemaScope = GlobalSearchScope.fileScope(project, getRelayModernDirectivesSchema().getVirtualFile());
 
         GraphQLSettings settings = GraphQLSettings.getSettings(project);
-        allBuiltInSchemaScopes = builtInSchemaScope
+        myBuiltInSchemaScopes = builtInSchemaScope
             .union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, settings::isEnableRelayModernFrameworkSupport))
             .union(defaultProjectFileScope);
 
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
         myGlobalScope = GlobalSearchScope
             .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes)
-            .union(allBuiltInSchemaScopes);
+            .union(myBuiltInSchemaScopes);
 
         project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
@@ -137,13 +134,13 @@ public class GraphQLPsiSearchHelper implements Disposable {
      */
     @NotNull
     public GlobalSearchScope getSchemaScope(@NotNull PsiElement element) {
-
-        return fileNameToSchemaScope.computeIfAbsent(GraphQLPsiUtil.getFileName(element.getContainingFile()), fileName -> {
-            final VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFileFromPsiFile(element.getContainingFile());
+        PsiFile containingFile = element.getContainingFile();
+        return fileNameToSchemaScope.computeIfAbsent(GraphQLPsiUtil.getFileName(containingFile), fileName -> {
+            final VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFileFromPsiFile(containingFile);
             final NamedScope schemaScope = graphQLConfigManager.getSchemaScope(virtualFile);
             if (schemaScope != null) {
                 final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
-                return myGlobalScope.intersectWith(filterSearchScope.union(allBuiltInSchemaScopes));
+                return myGlobalScope.intersectWith(filterSearchScope.union(myBuiltInSchemaScopes));
             }
 
             // default is entire project limited by relevant file types

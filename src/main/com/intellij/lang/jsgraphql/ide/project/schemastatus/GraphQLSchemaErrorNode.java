@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.lang.jsgraphql.schema.GraphQLInternalSchemaError;
+import com.intellij.lang.jsgraphql.schema.GraphQLUnexpectedSchemaError;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.psi.PsiFile;
@@ -38,7 +38,7 @@ public class GraphQLSchemaErrorNode extends CachingSimpleNode {
         SourceLocation location = getLocation();
         if (location != null) {
             getTemplatePresentation().setTooltip(location.getSourceName() + ":" + location.getLine() + ":" + location.getColumn());
-        } else if (error instanceof GraphQLInternalSchemaError) {
+        } else if (error instanceof GraphQLUnexpectedSchemaError) {
             getTemplatePresentation().setLocationString(" - double click to open stack trace");
         }
     }
@@ -48,8 +48,8 @@ public class GraphQLSchemaErrorNode extends CachingSimpleNode {
         final SourceLocation location = getLocation();
         if (location != null && location.getSourceName() != null) {
             GraphQLTreeNodeNavigationUtil.openSourceLocation(myProject, location, false);
-        } else if (error instanceof GraphQLInternalSchemaError) {
-            String stackTrace = ExceptionUtil.getThrowableText(((GraphQLInternalSchemaError) error).getException());
+        } else if (error instanceof GraphQLUnexpectedSchemaError) {
+            String stackTrace = ExceptionUtil.getThrowableText(((GraphQLUnexpectedSchemaError) error).getException());
             PsiFile file = PsiFileFactory.getInstance(myProject).createFileFromText("graphql-error.txt", PlainTextLanguage.INSTANCE, stackTrace);
             new OpenFileDescriptor(myProject, file.getVirtualFile()).navigate(true);
         }

@@ -13,12 +13,10 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
-import com.intellij.lang.jsgraphql.schema.builder.GraphQLCompositeRegistry;
 import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.lang.jsgraphql.types.InvalidSyntaxError;
 import com.intellij.lang.jsgraphql.types.language.SourceLocation;
@@ -55,7 +53,7 @@ public class GraphQLRegistryProvider implements Disposable {
     private final JSGraphQLEndpointNamedTypeRegistry graphQLEndpointNamedTypeRegistry;
     private final GraphQLConfigManager graphQLConfigManager;
 
-    private final Map<GlobalSearchScope, GraphQLTypeDefinitionRegistry> scopeToRegistry = Maps.newConcurrentMap();
+    private final Map<GlobalSearchScope, GraphQLValidatedRegistry> scopeToRegistry = Maps.newConcurrentMap();
 
     public static GraphQLRegistryProvider getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLRegistryProvider.class);
@@ -76,7 +74,7 @@ public class GraphQLRegistryProvider implements Disposable {
     }
 
     @NotNull
-    public GraphQLTypeDefinitionRegistry getRegistry(@NotNull PsiElement scopedElement) {
+    public GraphQLValidatedRegistry getRegistry(@NotNull PsiElement scopedElement) {
         // Get the search scope that limits schema definition for the scoped element
         GlobalSearchScope schemaScope = graphQLPsiSearchHelper.getSchemaScope(scopedElement);
 
@@ -143,7 +141,7 @@ public class GraphQLRegistryProvider implements Disposable {
             // Types defined using GraphQL Endpoint Language
             VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFile(scopedElement.getContainingFile());
             if (virtualFile != null && graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, null) != null) {
-                final GraphQLTypeDefinitionRegistry endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry(scopedElement);
+                final GraphQLValidatedRegistry endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry(scopedElement);
                 try {
                     processor.getCompositeRegistry().merge(endpointTypesAsRegistry.getTypeDefinitionRegistry());
                     errors.addAll(endpointTypesAsRegistry.getErrors());
@@ -153,7 +151,7 @@ public class GraphQLRegistryProvider implements Disposable {
             }
 
             TypeDefinitionRegistry registry = processor.getCompositeRegistry().buildTypeDefinitionRegistry();
-            return new GraphQLTypeDefinitionRegistry(registry, errors, processedGraphQL.get());
+            return new GraphQLValidatedRegistry(registry, errors, processedGraphQL.get());
         });
 
     }

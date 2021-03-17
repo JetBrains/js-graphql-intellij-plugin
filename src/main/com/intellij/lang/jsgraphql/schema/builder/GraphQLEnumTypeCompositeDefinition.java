@@ -40,9 +40,8 @@ public class GraphQLEnumTypeCompositeDefinition
         );
     }
 
-    @NotNull
     @Override
-    protected Collection<EnumTypeExtensionDefinition> buildExtensions() {
+    protected @NotNull List<EnumTypeExtensionDefinition> processExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             Map<String, EnumValueDefinition> enumValueDefinitions =

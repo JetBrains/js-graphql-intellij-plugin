@@ -24,7 +24,7 @@ public interface GraphQLSchemaProvider {
      * @return merged GraphQL type registry
      */
     @NotNull
-    GraphQLTypeDefinitionRegistry getRegistry(@NotNull PsiElement psiElement);
+    GraphQLValidatedRegistry getRegistry(@NotNull PsiElement psiElement);
 
     /**
      * @param psiElement the element from which the schema is needed, serving as a scope restriction

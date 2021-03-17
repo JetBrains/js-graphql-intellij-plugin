@@ -12,40 +12,41 @@ import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 public class GraphQLValidatedSchema {
 
-    private final GraphQLSchema schema;
-    private final List<GraphQLException> exceptions;
-    private final GraphQLTypeDefinitionRegistry registry;
+    private final GraphQLSchema mySchema;
+    private final List<GraphQLException> myErrors;
+    private final GraphQLValidatedRegistry myRegistry;
 
-    public GraphQLValidatedSchema(GraphQLSchema schema, List<GraphQLException> errors, GraphQLTypeDefinitionRegistry registry) {
-        this.schema = schema;
-        this.exceptions = errors;
-        this.registry = registry;
+    public GraphQLValidatedSchema(@NotNull GraphQLSchema schema,
+                                  @NotNull List<GraphQLException> errors,
+                                  @NotNull GraphQLValidatedRegistry registry) {
+        mySchema = schema;
+        myErrors = errors;
+        myRegistry = registry;
     }
 
-    public GraphQLSchema getSchema() {
-        return schema;
+    public @NotNull GraphQLSchema getSchema() {
+        return mySchema;
     }
 
-    public List<GraphQLException> getExceptions() {
-        return exceptions;
+    public @NotNull GraphQLValidatedRegistry getRegistry() {
+        return myRegistry;
     }
 
-    public GraphQLTypeDefinitionRegistry getRegistry() {
-        return registry;
+    public boolean hasErrors() {
+        return !myErrors.isEmpty() || !myRegistry.getErrors().isEmpty() || !mySchema.getErrors().isEmpty();
     }
 
-    public boolean isErrorsPresent() {
-        return !exceptions.isEmpty() || !registry.getErrors().isEmpty();
-    }
+    public @NotNull List<GraphQLError> getErrors() {
+        final List<GraphQLException> rawErrors = Lists.newArrayList(myErrors);
+        rawErrors.addAll(myRegistry.getErrors());
+        rawErrors.addAll(mySchema.getErrors());
 
-    public List<GraphQLError> getErrors() {
-        final List<GraphQLException> rawErrors = Lists.newArrayList(exceptions);
-        rawErrors.addAll(registry.getErrors());
         final List<GraphQLError> errors = Lists.newArrayList();
         for (GraphQLException exception : rawErrors) {
             if (exception instanceof SchemaProblem) {
@@ -53,7 +54,7 @@ public class GraphQLValidatedSchema {
             } else if (exception instanceof GraphQLError) {
                 errors.add((GraphQLError) exception);
             } else {
-                errors.add(new GraphQLInternalSchemaError(exception));
+                errors.add(new GraphQLUnexpectedSchemaError(exception));
             }
         }
         return errors;

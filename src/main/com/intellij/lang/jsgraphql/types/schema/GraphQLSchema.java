@@ -4,16 +4,15 @@ package com.intellij.lang.jsgraphql.types.schema;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.lang.jsgraphql.types.Directives;
-import com.intellij.lang.jsgraphql.types.DirectivesUtil;
-import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.PublicApi;
+import com.intellij.lang.jsgraphql.types.*;
 import com.intellij.lang.jsgraphql.types.language.SchemaDefinition;
 import com.intellij.lang.jsgraphql.types.language.SchemaExtensionDefinition;
 import com.intellij.lang.jsgraphql.types.schema.validation.InvalidSchemaException;
 import com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidationError;
 import com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidator;
 import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
+import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -50,6 +49,8 @@ public class GraphQLSchema {
     private final ImmutableMap<String, ImmutableList<String>> interfaceNameToObjectTypeNames;
 
     private final String description;
+
+    private final List<GraphQLException> errors = new ArrayList<>();
 
     /**
      * @param queryType the query type
@@ -378,6 +379,14 @@ public class GraphQLSchema {
 
     public String getDescription() {
         return description;
+    }
+
+    public void addError(@NotNull GraphQLException error) {
+        errors.add(error);
+    }
+
+    public @NotNull List<GraphQLException> getErrors() {
+        return ContainerUtil.unmodifiableOrEmptyList(errors);
     }
 
     /**

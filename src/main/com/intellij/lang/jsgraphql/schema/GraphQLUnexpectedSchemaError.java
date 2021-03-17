@@ -17,11 +17,11 @@ import java.util.List;
 /**
  * Exception thrown due to an error that is likely to be internal in the schema building logic
  */
-public class GraphQLInternalSchemaError implements GraphQLError {
+public class GraphQLUnexpectedSchemaError implements GraphQLError {
 
     private Exception exception;
 
-    public GraphQLInternalSchemaError(Exception exception) {
+    public GraphQLUnexpectedSchemaError(Exception exception) {
         this.exception = exception;
     }
 

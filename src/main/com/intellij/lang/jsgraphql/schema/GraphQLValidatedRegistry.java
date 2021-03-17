@@ -14,15 +14,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GraphQLTypeDefinitionRegistry {
+public class GraphQLValidatedRegistry {
 
     private final TypeDefinitionRegistry myRegistry;
     private final List<GraphQLException> myErrors;
     private final boolean myProcessedGraphQL;
 
-    public GraphQLTypeDefinitionRegistry(@NotNull TypeDefinitionRegistry registry,
-                                         @NotNull List<GraphQLException> errors,
-                                         boolean processedGraphQL) {
+    public GraphQLValidatedRegistry(@NotNull TypeDefinitionRegistry registry,
+                                    @NotNull List<GraphQLException> errors,
+                                    boolean processedGraphQL) {
         myRegistry = registry;
         myErrors = errors;
         myProcessedGraphQL = processedGraphQL;

@@ -13,9 +13,9 @@ import com.google.common.collect.Sets;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLNamedScope;
+import com.intellij.lang.jsgraphql.schema.GraphQLValidatedRegistry;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaEventListener;
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionRegistry;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedTypeRegistry;
@@ -46,7 +46,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
 
     private final Map<GraphQLNamedScope, Map<String, JSGraphQLNamedType>> endpointTypesByName = Maps.newConcurrentMap();
     private final Map<GraphQLNamedScope, PsiFile> endpointEntryPsiFile = Maps.newConcurrentMap();
-    private final Map<GraphQLNamedScope, GraphQLTypeDefinitionRegistry> projectToRegistry = Maps.newConcurrentMap();
+    private final Map<GraphQLNamedScope, GraphQLValidatedRegistry> projectToRegistry = Maps.newConcurrentMap();
 
     public static JSGraphQLEndpointNamedTypeRegistry getService(@NotNull Project project) {
         return ServiceManager.getService(project, JSGraphQLEndpointNamedTypeRegistry.class);
@@ -93,10 +93,10 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         computeNamedTypes(scopedElement).forEach((key, jsGraphQLNamedType) -> consumer.accept(jsGraphQLNamedType));
     }
 
-    public GraphQLTypeDefinitionRegistry getTypesAsRegistry(PsiElement scopedElement) {
+    public GraphQLValidatedRegistry getTypesAsRegistry(PsiElement scopedElement) {
         final GraphQLNamedScope schemaScope = getSchemaScope(scopedElement);
         if (schemaScope == null) {
-            return new GraphQLTypeDefinitionRegistry(new TypeDefinitionRegistry(), Collections.emptyList(), false);
+            return new GraphQLValidatedRegistry(new TypeDefinitionRegistry(), Collections.emptyList(), false);
         }
         return projectToRegistry.computeIfAbsent(schemaScope, p -> doGetTypesAsRegistry(scopedElement));
     }
@@ -111,7 +111,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         return virtualFile != null ? graphQLConfigManager.getSchemaScope(virtualFile) : null;
     }
 
-    private GraphQLTypeDefinitionRegistry doGetTypesAsRegistry(PsiElement scopedElement) {
+    private GraphQLValidatedRegistry doGetTypesAsRegistry(PsiElement scopedElement) {
 
         final TypeDefinitionRegistry registry = new TypeDefinitionRegistry();
         final List<GraphQLException> errors = Lists.newArrayList();
@@ -285,7 +285,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
             }
         });
 
-        return new GraphQLTypeDefinitionRegistry(registry, errors, !namedTypes.isEmpty());
+        return new GraphQLValidatedRegistry(registry, errors, !namedTypes.isEmpty());
     }
 
     private Description getDescription(JSGraphQLEndpointNamedTypeDefinition typeDefinition, SourceLocation sourceLocation) {

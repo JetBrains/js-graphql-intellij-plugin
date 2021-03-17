@@ -42,9 +42,8 @@ public class GraphQLUnionTypeCompositeDefinition
         );
     }
 
-    @NotNull
     @Override
-    protected Collection<UnionTypeExtensionDefinition> buildExtensions() {
+    protected @NotNull List<UnionTypeExtensionDefinition> processExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             @SuppressWarnings({"unchecked", "rawtypes"})

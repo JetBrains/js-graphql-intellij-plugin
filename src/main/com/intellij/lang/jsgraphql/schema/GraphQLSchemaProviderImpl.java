@@ -36,7 +36,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
     public static final GraphQLSchema EMPTY_SCHEMA = GraphQLSchema.newSchema()
         .query(GraphQLObjectType.newObject().name("Query").build()).withValidation(false).build();
 
-    private final Map<String, GraphQLTypeDefinitionRegistry> fileNameToRegistry = Maps.newConcurrentMap();
+    private final Map<String, GraphQLValidatedRegistry> fileNameToRegistry = Maps.newConcurrentMap();
     private final Map<String, GraphQLValidatedSchema> fileNameToValidatedSchema = Maps.newConcurrentMap();
     private final Map<String, GraphQLSchema> fileNameToSchema = Maps.newConcurrentMap();
     private final GraphQLRegistryProvider myRegistryProvider;
@@ -58,7 +58,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
         String containingFileName = GraphQLPsiUtil.getFileName(psiElement.getContainingFile());
 
         return fileNameToValidatedSchema.computeIfAbsent(containingFileName, fileName -> {
-            final GraphQLTypeDefinitionRegistry registryWithErrors = fileNameToRegistry.computeIfAbsent(
+            final GraphQLValidatedRegistry registryWithErrors = fileNameToRegistry.computeIfAbsent(
                 containingFileName, f -> myRegistryProvider.getRegistry(psiElement));
 
             try {
@@ -70,9 +70,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
             } catch (ProcessCanceledException e) {
                 throw e;
             } catch (Exception e) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("Schema build error: ", e);
-                }
+                LOG.warn("Schema build error: ", e);
                 return new GraphQLValidatedSchema(
                     EMPTY_SCHEMA,
                     Lists.newArrayList(e instanceof GraphQLException ? ((GraphQLException) e) : new GraphQLException(e)),
@@ -100,7 +98,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
 
     @NotNull
     @Override
-    public GraphQLTypeDefinitionRegistry getRegistry(@NotNull PsiElement psiElement) {
+    public GraphQLValidatedRegistry getRegistry(@NotNull PsiElement psiElement) {
         String fileName = GraphQLPsiUtil.getFileName(psiElement.getContainingFile());
         return fileNameToRegistry.computeIfAbsent(fileName, f -> myRegistryProvider.getRegistry(psiElement));
     }

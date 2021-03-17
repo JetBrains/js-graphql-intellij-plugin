@@ -6,13 +6,13 @@ import com.intellij.lang.jsgraphql.types.language.SDLDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 
 public abstract class GraphQLExtendableCompositeDefinition<T extends SDLDefinition<T>, E extends T> extends GraphQLCompositeDefinition<T> {
-    protected final Collection<E> myExtensions = new SmartList<>();
+    protected final List<E> myExtensions = new SmartList<>();
 
     @Nullable
-    protected Collection<E> myMergedExtensions;
+    protected List<E> myMergedExtensions;
 
     public void addExtension(@Nullable E extension) {
         myMergedExtensions = null;
@@ -23,12 +23,12 @@ public abstract class GraphQLExtendableCompositeDefinition<T extends SDLDefiniti
     }
 
     @NotNull
-    public Collection<E> getSourceExtensions() {
-        return ContainerUtil.unmodifiableOrEmptyCollection(myExtensions);
+    public List<E> getSourceExtensions() {
+        return ContainerUtil.unmodifiableOrEmptyList(myExtensions);
     }
 
     @NotNull
-    public final Collection<E> getBuiltExtensions() {
+    public final List<E> getProcessedExtensions() {
         if (myMergedExtensions != null) {
             return myMergedExtensions;
         }
@@ -42,12 +42,13 @@ public abstract class GraphQLExtendableCompositeDefinition<T extends SDLDefiniti
             return myMergedExtensions = ContainerUtil.emptyList();
         }
 
-        return myMergedExtensions = ContainerUtil.unmodifiableOrEmptyCollection(buildExtensions());
+        return myMergedExtensions = ContainerUtil.unmodifiableOrEmptyList(processExtensions());
     }
 
     /**
      * Called only when at least one extension definition is added.
+     * @return
      */
     @NotNull
-    protected abstract Collection<E> buildExtensions();
+    protected abstract List<E> processExtensions();
 }

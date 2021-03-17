@@ -1,17 +1,22 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
+import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.SchemaExtensionsChecker;
 import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveRedefinitionError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public final class GraphQLCompositeRegistry {
     private static final Logger LOG = Logger.getInstance(GraphQLCompositeRegistry.class);
@@ -162,7 +167,7 @@ public final class GraphQLCompositeRegistry {
         if (schemaDefinition != null) {
             registry.add(schemaDefinition);
         }
-        mySchemaCompositeDefinition.getBuiltExtensions().forEach(registry::add);
+        mySchemaCompositeDefinition.getProcessedExtensions().forEach(registry::add);
 
         myNamedCompositeDefinitions.values().forEach(builder -> {
             SDLDefinition<?> definition = builder.getMergedDefinition();
@@ -171,13 +176,59 @@ public final class GraphQLCompositeRegistry {
             }
 
             if (builder instanceof GraphQLExtendableCompositeDefinition) {
-                ((GraphQLExtendableCompositeDefinition<?, ?>) builder).getBuiltExtensions()
+                ((GraphQLExtendableCompositeDefinition<?, ?>) builder).getProcessedExtensions()
                     .forEach(registry::add);
             }
         });
 
-        // TODO: [intellij] validate source definitions explicitly
-
+        validate(registry);
         return registry;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private void validate(@NotNull TypeDefinitionRegistry registry) {
+        List<SchemaDefinition> sourceSchemaDefinitions = mySchemaCompositeDefinition.getSourceDefinitions();
+        if (sourceSchemaDefinitions.size() > 1) {
+            SchemaDefinition initialSchema = sourceSchemaDefinitions.get(0);
+            for (int i = 1; i < sourceSchemaDefinitions.size(); i++) {
+                registry.addError(new SchemaRedefinitionError(initialSchema, sourceSchemaDefinitions.get(i)));
+            }
+        }
+
+        List<GraphQLError> operationRedefinitionErrors = new ArrayList<>();
+        Map<String, OperationTypeDefinition> operationDefs = new LinkedHashMap<>();
+        List<SchemaExtensionDefinition> sourceExtensions = mySchemaCompositeDefinition.getSourceExtensions();
+        for (SchemaDefinition sourceSchemaDefinition : sourceSchemaDefinitions) {
+            SchemaExtensionsChecker.gatherOperationDefs(operationDefs, operationRedefinitionErrors, sourceSchemaDefinition, sourceExtensions);
+        }
+        if (!operationRedefinitionErrors.isEmpty()) {
+            registry.addError(new SchemaProblem(operationRedefinitionErrors));
+        }
+
+        myNamedCompositeDefinitions.values().forEach(compositeDefinition -> {
+            if (compositeDefinition instanceof GraphQLDirectiveTypeCompositeDefinition) {
+                List<DirectiveDefinition> sourceDefinitions = ((GraphQLDirectiveTypeCompositeDefinition) compositeDefinition).getSourceDefinitions();
+                if (sourceDefinitions.size() > 1) {
+                    DirectiveDefinition initialDefinition = sourceDefinitions.get(0);
+                    for (int i = 1; i < sourceDefinitions.size(); i++) {
+                        registry.addError(new DirectiveRedefinitionError(sourceDefinitions.get(i), initialDefinition));
+                    }
+                }
+                return;
+            }
+
+
+            List<TypeDefinition> sourceDefinitions = compositeDefinition.getSourceDefinitions().stream()
+                .filter(def -> def instanceof TypeDefinition)
+                .map(def -> ((TypeDefinition) def))
+                .collect(Collectors.toList());
+
+            if (sourceDefinitions.size() > 1) {
+                TypeDefinition initialDefinition = sourceDefinitions.get(0);
+                for (int i = 1; i < sourceDefinitions.size(); i++) {
+                    registry.addError(new TypeRedefinitionError(sourceDefinitions.get(i), initialDefinition));
+                }
+            }
+        });
     }
 }

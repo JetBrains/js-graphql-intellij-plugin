@@ -36,9 +36,8 @@ public class GraphQLSchemaTypeCompositeDefinition
         );
     }
 
-    @NotNull
     @Override
-    protected Collection<SchemaExtensionDefinition> buildExtensions() {
+    protected @NotNull List<SchemaExtensionDefinition> processExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             Map<String, OperationTypeDefinition> operationTypeDefinitions =

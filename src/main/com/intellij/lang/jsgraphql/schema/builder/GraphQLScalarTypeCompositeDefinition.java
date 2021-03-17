@@ -29,9 +29,8 @@ public class GraphQLScalarTypeCompositeDefinition
         return definition.transform(builder -> builder.directives(toList(directives)));
     }
 
-    @NotNull
     @Override
-    protected Collection<ScalarTypeExtensionDefinition> buildExtensions() {
+    protected @NotNull List<ScalarTypeExtensionDefinition> processExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
 

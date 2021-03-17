@@ -40,9 +40,8 @@ public class GraphQLInterfaceTypeCompositeDefinition
         );
     }
 
-    @NotNull
     @Override
-    protected Collection<InterfaceTypeExtensionDefinition> buildExtensions() {
+    protected @NotNull List<InterfaceTypeExtensionDefinition> processExtensions() {
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
             Map<String, FieldDefinition> definitions =
