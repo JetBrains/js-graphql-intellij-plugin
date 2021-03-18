@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -37,6 +37,7 @@ public class GraphQLInterfaceTypeCompositeDefinition
                 .directives(toList(directives))
                 .definitions(toList(fieldDefinitions))
                 .implementz(definition.getImplements()) // https://github.com/graphql-java/graphql-java/issues/1974
+                .sourceNodes(myDefinitions)
         );
     }
 
@@ -50,7 +51,11 @@ public class GraphQLInterfaceTypeCompositeDefinition
             Map<String, Type> implementz = mergeExtensionNodes(mapTypeNodesByKey(extension.getImplements()), myImplements);
 
             return extension.transformExtension(builder ->
-                builder.directives(toList(directives)).definitions(toList(definitions)).implementz(toList(implementz))
+                builder
+                    .directives(toList(directives))
+                    .definitions(toList(definitions))
+                    .implementz(toList(implementz))
+                    .sourceNodes(Collections.singletonList(extension))
             );
         });
     }

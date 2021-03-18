@@ -1,9 +1,9 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.lang.jsgraphql.types.language.Directive;
 import com.intellij.lang.jsgraphql.types.language.ScalarTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.ScalarTypeExtensionDefinition;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -26,7 +26,7 @@ public class GraphQLScalarTypeCompositeDefinition
 
         ScalarTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
         myDirectives.addAll(directives.keySet());
-        return definition.transform(builder -> builder.directives(toList(directives)));
+        return definition.transform(builder -> builder.directives(toList(directives)).sourceNodes(myDefinitions));
     }
 
     @Override
@@ -34,7 +34,11 @@ public class GraphQLScalarTypeCompositeDefinition
         return ContainerUtil.map(myExtensions, extension -> {
             Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
 
-            return extension.transformExtension(builder -> builder.directives(toList(directives)));
+            return extension.transformExtension(builder ->
+                builder
+                    .directives(toList(directives))
+                    .sourceNodes(Collections.singletonList(extension))
+            );
         });
     }
 }

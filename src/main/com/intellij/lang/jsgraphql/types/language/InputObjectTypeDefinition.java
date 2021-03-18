@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -33,8 +35,10 @@ public class InputObjectTypeDefinition extends AbstractDescribedNode<InputObject
                                         SourceLocation sourceLocation,
                                         List<Comment> comments,
                                         IgnoredChars ignoredChars,
-                                        Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData, description);
+                                        Map<String, String> additionalData,
+                                        @Nullable PsiElement element,
+                                        @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
         this.name = name;
         this.directives = ImmutableList.copyOf(directives);
         this.inputValueDefinitions = ImmutableList.copyOf(inputValueDefinitions);
@@ -65,16 +69,16 @@ public class InputObjectTypeDefinition extends AbstractDescribedNode<InputObject
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .children(CHILD_DIRECTIVES, directives)
-                .children(CHILD_INPUT_VALUES_DEFINITIONS, inputValueDefinitions)
-                .build();
+            .children(CHILD_DIRECTIVES, directives)
+            .children(CHILD_INPUT_VALUES_DEFINITIONS, inputValueDefinitions)
+            .build();
     }
 
     @Override
     public InputObjectTypeDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
-                .inputValueDefinitions(newChildren.getChildren(CHILD_INPUT_VALUES_DEFINITIONS))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .inputValueDefinitions(newChildren.getChildren(CHILD_INPUT_VALUES_DEFINITIONS))
         );
     }
 
@@ -95,22 +99,24 @@ public class InputObjectTypeDefinition extends AbstractDescribedNode<InputObject
     @Override
     public InputObjectTypeDefinition deepCopy() {
         return new InputObjectTypeDefinition(name,
-                deepCopy(directives),
-                deepCopy(inputValueDefinitions),
-                description,
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            deepCopy(directives),
+            deepCopy(inputValueDefinitions),
+            description,
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "InputObjectTypeDefinition{" +
-                "name='" + name + '\'' +
-                ", directives=" + directives +
-                ", inputValueDefinitions=" + inputValueDefinitions +
-                '}';
+            "name='" + name + '\'' +
+            ", directives=" + directives +
+            ", inputValueDefinitions=" + inputValueDefinitions +
+            '}';
     }
 
     @Override
@@ -138,6 +144,8 @@ public class InputObjectTypeDefinition extends AbstractDescribedNode<InputObject
         private ImmutableList<InputValueDefinition> inputValueDefinitions = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -150,6 +158,8 @@ public class InputObjectTypeDefinition extends AbstractDescribedNode<InputObject
             this.directives = ImmutableList.copyOf(existing.getDirectives());
             this.inputValueDefinitions = ImmutableList.copyOf(existing.getInputValueDefinitions());
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -209,16 +219,28 @@ public class InputObjectTypeDefinition extends AbstractDescribedNode<InputObject
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public InputObjectTypeDefinition build() {
             return new InputObjectTypeDefinition(name,
-                    directives,
-                    inputValueDefinitions,
-                    description,
-                    sourceLocation,
-                    comments,
-                    ignoredChars,
-                    additionalData);
+                directives,
+                inputValueDefinitions,
+                description,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 }

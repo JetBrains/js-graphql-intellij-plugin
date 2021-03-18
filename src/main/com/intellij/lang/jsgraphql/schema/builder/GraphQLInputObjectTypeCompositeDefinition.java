@@ -1,10 +1,10 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.lang.jsgraphql.types.language.Directive;
 import com.intellij.lang.jsgraphql.types.language.InputObjectTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.InputObjectTypeExtensionDefinition;
 import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -37,6 +37,7 @@ public class GraphQLInputObjectTypeCompositeDefinition
             builder
                 .directives(toList(directives))
                 .inputValueDefinitions(toList(inputValueDefinitions))
+                .sourceNodes(myDefinitions)
         );
     }
 
@@ -48,7 +49,10 @@ public class GraphQLInputObjectTypeCompositeDefinition
                 mergeExtensionNodes(mapNamedNodesByKey(extension.getInputValueDefinitions()), myInputValueDefinitions);
 
             return extension.transformExtension(builder ->
-                builder.directives(toList(directives)).inputValueDefinitions(toList(inputValueDefinitions))
+                builder
+                    .directives(toList(directives))
+                    .inputValueDefinitions(toList(inputValueDefinitions))
+                    .sourceNodes(Collections.singletonList(extension))
             );
         });
     }

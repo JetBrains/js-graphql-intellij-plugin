@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.lang.jsgraphql.types.language.DirectiveDefinition;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class GraphQLDirectiveTypeCompositeDefinition extends GraphQLCompositeDefinition<DirectiveDefinition> {
@@ -9,8 +9,8 @@ public class GraphQLDirectiveTypeCompositeDefinition extends GraphQLCompositeDef
     @NotNull
     @Override
     protected DirectiveDefinition mergeDefinitions() {
-        // ignore multiple definitions
-        return ContainerUtil.getFirstItem(myDefinitions);
+        DirectiveDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+        return definition.transform(builder -> builder.sourceNodes(myDefinitions));
     }
 
 }

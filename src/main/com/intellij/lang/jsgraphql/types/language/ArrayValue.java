@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,8 +27,14 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
     private final ImmutableList<Value> values;
 
     @Internal
-    protected ArrayValue(List<Value> values, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected ArrayValue(List<Value> values,
+                         SourceLocation sourceLocation,
+                         List<Comment> comments,
+                         IgnoredChars ignoredChars,
+                         Map<String, String> additionalData,
+                         @Nullable PsiElement element,
+                         @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.values = ImmutableList.copyOf(values);
     }
 
@@ -36,7 +44,7 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
      * @param values of the array
      */
     public ArrayValue(List<Value> values) {
-        this(values, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(values, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public static Builder newArrayValue() {
@@ -55,14 +63,14 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .children(CHILD_VALUES, values)
-                .build();
+            .children(CHILD_VALUES, values)
+            .build();
     }
 
     @Override
     public ArrayValue withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .values(newChildren.getChildren(CHILD_VALUES))
+            .values(newChildren.getChildren(CHILD_VALUES))
         );
     }
 
@@ -81,13 +89,13 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
     @Override
     public String toString() {
         return "ArrayValue{" +
-                "values=" + values +
-                '}';
+            "values=" + values +
+            '}';
     }
 
     @Override
     public ArrayValue deepCopy() {
-        return new ArrayValue(deepCopy(values), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new ArrayValue(deepCopy(values), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
@@ -107,6 +115,8 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
         private ImmutableList<Comment> comments = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -117,6 +127,8 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
             this.values = ImmutableList.copyOf(existing.getValues());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -155,8 +167,18 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public ArrayValue build() {
-            return new ArrayValue(values, sourceLocation, comments, ignoredChars, additionalData);
+            return new ArrayValue(values, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

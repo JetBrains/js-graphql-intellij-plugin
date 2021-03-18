@@ -6,6 +6,8 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.util.LinkedHashMap;
@@ -25,8 +27,14 @@ public class IntValue extends AbstractNode<IntValue> implements ScalarValue<IntV
     private final BigInteger value;
 
     @Internal
-    protected IntValue(BigInteger value, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected IntValue(BigInteger value,
+                       SourceLocation sourceLocation,
+                       List<Comment> comments,
+                       IgnoredChars ignoredChars,
+                       Map<String, String> additionalData,
+                       @Nullable PsiElement element,
+                       @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.value = value;
     }
 
@@ -36,7 +44,7 @@ public class IntValue extends AbstractNode<IntValue> implements ScalarValue<IntV
      * @param value of the Int
      */
     public IntValue(BigInteger value) {
-        this(value, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public BigInteger getValue() {
@@ -76,14 +84,14 @@ public class IntValue extends AbstractNode<IntValue> implements ScalarValue<IntV
 
     @Override
     public IntValue deepCopy() {
-        return new IntValue(value, getSourceLocation(), getComments(), IgnoredChars.EMPTY, getAdditionalData());
+        return new IntValue(value, getSourceLocation(), getComments(), IgnoredChars.EMPTY, getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "IntValue{" +
-                "value=" + value +
-                '}';
+            "value=" + value +
+            '}';
     }
 
     @Override
@@ -111,6 +119,8 @@ public class IntValue extends AbstractNode<IntValue> implements ScalarValue<IntV
         private ImmutableList<Comment> comments = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -120,6 +130,8 @@ public class IntValue extends AbstractNode<IntValue> implements ScalarValue<IntV
             this.comments = ImmutableList.copyOf(existing.getComments());
             this.value = existing.getValue();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -152,8 +164,18 @@ public class IntValue extends AbstractNode<IntValue> implements ScalarValue<IntV
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public IntValue build() {
-            return new IntValue(value, sourceLocation, comments, ignoredChars, additionalData);
+            return new IntValue(value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

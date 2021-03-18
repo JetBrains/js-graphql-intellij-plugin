@@ -6,6 +6,8 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,8 +27,14 @@ public class ListType extends AbstractNode<ListType> implements Type<ListType> {
     public static final String CHILD_TYPE = "type";
 
     @Internal
-    protected ListType(Type type, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected ListType(Type type,
+                       SourceLocation sourceLocation,
+                       List<Comment> comments,
+                       IgnoredChars ignoredChars,
+                       Map<String, String> additionalData,
+                       @Nullable PsiElement element,
+                       @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.type = type;
     }
 
@@ -36,7 +44,7 @@ public class ListType extends AbstractNode<ListType> implements Type<ListType> {
      * @param type the wrapped type
      */
     public ListType(Type type) {
-        this(type, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(type, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public Type getType() {
@@ -51,14 +59,14 @@ public class ListType extends AbstractNode<ListType> implements Type<ListType> {
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_TYPE, type)
-                .build();
+            .child(CHILD_TYPE, type)
+            .build();
     }
 
     @Override
     public ListType withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .type(newChildren.getChildOrNull(CHILD_TYPE))
+            .type(newChildren.getChildOrNull(CHILD_TYPE))
         );
     }
 
@@ -76,14 +84,14 @@ public class ListType extends AbstractNode<ListType> implements Type<ListType> {
 
     @Override
     public ListType deepCopy() {
-        return new ListType(deepCopy(type), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new ListType(deepCopy(type), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "ListType{" +
-                "type=" + type +
-                '}';
+            "type=" + type +
+            '}';
     }
 
     @Override
@@ -111,6 +119,8 @@ public class ListType extends AbstractNode<ListType> implements Type<ListType> {
         private ImmutableList<Comment> comments = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -121,6 +131,8 @@ public class ListType extends AbstractNode<ListType> implements Type<ListType> {
             this.type = existing.getType();
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -154,8 +166,18 @@ public class ListType extends AbstractNode<ListType> implements Type<ListType> {
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public ListType build() {
-            return new ListType(type, sourceLocation, comments, ignoredChars, additionalData);
+            return new ListType(type, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

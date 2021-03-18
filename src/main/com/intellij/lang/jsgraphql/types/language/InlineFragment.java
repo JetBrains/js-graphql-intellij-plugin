@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -36,8 +38,10 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
                              SourceLocation sourceLocation,
                              List<Comment> comments,
                              IgnoredChars ignoredChars,
-                             Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+                             Map<String, String> additionalData,
+                             @Nullable PsiElement element,
+                             @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.typeCondition = typeCondition;
         this.directives = ImmutableList.copyOf(directives);
         this.selectionSet = selectionSet;
@@ -49,7 +53,7 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
      * @param typeCondition the type condition of the inline fragment
      */
     public InlineFragment(TypeName typeCondition) {
-        this(typeCondition, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(typeCondition, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     /**
@@ -59,7 +63,7 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
      * @param selectionSet  of the inline fragment
      */
     public InlineFragment(TypeName typeCondition, SelectionSet selectionSet) {
-        this(typeCondition, emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(typeCondition, emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public TypeName getTypeCondition() {
@@ -89,18 +93,18 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_TYPE_CONDITION, typeCondition)
-                .children(CHILD_DIRECTIVES, directives)
-                .child(CHILD_SELECTION_SET, selectionSet)
-                .build();
+            .child(CHILD_TYPE_CONDITION, typeCondition)
+            .children(CHILD_DIRECTIVES, directives)
+            .child(CHILD_SELECTION_SET, selectionSet)
+            .build();
     }
 
     @Override
     public InlineFragment withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .typeCondition(newChildren.getChildOrNull(CHILD_TYPE_CONDITION))
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
-                .selectionSet(newChildren.getChildOrNull(CHILD_SELECTION_SET))
+            .typeCondition(newChildren.getChildOrNull(CHILD_TYPE_CONDITION))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .selectionSet(newChildren.getChildOrNull(CHILD_SELECTION_SET))
         );
     }
 
@@ -115,22 +119,24 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
     @Override
     public InlineFragment deepCopy() {
         return new InlineFragment(
-                deepCopy(typeCondition),
-                deepCopy(directives),
-                deepCopy(selectionSet),
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            deepCopy(typeCondition),
+            deepCopy(directives),
+            deepCopy(selectionSet),
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "InlineFragment{" +
-                "typeCondition='" + typeCondition + '\'' +
-                ", directives=" + directives +
-                ", selectionSet=" + selectionSet +
-                '}';
+            "typeCondition='" + typeCondition + '\'' +
+            ", directives=" + directives +
+            ", selectionSet=" + selectionSet +
+            '}';
     }
 
     @Override
@@ -156,6 +162,8 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
         private SelectionSet selectionSet;
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -169,6 +177,8 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
             this.selectionSet = existing.getSelectionSet();
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -219,9 +229,18 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
 
         public InlineFragment build() {
-            return new InlineFragment(typeCondition, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData);
+            return new InlineFragment(typeCondition, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,8 +30,15 @@ public class Directive extends AbstractNode<Directive> implements NamedNode<Dire
     public static final String CHILD_ARGUMENTS = "arguments";
 
     @Internal
-    protected Directive(String name, List<Argument> arguments, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected Directive(String name,
+                        List<Argument> arguments,
+                        SourceLocation sourceLocation,
+                        List<Comment> comments,
+                        IgnoredChars ignoredChars,
+                        Map<String, String> additionalData,
+                        @Nullable PsiElement element,
+                        @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
         this.arguments = ImmutableList.copyOf(arguments);
     }
@@ -41,7 +50,7 @@ public class Directive extends AbstractNode<Directive> implements NamedNode<Dire
      * @param arguments of the directive
      */
     public Directive(String name, List<Argument> arguments) {
-        this(name, arguments, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, arguments, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
 
@@ -51,7 +60,7 @@ public class Directive extends AbstractNode<Directive> implements NamedNode<Dire
      * @param name of the directive
      */
     public Directive(String name) {
-        this(name, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public List<Argument> getArguments() {
@@ -81,14 +90,14 @@ public class Directive extends AbstractNode<Directive> implements NamedNode<Dire
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .children(CHILD_ARGUMENTS, arguments)
-                .build();
+            .children(CHILD_ARGUMENTS, arguments)
+            .build();
     }
 
     @Override
     public Directive withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .arguments(newChildren.getChildren(CHILD_ARGUMENTS))
+            .arguments(newChildren.getChildren(CHILD_ARGUMENTS))
         );
     }
 
@@ -109,15 +118,15 @@ public class Directive extends AbstractNode<Directive> implements NamedNode<Dire
 
     @Override
     public Directive deepCopy() {
-        return new Directive(name, deepCopy(arguments), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new Directive(name, deepCopy(arguments), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "Directive{" +
-                "name='" + name + '\'' +
-                ", arguments=" + arguments +
-                '}';
+            "name='" + name + '\'' +
+            ", arguments=" + arguments +
+            '}';
     }
 
     @Override
@@ -142,6 +151,8 @@ public class Directive extends AbstractNode<Directive> implements NamedNode<Dire
         private ImmutableList<Argument> arguments = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -153,6 +164,8 @@ public class Directive extends AbstractNode<Directive> implements NamedNode<Dire
             this.arguments = ImmutableList.copyOf(existing.getArguments());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -177,7 +190,7 @@ public class Directive extends AbstractNode<Directive> implements NamedNode<Dire
         }
 
         public Builder argument(Argument argument) {
-            this.arguments = ImmutableKit.addToList(arguments,argument);
+            this.arguments = ImmutableKit.addToList(arguments, argument);
             return this;
         }
 
@@ -196,9 +209,19 @@ public class Directive extends AbstractNode<Directive> implements NamedNode<Dire
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public Directive build() {
-            return new Directive(name, arguments, sourceLocation, comments, ignoredChars, additionalData);
+            return new Directive(name, arguments, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

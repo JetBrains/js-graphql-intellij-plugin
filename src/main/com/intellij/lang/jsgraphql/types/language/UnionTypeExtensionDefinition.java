@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,35 +26,42 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
                                            SourceLocation sourceLocation,
                                            List<Comment> comments,
                                            IgnoredChars ignoredChars,
-                                           Map<String, String> additionalData) {
+                                           Map<String, String> additionalData,
+                                           @Nullable PsiElement element,
+                                           @Nullable List<? extends Node> sourceNodes) {
         super(name,
-                directives,
-                memberTypes,
-                description,
-                sourceLocation,
-                comments,
-                ignoredChars,
-                additionalData);
+            directives,
+            memberTypes,
+            description,
+            sourceLocation,
+            comments,
+            ignoredChars,
+            additionalData,
+            element,
+            sourceNodes);
     }
 
     @Override
     public UnionTypeExtensionDefinition deepCopy() {
         return new UnionTypeExtensionDefinition(getName(),
-                deepCopy(getDirectives()),
-                deepCopy(getMemberTypes()),
-                getDescription(),
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(), getAdditionalData());
+            deepCopy(getDirectives()),
+            deepCopy(getMemberTypes()),
+            getDescription(),
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "UnionTypeExtensionDefinition{" +
-                "name='" + getName() + '\'' +
-                "directives=" + getDirectives() +
-                ", memberTypes=" + getMemberTypes() +
-                '}';
+            "name='" + getName() + '\'' +
+            "directives=" + getDirectives() +
+            ", memberTypes=" + getMemberTypes() +
+            '}';
     }
 
     public static Builder newUnionTypeExtensionDefinition() {
@@ -62,8 +71,8 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
     @Override
     public UnionTypeExtensionDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transformExtension(builder -> builder
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
-                .memberTypes(newChildren.getChildren(CHILD_MEMBER_TYPES))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .memberTypes(newChildren.getChildren(CHILD_MEMBER_TYPES))
         );
     }
 
@@ -82,6 +91,8 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
         private ImmutableList<Type> memberTypes = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -94,6 +105,8 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
             this.directives = ImmutableList.copyOf(existing.getDirectives());
             this.memberTypes = ImmutableList.copyOf(existing.getMemberTypes());
             this.ignoredChars = existing.getIgnoredChars();
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -152,16 +165,27 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
 
         public UnionTypeExtensionDefinition build() {
             return new UnionTypeExtensionDefinition(name,
-                    directives,
-                    memberTypes,
-                    description,
-                    sourceLocation,
-                    comments,
-                    ignoredChars,
-                    additionalData);
+                directives,
+                memberTypes,
+                description,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 }

@@ -6,6 +6,8 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -22,8 +24,14 @@ import static com.intellij.lang.jsgraphql.types.language.NodeUtil.assertNewChild
 public class NullValue extends AbstractNode<NullValue> implements Value<NullValue> {
 
     @Internal
-    protected NullValue(SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected NullValue(SourceLocation sourceLocation,
+                        List<Comment> comments,
+                        IgnoredChars ignoredChars,
+                        Map<String, String> additionalData,
+                        @Nullable PsiElement element,
+                        @Nullable List<? extends Node> sourceNodes
+    ) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
     }
 
     @Override
@@ -63,7 +71,7 @@ public class NullValue extends AbstractNode<NullValue> implements Value<NullValu
     @Override
     public String toString() {
         return "NullValue{" +
-                '}';
+            '}';
     }
 
     @Override
@@ -87,12 +95,16 @@ public class NullValue extends AbstractNode<NullValue> implements Value<NullValu
         private ImmutableList<Comment> comments = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder(NullValue existing) {
             this.sourceLocation = existing.getSourceLocation();
             this.comments = ImmutableList.copyOf(existing.getComments());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         private Builder() {
@@ -123,9 +135,19 @@ public class NullValue extends AbstractNode<NullValue> implements Value<NullValu
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public NullValue build() {
-            return new NullValue(sourceLocation, comments, ignoredChars, additionalData);
+            return new NullValue(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

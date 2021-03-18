@@ -6,6 +6,8 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,8 +27,14 @@ public class NonNullType extends AbstractNode<NonNullType> implements Type<NonNu
     public static final String CHILD_TYPE = "type";
 
     @Internal
-    protected NonNullType(Type type, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected NonNullType(Type type,
+                          SourceLocation sourceLocation,
+                          List<Comment> comments,
+                          IgnoredChars ignoredChars,
+                          Map<String, String> additionalData,
+                          @Nullable PsiElement element,
+                          @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.type = type;
     }
 
@@ -36,7 +44,7 @@ public class NonNullType extends AbstractNode<NonNullType> implements Type<NonNu
      * @param type the wrapped type
      */
     public NonNullType(Type type) {
-        this(type, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(type, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public Type getType() {
@@ -51,14 +59,14 @@ public class NonNullType extends AbstractNode<NonNullType> implements Type<NonNu
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_TYPE, type)
-                .build();
+            .child(CHILD_TYPE, type)
+            .build();
     }
 
     @Override
     public NonNullType withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .type((Type) newChildren.getChildOrNull(CHILD_TYPE))
+            .type((Type) newChildren.getChildOrNull(CHILD_TYPE))
         );
     }
 
@@ -77,14 +85,14 @@ public class NonNullType extends AbstractNode<NonNullType> implements Type<NonNu
 
     @Override
     public NonNullType deepCopy() {
-        return new NonNullType(deepCopy(type), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new NonNullType(deepCopy(type), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "NonNullType{" +
-                "type=" + type +
-                '}';
+            "type=" + type +
+            '}';
     }
 
     @Override
@@ -112,6 +120,8 @@ public class NonNullType extends AbstractNode<NonNullType> implements Type<NonNu
         private ImmutableList<Comment> comments = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -122,6 +132,8 @@ public class NonNullType extends AbstractNode<NonNullType> implements Type<NonNu
             this.type = existing.getType();
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -168,9 +180,19 @@ public class NonNullType extends AbstractNode<NonNullType> implements Type<NonNu
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public NonNullType build() {
-            return new NonNullType(type, sourceLocation, comments, ignoredChars, additionalData);
+            return new NonNullType(type, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

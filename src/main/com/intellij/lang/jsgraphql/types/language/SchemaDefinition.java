@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -35,8 +37,10 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition> im
                                List<Comment> comments,
                                IgnoredChars ignoredChars,
                                Map<String, String> additionalData,
-                               Description description) {
-        super(sourceLocation, comments, ignoredChars, additionalData, description);
+                               Description description,
+                               @Nullable PsiElement element,
+                               @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
         this.directives = ImmutableList.copyOf(directives);
         this.operationTypeDefinitions = ImmutableList.copyOf(operationTypeDefinitions);
     }
@@ -64,16 +68,16 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition> im
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .children(CHILD_DIRECTIVES, directives)
-                .children(CHILD_OPERATION_TYPE_DEFINITIONS, operationTypeDefinitions)
-                .build();
+            .children(CHILD_DIRECTIVES, directives)
+            .children(CHILD_OPERATION_TYPE_DEFINITIONS, operationTypeDefinitions)
+            .build();
     }
 
     @Override
     public SchemaDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
-                .operationTypeDefinitions(newChildren.getChildren(CHILD_OPERATION_TYPE_DEFINITIONS))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .operationTypeDefinitions(newChildren.getChildren(CHILD_OPERATION_TYPE_DEFINITIONS))
         );
     }
 
@@ -91,15 +95,15 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition> im
     @Override
     public SchemaDefinition deepCopy() {
         return new SchemaDefinition(deepCopy(directives), deepCopy(operationTypeDefinitions), getSourceLocation(), getComments(),
-                getIgnoredChars(), getAdditionalData(), description);
+            getIgnoredChars(), getAdditionalData(), description, getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "SchemaDefinition{" +
-                "directives=" + directives +
-                ", operationTypeDefinitions=" + operationTypeDefinitions +
-                "}";
+            "directives=" + directives +
+            ", operationTypeDefinitions=" + operationTypeDefinitions +
+            "}";
     }
 
     @Override
@@ -125,6 +129,8 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition> im
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
         private Description description;
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
 
         protected Builder() {
@@ -138,6 +144,8 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition> im
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
             this.description = existing.getDescription();
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder description(Description description) {
@@ -190,14 +198,26 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition> im
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public SchemaDefinition build() {
             return new SchemaDefinition(directives,
-                    operationTypeDefinitions,
-                    sourceLocation,
-                    comments,
-                    ignoredChars,
-                    additionalData,
-                    description);
+                operationTypeDefinitions,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                description,
+                element,
+                sourceNodes);
         }
     }
 }

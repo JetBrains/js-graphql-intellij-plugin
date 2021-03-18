@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,8 +27,14 @@ public class ObjectValue extends AbstractNode<ObjectValue> implements Value<Obje
     public static final String CHILD_OBJECT_FIELDS = "objectFields";
 
     @Internal
-    protected ObjectValue(List<ObjectField> objectFields, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected ObjectValue(List<ObjectField> objectFields,
+                          SourceLocation sourceLocation,
+                          List<Comment> comments,
+                          IgnoredChars ignoredChars,
+                          Map<String, String> additionalData,
+                          @Nullable PsiElement element,
+                          @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.objectFields = ImmutableList.copyOf(objectFields);
     }
 
@@ -36,7 +44,7 @@ public class ObjectValue extends AbstractNode<ObjectValue> implements Value<Obje
      * @param objectFields the list of field that make up this object value
      */
     public ObjectValue(List<ObjectField> objectFields) {
-        this(objectFields, null, emptyList(), IgnoredChars.EMPTY, ImmutableKit.emptyMap());
+        this(objectFields, null, emptyList(), IgnoredChars.EMPTY, ImmutableKit.emptyMap(), null, null);
     }
 
     public List<ObjectField> getObjectFields() {
@@ -51,14 +59,14 @@ public class ObjectValue extends AbstractNode<ObjectValue> implements Value<Obje
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .children(CHILD_OBJECT_FIELDS, objectFields)
-                .build();
+            .children(CHILD_OBJECT_FIELDS, objectFields)
+            .build();
     }
 
     @Override
     public ObjectValue withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .objectFields(newChildren.getChildren(CHILD_OBJECT_FIELDS))
+            .objectFields(newChildren.getChildren(CHILD_OBJECT_FIELDS))
         );
     }
 
@@ -77,15 +85,15 @@ public class ObjectValue extends AbstractNode<ObjectValue> implements Value<Obje
 
     @Override
     public ObjectValue deepCopy() {
-        return new ObjectValue(deepCopy(objectFields), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new ObjectValue(deepCopy(objectFields), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
 
     @Override
     public String toString() {
         return "ObjectValue{" +
-                "objectFields=" + objectFields +
-                '}';
+            "objectFields=" + objectFields +
+            '}';
     }
 
     @Override
@@ -110,6 +118,8 @@ public class ObjectValue extends AbstractNode<ObjectValue> implements Value<Obje
         private ImmutableList<Comment> comments = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -119,6 +129,8 @@ public class ObjectValue extends AbstractNode<ObjectValue> implements Value<Obje
             this.comments = ImmutableList.copyOf(existing.getComments());
             this.objectFields = ImmutableList.copyOf(existing.getObjectFields());
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -156,8 +168,18 @@ public class ObjectValue extends AbstractNode<ObjectValue> implements Value<Obje
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public ObjectValue build() {
-            return new ObjectValue(objectFields, sourceLocation, comments, ignoredChars, additionalData);
+            return new ObjectValue(objectFields, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

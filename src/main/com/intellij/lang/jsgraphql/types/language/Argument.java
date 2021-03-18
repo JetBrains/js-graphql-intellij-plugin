@@ -6,11 +6,11 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
@@ -26,8 +26,15 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
     private final Value value;
 
     @Internal
-    protected Argument(String name, Value value, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected Argument(String name,
+                       Value value,
+                       SourceLocation sourceLocation,
+                       List<Comment> comments,
+                       IgnoredChars ignoredChars,
+                       Map<String, String> additionalData,
+                       @Nullable PsiElement element,
+                       @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
         this.value = value;
     }
@@ -39,7 +46,7 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
      * @param value of the argument
      */
     public Argument(String name, Value value) {
-        this(name, value, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public static Builder newArgument() {
@@ -67,14 +74,14 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_VALUE, value)
-                .build();
+            .child(CHILD_VALUE, value)
+            .build();
     }
 
     @Override
     public Argument withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .value(newChildren.getChildOrNull(CHILD_VALUE))
+            .value(newChildren.getChildOrNull(CHILD_VALUE))
         );
     }
 
@@ -95,15 +102,15 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
 
     @Override
     public Argument deepCopy() {
-        return new Argument(name, deepCopy(value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new Argument(name, deepCopy(value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "Argument{" +
-                "name='" + name + '\'' +
-                ", value=" + value +
-                '}';
+            "name='" + name + '\'' +
+            ", value=" + value +
+            '}';
     }
 
     @Override
@@ -124,6 +131,8 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
         private Value value;
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -135,6 +144,8 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
             this.value = existing.getValue();
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -172,8 +183,18 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public Argument build() {
-            return new Argument(name, value, sourceLocation, comments, ignoredChars, additionalData);
+            return new Argument(name, value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

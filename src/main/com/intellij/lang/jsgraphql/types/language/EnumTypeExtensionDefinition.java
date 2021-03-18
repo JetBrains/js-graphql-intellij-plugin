@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,29 +26,34 @@ public class EnumTypeExtensionDefinition extends EnumTypeDefinition {
                                           SourceLocation sourceLocation,
                                           List<Comment> comments,
                                           IgnoredChars ignoredChars,
-                                          Map<String, String> additionalData) {
+                                          Map<String, String> additionalData,
+                                          @Nullable PsiElement element,
+                                          @Nullable List<? extends Node> sourceNodes) {
         super(name, enumValueDefinitions, directives, description,
-                sourceLocation, comments, ignoredChars, additionalData);
+            sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
     }
 
     @Override
     public EnumTypeExtensionDefinition deepCopy() {
         return new EnumTypeExtensionDefinition(getName(),
-                deepCopy(getEnumValueDefinitions()),
-                deepCopy(getDirectives()),
-                getDescription(),
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(), getAdditionalData());
+            deepCopy(getEnumValueDefinitions()),
+            deepCopy(getDirectives()),
+            getDescription(),
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "EnumTypeDefinition{" +
-                "name='" + getName() + '\'' +
-                ", enumValueDefinitions=" + getEnumValueDefinitions() +
-                ", directives=" + getDirectives() +
-                '}';
+            "name='" + getName() + '\'' +
+            ", enumValueDefinitions=" + getEnumValueDefinitions() +
+            ", directives=" + getDirectives() +
+            '}';
     }
 
     public static Builder newEnumTypeExtensionDefinition() {
@@ -56,8 +63,8 @@ public class EnumTypeExtensionDefinition extends EnumTypeDefinition {
     @Override
     public EnumTypeExtensionDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transformExtension(builder -> builder
-                .enumValueDefinitions(newChildren.getChildren(CHILD_ENUM_VALUE_DEFINITIONS))
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .enumValueDefinitions(newChildren.getChildren(CHILD_ENUM_VALUE_DEFINITIONS))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
         );
     }
 
@@ -76,6 +83,8 @@ public class EnumTypeExtensionDefinition extends EnumTypeDefinition {
         private ImmutableList<Directive> directives = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -89,6 +98,8 @@ public class EnumTypeExtensionDefinition extends EnumTypeDefinition {
             this.enumValueDefinitions = ImmutableList.copyOf(existing.getEnumValueDefinitions());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -142,15 +153,29 @@ public class EnumTypeExtensionDefinition extends EnumTypeDefinition {
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
+
 
         public EnumTypeExtensionDefinition build() {
             return new EnumTypeExtensionDefinition(name,
-                    enumValueDefinitions,
-                    directives,
-                    description,
-                    sourceLocation,
-                    comments,
-                    ignoredChars, additionalData);
+                enumValueDefinitions,
+                directives,
+                description,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 

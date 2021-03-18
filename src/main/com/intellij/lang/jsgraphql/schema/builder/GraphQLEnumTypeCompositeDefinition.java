@@ -1,10 +1,10 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.lang.jsgraphql.types.language.Directive;
 import com.intellij.lang.jsgraphql.types.language.EnumTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.EnumTypeExtensionDefinition;
 import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -37,6 +37,7 @@ public class GraphQLEnumTypeCompositeDefinition
             builder
                 .directives(toList(directives))
                 .enumValueDefinitions(toList(enumValueDefinitions))
+                .sourceNodes(myDefinitions)
         );
     }
 
@@ -48,7 +49,10 @@ public class GraphQLEnumTypeCompositeDefinition
                 mergeExtensionNodes(mapNamedNodesByKey(extension.getEnumValueDefinitions()), myEnumValueDefinitions);
 
             return extension.transformExtension(builder ->
-                builder.directives(toList(directives)).enumValueDefinitions(toList(enumValueDefinitions))
+                builder
+                    .directives(toList(directives))
+                    .enumValueDefinitions(toList(enumValueDefinitions))
+                    .sourceNodes(Collections.singletonList(extension))
             );
         });
     }

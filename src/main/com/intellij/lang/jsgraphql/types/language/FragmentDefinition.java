@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -38,8 +40,10 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition> impleme
                                  SourceLocation sourceLocation,
                                  List<Comment> comments,
                                  IgnoredChars ignoredChars,
-                                 Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+                                 Map<String, String> additionalData,
+                                 @Nullable PsiElement element,
+                                 @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
         this.typeCondition = typeCondition;
         this.directives = ImmutableList.copyOf(directives);
@@ -79,18 +83,18 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition> impleme
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_TYPE_CONDITION, typeCondition)
-                .children(CHILD_DIRECTIVES, directives)
-                .child(CHILD_SELECTION_SET, selectionSet)
-                .build();
+            .child(CHILD_TYPE_CONDITION, typeCondition)
+            .children(CHILD_DIRECTIVES, directives)
+            .child(CHILD_SELECTION_SET, selectionSet)
+            .build();
     }
 
     @Override
     public FragmentDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .typeCondition(newChildren.getChildOrNull(CHILD_TYPE_CONDITION))
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
-                .selectionSet(newChildren.getChildOrNull(CHILD_SELECTION_SET))
+            .typeCondition(newChildren.getChildOrNull(CHILD_TYPE_CONDITION))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .selectionSet(newChildren.getChildOrNull(CHILD_SELECTION_SET))
         );
     }
 
@@ -111,23 +115,25 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition> impleme
     @Override
     public FragmentDefinition deepCopy() {
         return new FragmentDefinition(name,
-                deepCopy(typeCondition),
-                deepCopy(directives),
-                deepCopy(selectionSet),
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            deepCopy(typeCondition),
+            deepCopy(directives),
+            deepCopy(selectionSet),
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "FragmentDefinition{" +
-                "name='" + name + '\'' +
-                ", typeCondition='" + typeCondition + '\'' +
-                ", directives=" + directives +
-                ", selectionSet=" + selectionSet +
-                '}';
+            "name='" + name + '\'' +
+            ", typeCondition='" + typeCondition + '\'' +
+            ", directives=" + directives +
+            ", selectionSet=" + selectionSet +
+            '}';
     }
 
     @Override
@@ -155,6 +161,8 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition> impleme
         private SelectionSet selectionSet;
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -168,6 +176,8 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition> impleme
             this.selectionSet = existing.getSelectionSet();
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -222,9 +232,19 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition> impleme
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public FragmentDefinition build() {
-            return new FragmentDefinition(name, typeCondition, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData);
+            return new FragmentDefinition(name, typeCondition, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

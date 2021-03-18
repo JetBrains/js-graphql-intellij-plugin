@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -43,8 +45,10 @@ public class OperationDefinition extends AbstractNode<OperationDefinition> imple
                                   SourceLocation sourceLocation,
                                   List<Comment> comments,
                                   IgnoredChars ignoredChars,
-                                  Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+                                  Map<String, String> additionalData,
+                                  @Nullable PsiElement element,
+                                  @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
         this.operation = operation;
         this.variableDefinitions = ImmutableList.copyOf(variableDefinitions);
@@ -52,13 +56,12 @@ public class OperationDefinition extends AbstractNode<OperationDefinition> imple
         this.selectionSet = selectionSet;
     }
 
-    public OperationDefinition(String name,
-                               Operation operation) {
-        this(name, operation, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+    public OperationDefinition(String name, Operation operation) {
+        this(name, operation, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public OperationDefinition(String name) {
-        this(name, null, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, null, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     @Override
@@ -73,18 +76,18 @@ public class OperationDefinition extends AbstractNode<OperationDefinition> imple
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .children(CHILD_VARIABLE_DEFINITIONS, variableDefinitions)
-                .children(CHILD_DIRECTIVES, directives)
-                .child(CHILD_SELECTION_SET, selectionSet)
-                .build();
+            .children(CHILD_VARIABLE_DEFINITIONS, variableDefinitions)
+            .children(CHILD_DIRECTIVES, directives)
+            .child(CHILD_SELECTION_SET, selectionSet)
+            .build();
     }
 
     @Override
     public OperationDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .variableDefinitions(newChildren.getChildren(CHILD_VARIABLE_DEFINITIONS))
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
-                .selectionSet(newChildren.getChildOrNull(CHILD_SELECTION_SET))
+            .variableDefinitions(newChildren.getChildren(CHILD_VARIABLE_DEFINITIONS))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .selectionSet(newChildren.getChildOrNull(CHILD_SELECTION_SET))
         );
     }
 
@@ -127,25 +130,27 @@ public class OperationDefinition extends AbstractNode<OperationDefinition> imple
     @Override
     public OperationDefinition deepCopy() {
         return new OperationDefinition(name,
-                operation,
-                deepCopy(variableDefinitions),
-                deepCopy(directives),
-                deepCopy(selectionSet),
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            operation,
+            deepCopy(variableDefinitions),
+            deepCopy(directives),
+            deepCopy(selectionSet),
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "OperationDefinition{" +
-                "name='" + name + '\'' +
-                ", operation=" + operation +
-                ", variableDefinitions=" + variableDefinitions +
-                ", directives=" + directives +
-                ", selectionSet=" + selectionSet +
-                '}';
+            "name='" + name + '\'' +
+            ", operation=" + operation +
+            ", variableDefinitions=" + variableDefinitions +
+            ", directives=" + directives +
+            ", selectionSet=" + selectionSet +
+            '}';
     }
 
     @Override
@@ -173,6 +178,8 @@ public class OperationDefinition extends AbstractNode<OperationDefinition> imple
         private SelectionSet selectionSet;
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -187,6 +194,8 @@ public class OperationDefinition extends AbstractNode<OperationDefinition> imple
             this.selectionSet = existing.getSelectionSet();
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -230,6 +239,7 @@ public class OperationDefinition extends AbstractNode<OperationDefinition> imple
             this.directives = ImmutableKit.addToList(directives, directive);
             return this;
         }
+
         public Builder selectionSet(SelectionSet selectionSet) {
             this.selectionSet = selectionSet;
             return this;
@@ -250,17 +260,29 @@ public class OperationDefinition extends AbstractNode<OperationDefinition> imple
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public OperationDefinition build() {
             return new OperationDefinition(
-                    name,
-                    operation,
-                    variableDefinitions,
-                    directives,
-                    selectionSet,
-                    sourceLocation,
-                    comments,
-                    ignoredChars,
-                    additionalData);
+                name,
+                operation,
+                variableDefinitions,
+                directives,
+                selectionSet,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 }

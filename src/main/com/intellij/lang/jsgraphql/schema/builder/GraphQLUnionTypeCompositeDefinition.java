@@ -1,10 +1,10 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.lang.jsgraphql.types.language.Directive;
 import com.intellij.lang.jsgraphql.types.language.Type;
 import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.UnionTypeExtensionDefinition;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -39,6 +39,7 @@ public class GraphQLUnionTypeCompositeDefinition
             builder
                 .directives(toList(directives))
                 .memberTypes(toList(memberTypes))
+                .sourceNodes(myDefinitions)
         );
     }
 
@@ -50,7 +51,10 @@ public class GraphQLUnionTypeCompositeDefinition
             Map<String, Type> memberTypes = mergeExtensionNodes(mapTypeNodesByKey(extension.getMemberTypes()), myMemberTypes);
 
             return extension.transformExtension(builder ->
-                builder.directives(toList(directives)).memberTypes(toList(memberTypes))
+                builder
+                    .directives(toList(directives))
+                    .memberTypes(toList(memberTypes))
+                    .sourceNodes(Collections.singletonList(extension))
             );
         });
     }

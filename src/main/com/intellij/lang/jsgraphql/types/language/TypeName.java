@@ -6,6 +6,8 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,8 +27,14 @@ public class TypeName extends AbstractNode<TypeName> implements Type<TypeName>, 
     private final String name;
 
     @Internal
-    protected TypeName(String name, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected TypeName(String name,
+                       SourceLocation sourceLocation,
+                       List<Comment> comments,
+                       IgnoredChars ignoredChars,
+                       Map<String, String> additionalData,
+                       @Nullable PsiElement element,
+                       @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
     }
 
@@ -36,7 +44,7 @@ public class TypeName extends AbstractNode<TypeName> implements Type<TypeName>, 
      * @param name of the type
      */
     public TypeName(String name) {
-        this(name, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
 
@@ -76,14 +84,14 @@ public class TypeName extends AbstractNode<TypeName> implements Type<TypeName>, 
 
     @Override
     public TypeName deepCopy() {
-        return new TypeName(name, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new TypeName(name, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "TypeName{" +
-                "name='" + name + '\'' +
-                '}';
+            "name='" + name + '\'' +
+            '}';
     }
 
     @Override
@@ -112,6 +120,8 @@ public class TypeName extends AbstractNode<TypeName> implements Type<TypeName>, 
         private ImmutableList<Comment> comments = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -121,6 +131,8 @@ public class TypeName extends AbstractNode<TypeName> implements Type<TypeName>, 
             this.comments = ImmutableList.copyOf(existing.getComments());
             this.name = existing.getName();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -154,8 +166,18 @@ public class TypeName extends AbstractNode<TypeName> implements Type<TypeName>, 
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public TypeName build() {
-            return new TypeName(name, sourceLocation, comments, ignoredChars, additionalData);
+            return new TypeName(name, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

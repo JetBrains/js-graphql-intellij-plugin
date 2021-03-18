@@ -4,10 +4,15 @@ package com.intellij.lang.jsgraphql.types.language;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.openapi.util.UserDataHolderEx;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The base interface for virtually all graphql language elements
@@ -109,5 +114,15 @@ public interface Node<T extends Node> extends Serializable {
      */
     TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor);
 
+    @Nullable
+    PsiElement getElement();
 
+    @NotNull Set<PsiElement> getElements();
+
+    @NotNull
+    List<Node> getSourceNodes();
+
+    default boolean isComposite() {
+        return !getSourceNodes().isEmpty();
+    }
 }

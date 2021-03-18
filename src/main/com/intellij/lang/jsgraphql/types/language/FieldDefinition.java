@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -36,17 +38,18 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition> impl
                               SourceLocation sourceLocation,
                               List<Comment> comments,
                               IgnoredChars ignoredChars,
-                              Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData, description);
+                              Map<String, String> additionalData,
+                              @Nullable PsiElement element,
+                              @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
         this.name = name;
         this.type = type;
         this.inputValueDefinitions = ImmutableList.copyOf(inputValueDefinitions);
         this.directives = ImmutableList.copyOf(directives);
     }
 
-    public FieldDefinition(String name,
-                           Type type) {
-        this(name, type, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+    public FieldDefinition(String name, Type type) {
+        this(name, type, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public Type getType() {
@@ -79,18 +82,18 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition> impl
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_TYPE, type)
-                .children(CHILD_INPUT_VALUE_DEFINITION, inputValueDefinitions)
-                .children(CHILD_DIRECTIVES, directives)
-                .build();
+            .child(CHILD_TYPE, type)
+            .children(CHILD_INPUT_VALUE_DEFINITION, inputValueDefinitions)
+            .children(CHILD_DIRECTIVES, directives)
+            .build();
     }
 
     @Override
     public FieldDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .type(newChildren.getChildOrNull(CHILD_TYPE))
-                .inputValueDefinitions(newChildren.getChildren(CHILD_INPUT_VALUE_DEFINITION))
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .type(newChildren.getChildOrNull(CHILD_TYPE))
+            .inputValueDefinitions(newChildren.getChildren(CHILD_INPUT_VALUE_DEFINITION))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
         );
     }
 
@@ -111,24 +114,26 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition> impl
     @Override
     public FieldDefinition deepCopy() {
         return new FieldDefinition(name,
-                deepCopy(type),
-                deepCopy(inputValueDefinitions),
-                deepCopy(directives),
-                description,
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            deepCopy(type),
+            deepCopy(inputValueDefinitions),
+            deepCopy(directives),
+            description,
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "FieldDefinition{" +
-                "name='" + name + '\'' +
-                ", type=" + type +
-                ", inputValueDefinitions=" + inputValueDefinitions +
-                ", directives=" + directives +
-                '}';
+            "name='" + name + '\'' +
+            ", type=" + type +
+            ", inputValueDefinitions=" + inputValueDefinitions +
+            ", directives=" + directives +
+            '}';
     }
 
     @Override
@@ -156,6 +161,8 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition> impl
         private ImmutableList<Directive> directives = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -170,6 +177,8 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition> impl
             this.directives = ImmutableList.copyOf(existing.getDirectives());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -235,9 +244,19 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition> impl
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public FieldDefinition build() {
-            return new FieldDefinition(name, type, inputValueDefinitions, directives, description, sourceLocation, comments, ignoredChars, additionalData);
+            return new FieldDefinition(name, type, inputValueDefinitions, directives, description, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

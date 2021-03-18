@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -36,8 +38,10 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
                                    SourceLocation sourceLocation,
                                    List<Comment> comments,
                                    IgnoredChars ignoredChars,
-                                   Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData, description);
+                                   Map<String, String> additionalData,
+                                   @Nullable PsiElement element,
+                                   @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
         this.name = name;
         this.type = type;
         this.defaultValue = defaultValue;
@@ -50,9 +54,8 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
      * @param name of the input value
      * @param type of the input value
      */
-    public InputValueDefinition(String name,
-                                Type type) {
-        this(name, type, null, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+    public InputValueDefinition(String name, Type type) {
+        this(name, type, null, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
 
     }
 
@@ -64,10 +67,8 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
      * @param defaultValue of the input value
      */
 
-    public InputValueDefinition(String name,
-                                Type type,
-                                Value defaultValue) {
-        this(name, type, defaultValue, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+    public InputValueDefinition(String name, Type type, Value defaultValue) {
+        this(name, type, defaultValue, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
 
     }
 
@@ -102,18 +103,18 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_TYPE, type)
-                .child(CHILD_DEFAULT_VALUE, defaultValue)
-                .children(CHILD_DIRECTIVES, directives)
-                .build();
+            .child(CHILD_TYPE, type)
+            .child(CHILD_DEFAULT_VALUE, defaultValue)
+            .children(CHILD_DIRECTIVES, directives)
+            .build();
     }
 
     @Override
     public InputValueDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .type(newChildren.getChildOrNull(CHILD_TYPE))
-                .defaultValue(newChildren.getChildOrNull(CHILD_DEFAULT_VALUE))
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .type(newChildren.getChildOrNull(CHILD_TYPE))
+            .defaultValue(newChildren.getChildOrNull(CHILD_DEFAULT_VALUE))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
 
         );
     }
@@ -135,24 +136,26 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
     @Override
     public InputValueDefinition deepCopy() {
         return new InputValueDefinition(name,
-                deepCopy(type),
-                deepCopy(defaultValue),
-                deepCopy(directives),
-                description,
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            deepCopy(type),
+            deepCopy(defaultValue),
+            deepCopy(directives),
+            description,
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "InputValueDefinition{" +
-                "name='" + name + '\'' +
-                ", type=" + type +
-                ", defaultValue=" + defaultValue +
-                ", directives=" + directives +
-                '}';
+            "name='" + name + '\'' +
+            ", type=" + type +
+            ", defaultValue=" + defaultValue +
+            ", directives=" + directives +
+            '}';
     }
 
     @Override
@@ -180,6 +183,8 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
         private ImmutableList<Directive> directives = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -193,6 +198,8 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
             this.description = existing.getDescription();
             this.directives = ImmutableList.copyOf(existing.getDirectives());
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -252,16 +259,28 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
 
         public InputValueDefinition build() {
             return new InputValueDefinition(name,
-                    type,
-                    defaultValue,
-                    directives,
-                    description,
-                    sourceLocation,
-                    comments,
-                    ignoredChars, additionalData);
+                type,
+                defaultValue,
+                directives,
+                description,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 }

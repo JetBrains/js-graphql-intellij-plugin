@@ -1,13 +1,9 @@
 package com.intellij.lang.jsgraphql.schema;
 
 
-import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -717,8 +713,9 @@ public class GraphQLPsiToLanguage {
         }
     }
 
-    protected void addCommonData(NodeBuilder nodeBuilder, PsiElement element) {
+    protected void addCommonData(NodeBuilder nodeBuilder, @NotNull PsiElement element) {
         nodeBuilder.sourceLocation(getSourceLocation(element));
+        nodeBuilder.element(element);
     }
 
     protected @Nullable Description newDescription(@Nullable GraphQLQuotedString description) {
@@ -734,20 +731,11 @@ public class GraphQLPsiToLanguage {
             content = parseSingleQuotedString(content);
         }
         SourceLocation sourceLocation = getSourceLocation(description);
-        return new Description(content, sourceLocation, multiLine);
+        return new Description(content, sourceLocation, multiLine, description);
     }
 
     protected @NotNull SourceLocation getSourceLocation(@NotNull PsiElement element) {
-        InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(element.getProject());
-        PsiFile file = injectedLanguageManager.getTopLevelFile(element);
-        if (file == null) return new SourceLocation(1, 1, "Unknown");
-        com.intellij.openapi.editor.Document document = PsiDocumentManager.getInstance(element.getProject()).getDocument(file);
-        if (document == null) return new SourceLocation(1, 1, "Unknown");
-        int offset = injectedLanguageManager.injectedToHost(element, element.getTextOffset());
-        int lineNumber = document.getLineNumber(offset);
-        int column = offset - document.getLineStartOffset(lineNumber);
-        VirtualFile virtualFile = file.getVirtualFile();
-        return new SourceLocation(lineNumber + 1, column + 1, virtualFile != null ? virtualFile.getPath() : null);
+        return new PsiSourceLocation(element);
     }
 
     private @NotNull List<Type> getImplements(@Nullable GraphQLImplementsInterfaces implementsInterfaces) {

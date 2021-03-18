@@ -8,6 +8,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +48,10 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
                     SourceLocation sourceLocation,
                     List<Comment> comments,
                     IgnoredChars ignoredChars,
-                    Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+                    Map<String, String> additionalData,
+                    @Nullable PsiElement element,
+                    @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
         this.alias = alias;
         this.arguments = ImmutableList.copyOf(arguments);
@@ -62,7 +66,7 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
      * @param name of the field
      */
     public Field(String name) {
-        this(name, null, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, null, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     /**
@@ -72,7 +76,7 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
      * @param arguments to the field
      */
     public Field(String name, List<Argument> arguments) {
-        this(name, null, arguments, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, null, arguments, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     /**
@@ -82,8 +86,10 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
      * @param arguments    to the field
      * @param selectionSet of the field
      */
-    public Field(String name, List<Argument> arguments, SelectionSet selectionSet) {
-        this(name, null, arguments, emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+    public Field(String name,
+                 List<Argument> arguments,
+                 SelectionSet selectionSet) {
+        this(name, null, arguments, emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     /**
@@ -93,7 +99,7 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
      * @param selectionSet of the field
      */
     public Field(String name, SelectionSet selectionSet) {
-        this(name, null, emptyList(), emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, null, emptyList(), emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     @Override
@@ -110,18 +116,18 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return NodeChildrenContainer.newNodeChildrenContainer()
-                .children(CHILD_ARGUMENTS, arguments)
-                .children(CHILD_DIRECTIVES, directives)
-                .child(CHILD_SELECTION_SET, selectionSet)
-                .build();
+            .children(CHILD_ARGUMENTS, arguments)
+            .children(CHILD_DIRECTIVES, directives)
+            .child(CHILD_SELECTION_SET, selectionSet)
+            .build();
     }
 
     @Override
     public Field withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder ->
-                builder.arguments(newChildren.getChildren(CHILD_ARGUMENTS))
-                        .directives(newChildren.getChildren(CHILD_DIRECTIVES))
-                        .selectionSet(newChildren.getChildOrNull(CHILD_SELECTION_SET))
+            builder.arguments(newChildren.getChildren(CHILD_ARGUMENTS))
+                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+                .selectionSet(newChildren.getChildOrNull(CHILD_SELECTION_SET))
         );
     }
 
@@ -170,26 +176,28 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
     @Override
     public Field deepCopy() {
         return new Field(name,
-                alias,
-                deepCopy(arguments),
-                deepCopy(directives),
-                deepCopy(selectionSet),
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData()
+            alias,
+            deepCopy(arguments),
+            deepCopy(directives),
+            deepCopy(selectionSet),
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes()
         );
     }
 
     @Override
     public String toString() {
         return "Field{" +
-                "name='" + name + '\'' +
-                ", alias='" + alias + '\'' +
-                ", arguments=" + arguments +
-                ", directives=" + directives +
-                ", selectionSet=" + selectionSet +
-                '}';
+            "name='" + name + '\'' +
+            ", alias='" + alias + '\'' +
+            ", arguments=" + arguments +
+            ", directives=" + directives +
+            ", selectionSet=" + selectionSet +
+            '}';
     }
 
     @Override
@@ -225,6 +233,8 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
         private SelectionSet selectionSet;
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private ImmutableMap<String, String> additionalData = emptyMap();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -239,6 +249,8 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
             this.selectionSet = existing.getSelectionSet();
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = copyOf(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -298,9 +310,19 @@ public class Field extends AbstractNode<Field> implements Selection<Field>, Sele
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public Field build() {
-            return new Field(name, alias, arguments, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData);
+            return new Field(name, alias, arguments, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

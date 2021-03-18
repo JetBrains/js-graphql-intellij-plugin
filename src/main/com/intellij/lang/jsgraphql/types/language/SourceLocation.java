@@ -42,26 +42,26 @@ public class SourceLocation implements Serializable {
 
         SourceLocation that = (SourceLocation) o;
 
-        if (line != that.line) return false;
-        if (column != that.column) return false;
-        return Objects.equals(sourceName, that.sourceName);
+        if (getLine() != that.getLine()) return false;
+        if (getColumn() != that.getColumn()) return false;
+        return Objects.equals(getSourceName(), that.getSourceName());
     }
 
     @Override
     public int hashCode() {
         int result = 1;
-        result = 31 * result + Integer.hashCode(line);
-        result = 31 * result + Integer.hashCode(column);
-        result = 31 * result + Objects.hashCode(sourceName);
+        result = 31 * result + Integer.hashCode(getLine());
+        result = 31 * result + Integer.hashCode(getColumn());
+        result = 31 * result + Objects.hashCode(getSourceName());
         return result;
     }
 
     @Override
     public String toString() {
         return "SourceLocation{" +
-                "line=" + line +
-                ", column=" + column +
-                (sourceName != null ? ", sourceName=" + sourceName : "") +
+                "line=" + getLine() +
+                ", column=" + getColumn() +
+                (getSourceName() != null ? ", sourceName=" + getSourceName() : "") +
                 '}';
     }
 }

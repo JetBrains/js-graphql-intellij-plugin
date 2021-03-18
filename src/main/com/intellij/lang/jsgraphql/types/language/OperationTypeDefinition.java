@@ -6,6 +6,8 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -24,8 +26,15 @@ public class OperationTypeDefinition extends AbstractNode<OperationTypeDefinitio
     public static final String CHILD_TYPE_NAME = "typeName";
 
     @Internal
-    protected OperationTypeDefinition(String name, TypeName typeName, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected OperationTypeDefinition(String name,
+                                      TypeName typeName,
+                                      SourceLocation sourceLocation,
+                                      List<Comment> comments,
+                                      IgnoredChars ignoredChars,
+                                      Map<String, String> additionalData,
+                                      @Nullable PsiElement element,
+                                      @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
         this.typeName = typeName;
     }
@@ -37,7 +46,7 @@ public class OperationTypeDefinition extends AbstractNode<OperationTypeDefinitio
      * @param typeName the type in play
      */
     public OperationTypeDefinition(String name, TypeName typeName) {
-        this(name, typeName, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, typeName, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public TypeName getTypeName() {
@@ -59,14 +68,14 @@ public class OperationTypeDefinition extends AbstractNode<OperationTypeDefinitio
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_TYPE_NAME, typeName)
-                .build();
+            .child(CHILD_TYPE_NAME, typeName)
+            .build();
     }
 
     @Override
     public OperationTypeDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .typeName(newChildren.getChildOrNull(CHILD_TYPE_NAME))
+            .typeName(newChildren.getChildOrNull(CHILD_TYPE_NAME))
         );
     }
 
@@ -86,15 +95,15 @@ public class OperationTypeDefinition extends AbstractNode<OperationTypeDefinitio
 
     @Override
     public OperationTypeDefinition deepCopy() {
-        return new OperationTypeDefinition(name, deepCopy(typeName), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new OperationTypeDefinition(name, deepCopy(typeName), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "OperationTypeDefinition{" +
-                "name='" + name + "'" +
-                ", typeName=" + typeName +
-                "}";
+            "name='" + name + "'" +
+            ", typeName=" + typeName +
+            "}";
     }
 
     @Override
@@ -119,6 +128,8 @@ public class OperationTypeDefinition extends AbstractNode<OperationTypeDefinitio
         private TypeName typeName;
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -131,6 +142,8 @@ public class OperationTypeDefinition extends AbstractNode<OperationTypeDefinitio
             this.typeName = existing.getTypeName();
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -169,9 +182,18 @@ public class OperationTypeDefinition extends AbstractNode<OperationTypeDefinitio
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
 
         public OperationTypeDefinition build() {
-            return new OperationTypeDefinition(name, typeName, sourceLocation, comments, ignoredChars, additionalData);
+            return new OperationTypeDefinition(name, typeName, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

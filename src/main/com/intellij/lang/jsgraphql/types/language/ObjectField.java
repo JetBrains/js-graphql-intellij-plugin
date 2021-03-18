@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,8 +28,15 @@ public class ObjectField extends AbstractNode<ObjectField> implements NamedNode<
     public static final String CHILD_VALUE = "value";
 
     @Internal
-    protected ObjectField(String name, Value value, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected ObjectField(String name,
+                          Value value,
+                          SourceLocation sourceLocation,
+                          List<Comment> comments,
+                          IgnoredChars ignoredChars,
+                          Map<String, String> additionalData,
+                          @Nullable PsiElement element,
+                          @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
         this.value = value;
     }
@@ -39,7 +48,7 @@ public class ObjectField extends AbstractNode<ObjectField> implements NamedNode<
      * @param value of the field
      */
     public ObjectField(String name, Value value) {
-        this(name, value, null, emptyList(), IgnoredChars.EMPTY, ImmutableKit.emptyMap());
+        this(name, value, null, emptyList(), IgnoredChars.EMPTY, ImmutableKit.emptyMap(), null, null);
     }
 
     @Override
@@ -59,14 +68,14 @@ public class ObjectField extends AbstractNode<ObjectField> implements NamedNode<
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_VALUE, value)
-                .build();
+            .child(CHILD_VALUE, value)
+            .build();
     }
 
     @Override
     public ObjectField withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .value(newChildren.getChildOrNull(CHILD_VALUE))
+            .value(newChildren.getChildOrNull(CHILD_VALUE))
         );
     }
 
@@ -87,15 +96,15 @@ public class ObjectField extends AbstractNode<ObjectField> implements NamedNode<
 
     @Override
     public ObjectField deepCopy() {
-        return new ObjectField(name, deepCopy(this.value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new ObjectField(name, deepCopy(this.value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "ObjectField{" +
-                "name='" + name + '\'' +
-                ", value=" + value +
-                '}';
+            "name='" + name + '\'' +
+            ", value=" + value +
+            '}';
     }
 
     @Override
@@ -120,6 +129,8 @@ public class ObjectField extends AbstractNode<ObjectField> implements NamedNode<
         private Value value;
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -131,6 +142,8 @@ public class ObjectField extends AbstractNode<ObjectField> implements NamedNode<
             this.name = existing.getName();
             this.value = existing.getValue();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -169,9 +182,19 @@ public class ObjectField extends AbstractNode<ObjectField> implements NamedNode<
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public ObjectField build() {
-            return new ObjectField(name, value, sourceLocation, comments, ignoredChars, additionalData);
+            return new ObjectField(name, value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

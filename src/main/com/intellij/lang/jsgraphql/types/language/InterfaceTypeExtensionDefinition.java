@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,30 +27,34 @@ public class InterfaceTypeExtensionDefinition extends InterfaceTypeDefinition {
                                                SourceLocation sourceLocation,
                                                List<Comment> comments,
                                                IgnoredChars ignoredChars,
-                                               Map<String, String> additionalData) {
-        super(name, implementz, definitions, directives, description, sourceLocation, comments, ignoredChars, additionalData);
+                                               Map<String, String> additionalData,
+                                               @Nullable PsiElement element,
+                                               @Nullable List<? extends Node> sourceNodes) {
+        super(name, implementz, definitions, directives, description, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
     }
 
     @Override
     public InterfaceTypeExtensionDefinition deepCopy() {
         return new InterfaceTypeExtensionDefinition(getName(),
-                getImplements(),
-                deepCopy(getFieldDefinitions()),
-                deepCopy(getDirectives()),
-                getDescription(),
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            getImplements(),
+            deepCopy(getFieldDefinitions()),
+            deepCopy(getDirectives()),
+            getDescription(),
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "InterfaceTypeExtensionDefinition{" +
-                "name='" + getName() + '\'' +
-                ", fieldDefinitions=" + getFieldDefinitions() +
-                ", directives=" + getDirectives() +
-                '}';
+            "name='" + getName() + '\'' +
+            ", fieldDefinitions=" + getFieldDefinitions() +
+            ", directives=" + getDirectives() +
+            '}';
 
     }
 
@@ -59,8 +65,8 @@ public class InterfaceTypeExtensionDefinition extends InterfaceTypeDefinition {
     @Override
     public InterfaceTypeExtensionDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transformExtension(builder -> builder
-                .definitions(newChildren.getChildren(CHILD_DEFINITIONS))
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .definitions(newChildren.getChildren(CHILD_DEFINITIONS))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
         );
     }
 
@@ -80,6 +86,8 @@ public class InterfaceTypeExtensionDefinition extends InterfaceTypeDefinition {
         private ImmutableList<Directive> directives = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -94,6 +102,8 @@ public class InterfaceTypeExtensionDefinition extends InterfaceTypeDefinition {
             this.definitions = ImmutableList.copyOf(existing.getFieldDefinitions());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -162,17 +172,29 @@ public class InterfaceTypeExtensionDefinition extends InterfaceTypeDefinition {
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public InterfaceTypeExtensionDefinition build() {
             return new InterfaceTypeExtensionDefinition(name,
-                    implementz,
-                    definitions,
-                    directives,
-                    description,
-                    sourceLocation,
-                    comments,
-                    ignoredChars,
-                    additionalData);
+                implementz,
+                definitions,
+                directives,
+                description,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 }

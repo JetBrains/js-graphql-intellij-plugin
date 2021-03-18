@@ -1,7 +1,10 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.SchemaDefinition;
+import com.intellij.lang.jsgraphql.types.language.SchemaExtensionDefinition;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.lang.jsgraphql.types.language.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -33,6 +36,7 @@ public class GraphQLSchemaTypeCompositeDefinition
         return definition.transform(builder -> builder
             .directives(toList(directives))
             .operationTypeDefinitions(toList(operationTypeDefinitions))
+            .sourceNodes(myDefinitions)
         );
     }
 
@@ -44,7 +48,10 @@ public class GraphQLSchemaTypeCompositeDefinition
                 mergeExtensionNodes(mapNamedNodesByKey(extension.getOperationTypeDefinitions()), myOperationTypeDefinitions);
 
             return extension.transformExtension(builder ->
-                builder.directives(toList(directives)).operationTypeDefinitions(toList(operationTypeDefinitions))
+                builder
+                    .directives(toList(directives))
+                    .operationTypeDefinitions(toList(operationTypeDefinitions))
+                    .sourceNodes(Collections.singletonList(extension))
             );
         });
     }

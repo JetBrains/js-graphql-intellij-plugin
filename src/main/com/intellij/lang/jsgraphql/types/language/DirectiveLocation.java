@@ -6,6 +6,8 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,8 +26,14 @@ public class DirectiveLocation extends AbstractNode<DirectiveLocation> implement
     private final String name;
 
     @Internal
-    protected DirectiveLocation(String name, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected DirectiveLocation(String name,
+                                SourceLocation sourceLocation,
+                                List<Comment> comments,
+                                IgnoredChars ignoredChars,
+                                Map<String, String> additionalData,
+                                @Nullable PsiElement element,
+                                @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
     }
 
@@ -35,7 +43,7 @@ public class DirectiveLocation extends AbstractNode<DirectiveLocation> implement
      * @param name of the directive location
      */
     public DirectiveLocation(String name) {
-        this(name, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     @Override
@@ -75,14 +83,14 @@ public class DirectiveLocation extends AbstractNode<DirectiveLocation> implement
 
     @Override
     public DirectiveLocation deepCopy() {
-        return new DirectiveLocation(name, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new DirectiveLocation(name, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "DirectiveLocation{" +
-                "name='" + name + "'" +
-                "}";
+            "name='" + name + "'" +
+            "}";
     }
 
     @Override
@@ -106,6 +114,8 @@ public class DirectiveLocation extends AbstractNode<DirectiveLocation> implement
         private String name;
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -115,6 +125,8 @@ public class DirectiveLocation extends AbstractNode<DirectiveLocation> implement
             this.comments = ImmutableList.copyOf(existing.getComments());
             this.name = existing.getName();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -147,8 +159,18 @@ public class DirectiveLocation extends AbstractNode<DirectiveLocation> implement
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public DirectiveLocation build() {
-            return new DirectiveLocation(name, sourceLocation, comments, ignoredChars, additionalData);
+            return new DirectiveLocation(name, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

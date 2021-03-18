@@ -86,7 +86,8 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
         String fileName = GraphQLPsiUtil.getFileName(psiElement.getContainingFile());
         return fileNameToSchema.computeIfAbsent(fileName, f -> {
             try {
-                return UnExecutableSchemaGenerator.makeUnExecutableSchema(getRegistry(psiElement).getTypeDefinitionRegistry());
+                GraphQLValidatedRegistry validatedRegistry = getRegistry(psiElement);
+                return UnExecutableSchemaGenerator.makeUnExecutableSchema(validatedRegistry.getTypeDefinitionRegistry());
             } catch (ProcessCanceledException e) {
                 throw e;
             } catch (Exception e) {

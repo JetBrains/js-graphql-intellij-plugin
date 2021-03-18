@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,8 +33,11 @@ public class EnumValueDefinition extends AbstractDescribedNode<EnumValueDefiniti
                                   Description description,
                                   SourceLocation sourceLocation,
                                   List<Comment> comments,
-                                  IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData, description);
+                                  IgnoredChars ignoredChars,
+                                  Map<String, String> additionalData,
+                                  @Nullable PsiElement element,
+                                  @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
         this.name = name;
         this.directives = nonNullCopyOf(directives);
     }
@@ -43,7 +48,7 @@ public class EnumValueDefinition extends AbstractDescribedNode<EnumValueDefiniti
      * @param name of the enum value
      */
     public EnumValueDefinition(String name) {
-        this(name, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     /**
@@ -53,7 +58,7 @@ public class EnumValueDefinition extends AbstractDescribedNode<EnumValueDefiniti
      * @param directives the directives on the enum value
      */
     public EnumValueDefinition(String name, List<Directive> directives) {
-        this(name, directives, null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, directives, null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     @Override
@@ -74,14 +79,14 @@ public class EnumValueDefinition extends AbstractDescribedNode<EnumValueDefiniti
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .children(CHILD_DIRECTIVES, directives)
-                .build();
+            .children(CHILD_DIRECTIVES, directives)
+            .build();
     }
 
     @Override
     public EnumValueDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
         );
     }
 
@@ -102,15 +107,15 @@ public class EnumValueDefinition extends AbstractDescribedNode<EnumValueDefiniti
 
     @Override
     public EnumValueDefinition deepCopy() {
-        return new EnumValueDefinition(name, deepCopy(directives), description, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new EnumValueDefinition(name, deepCopy(directives), description, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "EnumValueDefinition{" +
-                "name='" + name + '\'' +
-                ", directives=" + directives +
-                '}';
+            "name='" + name + '\'' +
+            ", directives=" + directives +
+            '}';
     }
 
     @Override
@@ -136,6 +141,8 @@ public class EnumValueDefinition extends AbstractDescribedNode<EnumValueDefiniti
         private ImmutableList<Directive> directives = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -148,6 +155,8 @@ public class EnumValueDefinition extends AbstractDescribedNode<EnumValueDefiniti
             this.directives = ImmutableList.copyOf(existing.getDirectives());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -196,9 +205,18 @@ public class EnumValueDefinition extends AbstractDescribedNode<EnumValueDefiniti
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
 
         public EnumValueDefinition build() {
-            return new EnumValueDefinition(name, directives, description, sourceLocation, comments, ignoredChars, additionalData);
+            return new EnumValueDefinition(name, directives, description, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

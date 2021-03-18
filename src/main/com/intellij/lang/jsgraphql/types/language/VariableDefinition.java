@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -36,8 +38,10 @@ public class VariableDefinition extends AbstractNode<VariableDefinition> impleme
                                  SourceLocation sourceLocation,
                                  List<Comment> comments,
                                  IgnoredChars ignoredChars,
-                                 Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+                                 Map<String, String> additionalData,
+                                 @Nullable PsiElement element,
+                                 @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.name = name;
         this.type = type;
         this.defaultValue = defaultValue;
@@ -51,10 +55,8 @@ public class VariableDefinition extends AbstractNode<VariableDefinition> impleme
      * @param type         of the variable
      * @param defaultValue of the variable
      */
-    public VariableDefinition(String name,
-                              Type type,
-                              Value defaultValue) {
-        this(name, type, defaultValue, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+    public VariableDefinition(String name, Type type, Value defaultValue) {
+        this(name, type, defaultValue, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     /**
@@ -63,9 +65,8 @@ public class VariableDefinition extends AbstractNode<VariableDefinition> impleme
      * @param name of the variable
      * @param type of the variable
      */
-    public VariableDefinition(String name,
-                              Type type) {
-        this(name, type, null, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+    public VariableDefinition(String name, Type type) {
+        this(name, type, null, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public Value getDefaultValue() {
@@ -99,18 +100,18 @@ public class VariableDefinition extends AbstractNode<VariableDefinition> impleme
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .child(CHILD_TYPE, type)
-                .child(CHILD_DEFAULT_VALUE, defaultValue)
-                .children(CHILD_DIRECTIVES, directives)
-                .build();
+            .child(CHILD_TYPE, type)
+            .child(CHILD_DEFAULT_VALUE, defaultValue)
+            .children(CHILD_DIRECTIVES, directives)
+            .build();
     }
 
     @Override
     public VariableDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .type(newChildren.getChildOrNull(CHILD_TYPE))
-                .defaultValue(newChildren.getChildOrNull(CHILD_DEFAULT_VALUE))
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .type(newChildren.getChildOrNull(CHILD_TYPE))
+            .defaultValue(newChildren.getChildOrNull(CHILD_DEFAULT_VALUE))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
         );
     }
 
@@ -132,23 +133,25 @@ public class VariableDefinition extends AbstractNode<VariableDefinition> impleme
     @Override
     public VariableDefinition deepCopy() {
         return new VariableDefinition(name,
-                deepCopy(type),
-                deepCopy(defaultValue),
-                deepCopy(directives),
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            deepCopy(type),
+            deepCopy(defaultValue),
+            deepCopy(directives),
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "VariableDefinition{" +
-                "name='" + name + '\'' +
-                ", type=" + type +
-                ", defaultValue=" + defaultValue +
-                ", directives=" + directives +
-                '}';
+            "name='" + name + '\'' +
+            ", type=" + type +
+            ", defaultValue=" + defaultValue +
+            ", directives=" + directives +
+            '}';
     }
 
     @Override
@@ -188,6 +191,8 @@ public class VariableDefinition extends AbstractNode<VariableDefinition> impleme
         private ImmutableList<Directive> directives = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -201,6 +206,8 @@ public class VariableDefinition extends AbstractNode<VariableDefinition> impleme
             this.directives = ImmutableList.copyOf(existing.getDirectives());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -254,16 +261,28 @@ public class VariableDefinition extends AbstractNode<VariableDefinition> impleme
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public VariableDefinition build() {
             return new VariableDefinition(
-                    name,
-                    type,
-                    defaultValue,
-                    directives,
-                    sourceLocation,
-                    comments,
-                    ignoredChars,
-                    additionalData);
+                name,
+                type,
+                defaultValue,
+                directives,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 }

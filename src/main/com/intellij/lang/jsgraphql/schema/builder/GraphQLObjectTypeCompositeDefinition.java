@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -40,6 +40,7 @@ public class GraphQLObjectTypeCompositeDefinition extends GraphQLExtendableCompo
             builder
                 .directives(toList(directives))
                 .fieldDefinitions(toList(fieldDefinitions))
+                .sourceNodes(myDefinitions)
         );
     }
 
@@ -53,7 +54,11 @@ public class GraphQLObjectTypeCompositeDefinition extends GraphQLExtendableCompo
             Map<String, Type> implementz = mergeExtensionNodes(mapTypeNodesByKey(extension.getImplements()), myImplements);
 
             return extension.transformExtension(builder ->
-                builder.directives(toList(directives)).fieldDefinitions(toList(fieldDefinitions)).implementz(toList(implementz))
+                builder
+                    .directives(toList(directives))
+                    .fieldDefinitions(toList(fieldDefinitions))
+                    .implementz(toList(implementz))
+                    .sourceNodes(Collections.singletonList(extension))
             );
         });
     }

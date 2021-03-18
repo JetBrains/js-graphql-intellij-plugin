@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -33,8 +35,11 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
                                   Description description,
                                   SourceLocation sourceLocation,
                                   List<Comment> comments,
-                                  IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData, description);
+                                  IgnoredChars ignoredChars,
+                                  Map<String, String> additionalData,
+                                  @Nullable PsiElement element,
+                                  @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
         this.name = name;
         this.directives = ImmutableList.copyOf(directives);
         this.memberTypes = ImmutableList.copyOf(memberTypes);
@@ -46,9 +51,8 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
      * @param name       of the union
      * @param directives on the union
      */
-    public UnionTypeDefinition(String name,
-                               List<Directive> directives) {
-        this(name, directives, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+    public UnionTypeDefinition(String name, List<Directive> directives) {
+        this(name, directives, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     /**
@@ -57,7 +61,7 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
      * @param name of the union
      */
     public UnionTypeDefinition(String name) {
-        this(name, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     @Override
@@ -85,16 +89,16 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .children(CHILD_DIRECTIVES, directives)
-                .children(CHILD_MEMBER_TYPES, memberTypes)
-                .build();
+            .children(CHILD_DIRECTIVES, directives)
+            .children(CHILD_MEMBER_TYPES, memberTypes)
+            .build();
     }
 
     @Override
     public UnionTypeDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
-                .memberTypes(newChildren.getChildren(CHILD_MEMBER_TYPES))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .memberTypes(newChildren.getChildren(CHILD_MEMBER_TYPES))
         );
     }
 
@@ -115,22 +119,24 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
     @Override
     public UnionTypeDefinition deepCopy() {
         return new UnionTypeDefinition(name,
-                deepCopy(directives),
-                deepCopy(memberTypes),
-                description,
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            deepCopy(directives),
+            deepCopy(memberTypes),
+            description,
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "UnionTypeDefinition{" +
-                "name='" + name + '\'' +
-                "directives=" + directives +
-                ", memberTypes=" + memberTypes +
-                '}';
+            "name='" + name + '\'' +
+            "directives=" + directives +
+            ", memberTypes=" + memberTypes +
+            '}';
     }
 
     @Override
@@ -157,6 +163,8 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
         private ImmutableList<Type> memberTypes = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -169,6 +177,8 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
             this.directives = ImmutableList.copyOf(existing.getDirectives());
             this.memberTypes = ImmutableList.copyOf(existing.getMemberTypes());
             this.ignoredChars = existing.getIgnoredChars();
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -227,16 +237,28 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public UnionTypeDefinition build() {
             return new UnionTypeDefinition(name,
-                    directives,
-                    memberTypes,
-                    description,
-                    sourceLocation,
-                    comments,
-                    ignoredChars,
-                    additionalData);
+                directives,
+                memberTypes,
+                description,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 }

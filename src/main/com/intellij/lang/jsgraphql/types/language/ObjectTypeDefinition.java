@@ -7,6 +7,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -36,8 +38,10 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
                                    SourceLocation sourceLocation,
                                    List<Comment> comments,
                                    IgnoredChars ignoredChars,
-                                   Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData, description);
+                                   Map<String, String> additionalData,
+                                   @Nullable PsiElement element,
+                                   @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
         this.name = name;
         this.implementz = ImmutableList.copyOf(implementz);
         this.directives = ImmutableList.copyOf(directives);
@@ -50,7 +54,7 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
      * @param name of the object type
      */
     public ObjectTypeDefinition(String name) {
-        this(name, emptyList(), emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(name, emptyList(), emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     @Override
@@ -85,17 +89,17 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
     @Override
     public NodeChildrenContainer getNamedChildren() {
         return newNodeChildrenContainer()
-                .children(CHILD_IMPLEMENTZ, implementz)
-                .children(CHILD_DIRECTIVES, directives)
-                .children(CHILD_FIELD_DEFINITIONS, fieldDefinitions)
-                .build();
+            .children(CHILD_IMPLEMENTZ, implementz)
+            .children(CHILD_DIRECTIVES, directives)
+            .children(CHILD_FIELD_DEFINITIONS, fieldDefinitions)
+            .build();
     }
 
     @Override
     public ObjectTypeDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transform(builder -> builder.implementz(newChildren.getChildren(CHILD_IMPLEMENTZ))
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
-                .fieldDefinitions(newChildren.getChildren(CHILD_FIELD_DEFINITIONS)));
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .fieldDefinitions(newChildren.getChildren(CHILD_FIELD_DEFINITIONS)));
     }
 
     @Override
@@ -115,24 +119,26 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
     @Override
     public ObjectTypeDefinition deepCopy() {
         return new ObjectTypeDefinition(name,
-                deepCopy(implementz),
-                deepCopy(directives),
-                deepCopy(fieldDefinitions),
-                description,
-                getSourceLocation(),
-                getComments(),
-                getIgnoredChars(),
-                getAdditionalData());
+            deepCopy(implementz),
+            deepCopy(directives),
+            deepCopy(fieldDefinitions),
+            description,
+            getSourceLocation(),
+            getComments(),
+            getIgnoredChars(),
+            getAdditionalData(),
+            getElement(),
+            getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "ObjectTypeDefinition{" +
-                "name='" + name + '\'' +
-                ", implements=" + implementz +
-                ", directives=" + directives +
-                ", fieldDefinitions=" + fieldDefinitions +
-                '}';
+            "name='" + name + '\'' +
+            ", implements=" + implementz +
+            ", directives=" + directives +
+            ", fieldDefinitions=" + fieldDefinitions +
+            '}';
     }
 
     @Override
@@ -160,6 +166,8 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
         private ImmutableList<FieldDefinition> fieldDefinitions = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -174,6 +182,8 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
             this.fieldDefinitions = ImmutableList.copyOf(existing.getFieldDefinitions());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
         public Builder sourceLocation(SourceLocation sourceLocation) {
@@ -242,16 +252,28 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public ObjectTypeDefinition build() {
             return new ObjectTypeDefinition(name,
-                    implementz,
-                    directives,
-                    fieldDefinitions,
-                    description,
-                    sourceLocation,
-                    comments,
-                    ignoredChars,
-                    additionalData);
+                implementz,
+                directives,
+                fieldDefinitions,
+                description,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 }

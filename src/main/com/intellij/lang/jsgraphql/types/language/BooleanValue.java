@@ -6,6 +6,8 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,8 +26,14 @@ public class BooleanValue extends AbstractNode<BooleanValue> implements ScalarVa
     private final boolean value;
 
     @Internal
-    protected BooleanValue(boolean value, SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(sourceLocation, comments, ignoredChars, additionalData);
+    protected BooleanValue(boolean value,
+                           SourceLocation sourceLocation,
+                           List<Comment> comments,
+                           IgnoredChars ignoredChars,
+                           Map<String, String> additionalData,
+                           @Nullable PsiElement element,
+                           @Nullable List<? extends Node> sourceNodes) {
+        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         this.value = value;
     }
 
@@ -35,7 +43,7 @@ public class BooleanValue extends AbstractNode<BooleanValue> implements ScalarVa
      * @param value of the Boolean
      */
     public BooleanValue(boolean value) {
-        this(value, null, emptyList(), IgnoredChars.EMPTY, emptyMap());
+        this(value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
     public boolean isValue() {
@@ -75,14 +83,14 @@ public class BooleanValue extends AbstractNode<BooleanValue> implements ScalarVa
 
     @Override
     public BooleanValue deepCopy() {
-        return new BooleanValue(value, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new BooleanValue(value, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "BooleanValue{" +
-                "value=" + value +
-                '}';
+            "value=" + value +
+            '}';
     }
 
     @Override
@@ -111,6 +119,8 @@ public class BooleanValue extends AbstractNode<BooleanValue> implements ScalarVa
         private ImmutableList<Comment> comments = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -121,6 +131,8 @@ public class BooleanValue extends AbstractNode<BooleanValue> implements ScalarVa
             this.value = existing.isValue();
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -154,9 +166,19 @@ public class BooleanValue extends AbstractNode<BooleanValue> implements ScalarVa
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
 
         public BooleanValue build() {
-            return new BooleanValue(value, sourceLocation, comments, ignoredChars, additionalData);
+            return new BooleanValue(value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
         }
     }
 }

@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,21 +24,24 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
                                             Description description,
                                             SourceLocation sourceLocation,
                                             List<Comment> comments,
-                                            IgnoredChars ignoredChars, Map<String, String> additionalData) {
-        super(name, directives, description, sourceLocation, comments, ignoredChars, additionalData);
+                                            IgnoredChars ignoredChars,
+                                            Map<String, String> additionalData,
+                                            @Nullable PsiElement element,
+                                            @Nullable List<? extends Node> sourceNodes) {
+        super(name, directives, description, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
     }
 
     @Override
     public ScalarTypeExtensionDefinition deepCopy() {
-        return new ScalarTypeExtensionDefinition(getName(), deepCopy(getDirectives()), getDescription(), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData());
+        return new ScalarTypeExtensionDefinition(getName(), deepCopy(getDirectives()), getDescription(), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
     }
 
     @Override
     public String toString() {
         return "ScalarTypeExtensionDefinition{" +
-                "name='" + getName() + '\'' +
-                ", directives=" + getDirectives() +
-                '}';
+            "name='" + getName() + '\'' +
+            ", directives=" + getDirectives() +
+            '}';
 
     }
 
@@ -47,7 +52,7 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
     @Override
     public ScalarTypeExtensionDefinition withNewChildren(NodeChildrenContainer newChildren) {
         return transformExtension(builder -> builder
-                .directives(newChildren.getChildren(CHILD_DIRECTIVES))
+            .directives(newChildren.getChildren(CHILD_DIRECTIVES))
         );
     }
 
@@ -65,6 +70,8 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
         private ImmutableList<Directive> directives = emptyList();
         private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
         private Map<String, String> additionalData = new LinkedHashMap<>();
+        private @Nullable PsiElement element;
+        private @Nullable List<? extends Node> sourceNodes;
 
         private Builder() {
         }
@@ -77,6 +84,8 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
             this.directives = ImmutableList.copyOf(existing.getDirectives());
             this.ignoredChars = existing.getIgnoredChars();
             this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+            this.element = existing.getElement();
+            this.sourceNodes = existing.getSourceNodes();
         }
 
 
@@ -126,14 +135,26 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
             return this;
         }
 
+        public Builder element(@Nullable PsiElement element) {
+            this.element = element;
+            return this;
+        }
+
+        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+            this.sourceNodes = sourceNodes;
+            return this;
+        }
+
         public ScalarTypeExtensionDefinition build() {
             return new ScalarTypeExtensionDefinition(name,
-                    directives,
-                    description,
-                    sourceLocation,
-                    comments,
-                    ignoredChars,
-                    additionalData);
+                directives,
+                description,
+                sourceLocation,
+                comments,
+                ignoredChars,
+                additionalData,
+                element,
+                sourceNodes);
         }
     }
 }
