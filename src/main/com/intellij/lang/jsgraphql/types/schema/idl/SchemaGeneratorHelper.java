@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.lang.String.format;
 
+@SuppressWarnings("rawtypes")
 @Internal
 public class SchemaGeneratorHelper {
 
@@ -999,15 +1000,16 @@ public class SchemaGeneratorHelper {
         TypeDefinitionRegistry typeRegistry = buildCtx.getTypeRegistry();
         Map<String, OperationTypeDefinition> operationTypeDefs = buildCtx.operationTypeDefs;
 
-        GraphQLObjectType query;
+        GraphQLObjectType query = null;
         GraphQLObjectType mutation;
         GraphQLObjectType subscription;
 
         Optional<OperationTypeDefinition> queryOperation = getOperationNamed("query", operationTypeDefs);
         if (!queryOperation.isPresent()) {
-            @SuppressWarnings({"OptionalGetWithoutIsPresent", "ConstantConditions"})
-            TypeDefinition queryTypeDef = typeRegistry.getType("Query").get();
-            query = buildOutputType(buildCtx, TypeName.newTypeName().name(queryTypeDef.getName()).build());
+            TypeDefinition queryTypeDef = typeRegistry.getType("Query").orElse(null);
+            if (queryTypeDef != null) {
+                query = buildOutputType(buildCtx, TypeName.newTypeName().name(queryTypeDef.getName()).build());
+            }
         } else {
             query = buildOperation(buildCtx, queryOperation.get());
         }

@@ -1,13 +1,12 @@
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLUnexpectedSchemaError;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
+import com.intellij.openapi.diagnostic.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +19,8 @@ import java.util.Set;
  */
 @PublicApi
 public class SchemaGenerator {
+
+    private static final Logger LOG = Logger.getInstance(SchemaGenerator.class);
 
     /**
      * These options control how the schema generation works
@@ -44,7 +45,6 @@ public class SchemaGenerator {
      * Created a mocked schema from SDL.
      *
      * @param sdl
-     *
      * @return
      */
     public static GraphQLSchema createdMockedSchema(String sdl) {
@@ -58,9 +58,7 @@ public class SchemaGenerator {
      *
      * @param typeRegistry this can be obtained via {@link SchemaParser#parse(String)}
      * @param wiring       this can be built using {@link RuntimeWiring#newRuntimeWiring()}
-     *
      * @return an executable schema
-     *
      * @throws SchemaProblem if there are problems in assembling a schema such as missing type resolvers or no operations defined
      */
     public GraphQLSchema makeExecutableSchema(TypeDefinitionRegistry typeRegistry, RuntimeWiring wiring) throws SchemaProblem {
@@ -74,12 +72,12 @@ public class SchemaGenerator {
      * @param options      the controlling options
      * @param typeRegistry this can be obtained via {@link SchemaParser#parse(String)}
      * @param wiring       this can be built using {@link RuntimeWiring#newRuntimeWiring()}
-     *
      * @return an executable schema
-     *
      * @throws SchemaProblem if there are problems in assembling a schema such as missing type resolvers or no operations defined
      */
-    public GraphQLSchema makeExecutableSchema(Options options, TypeDefinitionRegistry typeRegistry, RuntimeWiring wiring) throws SchemaProblem {
+    public GraphQLSchema makeExecutableSchema(Options options,
+                                              TypeDefinitionRegistry typeRegistry,
+                                              RuntimeWiring wiring) throws SchemaProblem {
 
         TypeDefinitionRegistry typeRegistryCopy = new TypeDefinitionRegistry();
         typeRegistryCopy.merge(typeRegistry);
@@ -90,12 +88,21 @@ public class SchemaGenerator {
 
         Map<String, OperationTypeDefinition> operationTypeDefinitions = SchemaExtensionsChecker.gatherOperationDefs(typeRegistry);
 
-        GraphQLSchema schema = makeExecutableSchemaImpl(typeRegistryCopy, wiring, operationTypeDefinitions);
+        GraphQLSchema schema;
+        try {
+            schema = makeExecutableSchemaImpl(typeRegistryCopy, wiring, operationTypeDefinitions);
+        } catch (Exception e) {
+            LOG.error(e); // we should prevent any errors during schema build
+            schema = GraphQLSchema.newSchema().build();
+        }
+
         schema.addError(new SchemaProblem(errors));
         return schema;
     }
 
-    private GraphQLSchema makeExecutableSchemaImpl(TypeDefinitionRegistry typeRegistry, RuntimeWiring wiring, Map<String, OperationTypeDefinition> operationTypeDefinitions) {
+    private GraphQLSchema makeExecutableSchemaImpl(TypeDefinitionRegistry typeRegistry,
+                                                   RuntimeWiring wiring,
+                                                   Map<String, OperationTypeDefinition> operationTypeDefinitions) {
         SchemaGeneratorHelper.BuildContext buildCtx = new SchemaGeneratorHelper.BuildContext(typeRegistry, wiring, operationTypeDefinitions);
 
         GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
@@ -124,7 +131,7 @@ public class SchemaGenerator {
         List<SchemaGeneratorPostProcessing> schemaTransformers = new ArrayList<>();
         // handle directive wiring AFTER the schema has been built and hence type references are resolved at callback time
         schemaTransformers.add(
-                new SchemaDirectiveWiringSchemaGeneratorPostProcessing(buildCtx.getTypeRegistry(), buildCtx.getWiring(), buildCtx.getCodeRegistry())
+            new SchemaDirectiveWiringSchemaGeneratorPostProcessing(buildCtx.getTypeRegistry(), buildCtx.getWiring(), buildCtx.getCodeRegistry())
         );
         schemaTransformers.addAll(buildCtx.getWiring().getSchemaGeneratorPostProcessings());
 

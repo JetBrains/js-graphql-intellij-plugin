@@ -93,7 +93,6 @@ public class GraphQLSchema {
     @Internal
     private GraphQLSchema(Builder builder, boolean afterTransform) {
         assertNotNull(builder.additionalTypes, () -> "additionalTypes can't be null");
-        assertNotNull(builder.queryType, () -> "queryType can't be null");
         assertNotNull(builder.additionalDirectives, () -> "directives can't be null");
         assertNotNull(builder.codeRegistry, () -> "codeRegistry can't be null");
 
@@ -369,6 +368,10 @@ public class GraphQLSchema {
         return extensionDefinitions;
     }
 
+    public boolean isQueryDefined() {
+        return queryType != null;
+    }
+
     public boolean isSupportingMutations() {
         return mutationType != null;
     }
@@ -446,7 +449,6 @@ public class GraphQLSchema {
         private SchemaDefinition definition;
         private List<SchemaExtensionDefinition> extensionDefinitions;
         private String description;
-        private boolean validate;
 
         // we default these in
         private Set<GraphQLDirective> additionalDirectives = new LinkedHashSet<>(
@@ -581,11 +583,6 @@ public class GraphQLSchema {
             return this;
         }
 
-        public Builder withValidation(boolean validate) {
-            this.validate = validate;
-            return this;
-        }
-
         /**
          * Builds the schema
          *
@@ -645,12 +642,6 @@ public class GraphQLSchema {
             GraphQLSchema graphQLSchema = new GraphQLSchema(tempSchema, codeRegistry);
             schemaUtil.replaceTypeReferences(graphQLSchema);
 
-            if (this.validate) {
-                Collection<SchemaValidationError> errors = new SchemaValidator().validateSchema(graphQLSchema);
-                if (errors.size() > 0) {
-                    throw new InvalidSchemaException(errors);
-                }
-            }
             return graphQLSchema;
         }
     }

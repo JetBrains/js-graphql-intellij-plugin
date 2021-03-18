@@ -15,7 +15,9 @@ public class SchemaUtil {
 
     ImmutableMap<String, GraphQLNamedType> allTypes(final GraphQLSchema schema, final Set<GraphQLType> additionalTypes, boolean afterTransform) {
         List<GraphQLSchemaElement> roots = new ArrayList<>();
-        roots.add(schema.getQueryType());
+        if (schema.isQueryDefined()) {
+            roots.add(schema.getQueryType());
+        }
 
         if (schema.isSupportingMutations()) {
             roots.add(schema.getMutationType());

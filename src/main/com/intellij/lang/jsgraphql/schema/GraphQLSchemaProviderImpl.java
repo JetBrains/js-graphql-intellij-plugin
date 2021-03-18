@@ -34,7 +34,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
     private static final Logger LOG = Logger.getInstance(GraphQLSchemaProviderImpl.class);
 
     public static final GraphQLSchema EMPTY_SCHEMA = GraphQLSchema.newSchema()
-        .query(GraphQLObjectType.newObject().name("Query").build()).withValidation(false).build();
+        .query(GraphQLObjectType.newObject().name("Query").build()).build();
 
     private final Map<String, GraphQLValidatedRegistry> fileNameToRegistry = Maps.newConcurrentMap();
     private final Map<String, GraphQLValidatedSchema> fileNameToValidatedSchema = Maps.newConcurrentMap();

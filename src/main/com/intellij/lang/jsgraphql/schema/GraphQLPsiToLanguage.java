@@ -735,7 +735,7 @@ public class GraphQLPsiToLanguage {
     }
 
     protected @NotNull SourceLocation getSourceLocation(@NotNull PsiElement element) {
-        return new PsiSourceLocation(element);
+        return new SourceLocation(element);
     }
 
     private @NotNull List<Type> getImplements(@Nullable GraphQLImplementsInterfaces implementsInterfaces) {
