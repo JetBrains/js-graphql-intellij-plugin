@@ -11,6 +11,7 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,15 +76,18 @@ public final class GraphQLCompositeRegistry {
             return null;
         }
 
+        String name = ((NamedNode<?>) definition).getName();
+        if (StringUtil.isEmpty(name)) {
+            return null;
+        }
+
         return myNamedCompositeDefinitions.computeIfAbsent(
-            ((NamedNode<?>) definition).getName(), name -> createCompositeDefinition(definition));
+            name, n -> createCompositeDefinition(definition));
     }
 
     public void addTypeDefinition(@NotNull SDLDefinition<?> definition) {
         GraphQLCompositeDefinition<?> builder = getCompositeDefinition(definition);
-
         if (builder == null) {
-            LOG.warn("No suitable builder for " + definition.getClass().getName());
             return;
         }
 
@@ -112,9 +116,7 @@ public final class GraphQLCompositeRegistry {
         LOG.assertTrue(GraphQLSchemaUtil.isExtension(definition));
 
         GraphQLCompositeDefinition<?> builder = getCompositeDefinition(definition);
-
         if (builder == null) {
-            LOG.warn("No suitable builder for extension definition " + definition.getClass().getName());
             return;
         }
 
