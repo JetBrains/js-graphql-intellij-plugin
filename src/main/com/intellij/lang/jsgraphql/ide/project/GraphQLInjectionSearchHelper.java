@@ -7,13 +7,19 @@
  */
 package com.intellij.lang.jsgraphql.ide.project;
 
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.Processor;
+import org.jetbrains.annotations.Nullable;
 
 public interface GraphQLInjectionSearchHelper {
+
+    static @Nullable GraphQLInjectionSearchHelper getInstance() {
+        return ServiceManager.getService(GraphQLInjectionSearchHelper.class);
+    }
 
     /**
      * Gets whether the specified host is a target for GraphQL Injection

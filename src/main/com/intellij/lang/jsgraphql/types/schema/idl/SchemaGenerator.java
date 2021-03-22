@@ -17,11 +17,13 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
-import com.intellij.lang.jsgraphql.schema.GraphQLUnexpectedSchemaError;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.openapi.diagnostic.Logger;
 
@@ -109,11 +111,18 @@ public class SchemaGenerator {
         try {
             schema = makeExecutableSchemaImpl(typeRegistryCopy, wiring, operationTypeDefinitions);
         } catch (Exception e) {
-            LOG.error(e); // we should prevent any errors during schema build
+            if (LOG.isDebugEnabled()) {
+                LOG.error(e); // we should prevent any errors during schema build
+            } else {
+                LOG.warn(e);
+            }
+
             schema = GraphQLSchema.newSchema().build();
         }
 
-        schema.addError(new SchemaProblem(errors));
+        if (!errors.isEmpty()) {
+            schema.addError(new SchemaProblem(errors));
+        }
         return schema;
     }
 

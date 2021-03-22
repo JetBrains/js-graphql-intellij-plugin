@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.schema;
 
+import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter;
@@ -9,11 +10,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.UnaryOperator;
 
 
-public class GraphQLSchemaBuilderTest extends BasePlatformTestCase {
+public class GraphQLSchemaBuilderTest extends GraphQLBaseTestCase {
 
     @Override
-    protected String getTestDataPath() {
-        return "test-resources/testData/graphql/schema";
+    protected @NotNull String getBasePath() {
+        return "/schema";
     }
 
     public void testObjects() {

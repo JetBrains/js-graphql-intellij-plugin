@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.editor;
 
+import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -9,11 +10,11 @@ import org.junit.Assert;
 import java.io.IOException;
 import java.util.Objects;
 
-public class GraphQLIntrospectionServiceTest extends BasePlatformTestCase {
+public class GraphQLIntrospectionServiceTest extends GraphQLBaseTestCase {
 
     @Override
-    protected String getTestDataPath() {
-        return "test-resources/testData/graphql/introspection";
+    protected @NotNull String getBasePath() {
+        return "/introspection";
     }
 
     public void testPrintIntrospectionJsonAsGraphQL() {

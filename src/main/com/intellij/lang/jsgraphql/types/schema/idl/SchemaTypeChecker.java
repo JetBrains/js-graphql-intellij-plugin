@@ -38,6 +38,7 @@ import static java.util.stream.Collectors.toList;
  * <p>
  * It looks for missing types and ensure certain invariants are true before a schema can be made.
  */
+@SuppressWarnings("rawtypes")
 @Internal
 public class SchemaTypeChecker {
 
@@ -349,7 +350,9 @@ public class SchemaTypeChecker {
 
     private Consumer<Type> checkTypeExists(String typeOfType, TypeDefinitionRegistry typeRegistry, List<GraphQLError> errors, TypeDefinition typeDefinition) {
         return t -> {
+            // TODO: [intellij] implement missing type validation
             TypeName unwrapped = TypeInfo.typeInfo(t).getTypeName();
+            if (unwrapped == null) return;
             if (!typeRegistry.hasType(unwrapped)) {
                 errors.add(new MissingTypeError(typeOfType, typeDefinition, unwrapped));
             }
@@ -358,7 +361,9 @@ public class SchemaTypeChecker {
 
     private Consumer<Type> checkTypeExists(TypeDefinitionRegistry typeRegistry, List<GraphQLError> errors, String typeOfType, Node element, String elementName) {
         return ivType -> {
+            // TODO: [intellij] implement missing type validation
             TypeName unwrapped = TypeInfo.typeInfo(ivType).getTypeName();
+            if (unwrapped == null) return;
             if (!typeRegistry.hasType(unwrapped)) {
                 errors.add(new MissingTypeError(typeOfType, element, elementName, unwrapped));
             }
@@ -369,6 +374,8 @@ public class SchemaTypeChecker {
         return t -> {
             TypeInfo typeInfo = TypeInfo.typeInfo(t);
             TypeName unwrapped = typeInfo.getTypeName();
+            // TODO: [intellij] implement missing type validation
+            if (unwrapped == null) return;
             Optional<TypeDefinition> type = typeRegistry.getType(unwrapped);
             if (!type.isPresent()) {
                 errors.add(new MissingInterfaceTypeError("interface", typeDefinition, unwrapped));

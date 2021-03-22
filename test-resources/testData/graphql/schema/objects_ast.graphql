@@ -29,4 +29,3 @@ extend type User implements Other {}
 extend type User {
   zip: String
 }
-

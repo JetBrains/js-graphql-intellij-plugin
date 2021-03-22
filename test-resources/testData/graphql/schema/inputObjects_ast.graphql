@@ -17,4 +17,3 @@ extend input User {}
 extend input User {
   zip: String
 }
-

@@ -36,6 +36,7 @@ public class SchemaValidator {
         rules.add(new NoUnbrokenInputCycles());
         rules.add(new TypesImplementInterfaces());
         rules.add(new TypeAndFieldRule());
+        rules.add(new InvalidTypesRule());
     }
 
     SchemaValidator(List<SchemaValidationRule> rules) {

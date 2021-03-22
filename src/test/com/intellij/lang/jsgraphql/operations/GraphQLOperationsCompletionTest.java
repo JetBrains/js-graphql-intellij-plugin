@@ -9,16 +9,18 @@ package com.intellij.lang.jsgraphql.operations;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 
-public class GraphQLOperationsCompletionTest extends BasePlatformTestCase {
+public class GraphQLOperationsCompletionTest extends GraphQLBaseTestCase {
 
     private PsiFile[] psiFiles;
 
@@ -44,8 +46,8 @@ public class GraphQLOperationsCompletionTest extends BasePlatformTestCase {
     }
 
     @Override
-    protected String getTestDataPath() {
-        return "test-resources/testData/graphql/operations";
+    protected @NotNull String getBasePath() {
+        return "/operations";
     }
 
     // ---- completion ----

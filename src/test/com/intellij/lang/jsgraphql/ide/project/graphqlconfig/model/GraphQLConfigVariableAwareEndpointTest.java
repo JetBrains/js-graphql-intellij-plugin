@@ -9,24 +9,17 @@ package com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
-import com.intellij.mock.MockProject;
-import com.intellij.openapi.Disposable;
+import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
 import org.junit.Assert;
-import org.junit.Test;
 
 import java.util.HashMap;
 
-public class GraphQLConfigVariableAwareEndpointTest {
+public class GraphQLConfigVariableAwareEndpointTest extends GraphQLBaseTestCase {
 
-    private static final Disposable PARENT_DISPOSABLE = () -> {
-    };
-    private static final MockProject PROJECT = new MockProject(null, PARENT_DISPOSABLE);
-
-    @Test
-    public void getExpandedVariables() {
+    public void testGetExpandedVariables() {
 
         GraphQLConfigEndpoint endpoint = new GraphQLConfigEndpoint(null, "", "http://localhost/");
-        GraphQLConfigVariableAwareEndpoint variableAwareEndpoint = new GraphQLConfigVariableAwareEndpoint(endpoint, PROJECT, null);
+        GraphQLConfigVariableAwareEndpoint variableAwareEndpoint = new GraphQLConfigVariableAwareEndpoint(endpoint, myFixture.getProject(), null);
 
         // setup env var resolver
         variableAwareEndpoint.GET_ENV_VAR = name -> name + "-value";
@@ -48,16 +41,16 @@ public class GraphQLConfigVariableAwareEndpointTest {
         endpoint.headers.put("nested", nested);
 
         Assert.assertEquals(
-                "{\"boolean\":true,\"number\":3.14,\"auth\":\"$ some value before auth-value ${test\",\"nested\":{\"nested-auth\":\"$ some value before auth-value ${test\"}}"
-                , new Gson().toJson(variableAwareEndpoint.getHeaders())
+            "{\"boolean\":true,\"number\":3.14,\"auth\":\"$ some value before auth-value ${test\",\"nested\":{\"nested-auth\":\"$ some value before auth-value ${test\"}}"
+            , new Gson().toJson(variableAwareEndpoint.getHeaders())
         );
 
         // verify that as variables change values, the nested objects are expanded
         // this verifies that the values in the original maps are not overwritten as part of the expansion
         variableAwareEndpoint.GET_ENV_VAR = name -> name + "-new-value";
         Assert.assertEquals(
-                "{\"boolean\":true,\"number\":3.14,\"auth\":\"$ some value before auth-new-value ${test\",\"nested\":{\"nested-auth\":\"$ some value before auth-new-value ${test\"}}"
-                , new Gson().toJson(variableAwareEndpoint.getHeaders())
+            "{\"boolean\":true,\"number\":3.14,\"auth\":\"$ some value before auth-new-value ${test\",\"nested\":{\"nested-auth\":\"$ some value before auth-new-value ${test\"}}"
+            , new Gson().toJson(variableAwareEndpoint.getHeaders())
         );
 
     }

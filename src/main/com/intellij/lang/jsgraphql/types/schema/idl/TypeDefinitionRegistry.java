@@ -28,6 +28,7 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionErr
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -312,7 +313,9 @@ public class TypeDefinitionRegistry {
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public boolean hasType(TypeName typeName) {
+    public boolean hasType(@Nullable TypeName typeName) {
+        if (typeName == null) return false;
+
         String name = typeName.getName();
         return types.containsKey(name) || ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(name) || scalarTypes.containsKey(name) || objectTypeExtensions.containsKey(name);
     }

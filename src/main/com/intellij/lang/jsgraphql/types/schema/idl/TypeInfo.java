@@ -20,31 +20,32 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Stack;
 
-import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLList.list;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull.nonNull;
 
 /**
  * This helper gives you access to the type info given a type definition
  */
+@SuppressWarnings("rawtypes")
 @Internal
 public class TypeInfo {
 
-    public static TypeInfo typeInfo(Type type) {
+    public static TypeInfo typeInfo(@Nullable Type type) {
         return new TypeInfo(type);
     }
 
-    private final Type rawType;
-    private final TypeName typeName;
+    private final @Nullable Type rawType;
+    private final @Nullable TypeName typeName;
     private final Stack<Class<?>> decoration = new Stack<>();
 
-    private TypeInfo(Type type) {
-        this.rawType = assertNotNull(type, () -> "type must not be null");
-        while (!(type instanceof TypeName)) {
+    private TypeInfo(@Nullable Type type) {
+        this.rawType = type;
+        while (type != null && !(type instanceof TypeName)) {
             if (type instanceof NonNullType) {
                 decoration.push(NonNullType.class);
                 type = ((NonNullType) type).getType();
@@ -57,16 +58,16 @@ public class TypeInfo {
         this.typeName = (TypeName) type;
     }
 
-    public Type getRawType() {
+    public @Nullable Type getRawType() {
         return rawType;
     }
 
-    public TypeName getTypeName() {
+    public @Nullable TypeName getTypeName() {
         return typeName;
     }
 
     public String getName() {
-        return typeName.getName();
+        return typeName != null ? typeName.getName() : null;
     }
 
     public boolean isList() {
@@ -158,18 +159,14 @@ public class TypeInfo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TypeInfo typeInfo = (TypeInfo) o;
-        return isNonNull() == typeInfo.isNonNull() &&
-                isList() == typeInfo.isList() &&
-                Objects.equals(typeName.getName(), typeInfo.typeName.getName());
+        return Objects.equals(rawType, typeInfo.rawType) &&
+            Objects.equals(typeName, typeInfo.typeName) &&
+            Objects.equals(decoration, typeInfo.decoration);
     }
 
     @Override
     public int hashCode() {
-        int result = 1;
-        result = 31 * result + Objects.hashCode(typeName.getName());
-        result = 31 * result + Boolean.hashCode(isNonNull());
-        result = 31 * result + Boolean.hashCode(isList());
-        return result;
+        return Objects.hash(rawType, typeName, decoration);
     }
 
     @Override

@@ -33,8 +33,7 @@ public class InvalidSchemaException extends GraphQLException {
         this.errors = errors;
     }
 
-    @VisibleForTesting
-    Collection<SchemaValidationError> getErrors() {
+    public Collection<SchemaValidationError> getErrors() {
         return errors;
     }
 

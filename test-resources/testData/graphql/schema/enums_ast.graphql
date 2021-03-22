@@ -13,4 +13,3 @@ extend enum User @three {
 extend enum User @four {
   AGE
 }
-

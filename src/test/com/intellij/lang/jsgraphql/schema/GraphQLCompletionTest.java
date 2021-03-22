@@ -9,18 +9,19 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiDocumentManager;
-import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 
-public class GraphQLCompletionTest extends BasePlatformTestCase {
+public class GraphQLCompletionTest extends GraphQLBaseTestCase {
 
     @Override
-    protected String getTestDataPath() {
-        return "test-resources/testData/graphql/completion";
+    protected @NotNull String getBasePath() {
+        return "/completion";
     }
 
     public void testCompletionImplementsFirstInterface() {
@@ -44,11 +45,11 @@ public class GraphQLCompletionTest extends BasePlatformTestCase {
     }
 
     public void testCompletionFieldType() {
-        doTestCompletion("CompletionFieldType.graphqls", Lists.newArrayList("AnotherKnownType", "Boolean", "Float", "ID", "Int", "KnownInterface", "KnownType", "MyEnum", "MyUnion", "String"));
+        doTestCompletion("CompletionFieldType.graphqls", Lists.newArrayList("AnotherKnownType", "Boolean", "Float", "Foo", "ID", "Int", "KnownInterface", "KnownType", "MyEnum", "MyUnion", "String"));
     }
 
     public void testCompletionInputFieldType() {
-        doTestCompletion("CompletionInputFieldType.graphqls", Lists.newArrayList("Boolean", "Float", "ID", "Int", "MyEnum", "MyInput1", "String"));
+        doTestCompletion("CompletionInputFieldType.graphqls", Lists.newArrayList("Boolean", "Float", "ID", "Int", "MyCompletionInput", "MyEnum", "MyInput1", "String"));
     }
 
     public void testCompletionArgumentType() {

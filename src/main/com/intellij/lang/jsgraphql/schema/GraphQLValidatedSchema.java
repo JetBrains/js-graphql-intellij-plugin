@@ -12,8 +12,11 @@ import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
+import com.intellij.lang.jsgraphql.types.schema.validation.InvalidSchemaException;
+import com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidationError;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 
 public class GraphQLValidatedSchema {
@@ -53,6 +56,14 @@ public class GraphQLValidatedSchema {
                 errors.addAll(((SchemaProblem) exception).getErrors());
             } else if (exception instanceof GraphQLError) {
                 errors.add((GraphQLError) exception);
+            } else if (exception instanceof InvalidSchemaException) {
+                Collection<SchemaValidationError> validationErrors = ((InvalidSchemaException) exception).getErrors();
+                for (SchemaValidationError validationError : validationErrors) {
+                    if (validationError.getBaseError() != null) {
+                        errors.add(validationError.getBaseError());
+                    }
+                    // TODO: [intellij] handle other error types
+                }
             } else {
                 errors.add(new GraphQLUnexpectedSchemaError(exception));
             }

@@ -18,7 +18,6 @@
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.Assert;
-import com.intellij.lang.jsgraphql.types.AssertException;
 import com.intellij.lang.jsgraphql.types.Directives;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation;
@@ -27,6 +26,7 @@ import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnInputTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnOutputTypeError;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -43,10 +43,10 @@ import static com.intellij.lang.jsgraphql.types.language.TypeName.newTypeName;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLEnumValueDefinition.newEnumValueDefinition;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeReference.typeRef;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
+import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
-import static java.lang.String.format;
 
 @SuppressWarnings("rawtypes")
 @Internal
@@ -79,12 +79,8 @@ public class SchemaGeneratorHelper {
             return typeRegistry;
         }
 
-        TypeDefinition getTypeDefinition(Type type) {
-            Optional<TypeDefinition> optionalTypeDefinition = typeRegistry.getType(type);
-
-            return optionalTypeDefinition.orElseThrow(
-                    () -> new AssertException(format(" type definition for type '%s' not found", type))
-            );
+        @Nullable TypeDefinition getTypeDefinition(Type type) {
+            return typeRegistry.getType(type).orElse(null);
         }
 
         boolean stackContains(TypeInfo typeInfo) {
@@ -231,8 +227,7 @@ public class SchemaGeneratorHelper {
 
     Object buildArrayValue(BuildContext buildCtx, GraphQLType requiredType, ArrayValue arrayValue) {
         GraphQLType wrappedType = unwrapOne(requiredType);
-        Object result = map(arrayValue.getValues(), item -> buildValue(buildCtx, item, wrappedType));
-        return result;
+        return map(arrayValue.getValues(), item -> buildValue(buildCtx, item, wrappedType));
     }
 
     Object buildObjectValue(BuildContext buildCtx, ObjectValue defaultValue, GraphQLInputObjectType objectType) {
@@ -409,6 +404,10 @@ public class SchemaGeneratorHelper {
         TypeDefinition typeDefinition = buildCtx.getTypeDefinition(rawType);
         TypeInfo typeInfo = TypeInfo.typeInfo(rawType);
 
+        if (typeDefinition == null) {
+            return typeInfo.decorate(new GraphQLUnknownType(typeInfo.getName(), null));
+        }
+
         GraphQLInputType inputType = buildCtx.hasInputType(typeDefinition);
         if (inputType != null) {
             return typeInfo.decorate(inputType);
@@ -428,8 +427,7 @@ public class SchemaGeneratorHelper {
         } else if (typeDefinition instanceof ScalarTypeDefinition) {
             inputType = buildScalar(buildCtx, (ScalarTypeDefinition) typeDefinition);
         } else {
-            // typeDefinition is not a valid InputType
-            throw new NotAnInputTypeError(rawType, typeDefinition);
+            inputType = new GraphQLUnknownType(typeDefinition, new NotAnInputTypeError(rawType, typeDefinition));
         }
 
         buildCtx.putInputType((GraphQLNamedInputType) inputType);
@@ -829,7 +827,7 @@ public class SchemaGeneratorHelper {
             GraphQLOutputType outputType = buildOutputType(buildCtx, mt);
             if (outputType instanceof GraphQLTypeReference) {
                 builder.possibleType((GraphQLTypeReference) outputType);
-            } else {
+            } else if (outputType instanceof GraphQLObjectType) {
                 builder.possibleType((GraphQLObjectType) outputType);
             }
         });
@@ -848,7 +846,7 @@ public class SchemaGeneratorHelper {
                     if (!builder.containType(outputType.getName())) {
                         if (outputType instanceof GraphQLTypeReference) {
                             builder.possibleType((GraphQLTypeReference) outputType);
-                        } else {
+                        } else if (outputType instanceof GraphQLObjectType) {
                             builder.possibleType((GraphQLObjectType) outputType);
                         }
                     }
@@ -870,11 +868,15 @@ public class SchemaGeneratorHelper {
      * @param rawType  the type to be built
      * @return an output type
      */
-    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
+    @SuppressWarnings({"TypeParameterUnusedInFormals"})
     private <T extends GraphQLOutputType> T buildOutputType(BuildContext buildCtx, Type rawType) {
 
         TypeDefinition typeDefinition = buildCtx.getTypeDefinition(rawType);
         TypeInfo typeInfo = TypeInfo.typeInfo(rawType);
+
+        if (typeDefinition == null) {
+            return typeInfo.decorate(new GraphQLUnknownType(typeInfo.getName(), null));
+        }
 
         GraphQLOutputType outputType = buildCtx.hasOutputType(typeDefinition);
         if (outputType != null) {
@@ -900,13 +902,12 @@ public class SchemaGeneratorHelper {
         } else if (typeDefinition instanceof ScalarTypeDefinition) {
             outputType = buildScalar(buildCtx, (ScalarTypeDefinition) typeDefinition);
         } else {
-            // typeDefinition is not a valid output type
-            throw new NotAnOutputTypeError(rawType, typeDefinition);
+            outputType = new GraphQLUnknownType(typeDefinition, new NotAnOutputTypeError(rawType, typeDefinition));
         }
 
         buildCtx.putOutputType((GraphQLNamedOutputType) outputType);
         buildCtx.pop();
-        return (T) typeInfo.decorate(outputType);
+        return typeInfo.decorate(outputType);
     }
 
     GraphQLFieldDefinition buildField(BuildContext buildCtx, TypeDefinition parentType, FieldDefinition fieldDef) {
