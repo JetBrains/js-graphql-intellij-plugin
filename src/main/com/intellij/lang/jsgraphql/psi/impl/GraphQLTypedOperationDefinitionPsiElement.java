@@ -24,16 +24,14 @@ public abstract class GraphQLTypedOperationDefinitionPsiElement extends GraphQLN
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
-        if (schema != null) {
-            final IElementType operationType = getOperationType().getNode().getFirstChildNode().getElementType();
-            if (operationType == GraphQLElementTypes.QUERY_KEYWORD) {
-                return schema.getQueryType();
-            } else if (operationType == GraphQLElementTypes.MUTATION_KEYWORD) {
-                return schema.getMutationType();
-            } else if (operationType == GraphQLElementTypes.SUBSCRIPTION_KEYWORD) {
-                return schema.getSubscriptionType();
-            }
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchemaInfo(this).getSchema();
+        final IElementType operationType = getOperationType().getNode().getFirstChildNode().getElementType();
+        if (operationType == GraphQLElementTypes.QUERY_KEYWORD) {
+            return schema.getQueryType();
+        } else if (operationType == GraphQLElementTypes.MUTATION_KEYWORD) {
+            return schema.getMutationType();
+        } else if (operationType == GraphQLElementTypes.SUBSCRIPTION_KEYWORD) {
+            return schema.getSubscriptionType();
         }
         return null;
     }

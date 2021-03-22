@@ -15,7 +15,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.LogicalPosition;
@@ -107,8 +107,8 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                                                                        @NotNull Project project) {
         List<? extends GraphQLError> userData;
 
-        final GraphQLValidatedSchema schema = GraphQLSchemaProvider.getInstance(project).getValidatedSchema(psiElement);
-        if (!schema.hasErrors()) {
+        final GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiElement);
+        if (!schemaInfo.hasErrors()) {
             // adjust source locations for injected GraphQL since the annotator works on the entire editor buffer (e.g. tsx with graphql tagged templates)
             int lineDelta = 0;
             int firstLineColumnDelta = 0;
@@ -121,11 +121,11 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                 }
             }
             final Document document = GraphQLUtil.parseDocument(replacePlaceholdersWithValidGraphQL(containingFile), lineDelta, firstLineColumnDelta);
-            userData = new Validator().validateDocument(schema.getSchema(), document);
+            userData = new Validator().validateDocument(schemaInfo.getSchema(), document);
         } else {
             final String currentFileName = GraphQLPsiUtil.getFileName(containingFile);
             final Ref<SourceLocation> firstSchemaError = new Ref<>();
-            for (GraphQLError error : schema.getErrors()) {
+            for (GraphQLError error : schemaInfo.getErrors()) {
                 List<SourceLocation> errorLocations = error.getLocations();
                 SourceLocation firstSourceLocation = errorLocations != null
                     ? errorLocations.stream().findFirst().orElse(null) : null;

@@ -11,14 +11,14 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLField;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLArgumentPsiElement extends GraphQLNamedElementImpl implements GraphQLArgument, GraphQLTypeScopeProvider {
@@ -28,9 +28,9 @@ public abstract class GraphQLArgumentPsiElement extends GraphQLNamedElementImpl 
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchemaInfo(this).getSchema();
         final String argumentName = this.getName();
-        if (schema != null && argumentName != null) {
+        if (argumentName != null) {
             // the type scope for an argument is the argument definition type in a field or directive definition
             final GraphQLDirective directive = PsiTreeUtil.getParentOfType(this, GraphQLDirective.class);
             if (directive != null) {

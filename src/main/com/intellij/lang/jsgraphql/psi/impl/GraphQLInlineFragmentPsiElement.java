@@ -24,19 +24,17 @@ public abstract class GraphQLInlineFragmentPsiElement extends GraphQLElementImpl
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
-        if (schema != null) {
-            if (getTypeCondition() != null) {
-                final GraphQLTypeName typeName = getTypeCondition().getTypeName();
-                if (typeName != null) {
-                    return schema.getType(typeName.getText());
-                }
-            } else {
-                // inline fragment without type condition, e.g. to add conditional directive, so just return the type from the parent scope
-                final GraphQLTypeScopeProvider parentTypeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLTypeScopeProvider.class);
-                if (parentTypeScopeProvider != null) {
-                    return parentTypeScopeProvider.getTypeScope();
-                }
+        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchemaInfo(this).getSchema();
+        if (getTypeCondition() != null) {
+            final GraphQLTypeName typeName = getTypeCondition().getTypeName();
+            if (typeName != null) {
+                return schema.getType(typeName.getText());
+            }
+        } else {
+            // inline fragment without type condition, e.g. to add conditional directive, so just return the type from the parent scope
+            final GraphQLTypeScopeProvider parentTypeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLTypeScopeProvider.class);
+            if (parentTypeScopeProvider != null) {
+                return parentTypeScopeProvider.getTypeScope();
             }
         }
         return null;

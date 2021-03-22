@@ -12,7 +12,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.gotoByName.ChooseByNamePopup;
 import com.intellij.ide.util.gotoByName.ChooseByNamePopupComponent;
 import com.intellij.ide.util.gotoByName.SimpleChooseByNameModel;
-import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -37,9 +37,9 @@ import java.util.Optional;
  */
 public class GraphQLSchemaContentNode extends CachingSimpleNode {
 
-    private final GraphQLValidatedSchema myValidatedSchema;
+    private final GraphQLSchemaInfo myValidatedSchema;
 
-    public GraphQLSchemaContentNode(SimpleNode parent, GraphQLValidatedSchema validatedSchema) {
+    public GraphQLSchemaContentNode(SimpleNode parent, GraphQLSchemaInfo validatedSchema) {
         super(parent);
         myValidatedSchema = validatedSchema;
 

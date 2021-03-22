@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
@@ -21,9 +21,9 @@ import java.util.List;
  */
 public class GraphQLSchemaErrorsListNode extends CachingSimpleNode {
 
-    private final GraphQLValidatedSchema myValidatedSchema;
+    private final GraphQLSchemaInfo myValidatedSchema;
 
-    public GraphQLSchemaErrorsListNode(SimpleNode parent, GraphQLValidatedSchema validatedSchema) {
+    public GraphQLSchemaErrorsListNode(SimpleNode parent, GraphQLSchemaInfo validatedSchema) {
         super(parent);
         myValidatedSchema = validatedSchema;
         myName = "Schema errors";

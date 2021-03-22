@@ -53,7 +53,7 @@ public class GraphQLRegistryProvider implements Disposable {
     private final JSGraphQLEndpointNamedTypeRegistry graphQLEndpointNamedTypeRegistry;
     private final GraphQLConfigManager graphQLConfigManager;
 
-    private final Map<GlobalSearchScope, GraphQLValidatedRegistry> scopeToRegistry = Maps.newConcurrentMap();
+    private final Map<GlobalSearchScope, GraphQLRegistryInfo> scopeToRegistry = Maps.newConcurrentMap();
 
     public static GraphQLRegistryProvider getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLRegistryProvider.class);
@@ -74,7 +74,7 @@ public class GraphQLRegistryProvider implements Disposable {
     }
 
     @NotNull
-    public GraphQLValidatedRegistry getRegistry(@NotNull PsiElement scopedElement) {
+    public GraphQLRegistryInfo getRegistry(@NotNull PsiElement scopedElement) {
         // Get the search scope that limits schema definition for the scoped element
         GlobalSearchScope schemaScope = graphQLPsiSearchHelper.getSchemaScope(scopedElement);
 
@@ -141,7 +141,7 @@ public class GraphQLRegistryProvider implements Disposable {
             // Types defined using GraphQL Endpoint Language
             VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFile(scopedElement.getContainingFile());
             if (virtualFile != null && graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, null) != null) {
-                final GraphQLValidatedRegistry endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry(scopedElement);
+                final GraphQLRegistryInfo endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry(scopedElement);
                 try {
                     processor.getCompositeRegistry().merge(endpointTypesAsRegistry.getTypeDefinitionRegistry());
                     errors.addAll(endpointTypesAsRegistry.getErrors());
@@ -151,7 +151,7 @@ public class GraphQLRegistryProvider implements Disposable {
             }
 
             TypeDefinitionRegistry registry = processor.getCompositeRegistry().buildTypeDefinitionRegistry();
-            return new GraphQLValidatedRegistry(registry, errors, processedGraphQL.get());
+            return new GraphQLRegistryInfo(registry, errors, processedGraphQL.get());
         });
 
     }

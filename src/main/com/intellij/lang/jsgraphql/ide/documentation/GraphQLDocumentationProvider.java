@@ -71,7 +71,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
         }
 
         final GraphQLSchemaProvider typeRegistryService = GraphQLSchemaProvider.getInstance(element.getProject());
-        final GraphQLSchema schema = typeRegistryService.getSchema(element);
+        final GraphQLSchema schema = typeRegistryService.getSchemaInfo(element).getSchema();
 
         if (element instanceof GraphQLNamedElement) {
 

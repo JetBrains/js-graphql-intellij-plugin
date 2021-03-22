@@ -10,14 +10,13 @@ package com.intellij.lang.jsgraphql.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLInputFieldsContainer;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl implements GraphQLObjectValue, GraphQLTypeScopeProvider {
@@ -48,20 +47,17 @@ public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl impl
                 return typeScopeProvider.getTypeScope();
             }
         }
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
-        if (schema != null) {
-            // the type scope for an object value is a parent object value or the argument it's a value for
-            final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLObjectValueImpl.class);
-            final GraphQLObjectField objectField = PsiTreeUtil.getParentOfType(this, GraphQLObjectField.class);
-            if (typeScopeProvider != null && objectField != null) {
-                GraphQLType typeScope = typeScopeProvider.getTypeScope();
-                if (typeScope != null) {
-                    typeScope = GraphQLUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
-                    if (typeScope instanceof GraphQLInputFieldsContainer) {
-                        final GraphQLInputObjectField inputObjectField = ((GraphQLInputFieldsContainer) typeScope).getFieldDefinition(objectField.getName());
-                        if (inputObjectField != null) {
-                            return inputObjectField.getType();
-                        }
+        // the type scope for an object value is a parent object value or the argument it's a value for
+        final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLObjectValueImpl.class);
+        final GraphQLObjectField objectField = PsiTreeUtil.getParentOfType(this, GraphQLObjectField.class);
+        if (typeScopeProvider != null && objectField != null) {
+            GraphQLType typeScope = typeScopeProvider.getTypeScope();
+            if (typeScope != null) {
+                typeScope = GraphQLUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
+                if (typeScope instanceof GraphQLInputFieldsContainer) {
+                    final GraphQLInputObjectField inputObjectField = ((GraphQLInputFieldsContainer) typeScope).getFieldDefinition(objectField.getName());
+                    if (inputObjectField != null) {
+                        return inputObjectField.getType();
                     }
                 }
             }

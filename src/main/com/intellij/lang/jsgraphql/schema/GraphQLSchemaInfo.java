@@ -19,15 +19,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
-public class GraphQLValidatedSchema {
+public class GraphQLSchemaInfo {
 
     private final GraphQLSchema mySchema;
     private final List<GraphQLException> myErrors;
-    private final GraphQLValidatedRegistry myRegistry;
+    private final GraphQLRegistryInfo myRegistry;
 
-    public GraphQLValidatedSchema(@NotNull GraphQLSchema schema,
-                                  @NotNull List<GraphQLException> errors,
-                                  @NotNull GraphQLValidatedRegistry registry) {
+    public GraphQLSchemaInfo(@NotNull GraphQLSchema schema,
+                             @NotNull List<GraphQLException> errors,
+                             @NotNull GraphQLRegistryInfo registry) {
         mySchema = schema;
         myErrors = errors;
         myRegistry = registry;
@@ -37,7 +37,7 @@ public class GraphQLValidatedSchema {
         return mySchema;
     }
 
-    public @NotNull GraphQLValidatedRegistry getRegistry() {
+    public @NotNull GraphQLRegistryInfo getRegistry() {
         return myRegistry;
     }
 

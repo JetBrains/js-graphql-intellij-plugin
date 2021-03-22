@@ -10,12 +10,11 @@ package com.intellij.lang.jsgraphql.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLList;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLInputValueDefinitionPsiElement extends GraphQLNamedElementImpl implements GraphQLInputValueDefinition, GraphQLTypeScopeProvider {
@@ -30,22 +29,20 @@ public abstract class GraphQLInputValueDefinitionPsiElement extends GraphQLNamed
         if (psiType != null) {
             final GraphQLIdentifier typeIdentifier = PsiTreeUtil.findChildOfType(psiType, GraphQLIdentifier.class);
             if (typeIdentifier != null) {
-                final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
-                if (schema != null) {
-                    GraphQLType schemaType = schema.getType(typeIdentifier.getText());
-                    if (schemaType != null) {
-                        GraphQLElement parent = typeIdentifier;
-                        while (parent != null && parent != psiType) {
-                            if (parent instanceof GraphQLListType) {
-                                schemaType = new GraphQLList(schemaType);
-                            } else if (parent instanceof GraphQLNonNullType) {
-                                schemaType = new GraphQLNonNull(schemaType);
-                            }
-                            parent = PsiTreeUtil.getParentOfType(parent, GraphQLElement.class);
+                final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchemaInfo(this).getSchema();
+                GraphQLType schemaType = schema.getType(typeIdentifier.getText());
+                if (schemaType != null) {
+                    GraphQLElement parent = typeIdentifier;
+                    while (parent != null && parent != psiType) {
+                        if (parent instanceof GraphQLListType) {
+                            schemaType = new GraphQLList(schemaType);
+                        } else if (parent instanceof GraphQLNonNullType) {
+                            schemaType = new GraphQLNonNull(schemaType);
                         }
+                        parent = PsiTreeUtil.getParentOfType(parent, GraphQLElement.class);
                     }
-                    return schemaType;
                 }
+                return schemaType;
             }
         }
         return null;

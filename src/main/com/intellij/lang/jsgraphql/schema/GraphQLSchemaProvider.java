@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
-import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -24,18 +23,10 @@ public interface GraphQLSchemaProvider {
      * @return merged GraphQL type registry
      */
     @NotNull
-    GraphQLValidatedRegistry getRegistry(@NotNull PsiElement psiElement);
-
-    /**
-     * @param psiElement the element from which the schema is needed, serving as a scope restriction
-     * @return merged GraphQL schema
-     * @see GraphQLSchemaProvider#getRegistry(PsiElement)
-     */
-    @NotNull
-    GraphQLSchema getSchema(@NotNull PsiElement psiElement);
+    GraphQLRegistryInfo getRegistryInfo(@NotNull PsiElement psiElement);
 
     @NotNull
-    GraphQLValidatedSchema getValidatedSchema(@NotNull PsiElement psiElement);
+    GraphQLSchemaInfo getSchemaInfo(@NotNull PsiElement psiElement);
 
     @NotNull
     static GraphQLSchemaProvider getInstance(@NotNull Project project) {

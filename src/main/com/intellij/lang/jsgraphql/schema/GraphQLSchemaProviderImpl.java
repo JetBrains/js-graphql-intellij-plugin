@@ -36,9 +36,8 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
     public static final GraphQLSchema EMPTY_SCHEMA = GraphQLSchema.newSchema()
         .query(GraphQLObjectType.newObject().name("Query").build()).build();
 
-    private final Map<String, GraphQLValidatedRegistry> fileNameToRegistry = Maps.newConcurrentMap();
-    private final Map<String, GraphQLValidatedSchema> fileNameToValidatedSchema = Maps.newConcurrentMap();
-    private final Map<String, GraphQLSchema> fileNameToSchema = Maps.newConcurrentMap();
+    private final Map<String, GraphQLRegistryInfo> fileNameToRegistry = Maps.newConcurrentMap();
+    private final Map<String, GraphQLSchemaInfo> fileNameToSchema = Maps.newConcurrentMap();
     private final GraphQLRegistryProvider myRegistryProvider;
 
     public GraphQLSchemaProviderImpl(@NotNull Project project) {
@@ -48,17 +47,16 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
             // clear the cache on each PSI change
             fileNameToRegistry.clear();
             fileNameToSchema.clear();
-            fileNameToValidatedSchema.clear();
         });
     }
 
     @NotNull
     @Override
-    public GraphQLValidatedSchema getValidatedSchema(@NotNull PsiElement psiElement) {
+    public GraphQLSchemaInfo getSchemaInfo(@NotNull PsiElement psiElement) {
         String containingFileName = GraphQLPsiUtil.getFileName(psiElement.getContainingFile());
 
-        return fileNameToValidatedSchema.computeIfAbsent(containingFileName, fileName -> {
-            final GraphQLValidatedRegistry registryWithErrors = fileNameToRegistry.computeIfAbsent(
+        return fileNameToSchema.computeIfAbsent(containingFileName, fileName -> {
+            final GraphQLRegistryInfo registryWithErrors = fileNameToRegistry.computeIfAbsent(
                 containingFileName, f -> myRegistryProvider.getRegistry(psiElement));
 
             try {
@@ -66,33 +64,16 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
                 Collection<SchemaValidationError> validationErrors = new SchemaValidator().validateSchema(schema);
                 List<GraphQLException> errors = validationErrors.isEmpty()
                     ? Collections.emptyList() : Collections.singletonList(new InvalidSchemaException(validationErrors));
-                return new GraphQLValidatedSchema(schema, errors, registryWithErrors);
+                return new GraphQLSchemaInfo(schema, errors, registryWithErrors);
             } catch (ProcessCanceledException e) {
                 throw e;
             } catch (Exception e) {
                 logBuildError(e);
-                return new GraphQLValidatedSchema(
+                return new GraphQLSchemaInfo(
                     EMPTY_SCHEMA,
                     Lists.newArrayList(e instanceof GraphQLException ? ((GraphQLException) e) : new GraphQLException(e)),
                     registryWithErrors
                 );
-            }
-        });
-    }
-
-    @NotNull
-    @Override
-    public GraphQLSchema getSchema(@NotNull PsiElement psiElement) {
-        String fileName = GraphQLPsiUtil.getFileName(psiElement.getContainingFile());
-        return fileNameToSchema.computeIfAbsent(fileName, f -> {
-            try {
-                GraphQLValidatedRegistry validatedRegistry = getRegistry(psiElement);
-                return UnExecutableSchemaGenerator.makeUnExecutableSchema(validatedRegistry.getTypeDefinitionRegistry());
-            } catch (ProcessCanceledException e) {
-                throw e;
-            } catch (Exception e) {
-                logBuildError(e);
-                return EMPTY_SCHEMA;
             }
         });
     }
@@ -107,7 +88,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
 
     @NotNull
     @Override
-    public GraphQLValidatedRegistry getRegistry(@NotNull PsiElement psiElement) {
+    public GraphQLRegistryInfo getRegistryInfo(@NotNull PsiElement psiElement) {
         String fileName = GraphQLPsiUtil.getFileName(psiElement.getContainingFile());
         return fileNameToRegistry.computeIfAbsent(fileName, f -> myRegistryProvider.getRegistry(psiElement));
     }

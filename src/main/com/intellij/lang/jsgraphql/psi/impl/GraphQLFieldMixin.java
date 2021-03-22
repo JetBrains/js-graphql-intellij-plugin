@@ -10,14 +10,12 @@ package com.intellij.lang.jsgraphql.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.psi.GraphQLField;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implements GraphQLField, GraphQLTypeScopeProvider {
@@ -27,7 +25,6 @@ public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implemen
 
     @Override
     public GraphQLType getTypeScope() {
-        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchema(this);
         final String fieldName = this.getName();
         if (fieldName != null) {
             // the type scope for a field is the output type of the field, given the name of the field and its parent
