@@ -18,9 +18,13 @@
 package com.intellij.lang.jsgraphql.types;
 
 
+import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.language.SourceLocation;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +38,7 @@ import java.util.Map;
  *
  * @see <a href="https://facebook.github.io/graphql/#sec-Errors">GraphQL Spec - 7.2.2 Errors</a>
  */
+@SuppressWarnings("rawtypes")
 @PublicApi
 public interface GraphQLError extends Serializable {
 
@@ -83,5 +88,20 @@ public interface GraphQLError extends Serializable {
         return null;
     }
 
+    default @Nullable Node getNode() {
+        return null;
+    }
+
+    default @NotNull List<Node> getReferences() {
+        return Collections.emptyList();
+    }
+
+    default boolean showOnMultipleDeclarations() {
+        return false;
+    }
+
+    default boolean showOnReferences() {
+        return false;
+    }
 
 }

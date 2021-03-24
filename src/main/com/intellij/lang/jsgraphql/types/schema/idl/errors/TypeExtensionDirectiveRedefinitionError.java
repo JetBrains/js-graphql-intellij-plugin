@@ -28,8 +28,9 @@ public class TypeExtensionDirectiveRedefinitionError extends BaseError {
 
     public TypeExtensionDirectiveRedefinitionError(TypeDefinition typeExtensionDefinition, Directive directive) {
         super(typeExtensionDefinition,
-                format("The extension '%s' type %s has redefined the directive called '%s'",
-                        typeExtensionDefinition.getName(), BaseError.lineCol(typeExtensionDefinition), directive.getName()
+                format("The extension '%s' type has redefined the directive called '%s'",
+                        typeExtensionDefinition.getName(), directive.getName()
                 ));
+        addReferences(directive);
     }
 }

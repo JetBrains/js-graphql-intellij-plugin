@@ -45,7 +45,7 @@ public class DirectiveIllegalArgumentTypeError extends BaseError {
                                                              String directiveName,
                                                              String argumentName,
                                                              String detailedMessage) {
-        return format("'%s' %s uses an illegal value for the argument '%s' on directive '%s'. %s",
-                elementName, BaseError.lineCol(element), argumentName, directiveName, detailedMessage);
+        return format("'%s' uses an illegal value for the argument '%s' on directive '%s'. %s",
+                elementName, argumentName, directiveName, detailedMessage);
     }
 }

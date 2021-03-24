@@ -27,8 +27,8 @@ public class DirectiveUnknownArgumentError extends BaseError {
 
     public DirectiveUnknownArgumentError(Node element, String elementName, String directiveName, String argumentName) {
         super(element,
-                format("'%s' %s use an unknown argument '%s' on directive '%s'",
-                        elementName, BaseError.lineCol(element), argumentName, directiveName
+                format("'%s' use an unknown argument '%s' on directive '%s'",
+                        elementName, argumentName, directiveName
                 ));
     }
 }

@@ -398,8 +398,16 @@ public class SchemaGeneratorHelper {
     }
 
     private @NotNull List<DirectiveLocation> buildLocations(DirectiveDefinition directiveDefinition) {
-        return map(directiveDefinition.getDirectiveLocations(),
-                dl -> DirectiveLocation.valueOf(dl.getName().toUpperCase()));
+        return mapNotNull(directiveDefinition.getDirectiveLocations(),
+            dl -> {
+                try {
+                    String name = dl.getName();
+                    if (name == null) return null;
+                    return DirectiveLocation.valueOf(name.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    return null;
+                }
+            });
     }
 
     private @NotNull Optional<GraphQLArgument> buildDirectiveArgumentFromDefinition(BuildContext buildCtx,

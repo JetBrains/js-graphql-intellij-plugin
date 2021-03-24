@@ -192,13 +192,6 @@ class SchemaTypeDirectivesChecker {
 
         if (unwrappedType == null) {
             errors.add(new MissingTypeError(namedType.getName(), definition, definition.getName()));
-            return;
-        }
-
-        if (!(unwrappedType instanceof InputObjectTypeDefinition)
-                && !(unwrappedType instanceof EnumTypeDefinition)
-                && !(unwrappedType instanceof ScalarTypeDefinition)) {
-            errors.add(new NotAnInputTypeError(namedType, unwrappedType));
         }
     }
 

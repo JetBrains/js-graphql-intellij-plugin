@@ -16,7 +16,7 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayModernAnnotationFilter;
+import com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayErrorFilter;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.validation.fixes.GraphQLMissingTypeFix;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
@@ -146,7 +146,7 @@ public class GraphQLValidationAnnotator implements Annotator {
             final PsiReference reference = psiElement.getReference();
             if (reference == null || reference.resolve() == null) {
                 Annotation annotation = createErrorAnnotation(
-                    annotationHolder, psiElement, "Unknown directive location '" + psiElement.getText() + "'.");
+                    annotationHolder, psiElement, "Unknown directive location '" + psiElement.getText() + "'");
                 if (annotation != null) {
                     annotation.setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
                 }
@@ -164,13 +164,13 @@ public class GraphQLValidationAnnotator implements Annotator {
     }
 
     private @Nullable Annotation createErrorAnnotation(@NotNull AnnotationHolder annotationHolder,
-                                                       @NotNull PsiElement errorPsiElement,
+                                                       @NotNull PsiElement element,
                                                        @Nullable String message) {
-        if (GraphQLRelayModernAnnotationFilter.getService(errorPsiElement.getProject()).errorIsIgnored(errorPsiElement)) {
+        if (GraphQLErrorFilter.isErrorIgnored(element.getProject(), null, element)) {
             return null;
         }
 
-        return annotationHolder.createErrorAnnotation(errorPsiElement, message);
+        return annotationHolder.createErrorAnnotation(element, message);
     }
 
     private List<String> getArgumentNameSuggestions(PsiElement argument, com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope) {

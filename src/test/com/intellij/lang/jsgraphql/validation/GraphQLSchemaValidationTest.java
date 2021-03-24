@@ -13,9 +13,9 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
         doTest();
     }
 
-//    public void testNotInputOutputTypesErrors() {
-//        doTest();
-//    }
+    public void testNotInputOutputTypesErrors() {
+        doTest();
+    }
 
 //    public void testSchemaValidatorErrors() {
 //        doTest();

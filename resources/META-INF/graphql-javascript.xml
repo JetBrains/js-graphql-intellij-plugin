@@ -23,7 +23,7 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">
-    <graphQLFindUsagesFileTypeContributor
+    <findUsagesFileTypeContributor
       implementation="com.intellij.lang.jsgraphql.ide.references.javascript.JavaScriptGraphQLFindUsagesFileTypeContributor"/>
   </extensions>
 

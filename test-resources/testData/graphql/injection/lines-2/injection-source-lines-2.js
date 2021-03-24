@@ -15,7 +15,7 @@ const schema2 = gql`
     }
 
     type SchemaError {
-        argument(foo: <error descr="The type 'OutputType' [@9:5] is not an input type, but was used as an input type [@18:23]">OutputType</error>): Foo
+        argument(foo: <error descr="The type 'OutputType' is not an input type, but was used as an input type">OutputType</error>): Foo
     }
 
 `;

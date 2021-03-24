@@ -27,8 +27,14 @@ public class TypeRedefinitionError extends BaseError {
 
     public TypeRedefinitionError(TypeDefinition newEntry, TypeDefinition oldEntry) {
         super(oldEntry,
-                format("'%s' type %s tried to redefine existing '%s' type %s",
-                        newEntry.getName(), BaseError.lineCol(newEntry), oldEntry.getName(), BaseError.lineCol(oldEntry)
+                format("'%s' type tried to redefine existing '%s' type",
+                        newEntry.getName(), oldEntry.getName()
                 ));
+        addReferences(newEntry);
+    }
+
+    @Override
+    public boolean showOnMultipleDeclarations() {
+        return true;
     }
 }

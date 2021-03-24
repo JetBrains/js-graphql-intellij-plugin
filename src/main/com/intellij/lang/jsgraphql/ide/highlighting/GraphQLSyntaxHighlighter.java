@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.highlighting;
 
 import com.intellij.lang.jsgraphql.GraphQLLexerAdapter;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
+import com.intellij.lang.jsgraphql.psi.GraphQLExtendedElementTypes;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.HighlighterColors;
@@ -18,6 +19,7 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -70,24 +72,7 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final TextAttributesKey[] BAD_CHARACTER_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
   private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
-  private static final Set<IElementType> KEYWORDS = new HashSet<>();
-  static {
-    KEYWORDS.add(QUERY_KEYWORD);
-    KEYWORDS.add(MUTATION_KEYWORD);
-    KEYWORDS.add(SUBSCRIPTION_KEYWORD);
-    KEYWORDS.add(FRAGMENT_KEYWORD);
-    KEYWORDS.add(ON_KEYWORD);
-    KEYWORDS.add(SCHEMA_KEYWORD);
-    KEYWORDS.add(TYPE_KEYWORD);
-    KEYWORDS.add(SCALAR_KEYWORD);
-    KEYWORDS.add(INTERFACE_KEYWORD);
-    KEYWORDS.add(IMPLEMENTS_KEYWORD);
-    KEYWORDS.add(ENUM_KEYWORD);
-    KEYWORDS.add(UNION_KEYWORD);
-    KEYWORDS.add(EXTEND_KEYWORD);
-    KEYWORDS.add(INPUT_KEYWORD);
-    KEYWORDS.add(DIRECTIVE_KEYWORD);
-  }
+  private static final Set<IElementType> KEYWORDS = new HashSet<>(Arrays.asList(GraphQLExtendedElementTypes.KEYWORDS.getTypes()));
 
   @NotNull
   @Override

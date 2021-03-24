@@ -17,7 +17,7 @@ import java.util.Collection;
  */
 public interface GraphQLFindUsagesFileTypeContributor {
 
-    ExtensionPointName<GraphQLFindUsagesFileTypeContributor> EP_NAME = ExtensionPointName.create("com.intellij.lang.jsgraphql.graphQLFindUsagesFileTypeContributor");
+    ExtensionPointName<GraphQLFindUsagesFileTypeContributor> EP_NAME = ExtensionPointName.create("com.intellij.lang.jsgraphql.findUsagesFileTypeContributor");
 
     /**
      * A list of additional file types that the plugin should process to locate GraphQL in a project

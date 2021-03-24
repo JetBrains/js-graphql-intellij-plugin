@@ -27,8 +27,8 @@ public class DirectiveMissingNonNullArgumentError extends BaseError {
 
     public DirectiveMissingNonNullArgumentError(Node element, String elementName, String directiveName, String argumentName) {
         super(element,
-                format("'%s' %s failed to provide a value for the non null argument '%s' on directive '%s'",
-                        elementName, BaseError.lineCol(element), argumentName, directiveName
+                format("'%s' failed to provide a value for the non null argument '%s' on directive '%s'",
+                        elementName, argumentName, directiveName
                 ));
     }
 }

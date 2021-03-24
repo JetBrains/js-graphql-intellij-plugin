@@ -27,7 +27,10 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -114,11 +117,10 @@ public abstract class AbstractNode<T extends Node> implements Node<T> {
     }
 
     @Override
-    public @NotNull Set<PsiElement> getElements() {
+    public @NotNull List<PsiElement> getElements() {
         Stream<PsiElement> nodesStream = getSourceNodes().stream().map(Node::getElement);
         return Stream.concat(nodesStream, Stream.of(myElement))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
+            .filter(Objects::nonNull).distinct().collect(Collectors.toList());
     }
 
     @Override

@@ -27,8 +27,8 @@ public class DirectiveUndeclaredError extends BaseError {
 
     public DirectiveUndeclaredError(Node element, String elementName, String directiveName) {
         super(element,
-                format("'%s' %s tried to use an undeclared directive '%s'",
-                        elementName, BaseError.lineCol(element), directiveName
+                format("'%s' tried to use an undeclared directive '%s'",
+                        elementName, directiveName
                 ));
     }
 }

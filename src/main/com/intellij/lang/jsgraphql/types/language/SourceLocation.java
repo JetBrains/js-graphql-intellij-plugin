@@ -21,6 +21,7 @@ package com.intellij.lang.jsgraphql.types.language;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
@@ -77,6 +78,10 @@ public final class SourceLocation implements Serializable {
         return isPsiBased() ? Objects.requireNonNull(myPsiBasedLocation).getValue().sourceName : sourceName;
     }
 
+    public int getOffset() {
+        return isPsiBased() ? Objects.requireNonNull(myPsiBasedLocation).getValue().offset : -1;
+    }
+
     public boolean isPsiBased() {
         return myElement != null;
     }
@@ -88,7 +93,7 @@ public final class SourceLocation implements Serializable {
     private @NotNull CachedValueProvider.Result<Location> computeLocation() {
         Objects.requireNonNull(myElement);
 
-        Location defaultLocation = new Location(-1, -1, "Unknown");
+        Location defaultLocation = new Location(-1, -1, "Unknown", -1);
         PsiFile containingFile = myElement.getContainingFile();
         InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(myElement.getProject());
         PsiFile topLevelFile = injectedLanguageManager.getTopLevelFile(myElement);
@@ -100,7 +105,12 @@ public final class SourceLocation implements Serializable {
         int offset = injectedLanguageManager.injectedToHost(myElement, myElement.getTextOffset());
         int lineNumber = document.getLineNumber(offset);
         int column = offset - document.getLineStartOffset(lineNumber);
-        Location location = new Location(lineNumber + 1, column + 1, virtualFile != null ? virtualFile.getPath() : null);
+        Location location = new Location(
+            lineNumber + 1,
+            column + 1,
+            virtualFile != null ? FileUtil.toSystemIndependentName(virtualFile.getPath()) : null,
+            offset
+        );
         return CachedValueProvider.Result.create(location, containingFile, topLevelFile, document);
     }
 
@@ -138,11 +148,13 @@ public final class SourceLocation implements Serializable {
         private final int line;
         private final int column;
         private final String sourceName;
+        private final int offset;
 
-        Location(int line, int column, @Nullable String sourceName) {
+        Location(int line, int column, @Nullable String sourceName, int offset) {
             this.line = line;
             this.column = column;
             this.sourceName = sourceName;
+            this.offset = offset;
         }
     }
 }

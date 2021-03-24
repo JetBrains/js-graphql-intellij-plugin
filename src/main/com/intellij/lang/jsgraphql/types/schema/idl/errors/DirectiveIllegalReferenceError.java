@@ -25,8 +25,8 @@ import com.intellij.lang.jsgraphql.types.language.NamedNode;
 public class DirectiveIllegalReferenceError extends BaseError {
     public DirectiveIllegalReferenceError(DirectiveDefinition directive, NamedNode location) {
         super(directive,
-                String.format("'%s' must not reference itself on '%s''%s'",
-                        directive.getName(), location.getName(), lineCol(location)
+                String.format("'%s' must not reference itself on '%s'",
+                        directive.getName(), location.getName()
                 ));
     }
 }

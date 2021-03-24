@@ -1,7 +1,7 @@
 type MyOutputType {
-    in: MyInputType
-    in1: OneMoreInput
-    in2: OneMoreInput
+    in: <error descr="The type 'MyInputType' is not an output type, but was used to declare the output type of a field">MyInputType</error>
+    in1: <error descr="The type 'OneMoreInput' is not an output type, but was used to declare the output type of a field">OneMoreInput</error>
+    in2: <error descr="The type 'OneMoreInput' is not an output type, but was used to declare the output type of a field">OneMoreInput</error>
 }
 
 type OneMoreOutput {
@@ -9,9 +9,9 @@ type OneMoreOutput {
 }
 
 input MyInputType {
-    out: MyOutputType
-    out1: OneMoreOutput
-    out2: OneMoreOutput
+    out: <error descr="The type 'MyOutputType' is not an input type, but was used as an input type">MyOutputType</error>
+    out1: <error descr="The type 'OneMoreOutput' is not an input type, but was used as an input type">OneMoreOutput</error>
+    out2: <error descr="The type 'OneMoreOutput' is not an input type, but was used as an input type">OneMoreOutput</error>
 }
 
 input OneMoreInput {
@@ -19,9 +19,9 @@ input OneMoreInput {
 }
 
 type Query {
-    field(arg: MyOutputType, arg1: OneMoreOutput): MyInputType
-    field1(arg: OneMoreOutput): OneMoreInput
+    field(arg: <error descr="The type 'MyOutputType' is not an input type, but was used as an input type">MyOutputType</error>, arg1: <error descr="The type 'OneMoreOutput' is not an input type, but was used as an input type">OneMoreOutput</error>): <error descr="The type 'MyInputType' is not an output type, but was used to declare the output type of a field">MyInputType</error>
+    field1(arg: <error descr="The type 'OneMoreOutput' is not an input type, but was used as an input type">OneMoreOutput</error>): <error descr="The type 'OneMoreInput' is not an output type, but was used to declare the output type of a field">OneMoreInput</error>
     field2: OneMoreOutput
 }
 
-directive @Invalid(arg: MyOutputType, arg2: OneMoreOutput) on ENUM
+directive @Invalid(arg: <error descr="The type 'MyOutputType' is not an input type, but was used as an input type">MyOutputType</error>, arg2: <error descr="The type 'OneMoreOutput' is not an input type, but was used as an input type">OneMoreOutput</error>) on ENUM
