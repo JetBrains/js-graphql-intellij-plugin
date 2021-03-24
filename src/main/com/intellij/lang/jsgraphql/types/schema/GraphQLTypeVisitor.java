@@ -101,10 +101,6 @@ public interface GraphQLTypeVisitor {
         throw new UnsupportedOperationException();
     }
 
-    default TraversalControl visitGraphQLInvalidType(GraphQLUnknownType node, TraverserContext<GraphQLSchemaElement> context) {
-        throw new UnsupportedOperationException();
-    }
-
     /**
      * This helper method can be used to "change" a node when returning control from this visitor
      *

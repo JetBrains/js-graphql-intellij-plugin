@@ -26,6 +26,7 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,7 +111,11 @@ public class SchemaGenerator {
         GraphQLSchema schema;
         try {
             schema = makeExecutableSchemaImpl(typeRegistryCopy, wiring, operationTypeDefinitions);
-        } catch (Exception e) {
+        }
+        catch (ProcessCanceledException e) {
+            throw e;
+        }
+        catch (Exception e) {
             if (LOG.isDebugEnabled()) {
                 LOG.error(e); // we should prevent any errors during schema build
             } else {
@@ -163,6 +168,10 @@ public class SchemaGenerator {
 
         for (SchemaGeneratorPostProcessing postProcessing : schemaTransformers) {
             graphQLSchema = postProcessing.process(graphQLSchema);
+        }
+        List<GraphQLError> buildErrors = buildCtx.getErrors();
+        if (!buildErrors.isEmpty()) {
+            graphQLSchema.addError(new SchemaProblem(buildErrors));
         }
         return graphQLSchema;
     }

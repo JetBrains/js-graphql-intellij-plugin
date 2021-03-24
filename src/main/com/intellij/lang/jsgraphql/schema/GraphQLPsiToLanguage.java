@@ -277,7 +277,7 @@ public class GraphQLPsiToLanguage {
         return checkNode(builder.build());
     }
 
-    protected @NotNull NonNullType createNonNullType(@NotNull GraphQLNonNullType nonNullType) {
+    protected @Nullable NonNullType createNonNullType(@NotNull GraphQLNonNullType nonNullType) {
         NonNullType.Builder builder = NonNullType.newNonNullType();
         addCommonData(builder, nonNullType);
         GraphQLType type = nonNullType.getType();
@@ -286,16 +286,16 @@ public class GraphQLPsiToLanguage {
         } else if (type instanceof GraphQLTypeName) {
             builder.type(createTypeName((GraphQLTypeName) type));
         } else {
-            return assertShouldNeverHappen();
+            return null;
         }
-        return builder.build();
+        return checkNode(builder.build());
     }
 
     protected @NotNull ListType createListType(@NotNull GraphQLListType listType) {
         ListType.Builder builder = ListType.newListType();
         addCommonData(builder, listType);
         builder.type(createType(listType.getType()));
-        return builder.build();
+        return checkNode(builder.build());
     }
 
     protected @Nullable Argument createArgument(@NotNull GraphQLArgument argument) {
@@ -765,10 +765,41 @@ public class GraphQLPsiToLanguage {
         return implementz;
     }
 
-    private static <T extends NamedNode> T checkNode(@Nullable T node) {
+    private static <T extends Node> T checkNode(@Nullable T node) {
         if (node == null) return null;
-        String name = node.getName();
-        return StringUtil.isEmpty(name) ? null : node;
+        if (node instanceof NamedNode) {
+            String name = ((NamedNode<?>) node).getName();
+            if (StringUtil.isEmpty(name)) return null;
+        }
+        if (node instanceof ListType) {
+            Type type = ((ListType) node).getType();
+            if (type == null) return null;
+        }
+        if (node instanceof NonNullType) {
+            Type type = ((NonNullType) node).getType();
+            if (type == null) return null;
+        }
+        if (node instanceof OperationTypeDefinition) {
+            TypeName typeName = ((OperationTypeDefinition) node).getTypeName();
+            if (typeName == null) return null;
+        }
+        if (node instanceof VariableDefinition) {
+            Type type = ((VariableDefinition) node).getType();
+            if (type == null) return null;
+        }
+        if (node instanceof FragmentDefinition) {
+            TypeName typeCondition = ((FragmentDefinition) node).getTypeCondition();
+            if (typeCondition == null) return null;
+        }
+        if (node instanceof FieldDefinition) {
+            Type type = ((FieldDefinition) node).getType();
+            if (type == null) return null;
+        }
+        if (node instanceof InputValueDefinition) {
+            Type type = ((InputValueDefinition) node).getType();
+            if (type == null) return null;
+        }
+        return node;
     }
 }
 

@@ -17,34 +17,18 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.validation;
 
-import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 
 @Internal
 public class SchemaValidationError {
 
     private final SchemaValidationErrorType errorType;
     private final String description;
-    private final @Nullable GraphQLError error;
 
     public SchemaValidationError(@NotNull SchemaValidationErrorType errorType, @NotNull String description) {
-        this(errorType, description, null);
-    }
-
-    public SchemaValidationError(@NotNull GraphQLError error) {
-        this(SchemaValidationErrorType.CompositeError, error.getMessage(), error);
-    }
-
-    protected SchemaValidationError(@NotNull SchemaValidationErrorType errorType,
-                                    @NotNull String description,
-                                    @Nullable GraphQLError error) {
         this.errorType = errorType;
         this.description = description;
-        this.error = error;
     }
 
     public SchemaValidationErrorType getErrorType() {
@@ -53,10 +37,6 @@ public class SchemaValidationError {
 
     public String getDescription() {
         return description;
-    }
-
-    public @Nullable GraphQLError getBaseError() {
-        return error;
     }
 
     @Override

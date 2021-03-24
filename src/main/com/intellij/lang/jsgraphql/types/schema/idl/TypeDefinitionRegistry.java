@@ -77,14 +77,10 @@ public class TypeDefinitionRegistry {
      */
     public TypeDefinitionRegistry merge(TypeDefinitionRegistry typeRegistry) {
         Map<String, TypeDefinition> tempTypes = new LinkedHashMap<>();
-        typeRegistry.types.values().forEach(newEntry -> {
-            define(this.types, tempTypes, newEntry);
-        });
+        typeRegistry.types.values().forEach(newEntry -> define(this.types, tempTypes, newEntry));
 
         Map<String, DirectiveDefinition> tempDirectiveDefs = new LinkedHashMap<>();
-        typeRegistry.directiveDefinitions.values().forEach(newEntry -> {
-            define(this.directiveDefinitions, tempDirectiveDefs, newEntry);
-        });
+        typeRegistry.directiveDefinitions.values().forEach(newEntry -> define(this.directiveDefinitions, tempDirectiveDefs, newEntry));
 
         Map<String, ScalarTypeDefinition> tempScalarTypes = new LinkedHashMap<>();
         typeRegistry.scalarTypes.values().forEach(newEntry -> define(this.scalarTypes, tempScalarTypes, newEntry));
@@ -168,7 +164,6 @@ public class TypeDefinitionRegistry {
      * Adds a a collections of definitions to the registry
      *
      * @param definitions the definitions to add
-     * @return an optional error for the first problem, typically type redefinition
      */
     public void addAll(Collection<SDLDefinition> definitions) {
         for (SDLDefinition definition : definitions) {
@@ -180,7 +175,6 @@ public class TypeDefinitionRegistry {
      * Adds a definition to the registry
      *
      * @param definition the definition to add
-     * @return an optional error
      */
     public void add(SDLDefinition definition) {
         // extensions
@@ -320,17 +314,19 @@ public class TypeDefinitionRegistry {
         return types.containsKey(name) || ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS.containsKey(name) || scalarTypes.containsKey(name) || objectTypeExtensions.containsKey(name);
     }
 
-    public Optional<TypeDefinition> getType(Type type) {
+    public @NotNull Optional<TypeDefinition> getType(@Nullable Type type) {
+        if (type == null) return Optional.empty();
         String typeName = TypeInfo.typeInfo(type).getName();
         return getType(typeName);
     }
 
-    public <T extends TypeDefinition> Optional<T> getType(Type type, Class<T> ofType) {
+    public @NotNull <T extends TypeDefinition> Optional<T> getType(@Nullable Type type, Class<T> ofType) {
+        if (type == null) return Optional.empty();
         String typeName = TypeInfo.typeInfo(type).getName();
         return getType(typeName, ofType);
     }
 
-    public Optional<TypeDefinition> getType(String typeName) {
+    public @NotNull Optional<TypeDefinition> getType(@Nullable String typeName) {
         TypeDefinition<?> typeDefinition = types.get(typeName);
         if (typeDefinition != null) {
             return Optional.of(typeDefinition);
@@ -342,7 +338,7 @@ public class TypeDefinitionRegistry {
         return Optional.empty();
     }
 
-    public <T extends TypeDefinition> Optional<T> getType(String typeName, Class<T> ofType) {
+    public <T extends TypeDefinition> @NotNull Optional<T> getType(@Nullable String typeName, Class<T> ofType) {
         Optional<TypeDefinition> type = getType(typeName);
         if (type.isPresent()) {
             TypeDefinition typeDefinition = type.get();
@@ -458,8 +454,10 @@ public class TypeDefinitionRegistry {
         if (!isObjectType(possibleObjectType)) {
             return false;
         }
-        ObjectTypeDefinition targetObjectTypeDef = getType(possibleObjectType, ObjectTypeDefinition.class).get();
-        TypeDefinition abstractTypeDef = getType(abstractType).get();
+        ObjectTypeDefinition targetObjectTypeDef = getType(possibleObjectType, ObjectTypeDefinition.class).orElse(null);
+        TypeDefinition abstractTypeDef = getType(abstractType).orElse(null);
+        if (targetObjectTypeDef == null || abstractTypeDef == null) return false;
+
         if (abstractTypeDef instanceof UnionTypeDefinition) {
             List<Type> memberTypes = ((UnionTypeDefinition) abstractTypeDef).getMemberTypes();
             for (Type memberType : memberTypes) {
@@ -486,7 +484,7 @@ public class TypeDefinitionRegistry {
      * @param superType    the equality checked type
      * @return true if maybeSubType is covariant or equal to superType
      */
-    @SuppressWarnings("SimplifiableIfStatement")
+    @SuppressWarnings({"SimplifiableIfStatement", "RedundantIfStatement"})
     public boolean isSubTypeOf(Type maybeSubType, Type superType) {
         TypeInfo maybeSubTypeInfo = TypeInfo.typeInfo(maybeSubType);
         TypeInfo superTypeInfo = TypeInfo.typeInfo(superType);

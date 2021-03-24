@@ -20,11 +20,13 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Stack;
 
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLList.list;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull.nonNull;
 
@@ -35,17 +37,17 @@ import static com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull.nonNull;
 @Internal
 public class TypeInfo {
 
-    public static TypeInfo typeInfo(@Nullable Type type) {
+    public static TypeInfo typeInfo(@NotNull Type type) {
         return new TypeInfo(type);
     }
 
-    private final @Nullable Type rawType;
-    private final @Nullable TypeName typeName;
-    private final Stack<Class<?>> decoration = new Stack<>();
+    private final @NotNull Type rawType;
+    private final @NotNull TypeName typeName;
+    private final @NotNull Stack<Class<?>> decoration = new Stack<>();
 
-    private TypeInfo(@Nullable Type type) {
-        this.rawType = type;
-        while (type != null && !(type instanceof TypeName)) {
+    private TypeInfo(@NotNull Type type) {
+        this.rawType = assertNotNull(type, () -> "type must not be null");
+        while (!(type instanceof TypeName)) {
             if (type instanceof NonNullType) {
                 decoration.push(NonNullType.class);
                 type = ((NonNullType) type).getType();
@@ -58,16 +60,16 @@ public class TypeInfo {
         this.typeName = (TypeName) type;
     }
 
-    public @Nullable Type getRawType() {
+    public @NotNull Type getRawType() {
         return rawType;
     }
 
-    public @Nullable TypeName getTypeName() {
+    public @NotNull TypeName getTypeName() {
         return typeName;
     }
 
-    public String getName() {
-        return typeName != null ? typeName.getName() : null;
+    public @NotNull String getName() {
+        return typeName.getName();
     }
 
     public boolean isList() {
@@ -86,7 +88,6 @@ public class TypeInfo {
      * This will rename the type with the specified new name but will preserve the wrapping that was present
      *
      * @param newName the new name of the type
-     *
      * @return a new type info rebuilt with the new name
      */
     public TypeInfo renameAs(String newName) {
@@ -113,11 +114,11 @@ public class TypeInfo {
      *
      * @param objectType this should be a graphql type that was originally built from this raw type
      * @param <T>        the type
-     *
      * @return the decorated type
      */
     @SuppressWarnings("TypeParameterUnusedInFormals")
-    public <T extends GraphQLType> T decorate(GraphQLType objectType) {
+    public <T extends GraphQLType> @Nullable T decorate(GraphQLType objectType) {
+        if (objectType == null) return null;
 
         GraphQLType out = objectType;
         Stack<Class<?>> wrappingStack = new Stack<>();
@@ -159,21 +160,25 @@ public class TypeInfo {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TypeInfo typeInfo = (TypeInfo) o;
-        return Objects.equals(rawType, typeInfo.rawType) &&
-            Objects.equals(typeName, typeInfo.typeName) &&
-            Objects.equals(decoration, typeInfo.decoration);
+        return isNonNull() == typeInfo.isNonNull() &&
+            isList() == typeInfo.isList() &&
+            Objects.equals(typeName.getName(), typeInfo.typeName.getName());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(rawType, typeName, decoration);
+        int result = 1;
+        result = 31 * result + Objects.hashCode(typeName.getName());
+        result = 31 * result + Boolean.hashCode(isNonNull());
+        result = 31 * result + Boolean.hashCode(isList());
+        return result;
     }
 
     @Override
     public String toString() {
         return "TypeInfo{" +
-                getAstDesc(rawType) +
-                '}';
+            getAstDesc(rawType) +
+            '}';
     }
 }
 

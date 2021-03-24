@@ -1,0 +1,39 @@
+<error descr="There is already a schema defined [@1:1].  The offending new one is here [@10:1]"><error descr="There is already a schema defined [@1:1].  The offending new one is here [@5:1]">schema</error></error> {
+    <error descr="There is already an operation 'query' defined [@2:5].  The offending new one is here [@6:5]">query</error>: Query
+}
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+schema {
+    subscription: Subscription
+}
+
+# TODO: extend schema redefinitions
+#extend schema {
+#  query: Query
+#  mutation: Mutation
+#  subscription: Subscription
+#}
+
+<error descr="'MyDirective' type [@23:1] tried to redefine existing directive 'MyDirective' type [@21:1]">directive</error> @MyDirective on ENUM_VALUE
+
+directive @MyDirective on ARGUMENT_DEFINITION
+
+type <error descr="'Query' type [@29:1] tried to redefine existing 'Query' type [@25:1]">Query</error> {
+    id: ID
+}
+
+type Query {
+    id: ID
+}
+
+type Mutation {
+    id: ID
+}
+
+type Subscription {
+    id: ID
+}

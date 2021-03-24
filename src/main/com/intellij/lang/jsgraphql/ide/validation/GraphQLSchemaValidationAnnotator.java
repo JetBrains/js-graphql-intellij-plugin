@@ -124,14 +124,11 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
             userData = new Validator().validateDocument(schemaInfo.getSchema(), document);
         } else {
             final String currentFileName = GraphQLPsiUtil.getFileName(containingFile);
-            final Ref<SourceLocation> firstSchemaError = new Ref<>();
             for (GraphQLError error : schemaInfo.getErrors()) {
                 List<SourceLocation> errorLocations = error.getLocations();
                 SourceLocation firstSourceLocation = errorLocations != null
                     ? errorLocations.stream().findFirst().orElse(null) : null;
-                if (firstSourceLocation != null && firstSchemaError.isNull()) {
-                    firstSchemaError.set(firstSourceLocation);
-                }
+
                 if (firstSourceLocation != null && currentFileName.equals(firstSourceLocation.getSourceName())) {
                     int positionToOffset = getOffsetFromSourceLocation(containingFile, firstSourceLocation);
                     if (positionToOffset == -1) {
@@ -143,12 +140,6 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                     }
                     PsiElement errorPsiElement = containingFile.findElementAt(positionToOffset);
                     if (errorPsiElement != null) {
-                        PsiElement nextLeaf = PsiTreeUtil.nextVisibleLeaf(errorPsiElement);
-                        if (nextLeaf != null && nextLeaf.getParent() instanceof GraphQLIdentifier) {
-                            // graphql-errors typically point to the keywords of definitions, so
-                            // use the definition identifier in that case
-                            errorPsiElement = nextLeaf.getParent();
-                        }
                         createErrorAnnotation(annotationHolder, errorPsiElement, error.getMessage());
                     }
                 }

@@ -105,10 +105,8 @@ public class SchemaExtensionsChecker {
 
     static List<Directive> gatherSchemaDirectives(TypeDefinitionRegistry typeRegistry, List<GraphQLError> errors) {
         List<Directive> directiveList = new ArrayList<>();
-        SchemaDefinition schemaDefinition = typeRegistry.schemaDefinition().orElse(null);
-        if (schemaDefinition != null) {
-            directiveList.addAll(schemaDefinition.getDirectives());
-        }
+        typeRegistry.schemaDefinition().ifPresent(schemaDefinition -> directiveList.addAll(schemaDefinition.getDirectives()));
+
         for (SchemaExtensionDefinition schemaExtensionDefinition : typeRegistry.getSchemaExtensionDefinitions()) {
             directiveList.addAll(schemaExtensionDefinition.getDirectives());
         }

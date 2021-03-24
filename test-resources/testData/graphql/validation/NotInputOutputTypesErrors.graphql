@@ -1,0 +1,27 @@
+type MyOutputType {
+    in: MyInputType
+    in1: OneMoreInput
+    in2: OneMoreInput
+}
+
+type OneMoreOutput {
+    id: ID
+}
+
+input MyInputType {
+    out: MyOutputType
+    out1: OneMoreOutput
+    out2: OneMoreOutput
+}
+
+input OneMoreInput {
+    id: ID
+}
+
+type Query {
+    field(arg: MyOutputType, arg1: OneMoreOutput): MyInputType
+    field1(arg: OneMoreOutput): OneMoreInput
+    field2: OneMoreOutput
+}
+
+directive @Invalid(arg: MyOutputType, arg2: OneMoreOutput) on ENUM

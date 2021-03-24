@@ -102,10 +102,4 @@ public class GraphQLTypeVisitorStub implements GraphQLTypeVisitor {
     protected TraversalControl visitGraphQLType(GraphQLSchemaElement node, TraverserContext<GraphQLSchemaElement> context) {
         return CONTINUE;
     }
-
-    @Override
-    public TraversalControl visitGraphQLInvalidType(GraphQLUnknownType node,
-                                                    TraverserContext<GraphQLSchemaElement> context) {
-        return visitGraphQLType(node, context);
-    }
 }

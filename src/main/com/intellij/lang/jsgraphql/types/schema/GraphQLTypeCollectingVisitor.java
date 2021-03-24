@@ -93,13 +93,6 @@ public class GraphQLTypeCollectingVisitor extends GraphQLTypeVisitorStub {
         return super.visitGraphQLFieldDefinition(node, context);
     }
 
-    @Override
-    public TraversalControl visitGraphQLInvalidType(GraphQLUnknownType node,
-                                                    TraverserContext<GraphQLSchemaElement> context) {
-        save(node.getName(), node);
-        return super.visitGraphQLInvalidType(node, context);
-    }
-
     private boolean isNotTypeReference(String name) {
         return result.containsKey(name) && !(result.get(name) instanceof GraphQLTypeReference);
     }

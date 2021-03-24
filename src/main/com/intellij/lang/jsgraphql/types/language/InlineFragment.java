@@ -40,7 +40,7 @@ import static com.intellij.lang.jsgraphql.types.language.NodeChildrenContainer.n
 
 @PublicApi
 public class InlineFragment extends AbstractNode<InlineFragment> implements Selection<InlineFragment>, SelectionSetContainer<InlineFragment>, DirectivesContainer<InlineFragment> {
-    private final TypeName typeCondition;
+    private final @Nullable TypeName typeCondition;
     private final ImmutableList<Directive> directives;
     private final SelectionSet selectionSet;
 
@@ -49,7 +49,7 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
     public static final String CHILD_SELECTION_SET = "selectionSet";
 
     @Internal
-    protected InlineFragment(TypeName typeCondition,
+    protected InlineFragment(@Nullable TypeName typeCondition,
                              List<Directive> directives,
                              SelectionSet selectionSet,
                              SourceLocation sourceLocation,
@@ -83,7 +83,7 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
         this(typeCondition, emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
     }
 
-    public TypeName getTypeCondition() {
+    public @Nullable TypeName getTypeCondition() {
         return typeCondition;
     }
 
@@ -209,7 +209,7 @@ public class InlineFragment extends AbstractNode<InlineFragment> implements Sele
             return this;
         }
 
-        public Builder typeCondition(TypeName typeCondition) {
+        public Builder typeCondition(@Nullable TypeName typeCondition) {
             this.typeCondition = typeCondition;
             return this;
         }

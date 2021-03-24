@@ -15,7 +15,6 @@ import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.util.Ref;
 import com.intellij.psi.*;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
@@ -64,10 +63,9 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
 
             final HashMap<String, IdentifierKind> identifiers = Maps.newHashMap();
 
-            final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
-            identifierVisitor.set(new PsiRecursiveElementVisitor() {
+            PsiRecursiveElementVisitor visitor = new PsiRecursiveElementVisitor() {
                 @Override
-                public void visitElement(PsiElement element) {
+                public void visitElement(@NotNull PsiElement element) {
                     if (element instanceof GraphQLIdentifier) {
                         identifiers.put(element.getText(), IdentifierKind.IDENTIFIER_NAME);
                         return; // no need to visit deeper
@@ -93,15 +91,15 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
                             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
                             final String graphqlBuffer = StringUtils.strip(element.getText(), "` \t\n");
                             final PsiFile graphqlInjectedPsiFile = psiFileFactory.createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
-                            graphqlInjectedPsiFile.accept(identifierVisitor.get());
+                            graphqlInjectedPsiFile.accept(this);
                             return;
                         }
                     }
                     super.visitElement(element);
                 }
-            });
+            };
 
-            inputData.getPsiFile().accept(identifierVisitor.get());
+            inputData.getPsiFile().accept(visitor);
 
             return identifiers;
         };
@@ -119,7 +117,7 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
                     }
                 }
                 final JsonProperty schemaProperty = ((JsonObject) child).findProperty("__schema");
-                if(schemaProperty != null) {
+                if (schemaProperty != null) {
                     return true;
                 }
             }

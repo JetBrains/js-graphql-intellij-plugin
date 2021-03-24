@@ -36,7 +36,6 @@ public class SchemaValidator {
         rules.add(new NoUnbrokenInputCycles());
         rules.add(new TypesImplementInterfaces());
         rules.add(new TypeAndFieldRule());
-        rules.add(new InvalidTypesRule());
     }
 
     SchemaValidator(List<SchemaValidationRule> rules) {
@@ -78,7 +77,9 @@ public class SchemaValidator {
         });
     }
 
-    private void traverse(GraphQLOutputType root, List<SchemaValidationRule> rules, SchemaValidationErrorCollector validationErrorCollector) {
+    private void traverse(GraphQLOutputType root,
+                          List<SchemaValidationRule> rules,
+                          SchemaValidationErrorCollector validationErrorCollector) {
         if (processed.contains(root)) {
             return;
         }

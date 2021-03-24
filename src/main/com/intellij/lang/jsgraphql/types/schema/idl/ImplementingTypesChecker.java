@@ -29,6 +29,7 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceWithCircular
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingInterfaceFieldArgumentsError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingInterfaceFieldError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingTransitiveInterfaceError;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -254,7 +255,7 @@ class ImplementingTypesChecker {
         return (v1, v2) -> v1;
     }
 
-    private Optional<InterfaceTypeDefinition> toInterfaceTypeDefinition(Type type, TypeDefinitionRegistry typeRegistry) {
+    private @NotNull Optional<InterfaceTypeDefinition> toInterfaceTypeDefinition(Type type, TypeDefinitionRegistry typeRegistry) {
         TypeInfo typeInfo = TypeInfo.typeInfo(type);
         TypeName unwrapped = typeInfo.getTypeName();
 
