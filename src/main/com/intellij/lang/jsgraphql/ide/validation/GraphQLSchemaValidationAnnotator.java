@@ -369,7 +369,8 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
         if (references.size() == 1) {
             PsiElement target = references.get(0).getElement();
             if (target != null && target.isValid()) {
-                annotation.registerFix(new GraphQLNavigateToRelatedDefinition(target));
+                PsiElement anchor = getAnnotationAnchor(target);
+                annotation.registerFix(new GraphQLNavigateToRelatedDefinition(target, anchor.getText()));
             }
         }
     }
