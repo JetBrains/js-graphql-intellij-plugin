@@ -54,13 +54,14 @@ class UnionTypesChecker {
         List<UnionTypeExtensionDefinition> unionTypeExtensions = typeRegistry.getTypes(UnionTypeExtensionDefinition.class);
 
         //noinspection RedundantCast
-        Stream.of(unionTypes.stream(), unionTypeExtensions.stream())
-                .flatMap(Function.identity())
-                .forEach(type -> checkUnionType(typeRegistry, ((UnionTypeDefinition) type), errors));
+        TypeDefinitionRegistry.fromSourceNodes(
+            Stream.of(unionTypes.stream(), unionTypeExtensions.stream())
+                .flatMap(Function.identity()),
+            UnionTypeDefinition.class
+        ).forEach(type -> checkUnionType(typeRegistry, ((UnionTypeDefinition) type), errors));
     }
 
     private void checkUnionType(TypeDefinitionRegistry typeRegistry, UnionTypeDefinition unionTypeDefinition, List<GraphQLError> errors) {
-        // TODO: [intellij] check the real source instead of processed
         assertTypeName(unionTypeDefinition, errors);
 
         List<Type> memberTypes = unionTypeDefinition.getMemberTypes();
@@ -80,7 +81,7 @@ class UnionTypesChecker {
             }
 
             if (typeNames.contains(memberTypeName)) {
-                errors.add(new UnionTypeError(unionTypeDefinition, format("member type '%s' in Union '%s' is not unique. The member types of a Union type must be unique.", ((TypeName) memberType).getName(), unionTypeDefinition.getName())));
+                errors.add(new UnionTypeError(unionTypeDefinition, format("The member type '%s' in Union '%s' is not unique. The member types of a Union type must be unique.", ((TypeName) memberType).getName(), unionTypeDefinition.getName())));
                 continue;
             }
             typeNames.add(memberTypeName);
