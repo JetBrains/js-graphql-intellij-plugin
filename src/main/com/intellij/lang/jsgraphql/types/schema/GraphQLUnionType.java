@@ -99,7 +99,6 @@ public class GraphQLUnionType implements GraphQLNamedOutputType, GraphQLComposit
     private GraphQLUnionType(String name, String description, List<GraphQLNamedOutputType> types, TypeResolver typeResolver, List<GraphQLDirective> directives, UnionTypeDefinition definition, List<UnionTypeExtensionDefinition> extensionDefinitions) {
         assertValidName(name);
         assertNotNull(types, () -> "types can't be null");
-        assertNotEmpty(types, () -> "A Union type must define one or more member types.");
         assertNotNull(directives, () -> "directives cannot be null");
 
         this.name = name;

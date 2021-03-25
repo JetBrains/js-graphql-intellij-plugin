@@ -56,7 +56,8 @@ public class NoUnbrokenInputCycles implements SchemaValidationRule {
 
     private void check(GraphQLInputObjectType type, Set<GraphQLType> seen, List<String> path, SchemaValidationErrorCollector validationErrorCollector) {
         if (seen.contains(type)) {
-            validationErrorCollector.addError(new SchemaValidationError(SchemaValidationErrorType.UnbrokenInputCycle, getErrorMessage(path)));
+            validationErrorCollector.addError(
+                new SchemaValidationError(SchemaValidationErrorType.UnbrokenInputCycle, getErrorMessage(path), type.getDefinition()));
             return;
         }
         seen.add(type);

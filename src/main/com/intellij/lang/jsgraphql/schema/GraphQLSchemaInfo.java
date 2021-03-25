@@ -57,10 +57,7 @@ public class GraphQLSchemaInfo {
             } else if (exception instanceof GraphQLError) {
                 errors.add((GraphQLError) exception);
             } else if (exception instanceof InvalidSchemaException) {
-                Collection<SchemaValidationError> validationErrors = ((InvalidSchemaException) exception).getErrors();
-                for (SchemaValidationError validationError : validationErrors) {
-                    // TODO: [intellij] handle errors types
-                }
+                errors.addAll(((InvalidSchemaException) exception).getErrors());
             } else {
                 errors.add(new GraphQLUnexpectedSchemaError(exception));
             }

@@ -60,6 +60,7 @@ class UnionTypesChecker {
     }
 
     private void checkUnionType(TypeDefinitionRegistry typeRegistry, UnionTypeDefinition unionTypeDefinition, List<GraphQLError> errors) {
+        // TODO: [intellij] check the real source instead of processed
         assertTypeName(unionTypeDefinition, errors);
 
         List<Type> memberTypes = unionTypeDefinition.getMemberTypes();
@@ -74,7 +75,7 @@ class UnionTypesChecker {
             Optional<TypeDefinition> memberTypeDefinition = typeRegistry.getType(memberTypeName);
 
             if (!memberTypeDefinition.isPresent() || !(memberTypeDefinition.get() instanceof ObjectTypeDefinition)) {
-                errors.add(new UnionTypeError(unionTypeDefinition, format("The member types of a Union type must all be Object base types. member type '%s' in Union '%s' is invalid.", ((TypeName) memberType).getName(), unionTypeDefinition.getName())));
+                errors.add(new UnionTypeError(unionTypeDefinition, format("The member types of a Union type must all be Object base types. Member type '%s' in Union '%s' is invalid.", ((TypeName) memberType).getName(), unionTypeDefinition.getName())));
                 continue;
             }
 

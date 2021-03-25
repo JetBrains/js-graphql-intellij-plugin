@@ -1,0 +1,27 @@
+# Empty types awith invalid names
+type <error descr="\"__EmptyObject\" must define one or more fields"><error descr="\"__EmptyObject\" must not begin with \"__\", which is reserved by GraphQL introspection">__EmptyObject</error></error> {
+}
+interface <error descr="\"__EmptyInterface\" must define one or more fields"><error descr="\"__EmptyInterface\" must not begin with \"__\", which is reserved by GraphQL introspection">__EmptyInterface</error></error> {
+}
+input <error descr="\"__EmptyInput\" must define one or more fields"><error descr="\"__EmptyInput\" must not begin with \"__\", which is reserved by GraphQL introspection">__EmptyInput</error></error> {<EOLError descr="<input value definition> expected, got '}'"></EOLError>
+}
+union <error descr="'__Un' must not begin with '__', which is reserved by GraphQL introspection"><error descr="Union type '__Un' must include one or more member types">__Un</error></error> =<EOLError descr="'|' expected, got 'enum'"></EOLError>
+enum <error descr="\"__InvalidEnum\" must not begin with \"__\", which is reserved by GraphQL introspection"><error descr="Enum type \"__InvalidEnum\" must define one or more enum values">__InvalidEnum</error></error> {<EOLError descr="<enum value definition> expected, got '}'"></EOLError>
+
+}
+scalar <error descr="\"__InvalidScalar\" must not begin with \"__\", which is reserved by GraphQL introspection">__InvalidScalar</error>
+
+# Invalid fields
+type ObjectInvalidFieldName {
+    <error descr="\"__myField\" in \"ObjectInvalidFieldName\" must not begin with \"__\", which is reserved by GraphQL introspection">__myField</error>: Int
+}
+interface InterfaceInvalidFieldName {
+    <error descr="\"__myField\" in \"InterfaceInvalidFieldName\" must not begin with \"__\", which is reserved by GraphQL introspection">__myField</error>: Int
+}
+input InputInvalidFieldName {
+    <error descr="\"__myField\" in \"__myField\" must not begin with \"__\", which is reserved by GraphQL introspection">__myField</error>: Int
+}
+union <error descr="The member types of a Union type must all be Object base types. Member type 'InputInvalidFieldName' in Union 'UnionInvalidMembers' is invalid"><error descr="The member types of a Union type must all be Object base types. Member type 'InterfaceInvalidFieldName' in Union 'UnionInvalidMembers' is invalid">UnionInvalidMembers</error></error> = ObjectInvalidFieldName | ObjectInvalidFieldName | InterfaceInvalidFieldName | <error descr="The type 'InputInvalidFieldName' is not an output type, but was used to declare the output type of a field">InputInvalidFieldName</error>
+enum EnumInvalidFieldName {
+    <error descr="Enum value definition \"__A\" in  \"EnumInvalidFieldName\"  must not begin with \"__\", which is reserved by GraphQL introspection">__A</error>
+}

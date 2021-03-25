@@ -42,6 +42,8 @@ import java.util.Map;
 @PublicApi
 public interface Node<T extends Node> extends Serializable {
 
+    Node[] EMPTY_ARRAY = new Node[0];
+
     /**
      * @return a list of the children of this node
      */

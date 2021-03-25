@@ -26,19 +26,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings("rawtypes")
 @Internal
-class BaseError extends GraphQLException implements GraphQLError {
+public class BaseError extends GraphQLException implements GraphQLError {
     protected static final SourceLocation NO_WHERE = new SourceLocation(-1, -1);
 
     private final Node node;
     private final List<Node> myReferences = new ArrayList<>();
 
-    public BaseError(Node node, String msg) {
+    public BaseError(@Nullable Node node, @Nullable String msg) {
         super(StringUtil.trimEnd(StringUtil.notNullize(msg), "."));
         this.node = node;
     }
@@ -80,9 +79,9 @@ class BaseError extends GraphQLException implements GraphQLError {
         return node;
     }
 
-    protected void addReferences(Node @Nullable ... definitions) {
-        if (definitions != null) {
-            ContainerUtil.addAllNotNull(myReferences, definitions);
+    protected void addReferences(Node @Nullable ... references) {
+        if (references != null) {
+            ContainerUtil.addAllNotNull(myReferences, references);
         }
     }
 

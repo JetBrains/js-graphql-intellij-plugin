@@ -32,9 +32,4 @@ public class TypeRedefinitionError extends BaseError {
                 ));
         addReferences(newEntry);
     }
-
-    @Override
-    public boolean showOnMultipleDeclarations() {
-        return true;
-    }
 }
