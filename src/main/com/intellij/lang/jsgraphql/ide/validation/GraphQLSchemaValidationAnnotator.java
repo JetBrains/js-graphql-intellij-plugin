@@ -44,9 +44,11 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
-import java.util.stream.Collectors;
 
 public class GraphQLSchemaValidationAnnotator implements Annotator {
     private static final Logger LOG = Logger.getInstance(GraphQLSchemaValidationAnnotator.class);
@@ -116,7 +118,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                     processValidationError(annotationHolder, file, validationError, validationErrorType);
                     break;
                 default:
-                    // remaining rules are handled above using psi references
+                    // remaining rules should be handled in specific inspections / annotators
                     break;
             }
         }
@@ -153,26 +155,9 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
 
         Node<?> node = error.getNode();
         if (node != null) {
-            List<PsiElement> elements = new ArrayList<>();
-            if (error.showOnMultipleDeclarations()) {
-                elements.addAll(node.getElements());
-            } else {
-                elements.add(node.getElement());
-            }
-
-            if (error.showOnReferences()) {
-                for (Node reference : error.getReferences()) {
-                    elements.add(reference.getElement());
-                }
-            }
-
-            List<PsiElement> elementsToAnnotate = elements.stream()
-                .filter(el -> el != null && el.isValid() && el.getContainingFile() == containingFile)
-                .distinct()
-                .collect(Collectors.toList());
-
-            if (!elementsToAnnotate.isEmpty()) {
-                return elementsToAnnotate;
+            PsiElement element = node.getElement();
+            if (element != null && element.isValid()) {
+                return element.getContainingFile() == containingFile ? Collections.singletonList(element) : Collections.emptyList();
             }
         }
 

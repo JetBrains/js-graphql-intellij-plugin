@@ -14,9 +14,6 @@ import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 public class GraphQLSchemaTypeCompositeDefinition
     extends GraphQLExtendableCompositeDefinition<SchemaDefinition, SchemaExtensionDefinition> {
 
-    private final Set<String> myDirectives = new HashSet<>();
-    private final Set<String> myOperationTypeDefinitions = new HashSet<>();
-
     @NotNull
     @Override
     protected SchemaDefinition mergeDefinitions() {
@@ -29,30 +26,10 @@ public class GraphQLSchemaTypeCompositeDefinition
         }
 
         SchemaDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
-
-        myDirectives.addAll(directives.keySet());
-        myOperationTypeDefinitions.addAll(operationTypeDefinitions.keySet());
-
         return definition.transform(builder -> builder
             .directives(toList(directives))
             .operationTypeDefinitions(toList(operationTypeDefinitions))
             .sourceNodes(myDefinitions)
         );
-    }
-
-    @Override
-    protected @NotNull List<SchemaExtensionDefinition> processExtensions() {
-        return ContainerUtil.map(myExtensions, extension -> {
-            Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
-            Map<String, OperationTypeDefinition> operationTypeDefinitions =
-                mergeExtensionNodes(mapNamedNodesByKey(extension.getOperationTypeDefinitions()), myOperationTypeDefinitions);
-
-            return extension.transformExtension(builder ->
-                builder
-                    .directives(toList(directives))
-                    .operationTypeDefinitions(toList(operationTypeDefinitions))
-                    .sourceNodes(Collections.singletonList(extension))
-            );
-        });
     }
 }

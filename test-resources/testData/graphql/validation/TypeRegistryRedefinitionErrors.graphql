@@ -11,7 +11,7 @@ schema {
     subscription: Subscription
 }
 
-# TODO: extend schema redefinitions
+# TODO: [intellij] extend schema redefinitions
 #extend schema {
 #  query: Query
 #  mutation: Mutation

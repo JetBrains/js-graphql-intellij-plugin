@@ -302,7 +302,8 @@ public class SchemaGeneratorHelper {
         GraphQLDirective gqlDirective = buildDirective(buildCtx, directive, runtimeDirectives, directiveLocation, comparatorRegistry);
         if (previousNames.contains(directive.getName())) {
             // other parts of the code protect against duplicate non repeatable directives
-            Assert.assertTrue(gqlDirective.isRepeatable(), () -> String.format("The directive '%s' MUST be defined as a repeatable directive if its repeated on an SDL element", directive.getName()));
+            // TODO: [intellij] repeatable directives error
+//            Assert.assertTrue(gqlDirective.isRepeatable(), () -> String.format("The directive '%s' MUST be defined as a repeatable directive if its repeated on an SDL element", directive.getName()));
         }
         previousNames.add(gqlDirective.getName());
         return gqlDirective;

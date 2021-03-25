@@ -14,9 +14,6 @@ import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 public class GraphQLUnionTypeCompositeDefinition
     extends GraphQLExtendableCompositeDefinition<UnionTypeDefinition, UnionTypeExtensionDefinition> {
 
-    private final Set<String> myDirectives = new HashSet<>();
-    private final Set<String> myMemberTypes = new HashSet<>();
-
     @NotNull
     @Override
     protected UnionTypeDefinition mergeDefinitions() {
@@ -31,31 +28,11 @@ public class GraphQLUnionTypeCompositeDefinition
         }
 
         UnionTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
-
-        myDirectives.addAll(directives.keySet());
-        myMemberTypes.addAll(memberTypes.keySet());
-
         return definition.transform(builder ->
             builder
                 .directives(toList(directives))
                 .memberTypes(toList(memberTypes))
                 .sourceNodes(myDefinitions)
         );
-    }
-
-    @Override
-    protected @NotNull List<UnionTypeExtensionDefinition> processExtensions() {
-        return ContainerUtil.map(myExtensions, extension -> {
-            Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
-            @SuppressWarnings({"unchecked", "rawtypes"})
-            Map<String, Type> memberTypes = mergeExtensionNodes(mapTypeNodesByKey(extension.getMemberTypes()), myMemberTypes);
-
-            return extension.transformExtension(builder ->
-                builder
-                    .directives(toList(directives))
-                    .memberTypes(toList(memberTypes))
-                    .sourceNodes(Collections.singletonList(extension))
-            );
-        });
     }
 }

@@ -12,7 +12,7 @@ interface WithPhone {
 
 type Query
 
-type User implements Named & Other & WithPhone @one @three @two {
+type User implements Named & Other & WithPhone @one @one @three @three @two {
   address: String
   id: ID
   name: Int

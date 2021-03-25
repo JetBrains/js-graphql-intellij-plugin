@@ -14,9 +14,6 @@ import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 public class GraphQLEnumTypeCompositeDefinition
     extends GraphQLExtendableCompositeDefinition<EnumTypeDefinition, EnumTypeExtensionDefinition> {
 
-    private final Set<String> myDirectives = new HashSet<>();
-    private final Set<String> myEnumValueDefinitions = new HashSet<>();
-
     @NotNull
     @Override
     protected EnumTypeDefinition mergeDefinitions() {
@@ -29,31 +26,11 @@ public class GraphQLEnumTypeCompositeDefinition
         }
 
         EnumTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
-
-        myDirectives.addAll(directives.keySet());
-        myEnumValueDefinitions.addAll(enumValueDefinitions.keySet());
-
         return definition.transform(builder ->
             builder
                 .directives(toList(directives))
                 .enumValueDefinitions(toList(enumValueDefinitions))
                 .sourceNodes(myDefinitions)
         );
-    }
-
-    @Override
-    protected @NotNull List<EnumTypeExtensionDefinition> processExtensions() {
-        return ContainerUtil.map(myExtensions, extension -> {
-            Map<String, Directive> directives = mergeExtensionNodes(mapNamedNodesByKey(extension.getDirectives()), myDirectives);
-            Map<String, EnumValueDefinition> enumValueDefinitions =
-                mergeExtensionNodes(mapNamedNodesByKey(extension.getEnumValueDefinitions()), myEnumValueDefinitions);
-
-            return extension.transformExtension(builder ->
-                builder
-                    .directives(toList(directives))
-                    .enumValueDefinitions(toList(enumValueDefinitions))
-                    .sourceNodes(Collections.singletonList(extension))
-            );
-        });
     }
 }

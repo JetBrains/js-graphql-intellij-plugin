@@ -28,16 +28,16 @@ import static java.lang.String.format;
 @Internal
 public class TypeExtensionFieldRedefinitionError extends BaseError {
 
-    public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition, FieldDefinition fieldDefinition) {
+    public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition, FieldDefinition fieldDefinition, FieldDefinition redefinedField) {
         super(typeDefinition,
                 formatMessage(typeDefinition, fieldDefinition.getName(), fieldDefinition));
-        addReferences(fieldDefinition);
+        addReferences(redefinedField);
     }
 
-    public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition, InputValueDefinition fieldDefinition) {
+    public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition, InputValueDefinition fieldDefinition, InputValueDefinition redefinedField) {
         super(typeDefinition,
                 formatMessage(typeDefinition, fieldDefinition.getName(), fieldDefinition));
-        addReferences(fieldDefinition);
+        addReferences(redefinedField);
     }
 
     private static String formatMessage(TypeDefinition typeDefinition, String fieldName, AbstractNode<?> fieldDefinition) {

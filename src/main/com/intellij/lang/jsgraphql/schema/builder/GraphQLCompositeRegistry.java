@@ -169,7 +169,7 @@ public final class GraphQLCompositeRegistry {
         if (schemaDefinition != null) {
             registry.add(schemaDefinition);
         }
-        mySchemaCompositeDefinition.getProcessedExtensions().forEach(registry::add);
+        mySchemaCompositeDefinition.getExtensions().forEach(registry::add);
 
         myNamedCompositeDefinitions.values().forEach(builder -> {
             SDLDefinition<?> definition = builder.getMergedDefinition();
@@ -178,7 +178,7 @@ public final class GraphQLCompositeRegistry {
             }
 
             if (builder instanceof GraphQLExtendableCompositeDefinition) {
-                ((GraphQLExtendableCompositeDefinition<?, ?>) builder).getProcessedExtensions()
+                ((GraphQLExtendableCompositeDefinition<?, ?>) builder).getExtensions()
                     .forEach(registry::add);
             }
         });
@@ -187,6 +187,7 @@ public final class GraphQLCompositeRegistry {
         return registry;
     }
 
+    // TODO: [intellij] find a better place, perhaps SchemaTypeChecker
     @SuppressWarnings("rawtypes")
     private void validate(@NotNull TypeDefinitionRegistry registry) {
         List<SchemaDefinition> sourceSchemaDefinitions = mySchemaCompositeDefinition.getSourceDefinitions();
@@ -199,7 +200,7 @@ public final class GraphQLCompositeRegistry {
 
         List<GraphQLError> operationRedefinitionErrors = new ArrayList<>();
         Map<String, OperationTypeDefinition> operationDefs = new LinkedHashMap<>();
-        List<SchemaExtensionDefinition> sourceExtensions = mySchemaCompositeDefinition.getSourceExtensions();
+        List<SchemaExtensionDefinition> sourceExtensions = mySchemaCompositeDefinition.getExtensions();
         for (SchemaDefinition sourceSchemaDefinition : sourceSchemaDefinitions) {
             SchemaExtensionsChecker.gatherOperationDefs(operationDefs, operationRedefinitionErrors, sourceSchemaDefinition, sourceExtensions);
         }

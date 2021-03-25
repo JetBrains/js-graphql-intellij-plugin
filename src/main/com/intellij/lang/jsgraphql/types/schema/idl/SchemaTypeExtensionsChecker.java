@@ -292,7 +292,7 @@ class SchemaTypeExtensionsChecker {
                         List<Directive> extDirectives = nonRepeatableDirectivesOnly(directiveDefinitionMap, typeExt.getDirectives());
                         extDirectives.forEach(directive -> {
                             if (directiveMap.containsKey(directive.getName())) {
-                                errors.add(new TypeExtensionDirectiveRedefinitionError(typeDefinition.get(), directive));
+                                errors.add(new TypeExtensionDirectiveRedefinitionError(typeDefinition.get(), directive, typeExt));
                             }
                         });
                     }
@@ -306,7 +306,8 @@ class SchemaTypeExtensionsChecker {
 
         fieldDefinitions.forEach(fld -> {
             if (referenceMap.containsKey(fld.getName())) {
-                errors.add(new TypeExtensionFieldRedefinitionError(typeDefinition, fld));
+                FieldDefinition redefinedField = referenceMap.get(fld.getName());
+                errors.add(new TypeExtensionFieldRedefinitionError(typeDefinition, fld, redefinedField));
             }
         });
     }
@@ -316,7 +317,8 @@ class SchemaTypeExtensionsChecker {
 
         inputValueDefinitions.forEach(fld -> {
             if (referenceMap.containsKey(fld.getName())) {
-                errors.add(new TypeExtensionFieldRedefinitionError(typeDefinition, fld));
+                InputValueDefinition redefinedField = referenceMap.get(fld.getName());
+                errors.add(new TypeExtensionFieldRedefinitionError(typeDefinition, fld, redefinedField));
             }
         });
     }
@@ -327,7 +329,8 @@ class SchemaTypeExtensionsChecker {
 
         enumValueDefinitions.forEach(fld -> {
             if (referenceMap.containsKey(fld.getName())) {
-                errors.add(new TypeExtensionEnumValueRedefinitionError(typeDefinition, fld));
+                EnumValueDefinition redefinedValue = referenceMap.get(fld.getName());
+                errors.add(new TypeExtensionEnumValueRedefinitionError(typeDefinition, fld, redefinedValue));
             }
         });
     }

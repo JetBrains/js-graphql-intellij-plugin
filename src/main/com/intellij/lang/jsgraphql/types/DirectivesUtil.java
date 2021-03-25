@@ -112,7 +112,8 @@ public class DirectivesUtil {
             List<GraphQLDirective> currentDirectives = mapOfDirectives.getOrDefault(directive.getName(), emptyList());
             int currentSize = currentDirectives.size();
             if (currentSize > 0) {
-                Assert.assertShouldNeverHappen("%s is a non repeatable directive but there is already one present in this list", directive.getName());
+                // TODO: [intellij] repeatable directives
+//                Assert.assertShouldNeverHappen("%s is a non repeatable directive but there is already one present in this list", directive.getName());
             }
         }
     }

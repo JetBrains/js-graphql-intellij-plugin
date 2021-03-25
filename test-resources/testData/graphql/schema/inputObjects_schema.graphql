@@ -1,6 +1,6 @@
 type Query
 
-input User @one @three @two {
+input User @one @one @three @three @two {
   address: String
   id: ID
   name: Int

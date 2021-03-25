@@ -96,12 +96,4 @@ public interface GraphQLError extends Serializable {
         return Collections.emptyList();
     }
 
-    default boolean showOnMultipleDeclarations() {
-        return false;
-    }
-
-    default boolean showOnReferences() {
-        return false;
-    }
-
 }

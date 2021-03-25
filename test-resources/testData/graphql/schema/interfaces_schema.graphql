@@ -6,7 +6,7 @@ interface Named {
   name: String
 }
 
-interface User implements Named & WithID @four @one @three @two {
+interface User implements Named & WithID @four @one @three @three @two {
   id: ID
   name: String
   phone: String
