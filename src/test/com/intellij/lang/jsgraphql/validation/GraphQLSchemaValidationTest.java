@@ -21,6 +21,14 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
         doTest();
     }
 
+    public void testRedefinitionErrors() {
+        doTest();
+    }
+
+    public void testImplementingErrors() {
+        doTest();
+    }
+
     private void doTest() {
         myFixture.configureByFile(getTestName(false) + ".graphql");
         myFixture.checkHighlighting();

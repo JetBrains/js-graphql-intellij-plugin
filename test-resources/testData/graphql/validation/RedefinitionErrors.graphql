@@ -1,0 +1,37 @@
+enum Language {
+    EN
+    RU
+}
+
+extend enum Language {
+    RU
+    CN
+}
+
+type Obj {
+    id: ID
+}
+
+extend type Obj {
+    id: String
+}
+
+type MyType {
+    id: ID
+}
+
+extend type MyType {
+    id: ID
+}
+
+directive @DirToExtend on OBJECT
+
+type WithDirective @DirToExtend {
+    id: String
+}
+
+extend type WithDirective @DirToExtend {
+    name: String
+}
+
+

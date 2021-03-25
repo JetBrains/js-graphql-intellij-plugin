@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.schema.idl.SchemaExtensionsChecker.defineOperationDefs;
 import static com.intellij.lang.jsgraphql.types.schema.idl.SchemaExtensionsChecker.gatherOperationDefs;
@@ -59,6 +60,18 @@ public class TypeDefinitionRegistry {
     private final List<SchemaExtensionDefinition> schemaExtensionDefinitions = new ArrayList<>();
 
     private final List<GraphQLException> myErrors = new ArrayList<>();
+
+    public static <T extends TypeDefinition> Stream<T> fromSourceNodes(@NotNull Stream<T> definitions, @NotNull Class<T> targetClass) {
+        //noinspection unchecked
+        return definitions
+            .flatMap(def -> def.isComposite() ? (Stream<? extends Node>) def.getSourceNodes().stream() : Stream.of(def))
+            .filter(targetClass::isInstance)
+            .map(targetClass::cast);
+    }
+
+    public static <T extends TypeDefinition> List<T> fromSourceNodes(@NotNull List<T> nodes, @NotNull Class<T> targetClass) {
+        return fromSourceNodes(nodes.stream(), targetClass).collect(Collectors.toList());
+    }
 
     public @NotNull List<GraphQLException> getErrors() {
         return Collections.unmodifiableList(myErrors);

@@ -20,24 +20,10 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceFieldArgumentNotOptionalError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceFieldArgumentRedefinitionError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceFieldRedefinitionError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceImplementedMoreThanOnceError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceImplementingItselfError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.InterfaceWithCircularImplementationHierarchyError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingInterfaceFieldArgumentsError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingInterfaceFieldError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingTransitiveInterfaceError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -163,14 +149,14 @@ class ImplementingTypesChecker {
                     if (!typeRegistry.isSubTypeOf(typeFieldDef.getType(), interfaceFieldDef.getType())) {
                         String interfaceFieldType = AstPrinter.printAst(interfaceFieldDef.getType());
                         String objectFieldType = AstPrinter.printAst(typeFieldDef.getType());
-                        errors.add(new InterfaceFieldRedefinitionError(TYPE_OF_MAP.get(implementingType.getClass()), implementingType, implementedInterface, typeFieldDef, objectFieldType, interfaceFieldType));
+                        errors.add(new InterfaceFieldRedefinitionError(TYPE_OF_MAP.get(implementingType.getClass()), implementingType, implementedInterface, typeFieldDef, objectFieldType, interfaceFieldType, interfaceFieldDef));
                     }
 
                     // look at arguments
                     List<InputValueDefinition> objectArgs = typeFieldDef.getInputValueDefinitions();
                     List<InputValueDefinition> interfaceArgs = interfaceFieldDef.getInputValueDefinitions();
                     if (objectArgs.size() < interfaceArgs.size()) {
-                        errors.add(new MissingInterfaceFieldArgumentsError(TYPE_OF_MAP.get(implementingType.getClass()), implementingType, implementedInterface, typeFieldDef));
+                        errors.add(new MissingInterfaceFieldArgumentsError(TYPE_OF_MAP.get(implementingType.getClass()), implementingType, implementedInterface, typeFieldDef, interfaceFieldDef));
                     } else {
                         checkArgumentConsistency(TYPE_OF_MAP.get(implementingType.getClass()), implementingType, implementedInterface, typeFieldDef, interfaceFieldDef, errors);
                     }
@@ -195,7 +181,7 @@ class ImplementingTypesChecker {
             String interfaceArgStr = AstPrinter.printAstCompact(interfaceArg);
             String objectArgStr = AstPrinter.printAstCompact(objectArg);
             if (!interfaceArgStr.equals(objectArgStr)) {
-                errors.add(new InterfaceFieldArgumentRedefinitionError(typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArgStr, interfaceArgStr));
+                errors.add(new InterfaceFieldArgumentRedefinitionError(typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArgStr, interfaceArgStr, interfaceFieldDef));
             }
         }
 
@@ -204,7 +190,7 @@ class ImplementingTypesChecker {
                 InputValueDefinition objectArg = objectArgs.get(i);
                 if (objectArg.getType() instanceof NonNullType) {
                     String objectArgStr = AstPrinter.printAst(objectArg);
-                    errors.add(new InterfaceFieldArgumentNotOptionalError(typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArgStr));
+                    errors.add(new InterfaceFieldArgumentNotOptionalError(typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArgStr, interfaceFieldDef));
                 }
             }
         }

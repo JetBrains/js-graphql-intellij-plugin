@@ -26,9 +26,15 @@ import static java.lang.String.format;
 
 @Internal
 public class InterfaceFieldArgumentRedefinitionError extends BaseError {
-    public InterfaceFieldArgumentRedefinitionError(String typeOfType, ImplementingTypeDefinition typeDefinition, InterfaceTypeDefinition interfaceTypeDef, FieldDefinition objectFieldDef, String objectArgStr, String interfaceArgStr) {
-        super(typeDefinition, format("The %s type '%s' has tried to redefine field '%s' arguments defined via interface '%s' from '%s' to '%s",
+    public InterfaceFieldArgumentRedefinitionError(String typeOfType,
+                                                   ImplementingTypeDefinition typeDefinition,
+                                                   InterfaceTypeDefinition interfaceTypeDef,
+                                                   FieldDefinition objectFieldDef,
+                                                   String objectArgStr,
+                                                   String interfaceArgStr,
+                                                   FieldDefinition interfaceFieldDef) {
+        super(typeDefinition, format("The %s type '%s' has tried to redefine field '%s' arguments defined via interface '%s' from '%s' to '%s'",
                 typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceTypeDef.getName(), interfaceArgStr, objectArgStr));
-        addReferences(objectFieldDef);
+        addReferences(interfaceFieldDef);
     }
 }
