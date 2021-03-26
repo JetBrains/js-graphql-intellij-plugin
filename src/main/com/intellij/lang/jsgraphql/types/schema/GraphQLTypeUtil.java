@@ -17,8 +17,8 @@
  */
 package com.intellij.lang.jsgraphql.types.schema;
 
-import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.PublicApi;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Stack;
 
@@ -38,8 +38,11 @@ public class GraphQLTypeUtil {
      *
      * @return the type in graphql SDL format, eg [typeName!]!
      */
-    public static String simplePrint(GraphQLType type) {
-        Assert.assertNotNull(type, () -> "type can't be null");
+    public static @NotNull String simplePrint(GraphQLType type) {
+        if (type == null) {
+            return "";
+        }
+
         StringBuilder sb = new StringBuilder();
         if (isNonNull(type)) {
             sb.append(simplePrint(unwrapOne(type)));

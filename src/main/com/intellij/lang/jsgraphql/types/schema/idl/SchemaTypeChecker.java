@@ -28,6 +28,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.DirectivesUtil.nonRepeatableDirectivesOnly;
 import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.INPUT_FIELD_DEFINITION;
@@ -131,7 +132,8 @@ public class SchemaTypeChecker {
 
     private void checkDirectiveDefinitions(TypeDefinitionRegistry typeRegistry, List<GraphQLError> errors) {
 
-        List<DirectiveDefinition> directiveDefinitions = new ArrayList<>(typeRegistry.getDirectiveDefinitions().values());
+        Stream<DirectiveDefinition> directiveDefinitions = TypeDefinitionRegistry
+            .fromSourceNodes(typeRegistry.getDirectiveDefinitions().values().stream(), DirectiveDefinition.class);
 
         directiveDefinitions.forEach(directiveDefinition -> {
             List<InputValueDefinition> arguments = directiveDefinition.getInputValueDefinitions();

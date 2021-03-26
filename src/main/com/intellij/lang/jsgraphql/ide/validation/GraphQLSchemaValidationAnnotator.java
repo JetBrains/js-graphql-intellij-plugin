@@ -64,9 +64,9 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
             GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiElement);
             if (schemaInfo.hasErrors()) {
                 showSchemaErrors(annotationHolder, schemaInfo, file);
+            } else {
+                showDocumentErrors(annotationHolder, schemaInfo, file);
             }
-
-            showDocumentErrors(annotationHolder, schemaInfo, file);
         } catch (ProcessCanceledException e) {
             throw e;
         } catch (CancellationException e) {

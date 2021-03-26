@@ -28,8 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.*;
+import static com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry.fromSourceNodes;
 import static com.intellij.lang.jsgraphql.types.util.FpKit.getByName;
 import static com.intellij.lang.jsgraphql.types.util.FpKit.mergeFirst;
 
@@ -64,24 +66,30 @@ class SchemaTypeDirectivesChecker {
         typeRegistry.inputObjectTypeExtensions().values()
                 .forEach(extDefinitions -> extDefinitions.forEach(ext -> checkDirectives(INPUT_OBJECT, errors, ext)));
 
-        typeRegistry.getTypes(ObjectTypeDefinition.class)
+        typeRegistry.getTypes(ObjectTypeDefinition.class, true)
                 .forEach(typeDef -> checkDirectives(OBJECT, errors, typeDef));
-        typeRegistry.getTypes(InterfaceTypeDefinition.class)
+        typeRegistry.getTypes(InterfaceTypeDefinition.class, true)
                 .forEach(typeDef -> checkDirectives(INTERFACE, errors, typeDef));
-        typeRegistry.getTypes(UnionTypeDefinition.class)
+        typeRegistry.getTypes(UnionTypeDefinition.class, true)
                 .forEach(typeDef -> checkDirectives(UNION, errors, typeDef));
-        typeRegistry.getTypes(EnumTypeDefinition.class)
+        typeRegistry.getTypes(EnumTypeDefinition.class, true)
                 .forEach(typeDef -> checkDirectives(ENUM, errors, typeDef));
-        typeRegistry.getTypes(InputObjectTypeDefinition.class)
+        typeRegistry.getTypes(InputObjectTypeDefinition.class, true)
                 .forEach(typeDef -> checkDirectives(INPUT_OBJECT, errors, typeDef));
 
-        typeRegistry.scalars().values()
+        fromSourceNodes(typeRegistry.scalars().values().stream(), ScalarTypeDefinition.class)
                 .forEach(typeDef -> checkDirectives(SCALAR, errors, typeDef));
 
-        List<Directive> schemaDirectives = SchemaExtensionsChecker.gatherSchemaDirectives(typeRegistry, errors);
         // we need to have a Node for error reporting so we make one in case there is not one
-        SchemaDefinition schemaDefinition = typeRegistry.schemaDefinition().orElse(SchemaDefinition.newSchemaDefinition().build());
-        checkDirectives(DirectiveLocation.SCHEMA, errors, typeRegistry, schemaDefinition, "schema", schemaDirectives);
+        Stream<SchemaDefinition> schemaDefinitions = fromSourceNodes(
+            Stream.of(typeRegistry.schemaDefinition().orElse(SchemaDefinition.newSchemaDefinition().build())),
+            SchemaDefinition.class
+        );
+
+        schemaDefinitions.forEach(schemaDefinition -> {
+            List<Directive> directives = SchemaExtensionsChecker.gatherSchemaDirectives(schemaDefinition, typeRegistry);
+            checkDirectives(DirectiveLocation.SCHEMA, errors, typeRegistry, schemaDefinition, "schema", directives);
+        });
 
         Collection<DirectiveDefinition> directiveDefinitions = typeRegistry.getDirectiveDefinitions().values();
         commonCheck(directiveDefinitions, errors);

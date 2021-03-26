@@ -23,6 +23,7 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.DirectiveDefinition;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -84,7 +85,7 @@ public class GraphQLDirective implements GraphQLNamedSchemaElement {
         return arguments;
     }
 
-    public GraphQLArgument getArgument(String name) {
+    public @Nullable GraphQLArgument getArgument(String name) {
         for (GraphQLArgument argument : arguments) {
             if (argument.getName().equals(name)) {
                 return argument;

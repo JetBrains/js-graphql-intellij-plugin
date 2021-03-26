@@ -61,7 +61,7 @@ public class TypeDefinitionRegistry {
 
     private final List<GraphQLException> myErrors = new ArrayList<>();
 
-    public static <T extends TypeDefinition> Stream<T> fromSourceNodes(@NotNull Stream<T> definitions, @NotNull Class<T> targetClass) {
+    public static <T extends Node> Stream<T> fromSourceNodes(@NotNull Stream<T> definitions, @NotNull Class<T> targetClass) {
         //noinspection unchecked
         return definitions
             .flatMap(def -> def.isComposite() ? (Stream<? extends Node>) def.getSourceNodes().stream() : Stream.of(def))
@@ -69,7 +69,7 @@ public class TypeDefinitionRegistry {
             .map(targetClass::cast);
     }
 
-    public static <T extends TypeDefinition> List<T> fromSourceNodes(@NotNull List<T> nodes, @NotNull Class<T> targetClass) {
+    public static <T extends Node> List<T> fromSourceNodes(@NotNull List<T> nodes, @NotNull Class<T> targetClass) {
         return fromSourceNodes(nodes.stream(), targetClass).collect(Collectors.toList());
     }
 
@@ -399,6 +399,19 @@ public class TypeDefinitionRegistry {
         return types.values().stream()
             .filter(targetClass::isInstance)
             .map(targetClass::cast)
+            .collect(Collectors.toList());
+    }
+
+    public <T extends TypeDefinition> List<T> getTypes(Class<T> targetClass, boolean fromSourceNodes) {
+        Stream<T> nodeStream = types.values().stream()
+            .filter(targetClass::isInstance)
+            .map(targetClass::cast);
+
+        if (fromSourceNodes) {
+            nodeStream = fromSourceNodes(nodeStream, targetClass);
+        }
+
+        return nodeStream
             .collect(Collectors.toList());
     }
 

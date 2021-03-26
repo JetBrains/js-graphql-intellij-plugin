@@ -113,6 +113,15 @@ public class SchemaExtensionsChecker {
         return directiveList;
     }
 
+    static List<Directive> gatherSchemaDirectives(SchemaDefinition schemaDefinition, TypeDefinitionRegistry typeRegistry) {
+        List<Directive> directiveList = new ArrayList<>(schemaDefinition.getDirectives());
+
+        for (SchemaExtensionDefinition schemaExtensionDefinition : typeRegistry.getSchemaExtensionDefinitions()) {
+            directiveList.addAll(schemaExtensionDefinition.getDirectives());
+        }
+        return directiveList;
+    }
+
     private static Consumer<OperationTypeDefinition> checkOperationTypesExist(TypeDefinitionRegistry typeRegistry, List<GraphQLError> errors) {
         return op -> {
             TypeName unwrapped = TypeInfo.typeInfo(op.getTypeName()).getTypeName();

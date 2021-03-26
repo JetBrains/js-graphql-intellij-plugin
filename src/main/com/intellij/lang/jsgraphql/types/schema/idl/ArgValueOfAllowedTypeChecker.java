@@ -17,20 +17,20 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
-import com.intellij.lang.jsgraphql.types.AssertException;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError;
+import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
 import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.*;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.*;
@@ -41,6 +41,8 @@ import static java.util.stream.Collectors.*;
  */
 @Internal
 class ArgValueOfAllowedTypeChecker {
+
+    private static final Logger LOG = Logger.getInstance(ArgValueOfAllowedTypeChecker.class);
 
     private final Directive directive;
     private final Node<?> element;
@@ -88,7 +90,7 @@ class ArgValueOfAllowedTypeChecker {
         } else if (allowedArgType instanceof NonNullType) {
             checkArgValueMatchesAllowedNonNullType(errors, instanceValue, (NonNullType) allowedArgType);
         } else {
-            assertShouldNeverHappen("Unsupported Type '%s' was added. ", allowedArgType);
+            LOG.warn(String.format("Unsupported Type '%s' was added. ", allowedArgType));
         }
     }
 
@@ -102,8 +104,8 @@ class ArgValueOfAllowedTypeChecker {
         }
 
         String allowedTypeName = ((TypeName) allowedArgType).getName();
-        TypeDefinition<?> allowedTypeDefinition = typeRegistry.getType(allowedTypeName)
-                .orElseThrow(() -> new AssertException("Directive unknown argument type '%s'. This should have been validated before."));
+        TypeDefinition<?> allowedTypeDefinition = typeRegistry.getType(allowedTypeName).orElse(null);
+        if (allowedTypeDefinition == null) return;
 
         if (allowedTypeDefinition instanceof ScalarTypeDefinition) {
             checkArgValueMatchesAllowedScalar(errors, instanceValue, allowedTypeName);
@@ -112,13 +114,17 @@ class ArgValueOfAllowedTypeChecker {
         } else if (allowedTypeDefinition instanceof InputObjectTypeDefinition) {
             checkArgValueMatchesAllowedInputType(errors, instanceValue, (InputObjectTypeDefinition) allowedTypeDefinition);
         } else {
-            assertShouldNeverHappen("'%s' must be an input type. It is %s instead. ", allowedTypeName, allowedTypeDefinition.getClass());
+            LOG.warn(String.format("'%s' must be an input type. It is %s instead. ", allowedTypeName, allowedTypeDefinition.getClass()));
         }
     }
 
-    private void checkArgValueMatchesAllowedInputType(List<GraphQLError> errors, Value<?> instanceValue, InputObjectTypeDefinition allowedTypeDefinition) {
+    private void checkArgValueMatchesAllowedInputType(List<GraphQLError> errors,
+                                                      @Nullable Value<?> instanceValue,
+                                                      InputObjectTypeDefinition allowedTypeDefinition) {
         if (!(instanceValue instanceof ObjectValue)) {
-            addValidationError(errors, EXPECTED_OBJECT_MESSAGE, instanceValue.getClass().getSimpleName());
+            if (instanceValue != null) {
+                addValidationError(errors, EXPECTED_OBJECT_MESSAGE, instanceValue.getClass().getSimpleName());
+            }
             return;
         }
 
@@ -170,9 +176,11 @@ class ArgValueOfAllowedTypeChecker {
         });
     }
 
-    private void checkArgValueMatchesAllowedEnum(List<GraphQLError> errors, Value<?> instanceValue, EnumTypeDefinition allowedTypeDefinition) {
+    private void checkArgValueMatchesAllowedEnum(List<GraphQLError> errors, @Nullable Value<?> instanceValue, EnumTypeDefinition allowedTypeDefinition) {
         if (!(instanceValue instanceof EnumValue)) {
-            addValidationError(errors, EXPECTED_ENUM_MESSAGE, instanceValue.getClass().getSimpleName());
+            if (instanceValue != null) {
+                addValidationError(errors, EXPECTED_ENUM_MESSAGE, instanceValue.getClass().getSimpleName());
+            }
             return;
         }
 
@@ -260,6 +268,8 @@ class ArgValueOfAllowedTypeChecker {
     }
 
     private boolean isArgumentValueScalarLiteral(GraphQLScalarType scalarType, Value<?> instanceValue) {
+        if (instanceValue == null) return false;
+
         try {
             scalarType.getCoercing().parseLiteral(instanceValue);
             return true;
