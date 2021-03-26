@@ -27,7 +27,6 @@ public class GraphQLInterfaceTypeCompositeDefinition
             builder
                 .directives(toList(directives))
                 .definitions(toList(fieldDefinitions))
-                .implementz(definition.getImplements()) // https://github.com/graphql-java/graphql-java/issues/1974
                 .sourceNodes(myDefinitions)
         );
     }

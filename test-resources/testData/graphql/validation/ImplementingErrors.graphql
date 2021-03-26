@@ -50,3 +50,16 @@ interface <error descr="The interface type 'Hierarchy4' cannot implement 'Hierar
 interface <error descr="The interface type 'Hierarchy5' cannot implement 'Hierarchy4' as this would result in a circular reference">Hierarchy5</error> implements Hierarchy4 {
     id: String
 }
+
+interface <error descr="'Abc' type tried to redefine existing 'Abc' type"><error descr="The interface type 'Abc' does not have a field 'f1' required via interface 'Ex'">Abc</error></error> implements Ex {
+    f2: Int
+}
+
+interface <error descr="The interface type 'Abc' does not have a field 'f2' required via interface 'Ex'">Abc</error> implements Ex {
+    f1: Int
+}
+
+interface Ex {
+    f1: Int
+    f2: Int
+}

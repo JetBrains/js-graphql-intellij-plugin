@@ -486,7 +486,7 @@ public class TypeDefinitionRegistry {
             InterfaceTypeDefinition iFace = (InterfaceTypeDefinition) abstractTypeDef;
             List<ImplementingTypeDefinition> objectTypeDefinitions = getAllImplementationsOf(iFace);
             return objectTypeDefinitions.stream()
-                .anyMatch(od -> od.getName().equals(targetObjectTypeDef.getName()));
+                .anyMatch(od -> Objects.equals(od.getName(), targetObjectTypeDef.getName()));
         }
     }
 

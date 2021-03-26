@@ -59,10 +59,9 @@ class ImplementingTypesChecker {
         List<InterfaceTypeDefinition> interfaces = typeRegistry.getTypes(InterfaceTypeDefinition.class);
         List<ObjectTypeDefinition> objects = typeRegistry.getTypes(ObjectTypeDefinition.class);
 
-        //noinspection RedundantCast
-        Stream.of(interfaces.stream(), objects.stream())
-                .flatMap(Function.identity())
-                .forEach(type -> checkImplementingType(errors, typeRegistry, ((ImplementingTypeDefinition) type)));
+        TypeDefinitionRegistry.fromSourceNodes(Stream.of(interfaces.stream(), objects.stream())
+            .flatMap(Function.identity()), ImplementingTypeDefinition.class)
+            .forEach(type -> checkImplementingType(errors, typeRegistry, type));
     }
 
     private void checkImplementingType(
@@ -249,10 +248,12 @@ class ImplementingTypesChecker {
     }
 
     private Set<InterfaceTypeDefinition> toInterfaceTypeDefinitions(TypeDefinitionRegistry typeRegistry, Collection<Type> implementsTypes) {
-        return implementsTypes.stream()
+        return TypeDefinitionRegistry.fromSourceNodes(
+            implementsTypes.stream()
                 .map(t -> toInterfaceTypeDefinition(t, typeRegistry))
                 .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(toSet());
+                .map(Optional::get),
+            InterfaceTypeDefinition.class
+        ).collect(toSet());
     }
 }
