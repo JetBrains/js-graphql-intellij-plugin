@@ -6,9 +6,8 @@ import com.intellij.lang.jsgraphql.types.language.ScalarTypeExtensionDefinition;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-
-import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GraphQLScalarTypeCompositeDefinition
     extends GraphQLExtendableCompositeDefinition<ScalarTypeDefinition, ScalarTypeExtensionDefinition> {
@@ -16,13 +15,17 @@ public class GraphQLScalarTypeCompositeDefinition
     @NotNull
     @Override
     protected ScalarTypeDefinition mergeDefinitions() {
-        Map<String, Directive> directives = new LinkedHashMap<>();
+        List<Directive> directives = new ArrayList<>();
 
         for (ScalarTypeDefinition definition : myDefinitions) {
-            mergeNodes(directives, mapNamedNodesByKey(definition.getDirectives()));
+            directives.addAll(definition.getDirectives());
         }
 
         ScalarTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
-        return definition.transform(builder -> builder.directives(toList(directives)).sourceNodes(myDefinitions));
+        return definition.transform(builder ->
+            builder
+                .directives(directives)
+                .sourceNodes(myDefinitions)
+        );
     }
 }

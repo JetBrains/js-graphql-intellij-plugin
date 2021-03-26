@@ -14,18 +14,18 @@ public class GraphQLInterfaceTypeCompositeDefinition
     @NotNull
     @Override
     protected InterfaceTypeDefinition mergeDefinitions() {
-        Map<String, Directive> directives = new LinkedHashMap<>();
+        List<Directive> directives = new ArrayList<>();
         Map<String, FieldDefinition> fieldDefinitions = new LinkedHashMap<>();
 
         for (InterfaceTypeDefinition definition : myDefinitions) {
-            mergeNodes(directives, mapNamedNodesByKey(definition.getDirectives()));
+            directives.addAll(definition.getDirectives());
             mergeNodes(fieldDefinitions, mapNamedNodesByKey(definition.getFieldDefinitions()));
         }
 
         InterfaceTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
         return definition.transform(builder ->
             builder
-                .directives(toList(directives))
+                .directives(directives)
                 .definitions(toList(fieldDefinitions))
                 .sourceNodes(myDefinitions)
         );

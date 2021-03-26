@@ -17,17 +17,17 @@ public class GraphQLSchemaTypeCompositeDefinition
     @NotNull
     @Override
     protected SchemaDefinition mergeDefinitions() {
-        Map<String, Directive> directives = new LinkedHashMap<>();
+        List<Directive> directives = new ArrayList<>();
         Map<String, OperationTypeDefinition> operationTypeDefinitions = new LinkedHashMap<>();
 
         for (SchemaDefinition definition : myDefinitions) {
-            mergeNodes(directives, mapNamedNodesByKey(definition.getDirectives()));
+            directives.addAll(definition.getDirectives());
             mergeNodes(operationTypeDefinitions, mapNamedNodesByKey(definition.getOperationTypeDefinitions()));
         }
 
         SchemaDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
         return definition.transform(builder -> builder
-            .directives(toList(directives))
+            .directives(directives)
             .operationTypeDefinitions(toList(operationTypeDefinitions))
             .sourceNodes(myDefinitions)
         );

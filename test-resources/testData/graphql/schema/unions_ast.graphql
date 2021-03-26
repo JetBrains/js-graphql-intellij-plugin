@@ -1,4 +1,4 @@
-union U @one @two = A | B | C
+union U @one @one @two = A | B | C
 
 extend union U @three = C | D
 

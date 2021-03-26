@@ -17,20 +17,20 @@ public class GraphQLUnionTypeCompositeDefinition
     @NotNull
     @Override
     protected UnionTypeDefinition mergeDefinitions() {
-        Map<String, Directive> directives = new LinkedHashMap<>();
+        List<Directive> directives = new ArrayList<>();
 
         @SuppressWarnings("rawtypes")
         Map<String, Type> memberTypes = new LinkedHashMap<>();
 
         for (UnionTypeDefinition definition : myDefinitions) {
-            mergeNodes(directives, mapNamedNodesByKey(definition.getDirectives()));
+            directives.addAll(definition.getDirectives());
             mergeNodes(memberTypes, mapTypeNodesByKey(definition.getMemberTypes()));
         }
 
         UnionTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
         return definition.transform(builder ->
             builder
-                .directives(toList(directives))
+                .directives(directives)
                 .memberTypes(toList(memberTypes))
                 .sourceNodes(myDefinitions)
         );

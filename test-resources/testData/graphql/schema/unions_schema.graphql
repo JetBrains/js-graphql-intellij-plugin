@@ -1,4 +1,4 @@
-union U @four @one @three @three @two = A | B | C | D | E
+union U @four @one @one @three @three @two = A | B | C | D | E
 
 type A
 

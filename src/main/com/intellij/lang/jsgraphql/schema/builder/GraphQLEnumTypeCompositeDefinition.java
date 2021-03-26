@@ -17,18 +17,18 @@ public class GraphQLEnumTypeCompositeDefinition
     @NotNull
     @Override
     protected EnumTypeDefinition mergeDefinitions() {
-        Map<String, Directive> directives = new LinkedHashMap<>();
+        List<Directive> directives = new ArrayList<>();
         Map<String, EnumValueDefinition> enumValueDefinitions = new LinkedHashMap<>();
 
         for (EnumTypeDefinition definition : myDefinitions) {
-            mergeNodes(directives, mapNamedNodesByKey(definition.getDirectives()));
+            directives.addAll(definition.getDirectives());
             mergeNodes(enumValueDefinitions, mapNamedNodesByKey(definition.getEnumValueDefinitions()));
         }
 
         EnumTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
         return definition.transform(builder ->
             builder
-                .directives(toList(directives))
+                .directives(directives)
                 .enumValueDefinitions(toList(enumValueDefinitions))
                 .sourceNodes(myDefinitions)
         );
