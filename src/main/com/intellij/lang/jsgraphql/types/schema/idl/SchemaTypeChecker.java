@@ -59,9 +59,6 @@ public class SchemaTypeChecker {
 
         SchemaExtensionsChecker.checkSchemaInvariants(errors, typeRegistry);
 
-        checkScalarImplementationsArePresent(errors, typeRegistry, wiring);
-        checkTypeResolversArePresent(errors, typeRegistry, wiring);
-
         checkFieldsAreSensible(errors, typeRegistry);
 
         //check directive definitions before checking directive usages
@@ -157,16 +154,6 @@ public class SchemaTypeChecker {
                     errors.add(new DirectiveIllegalLocationError(directiveDefinition, locationName));
                 }
             });
-        });
-    }
-
-    private void checkScalarImplementationsArePresent(List<GraphQLError> errors, TypeDefinitionRegistry typeRegistry, RuntimeWiring wiring) {
-        typeRegistry.scalars().forEach((scalarName, scalarTypeDefinition) -> {
-            WiringFactory wiringFactory = wiring.getWiringFactory();
-            ScalarWiringEnvironment environment = new ScalarWiringEnvironment(typeRegistry, scalarTypeDefinition, Collections.emptyList());
-            if (!wiringFactory.providesScalar(environment) && !wiring.getScalars().containsKey(scalarName)) {
-                errors.add(new MissingScalarImplementationError(scalarName));
-            }
         });
     }
 
@@ -308,30 +295,6 @@ public class SchemaTypeChecker {
                 names.add(name);
             }
         });
-    }
-
-    private void checkTypeResolversArePresent(List<GraphQLError> errors, TypeDefinitionRegistry typeRegistry, RuntimeWiring wiring) {
-
-        Predicate<InterfaceTypeDefinition> noDynamicResolverForInterface = interaceTypeDef -> !wiring.getWiringFactory().providesTypeResolver(new InterfaceWiringEnvironment(typeRegistry, interaceTypeDef));
-        Predicate<UnionTypeDefinition> noDynamicResolverForUnion = unionTypeDef -> !wiring.getWiringFactory().providesTypeResolver(new UnionWiringEnvironment(typeRegistry, unionTypeDef));
-
-        Predicate<TypeDefinition> noTypeResolver = typeDefinition -> !wiring.getTypeResolvers().containsKey(typeDefinition.getName());
-        Consumer<TypeDefinition> addError = typeDefinition -> errors.add(new MissingTypeResolverError(typeDefinition));
-
-        typeRegistry.types().values().stream()
-                .filter(typeDef -> typeDef instanceof InterfaceTypeDefinition)
-                .map(InterfaceTypeDefinition.class::cast)
-                .filter(noDynamicResolverForInterface)
-                .filter(noTypeResolver)
-                .forEach(addError);
-
-        typeRegistry.types().values().stream()
-                .filter(typeDef -> typeDef instanceof UnionTypeDefinition)
-                .map(UnionTypeDefinition.class::cast)
-                .filter(noDynamicResolverForUnion)
-                .filter(noTypeResolver)
-                .forEach(addError);
-
     }
 
     private void checkFieldTypesPresent(TypeDefinitionRegistry typeRegistry, List<GraphQLError> errors, TypeDefinition typeDefinition, List<FieldDefinition> fields) {
