@@ -98,9 +98,7 @@ public class SchemaExtensionsChecker {
 
     static List<Directive> gatherSchemaDirectives(TypeDefinitionRegistry typeRegistry) {
         List<GraphQLError> noErrors = new ArrayList<>();
-        List<Directive> directiveList = gatherSchemaDirectives(typeRegistry, noErrors);
-        Assert.assertTrue(noErrors.isEmpty(), () -> "If you call this method it MUST have previously been error checked");
-        return directiveList;
+        return gatherSchemaDirectives(typeRegistry, noErrors);
     }
 
     static List<Directive> gatherSchemaDirectives(TypeDefinitionRegistry typeRegistry, List<GraphQLError> errors) {

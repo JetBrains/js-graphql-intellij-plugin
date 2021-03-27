@@ -1,0 +1,11 @@
+directive @Name on UNION
+
+type A {
+    id: ID
+}
+
+extend union <error descr="The extension 'Un' type is missing its base underlying type"><error descr="Unknown type \"Un\"">Un</error></error>
+
+union <error descr="The extension 'BaseUnion' type has redefined the directive called 'Name'">BaseUnion</error> @Name = A
+
+extend union <error descr="The type 'BaseUnion' has declared an union member with a non unique name 'A'"><error descr="The union member type 'B' is not present when resolving type 'BaseUnion'">BaseUnion</error></error> @Name = A | A | <error descr="Unknown type \"B\"">B</error>

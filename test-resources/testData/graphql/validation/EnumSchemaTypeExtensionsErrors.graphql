@@ -1,0 +1,18 @@
+directive @Name on ENUM
+
+extend enum <error descr="The extension 'Un' type is missing its base underlying type"><error descr="Unknown type \"Un\"">Un</error></error>
+
+enum <error descr="The extension 'EnumBase' type has redefined the directive called 'Name'">EnumBase</error> @Name {
+    A
+}
+
+extend enum <error descr="'EnumBase' extension type tried to redefine enum value 'A'"><error descr="'EnumBase' extension type tried to redefine enum value 'B'"><error descr="The type 'EnumBase' has declared an enum value with a non unique name 'C'">EnumBase</error></error></error> @Name {
+    A
+    B
+    C
+    C
+}
+
+extend enum <error descr="'EnumBase' extension type tried to redefine enum value 'B'">EnumBase</error> {
+    B
+}

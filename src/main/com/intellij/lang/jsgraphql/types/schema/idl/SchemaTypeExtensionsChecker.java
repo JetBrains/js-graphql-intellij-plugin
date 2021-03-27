@@ -75,7 +75,7 @@ class SchemaTypeExtensionsChecker {
 
                                 // field arg unique ness
                                 extension.getFieldDefinitions().forEach(fld -> checkNamedUniqueness(errors, fld.getInputValueDefinitions(), InputValueDefinition::getName,
-                                        (namedField, inputValueDefinition) -> new NonUniqueArgumentError(extension, fld, name)));
+                                        (namedField, inputValueDefinition) -> new NonUniqueArgumentError(extension, fld, namedField)));
 
                                 // directive checks
                                 extension.getFieldDefinitions().forEach(fld -> checkNamedUniqueness(errors, nonRepeatableDirectivesOnly(directiveDefinitionMap, fld.getDirectives()), Directive::getName,
@@ -123,7 +123,7 @@ class SchemaTypeExtensionsChecker {
 
                         // field arg unique ness
                         extension.getFieldDefinitions().forEach(fld -> checkNamedUniqueness(errors, fld.getInputValueDefinitions(), InputValueDefinition::getName,
-                                (namedField, inputValueDefinition) -> new NonUniqueArgumentError(extension, fld, name)));
+                                (namedField, inputValueDefinition) -> new NonUniqueArgumentError(extension, fld, namedField)));
 
                         // directive checks
                         extension.getFieldDefinitions().forEach(fld -> checkNamedUniqueness(errors, nonRepeatableDirectivesOnly(directiveDefinitionMap,fld.getDirectives()), Directive::getName,

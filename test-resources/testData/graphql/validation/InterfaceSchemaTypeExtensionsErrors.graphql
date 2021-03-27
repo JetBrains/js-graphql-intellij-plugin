@@ -1,0 +1,32 @@
+directive @Name on INTERFACE
+directive @Arg on ARGUMENT_DEFINITION
+directive @Field on FIELD_DEFINITION
+
+extend interface <error descr="The extension 'InterfaceType' type is missing its base underlying type"><error descr="Unknown type \"InterfaceType\"">InterfaceType</error></error> {
+}
+
+interface <error descr="'BaseInterface' type tried to redefine existing 'BaseInterface' type"><error descr="The extension 'BaseInterface' type has redefined the directive called 'Name'">BaseInterface</error></error> @Name{
+    id: ID
+}
+
+interface BaseInterface {
+    phone: ID
+}
+
+extend interface <error descr="The type 'BaseInterface' has declared a field with a non unique name 'name'"><error descr="The type 'BaseInterface' with field 'name' has declared an argument with a non unique name 'arg1'">BaseInterface</error></error> @Name {
+    name(arg1: Int, arg1: Int): String
+    name: String
+}
+
+extend interface <error descr="'BaseInterface' extension type tried to redefine field 'argument'"><error descr="The type 'BaseInterface' with field 'argument' has declared a directive with a non unique name 'Field'">BaseInterface</error></error> {
+    argument: Int @Field @Field
+}
+
+extend interface <error descr="'BaseInterface' extension type tried to redefine field 'argument'"><error descr="'BaseInterface' extension type tried to redefine field 'id'">BaseInterface</error></error> {
+    id: ID
+    argument: String
+}
+
+extend interface <error descr="'BaseInterface' extension type tried to redefine field 'phone'">BaseInterface</error> {
+    phone: ID
+}

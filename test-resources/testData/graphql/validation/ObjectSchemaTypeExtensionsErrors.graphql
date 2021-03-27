@@ -1,0 +1,32 @@
+directive @Name on OBJECT
+directive @Arg on ARGUMENT_DEFINITION
+directive @Field on FIELD_DEFINITION
+
+extend type <error descr="The extension 'ObjType' type is missing its base underlying type"><error descr="Unknown type \"ObjType\"">ObjType</error></error> {
+}
+
+type <error descr="'BaseObj' type tried to redefine existing 'BaseObj' type"><error descr="The extension 'BaseObj' type has redefined the directive called 'Name'">BaseObj</error></error> @Name{
+    id: ID
+}
+
+type BaseObj {
+    phone: ID
+}
+
+extend type <error descr="The type 'BaseObj' has declared a field with a non unique name 'name'"><error descr="The type 'BaseObj' with field 'name' has declared an argument with a non unique name 'arg1'">BaseObj</error></error> @Name {
+    name(arg1: Int, arg1: Int): String
+    name: String
+}
+
+extend type <error descr="'BaseObj' extension type tried to redefine field 'argument'"><error descr="The type 'BaseObj' with field 'argument' has declared a directive with a non unique name 'Field'">BaseObj</error></error> {
+    argument: Int @Field @Field
+}
+
+extend type <error descr="'BaseObj' extension type tried to redefine field 'argument'"><error descr="'BaseObj' extension type tried to redefine field 'id'">BaseObj</error></error> {
+    id: ID
+    argument: String
+}
+
+extend type <error descr="'BaseObj' extension type tried to redefine field 'phone'">BaseObj</error> {
+    phone: ID
+}
