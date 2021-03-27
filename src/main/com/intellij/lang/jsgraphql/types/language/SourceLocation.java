@@ -114,6 +114,10 @@ public final class SourceLocation implements Serializable {
         return CachedValueProvider.Result.create(location, containingFile, topLevelFile, document);
     }
 
+    public @NotNull String getNavigationLocation() {
+        return String.format("%s:%s", getSourceName(), getOffset());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

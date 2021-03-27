@@ -12,7 +12,6 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
-import com.intellij.lang.jsgraphql.ide.validation.fixes.GraphQLNavigateToRelatedDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
@@ -362,39 +361,42 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
         Annotation annotation = annotationHolder.createErrorAnnotation(getAnnotationAnchor(element), message);
 
         List<Node> references = error.getReferences();
-        if (references.size() > 1) {
-            annotation.setTooltip(createTooltip(error, message));
-        }
-
-        if (references.size() == 1) {
-            PsiElement target = references.get(0).getElement();
-            if (target != null && target.isValid()) {
-                PsiElement anchor = getAnnotationAnchor(target);
-                annotation.registerFix(new GraphQLNavigateToRelatedDefinition(target, anchor.getText()));
-            }
+        if (!references.isEmpty()) {
+            annotation.setTooltip(createTooltip(error, message, references.size() > 1));
         }
     }
 
     @NotNull
-    private String createTooltip(@NotNull GraphQLError error, String message) {
+    private String createTooltip(@NotNull GraphQLError error, String message, boolean isMultiple) {
         StringBuilder sb = new StringBuilder();
         sb
             .append("<html>")
             .append(message)
-            .append("<br/><br/>")
-            .append(GraphQLBundle.message("graphql.inspection.related.definitions"));
+            .append("<br/>");
+
+        if (isMultiple) {
+            sb.append("<br/>").append(GraphQLBundle.message("graphql.inspection.related.definitions"));
+        }
 
         for (Node reference : error.getReferences()) {
             SourceLocation sourceLocation = reference.getSourceLocation();
             if (sourceLocation == null) continue;
 
-            String target = sourceLocation.getSourceName() + ":" + sourceLocation.getOffset();
+            String navigationLabel;
+            PsiElement referenceElement = reference.getElement();
+            if (referenceElement != null && referenceElement.isValid()) {
+                PsiElement annotationAnchor = getAnnotationAnchor(referenceElement);
+                navigationLabel = GraphQLBundle.message("graphql.inspection.go.to.related.definition.name", annotationAnchor.getText());
+            } else {
+                navigationLabel = GraphQLBundle.message("graphql.inspection.go.to.related.definition.family.name");
+            }
+
             sb
                 .append("<br/>")
                 .append("<a href=\"#navigation/")
-                .append(target)
+                .append(sourceLocation.getNavigationLocation())
                 .append("\">")
-                .append(target)
+                .append(navigationLabel)
                 .append("</a>");
         }
         sb.append("</html>");
