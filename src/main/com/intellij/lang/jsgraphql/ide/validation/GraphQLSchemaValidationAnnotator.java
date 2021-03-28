@@ -56,7 +56,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
     public void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
         if (!(psiElement instanceof GraphQLFile)) return;
 
-        final PsiFile file = ((GraphQLFile) psiElement);
+        final GraphQLFile file = (GraphQLFile) psiElement;
         final Project project = psiElement.getProject();
 
         try {
@@ -77,7 +77,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
 
     private void showDocumentErrors(@NotNull AnnotationHolder annotationHolder,
                                     @NotNull GraphQLSchemaInfo schemaInfo,
-                                    @NotNull PsiFile file) {
+                                    @NotNull GraphQLFile file) {
         List<? extends GraphQLError> errors = validateQueryDocument(schemaInfo, file);
 
         for (GraphQLError error : errors) {
@@ -123,7 +123,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
         }
     }
 
-    private @NotNull List<? extends GraphQLError> validateQueryDocument(@NotNull GraphQLSchemaInfo schemaInfo, @NotNull PsiFile file) {
+    private @NotNull List<? extends GraphQLError> validateQueryDocument(@NotNull GraphQLSchemaInfo schemaInfo, @NotNull GraphQLFile file) {
         // adjust source locations for injected GraphQL since the annotator works on the entire editor buffer (e.g. tsx with graphql tagged templates)
         int lineDelta = 0;
         int firstLineColumnDelta = 0;
@@ -140,7 +140,8 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
     }
 
     private void showSchemaErrors(@NotNull AnnotationHolder annotationHolder,
-                                  @NotNull GraphQLSchemaInfo schemaInfo, @NotNull PsiFile file) {
+                                  @NotNull GraphQLSchemaInfo schemaInfo,
+                                  @NotNull GraphQLFile file) {
         for (GraphQLError error : schemaInfo.getErrors()) {
             Collection<? extends PsiElement> elements = getElementsToAnnotate(file, error);
             for (PsiElement element : elements) {
@@ -272,24 +273,12 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
         ) != null;
     }
 
-    /**
-     * Replaces template placeholders in a GraphQL operation to produce valid GraphQL.
-     * <p>
-     * Positions of tokens are preserved by using replacements that fit within the ${} placeholder token.
-     * <p>
-     * Note that the replacement needs to be filtered for variables and selections, specifically:
-     * - Variables: '$__'
-     * - Selection '___'
-     *
-     * @param graphqlPsiFile the file to transform to valid GraphQL by replacing placeholders
-     * @return the transformed valid GraphQL as a string
-     */
     private String replacePlaceholdersWithValidGraphQL(PsiFile graphqlPsiFile) {
         String graphqlText = graphqlPsiFile.getText();
         if (graphqlPsiFile.getContext() instanceof PsiLanguageInjectionHost) {
-            final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
-            if (graphQLInjectionSearchHelper != null) {
-                graphqlText = graphQLInjectionSearchHelper.applyInjectionDelimitingQuotesEscape(graphqlText);
+            final GraphQLInjectionSearchHelper injectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
+            if (injectionSearchHelper != null) {
+                graphqlText = injectionSearchHelper.applyInjectionDelimitingQuotesEscape(graphqlText);
             }
         }
         final StringBuilder buffer = new StringBuilder(graphqlText);

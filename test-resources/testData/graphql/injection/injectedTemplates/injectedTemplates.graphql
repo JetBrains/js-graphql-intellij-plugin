@@ -1,0 +1,24 @@
+type SomeType {
+  id(arg: String): ID
+}
+
+query Departments($arg: String) @Dir(arg: ) {
+  users(filter: {name : , addresses : ["abc"]}) {}
+}
+
+directive @Dir(arg: String) on QUERY
+
+type Query {
+  users(filter: UserFilter): [User]
+}
+
+input UserFilter {
+  name: String
+  addresses: [String!]
+}
+
+type User {
+  id: ID
+  name: String
+  phone: String
+}

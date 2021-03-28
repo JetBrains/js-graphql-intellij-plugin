@@ -19,13 +19,14 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
 public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionSearchHelper {
 
     @Override
-    public boolean isJSGraphQLLanguageInjectionTarget(PsiElement host) {
+    public boolean isGraphQLLanguageInjectionTarget(PsiElement host) {
         return GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(host);
     }
 
@@ -44,11 +45,9 @@ public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionS
                 if (fileWithInjection != null) {
                     fileWithInjection.accept(new PsiRecursiveElementVisitor() {
                         @Override
-                        public void visitElement(PsiElement element) {
+                        public void visitElement(@NotNull PsiElement element) {
                             if (GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
-                                injectedLanguageManager.enumerate(element, (injectedPsi, places) -> {
-                                    processor.process(injectedPsi);
-                                });
+                                injectedLanguageManager.enumerate(element, (injectedPsi, places) -> processor.process(injectedPsi));
                             } else {
                                 // visit deeper until injection found
                                 super.visitElement(element);

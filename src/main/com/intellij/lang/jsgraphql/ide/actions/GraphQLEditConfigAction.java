@@ -62,7 +62,7 @@ public class GraphQLEditConfigAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         final Project project = e.getData(CommonDataKeys.PROJECT);
-        final VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFile(e.getData(CommonDataKeys.VIRTUAL_FILE));
+        final VirtualFile virtualFile = GraphQLPsiUtil.getPhysicalVirtualFile(e.getData(CommonDataKeys.VIRTUAL_FILE));
         if (project == null || virtualFile == null) {
             return;
         }

@@ -141,7 +141,7 @@ value ::=
 
 templateVariable ::= templatePlaceholder {extends=value}
 
-variable ::= VARIABLE_NAME {pin=1 extends=value implements="com.intellij.psi.PsiNamedElement" mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLRenameAwareVariableElementImpl"}
+variable ::= VARIABLE_NAME {pin=1 extends=value implements="com.intellij.psi.PsiNamedElement" mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLVariableMixin"}
 
 defaultValue ::= '=' value {pin=1}
 

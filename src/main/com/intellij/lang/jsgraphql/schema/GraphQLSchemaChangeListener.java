@@ -72,7 +72,7 @@ public class GraphQLSchemaChangeListener {
                 }
                 if (event.getParent() instanceof PsiLanguageInjectionHost) {
                     GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
-                    if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(event.getParent())) {
+                    if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isGraphQLLanguageInjectionTarget(event.getParent())) {
                         // change in injection target
                         signalSchemaChanged();
                     }

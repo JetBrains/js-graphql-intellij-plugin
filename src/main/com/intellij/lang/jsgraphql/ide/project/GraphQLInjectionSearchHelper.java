@@ -24,7 +24,7 @@ public interface GraphQLInjectionSearchHelper {
     /**
      * Gets whether the specified host is a target for GraphQL Injection
      */
-    boolean isJSGraphQLLanguageInjectionTarget(PsiElement host);
+    boolean isGraphQLLanguageInjectionTarget(PsiElement host);
 
     /**
      * Process injected GraphQL PsiFiles

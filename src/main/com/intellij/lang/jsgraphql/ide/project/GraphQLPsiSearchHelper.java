@@ -11,7 +11,6 @@ package com.intellij.lang.jsgraphql.ide.project;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
@@ -31,8 +30,6 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginDescriptor;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
@@ -136,7 +133,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
     public GlobalSearchScope getSchemaScope(@NotNull PsiElement element) {
         PsiFile containingFile = element.getContainingFile();
         return fileNameToSchemaScope.computeIfAbsent(GraphQLPsiUtil.getFileName(containingFile), fileName -> {
-            final VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFileFromPsiFile(containingFile);
+            final VirtualFile virtualFile = GraphQLPsiUtil.getOriginalVirtualFile(containingFile);
             final NamedScope schemaScope = graphQLConfigManager.getSchemaScope(virtualFile);
             if (schemaScope != null) {
                 final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
@@ -172,7 +169,8 @@ public class GraphQLPsiSearchHelper implements Disposable {
         try {
             final List<GraphQLFragmentDefinition> fragmentDefinitions = Lists.newArrayList();
             GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
-            if (GraphQLFileType.isGraphQLScratchFile(myProject, GraphQLPsiUtil.getVirtualFileFromPsiFile(scopedElement.getContainingFile()))) {
+            VirtualFile originalFile = GraphQLPsiUtil.getOriginalVirtualFile(scopedElement.getContainingFile());
+            if (originalFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalFile)) {
                 // include the fragments defined in the currently edited scratch file (scratch files don't appear to be indexed)
                 fragmentDefinitions.addAll(PsiTreeUtil.getChildrenOfTypeAsList(scopedElement.getContainingFile().getOriginalFile(), GraphQLFragmentDefinition.class));
             }
@@ -219,7 +217,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
      */
     private boolean visitLanguageInjectionHost(@NotNull PsiLanguageInjectionHost element,
                                                @NotNull Ref<PsiRecursiveElementVisitor> identifierVisitor) {
-        if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(element)) {
+        if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isGraphQLLanguageInjectionTarget(element)) {
             injectedLanguageManager.enumerateEx(
                 element, element.getContainingFile(), false,
                 (injectedPsi, places) -> injectedPsi.accept(identifierVisitor.get())
@@ -338,8 +336,10 @@ public class GraphQLPsiSearchHelper implements Disposable {
             }
 
             // finally, look in the current scratch file
-            if (GraphQLFileType.isGraphQLScratchFile(myProject, GraphQLPsiUtil.getVirtualFileFromPsiFile(scopedElement.getContainingFile()))) {
-                scopedElement.getContainingFile().accept(builtInFileVisitor);
+            PsiFile containingFile = scopedElement.getContainingFile();
+            VirtualFile originalVirtualFile = GraphQLPsiUtil.getOriginalVirtualFile(containingFile);
+            if (originalVirtualFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalVirtualFile)) {
+                containingFile.accept(builtInFileVisitor);
             }
 
         } catch (IndexNotReadyException e) {

@@ -54,7 +54,7 @@ public class GraphQLPsiUtil {
     }
 
     @Nullable
-    public static VirtualFile getVirtualFileFromPsiFile(@Nullable PsiFile containingFile) {
+    public static VirtualFile getOriginalVirtualFile(@Nullable PsiFile containingFile) {
         if (containingFile == null || !containingFile.isValid()) return null;
 
         VirtualFile file = containingFile.getVirtualFile();
@@ -69,7 +69,7 @@ public class GraphQLPsiUtil {
     }
 
     @Nullable
-    public static VirtualFile getVirtualFile(@Nullable VirtualFile virtualFile) {
+    public static VirtualFile getPhysicalVirtualFile(@Nullable VirtualFile virtualFile) {
         if (virtualFile == null) return null;
 
         if (virtualFile instanceof LightVirtualFile) {
@@ -87,9 +87,9 @@ public class GraphQLPsiUtil {
     }
 
     @Nullable
-    public static VirtualFile getVirtualFile(@Nullable PsiFile psiFile) {
+    public static VirtualFile getPhysicalVirtualFile(@Nullable PsiFile psiFile) {
         if (psiFile == null) return null;
-        return getVirtualFile(getVirtualFileFromPsiFile(psiFile));
+        return getPhysicalVirtualFile(getOriginalVirtualFile(psiFile));
     }
 
     /**
@@ -97,7 +97,7 @@ public class GraphQLPsiUtil {
      */
     @NotNull
     public static String getFileName(@NotNull PsiFile psiFile) {
-        VirtualFile virtualFile = getVirtualFile(psiFile);
+        VirtualFile virtualFile = getPhysicalVirtualFile(psiFile);
         if (virtualFile != null) {
             return virtualFile.getPath();
         }

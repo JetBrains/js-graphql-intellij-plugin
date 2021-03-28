@@ -139,7 +139,7 @@ public class GraphQLRegistryProvider implements Disposable {
             graphQLPsiSearchHelper.processAdditionalBuiltInPsiFiles(schemaScope, processor);
 
             // Types defined using GraphQL Endpoint Language
-            VirtualFile virtualFile = GraphQLPsiUtil.getVirtualFile(scopedElement.getContainingFile());
+            VirtualFile virtualFile = GraphQLPsiUtil.getPhysicalVirtualFile(scopedElement.getContainingFile());
             if (virtualFile != null && graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, null) != null) {
                 final GraphQLRegistryInfo endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry(scopedElement);
                 try {

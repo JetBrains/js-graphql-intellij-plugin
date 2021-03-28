@@ -62,7 +62,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
                         }
                         return; // no need to visit deeper than definitions since fragments are top level
                     } else if (element instanceof PsiLanguageInjectionHost && graphQLInjectionSearchHelper != null) {
-                        if (graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(element)) {
+                        if (graphQLInjectionSearchHelper.isGraphQLLanguageInjectionTarget(element)) {
                             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
                             final String graphqlBuffer = StringUtils.strip(element.getText(), "` \t\n");
                             final PsiFile graphqlInjectedPsiFile = psiFileFactory.createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);

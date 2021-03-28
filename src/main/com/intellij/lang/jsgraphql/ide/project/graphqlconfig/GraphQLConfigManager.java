@@ -766,7 +766,7 @@ public class GraphQLConfigManager implements Disposable {
 
     @Nullable
     public GraphQLNamedScope getSchemaScope(@Nullable VirtualFile virtualFile) {
-        VirtualFile virtualFileWithPath = GraphQLPsiUtil.getVirtualFile(virtualFile);
+        VirtualFile virtualFileWithPath = GraphQLPsiUtil.getPhysicalVirtualFile(virtualFile);
         if (virtualFileWithPath == null) return null;
 
         try {

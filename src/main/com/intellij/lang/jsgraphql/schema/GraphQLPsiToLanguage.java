@@ -708,6 +708,8 @@ public class GraphQLPsiToLanguage {
             VariableReference.Builder variableReference = VariableReference.newVariableReference().name(((GraphQLVariable) value).getName());
             addCommonData(variableReference, value);
             return checkNode(variableReference.build());
+        } else if (value instanceof GraphQLTemplateVariable) {
+            return null;
         }
         return assertShouldNeverHappen();
     }
