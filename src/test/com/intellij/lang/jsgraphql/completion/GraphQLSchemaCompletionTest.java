@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.schema;
+package com.intellij.lang.jsgraphql.completion;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -17,11 +17,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 
-public class GraphQLCompletionTest extends GraphQLBaseTestCase {
+public class GraphQLSchemaCompletionTest extends GraphQLBaseTestCase {
 
     @Override
     protected @NotNull String getBasePath() {
-        return "/completion";
+        return "/completion/schema";
     }
 
     public void testCompletionImplementsFirstInterface() {

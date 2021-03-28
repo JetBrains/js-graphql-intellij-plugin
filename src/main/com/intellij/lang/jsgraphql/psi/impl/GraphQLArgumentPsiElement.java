@@ -8,16 +8,13 @@
 package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
-import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
-import com.intellij.lang.jsgraphql.psi.GraphQLField;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +48,7 @@ public abstract class GraphQLArgumentPsiElement extends GraphQLNamedElementImpl 
             if (field != null && typeScopeProvider != null) {
                 GraphQLType typeScope = typeScopeProvider.getTypeScope();
                 if (typeScope != null) {
-                    typeScope = GraphQLUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
+                    typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
                     if (typeScope instanceof GraphQLFieldsContainer) {
                         final GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) typeScope).getFieldDefinition(field.getName());
                         if (fieldDefinition != null) {

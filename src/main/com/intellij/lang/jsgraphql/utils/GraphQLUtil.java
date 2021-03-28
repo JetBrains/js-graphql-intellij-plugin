@@ -13,10 +13,6 @@ import com.intellij.lang.jsgraphql.types.parser.GraphqlAntlrToLanguage;
 import com.intellij.lang.jsgraphql.types.parser.MultiSourceReader;
 import com.intellij.lang.jsgraphql.types.parser.antlr.GraphqlLexer;
 import com.intellij.lang.jsgraphql.types.parser.antlr.GraphqlParser;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLModifiedType;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLNamedType;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLUnmodifiedType;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -26,28 +22,15 @@ import java.util.List;
 public final class GraphQLUtil {
 
 
-    /**
-     * Gets the raw named type that sits within a non-null/list modifier type, or the type as-is if no unwrapping is needed
-     * @param graphQLType the type to unwrap
-     * @return the raw type as-is, or the type wrapped inside a non-null/list modifier type
-     */
-    public static GraphQLUnmodifiedType getUnmodifiedType(GraphQLType graphQLType) {
-        if (graphQLType instanceof GraphQLModifiedType) {
-            return getUnmodifiedType(((GraphQLModifiedType) graphQLType).getWrappedType());
-        }
-        return (GraphQLUnmodifiedType) graphQLType;
-    }
-
-
     public static Document parseDocument(String input, int lineDelta, int firstLineColumnDelta) {
         return parseDocument(input, null, lineDelta, firstLineColumnDelta);
     }
 
     /**
-     *
      * Creates a source location based on a token and line/column offsets
-     * @param token the token to create a location for
-     * @param lineDelta the delta line to apply to the document and all child nodes
+     *
+     * @param token                the token to create a location for
+     * @param lineDelta            the delta line to apply to the document and all child nodes
      * @param firstLineColumnDelta the column delta for the first line
      * @return the offset location for the token
      */
@@ -61,7 +44,7 @@ public final class GraphQLUtil {
         }
         int line = token.getLine();
         int column = token.getCharPositionInLine() + 1;
-        if(line == 0 && firstLineColumnDelta > 0) {
+        if (line == 0 && firstLineColumnDelta > 0) {
             column += firstLineColumnDelta;
         }
         line += lineDelta;
@@ -71,17 +54,18 @@ public final class GraphQLUtil {
     /**
      * Parses GraphQL string input into a graphql-java Document, shifting the source locations in the specified document with the specified line delta.
      * Shifting of the sourceLocation is required for proper error reporting locations for GraphQL language injections, e.g. GraphQL in a JavaScript file.
-     * @param input a GraphQL document represented as a string to be parsed
-     * @param sourceName the file name of the source
-     * @param lineDelta the delta line to apply to the document and all child nodes
+     *
+     * @param input                a GraphQL document represented as a string to be parsed
+     * @param sourceName           the file name of the source
+     * @param lineDelta            the delta line to apply to the document and all child nodes
      * @param firstLineColumnDelta the column delta for the first line
      */
     public static Document parseDocument(String input, String sourceName, int lineDelta, int firstLineColumnDelta) {
 
         CharStream charStream;
-        if(sourceName == null) {
+        if (sourceName == null) {
             charStream = CharStreams.fromString(input);
-        } else{
+        } else {
             charStream = CharStreams.fromString(input, sourceName);
         }
 
@@ -96,9 +80,9 @@ public final class GraphQLUtil {
         GraphqlParser.DocumentContext documentContext = parser.document();
 
         MultiSourceReader multiSourceReader = MultiSourceReader.newMultiSourceReader()
-                .string(input, sourceName)
-                .trackData(true)
-                .build();
+            .string(input, sourceName)
+            .trackData(true)
+            .build();
 
         GraphqlAntlrToLanguage antlrToLanguage = new GraphqlAntlrToLanguage(tokens, multiSourceReader) {
             @Override
@@ -130,10 +114,4 @@ public final class GraphQLUtil {
         return doc;
     }
 
-    public static String getName(GraphQLType graphQLType) {
-        if (graphQLType instanceof GraphQLNamedType) {
-            return ((GraphQLNamedType) graphQLType).getName();
-        }
-        return "";
-    }
 }

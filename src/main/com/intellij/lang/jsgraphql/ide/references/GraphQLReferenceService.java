@@ -16,7 +16,7 @@ import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectiveImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferencePsiElement;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
 import com.intellij.openapi.components.ServiceManager;
@@ -231,7 +231,7 @@ public class GraphQLReferenceService {
             if (reference.isNull() && typeScopeProvider != null) {
                 GraphQLType typeScope = typeScopeProvider.getTypeScope();
                 if (typeScope != null) {
-                    final GraphQLType fieldType = GraphQLUtil.getUnmodifiedType(typeScope);
+                    final GraphQLType fieldType = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
                     graphQLPsiSearchHelper.processElementsWithWord(element, name, psiNamedElement -> {
                         if (psiNamedElement.getParent() instanceof com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition) {
                             final GraphQLFieldDefinition fieldDefinition = (GraphQLFieldDefinition) psiNamedElement.getParent();
@@ -243,14 +243,14 @@ public class GraphQLReferenceService {
                             final GraphQLTypeDefinition typeDefinition = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLTypeDefinition.class);
                             if (typeDefinition != null) {
                                 final GraphQLTypeNameDefinition typeNameDefinition = PsiTreeUtil.findChildOfType(typeDefinition, GraphQLTypeNameDefinition.class);
-                                isTypeMatch = typeNameDefinition != null && GraphQLUtil.getName(fieldType).equals(typeNameDefinition.getName());
+                                isTypeMatch = typeNameDefinition != null && GraphQLSchemaUtil.getTypeName(fieldType).equals(typeNameDefinition.getName());
                             }
                             if (!isTypeMatch) {
                                 // check type extension
                                 final GraphQLTypeExtension typeExtension = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLTypeExtension.class);
                                 if (typeExtension != null) {
                                     final GraphQLTypeName typeName = PsiTreeUtil.findChildOfType(typeExtension, GraphQLTypeName.class);
-                                    isTypeMatch = typeName != null && GraphQLUtil.getName(fieldType).equals(typeName.getName());
+                                    isTypeMatch = typeName != null && GraphQLSchemaUtil.getTypeName(fieldType).equals(typeName.getName());
                                 }
                             }
                             if (isTypeMatch) {
@@ -263,7 +263,7 @@ public class GraphQLReferenceService {
                     if (reference.isNull()) {
                         // Endpoint language
                         final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(GraphQLUtil.getUnmodifiedType(typeScope).getName(), field);
+                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName(), field);
                         if (namedType != null) {
                             JSGraphQLPropertyType property = namedType.properties.get(name);
                             if (property != null) {
@@ -343,7 +343,7 @@ public class GraphQLReferenceService {
             if (fieldTypeScopeProvider != null) {
                 GraphQLType typeScope = fieldTypeScopeProvider.getTypeScope();
                 if (typeScope != null) {
-                    final String namedTypeScope = GraphQLUtil.getUnmodifiedType(typeScope).getName();
+                    final String namedTypeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName();
                     final Ref<Boolean> resolved = Ref.create(false);
                     final PsiReference reference = resolveUsingIndex(element, psiNamedElement -> {
                         if (psiNamedElement.getParent() instanceof GraphQLInputValueDefinition) {
@@ -382,7 +382,7 @@ public class GraphQLReferenceService {
             if (enumTypeScopeProvider != null) {
                 GraphQLType typeScope = enumTypeScopeProvider.getTypeScope();
                 if (typeScope != null) {
-                    final String namedTypeScope = GraphQLUtil.getUnmodifiedType(typeScope).getName();
+                    final String namedTypeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName();
                     final Ref<Boolean> resolved = Ref.create(false);
                     final PsiReference reference = resolveUsingIndex(element, psiNamedElement -> {
                         if (psiNamedElement.getParent() instanceof GraphQLEnumValue) {

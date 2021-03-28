@@ -9,12 +9,10 @@ package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLInputFieldsContainer;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +34,7 @@ public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl impl
             GraphQLType typeScope = ((GraphQLTypeScopeProvider) parent.getParent()).getTypeScope();
             if (typeScope != null) {
                 // unwrap non-null and array type since this object is an element in the array list type
-                typeScope = GraphQLUtil.getUnmodifiedType(typeScope);
+                typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
             }
             return typeScope;
         }
@@ -53,7 +51,7 @@ public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl impl
         if (typeScopeProvider != null && objectField != null) {
             GraphQLType typeScope = typeScopeProvider.getTypeScope();
             if (typeScope != null) {
-                typeScope = GraphQLUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
+                typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
                 if (typeScope instanceof GraphQLInputFieldsContainer) {
                     final GraphQLInputObjectField inputObjectField = ((GraphQLInputFieldsContainer) typeScope).getFieldDefinition(objectField.getName());
                     if (inputObjectField != null) {

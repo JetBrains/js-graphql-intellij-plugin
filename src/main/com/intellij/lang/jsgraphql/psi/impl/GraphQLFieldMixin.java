@@ -11,10 +11,10 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.psi.GraphQLField;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +33,7 @@ public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implemen
                 GraphQLType parentType = parentTypeScopeProvider.getTypeScope();
                 if (parentType != null) {
                     // found a parent operation, field, or fragment
-                    parentType = GraphQLUtil.getUnmodifiedType(parentType); // unwrap list, non-null since we want a specific field
+                    parentType = GraphQLSchemaUtil.getUnmodifiedType(parentType); // unwrap list, non-null since we want a specific field
                     if (parentType instanceof GraphQLFieldsContainer) {
                         final com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) parentType).getFieldDefinition(fieldName);
                         if (fieldDefinition != null) {

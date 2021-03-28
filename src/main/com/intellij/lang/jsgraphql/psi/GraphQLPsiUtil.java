@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class GraphQLPsiUtil {
 
-    public static String getTypeName(PsiElement psiElement, @Nullable Ref<GraphQLIdentifier> typeNameRef) {
+    public static @Nullable String getTypeName(@Nullable PsiElement psiElement, @Nullable Ref<GraphQLIdentifier> typeNameRef) {
 
         if (psiElement != null) {
 

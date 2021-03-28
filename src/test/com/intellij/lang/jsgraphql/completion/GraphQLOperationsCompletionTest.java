@@ -5,16 +5,11 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.operations;
+package com.intellij.lang.jsgraphql.completion;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.Document;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -22,32 +17,16 @@ import java.util.List;
 
 public class GraphQLOperationsCompletionTest extends GraphQLBaseTestCase {
 
-    private PsiFile[] psiFiles;
-
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        psiFiles = myFixture.configureByFiles("CompletionSchema.graphqls");
-    }
 
-    @Override
-    protected void tearDown() throws Exception {
-        // clean up the schema discovery caches
-        for (PsiFile psiFile : psiFiles) {
-            PsiDocumentManager documentManager = PsiDocumentManager.getInstance(psiFile.getProject());
-            final Document document = documentManager.getDocument(psiFile);
-            assertNotNull(document);
-            ApplicationManager.getApplication().runWriteAction(() -> {
-                document.setText("");
-                documentManager.commitAllDocuments();
-            });
-        }
-        super.tearDown();
+        myFixture.configureByFiles("CompletionSchema.graphqls");
     }
 
     @Override
     protected @NotNull String getBasePath() {
-        return "/operations";
+        return "/completion/operations";
     }
 
     // ---- completion ----
@@ -59,15 +38,15 @@ public class GraphQLOperationsCompletionTest extends GraphQLBaseTestCase {
     // -- root field names --
 
     public void testCompletionRootField1() {
-        doTestCompletion("CompletionRootField1.graphql", Lists.newArrayList("human", "node", "nodes", "user"));
+        doTestCompletion("CompletionRootField1.graphql", Lists.newArrayList("human", "node", "nodes", "user", "users"));
     }
 
     public void testCompletionRootField2() {
-        doTestCompletion("CompletionRootField1.graphql", Lists.newArrayList("human", "node", "nodes", "user"));
+        doTestCompletion("CompletionRootField2.graphql", Lists.newArrayList("human", "node", "nodes", "user", "users"));
     }
 
     public void testCompletionRootField3() {
-        doTestCompletion("CompletionRootField1.graphql", Lists.newArrayList("human", "node", "nodes", "user"));
+        doTestCompletion("CompletionRootField3.graphql", Lists.newArrayList("human", "node", "nodes", "user", "users"));
     }
 
     // -- field arguments --
@@ -154,6 +133,14 @@ public class GraphQLOperationsCompletionTest extends GraphQLBaseTestCase {
         doTestCompletion("CompletionVariableUseInList2.graphql", Lists.newArrayList("$second", "$variable"));
     }
 
+    public void testCompletionVariablesWithoutPrefix() {
+        doTestCompletion(Lists.newArrayList("$var1", "$var3", "$var5"));
+    }
+
+    public void testCompletionVariablesListWithoutPrefix() {
+        doTestCompletion(Lists.newArrayList("$var5", "$var6"));
+    }
+
     // -- directives --
 
     public void testCompletionDirectiveOnField() {
@@ -165,15 +152,16 @@ public class GraphQLOperationsCompletionTest extends GraphQLBaseTestCase {
     }
 
     // ---- util ----
+
+    private void doTestCompletion(List<String> expectedCompletions) {
+        doTestCompletion(getTestName(false) + ".graphql", expectedCompletions);
+    }
+
     private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {
         myFixture.configureByFiles(sourceFile);
         myFixture.complete(CompletionType.BASIC, 1);
         final List<String> completions = myFixture.getLookupElementStrings(); // NOTE!: will be null of only one matching completion
         assertEquals("Wrong completions", expectedCompletions, completions);
-        ApplicationManager.getApplication().runWriteAction(() -> {
-            myFixture.getEditor().getDocument().setText(""); // blank out the file so it doesn't affect other tests
-            PsiDocumentManager.getInstance(myFixture.getProject()).commitAllDocuments();
-        });
     }
 
 }

@@ -16,15 +16,14 @@ import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayErrorFilter;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.validation.fixes.GraphQLMissingTypeFix;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.schema.*;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
@@ -60,7 +59,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                     typeScope = typeScopeProvider.getTypeScope();
                     if (typeScope != null) {
                         // unwrap non-nulls and lists for type and field hints
-                        typeScope = GraphQLUtil.getUnmodifiedType(typeScope);
+                        typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
                     }
                 }
 
@@ -81,7 +80,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                         } else if (typeScope instanceof GraphQLInterfaceType) {
                             definitionType = "interface ";
                         }
-                        message += " on " + definitionType + "type \"" + GraphQLUtil.getName(typeScope) + "\"";
+                        message += " on " + definitionType + "type \"" + GraphQLSchemaUtil.getTypeName(typeScope) + "\"";
                         final List<String> suggestions = getFieldNameSuggestions(psiElement.getText(), typeScope);
                         if (suggestions != null && !suggestions.isEmpty()) {
                             message += ". Did you mean " + formatSuggestions(suggestions) + "?";
@@ -107,7 +106,7 @@ public class GraphQLValidationAnnotator implements Annotator {
                 } else if (parent instanceof GraphQLObjectField) {
                     message = "Unknown field \"" + psiElement.getText() + "\"";
                     if (typeScope != null) {
-                        message += " on input type \"" + GraphQLUtil.getName(typeScope) + "\"";
+                        message += " on input type \"" + GraphQLSchemaUtil.getTypeName(typeScope) + "\"";
                         final List<String> suggestions = getFieldNameSuggestions(psiElement.getText(), typeScope);
                         if (suggestions != null && !suggestions.isEmpty()) {
                             message += ". Did you mean " + formatSuggestions(suggestions) + "?";

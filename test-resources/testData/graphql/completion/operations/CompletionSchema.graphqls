@@ -9,6 +9,17 @@ type Query {
     node(id: ID!): Node
     nodes(ids: [ID]!): [Node]
     user: User
+    users(name: String, filter: UserFilter, zipCodes: [String!]): [User]
+}
+
+input UserFilter {
+    name: String
+    addresses: [String!]
+    obj: OtherObject
+}
+
+input OtherObject {
+    name: String
 }
 
 type Mutation {

@@ -9,10 +9,13 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Stack;
+
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
 
 public class GraphQLSchemaUtil {
 
@@ -96,5 +99,36 @@ public class GraphQLSchemaUtil {
             definition instanceof ScalarTypeExtensionDefinition ||
             definition instanceof UnionTypeExtensionDefinition ||
             definition instanceof EnumTypeExtensionDefinition;
+    }
+
+    public static @NotNull String getTypeName(@Nullable GraphQLType type) {
+        String typeName = null;
+        if (type instanceof GraphQLNamedSchemaElement) {
+            typeName = ((GraphQLNamedSchemaElement) type).getName();
+        }
+        return StringUtil.notNullize(typeName);
+    }
+
+    /**
+     * Gets the raw named type that sits within a non-null/list modifier type, or the type as-is if no unwrapping is needed
+     *
+     * @param graphQLType the type to unwrap
+     * @return the raw type as-is, or the type wrapped inside a non-null/list modifier type
+     */
+    public static GraphQLUnmodifiedType getUnmodifiedType(GraphQLType graphQLType) {
+        if (graphQLType instanceof GraphQLModifiedType) {
+            return getUnmodifiedType(((GraphQLModifiedType) graphQLType).getWrappedType());
+        }
+        return (GraphQLUnmodifiedType) graphQLType;
+    }
+
+    public static GraphQLType unwrapListType(GraphQLType type) {
+        while (isWrapped(type)) {
+            if (isList(type)) {
+                return unwrapOne(type);
+            }
+            type = unwrapOne(type);
+        }
+        return type;
     }
 }
