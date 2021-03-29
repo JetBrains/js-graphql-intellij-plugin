@@ -11,7 +11,6 @@ import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
@@ -19,29 +18,24 @@ import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElem
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
-import com.intellij.lang.jsgraphql.types.language.Document;
 import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.language.SourceLocation;
 import com.intellij.lang.jsgraphql.types.validation.ValidationError;
 import com.intellij.lang.jsgraphql.types.validation.ValidationErrorType;
 import com.intellij.lang.jsgraphql.types.validation.Validator;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -124,19 +118,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
     }
 
     private @NotNull List<? extends GraphQLError> validateQueryDocument(@NotNull GraphQLSchemaInfo schemaInfo, @NotNull GraphQLFile file) {
-        // adjust source locations for injected GraphQL since the annotator works on the entire editor buffer (e.g. tsx with graphql tagged templates)
-        int lineDelta = 0;
-        int firstLineColumnDelta = 0;
-        if (file.getContext() != null) {
-            final LogicalPosition logicalPosition = getLogicalPositionFromOffset(file, file.getContext().getTextOffset());
-            if (logicalPosition.line > 0 || logicalPosition.column > 0) {
-                // logical positions can be used as deltas between graphql-java and intellij since graphql-java is 1-based and intellij is 0-based
-                lineDelta = logicalPosition.line;
-                firstLineColumnDelta = logicalPosition.column;
-            }
-        }
-        final Document document = GraphQLUtil.parseDocument(replacePlaceholdersWithValidGraphQL(file), lineDelta, firstLineColumnDelta);
-        return new Validator().validateDocument(schemaInfo.getSchema(), document);
+        return new Validator().validateDocument(schemaInfo.getSchema(), file.getDocument());
     }
 
     private void showSchemaErrors(@NotNull AnnotationHolder annotationHolder,
@@ -156,8 +138,8 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
         Node<?> node = error.getNode();
         if (node != null) {
             PsiElement element = node.getElement();
-            if (element != null && element.isValid()) {
-                return element.getContainingFile() == containingFile ? Collections.singletonList(element) : Collections.emptyList();
+            if (element != null && element.isValid() && element.getContainingFile() == containingFile) {
+                return Collections.singletonList(element);
             }
         }
 
@@ -171,7 +153,12 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                 return null;
             }
 
-            int positionToOffset = getOffsetFromSourceLocation(containingFile, location);
+            PsiElement element = location.getElement();
+            if (element != null && element.isValid() && element.getContainingFile() == containingFile) {
+                return element;
+            }
+
+            int positionToOffset = location.getOffset();
             if (positionToOffset == -1) {
                 return null;
             }
@@ -189,25 +176,8 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                                         @NotNull PsiFile containingFile,
                                         @NotNull ValidationError validationError,
                                         @NotNull ValidationErrorType validationErrorType) {
-        for (SourceLocation location : validationError.getLocations()) {
-            final int positionToOffset = getOffsetFromSourceLocation(containingFile, location);
-            if (positionToOffset == -1) {
-                continue;
-            }
-            int injectionOffset = 0;
-            if (containingFile.getContext() != null) {
-                injectionOffset = containingFile.getContext().getTextOffset();
-            }
-            PsiElement element = containingFile.findElementAt(positionToOffset - injectionOffset);
-            if (element == null) {
-                continue;
-            }
-
-            if (isIgnored(validationErrorType, element)) {
-                continue;
-            }
-
-            final IElementType elementType = element.getNode().getElementType();
+        for (PsiElement element : getElementsToAnnotate(containingFile, validationError)) {
+            final IElementType elementType = PsiUtilCore.getElementType(element);
             if (elementType == GraphQLElementTypes.SPREAD) {
                 // graphql-java uses the '...' as source location on fragments, so find the fragment name or type condition
                 final GraphQLFragmentSelection fragmentSelection = PsiTreeUtil.getParentOfType(element, GraphQLFragmentSelection.class);
@@ -225,42 +195,35 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                 // mark the directive and not only the '@'
                 element = element.getParent();
             }
-            if (element != null) {
-                if (isInsideTemplateElement(element)) {
-                    // error due to template placeholder replacement, so we can ignore it for '___' replacement variables
-                    if (validationErrorType == ValidationErrorType.UndefinedVariable) {
+
+            if (element == null) {
+                continue;
+            }
+
+            if (isInsideTemplateElement(element)) {
+                // error due to template placeholder replacement, so we can ignore it for '___' replacement variables
+                if (validationErrorType == ValidationErrorType.UndefinedVariable) {
+                    continue;
+                }
+            }
+            if (validationErrorType == ValidationErrorType.SubSelectionRequired) {
+                // apollo client 2.5 doesn't require sub selections for client fields
+                final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(element, GraphQLDirectivesAware.class);
+                if (directivesAware != null) {
+                    boolean ignoreError = false;
+                    for (GraphQLDirective directive : directivesAware.getDirectives()) {
+                        if ("client".equals(directive.getName())) {
+                            ignoreError = true;
+                        }
+                    }
+                    if (ignoreError) {
                         continue;
                     }
                 }
-                if (validationErrorType == ValidationErrorType.SubSelectionRequired) {
-                    // apollo client 2.5 doesn't require sub selections for client fields
-                    final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(element, GraphQLDirectivesAware.class);
-                    if (directivesAware != null) {
-                        boolean ignoreError = false;
-                        for (GraphQLDirective directive : directivesAware.getDirectives()) {
-                            if ("client".equals(directive.getName())) {
-                                ignoreError = true;
-                            }
-                        }
-                        if (ignoreError) {
-                            continue;
-                        }
-                    }
-                }
-                final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
-                createErrorAnnotation(annotationHolder, validationError, element, message);
             }
+            final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
+            createErrorAnnotation(annotationHolder, validationError, element, message);
         }
-    }
-
-    private static boolean isIgnored(@NotNull ValidationErrorType errorType, @NotNull PsiElement element) {
-        if (errorType == ValidationErrorType.MisplacedDirective) {
-            // graphql-java KnownDirectives rule only recognizes executable directive locations, so ignore
-            // the error if we're inside a type definition
-            return PsiTreeUtil.getParentOfType(element, GraphQLTypeSystemDefinition.class) != null;
-        }
-
-        return false;
     }
 
     /**
@@ -273,76 +236,12 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
         ) != null;
     }
 
-    private String replacePlaceholdersWithValidGraphQL(PsiFile graphqlPsiFile) {
-        String graphqlText = graphqlPsiFile.getText();
-        if (graphqlPsiFile.getContext() instanceof PsiLanguageInjectionHost) {
-            final GraphQLInjectionSearchHelper injectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
-            if (injectionSearchHelper != null) {
-                graphqlText = injectionSearchHelper.applyInjectionDelimitingQuotesEscape(graphqlText);
-            }
-        }
-        final StringBuilder buffer = new StringBuilder(graphqlText);
-        final GraphQLVisitor visitor = new GraphQLRecursiveVisitor() {
-            @Override
-            public void visitTemplateDefinition(@NotNull GraphQLTemplateDefinition templateDefinition) {
-                // top level template, e.g. the inclusion of an external fragment below a query
-                // in this case whitespace will produce a valid GraphQL document
-                final TextRange textRange = templateDefinition.getTextRange();
-                for (int bufferIndex = textRange.getStartOffset(); bufferIndex < textRange.getEndOffset(); bufferIndex++) {
-                    buffer.setCharAt(bufferIndex, ' ');
-                }
-
-                super.visitTemplateDefinition(templateDefinition);
-            }
-
-            @Override
-            public void visitTemplateSelection(@NotNull GraphQLTemplateSelection templateSelection) {
-                // template is a selection, e.g. where a field or fragment would be found
-                // in this case well add a '___'  selection that can fit within ${} and filter it out in the annotator
-                final TextRange textRange = templateSelection.getTextRange();
-                int charIndex = 0;
-                for (int bufferIndex = textRange.getStartOffset(); bufferIndex < textRange.getEndOffset(); bufferIndex++) {
-                    buffer.setCharAt(bufferIndex, charIndex <= 2 ? '_' : ' ');
-                    charIndex++;
-                }
-
-                super.visitTemplateSelection(templateSelection);
-            }
-
-            @Override
-            public void visitTemplateVariable(@NotNull GraphQLTemplateVariable templateVariable) {
-                // template is a variable, so replace it with '$__' that fits within ${} and filter it out in the annotator
-                final TextRange textRange = templateVariable.getTextRange();
-                int charIndex = 0;
-                for (int bufferIndex = textRange.getStartOffset(); bufferIndex < textRange.getEndOffset(); bufferIndex++) {
-                    char currentChar;
-                    switch (charIndex) {
-                        case 0:
-                            currentChar = '$';
-                            break;
-                        case 1:
-                        case 2:
-                            currentChar = '_';
-                            break;
-                        default:
-                            currentChar = ' ';
-                            break;
-                    }
-                    buffer.setCharAt(bufferIndex, currentChar);
-                    charIndex++;
-                }
-
-                super.visitTemplateVariable(templateVariable);
-            }
-        };
-        graphqlPsiFile.accept(visitor);
-        return buffer.toString();
-    }
-
     private void createErrorAnnotation(@NotNull AnnotationHolder annotationHolder,
                                        @NotNull GraphQLError error,
                                        @NotNull PsiElement element,
-                                       String message) {
+                                       @Nullable String message) {
+        if (message == null) return;
+
         if (GraphQLErrorFilter.isErrorIgnored(element.getProject(), error, element)) {
             return;
         }
@@ -356,7 +255,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
     }
 
     @NotNull
-    private String createTooltip(@NotNull GraphQLError error, String message, boolean isMultiple) {
+    private String createTooltip(@NotNull GraphQLError error, @NotNull String message, boolean isMultiple) {
         StringBuilder sb = new StringBuilder();
         sb
             .append("<html>")
@@ -400,11 +299,22 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                 return typeName.getNameIdentifier();
             }
         }
-
         if (element instanceof GraphQLTypeNameExtensionOwnerPsiElement) {
             GraphQLTypeName typeName = ((GraphQLTypeNameExtensionOwnerPsiElement) element).getTypeName();
             if (typeName != null) {
                 return typeName.getNameIdentifier();
+            }
+        }
+        if (element instanceof GraphQLInlineFragment) {
+            GraphQLTypeCondition typeCondition = ((GraphQLInlineFragment) element).getTypeCondition();
+            if (typeCondition != null) {
+                element = typeCondition;
+            }
+        }
+        if (element instanceof GraphQLTypeCondition) {
+            GraphQLTypeName typeName = ((GraphQLTypeCondition) element).getTypeName();
+            if (typeName != null) {
+                return typeName;
             }
         }
 
@@ -413,28 +323,6 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
             return leaf.getPsi();
         }
         return element;
-    }
-
-    private LogicalPosition getLogicalPositionFromOffset(PsiFile psiFile, int offset) {
-        com.intellij.openapi.editor.Document document = PsiDocumentManager.getInstance(psiFile.getProject()).getDocument(getTopLevelFile(psiFile));
-        if (document != null) {
-            final int lineNumber = document.getLineNumber(offset);
-            final int lineStartOffset = document.getLineStartOffset(lineNumber);
-            return new LogicalPosition(lineNumber, offset - lineStartOffset);
-        }
-        return new LogicalPosition(-1, -1);
-    }
-
-    private int getOffsetFromSourceLocation(PsiFile psiFile, SourceLocation location) {
-        com.intellij.openapi.editor.Document document = PsiDocumentManager.getInstance(psiFile.getProject()).getDocument(getTopLevelFile(psiFile));
-        return document != null ? document.getLineStartOffset(location.getLine() - 1) + location.getColumn() - 1 : -1;
-    }
-
-    private PsiFile getTopLevelFile(PsiFile psiFile) {
-        if (psiFile.getContext() != null && psiFile.getContext().getContainingFile() != null) {
-            return psiFile.getContext().getContainingFile();
-        }
-        return psiFile;
     }
 
 }
