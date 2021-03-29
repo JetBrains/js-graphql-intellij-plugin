@@ -57,7 +57,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
 
         return fileNameToSchema.computeIfAbsent(containingFileName, fileName -> {
             final GraphQLRegistryInfo registryWithErrors = fileNameToRegistry.computeIfAbsent(
-                containingFileName, f -> myRegistryProvider.getRegistry(psiElement));
+                containingFileName, f -> myRegistryProvider.getRegistryInfo(psiElement));
 
             try {
                 GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryWithErrors.getTypeDefinitionRegistry());
@@ -90,7 +90,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
     @Override
     public GraphQLRegistryInfo getRegistryInfo(@NotNull PsiElement psiElement) {
         String fileName = GraphQLPsiUtil.getFileName(psiElement.getContainingFile());
-        return fileNameToRegistry.computeIfAbsent(fileName, f -> myRegistryProvider.getRegistry(psiElement));
+        return fileNameToRegistry.computeIfAbsent(fileName, f -> myRegistryProvider.getRegistryInfo(psiElement));
     }
 
     @Override

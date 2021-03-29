@@ -7,8 +7,9 @@
  */
 package com.intellij.lang.jsgraphql.ide.notifications;
 
-import com.intellij.ide.impl.DataManagerImpl;
+import com.intellij.ide.DataManager;
 import com.intellij.lang.injection.InjectedLanguageManager;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
@@ -26,59 +27,66 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.EditorNotificationPanel;
-import com.intellij.ui.EditorNotifications;
 import com.intellij.ui.EditorNotifications.Provider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-
 /**
  * Notifies the user that a GraphQL file (or file with injected GraphQL) is not included in the configured scopes
  */
-public class GraphQLScopeEditorNotificationProvider extends Provider {
+public class GraphQLScopeEditorNotificationProvider extends Provider<EditorNotificationPanel> {
 
     private static final Key<EditorNotificationPanel> KEY = Key.create("GraphQLScopeEditorNotificationProvider");
 
-    protected final Project myProject;
-    private final EditorNotifications myNotifications;
-
     @NotNull
-    public Key getKey() {
+    public Key<EditorNotificationPanel> getKey() {
         return KEY;
     }
 
-    public GraphQLScopeEditorNotificationProvider(Project project, EditorNotifications notifications) {
-        myProject = project;
-        myNotifications = notifications;
+    @Override
+    public @Nullable EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                                     @NotNull FileEditor fileEditor,
+                                                                     @NotNull Project project) {
+        return showNotification(file, project) ? createPanel() : null;
     }
 
-    @Nullable
-    public JComponent createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-        return showNotification(file) ? new SchemaConfigEditorNotificationPanel() : null;
+    @NotNull
+    private EditorNotificationPanel createPanel() {
+        EditorNotificationPanel panel = new EditorNotificationPanel();
+        panel.setText(GraphQLBundle.message("graphql.notification.file.out.of.scope"));
+        panel.createActionLabel(GraphQLBundle.message("graphql.notification.file.out.of.scope.edit"), () -> {
+            final GraphQLEditConfigAction action = new GraphQLEditConfigAction();
+            final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
+                ActionPlaces.UNKNOWN,
+                null,
+                DataManager.getInstance().getDataContext(panel)
+            );
+            action.actionPerformed(actionEvent);
+        });
+        return panel;
     }
 
-    private boolean showNotification(@NotNull VirtualFile file) {
+    private boolean showNotification(@NotNull VirtualFile file, @NotNull Project project) {
         if (ApplicationManager.getApplication().isUnitTestMode()) {
             // injection enumerate below causes missing JSON schemas in 2019.2 for eslint
             return false;
         }
-        if (!isGraphQLRelatedFile(file) || DumbService.getInstance(myProject).isDumb()) {
+        if (!isGraphQLRelatedFile(file) || DumbService.getInstance(project).isDumb()) {
             return false;
         }
-        final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
+        final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(project);
         if (!graphQLConfigManager.isInitialized()) {
             return false;
         }
         if (file.getFileType() != GraphQLFileType.INSTANCE) {
             // for injected files, must contain graphql before the warning is shown
-            final PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+            final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
             final Ref<Boolean> hasGraphQL = new Ref<>(false);
             if (psiFile != null) {
-                final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(myProject);
+                final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(project);
                 psiFile.accept(new PsiRecursiveElementVisitor() {
                     @Override
-                    public void visitElement(PsiElement element) {
+                    public void visitElement(@NotNull PsiElement element) {
                         if (hasGraphQL.get()) {
                             return;
                         }
@@ -98,12 +106,10 @@ public class GraphQLScopeEditorNotificationProvider extends Provider {
                 return false;
             }
         }
-        if (GlobalSearchScope.projectScope(myProject).accept(file)) {
+        if (GlobalSearchScope.projectScope(project).accept(file)) {
             if (graphQLConfigManager.getClosestConfigFile(file) != null) {
-                if (graphQLConfigManager.getClosestIncludingConfigFile(file) == null) {
-                    // has config, but is not included
-                    return true;
-                }
+                // has config, but is not included
+                return graphQLConfigManager.getClosestIncludingConfigFile(file) == null;
             }
         }
         return false;
@@ -112,23 +118,4 @@ public class GraphQLScopeEditorNotificationProvider extends Provider {
     private boolean isGraphQLRelatedFile(VirtualFile file) {
         return GraphQLFindUsagesUtil.getService().getIncludedFileTypes().contains(file.getFileType());
     }
-
-    protected class SchemaConfigEditorNotificationPanel extends EditorNotificationPanel {
-
-        SchemaConfigEditorNotificationPanel() {
-            final String scopeMessage = "Schema discovery and language tooling will use entire project.";
-            setText("The .graphqlconfig associated with this file does not include it. " + scopeMessage);
-            createActionLabel("Edit .graphqlconfig globs", () -> {
-                final GraphQLEditConfigAction action = new GraphQLEditConfigAction();
-                final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
-                        ActionPlaces.UNKNOWN,
-                        null,
-                        new DataManagerImpl.MyDataContext(this)
-                );
-                action.actionPerformed(actionEvent);
-            });
-        }
-
-    }
-
 }

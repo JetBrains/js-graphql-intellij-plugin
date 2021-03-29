@@ -74,7 +74,7 @@ public class GraphQLRegistryProvider implements Disposable {
     }
 
     @NotNull
-    public GraphQLRegistryInfo getRegistry(@NotNull PsiElement scopedElement) {
+    public GraphQLRegistryInfo getRegistryInfo(@NotNull PsiElement scopedElement) {
         // Get the search scope that limits schema definition for the scoped element
         GlobalSearchScope schemaScope = graphQLPsiSearchHelper.getSchemaScope(scopedElement);
 

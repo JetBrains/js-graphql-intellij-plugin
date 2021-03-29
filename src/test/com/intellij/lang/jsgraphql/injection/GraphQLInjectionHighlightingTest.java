@@ -12,7 +12,6 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.types.language.AstPrinter;
 import com.intellij.psi.PsiFile;
@@ -33,12 +32,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLBaseTestCase {
             "lines-2/.graphqlconfig"
         );
 
-        initConfig();
-    }
-
-    private void initConfig() {
-        // use the synchronous method of building the configuration for the unit test
-        GraphQLConfigManager.getService(getProject()).doBuildConfigurationModel(null);
+        loadConfiguration();
     }
 
     @Override
