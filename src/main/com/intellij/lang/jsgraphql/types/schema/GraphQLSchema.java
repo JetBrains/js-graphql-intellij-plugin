@@ -298,6 +298,7 @@ public class GraphQLSchema {
      *
      * @return the directive or null if there is not one with that name
      */
+    @Deprecated
     public GraphQLDirective getDirective(String directiveName) {
         return directives.getDirective(directiveName);
     }

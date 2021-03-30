@@ -1,15 +1,14 @@
-/**
- * Copyright (c) 2015-present, Jim Kynde Meyer
- * All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
+/*
+  Copyright (c) 2015-present, Jim Kynde Meyer
+  All rights reserved.
+
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
  */
 package com.intellij.lang.jsgraphql.parser;
 
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.testFramework.ParsingTestCase;
-import org.junit.Test;
 
 public class GraphQLParserTest extends ParsingTestCase {
 
@@ -21,9 +20,13 @@ public class GraphQLParserTest extends ParsingTestCase {
         doTest(true);
     }
 
+    public void testDirectives() {
+        doTest(true, true);
+    }
+
     @Override
     protected String getTestDataPath() {
-        return "test-resources/testData/graphql";
+        return "test-resources/testData/graphql/parser";
     }
 
     @Override

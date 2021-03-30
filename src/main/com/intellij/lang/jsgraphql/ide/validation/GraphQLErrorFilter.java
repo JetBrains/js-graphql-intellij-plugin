@@ -14,5 +14,5 @@ public interface GraphQLErrorFilter {
         return EP_NAME.extensions().anyMatch(extension -> extension.isIgnored(project, error, element));
     }
 
-    boolean isIgnored(@NotNull Project project, @Nullable GraphQLError error, @NotNull PsiElement element);
+    boolean isIgnored(@NotNull Project project, @Nullable GraphQLError error, @Nullable PsiElement element);
 }

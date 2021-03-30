@@ -26,12 +26,9 @@ import static java.lang.String.format;
 @Internal
 public class TypeExtensionDirectiveRedefinitionError extends BaseError {
 
-    public TypeExtensionDirectiveRedefinitionError(TypeDefinition typeExtensionDefinition,
-                                                   Directive directive,
-                                                   TypeDefinition extension) {
+    public TypeExtensionDirectiveRedefinitionError(TypeDefinition typeExtensionDefinition, Directive directive) {
         super(typeExtensionDefinition,
             format("The extension '%s' type has redefined the directive called '%s'",
                 typeExtensionDefinition.getName(), directive.getName()));
-        addReferences(extension);
     }
 }

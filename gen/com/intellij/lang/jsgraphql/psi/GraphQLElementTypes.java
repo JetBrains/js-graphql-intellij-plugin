@@ -111,6 +111,7 @@ public interface GraphQLElementTypes {
   IElementType PIPE = new GraphQLTokenType("|");
   IElementType QUERY_KEYWORD = new GraphQLTokenType("query");
   IElementType REGULAR_STRING_PART = new GraphQLTokenType("REGULAR_STRING_PART");
+  IElementType REPEATABLE_KEYWORD = new GraphQLTokenType("repeatable");
   IElementType SCALAR_KEYWORD = new GraphQLTokenType("scalar");
   IElementType SCHEMA_KEYWORD = new GraphQLTokenType("schema");
   IElementType SPREAD = new GraphQLTokenType("...");

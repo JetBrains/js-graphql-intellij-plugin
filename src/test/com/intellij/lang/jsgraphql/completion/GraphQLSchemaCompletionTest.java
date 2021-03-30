@@ -10,8 +10,6 @@ package com.intellij.lang.jsgraphql.completion;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.psi.PsiDocumentManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -78,6 +76,30 @@ public class GraphQLSchemaCompletionTest extends GraphQLBaseTestCase {
         //doTestCompletion("CompletionDirective4.graphqls", Lists.newArrayList("false", "true"));
     }
 
+    public void testCompletionDirectiveLocations() {
+        doTestCompletion("CompletionDirectiveLocations.graphql", Lists.newArrayList(
+            "ARGUMENT_DEFINITION", "ENUM", "ENUM_VALUE", "FIELD", "FIELD_DEFINITION", "FRAGMENT_DEFINITION",
+            "FRAGMENT_SPREAD", "INLINE_FRAGMENT", "INPUT_FIELD_DEFINITION", "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT", "QUERY",
+            "SCALAR", "SCHEMA", "SUBSCRIPTION", "UNION", "VARIABLE_DEFINITION"
+        ));
+    }
+
+    public void testCompletionDirectiveLocations1() {
+        doTestCompletion("CompletionDirectiveLocations1.graphql", Lists.newArrayList(
+            "ENUM", "FIELD", "FIELD_DEFINITION", "FRAGMENT_DEFINITION",
+            "FRAGMENT_SPREAD", "INLINE_FRAGMENT", "INPUT_FIELD_DEFINITION", "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT",
+            "SCALAR", "SCHEMA", "SUBSCRIPTION", "UNION", "VARIABLE_DEFINITION"
+        ));
+    }
+
+    public void testCompletionDirectiveKeywords() {
+        doTestCompletion("CompletionDirectiveKeywords.graphql", Lists.newArrayList("on", "repeatable"));
+    }
+
+    public void testCompletionDirectiveKeywords1() {
+        doTestCompletion("CompletionDirectiveKeywords1.graphql", Lists.newArrayList("on"));
+    }
+
     public void testCompletionFieldOverride() {
         doTestCompletion("CompletionFieldOverride.graphqls", Lists.newArrayList("fieldToImpl2: Boolean"));
     }
@@ -87,10 +109,6 @@ public class GraphQLSchemaCompletionTest extends GraphQLBaseTestCase {
         myFixture.complete(CompletionType.BASIC, 1);
         final List<String> completions = myFixture.getLookupElementStrings();
         assertEquals("Wrong completions", expectedCompletions, completions);
-        ApplicationManager.getApplication().runWriteAction(() -> {
-            myFixture.getEditor().getDocument().setText(""); // blank out the file so it doesn't affect other tests
-            PsiDocumentManager.getInstance(myFixture.getProject()).commitAllDocuments();
-        });
     }
 
 }

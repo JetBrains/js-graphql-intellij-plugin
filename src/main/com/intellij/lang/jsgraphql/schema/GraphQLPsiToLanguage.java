@@ -621,9 +621,7 @@ public class GraphQLPsiToLanguage {
         }
         addCommonData(def, directiveDefinition);
         def.description(newDescription(directiveDefinition.getDescription()));
-
-        // TODO: [intellij] repeatable directives
-//        def.repeatable(directiveDefinition.REPEATABLE() != null);
+        def.repeatable(directiveDefinition.getRepeatable() != null);
 
         GraphQLDirectiveLocations directiveLocationsContext = directiveDefinition.getDirectiveLocations();
         List<DirectiveLocation> directiveLocations = new ArrayList<>();

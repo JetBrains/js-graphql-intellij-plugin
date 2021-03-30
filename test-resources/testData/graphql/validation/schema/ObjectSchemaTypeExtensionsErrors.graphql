@@ -5,7 +5,7 @@ directive @Field on FIELD_DEFINITION
 extend type <error descr="The extension 'ObjType' type is missing its base underlying type"><error descr="Unknown type \"ObjType\"">ObjType</error></error> {
 }
 
-type <error descr="'BaseObj' type tried to redefine existing 'BaseObj' type"><error descr="The extension 'BaseObj' type has redefined the directive called 'Name'">BaseObj</error></error> @Name{
+type <error descr="'BaseObj' type tried to redefine existing 'BaseObj' type">BaseObj</error> @Name{
     id: ID
 }
 
@@ -13,13 +13,13 @@ type BaseObj {
     phone: ID
 }
 
-extend type <error descr="The type 'BaseObj' has declared a field with a non unique name 'name'"><error descr="The type 'BaseObj' with field 'name' has declared an argument with a non unique name 'arg1'">BaseObj</error></error> @Name {
+extend type <error descr="The extension 'BaseObj' type has redefined the directive called 'Name'"><error descr="The type 'BaseObj' has declared a field with a non unique name 'name'"><error descr="The type 'BaseObj' with field 'name' has declared an argument with a non unique name 'arg1'">BaseObj</error></error></error> <error descr="The directive 'Name' should be defined as repeatable if its repeated on an SDL element">@Name</error> {
     name(arg1: Int, arg1: Int): String
     name: String
 }
 
 extend type <error descr="'BaseObj' extension type tried to redefine field 'argument'"><error descr="The type 'BaseObj' with field 'argument' has declared a directive with a non unique name 'Field'">BaseObj</error></error> {
-    argument: Int @Field @Field
+    argument: Int @Field <error descr="The directive 'Field' should be defined as repeatable if its repeated on an SDL element">@Field</error>
 }
 
 extend type <error descr="'BaseObj' extension type tried to redefine field 'argument'"><error descr="'BaseObj' extension type tried to redefine field 'id'">BaseObj</error></error> {

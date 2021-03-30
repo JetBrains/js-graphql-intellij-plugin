@@ -344,7 +344,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // description? 'directive' '@' identifier argumentsDefinition? 'on' directiveLocations
+  // description? 'directive' '@' identifier argumentsDefinition? 'repeatable'? 'on' directiveLocations
   public static boolean directiveDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "directiveDefinition")) return false;
     if (!nextTokenIs(builder, "<directive definition>", DIRECTIVE_KEYWORD, OPEN_QUOTE)) return false;
@@ -355,6 +355,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 2
     result = result && report_error_(builder, identifier(builder, level + 1));
     result = pinned && report_error_(builder, directiveDefinition_4(builder, level + 1)) && result;
+    result = pinned && report_error_(builder, directiveDefinition_5(builder, level + 1)) && result;
     result = pinned && report_error_(builder, consumeToken(builder, ON_KEYWORD)) && result;
     result = pinned && directiveLocations(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, null);
@@ -372,6 +373,13 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   private static boolean directiveDefinition_4(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "directiveDefinition_4")) return false;
     argumentsDefinition(builder, level + 1);
+    return true;
+  }
+
+  // 'repeatable'?
+  private static boolean directiveDefinition_5(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "directiveDefinition_5")) return false;
+    consumeToken(builder, REPEATABLE_KEYWORD);
     return true;
   }
 

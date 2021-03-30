@@ -31,11 +31,11 @@ extend type <error descr="'MyType' extension type tried to redefine field 'id'">
 
 directive @DirToExtend on OBJECT
 
-type <error descr="The extension 'WithDirective' type has redefined the directive called 'DirToExtend'">WithDirective</error> @DirToExtend {
+type WithDirective @DirToExtend {
     id: String
 }
 
-extend type WithDirective @DirToExtend {
+extend type <error descr="The extension 'WithDirective' type has redefined the directive called 'DirToExtend'">WithDirective</error> <error descr="The directive 'DirToExtend' should be defined as repeatable if its repeated on an SDL element">@DirToExtend</error> {
     name: String
 }
 

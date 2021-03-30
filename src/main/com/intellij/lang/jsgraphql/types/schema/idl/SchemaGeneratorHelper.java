@@ -25,6 +25,7 @@ import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnInputTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnOutputTypeError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveNonRepeatableError;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ObjectUtils;
@@ -309,12 +310,16 @@ public class SchemaGeneratorHelper {
         }
         return null;
     }
-    private @NotNull GraphQLDirective buildDirective(BuildContext buildCtx, Directive directive, DirectiveLocation directiveLocation, Set<GraphQLDirective> runtimeDirectives, GraphqlTypeComparatorRegistry comparatorRegistry, Set<String> previousNames) {
+
+    private @NotNull GraphQLDirective buildDirective(BuildContext buildCtx,
+                                                     Directive directive,
+                                                     DirectiveLocation directiveLocation,
+                                                     Set<GraphQLDirective> runtimeDirectives,
+                                                     GraphqlTypeComparatorRegistry comparatorRegistry,
+                                                     Set<String> previousNames) {
         GraphQLDirective gqlDirective = buildDirective(buildCtx, directive, runtimeDirectives, directiveLocation, comparatorRegistry);
-        if (previousNames.contains(directive.getName())) {
-            // other parts of the code protect against duplicate non repeatable directives
-            // TODO: [intellij] repeatable directives error
-//            Assert.assertTrue(gqlDirective.isRepeatable(), () -> String.format("The directive '%s' MUST be defined as a repeatable directive if its repeated on an SDL element", directive.getName()));
+        if (previousNames.contains(directive.getName()) && gqlDirective.isNonRepeatable()) {
+            buildCtx.addError(new DirectiveNonRepeatableError(directive));
         }
         previousNames.add(gqlDirective.getName());
         return gqlDirective;

@@ -292,7 +292,7 @@ class SchemaTypeExtensionsChecker {
                         List<Directive> extDirectives = nonRepeatableDirectivesOnly(directiveDefinitionMap, typeExt.getDirectives());
                         extDirectives.forEach(directive -> {
                             if (directiveMap.containsKey(directive.getName())) {
-                                errors.add(new TypeExtensionDirectiveRedefinitionError(typeDefinition.get(), directive, typeExt));
+                                errors.add(new TypeExtensionDirectiveRedefinitionError(typeExt, directive));
                             }
                         });
                     }

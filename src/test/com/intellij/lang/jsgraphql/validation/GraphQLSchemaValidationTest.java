@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
     @Override
     protected @NotNull String getBasePath() {
-        return "/validation";
+        return "/validation/schema";
     }
 
     public void testTypeRegistryRedefinitionErrors() {
@@ -62,6 +62,10 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
     }
 
     public void testInputSchemaTypeExtensionsErrors() {
+        doTest();
+    }
+
+    public void testRepeatableDirectives() {
         doTest();
     }
 

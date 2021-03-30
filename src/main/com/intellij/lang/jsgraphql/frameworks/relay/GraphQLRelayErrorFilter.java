@@ -25,7 +25,9 @@ import org.jetbrains.annotations.Nullable;
 public class GraphQLRelayErrorFilter implements GraphQLErrorFilter {
 
     @Override
-    public boolean isIgnored(@NotNull Project project, @Nullable GraphQLError error, @NotNull PsiElement element) {
+    public boolean isIgnored(@NotNull Project project, @Nullable GraphQLError error, @Nullable PsiElement element) {
+        if (element == null) return false;
+
         GraphQLSettings settings = GraphQLSettings.getSettings(project);
         if (!settings.isEnableRelayModernFrameworkSupport()) {
             return false;

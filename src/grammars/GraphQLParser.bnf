@@ -58,6 +58,7 @@
     EXTEND_KEYWORD="extend"
     INPUT_KEYWORD="input"
     DIRECTIVE_KEYWORD="directive"
+    REPEATABLE_KEYWORD="repeatable"
 
     WHITE_SPACE='regexp:[,\s]+'
     COMMENT='regexp:#.*'
@@ -314,7 +315,7 @@ inputObjectTypeExtensionDefinition ::= 'extend' 'input' typeName directives? inp
 inputObjectValueDefinitions ::= '{' inputValueDefinition+ '}' {pin=1}
 
 
-directiveDefinition ::= description? 'directive' '@' identifier argumentsDefinition? 'on' directiveLocations {pin=2 extends=typeSystemDefinition implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware" methods=[description="quotedString" nameIdentifier="identifier"]}
+directiveDefinition ::= description? 'directive' '@' identifier argumentsDefinition? 'repeatable'? 'on' directiveLocations {pin=2 extends=typeSystemDefinition implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware" methods=[description="quotedString" nameIdentifier="identifier" repeatable="REPEATABLE_KEYWORD"]}
 
 directiveLocation ::=  'QUERY' | 'MUTATION' | 'SUBSCRIPTION' | 'FIELD' | 'FRAGMENT_DEFINITION' | 'FRAGMENT_SPREAD' | 'INLINE_FRAGMENT' | 'SCHEMA' | 'SCALAR' | 'OBJECT' | 'FIELD_DEFINITION' | 'ARGUMENT_DEFINITION' | 'INTERFACE' | 'UNION' | 'ENUM' | 'ENUM_VALUE' | 'INPUT_OBJECT' | 'INPUT_FIELD_DEFINITION' | NAME {mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectiveLocationPsiElement"}
 

@@ -33,7 +33,7 @@ public abstract class GraphQLArgumentPsiElement extends GraphQLNamedElementImpl 
             if (directive != null) {
                 final String directiveName = directive.getName();
                 if (directiveName != null) {
-                    final com.intellij.lang.jsgraphql.types.schema.GraphQLDirective schemaDirective = schema.getDirective(directiveName);
+                    final com.intellij.lang.jsgraphql.types.schema.GraphQLDirective schemaDirective = schema.getFirstDirective(directiveName);
                     if (schemaDirective != null) {
                         final com.intellij.lang.jsgraphql.types.schema.GraphQLArgument schemaDirectiveArgument = schemaDirective.getArgument(argumentName);
                         if (schemaDirectiveArgument != null) {

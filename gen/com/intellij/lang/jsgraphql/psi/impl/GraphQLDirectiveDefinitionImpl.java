@@ -49,4 +49,10 @@ public class GraphQLDirectiveDefinitionImpl extends GraphQLTypeSystemDefinitionI
     return findChildByClass(GraphQLIdentifier.class);
   }
 
+  @Override
+  @Nullable
+  public PsiElement getRepeatable() {
+    return findChildByType(REPEATABLE_KEYWORD);
+  }
+
 }

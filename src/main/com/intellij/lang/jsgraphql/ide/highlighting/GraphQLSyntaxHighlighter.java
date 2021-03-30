@@ -82,7 +82,7 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
 
   @NotNull
   @Override
-  public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
+  public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
     if (tokenType.equals(GraphQLElementTypes.NAME)) {
       return IDENTIFIER_KEYS;
     } else if (KEYWORDS.contains(tokenType)) {

@@ -44,8 +44,12 @@ import com.intellij.patterns.StandardPatterns;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.Consumer;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.ProcessingContext;
+import com.intellij.util.SmartList;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -482,33 +486,47 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLDirectiveLocations directiveLocations = PsiTreeUtil.getParentOfType(completionElement, GraphQLDirectiveLocations.class);
-                if (directiveLocations != null) {
-                    final Set<String> currentLocations = Sets.newHashSet();
-                    directiveLocations.getDirectiveLocationList().forEach(location -> currentLocations.add(location.getText()));
-                    final PsiFile builtInSchema = GraphQLPsiSearchHelper.getInstance(completionElement.getProject()).getBuiltInSchema();
+                if (directiveLocations == null) {
+                    return;
+                }
 
-                    builtInSchema.accept(new PsiRecursiveElementVisitor() {
-                        @Override
-                        public void visitElement(@NotNull PsiElement element) {
-                            if (element instanceof GraphQLEnumTypeDefinition) {
-                                final GraphQLEnumTypeDefinition enumTypeDefinition = (GraphQLEnumTypeDefinition) element;
-                                final GraphQLTypeNameDefinition enumTypeName = enumTypeDefinition.getTypeNameDefinition();
-                                if (enumTypeName != null && __DIRECTIVE_LOCATION_ENUM.equals(enumTypeName.getName())) {
-                                    final GraphQLEnumValueDefinitions enumValueDefinitions = enumTypeDefinition.getEnumValueDefinitions();
-                                    if (enumValueDefinitions != null) {
-                                        enumValueDefinitions.getEnumValueDefinitionList().forEach(value -> {
-                                            final String locationName = value.getEnumValue().getText();
-                                            if (currentLocations.add(locationName)) {
-                                                result.addElement(LookupElementBuilder.create(locationName).bold());
-                                            }
-                                        });
-                                    }
-                                }
-                                return; // no additional visiting needed
+                PsiElement prevSibling = PsiTreeUtil.skipWhitespacesAndCommentsBackward(directiveLocations);
+                if (prevSibling instanceof PsiErrorElement) {
+                    List<String> keywords = new SmartList<>("on");
+                    if (PsiUtilCore.getElementType(prevSibling.getPrevSibling()) != GraphQLElementTypes.REPEATABLE_KEYWORD) {
+                        keywords.add("repeatable");
+                    }
+
+                    for (String keyword : keywords) {
+                        result.addElement(LookupElementBuilder
+                            .create(keyword).withBoldness(true).withInsertHandler(AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP));
+                    }
+                    return;
+                }
+
+                final Set<String> currentLocations = Sets.newHashSet();
+                directiveLocations.getDirectiveLocationList().forEach(location -> currentLocations.add(location.getText()));
+                final GraphQLFile builtInSchema = ObjectUtils.tryCast(
+                    GraphQLPsiSearchHelper.getInstance(completionElement.getProject()).getBuiltInSchema(), GraphQLFile.class);
+                if (builtInSchema == null) {
+                    return;
+                }
+
+                for (GraphQLDefinition definition : ContainerUtil.filter(builtInSchema.getTypeDefinitions(), t -> t instanceof GraphQLEnumTypeDefinition)) {
+                    final GraphQLTypeNameDefinition enumTypeName = ((GraphQLEnumTypeDefinition) definition).getTypeNameDefinition();
+                    if (enumTypeName == null || !__DIRECTIVE_LOCATION_ENUM.equals(enumTypeName.getName())) {
+                        continue;
+                    }
+
+                    final GraphQLEnumValueDefinitions enumValueDefinitions = ((GraphQLEnumTypeDefinition) definition).getEnumValueDefinitions();
+                    if (enumValueDefinitions != null) {
+                        enumValueDefinitions.getEnumValueDefinitionList().forEach(value -> {
+                            final String locationName = value.getEnumValue().getText();
+                            if (currentLocations.add(locationName)) {
+                                result.addElement(LookupElementBuilder.create(locationName).bold());
                             }
-                            super.visitElement(element);
-                        }
-                    });
+                        });
+                    }
                 }
             }
         };
@@ -639,7 +657,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     if (directive.getName() != null) {
                         final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject())
                             .getSchemaInfo(completionElement).getSchema();
-                        com.intellij.lang.jsgraphql.types.schema.GraphQLDirective directiveDefinition = schema.getDirective(directive.getName());
+                        com.intellij.lang.jsgraphql.types.schema.GraphQLDirective directiveDefinition = schema.getFirstDirective(directive.getName());
                         if (directiveDefinition != null) {
 
                             final Set<String> existingArgumentNames = Sets.newHashSet();

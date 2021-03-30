@@ -110,7 +110,7 @@ public class GraphQLDirective implements GraphQLNamedSchemaElement {
     public String toString() {
         return "GraphQLDirective{" +
                 "name='" + name + '\'' +
-                "repeatable='" + repeatable + '\'' +
+                ", repeatable='" + repeatable + '\'' +
                 ", arguments=" + arguments +
                 ", locations=" + locations +
                 '}';

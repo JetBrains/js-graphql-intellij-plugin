@@ -1,7 +1,0 @@
-directive @Name on SCALAR
-
-extend scalar <error descr="The extension 'Un' type is missing its base underlying type"><error descr="Unknown type \"Un\"">Un</error></error>
-
-scalar <error descr="The extension 'ScalarBase' type has redefined the directive called 'Name'">ScalarBase</error> @Name
-
-extend scalar ScalarBase @Name

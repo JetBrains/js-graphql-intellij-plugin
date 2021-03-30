@@ -20,4 +20,7 @@ public interface GraphQLDirectiveDefinition extends GraphQLTypeSystemDefinition,
   @Nullable
   GraphQLIdentifier getNameIdentifier();
 
+  @Nullable
+  PsiElement getRepeatable();
+
 }

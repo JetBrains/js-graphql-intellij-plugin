@@ -5,7 +5,7 @@ extend input <error descr="The extension 'Unknown' type is missing its base unde
     a: ID
 }
 
-input <error descr="'BaseObj' type tried to redefine existing 'BaseObj' type"><error descr="The extension 'BaseObj' type has redefined the directive called 'Name'">BaseObj</error></error> @Name {
+input <error descr="'BaseObj' type tried to redefine existing 'BaseObj' type">BaseObj</error> @Name {
     id: ID
 }
 
@@ -13,13 +13,13 @@ input BaseObj {
     phone: ID
 }
 
-extend input <error descr="The type 'BaseObj' has declared an input field with a non unique name 'name'">BaseObj</error> @Name {
+extend input <error descr="The extension 'BaseObj' type has redefined the directive called 'Name'"><error descr="The type 'BaseObj' has declared an input field with a non unique name 'name'">BaseObj</error></error> <error descr="The directive 'Name' should be defined as repeatable if its repeated on an SDL element">@Name</error> {
     name: String
     name: String
 }
 
 extend input <error descr="'BaseObj' extension type tried to redefine field 'argument'"><error descr="The type 'BaseObj' with input value 'argument' has declared a directive with a non unique name 'Field'">BaseObj</error></error> {
-    argument: Int @Field @Field
+    argument: Int @Field <error descr="The directive 'Field' should be defined as repeatable if its repeated on an SDL element">@Field</error>
 }
 
 extend input <error descr="'BaseObj' extension type tried to redefine field 'argument'"><error descr="'BaseObj' extension type tried to redefine field 'id'">BaseObj</error></error> {

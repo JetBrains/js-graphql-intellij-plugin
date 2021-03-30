@@ -12,7 +12,6 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
@@ -108,10 +107,22 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                 case FieldsConflict:
                 case InvalidFragmentType:
                 case LoneAnonymousOperationViolation:
-                    processValidationError(annotationHolder, file, validationError, validationErrorType);
+                case DuplicateFragmentName:
+                case DuplicateDirectiveName:
+                case DuplicateArgumentNames:
+                case DuplicateVariableName:
+                    processValidationError(annotationHolder, file, validationError);
                     break;
-                default:
-                    // remaining rules should be handled in specific inspections / annotators
+                case NonExecutableDefinition:
+                case UnknownType:
+                case UnusedFragment:
+                case DuplicateOperationName:
+                case NullValueForNonNullArgument:
+                case InvalidSyntax:
+                case FieldUndefined:
+                case UndefinedFragment:
+                case UnknownDirective:
+                    // ignore explicitly
                     break;
             }
         }
@@ -174,8 +185,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
 
     private void processValidationError(@NotNull AnnotationHolder annotationHolder,
                                         @NotNull PsiFile containingFile,
-                                        @NotNull ValidationError validationError,
-                                        @NotNull ValidationErrorType validationErrorType) {
+                                        @NotNull ValidationError validationError) {
         for (PsiElement element : getElementsToAnnotate(containingFile, validationError)) {
             final IElementType elementType = PsiUtilCore.getElementType(element);
             if (elementType == GraphQLElementTypes.SPREAD) {
@@ -200,40 +210,10 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                 continue;
             }
 
-            if (isInsideTemplateElement(element)) {
-                // error due to template placeholder replacement, so we can ignore it for '___' replacement variables
-                if (validationErrorType == ValidationErrorType.UndefinedVariable) {
-                    continue;
-                }
-            }
-            if (validationErrorType == ValidationErrorType.SubSelectionRequired) {
-                // apollo client 2.5 doesn't require sub selections for client fields
-                final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(element, GraphQLDirectivesAware.class);
-                if (directivesAware != null) {
-                    boolean ignoreError = false;
-                    for (GraphQLDirective directive : directivesAware.getDirectives()) {
-                        if ("client".equals(directive.getName())) {
-                            ignoreError = true;
-                        }
-                    }
-                    if (ignoreError) {
-                        continue;
-                    }
-                }
-            }
+
             final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
             createErrorAnnotation(annotationHolder, validationError, element, message);
         }
-    }
-
-    /**
-     * Gets whether the specified element is inside a placeholder in a template
-     */
-    boolean isInsideTemplateElement(PsiElement psiElement) {
-        return PsiTreeUtil.findFirstParent(
-            psiElement, false,
-            el -> el instanceof GraphQLTemplateDefinition || el instanceof GraphQLTemplateSelection || el instanceof GraphQLTemplateVariable
-        ) != null;
     }
 
     private void createErrorAnnotation(@NotNull AnnotationHolder annotationHolder,
@@ -241,7 +221,6 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                                        @NotNull PsiElement element,
                                        @Nullable String message) {
         if (message == null) return;
-
         if (GraphQLErrorFilter.isErrorIgnored(element.getProject(), error, element)) {
             return;
         }
@@ -316,6 +295,9 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
             if (typeName != null) {
                 return typeName;
             }
+        }
+        if (element instanceof GraphQLDirective) {
+            return element;
         }
 
         LeafElement leaf = TreeUtil.findFirstLeaf(element.getNode());

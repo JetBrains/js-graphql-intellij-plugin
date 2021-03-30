@@ -135,6 +135,7 @@ TRIPEL_QUOTED_STRING_BODY = {QUO_STRING_CHAR}+
   "extend"           { return EXTEND_KEYWORD; }
   "input"            { return INPUT_KEYWORD; }
   "directive"        { return DIRECTIVE_KEYWORD; }
+  "repeatable"       { return REPEATABLE_KEYWORD; }
 
   // string and number literals
   \"                 { pushState(QUO_STRING);        return OPEN_QUOTE;    }

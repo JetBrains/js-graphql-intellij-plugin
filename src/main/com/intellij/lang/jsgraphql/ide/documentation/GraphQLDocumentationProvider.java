@@ -1,9 +1,9 @@
-/**
- * Copyright (c) 2015-present, Jim Kynde Meyer
- * All rights reserved.
- * <p>
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
+/*
+  Copyright (c) 2015-present, Jim Kynde Meyer
+  All rights reserved.
+  <p>
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
  */
 package com.intellij.lang.jsgraphql.ide.documentation;
 
@@ -35,7 +35,6 @@ import static com.intellij.lang.documentation.DocumentationMarkup.*;
 public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
     private final static String GRAPHQL_DOC_PREFIX = "GraphQL";
-    private final static String GRAPHQL_DOC_TYPE = "Type";
 
     @Nullable
     @Override
@@ -114,22 +113,26 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     @Nullable
     private String getDirectiveDocumentation(GraphQLSchema schema, GraphQLDirectiveDefinition parent) {
         final GraphQLIdentifier directiveName = parent.getNameIdentifier();
-        if (directiveName != null) {
-            final GraphQLDirective schemaDirective = schema.getDirective(directiveName.getText());
-            if (schemaDirective != null) {
-                final StringBuilder result = new StringBuilder().append(DEFINITION_START);
-                result.append("@").append(schemaDirective.getName());
-                result.append(DEFINITION_END);
-                final String description = schemaDirective.getDescription();
-                if (description != null) {
-                    result.append(CONTENT_START);
-                    result.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
-                    result.append(CONTENT_END);
-                }
-                return result.toString();
-            }
+        if (directiveName == null) {
+            return null;
         }
-        return null;
+        final GraphQLDirective schemaDirective = schema.getFirstDirective(directiveName.getText());
+        if (schemaDirective == null) {
+            return null;
+        }
+        final StringBuilder result = new StringBuilder().append(DEFINITION_START);
+        result.append("@").append(schemaDirective.getName());
+        if (schemaDirective.isRepeatable()) {
+            result.append(" ").append(GRAYED_START).append("(repeatable)").append(GRAYED_END);
+        }
+        result.append(DEFINITION_END);
+        final String description = schemaDirective.getDescription();
+        if (description != null) {
+            result.append(CONTENT_START);
+            result.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
+            result.append(CONTENT_END);
+        }
+        return result.toString();
     }
 
     @Nullable
@@ -197,7 +200,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
                 final GraphQLIdentifier directiveName = ((GraphQLDirectiveDefinition) definition).getNameIdentifier();
                 if (directiveName != null) {
-                    final GraphQLDirective schemaDirective = schema.getDirective(directiveName.getText());
+                    final GraphQLDirective schemaDirective = schema.getFirstDirective(directiveName.getText());
                     if (schemaDirective != null) {
                         for (GraphQLArgument argument : schemaDirective.getArguments()) {
                             if (inputValueName.equals(argument.getName())) {

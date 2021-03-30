@@ -1,0 +1,26 @@
+type Query {
+    users(name: String): [User]
+}
+
+type User {
+    id: ID
+    name: String
+    phone: String
+}
+
+extend type User {
+    field: String
+}
+
+directive @RepeatableQuery repeatable on QUERY
+directive @NonRepeatableQuery on QUERY
+
+directive @RepeatableField repeatable on FIELD
+directive @NonRepeatableField on FIELD
+
+# DuplicateDirectiveName
+query Departments @RepeatableQuery @RepeatableQuery @NonRepeatableQuery <error descr="Non repeatable directives must be uniquely named within a location. The directive 'NonRepeatableQuery' used on a 'OperationDefinition' is not unique.">@NonRepeatableQuery</error> {
+    users {
+        id @RepeatableField @RepeatableField @NonRepeatableField <error descr="Non repeatable directives must be uniquely named within a location. The directive 'NonRepeatableField' used on a 'Field' is not unique.">@NonRepeatableField</error>
+    }
+}
