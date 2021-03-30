@@ -27,6 +27,7 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
+import com.intellij.openapi.progress.ProgressManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -262,44 +263,54 @@ public class TypeDefinitionRegistry {
     }
 
     public Map<String, TypeDefinition> types() {
+        ProgressManager.checkCanceled();
         return new LinkedHashMap<>(types);
     }
 
     public Map<String, ScalarTypeDefinition> scalars() {
+        ProgressManager.checkCanceled();
         LinkedHashMap<String, ScalarTypeDefinition> scalars = new LinkedHashMap<>(ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_DEFINITIONS);
         scalars.putAll(scalarTypes);
         return scalars;
     }
 
     public Map<String, List<ObjectTypeExtensionDefinition>> objectTypeExtensions() {
+        ProgressManager.checkCanceled();
         return new LinkedHashMap<>(objectTypeExtensions);
     }
 
     public Map<String, List<InterfaceTypeExtensionDefinition>> interfaceTypeExtensions() {
+        ProgressManager.checkCanceled();
         return new LinkedHashMap<>(interfaceTypeExtensions);
     }
 
     public Map<String, List<UnionTypeExtensionDefinition>> unionTypeExtensions() {
+        ProgressManager.checkCanceled();
         return new LinkedHashMap<>(unionTypeExtensions);
     }
 
     public Map<String, List<EnumTypeExtensionDefinition>> enumTypeExtensions() {
+        ProgressManager.checkCanceled();
         return new LinkedHashMap<>(enumTypeExtensions);
     }
 
     public Map<String, List<ScalarTypeExtensionDefinition>> scalarTypeExtensions() {
+        ProgressManager.checkCanceled();
         return new LinkedHashMap<>(scalarTypeExtensions);
     }
 
     public Map<String, List<InputObjectTypeExtensionDefinition>> inputObjectTypeExtensions() {
+        ProgressManager.checkCanceled();
         return new LinkedHashMap<>(inputObjectTypeExtensions);
     }
 
     public Optional<SchemaDefinition> schemaDefinition() {
+        ProgressManager.checkCanceled();
         return ofNullable(schema);
     }
 
     public List<SchemaExtensionDefinition> getSchemaExtensionDefinitions() {
+        ProgressManager.checkCanceled();
         return new ArrayList<>(schemaExtensionDefinitions);
     }
 
@@ -312,15 +323,18 @@ public class TypeDefinitionRegistry {
     }
 
     public Optional<DirectiveDefinition> getDirectiveDefinition(String directiveName) {
+        ProgressManager.checkCanceled();
         return Optional.ofNullable(directiveDefinitions.get(directiveName));
     }
 
     public Map<String, DirectiveDefinition> getDirectiveDefinitions() {
+        ProgressManager.checkCanceled();
         return new LinkedHashMap<>(directiveDefinitions);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean hasType(@Nullable TypeName typeName) {
+        ProgressManager.checkCanceled();
         if (typeName == null) return false;
 
         String name = typeName.getName();
@@ -340,6 +354,7 @@ public class TypeDefinitionRegistry {
     }
 
     public @NotNull Optional<TypeDefinition> getType(@Nullable String typeName) {
+        ProgressManager.checkCanceled();
         TypeDefinition<?> typeDefinition = types.get(typeName);
         if (typeDefinition != null) {
             return Optional.of(typeDefinition);
@@ -396,6 +411,7 @@ public class TypeDefinitionRegistry {
      * @return a list of types of the target class
      */
     public <T extends TypeDefinition> List<T> getTypes(Class<T> targetClass) {
+        ProgressManager.checkCanceled();
         return types.values().stream()
             .filter(targetClass::isInstance)
             .map(targetClass::cast)
@@ -403,6 +419,7 @@ public class TypeDefinitionRegistry {
     }
 
     public <T extends TypeDefinition> List<T> getTypes(Class<T> targetClass, boolean fromSourceNodes) {
+        ProgressManager.checkCanceled();
         Stream<T> nodeStream = types.values().stream()
             .filter(targetClass::isInstance)
             .map(targetClass::cast);
