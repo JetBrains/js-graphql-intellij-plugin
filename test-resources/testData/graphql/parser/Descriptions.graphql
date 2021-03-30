@@ -1,0 +1,20 @@
+""
+scalar A
+
+"\""
+scalar B
+
+"\\ \\' \b \f \n \r \t \" \/ \u1234 \\u12"
+scalar C
+
+"\u12"
+scalar E
+
+"\u"
+scalar F
+
+"\'"
+scalar G
+
+"\T"
+scalar H

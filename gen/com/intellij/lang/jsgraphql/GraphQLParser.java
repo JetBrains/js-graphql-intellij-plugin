@@ -1530,7 +1530,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // OPEN_QUOTE quotedStringBody? CLOSING_QUOTE
+  // OPEN_QUOTE REGULAR_STRING_PART? CLOSING_QUOTE
   public static boolean quotedString(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "quotedString")) return false;
     if (!nextTokenIs(builder, OPEN_QUOTE)) return false;
@@ -1544,28 +1544,11 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     return result || pinned;
   }
 
-  // quotedStringBody?
+  // REGULAR_STRING_PART?
   private static boolean quotedString_1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "quotedString_1")) return false;
-    quotedStringBody(builder, level + 1);
+    consumeToken(builder, REGULAR_STRING_PART);
     return true;
-  }
-
-  /* ********************************************************** */
-  // REGULAR_STRING_PART+
-  static boolean quotedStringBody(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "quotedStringBody")) return false;
-    if (!nextTokenIs(builder, REGULAR_STRING_PART)) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = consumeToken(builder, REGULAR_STRING_PART);
-    while (result) {
-      int pos = current_position_(builder);
-      if (!consumeToken(builder, REGULAR_STRING_PART)) break;
-      if (!empty_element_parsed_guard_(builder, "quotedStringBody", pos)) break;
-    }
-    exit_section_(builder, marker, null, result);
-    return result;
   }
 
   /* ********************************************************** */

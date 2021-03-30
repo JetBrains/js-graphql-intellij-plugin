@@ -84,7 +84,6 @@ public interface GraphQLElementTypes {
   IElementType AMP = new GraphQLTokenType("&");
   IElementType AT = new GraphQLTokenType("@");
   IElementType BANG = new GraphQLTokenType("!");
-  IElementType BLOCK_STRING = new GraphQLTokenType("BLOCK_STRING");
   IElementType BRACE_L = new GraphQLTokenType("{");
   IElementType BRACE_R = new GraphQLTokenType("}");
   IElementType BRACKET_L = new GraphQLTokenType("[");

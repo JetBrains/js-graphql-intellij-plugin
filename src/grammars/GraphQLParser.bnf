@@ -67,8 +67,6 @@
     VARIABLE_NAME='regexp:\$[_A-Za-z][_0-9A-Za-z]*'
     NAME='regexp:[_A-Za-z][_0-9A-Za-z]*'
     NUMBER='regexp:\d+(\.\d*)?((e|E)-?[0-9+])?'
-    BLOCK_STRING="regexp:('([^'\\]|\\.)*'|\"\"\"([^\"\\]|\\.)*\"\"\")"
-    REGULAR_STRING_PART='regexp:.*'
 
     // language injection
     TEMPLATE_CHAR='regexp:.*'
@@ -160,9 +158,7 @@ booleanValue ::= 'true' | 'false' {extends=value}
 
 nullValue ::= 'null' {extends=value}
 
-quotedString ::= OPEN_QUOTE quotedStringBody? CLOSING_QUOTE {pin=1}
-
-private quotedStringBody ::= REGULAR_STRING_PART+
+quotedString ::= OPEN_QUOTE REGULAR_STRING_PART? CLOSING_QUOTE {pin=1}
 
 intValue ::= NUMBER {extends=value}
 

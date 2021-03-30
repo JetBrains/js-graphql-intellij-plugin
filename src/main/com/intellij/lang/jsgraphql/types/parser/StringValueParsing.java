@@ -17,7 +17,6 @@
  */
 package com.intellij.lang.jsgraphql.types.parser;
 
-import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.Internal;
 
 import java.io.StringWriter;
@@ -152,13 +151,22 @@ public class StringValueParsing {
                     writer.write('\t');
                     continue;
                 case 'u':
-                    String hexStr = string.substring(i + 1, i + 5);
-                    int codepoint = Integer.parseInt(hexStr, 16);
-                    i += 4;
-                    writer.write(codepoint);
+                    int endIndex = i + 5;
+                    if (endIndex > end) {
+                        return "";
+                    }
+
+                    String hexStr = string.substring(i + 1, endIndex);
+                    try {
+                        int codepoint = Integer.parseInt(hexStr, 16);
+                        i += 4;
+                        writer.write(codepoint);
+                    } catch (NumberFormatException e) {
+                        return "";
+                    }
                     continue;
                 default:
-                    Assert.assertShouldNeverHappen();
+                    return "";
             }
         }
         return writer.toString();

@@ -24,6 +24,14 @@ public class GraphQLParserTest extends ParsingTestCase {
         doTest(true, true);
     }
 
+    public void testDescriptions() {
+        doTest(true);
+    }
+
+    public void testMultilineDescriptions() {
+        doTest(true, true);
+    }
+
     @Override
     protected String getTestDataPath() {
         return "test-resources/testData/graphql/parser";
