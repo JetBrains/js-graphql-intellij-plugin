@@ -8,8 +8,8 @@
 package com.intellij.lang.jsgraphql.psi;
 
 import com.intellij.injected.editor.VirtualFileWindow;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -25,17 +25,17 @@ public class GraphQLPsiUtil {
 
         if (psiElement != null) {
 
-            final PsiElement typeOwner = PsiTreeUtil.getParentOfType(psiElement, GraphQLTypeNameDefinitionOwnerPsiElement.class, GraphQLTypeNameExtensionOwnerPsiElement.class);
+            final PsiElement typeOwner = PsiTreeUtil.getParentOfType(psiElement, GraphQLTypeNameDefinitionOwner.class, GraphQLTypeNameExtensionOwner.class);
 
             GraphQLIdentifier nameIdentifier = null;
 
-            if (typeOwner instanceof GraphQLTypeNameDefinitionOwnerPsiElement) {
-                final GraphQLTypeNameDefinition typeNameDefinition = ((GraphQLTypeNameDefinitionOwnerPsiElement) typeOwner).getTypeNameDefinition();
+            if (typeOwner instanceof GraphQLTypeNameDefinitionOwner) {
+                final GraphQLTypeNameDefinition typeNameDefinition = ((GraphQLTypeNameDefinitionOwner) typeOwner).getTypeNameDefinition();
                 if (typeNameDefinition != null) {
                     nameIdentifier = typeNameDefinition.getNameIdentifier();
                 }
-            } else if (typeOwner instanceof GraphQLTypeNameExtensionOwnerPsiElement) {
-                final GraphQLTypeName typeName = ((GraphQLTypeNameExtensionOwnerPsiElement) typeOwner).getTypeName();
+            } else if (typeOwner instanceof GraphQLTypeNameExtensionOwner) {
+                final GraphQLTypeName typeName = ((GraphQLTypeNameExtensionOwner) typeOwner).getTypeName();
                 if (typeName != null) {
                     nameIdentifier = typeName.getNameIdentifier();
                 }

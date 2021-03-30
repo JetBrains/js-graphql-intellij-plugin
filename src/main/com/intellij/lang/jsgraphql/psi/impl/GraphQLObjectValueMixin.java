@@ -17,8 +17,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLObjectValuePsiElement extends GraphQLValueImpl implements GraphQLObjectValue, GraphQLTypeScopeProvider {
-    public GraphQLObjectValuePsiElement(@NotNull ASTNode node) {
+public abstract class GraphQLObjectValueMixin extends GraphQLValueImpl implements GraphQLObjectValue, GraphQLTypeScopeProvider {
+    public GraphQLObjectValueMixin(@NotNull ASTNode node) {
         super(node);
     }
 

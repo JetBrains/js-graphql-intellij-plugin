@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLInputValueDefinitionImpl extends GraphQLInputValueDefinitionPsiElement implements GraphQLInputValueDefinition {
+public class GraphQLInputValueDefinitionImpl extends GraphQLInputValueDefinitionMixin implements GraphQLInputValueDefinition {
 
   public GraphQLInputValueDefinitionImpl(ASTNode node) {
     super(node);

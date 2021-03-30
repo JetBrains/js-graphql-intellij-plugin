@@ -17,8 +17,8 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLInlineFragmentPsiElement extends GraphQLElementImpl implements GraphQLInlineFragment, GraphQLTypeScopeProvider {
-    public GraphQLInlineFragmentPsiElement(@NotNull ASTNode node) {
+public abstract class GraphQLInlineFragmentMixin extends GraphQLElementImpl implements GraphQLInlineFragment, GraphQLTypeScopeProvider {
+    public GraphQLInlineFragmentMixin(@NotNull ASTNode node) {
         super(node);
     }
 

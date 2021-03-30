@@ -12,8 +12,8 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
@@ -272,14 +272,14 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
     }
 
     private @NotNull PsiElement getAnnotationAnchor(@NotNull PsiElement element) {
-        if (element instanceof GraphQLTypeNameDefinitionOwnerPsiElement) {
-            GraphQLTypeNameDefinition typeName = ((GraphQLTypeNameDefinitionOwnerPsiElement) element).getTypeNameDefinition();
+        if (element instanceof GraphQLTypeNameDefinitionOwner) {
+            GraphQLTypeNameDefinition typeName = ((GraphQLTypeNameDefinitionOwner) element).getTypeNameDefinition();
             if (typeName != null) {
                 return typeName.getNameIdentifier();
             }
         }
-        if (element instanceof GraphQLTypeNameExtensionOwnerPsiElement) {
-            GraphQLTypeName typeName = ((GraphQLTypeNameExtensionOwnerPsiElement) element).getTypeName();
+        if (element instanceof GraphQLTypeNameExtensionOwner) {
+            GraphQLTypeName typeName = ((GraphQLTypeNameExtensionOwner) element).getTypeName();
             if (typeName != null) {
                 return typeName.getNameIdentifier();
             }

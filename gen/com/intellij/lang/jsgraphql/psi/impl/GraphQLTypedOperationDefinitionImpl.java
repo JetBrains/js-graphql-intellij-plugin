@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLTypedOperationDefinitionImpl extends GraphQLTypedOperationDefinitionPsiElement implements GraphQLTypedOperationDefinition {
+public class GraphQLTypedOperationDefinitionImpl extends GraphQLTypedOperationDefinitionMixin implements GraphQLTypedOperationDefinition {
 
   public GraphQLTypedOperationDefinitionImpl(ASTNode node) {
     super(node);

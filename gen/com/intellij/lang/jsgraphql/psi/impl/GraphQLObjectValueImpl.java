@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLObjectValueImpl extends GraphQLObjectValuePsiElement implements GraphQLObjectValue {
+public class GraphQLObjectValueImpl extends GraphQLObjectValueMixin implements GraphQLObjectValue {
 
   public GraphQLObjectValueImpl(ASTNode node) {
     super(node);

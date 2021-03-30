@@ -18,8 +18,8 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLArgumentPsiElement extends GraphQLNamedElementImpl implements GraphQLArgument, GraphQLTypeScopeProvider {
-    public GraphQLArgumentPsiElement(@NotNull ASTNode node) {
+public abstract class GraphQLArgumentMixin extends GraphQLNamedElementImpl implements GraphQLArgument, GraphQLTypeScopeProvider {
+    public GraphQLArgumentMixin(@NotNull ASTNode node) {
         super(node);
     }
 

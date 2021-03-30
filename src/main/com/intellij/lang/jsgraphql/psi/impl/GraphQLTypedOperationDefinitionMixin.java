@@ -17,8 +17,8 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLTypedOperationDefinitionPsiElement extends GraphQLNamedElementImpl implements GraphQLTypedOperationDefinition, GraphQLTypeScopeProvider {
-    public GraphQLTypedOperationDefinitionPsiElement(@NotNull ASTNode node) {
+public abstract class GraphQLTypedOperationDefinitionMixin extends GraphQLNamedElementImpl implements GraphQLTypedOperationDefinition, GraphQLTypeScopeProvider {
+    public GraphQLTypedOperationDefinitionMixin(@NotNull ASTNode node) {
         super(node);
     }
 

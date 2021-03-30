@@ -16,9 +16,9 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class GraphQLSelectionSetOperationDefinitionPsiElement extends GraphQLNamedElementImpl implements GraphQLTypeScopeProvider {
+public abstract class GraphQLSelectionSetOperationDefinitionMixin extends GraphQLNamedElementImpl implements GraphQLTypeScopeProvider {
 
-    public GraphQLSelectionSetOperationDefinitionPsiElement(@NotNull ASTNode node) {
+    public GraphQLSelectionSetOperationDefinitionMixin(@NotNull ASTNode node) {
         super(node);
     }
 

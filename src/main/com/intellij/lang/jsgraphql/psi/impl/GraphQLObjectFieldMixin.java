@@ -17,8 +17,8 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLObjectFieldPsiElement extends GraphQLNamedElementImpl implements GraphQLObjectField, GraphQLTypeScopeProvider {
-    public GraphQLObjectFieldPsiElement(@NotNull ASTNode node) {
+public abstract class GraphQLObjectFieldMixin extends GraphQLNamedElementImpl implements GraphQLObjectField, GraphQLTypeScopeProvider {
+    public GraphQLObjectFieldMixin(@NotNull ASTNode node) {
         super(node);
     }
 

@@ -7,14 +7,14 @@
  */
 package com.intellij.lang.jsgraphql.psi.impl;
 
+import com.intellij.lang.jsgraphql.psi.GraphQLElement;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinition;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Implemented by type system definitions, e.g. object/interface/input/enum/union/scalar definitions
  */
-public interface GraphQLTypeNameDefinitionOwnerPsiElement extends PsiElement {
+public interface GraphQLTypeNameDefinitionOwner extends GraphQLElement {
 
     @Nullable
     GraphQLTypeNameDefinition getTypeNameDefinition();

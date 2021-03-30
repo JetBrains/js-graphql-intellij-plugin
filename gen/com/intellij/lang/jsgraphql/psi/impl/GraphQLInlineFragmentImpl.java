@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLInlineFragmentImpl extends GraphQLInlineFragmentPsiElement implements GraphQLInlineFragment {
+public class GraphQLInlineFragmentImpl extends GraphQLInlineFragmentMixin implements GraphQLInlineFragment {
 
   public GraphQLInlineFragmentImpl(ASTNode node) {
     super(node);

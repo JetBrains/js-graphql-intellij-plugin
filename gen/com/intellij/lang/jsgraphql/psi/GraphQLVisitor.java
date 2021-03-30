@@ -5,8 +5,8 @@ import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
+import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
+import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import com.intellij.psi.PsiNamedElement;
 

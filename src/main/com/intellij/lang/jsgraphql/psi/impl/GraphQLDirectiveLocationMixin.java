@@ -21,16 +21,16 @@ import com.intellij.psi.PsiReferenceBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class GraphQLDirectiveLocationPsiElement extends GraphQLElementImpl implements GraphQLDirectiveLocation {
+public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl implements GraphQLDirectiveLocation {
 
-    public GraphQLDirectiveLocationPsiElement(@NotNull ASTNode node) {
+    public GraphQLDirectiveLocationMixin(@NotNull ASTNode node) {
         super(node);
     }
 
     @Override
     public PsiReference getReference() {
         final Ref<PsiReference> reference = new Ref<>();
-        final GraphQLDirectiveLocationPsiElement psiElement = this;
+        final GraphQLDirectiveLocationMixin psiElement = this;
         final String locationName = psiElement.getText();
         GraphQLPsiSearchHelper.getInstance(getProject()).getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
             @Override

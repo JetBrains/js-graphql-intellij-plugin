@@ -17,9 +17,9 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLInputValueDefinitionPsiElement extends GraphQLNamedElementImpl implements GraphQLInputValueDefinition, GraphQLTypeScopeProvider {
+public abstract class GraphQLInputValueDefinitionMixin extends GraphQLNamedElementImpl implements GraphQLInputValueDefinition, GraphQLTypeScopeProvider {
 
-    public GraphQLInputValueDefinitionPsiElement(@NotNull ASTNode node) {
+    public GraphQLInputValueDefinitionMixin(@NotNull ASTNode node) {
         super(node);
     }
 

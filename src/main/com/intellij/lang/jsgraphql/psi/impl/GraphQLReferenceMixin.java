@@ -19,9 +19,9 @@ import com.intellij.psi.search.SearchScope;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class GraphQLReferencePsiElement extends GraphQLNamedElementImpl {
+public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl {
 
-    public GraphQLReferencePsiElement(@NotNull ASTNode node) {
+    public GraphQLReferenceMixin(@NotNull ASTNode node) {
         super(node);
     }
 
@@ -57,7 +57,7 @@ public abstract class GraphQLReferencePsiElement extends GraphQLNamedElementImpl
     @Override
     public boolean isEquivalentTo(PsiElement another) {
         boolean equivalentTo = super.isEquivalentTo(another);
-        if(!equivalentTo && another instanceof GraphQLReferencePsiElement && getParent() instanceof GraphQLFieldDefinition) {
+        if(!equivalentTo && another instanceof GraphQLReferenceMixin && getParent() instanceof GraphQLFieldDefinition) {
             // field may be an implementation from an interface
             PsiReference reference = getReference();
             if(reference != null) {
