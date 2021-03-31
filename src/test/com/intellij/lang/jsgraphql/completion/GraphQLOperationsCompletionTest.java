@@ -21,7 +21,7 @@ public class GraphQLOperationsCompletionTest extends GraphQLBaseTestCase {
     public void setUp() throws Exception {
         super.setUp();
 
-        myFixture.configureByFiles("Schema.graphqls");
+        myFixture.configureByFile("Schema.graphql");
     }
 
     @Override
@@ -160,7 +160,7 @@ public class GraphQLOperationsCompletionTest extends GraphQLBaseTestCase {
     }
 
     private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {
-        myFixture.configureByFiles(sourceFile);
+        myFixture.configureByFile(sourceFile);
         myFixture.complete(CompletionType.BASIC, 1);
         final List<String> completions = myFixture.getLookupElementStrings(); // NOTE!: will be null of only one matching completion
         assertEquals("Wrong completions", expectedCompletions, completions);
