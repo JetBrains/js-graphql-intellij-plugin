@@ -24,8 +24,12 @@ public class GraphQLParserTest extends ParsingTestCase {
         doTest(true, true);
     }
 
-    public void testDescriptions() {
-        doTest(true);
+    public void testSchemaDescriptions() {
+        doTest(true, true);
+    }
+
+    public void testSingleLineDescriptions() {
+        doTest(true, true);
     }
 
     public void testMultilineDescriptions() {

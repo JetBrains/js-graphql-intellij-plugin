@@ -37,4 +37,10 @@ public class GraphQLSchemaDefinitionImpl extends GraphQLTypeSystemDefinitionImpl
     return PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLDirective.class);
   }
 
+  @Override
+  @Nullable
+  public GraphQLQuotedString getDescription() {
+    return findChildByClass(GraphQLQuotedString.class);
+  }
+
 }

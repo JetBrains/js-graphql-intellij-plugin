@@ -40,7 +40,7 @@ public class GraphQLPsiToLanguage {
         } else if (definition instanceof GraphQLTypeExtension) {
             return createTypeExtension(((GraphQLTypeExtension) definition));
         } else if (definition instanceof GraphQLSchemaExtension) {
-            return creationSchemaExtension(((GraphQLSchemaExtension) definition));
+            return createSchemaExtension(((GraphQLSchemaExtension) definition));
         } else if (definition instanceof GraphQLTypeSystemDefinition) {
             return createTypeSystemDefinition(((GraphQLTypeSystemDefinition) definition));
         } else if (definition instanceof GraphQLTemplateDefinition) {
@@ -330,8 +330,7 @@ public class GraphQLPsiToLanguage {
         SchemaDefinition.Builder def = SchemaDefinition.newSchemaDefinition();
         addCommonData(def, schemaDefinition);
         def.directives(createDirectives(schemaDefinition.getDirectives()));
-        // TODO: [intellij] schema description
-//        def.description(newDescription(schemaDefinition.description()));
+        def.description(newDescription(schemaDefinition.getDescription()));
         GraphQLOperationTypeDefinitions operationTypeDefinitions = schemaDefinition.getOperationTypeDefinitions();
         if (operationTypeDefinitions != null) {
             def.operationTypeDefinitions(mapNotNull(operationTypeDefinitions.getOperationTypeDefinitionList(), this::createOperationTypeDefinition));
@@ -339,7 +338,7 @@ public class GraphQLPsiToLanguage {
         return def.build();
     }
 
-    protected @NotNull SchemaExtensionDefinition creationSchemaExtension(@NotNull GraphQLSchemaExtension extension) {
+    protected @NotNull SchemaExtensionDefinition createSchemaExtension(@NotNull GraphQLSchemaExtension extension) {
         SchemaExtensionDefinition.Builder def = SchemaExtensionDefinition.newSchemaExtensionDefinition();
         addCommonData(def, extension);
         def.directives(createDirectives(extension.getDirectives()));

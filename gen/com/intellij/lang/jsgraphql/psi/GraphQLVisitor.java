@@ -4,10 +4,9 @@ package com.intellij.lang.jsgraphql.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import com.intellij.psi.PsiNamedElement;
 
 public class GraphQLVisitor extends PsiElementVisitor {
@@ -78,6 +77,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitEnumValueDefinition(@NotNull GraphQLEnumValueDefinition o) {
     visitDirectivesAware(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitEnumValueDefinitions(@NotNull GraphQLEnumValueDefinitions o) {
@@ -92,6 +92,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
   public void visitFieldDefinition(@NotNull GraphQLFieldDefinition o) {
     visitDirectivesAware(o);
     // visitNamedElement(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitFieldsDefinition(@NotNull GraphQLFieldsDefinition o) {
@@ -146,6 +147,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
   public void visitInputValueDefinition(@NotNull GraphQLInputValueDefinition o) {
     visitDirectivesAware(o);
     // visitNamedElement(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitIntValue(@NotNull GraphQLIntValue o) {
@@ -226,6 +228,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
   public void visitSchemaDefinition(@NotNull GraphQLSchemaDefinition o) {
     visitTypeSystemDefinition(o);
     // visitDirectivesAware(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitSchemaExtension(@NotNull GraphQLSchemaExtension o) {
@@ -271,6 +274,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitTypeDefinition(@NotNull GraphQLTypeDefinition o) {
     visitTypeSystemDefinition(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitTypeExtension(@NotNull GraphQLTypeExtension o) {

@@ -261,9 +261,9 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // operationDefinition |
-  //     fragmentDefinition |
-  //     typeSystemDefinition |
-  //     templateDefinition
+  //   fragmentDefinition |
+  //   typeSystemDefinition |
+  //   templateDefinition
   public static boolean definition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "definition")) return false;
     boolean result;
@@ -384,7 +384,9 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'QUERY' | 'MUTATION' | 'SUBSCRIPTION' | 'FIELD' | 'FRAGMENT_DEFINITION' | 'FRAGMENT_SPREAD' | 'INLINE_FRAGMENT' | 'SCHEMA' | 'SCALAR' | 'OBJECT' | 'FIELD_DEFINITION' | 'ARGUMENT_DEFINITION' | 'INTERFACE' | 'UNION' | 'ENUM' | 'ENUM_VALUE' | 'INPUT_OBJECT' | 'INPUT_FIELD_DEFINITION' | NAME
+  // 'QUERY' | 'MUTATION' | 'SUBSCRIPTION' | 'FIELD' | 'FRAGMENT_DEFINITION' | 'FRAGMENT_SPREAD' | 'INLINE_FRAGMENT' |
+  //   'SCHEMA' | 'SCALAR' | 'OBJECT' | 'FIELD_DEFINITION' | 'ARGUMENT_DEFINITION' | 'INTERFACE' | 'UNION' | 'ENUM' |
+  //   'ENUM_VALUE' | 'INPUT_OBJECT' | 'INPUT_FIELD_DEFINITION' | NAME
   public static boolean directiveLocation(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "directiveLocation")) return false;
     boolean result;
@@ -864,7 +866,8 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' | 'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on'
+  // NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' |
+  //   'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on'
   public static boolean identifier(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "identifier")) return false;
     boolean result;
@@ -1628,23 +1631,31 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'schema' directives? operationTypeDefinitions
+  // description? 'schema' directives? operationTypeDefinitions
   public static boolean schemaDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "schemaDefinition")) return false;
-    if (!nextTokenIs(builder, SCHEMA_KEYWORD)) return false;
+    if (!nextTokenIs(builder, "<schema definition>", OPEN_QUOTE, SCHEMA_KEYWORD)) return false;
     boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_, SCHEMA_DEFINITION, null);
-    result = consumeToken(builder, SCHEMA_KEYWORD);
-    pinned = result; // pin = 1
-    result = result && report_error_(builder, schemaDefinition_1(builder, level + 1));
+    Marker marker = enter_section_(builder, level, _NONE_, SCHEMA_DEFINITION, "<schema definition>");
+    result = schemaDefinition_0(builder, level + 1);
+    result = result && consumeToken(builder, SCHEMA_KEYWORD);
+    pinned = result; // pin = 2
+    result = result && report_error_(builder, schemaDefinition_2(builder, level + 1));
     result = pinned && operationTypeDefinitions(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, null);
     return result || pinned;
   }
 
+  // description?
+  private static boolean schemaDefinition_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaDefinition_0")) return false;
+    description(builder, level + 1);
+    return true;
+  }
+
   // directives?
-  private static boolean schemaDefinition_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "schemaDefinition_1")) return false;
+  private static boolean schemaDefinition_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaDefinition_2")) return false;
     directives(builder, level + 1);
     return true;
   }
@@ -1860,11 +1871,11 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // scalarTypeDefinition |
-  //     objectTypeDefinition |
-  //     interfaceTypeDefinition |
-  //     unionTypeDefinition |
-  //     enumTypeDefinition |
-  //     inputObjectTypeDefinition
+  //   objectTypeDefinition |
+  //   interfaceTypeDefinition |
+  //   unionTypeDefinition |
+  //   enumTypeDefinition |
+  //   inputObjectTypeDefinition
   public static boolean typeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeDefinition")) return false;
     boolean result;
@@ -1881,11 +1892,11 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // objectTypeExtensionDefinition |
-  //     interfaceTypeExtensionDefinition |
-  //     unionTypeExtensionDefinition |
-  //     scalarTypeExtensionDefinition |
-  //     enumTypeExtensionDefinition |
-  //     inputObjectTypeExtensionDefinition
+  //   interfaceTypeExtensionDefinition |
+  //   unionTypeExtensionDefinition |
+  //   scalarTypeExtensionDefinition |
+  //   enumTypeExtensionDefinition |
+  //   inputObjectTypeExtensionDefinition
   public static boolean typeExtension(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeExtension")) return false;
     if (!nextTokenIs(builder, EXTEND_KEYWORD)) return false;

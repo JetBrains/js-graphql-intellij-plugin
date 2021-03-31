@@ -5,10 +5,9 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 
-public interface GraphQLUnionTypeDefinition extends GraphQLTypeDefinition, GraphQLDirectivesAware, GraphQLDescriptionAware, GraphQLTypeNameDefinitionOwner {
+public interface GraphQLUnionTypeDefinition extends GraphQLTypeDefinition, GraphQLDirectivesAware, GraphQLTypeNameDefinitionOwner {
 
   @Nullable
   GraphQLTypeNameDefinition getTypeNameDefinition();
