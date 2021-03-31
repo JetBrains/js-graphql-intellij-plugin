@@ -1,17 +1,17 @@
-/**
- * Copyright (c) 2018-present, Jim Kynde Meyer
- * All rights reserved.
- * <p>
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
+/*
+  Copyright (c) 2018-present, Jim Kynde Meyer
+  All rights reserved.
+  <p>
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
  */
 package com.intellij.lang.jsgraphql.completion;
 
-import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -22,106 +22,106 @@ public class GraphQLSchemaCompletionTest extends GraphQLBaseTestCase {
         return "/completion/schema";
     }
 
-    public void testCompletionImplementsFirstInterface() {
-        doTestCompletion("CompletionImplementsFirstInterface.graphqls", Lists.newArrayList("KnownInterface1", "KnownInterface2"));
+    public void testImplementsFirstInterface() {
+        doTestCompletion("KnownInterface1", "KnownInterface2");
     }
 
-    public void testCompletionImplementsSecondInterface() {
-        doTestCompletion("CompletionImplementsSecondInterface.graphqls", Lists.newArrayList("KnownInterface2"));
+    public void testImplementsSecondInterface() {
+        doTestCompletion("KnownInterface2");
     }
 
-    public void testCompletionTopLevelKeywords() {
-        doTestCompletion("CompletionTopLevelKeywords.graphqls", Lists.newArrayList("directive", "enum", "extend", "fragment", "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union", "{"));
+    public void testTopLevelKeywords() {
+        doTestCompletion("directive", "enum", "extend", "fragment", "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union", "{");
     }
 
-    public void testCompletionImplementsKeyword1() {
-        doTestCompletion("CompletionImplementsKeyword1.graphqls", Lists.newArrayList("implements"));
+    public void testImplementsKeyword1() {
+        doTestCompletion("implements");
     }
 
-    public void testCompletionImplementsKeyword2() {
-        doTestCompletion("CompletionImplementsKeyword2.graphqls", Lists.newArrayList("implements"));
+    public void testImplementsKeyword2() {
+        doTestCompletion("implements");
     }
 
-    public void testCompletionFieldType() {
-        doTestCompletion("CompletionFieldType.graphqls", Lists.newArrayList("AnotherKnownType", "Boolean", "Float", "Foo", "ID", "Int", "KnownInterface", "KnownType", "MyEnum", "MyUnion", "String"));
+    public void testFieldType() {
+        doTestCompletion("AnotherKnownType", "Boolean", "Float", "Foo", "ID", "Int", "KnownInterface", "KnownType", "MyEnum", "MyUnion", "String");
     }
 
-    public void testCompletionInputFieldType() {
-        doTestCompletion("CompletionInputFieldType.graphqls", Lists.newArrayList("Boolean", "Float", "ID", "Int", "MyCompletionInput", "MyEnum", "MyInput1", "String"));
+    public void testInputFieldType() {
+        doTestCompletion("Boolean", "Float", "ID", "Int", "MyCompletionInput", "MyEnum", "MyInput1", "String");
     }
 
-    public void testCompletionArgumentType() {
-        doTestCompletion("CompletionArgumentType.graphqls", Lists.newArrayList("Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String"));
+    public void testArgumentType() {
+        doTestCompletion("Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String");
     }
 
-    public void testCompletionSecondArgumentType() {
-        doTestCompletion("CompletionSecondArgumentType.graphqls", Lists.newArrayList("Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String"));
+    public void testSecondArgumentType() {
+        doTestCompletion("Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String");
     }
 
-    public void testCompletionDirective1() {
-        doTestCompletion("CompletionDirective1.graphqls", Lists.newArrayList("deprecated", "foo"));
+    public void testDirective1() {
+        doTestCompletion("deprecated", "foo");
     }
 
-    public void testCompletionDirective2() {
-        doTestCompletion("CompletionDirective2.graphqls", Lists.newArrayList("deprecated", "foo"));
+    public void testDirective2() {
+        doTestCompletion("deprecated", "foo");
     }
 
-    public void testCompletionDirective3() {
+    public void testDirective3() {
         // TODO: currently not supported by the completion contributor
-        //doTestCompletion("CompletionDirective3.graphqls", Lists.newArrayList("arg"));
+        //doTestCompletion("Directive3.graphql", "arg");
     }
 
-    public void testCompletionDirective4() {
+    public void testDirective4() {
         // TODO: currently not supported by the completion contributor
-        //doTestCompletion("CompletionDirective4.graphqls", Lists.newArrayList("false", "true"));
+        //doTestCompletion("Directive4.graphql", "false", "true");
     }
 
-    public void testCompletionDirectiveLocations() {
-        doTestCompletion(Lists.newArrayList(
+    public void testDirectiveLocations() {
+        doTestCompletion(
             "ARGUMENT_DEFINITION", "ENUM", "ENUM_VALUE", "FIELD", "FIELD_DEFINITION", "FRAGMENT_DEFINITION",
             "FRAGMENT_SPREAD", "INLINE_FRAGMENT", "INPUT_FIELD_DEFINITION", "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT", "QUERY",
             "SCALAR", "SCHEMA", "SUBSCRIPTION", "UNION", "VARIABLE_DEFINITION"
-        ));
+        );
     }
 
-    public void testCompletionDirectiveLocations1() {
-        doTestCompletion(Lists.newArrayList(
+    public void testDirectiveLocations1() {
+        doTestCompletion(
             "ENUM", "FIELD", "FIELD_DEFINITION", "FRAGMENT_DEFINITION",
             "FRAGMENT_SPREAD", "INLINE_FRAGMENT", "INPUT_FIELD_DEFINITION", "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT",
             "SCALAR", "SCHEMA", "SUBSCRIPTION", "UNION", "VARIABLE_DEFINITION"
-        ));
+        );
     }
 
-    public void testCompletionDirectiveKeywords() {
-        doTestCompletion(Lists.newArrayList("on", "repeatable"));
+    public void testDirectiveKeywords() {
+        doTestCompletion("on", "repeatable");
     }
 
-    public void testCompletionDirectiveKeywords1() {
-        doTestCompletion(Lists.newArrayList("on"));
+    public void testDirectiveKeywords1() {
+        doTestCompletion("on");
     }
 
-    public void testCompletionFieldOverride() {
-        doTestCompletion("CompletionFieldOverride.graphqls", Lists.newArrayList("fieldToImpl2: Boolean"));
+    public void testFieldOverride() {
+        doTestCompletion("fieldToImpl2: Boolean");
     }
 
-    public void testCompletionSchemaDirectives() {
-        doTestCompletion(Lists.newArrayList("DirSchema", "DirSchemaRepeatable"));
+    public void testSchemaDirectives() {
+        doTestCompletion("DirSchema", "DirSchemaRepeatable");
     }
 
-    public void testCompletionSchemaExtensionDirectives() {
-        doTestCompletion(Lists.newArrayList("DirSchema", "DirSchemaRepeatable"));
+    public void testSchemaExtensionDirectives() {
+        doTestCompletion("DirSchema", "DirSchemaRepeatable");
     }
 
-    public void testCompletionExtendKeywords() {
-        doTestCompletion(Lists.newArrayList("enum", "input", "interface", "scalar", "schema", "type", "union"));
+    public void testExtendKeywords() {
+        doTestCompletion("enum", "input", "interface", "scalar", "schema", "type", "union");
     }
 
-    private void doTestCompletion(List<String> expectedCompletions) {
-        doTestCompletion(getTestName(false) + ".graphql", expectedCompletions);
+    private void doTestCompletion(String @NotNull ... expectedCompletions) {
+        doTestCompletion(getTestName(false) + ".graphql", Arrays.asList(expectedCompletions));
     }
 
     private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {
-        myFixture.configureByFiles(sourceFile);
+        myFixture.configureByFile(sourceFile);
         myFixture.complete(CompletionType.BASIC, 1);
         final List<String> completions = myFixture.getLookupElementStrings();
         assertEquals("Wrong completions", expectedCompletions, completions);
