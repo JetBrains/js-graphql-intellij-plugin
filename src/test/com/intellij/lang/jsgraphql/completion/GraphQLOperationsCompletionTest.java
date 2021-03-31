@@ -151,7 +151,10 @@ public class GraphQLOperationsCompletionTest extends GraphQLBaseTestCase {
         doTestCompletion("CompletionDirectiveOnFieldArg.graphql", Lists.newArrayList("if"));
     }
 
-    // ---- util ----
+
+    public void testSubscriptionOperationDirectives() {
+        doTestCompletion(Lists.newArrayList("SubscriptionDir", "SubscriptionDir1"));
+    }
 
     private void doTestCompletion(List<String> expectedCompletions) {
         doTestCompletion(getTestName(false) + ".graphql", expectedCompletions);

@@ -1146,9 +1146,12 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     return type.getNode().findChildByType(GraphQLElementTypes.MUTATION_KEYWORD) != null;
                 }
                 break;
-            // TODO [intellij] check support for subscriptions
-            // case SUBSCRIPTION:
-            //    break;
+            case SUBSCRIPTION:
+                if (directivesAware instanceof GraphQLTypedOperationDefinition) {
+                    GraphQLOperationType type = ((GraphQLTypedOperationDefinition) directivesAware).getOperationType();
+                    return type.getNode().findChildByType(GraphQLElementTypes.SUBSCRIPTION_KEYWORD) != null;
+                }
+                break;
             case FIELD:
                 return directivesAware instanceof GraphQLField;
             case FRAGMENT_DEFINITION:
