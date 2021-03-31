@@ -74,7 +74,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
     };
 
     private static final String[] EXTEND_KEYWORDS = new String[]{
-        "scalar", "type", "interface", "input", "enum", "union"
+        "scalar", "type", "interface", "input", "enum", "union", "schema"
     };
 
 
@@ -1160,7 +1160,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
 
             // SDL
             case SCHEMA:
-                return directivesAware instanceof GraphQLSchemaDefinition;
+                return directivesAware instanceof GraphQLSchemaDefinition || directivesAware instanceof GraphQLSchemaExtension;
             case SCALAR:
                 return directivesAware instanceof GraphQLScalarTypeDefinition || directivesAware instanceof GraphQLScalarTypeExtensionDefinition;
             case OBJECT:

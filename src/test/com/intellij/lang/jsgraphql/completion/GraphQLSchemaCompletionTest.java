@@ -77,7 +77,7 @@ public class GraphQLSchemaCompletionTest extends GraphQLBaseTestCase {
     }
 
     public void testCompletionDirectiveLocations() {
-        doTestCompletion("CompletionDirectiveLocations.graphql", Lists.newArrayList(
+        doTestCompletion(Lists.newArrayList(
             "ARGUMENT_DEFINITION", "ENUM", "ENUM_VALUE", "FIELD", "FIELD_DEFINITION", "FRAGMENT_DEFINITION",
             "FRAGMENT_SPREAD", "INLINE_FRAGMENT", "INPUT_FIELD_DEFINITION", "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT", "QUERY",
             "SCALAR", "SCHEMA", "SUBSCRIPTION", "UNION", "VARIABLE_DEFINITION"
@@ -85,7 +85,7 @@ public class GraphQLSchemaCompletionTest extends GraphQLBaseTestCase {
     }
 
     public void testCompletionDirectiveLocations1() {
-        doTestCompletion("CompletionDirectiveLocations1.graphql", Lists.newArrayList(
+        doTestCompletion(Lists.newArrayList(
             "ENUM", "FIELD", "FIELD_DEFINITION", "FRAGMENT_DEFINITION",
             "FRAGMENT_SPREAD", "INLINE_FRAGMENT", "INPUT_FIELD_DEFINITION", "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT",
             "SCALAR", "SCHEMA", "SUBSCRIPTION", "UNION", "VARIABLE_DEFINITION"
@@ -93,15 +93,31 @@ public class GraphQLSchemaCompletionTest extends GraphQLBaseTestCase {
     }
 
     public void testCompletionDirectiveKeywords() {
-        doTestCompletion("CompletionDirectiveKeywords.graphql", Lists.newArrayList("on", "repeatable"));
+        doTestCompletion(Lists.newArrayList("on", "repeatable"));
     }
 
     public void testCompletionDirectiveKeywords1() {
-        doTestCompletion("CompletionDirectiveKeywords1.graphql", Lists.newArrayList("on"));
+        doTestCompletion(Lists.newArrayList("on"));
     }
 
     public void testCompletionFieldOverride() {
         doTestCompletion("CompletionFieldOverride.graphqls", Lists.newArrayList("fieldToImpl2: Boolean"));
+    }
+
+    public void testCompletionSchemaDirectives() {
+        doTestCompletion(Lists.newArrayList("DirSchema", "DirSchemaRepeatable"));
+    }
+
+    public void testCompletionSchemaExtensionDirectives() {
+        doTestCompletion(Lists.newArrayList("DirSchema", "DirSchemaRepeatable"));
+    }
+
+    public void testCompletionExtendKeywords() {
+        doTestCompletion(Lists.newArrayList("enum", "input", "interface", "scalar", "schema", "type", "union"));
+    }
+
+    private void doTestCompletion(List<String> expectedCompletions) {
+        doTestCompletion(getTestName(false) + ".graphql", expectedCompletions);
     }
 
     private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {

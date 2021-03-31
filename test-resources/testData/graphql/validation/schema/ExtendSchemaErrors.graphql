@@ -1,0 +1,37 @@
+type MyQuery {
+    id: ID
+}
+
+type MyMutation {
+    id: ID
+}
+
+type MySubscription {
+    id: ID
+}
+
+type AnotherQuery {
+    id: ID
+}
+
+directive @SchemaDir on SCHEMA
+directive @SchemaDirOneMore on SCHEMA
+directive @SchemaDirRepeatable repeatable on SCHEMA
+
+<error descr="There is already a schema defined">schema</error> @SchemaDir @SchemaDirRepeatable {
+    <error descr="There is already an operation 'query' defined">query</error>: MyQuery
+}
+
+schema {
+    <error descr="There is already an operation 'subscription' defined">subscription</error>: MySubscription
+}
+
+extend schema @SchemaDirOneMore <error descr="The directive 'SchemaDirOneMore' should be defined as repeatable if its repeated on an SDL element">@SchemaDirOneMore</error> @SchemaDirRepeatable {
+    <error descr="There is already an operation 'mutation' defined">mutation</error>: MyMutation
+}
+
+extend schema <error descr="The directive 'SchemaDir' should be defined as repeatable if its repeated on an SDL element">@SchemaDir</error> @SchemaDirRepeatable {
+    query: AnotherQuery
+    mutation: MyMutation
+    subscription: MySubscription
+}

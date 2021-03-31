@@ -57,6 +57,7 @@ public interface GraphQLElementTypes {
   IElementType SCALAR_TYPE_DEFINITION = new GraphQLCompositeElementType("SCALAR_TYPE_DEFINITION");
   IElementType SCALAR_TYPE_EXTENSION_DEFINITION = new GraphQLCompositeElementType("SCALAR_TYPE_EXTENSION_DEFINITION");
   IElementType SCHEMA_DEFINITION = new GraphQLCompositeElementType("SCHEMA_DEFINITION");
+  IElementType SCHEMA_EXTENSION = new GraphQLCompositeElementType("SCHEMA_EXTENSION");
   IElementType SELECTION = new GraphQLCompositeElementType("SELECTION");
   IElementType SELECTION_SET = new GraphQLCompositeElementType("SELECTION_SET");
   IElementType SELECTION_SET_OPERATION_DEFINITION = new GraphQLCompositeElementType("SELECTION_SET_OPERATION_DEFINITION");
@@ -267,6 +268,9 @@ public interface GraphQLElementTypes {
       }
       else if (type == SCHEMA_DEFINITION) {
         return new GraphQLSchemaDefinitionImpl(node);
+      }
+      else if (type == SCHEMA_EXTENSION) {
+        return new GraphQLSchemaExtensionImpl(node);
       }
       else if (type == SELECTION) {
         return new GraphQLSelectionImpl(node);

@@ -39,9 +39,9 @@ public class GraphQLPsiToLanguage {
             return createFragmentDefinition(((GraphQLFragmentDefinition) definition));
         } else if (definition instanceof GraphQLTypeExtension) {
             return createTypeExtension(((GraphQLTypeExtension) definition));
-        } /*else if (definition instanceof GraphQLSchemaExtension) {
-            TODO: [intellij] schema extension
-        } */ else if (definition instanceof GraphQLTypeSystemDefinition) {
+        } else if (definition instanceof GraphQLSchemaExtension) {
+            return creationSchemaExtension(((GraphQLSchemaExtension) definition));
+        } else if (definition instanceof GraphQLTypeSystemDefinition) {
             return createTypeSystemDefinition(((GraphQLTypeSystemDefinition) definition));
         } else if (definition instanceof GraphQLTemplateDefinition) {
             return null;
@@ -339,23 +339,17 @@ public class GraphQLPsiToLanguage {
         return def.build();
     }
 
-    // TODO: [intellij] schema extension
-//    private SDLDefinition creationSchemaExtension(GraphqlParser.SchemaExtensionContext ctx) {
-//        SchemaExtensionDefinition.Builder def = SchemaExtensionDefinition.newSchemaExtensionDefinition();
-//        addCommonData(def, ctx);
-//
-//        List<Directive> directives = new ArrayList<>();
-//        List<GraphqlParser.DirectivesContext> directivesCtx = ctx.directives();
-//        for (GraphqlParser.DirectivesContext directiveCtx : directivesCtx) {
-//            directives.addAll(createDirectives(directiveCtx));
-//        }
-//        def.directives(directives);
-//
-//        List<OperationTypeDefinition> operationTypeDefs = mapNotNull(ctx.operationTypeDefinition(), this::createOperationTypeDefinition);
-//        def.operationTypeDefinitions(operationTypeDefs);
-//        return def.build();
-//    }
+    protected @NotNull SchemaExtensionDefinition creationSchemaExtension(@NotNull GraphQLSchemaExtension extension) {
+        SchemaExtensionDefinition.Builder def = SchemaExtensionDefinition.newSchemaExtensionDefinition();
+        addCommonData(def, extension);
+        def.directives(createDirectives(extension.getDirectives()));
 
+        GraphQLOperationTypeDefinitions operationTypeDefinitions = extension.getOperationTypeDefinitions();
+        if (operationTypeDefinitions != null) {
+            def.operationTypeDefinitions(mapNotNull(operationTypeDefinitions.getOperationTypeDefinitionList(), this::createOperationTypeDefinition));
+        }
+        return def.build();
+    }
 
     protected @Nullable OperationTypeDefinition createOperationTypeDefinition(@NotNull GraphQLOperationTypeDefinition definition) {
         OperationTypeDefinition.Builder def = OperationTypeDefinition.newOperationTypeDefinition();

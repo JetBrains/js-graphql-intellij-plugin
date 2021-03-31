@@ -200,9 +200,9 @@ public final class GraphQLCompositeRegistry {
 
         List<GraphQLError> operationRedefinitionErrors = new ArrayList<>();
         Map<String, OperationTypeDefinition> operationDefs = new LinkedHashMap<>();
-        List<SchemaExtensionDefinition> sourceExtensions = mySchemaCompositeDefinition.getExtensions();
         for (SchemaDefinition sourceSchemaDefinition : sourceSchemaDefinitions) {
-            SchemaExtensionsChecker.gatherOperationDefs(operationDefs, operationRedefinitionErrors, sourceSchemaDefinition, sourceExtensions);
+            // pass an empty list because extensions are validated in a separate extensions validator
+            SchemaExtensionsChecker.gatherOperationDefs(operationDefs, operationRedefinitionErrors, sourceSchemaDefinition, Collections.emptyList());
         }
         if (!operationRedefinitionErrors.isEmpty()) {
             registry.addError(new SchemaProblem(operationRedefinitionErrors));

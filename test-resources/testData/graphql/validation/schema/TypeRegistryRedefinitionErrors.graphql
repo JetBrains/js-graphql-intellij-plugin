@@ -11,13 +11,6 @@ schema {
     subscription: Subscription
 }
 
-# TODO: [intellij] extend schema redefinitions
-#extend schema {
-#  query: Query
-#  mutation: Mutation
-#  subscription: Subscription
-#}
-
 <error descr="'MyDirective' type tried to redefine existing directive 'MyDirective' type">directive</error> @MyDirective on ENUM_VALUE
 
 directive @MyDirective on ARGUMENT_DEFINITION

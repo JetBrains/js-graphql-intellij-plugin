@@ -228,6 +228,11 @@ public class GraphQLVisitor extends PsiElementVisitor {
     // visitDirectivesAware(o);
   }
 
+  public void visitSchemaExtension(@NotNull GraphQLSchemaExtension o) {
+    visitTypeSystemDefinition(o);
+    // visitDirectivesAware(o);
+  }
+
   public void visitSelection(@NotNull GraphQLSelection o) {
     visitElement(o);
   }

@@ -1,0 +1,7 @@
+directive @DirSchema on SCHEMA
+directive @DirSchemaRepeatable repeatable on SCHEMA
+directive @ObjectDir on OBJECT
+
+schema @<caret> {
+    query: MyQuery
+}

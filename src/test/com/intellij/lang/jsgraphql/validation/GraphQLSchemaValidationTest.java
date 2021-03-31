@@ -65,7 +65,11 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
         doTest();
     }
 
-    public void testRepeatableDirectives() {
+    public void testRepeatableDirectivesErrors() {
+        doTest();
+    }
+
+    public void testExtendSchemaErrors() {
         doTest();
     }
 

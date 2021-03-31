@@ -214,6 +214,7 @@ typeCondition ::= 'on' typeName {pin=1}
 
 typeSystemDefinition ::=
     schemaDefinition |
+    schemaExtension |
     typeDefinition |
     typeExtension |
     directiveDefinition
@@ -223,6 +224,8 @@ typeSystemDefinition ::=
 
 
 schemaDefinition ::= 'schema' directives? operationTypeDefinitions {pin=1 extends=typeSystemDefinition implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware" methods=[directives="directive"]}
+
+schemaExtension ::= 'extend' 'schema' directives? operationTypeDefinitions? {pin=2 extends=typeSystemDefinition implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware" methods=[directives="directive"]}
 
 operationTypeDefinitions ::= '{' operationTypeDefinition+ '}' {pin=1}
 

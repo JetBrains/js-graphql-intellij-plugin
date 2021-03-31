@@ -44,9 +44,9 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     create_token_set_(DEFINITION, DIRECTIVE_DEFINITION, ENUM_TYPE_DEFINITION, ENUM_TYPE_EXTENSION_DEFINITION,
       FRAGMENT_DEFINITION, INPUT_OBJECT_TYPE_DEFINITION, INPUT_OBJECT_TYPE_EXTENSION_DEFINITION, INTERFACE_TYPE_DEFINITION,
       INTERFACE_TYPE_EXTENSION_DEFINITION, OBJECT_TYPE_DEFINITION, OBJECT_TYPE_EXTENSION_DEFINITION, OPERATION_DEFINITION,
-      SCALAR_TYPE_DEFINITION, SCALAR_TYPE_EXTENSION_DEFINITION, SCHEMA_DEFINITION, SELECTION_SET_OPERATION_DEFINITION,
-      TEMPLATE_DEFINITION, TYPED_OPERATION_DEFINITION, TYPE_DEFINITION, TYPE_EXTENSION,
-      TYPE_SYSTEM_DEFINITION, UNION_TYPE_DEFINITION, UNION_TYPE_EXTENSION_DEFINITION),
+      SCALAR_TYPE_DEFINITION, SCALAR_TYPE_EXTENSION_DEFINITION, SCHEMA_DEFINITION, SCHEMA_EXTENSION,
+      SELECTION_SET_OPERATION_DEFINITION, TEMPLATE_DEFINITION, TYPED_OPERATION_DEFINITION, TYPE_DEFINITION,
+      TYPE_EXTENSION, TYPE_SYSTEM_DEFINITION, UNION_TYPE_DEFINITION, UNION_TYPE_EXTENSION_DEFINITION),
   };
 
   /* ********************************************************** */
@@ -1650,6 +1650,35 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // 'extend' 'schema' directives? operationTypeDefinitions?
+  public static boolean schemaExtension(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaExtension")) return false;
+    if (!nextTokenIs(builder, EXTEND_KEYWORD)) return false;
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_, SCHEMA_EXTENSION, null);
+    result = consumeTokens(builder, 2, EXTEND_KEYWORD, SCHEMA_KEYWORD);
+    pinned = result; // pin = 2
+    result = result && report_error_(builder, schemaExtension_2(builder, level + 1));
+    result = pinned && schemaExtension_3(builder, level + 1) && result;
+    exit_section_(builder, level, marker, result, pinned, null);
+    return result || pinned;
+  }
+
+  // directives?
+  private static boolean schemaExtension_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaExtension_2")) return false;
+    directives(builder, level + 1);
+    return true;
+  }
+
+  // operationTypeDefinitions?
+  private static boolean schemaExtension_3(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaExtension_3")) return false;
+    operationTypeDefinitions(builder, level + 1);
+    return true;
+  }
+
+  /* ********************************************************** */
   // field |
   //     fragmentSelection |
   //     templateSelection
@@ -1938,6 +1967,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // schemaDefinition |
+  //     schemaExtension |
   //     typeDefinition |
   //     typeExtension |
   //     directiveDefinition
@@ -1946,6 +1976,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     boolean result;
     Marker marker = enter_section_(builder, level, _COLLAPSE_, TYPE_SYSTEM_DEFINITION, "<type system definition>");
     result = schemaDefinition(builder, level + 1);
+    if (!result) result = schemaExtension(builder, level + 1);
     if (!result) result = typeDefinition(builder, level + 1);
     if (!result) result = typeExtension(builder, level + 1);
     if (!result) result = directiveDefinition(builder, level + 1);

@@ -165,15 +165,6 @@ public class TypeDefinitionRegistry {
         return tempOperationDefs;
     }
 
-    private void checkAddOperationDefs() {
-        List<GraphQLError> errors = new ArrayList<>();
-        gatherOperationDefs(errors, this.schema, this.schemaExtensionDefinitions);
-        if (!errors.isEmpty()) {
-            myErrors.add(new SchemaProblem(errors));
-        }
-    }
-
-
     /**
      * Adds a a collections of definitions to the registry
      *
@@ -212,7 +203,6 @@ public class TypeDefinitionRegistry {
             defineExt(inputObjectTypeExtensions, newEntry, InputObjectTypeExtensionDefinition::getName);
         } else if (definition instanceof SchemaExtensionDefinition) {
             schemaExtensionDefinitions.add((SchemaExtensionDefinition) definition);
-            checkAddOperationDefs();
         } else if (definition instanceof ScalarTypeDefinition) {
             ScalarTypeDefinition newEntry = (ScalarTypeDefinition) definition;
             define(scalarTypes, scalarTypes, newEntry);
@@ -229,7 +219,6 @@ public class TypeDefinitionRegistry {
             } else {
                 schema = newSchema;
             }
-            checkAddOperationDefs();
         } else {
             Assert.assertShouldNeverHappen();
         }

@@ -32,6 +32,10 @@ public class GraphQLParserTest extends ParsingTestCase {
         doTest(true, true);
     }
 
+    public void testExtendSchema() {
+        doTest(true, true);
+    }
+
     @Override
     protected String getTestDataPath() {
         return "test-resources/testData/graphql/parser";
