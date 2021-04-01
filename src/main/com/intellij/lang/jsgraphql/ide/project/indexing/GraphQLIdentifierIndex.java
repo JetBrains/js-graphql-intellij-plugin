@@ -33,6 +33,7 @@ import java.util.Set;
 public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, GraphQLIdentifierIndex.IdentifierKind> {
 
     public static final ID<String, IdentifierKind> NAME = ID.create("GraphQLIdentifierIndex");
+    public static final int VERSION = 2;
 
     private final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
 
@@ -151,7 +152,7 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
 
     @Override
     public int getVersion() {
-        return 2;
+        return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
     }
 
     @NotNull

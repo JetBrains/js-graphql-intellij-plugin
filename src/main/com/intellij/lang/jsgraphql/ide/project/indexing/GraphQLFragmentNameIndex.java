@@ -35,6 +35,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
     public static final ID<String, Boolean> NAME = ID.create("GraphQLFragmentNameIndex");
 
     public static final String HAS_FRAGMENTS = "fragments";
+    public static final int VERSION = 1;
 
 
     private final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
@@ -51,7 +52,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
             final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
             identifierVisitor.set(new PsiRecursiveElementVisitor() {
                 @Override
-                public void visitElement(PsiElement element) {
+                public void visitElement(@NotNull PsiElement element) {
                     if (hasFragments.get()) {
                         // done
                         return;
@@ -113,7 +114,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
 
     @Override
     public int getVersion() {
-        return 1;
+        return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
     }
 
     @NotNull
