@@ -52,91 +52,7 @@ public class GraphQLValidationAnnotator implements Annotator {
         if (psiElement instanceof GraphQLIdentifier) {
             final PsiReference reference = psiElement.getReference();
             if (reference == null || reference.resolve() == null) {
-                final PsiElement parent = psiElement.getParent();
-                final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(parent, GraphQLTypeScopeProvider.class);
-                com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope = null;
-                if (typeScopeProvider != null) {
-                    typeScope = typeScopeProvider.getTypeScope();
-                    if (typeScope != null) {
-                        // unwrap non-nulls and lists for type and field hints
-                        typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
-                    }
-                }
-
-                String message = null;
-
-                // fixes to automatically rename misspelled identifiers
-                final List<LocalQuickFix> fixes = Lists.newArrayList();
-                Consumer<List<String>> createFixes = (List<String> suggestions) -> {
-                    suggestions.forEach(suggestion -> fixes.add(new RenameElementFix((PsiNamedElement) psiElement, suggestion)));
-                };
-
-                if (parent instanceof GraphQLField) {
-                    message = "Unknown field \"" + psiElement.getText() + "\"";
-                    if (typeScope != null) {
-                        String definitionType = "";
-                        if (typeScope instanceof GraphQLObjectType) {
-                            definitionType = "object ";
-                        } else if (typeScope instanceof GraphQLInterfaceType) {
-                            definitionType = "interface ";
-                        }
-                        message += " on " + definitionType + "type \"" + GraphQLSchemaUtil.getTypeName(typeScope) + "\"";
-                        final List<String> suggestions = getFieldNameSuggestions(psiElement.getText(), typeScope);
-                        if (suggestions != null && !suggestions.isEmpty()) {
-                            message += ". Did you mean " + formatSuggestions(suggestions) + "?";
-                            createFixes.accept(suggestions);
-                        }
-                    } else {
-                        // no type info available from the parent
-                        message += ": The parent selection or operation does not resolve to a valid schema type";
-                    }
-                } else if (parent instanceof GraphQLFragmentSpread) {
-                    message = "Unknown fragment spread \"" + psiElement.getText() + "\"";
-                } else if (parent instanceof GraphQLArgument) {
-                    message = "Unknown argument \"" + psiElement.getText() + "\"";
-                    if (typeScope != null) {
-                        final List<String> suggestions = getArgumentNameSuggestions(psiElement, typeScope);
-                        if (!suggestions.isEmpty()) {
-                            message += ". Did you mean " + formatSuggestions(suggestions) + "?";
-                            createFixes.accept(suggestions);
-                        }
-                    }
-                } else if (parent instanceof GraphQLDirective) {
-                    message = "Unknown directive \"" + psiElement.getText() + "\"";
-                } else if (parent instanceof GraphQLObjectField) {
-                    message = "Unknown field \"" + psiElement.getText() + "\"";
-                    if (typeScope != null) {
-                        message += " on input type \"" + GraphQLSchemaUtil.getTypeName(typeScope) + "\"";
-                        final List<String> suggestions = getFieldNameSuggestions(psiElement.getText(), typeScope);
-                        if (suggestions != null && !suggestions.isEmpty()) {
-                            message += ". Did you mean " + formatSuggestions(suggestions) + "?";
-                            createFixes.accept(suggestions);
-                        }
-                    }
-                } else if (parent instanceof GraphQLTypeName) {
-                    message = "Unknown type \"" + psiElement.getText() + "\"";
-                    fixes.addAll(GraphQLMissingTypeFix.getApplicableFixes((GraphQLIdentifier) psiElement));
-                }
-                if (message != null) {
-                    Annotation annotation = createErrorAnnotation(annotationHolder, psiElement, message);
-                    if (annotation != null) {
-                        annotation.setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
-                        if (!fixes.isEmpty()) {
-                            final InspectionManager inspectionManager = InspectionManager.getInstance(psiElement.getProject());
-                            final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
-                                psiElement,
-                                psiElement,
-                                message,
-                                ProblemHighlightType.ERROR,
-                                true,
-                                LocalQuickFix.EMPTY_ARRAY
-                            );
-                            for (LocalQuickFix fix : fixes) {
-                                annotation.registerFix(fix, null, null, problemDescriptor);
-                            }
-                        }
-                    }
-                }
+                createUnresolvedError(psiElement, annotationHolder);
             }
         }
 
@@ -157,7 +73,100 @@ public class GraphQLValidationAnnotator implements Annotator {
             final GraphQLIdentifier nameIdentifier = ((GraphQLEnumValue) psiElement).getNameIdentifier();
             final String enumValueName = nameIdentifier.getText();
             if ("true".equals(enumValueName) || "false".equals(enumValueName) || "null".equals(enumValueName)) {
-                createErrorAnnotation(annotationHolder, nameIdentifier, "Enum values can not be named \"" + enumValueName + "\"");
+                createErrorAnnotation(annotationHolder, nameIdentifier, "Enum values can not be named '" + enumValueName + "'");
+            }
+        }
+    }
+
+    private void createUnresolvedError(@NotNull PsiElement element, @NotNull AnnotationHolder annotationHolder) {
+        final PsiElement parent = element.getParent();
+        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isUnresolvedErrorIgnored(element.getProject(), parent))) {
+            return;
+        }
+
+        final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(parent, GraphQLTypeScopeProvider.class);
+        com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope = null;
+        if (typeScopeProvider != null) {
+            typeScope = typeScopeProvider.getTypeScope();
+            if (typeScope != null) {
+                // unwrap non-nulls and lists for type and field hints
+                typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
+            }
+        }
+
+        String message = null;
+
+        // fixes to automatically rename misspelled identifiers
+        final List<LocalQuickFix> fixes = Lists.newArrayList();
+        Consumer<List<String>> createFixes = (List<String> suggestions) -> {
+            suggestions.forEach(suggestion -> fixes.add(new RenameElementFix((PsiNamedElement) element, suggestion)));
+        };
+
+        if (parent instanceof GraphQLField) {
+            message = "Unknown field \"" + element.getText() + "\"";
+            if (typeScope != null) {
+                String definitionType = "";
+                if (typeScope instanceof GraphQLObjectType) {
+                    definitionType = "object ";
+                } else if (typeScope instanceof GraphQLInterfaceType) {
+                    definitionType = "interface ";
+                }
+                message += " on " + definitionType + "type \"" + GraphQLSchemaUtil.getTypeName(typeScope) + "\"";
+                final List<String> suggestions = getFieldNameSuggestions(element.getText(), typeScope);
+                if (suggestions != null && !suggestions.isEmpty()) {
+                    message += ". Did you mean " + formatSuggestions(suggestions) + "?";
+                    createFixes.accept(suggestions);
+                }
+            } else {
+                // no type info available from the parent
+                message += ": The parent selection or operation does not resolve to a valid schema type";
+            }
+        } else if (parent instanceof GraphQLFragmentSpread) {
+            message = "Unknown fragment spread \"" + element.getText() + "\"";
+        } else if (parent instanceof GraphQLArgument) {
+            message = "Unknown argument \"" + element.getText() + "\"";
+            if (typeScope != null) {
+                final List<String> suggestions = getArgumentNameSuggestions(element, typeScope);
+                if (!suggestions.isEmpty()) {
+                    message += ". Did you mean " + formatSuggestions(suggestions) + "?";
+                    createFixes.accept(suggestions);
+                }
+            }
+        } else if (parent instanceof GraphQLDirective) {
+            message = "Unknown directive \"" + element.getText() + "\"";
+        } else if (parent instanceof GraphQLObjectField) {
+            message = "Unknown field \"" + element.getText() + "\"";
+            if (typeScope != null) {
+                message += " on input type \"" + GraphQLSchemaUtil.getTypeName(typeScope) + "\"";
+                final List<String> suggestions = getFieldNameSuggestions(element.getText(), typeScope);
+                if (suggestions != null && !suggestions.isEmpty()) {
+                    message += ". Did you mean " + formatSuggestions(suggestions) + "?";
+                    createFixes.accept(suggestions);
+                }
+            }
+        } else if (parent instanceof GraphQLTypeName) {
+            message = "Unknown type \"" + element.getText() + "\"";
+            fixes.addAll(GraphQLMissingTypeFix.getApplicableFixes((GraphQLIdentifier) element));
+        }
+
+        if (message != null) {
+            Annotation annotation = createErrorAnnotation(annotationHolder, element, message);
+            if (annotation != null) {
+                annotation.setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
+                if (!fixes.isEmpty()) {
+                    final InspectionManager inspectionManager = InspectionManager.getInstance(element.getProject());
+                    final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
+                        element,
+                        element,
+                        message,
+                        ProblemHighlightType.ERROR,
+                        true,
+                        LocalQuickFix.EMPTY_ARRAY
+                    );
+                    for (LocalQuickFix fix : fixes) {
+                        annotation.registerFix(fix, null, null, problemDescriptor);
+                    }
+                }
             }
         }
     }
@@ -165,10 +174,6 @@ public class GraphQLValidationAnnotator implements Annotator {
     private @Nullable Annotation createErrorAnnotation(@NotNull AnnotationHolder annotationHolder,
                                                        @NotNull PsiElement element,
                                                        @Nullable String message) {
-        if (GraphQLErrorFilter.isErrorIgnored(element.getProject(), null, element)) {
-            return null;
-        }
-
         return annotationHolder.createErrorAnnotation(element, message);
     }
 

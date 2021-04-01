@@ -10,19 +10,15 @@ public class GraphQLOperationsValidationTest extends GraphQLBaseTestCase {
     }
 
     public void testRepeatableDirectives() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testWrongTypes() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testDuplicates() {
-        doTest();
+        doHighlightingTest();
     }
 
-    private void doTest() {
-        myFixture.configureByFile(getTestName(false) + ".graphql");
-        myFixture.checkHighlighting();
-    }
 }

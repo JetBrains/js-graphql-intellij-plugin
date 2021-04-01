@@ -10,9 +10,11 @@ import org.jetbrains.annotations.Nullable;
 public interface GraphQLErrorFilter {
     ExtensionPointName<GraphQLErrorFilter> EP_NAME = new ExtensionPointName<>("com.intellij.lang.jsgraphql.errorFilter");
 
-    static boolean isErrorIgnored(@NotNull Project project, @Nullable GraphQLError error, @NotNull PsiElement element) {
-        return EP_NAME.extensions().anyMatch(extension -> extension.isIgnored(project, error, element));
+    default boolean isErrorIgnored(@NotNull Project project, @NotNull GraphQLError error, @Nullable PsiElement element) {
+        return false;
     }
 
-    boolean isIgnored(@NotNull Project project, @Nullable GraphQLError error, @Nullable PsiElement element);
+    default boolean isUnresolvedErrorIgnored(@NotNull Project project, @NotNull PsiElement element) {
+        return false;
+    }
 }

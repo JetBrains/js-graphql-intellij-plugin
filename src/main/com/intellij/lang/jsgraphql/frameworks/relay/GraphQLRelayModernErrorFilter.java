@@ -11,23 +11,19 @@ import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter;
 import com.intellij.lang.jsgraphql.psi.GraphQLArguments;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
-import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Filters out errors from non-spec Relay Modern argument directives that rely on dynamically named arguments
  * that can't be expressed using SDL as of the June 2018 spec.
  */
-public class GraphQLRelayErrorFilter implements GraphQLErrorFilter {
+public class GraphQLRelayModernErrorFilter implements GraphQLErrorFilter {
 
     @Override
-    public boolean isIgnored(@NotNull Project project, @Nullable GraphQLError error, @Nullable PsiElement element) {
-        if (element == null) return false;
-
+    public boolean isUnresolvedErrorIgnored(@NotNull Project project, @NotNull PsiElement element) {
         GraphQLSettings settings = GraphQLSettings.getSettings(project);
         if (!settings.isEnableRelayModernFrameworkSupport()) {
             return false;
@@ -40,7 +36,8 @@ public class GraphQLRelayErrorFilter implements GraphQLErrorFilter {
                 final String directiveName = directive.getName();
                 // ignore errors inside on the dynamically named arguments to @argumentDefinitions and @arguments
                 // since the SDL can express this dynamic aspect
-                return "argumentDefinitions".equals(directiveName) || "arguments".equals(directiveName);
+                return GraphQLRelayKnownTypes.ARGUMENT_DEFINITIONS_DIRECTIVE.equals(directiveName) ||
+                    GraphQLRelayKnownTypes.ARGUMENTS_DIRECTIVE.equals(directiveName);
             }
         }
         return false;

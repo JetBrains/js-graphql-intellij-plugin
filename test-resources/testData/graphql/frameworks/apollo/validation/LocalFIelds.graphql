@@ -1,0 +1,27 @@
+directive @client on FIELD
+
+type Query {
+    id: ID
+    name: String
+    obj: Obj
+}
+
+type Obj {
+    id: ID
+    name: String
+}
+
+query One {
+    obj @client
+}
+
+query Two {
+    id
+    name
+    phone @client
+    obj @client {
+        id
+        name
+        clientField
+    }
+}

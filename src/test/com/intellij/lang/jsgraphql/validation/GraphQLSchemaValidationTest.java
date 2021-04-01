@@ -10,71 +10,67 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
     }
 
     public void testTypeRegistryRedefinitionErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testNotInputOutputTypesErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testSchemaValidatorErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testRedefinitionErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testImplementingErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testEnumErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testDirectiveErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testSchemaDirectiveErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testObjectSchemaTypeExtensionsErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testInterfaceSchemaTypeExtensionsErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testUnionSchemaTypeExtensionsErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testEnumSchemaTypeExtensionsErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testScalarSchemaTypeExtensionsErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testInputSchemaTypeExtensionsErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testRepeatableDirectivesErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
     public void testExtendSchemaErrors() {
-        doTest();
+        doHighlightingTest();
     }
 
-    private void doTest() {
-        myFixture.configureByFile(getTestName(false) + ".graphql");
-        myFixture.checkHighlighting();
-    }
 }

@@ -13,4 +13,9 @@ public abstract class GraphQLBaseTestCase extends BasePlatformTestCase {
         // use the synchronous method of building the configuration for the unit test
         GraphQLConfigManager.getService(getProject()).doBuildConfigurationModel(null);
     }
+
+    protected void doHighlightingTest() {
+        myFixture.configureByFile(getTestName(false) + ".graphql");
+        myFixture.checkHighlighting();
+    }
 }

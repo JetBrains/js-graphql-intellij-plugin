@@ -29,9 +29,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -187,30 +184,6 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                                         @NotNull PsiFile containingFile,
                                         @NotNull ValidationError validationError) {
         for (PsiElement element : getElementsToAnnotate(containingFile, validationError)) {
-            final IElementType elementType = PsiUtilCore.getElementType(element);
-            if (elementType == GraphQLElementTypes.SPREAD) {
-                // graphql-java uses the '...' as source location on fragments, so find the fragment name or type condition
-                final GraphQLFragmentSelection fragmentSelection = PsiTreeUtil.getParentOfType(element, GraphQLFragmentSelection.class);
-                if (fragmentSelection != null) {
-                    if (fragmentSelection.getFragmentSpread() != null) {
-                        element = fragmentSelection.getFragmentSpread().getNameIdentifier();
-                    } else if (fragmentSelection.getInlineFragment() != null) {
-                        final GraphQLTypeCondition typeCondition = fragmentSelection.getInlineFragment().getTypeCondition();
-                        if (typeCondition != null) {
-                            element = typeCondition.getTypeName();
-                        }
-                    }
-                }
-            } else if (elementType == GraphQLElementTypes.AT) {
-                // mark the directive and not only the '@'
-                element = element.getParent();
-            }
-
-            if (element == null) {
-                continue;
-            }
-
-
             final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
             createErrorAnnotation(annotationHolder, validationError, element, message);
         }
@@ -221,7 +194,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                                        @NotNull PsiElement element,
                                        @Nullable String message) {
         if (message == null) return;
-        if (GraphQLErrorFilter.isErrorIgnored(element.getProject(), error, element)) {
+        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isErrorIgnored(element.getProject(), error, element))) {
             return;
         }
 
@@ -302,8 +275,9 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
 
         LeafElement leaf = TreeUtil.findFirstLeaf(element.getNode());
         if (leaf != null) {
-            return leaf.getPsi();
+            element = leaf.getPsi();
         }
+
         return element;
     }
 
