@@ -14,8 +14,6 @@ import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.ProjectTopics;
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.scratch.ScratchUtil;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
@@ -43,10 +41,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -130,7 +126,6 @@ public class GraphQLConfigManager implements Disposable {
     private final Project myProject;
     private final GlobalSearchScope projectScope;
     private final GraphQLConfigGlobMatcher graphQLConfigGlobMatcher;
-    public final IdeaPluginDescriptor pluginDescriptor;
 
     private volatile boolean initialized = false;
 
@@ -150,8 +145,6 @@ public class GraphQLConfigManager implements Disposable {
         this.myProject = myProject;
         this.projectScope = GlobalSearchScope.projectScope(myProject);
         this.graphQLConfigGlobMatcher = ServiceManager.getService(myProject, GraphQLConfigGlobMatcher.class);
-        //noinspection deprecation
-        this.pluginDescriptor = PluginManager.getPlugin(PluginId.getId("com.intellij.lang.jsgraphql"));
     }
 
     public static GraphQLConfigManager getService(@NotNull Project project) {
@@ -287,7 +280,12 @@ public class GraphQLConfigManager implements Disposable {
                     UIUtil.invokeLaterIfNeeded(() -> FileEditorManager.getInstance(myProject).openFile(configFile, true, true));
                 }
             } catch (IOException e) {
-                Notifications.Bus.notify(new Notification("GraphQL", "Unable to create " + GRAPHQLCONFIG, "Unable to create file '" + GRAPHQLCONFIG + "' in directory '" + configBaseDir.getPath() + "': " + e.getMessage(), NotificationType.ERROR));
+                Notifications.Bus.notify(new Notification(
+                    GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                    "Unable to create " + GRAPHQLCONFIG,
+                    String.format("Unable to create file '%s' in directory '%s': %s", GRAPHQLCONFIG, configBaseDir.getPath(), e.getMessage()),
+                    NotificationType.ERROR)
+                );
             }
         });
     }
@@ -533,7 +531,7 @@ public class GraphQLConfigManager implements Disposable {
      * @param onCompleted               optional runnable to execute when the config model has been built
      */
     public void buildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles, @Nullable Runnable onCompleted) {
-        ApplicationManager.getApplication().invokeLater(() -> {
+        DumbService.getInstance(myProject).smartInvokeLater(() -> {
 
             // runs on the UI thread so task scheduling can be considered atomic
             final boolean hasExistingTask = buildConfigurationModelCallable.get() != null;
@@ -551,7 +549,7 @@ public class GraphQLConfigManager implements Disposable {
                 return;
             }
 
-            final Task.Backgroundable task = new Task.Backgroundable(
+            new Task.Backgroundable(
                 myProject,
                 GraphQLBundle.message("graphql.progress.configuration.scan"),
                 false
@@ -573,10 +571,7 @@ public class GraphQLConfigManager implements Disposable {
                     buildConfigurationModelCallable.set(null);
                 }
 
-            };
-            if (!myProject.isDisposed()) {
-                ProgressManager.getInstance().run(task);
-            }
+            }.queue();
         }, ModalityState.NON_MODAL);
     }
 
