@@ -81,7 +81,7 @@ public class GraphQLValidationAnnotator implements Annotator {
 
         createAnnotation(
             annotationHolder, psiElement, "Unknown directive location '" + psiElement.getText() + "'",
-            builder -> builder.highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
+            GraphQLUnresolvedReferenceInspection.class, builder -> builder.highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
         );
     }
 
