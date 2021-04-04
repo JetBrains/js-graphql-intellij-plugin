@@ -83,7 +83,7 @@
                                    implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxHighlighterFactory"/>
     <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxAnnotator"/>
     <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLValidationAnnotator"/>
-    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLSchemaValidationAnnotator"/>
+    <annotator language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLSchemaAnnotator"/>
     <colorSettingsPage implementation="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLColorSettingsPage"/>
 
     <!-- Formatting and folding -->
@@ -261,6 +261,9 @@
     <localInspection language="GraphQL" key="graphql.inspection.display.name.unresolved.reference" enabledByDefault="true"
                      groupKey="graphql.inspection.group.general" groupPathKey="graphql" unfair="true" level="ERROR"
                      implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection"/>
+
+    <lang.inspectionSuppressor language="GraphQL"
+                               implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLInspectionSuppressor"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">

@@ -10,11 +10,13 @@ import org.jetbrains.annotations.Nullable;
 public interface GraphQLErrorFilter {
     ExtensionPointName<GraphQLErrorFilter> EP_NAME = new ExtensionPointName<>("com.intellij.lang.jsgraphql.errorFilter");
 
-    default boolean isGraphQLErrorIgnored(@NotNull Project project, @NotNull GraphQLError error, @Nullable PsiElement element) {
+    default boolean isGraphQLErrorSuppressed(@NotNull Project project, @NotNull GraphQLError error, @Nullable PsiElement element) {
         return false;
     }
 
-    default boolean isUnresolvedReferenceIgnored(@NotNull Project project, @NotNull PsiElement element) {
+    default boolean isInspectionSuppressed(@NotNull Project project,
+                                           @NotNull String toolId,
+                                           @NotNull PsiElement element) {
         return false;
     }
 }

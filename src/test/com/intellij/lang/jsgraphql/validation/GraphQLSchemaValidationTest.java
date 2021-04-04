@@ -9,6 +9,13 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
         return "/validation/schema";
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+
+        myFixture.enableInspections(ourGeneralInspections);
+    }
+
     public void testTypeRegistryRedefinitionErrors() {
         doHighlightingTest();
     }
@@ -70,6 +77,10 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
     }
 
     public void testExtendSchemaErrors() {
+        doHighlightingTest();
+    }
+
+    public void testFieldDefinitionDirectiveErrors() {
         doHighlightingTest();
     }
 

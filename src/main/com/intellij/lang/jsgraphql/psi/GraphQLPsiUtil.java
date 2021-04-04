@@ -12,12 +12,17 @@ import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class GraphQLPsiUtil {
 
@@ -102,5 +107,19 @@ public class GraphQLPsiUtil {
             return virtualFile.getPath();
         }
         return psiFile.getName();
+    }
+
+    public static @NotNull List<PsiComment> getLeadingFileComments(@NotNull PsiFile file) {
+        List<PsiComment> comments = new SmartList<>();
+        PsiElement child = file.getFirstChild();
+        if (child instanceof PsiWhiteSpace) {
+            child = PsiTreeUtil.skipWhitespacesForward(child);
+        }
+        while (child instanceof PsiComment) {
+            comments.add(((PsiComment) child));
+            child = PsiTreeUtil.skipWhitespacesForward(child);
+        }
+
+        return comments;
     }
 }

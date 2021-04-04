@@ -23,6 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GraphQLInjectionHighlightingTest extends GraphQLBaseTestCase {
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        myFixture.enableInspections(ourGeneralInspections);
+    }
 
     private void initPredefinedSchema() {
         myFixture.configureByFiles(

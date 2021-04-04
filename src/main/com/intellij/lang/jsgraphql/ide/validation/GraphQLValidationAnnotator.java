@@ -13,12 +13,10 @@ import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
-import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.validation.fixes.GraphQLMissingTypeFix;
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
@@ -40,7 +38,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection.createAnnotationBuilder;
+import static com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection.createAnnotation;
 
 public class GraphQLValidationAnnotator implements Annotator {
 
@@ -71,9 +69,7 @@ public class GraphQLValidationAnnotator implements Annotator {
         final GraphQLIdentifier nameIdentifier = psiElement.getNameIdentifier();
         final String enumValueName = nameIdentifier.getText();
         if ("true".equals(enumValueName) || "false".equals(enumValueName) || "null".equals(enumValueName)) {
-            createAnnotationBuilder(
-                annotationHolder, nameIdentifier, "Enum values can not be named '" + enumValueName + "'", null
-            ).create();
+            createAnnotation(annotationHolder, nameIdentifier, "Enum values can not be named '" + enumValueName + "'");
         }
     }
 
@@ -83,18 +79,14 @@ public class GraphQLValidationAnnotator implements Annotator {
             return;
         }
 
-        createAnnotationBuilder(
-            annotationHolder, psiElement, "Unknown directive location '" + psiElement.getText() + "'", null
-        ).highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL).create();
+        createAnnotation(
+            annotationHolder, psiElement, "Unknown directive location '" + psiElement.getText() + "'",
+            builder -> builder.highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
+        );
     }
 
     private void checkIdentifierReferences(@NotNull PsiElement element, @NotNull AnnotationHolder annotationHolder) {
         Project project = element.getProject();
-        PsiFile containingFile = element.getContainingFile();
-
-        if (!GraphQLInspection.isToolEnabled(project, GraphQLUnresolvedReferenceInspection.class, containingFile)) {
-            return;
-        }
 
         final PsiReference reference = element.getReference();
         if (reference != null && reference.resolve() != null) {
@@ -102,10 +94,6 @@ public class GraphQLValidationAnnotator implements Annotator {
         }
 
         final PsiElement parent = element.getParent();
-        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isUnresolvedReferenceIgnored(project, parent))) {
-            return;
-        }
-
         final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(parent, GraphQLTypeScopeProvider.class);
         com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope = null;
         if (typeScopeProvider != null) {
@@ -120,9 +108,8 @@ public class GraphQLValidationAnnotator implements Annotator {
 
         // fixes to automatically rename misspelled identifiers
         final List<LocalQuickFix> fixes = Lists.newArrayList();
-        Consumer<List<String>> createFixes = (List<String> suggestions) -> {
+        Consumer<List<String>> createFixes = (List<String> suggestions) ->
             suggestions.forEach(suggestion -> fixes.add(new RenameElementFix((PsiNamedElement) element, suggestion)));
-        };
 
         if (parent instanceof GraphQLField) {
             message = "Unknown field \"" + element.getText() + "\"";
@@ -148,7 +135,7 @@ public class GraphQLValidationAnnotator implements Annotator {
         } else if (parent instanceof GraphQLArgument) {
             message = "Unknown argument \"" + element.getText() + "\"";
             if (typeScope != null) {
-                final List<String> suggestions = getArgumentNameSuggestions(element, typeScope);
+                final List<String> suggestions = getArgumentNameSuggestions(element);
                 if (!suggestions.isEmpty()) {
                     message += ". Did you mean " + formatSuggestions(suggestions) + "?";
                     createFixes.accept(suggestions);
@@ -175,28 +162,30 @@ public class GraphQLValidationAnnotator implements Annotator {
             return;
         }
 
-        AnnotationBuilder builder = createAnnotationBuilder(annotationHolder, element, message, GraphQLUnresolvedReferenceInspection.class)
-            .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL);
+        String finalMessage = message;
+        createAnnotation(annotationHolder, element, message, GraphQLUnresolvedReferenceInspection.class, builder -> {
+            builder = builder.highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL);
 
-        if (!fixes.isEmpty()) {
-            final InspectionManager inspectionManager = InspectionManager.getInstance(project);
-            final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
-                element,
-                element,
-                message,
-                ProblemHighlightType.LIKE_UNKNOWN_SYMBOL,
-                true,
-                LocalQuickFix.EMPTY_ARRAY
-            );
-            for (LocalQuickFix fix : fixes) {
-                builder = builder.newLocalQuickFix(fix, problemDescriptor).registerFix();
+            if (!fixes.isEmpty()) {
+                final InspectionManager inspectionManager = InspectionManager.getInstance(project);
+                final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
+                    element,
+                    element,
+                    finalMessage,
+                    ProblemHighlightType.LIKE_UNKNOWN_SYMBOL,
+                    true,
+                    LocalQuickFix.EMPTY_ARRAY
+                );
+                for (LocalQuickFix fix : fixes) {
+                    builder = builder.newLocalQuickFix(fix, problemDescriptor).registerFix();
+                }
             }
-        }
-        builder.create();
+
+            return builder;
+        });
     }
 
-
-    private List<String> getArgumentNameSuggestions(PsiElement argument, com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope) {
+    private List<String> getArgumentNameSuggestions(PsiElement argument) {
         final GraphQLField field = PsiTreeUtil.getParentOfType(argument, GraphQLField.class);
         final GraphQLIdentifier fieldDefinitionIdentifier = GraphQLPsiSearchHelper.getResolvedReference(field);
         if (fieldDefinitionIdentifier != null) {

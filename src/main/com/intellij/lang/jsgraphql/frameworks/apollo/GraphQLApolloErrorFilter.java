@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.frameworks.apollo;
 
 import com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLField;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
@@ -17,6 +18,7 @@ import com.intellij.lang.jsgraphql.types.validation.ValidationErrorType;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,18 +28,23 @@ import org.jetbrains.annotations.Nullable;
 public class GraphQLApolloErrorFilter implements GraphQLErrorFilter {
 
     @Override
-    public boolean isUnresolvedReferenceIgnored(@NotNull Project project, @NotNull PsiElement element) {
-        if (!(element instanceof GraphQLField)) {
+    public boolean isInspectionSuppressed(@NotNull Project project,
+                                          @NotNull String toolId,
+                                          @NotNull PsiElement element) {
+        if (!toolId.equals(GraphQLUnresolvedReferenceInspection.SHORT_NAME)) return false;
+
+        PsiElement parent = element.getParent();
+        if (!(parent instanceof GraphQLField)) {
             return false;
         }
 
-        return hasClientDirective(element);
+        return hasClientDirective(parent);
     }
 
     @Override
-    public boolean isGraphQLErrorIgnored(@NotNull Project project,
-                                         @NotNull GraphQLError error,
-                                         @Nullable PsiElement element) {
+    public boolean isGraphQLErrorSuppressed(@NotNull Project project,
+                                            @NotNull GraphQLError error,
+                                            @Nullable PsiElement element) {
         if (!(error instanceof ValidationError)) {
             return false;
         }
@@ -50,7 +57,7 @@ public class GraphQLApolloErrorFilter implements GraphQLErrorFilter {
     }
 
     private boolean hasClientDirective(@Nullable PsiElement element) {
-        return hasClientDirective((GraphQLField) element) ||
+        return hasClientDirective(ObjectUtils.tryCast(element, GraphQLField.class)) ||
             hasClientDirective(PsiTreeUtil.getParentOfType(element, GraphQLDirectivesAware.class));
     }
 

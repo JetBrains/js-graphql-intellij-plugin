@@ -39,8 +39,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 
-public class GraphQLSchemaValidationAnnotator implements Annotator {
-    private static final Logger LOG = Logger.getInstance(GraphQLSchemaValidationAnnotator.class);
+public class GraphQLSchemaAnnotator implements Annotator {
+    private static final Logger LOG = Logger.getInstance(GraphQLSchemaAnnotator.class);
 
     @Override
     public void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
@@ -194,7 +194,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                                        @NotNull PsiElement element,
                                        @Nullable String message) {
         if (message == null) return;
-        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isGraphQLErrorIgnored(element.getProject(), error, element))) {
+        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isGraphQLErrorSuppressed(element.getProject(), error, element))) {
             return;
         }
 

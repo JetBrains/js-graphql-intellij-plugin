@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.frameworks.relay;
 
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
 import com.intellij.lang.jsgraphql.psi.GraphQLArguments;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.openapi.project.Project;
@@ -23,7 +24,11 @@ import org.jetbrains.annotations.NotNull;
 public class GraphQLRelayModernErrorFilter implements GraphQLErrorFilter {
 
     @Override
-    public boolean isUnresolvedReferenceIgnored(@NotNull Project project, @NotNull PsiElement element) {
+    public boolean isInspectionSuppressed(@NotNull Project project,
+                                          @NotNull String toolId,
+                                          @NotNull PsiElement element) {
+        if (!toolId.equals(GraphQLUnresolvedReferenceInspection.SHORT_NAME)) return false;
+
         GraphQLSettings settings = GraphQLSettings.getSettings(project);
         if (!settings.isEnableRelayModernFrameworkSupport()) {
             return false;

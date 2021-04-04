@@ -1,0 +1,11 @@
+# checks GraphQLGeneralErrorFilter
+
+type Query {
+    user: User
+}
+
+directive @Dir on FIELD_DEFINITION
+
+type User {
+    name: ID @Dir
+}

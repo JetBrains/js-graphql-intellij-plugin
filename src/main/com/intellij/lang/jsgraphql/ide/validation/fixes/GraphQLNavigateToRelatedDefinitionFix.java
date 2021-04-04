@@ -14,11 +14,11 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GraphQLNavigateToRelatedDefinition extends IntentionAndQuickFixAction {
+public class GraphQLNavigateToRelatedDefinitionFix extends IntentionAndQuickFixAction {
     private final @NotNull SmartPsiElementPointer<PsiElement> myElement;
     private final @Nullable String myName;
 
-    public GraphQLNavigateToRelatedDefinition(@NotNull PsiElement element, @Nullable String name) {
+    public GraphQLNavigateToRelatedDefinitionFix(@NotNull PsiElement element, @Nullable String name) {
         myElement = SmartPointerManager.getInstance(element.getProject()).createSmartPsiElementPointer(element);
         myName = name;
     }
