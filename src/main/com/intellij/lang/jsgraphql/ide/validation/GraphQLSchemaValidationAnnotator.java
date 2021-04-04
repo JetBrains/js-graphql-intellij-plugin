@@ -194,7 +194,7 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
                                        @NotNull PsiElement element,
                                        @Nullable String message) {
         if (message == null) return;
-        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isErrorIgnored(element.getProject(), error, element))) {
+        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isGraphQLErrorIgnored(element.getProject(), error, element))) {
             return;
         }
 

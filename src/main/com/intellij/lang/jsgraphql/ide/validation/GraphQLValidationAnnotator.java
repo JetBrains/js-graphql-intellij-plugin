@@ -13,31 +13,34 @@ import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
-import com.intellij.lang.annotation.Annotation;
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.validation.fixes.GraphQLMissingTypeFix;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.schema.*;
-import com.intellij.openapi.editor.colors.CodeInsightColors;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.text.EditDistance;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection.createAnnotationBuilder;
 
 public class GraphQLValidationAnnotator implements Annotator {
 
@@ -50,37 +53,56 @@ public class GraphQLValidationAnnotator implements Annotator {
 
         // identifiers - fields, fragment spreads, field arguments, directives, type names, input object fields
         if (psiElement instanceof GraphQLIdentifier) {
-            final PsiReference reference = psiElement.getReference();
-            if (reference == null || reference.resolve() == null) {
-                createUnresolvedError(psiElement, annotationHolder);
-            }
+            checkIdentifierReferences(psiElement, annotationHolder);
         }
 
         // valid directive location names
         if (psiElement instanceof GraphQLDirectiveLocation) {
-            final PsiReference reference = psiElement.getReference();
-            if (reference == null || reference.resolve() == null) {
-                Annotation annotation = createErrorAnnotation(
-                    annotationHolder, psiElement, "Unknown directive location '" + psiElement.getText() + "'");
-                if (annotation != null) {
-                    annotation.setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
-                }
-            }
+            checkDirectiveLocation(psiElement, annotationHolder);
         }
 
         // valid enum value names according to spec
         if (psiElement instanceof GraphQLEnumValue) {
-            final GraphQLIdentifier nameIdentifier = ((GraphQLEnumValue) psiElement).getNameIdentifier();
-            final String enumValueName = nameIdentifier.getText();
-            if ("true".equals(enumValueName) || "false".equals(enumValueName) || "null".equals(enumValueName)) {
-                createErrorAnnotation(annotationHolder, nameIdentifier, "Enum values can not be named '" + enumValueName + "'");
-            }
+            checkEnumValues((GraphQLEnumValue) psiElement, annotationHolder);
         }
     }
 
-    private void createUnresolvedError(@NotNull PsiElement element, @NotNull AnnotationHolder annotationHolder) {
+    private void checkEnumValues(GraphQLEnumValue psiElement, @NotNull AnnotationHolder annotationHolder) {
+        final GraphQLIdentifier nameIdentifier = psiElement.getNameIdentifier();
+        final String enumValueName = nameIdentifier.getText();
+        if ("true".equals(enumValueName) || "false".equals(enumValueName) || "null".equals(enumValueName)) {
+            createAnnotationBuilder(
+                annotationHolder, nameIdentifier, "Enum values can not be named '" + enumValueName + "'", null
+            ).create();
+        }
+    }
+
+    private void checkDirectiveLocation(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
+        final PsiReference reference = psiElement.getReference();
+        if (reference != null && reference.resolve() != null) {
+            return;
+        }
+
+        createAnnotationBuilder(
+            annotationHolder, psiElement, "Unknown directive location '" + psiElement.getText() + "'", null
+        ).highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL).create();
+    }
+
+    private void checkIdentifierReferences(@NotNull PsiElement element, @NotNull AnnotationHolder annotationHolder) {
+        Project project = element.getProject();
+        PsiFile containingFile = element.getContainingFile();
+
+        if (!GraphQLInspection.isToolEnabled(project, GraphQLUnresolvedReferenceInspection.class, containingFile)) {
+            return;
+        }
+
+        final PsiReference reference = element.getReference();
+        if (reference != null && reference.resolve() != null) {
+            return;
+        }
+
         final PsiElement parent = element.getParent();
-        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isUnresolvedErrorIgnored(element.getProject(), parent))) {
+        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isUnresolvedReferenceIgnored(project, parent))) {
             return;
         }
 
@@ -149,33 +171,30 @@ public class GraphQLValidationAnnotator implements Annotator {
             fixes.addAll(GraphQLMissingTypeFix.getApplicableFixes((GraphQLIdentifier) element));
         }
 
-        if (message != null) {
-            Annotation annotation = createErrorAnnotation(annotationHolder, element, message);
-            if (annotation != null) {
-                annotation.setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
-                if (!fixes.isEmpty()) {
-                    final InspectionManager inspectionManager = InspectionManager.getInstance(element.getProject());
-                    final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
-                        element,
-                        element,
-                        message,
-                        ProblemHighlightType.ERROR,
-                        true,
-                        LocalQuickFix.EMPTY_ARRAY
-                    );
-                    for (LocalQuickFix fix : fixes) {
-                        annotation.registerFix(fix, null, null, problemDescriptor);
-                    }
-                }
+        if (message == null) {
+            return;
+        }
+
+        AnnotationBuilder builder = createAnnotationBuilder(annotationHolder, element, message, GraphQLUnresolvedReferenceInspection.class)
+            .highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL);
+
+        if (!fixes.isEmpty()) {
+            final InspectionManager inspectionManager = InspectionManager.getInstance(project);
+            final ProblemDescriptor problemDescriptor = inspectionManager.createProblemDescriptor(
+                element,
+                element,
+                message,
+                ProblemHighlightType.LIKE_UNKNOWN_SYMBOL,
+                true,
+                LocalQuickFix.EMPTY_ARRAY
+            );
+            for (LocalQuickFix fix : fixes) {
+                builder = builder.newLocalQuickFix(fix, problemDescriptor).registerFix();
             }
         }
+        builder.create();
     }
 
-    private @Nullable Annotation createErrorAnnotation(@NotNull AnnotationHolder annotationHolder,
-                                                       @NotNull PsiElement element,
-                                                       @Nullable String message) {
-        return annotationHolder.createErrorAnnotation(element, message);
-    }
 
     private List<String> getArgumentNameSuggestions(PsiElement argument, com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope) {
         final GraphQLField field = PsiTreeUtil.getParentOfType(argument, GraphQLField.class);

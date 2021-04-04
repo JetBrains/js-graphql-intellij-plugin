@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public class GraphQLRelayModernErrorFilter implements GraphQLErrorFilter {
 
     @Override
-    public boolean isUnresolvedErrorIgnored(@NotNull Project project, @NotNull PsiElement element) {
+    public boolean isUnresolvedReferenceIgnored(@NotNull Project project, @NotNull PsiElement element) {
         GraphQLSettings settings = GraphQLSettings.getSettings(project);
         if (!settings.isEnableRelayModernFrameworkSupport()) {
             return false;

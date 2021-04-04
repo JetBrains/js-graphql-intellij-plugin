@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 public class GraphQLApolloErrorFilter implements GraphQLErrorFilter {
 
     @Override
-    public boolean isUnresolvedErrorIgnored(@NotNull Project project, @NotNull PsiElement element) {
+    public boolean isUnresolvedReferenceIgnored(@NotNull Project project, @NotNull PsiElement element) {
         if (!(element instanceof GraphQLField)) {
             return false;
         }
@@ -35,9 +35,9 @@ public class GraphQLApolloErrorFilter implements GraphQLErrorFilter {
     }
 
     @Override
-    public boolean isErrorIgnored(@NotNull Project project,
-                                  @NotNull GraphQLError error,
-                                  @Nullable PsiElement element) {
+    public boolean isGraphQLErrorIgnored(@NotNull Project project,
+                                         @NotNull GraphQLError error,
+                                         @Nullable PsiElement element) {
         if (!(error instanceof ValidationError)) {
             return false;
         }

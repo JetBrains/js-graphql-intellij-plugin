@@ -13,9 +13,9 @@ import org.jetbrains.annotations.Nullable;
 public class GraphQLGeneralErrorFilter implements GraphQLErrorFilter {
 
     @Override
-    public boolean isErrorIgnored(@NotNull Project project,
-                                  @NotNull GraphQLError error,
-                                  @Nullable PsiElement element) {
+    public boolean isGraphQLErrorIgnored(@NotNull Project project,
+                                         @NotNull GraphQLError error,
+                                         @Nullable PsiElement element) {
         if (!(error instanceof ValidationError)) {
             return false;
         }
