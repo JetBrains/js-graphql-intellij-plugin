@@ -102,7 +102,7 @@ public final class SourceLocation implements Serializable {
         if (document == null) return CachedValueProvider.Result.create(defaultLocation, ModificationTracker.NEVER_CHANGED);
 
         VirtualFile virtualFile = topLevelFile.getVirtualFile();
-        int offset = injectedLanguageManager.injectedToHost(myElement, myElement.getTextOffset());
+        int offset = injectedLanguageManager.injectedToHost(myElement, myElement.getNavigationElement().getTextOffset());
         int lineNumber = document.getLineNumber(offset);
         int column = offset - document.getLineStartOffset(lineNumber);
         Location location = new Location(
