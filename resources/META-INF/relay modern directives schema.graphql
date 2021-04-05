@@ -72,3 +72,75 @@ directive @required(
     action: RequiredFieldAction!
 ) on FIELD
 
+
+"""
+Works on GraphQL fields that return an ID or [ID]. Will delete the record with the given ID in the Relay Store.
+"""
+directive @deleteRecord on FIELD
+
+"""
+Works on GraphQL fields that return an ID or [ID]. Will delete the edge with nodes that matches the
+id from each connection defined in the connections array.
+"""
+directive @deleteEdge(
+    """
+    An array of connection IDs. Connection IDs can be obtained either by using the __id field on connections
+    or using the ConnectionHandler.getConnectionID API.
+    """
+    connections: [ID!]!
+) on FIELD
+
+"""
+This directive works on edge fields.
+@appendEdge will add the selected edge to the end of each connection in the connections array.
+"""
+directive @appendEdge(
+    connections: [ID!]!
+) on FIELD
+
+"""
+This directive works on edge fields.
+@prependEdge will add the selected edge to the beginning of each defined in the connections array.
+"""
+directive @prependEdge(
+    """
+    An array of connection IDs. Connection IDs can be obtained either by using the __id field on connections
+    or using the ConnectionHandler.getConnectionID API.
+    """
+    connections: [ID!]!
+) on FIELD
+
+"""
+This directive works on node fields and will create edges with the specified edgeTypeName.
+@appendNode will add the selected node to the end of each connection in the connections array.
+"""
+directive @appendNode(
+    """
+    An array of connection IDs. Connection IDs can be obtained either by using the __id field on connections
+    or using the ConnectionHandler.getConnectionID API.
+    """
+    connections: [ID!]!
+
+    """
+    The typename of an edge, corresponding to the edge type argument in ConnectionHandler.createEdge.
+    """
+    edgeTypeName: String!
+) on FIELD
+
+"""
+This directive works on node fields and will create edges with the specified edgeTypeName.
+@prependNode will add the selected node to the beginning of each defined in the connections array.
+"""
+directive @prependNode(
+    """
+    An array of connection IDs. Connection IDs can be obtained either by using the __id field on connections
+    or using the ConnectionHandler.getConnectionID API.
+    """
+    connections: [ID!]!
+
+    """
+    The typename of an edge, corresponding to the edge type argument in ConnectionHandler.createEdge.
+    """
+    edgeTypeName: String!
+) on FIELD
+
