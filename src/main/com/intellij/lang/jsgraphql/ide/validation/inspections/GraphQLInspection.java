@@ -13,6 +13,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lang.annotation.ProblemGroup;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.ide.validation.GraphQLProblemGroup;
+import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.openapi.project.Project;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
@@ -143,7 +144,7 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
             }
         }
 
-        AnnotationBuilder builder = annotationHolder.newAnnotation(severity, message).range(element);
+        AnnotationBuilder builder = annotationHolder.newAnnotation(severity, message);
         if (problemGroup != null) {
             builder = builder.problemGroup(problemGroup);
         }
@@ -152,5 +153,9 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
             builder = builder.withFix(fix);
         }
         return builder;
+    }
+
+    public static @Nullable Class<? extends GraphQLInspection> findInspectionForError(@NotNull GraphQLError error) {
+        return null;
     }
 }

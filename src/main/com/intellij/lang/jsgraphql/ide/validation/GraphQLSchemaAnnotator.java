@@ -7,10 +7,10 @@
  */
 package com.intellij.lang.jsgraphql.ide.validation;
 
-import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
@@ -194,16 +194,20 @@ public class GraphQLSchemaAnnotator implements Annotator {
                                        @NotNull PsiElement element,
                                        @Nullable String message) {
         if (message == null) return;
-        if (GraphQLErrorFilter.EP_NAME.extensions().anyMatch(filter -> filter.isGraphQLErrorSuppressed(element.getProject(), error, element))) {
+        if (GraphQLErrorFilter.EP_NAME.extensions()
+            .anyMatch(filter -> filter.isGraphQLErrorSuppressed(element.getProject(), error, element))) {
             return;
         }
 
-        Annotation annotation = annotationHolder.createErrorAnnotation(getAnnotationAnchor(element), message);
+        GraphQLInspection.createAnnotation(annotationHolder, element, message, GraphQLInspection.findInspectionForError(error), builder -> {
+            builder = builder.range(getAnnotationAnchor(element));
 
-        List<Node> references = error.getReferences();
-        if (!references.isEmpty()) {
-            annotation.setTooltip(createTooltip(error, message, references.size() > 1));
-        }
+            List<Node> references = error.getReferences();
+            if (!references.isEmpty()) {
+                builder = builder.tooltip(createTooltip(error, message, references.size() > 1));
+            }
+            return builder;
+        });
     }
 
     @NotNull
