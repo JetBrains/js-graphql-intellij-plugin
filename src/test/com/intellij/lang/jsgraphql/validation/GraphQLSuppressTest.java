@@ -13,6 +13,7 @@ public class GraphQLSuppressTest extends GraphQLBaseTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         myFixture.enableInspections(ourGeneralInspections);
+        myFixture.enableInspections(ourSchemaInspections);
     }
 
     public void testSuppressOnDefinition() {

@@ -17,8 +17,11 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLTypeRedefinitionInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -27,9 +30,14 @@ public class TypeRedefinitionError extends BaseError {
 
     public TypeRedefinitionError(TypeDefinition newEntry, TypeDefinition oldEntry) {
         super(oldEntry,
-                format("'%s' type tried to redefine existing '%s' type",
-                        newEntry.getName(), oldEntry.getName()
-                ));
+            format("'%s' type tried to redefine existing '%s' type",
+                newEntry.getName(), oldEntry.getName()
+            ));
         addReferences(newEntry);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLTypeRedefinitionInspection.class;
     }
 }

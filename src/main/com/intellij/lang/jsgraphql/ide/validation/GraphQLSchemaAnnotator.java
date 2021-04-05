@@ -199,7 +199,7 @@ public class GraphQLSchemaAnnotator implements Annotator {
             return;
         }
 
-        GraphQLInspection.createAnnotation(annotationHolder, element, message, GraphQLInspection.findInspectionForError(error), builder -> {
+        GraphQLInspection.createAnnotation(annotationHolder, element, message, error.getInspectionClass(), builder -> {
             builder = builder.range(getAnnotationAnchor(element));
 
             List<Node> references = error.getReferences();

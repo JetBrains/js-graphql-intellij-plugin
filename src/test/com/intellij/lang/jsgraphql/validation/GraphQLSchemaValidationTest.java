@@ -14,6 +14,7 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
         super.setUp();
 
         myFixture.enableInspections(ourGeneralInspections);
+        myFixture.enableInspections(ourSchemaInspections);
     }
 
     public void testTypeRegistryRedefinitionErrors() {

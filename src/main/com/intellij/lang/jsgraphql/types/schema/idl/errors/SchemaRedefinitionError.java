@@ -17,10 +17,11 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLTypeRedefinitionInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.SchemaDefinition;
-
-import static java.lang.String.format;
+import org.jetbrains.annotations.Nullable;
 
 @Internal
 public class SchemaRedefinitionError extends BaseError {
@@ -28,5 +29,10 @@ public class SchemaRedefinitionError extends BaseError {
     public SchemaRedefinitionError(SchemaDefinition oldEntry, SchemaDefinition newEntry) {
         super(oldEntry, "There is already a schema defined.");
         addReferences(newEntry);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLTypeRedefinitionInspection.class;
     }
 }
