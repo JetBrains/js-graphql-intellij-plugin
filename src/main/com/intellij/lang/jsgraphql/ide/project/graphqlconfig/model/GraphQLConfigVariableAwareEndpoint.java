@@ -145,11 +145,9 @@ public class GraphQLConfigVariableAwareEndpoint {
         if (configFile != null) {
             VirtualFile parentDir = configFile.getParent();
             if (parentDir != null) {
-                DotenvBuilder dotenvBuilder = getDotenvBuilder(parentDir.getPath());
-
                 String filename = getFileName(parentDir);
                 if (filename != null) {
-                    dotenv = dotenvBuilder.filename(filename).load();
+                    dotenv = getDotenvBuilder(parentDir.getPath()).filename(filename).load();
                     varValue = dotenv.get(varName);
                 }
             }
@@ -158,13 +156,11 @@ public class GraphQLConfigVariableAwareEndpoint {
         // If that didn't resolve try to load the env file from the root of the project
         String projectBasePath = project.getBasePath();
         if (varValue == null && projectBasePath != null) {
-            DotenvBuilder dotenvBuilder = getDotenvBuilder(projectBasePath);
-
             VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
             if (projectDir != null) {
                 String filename = getFileName(projectDir);
                 if (filename != null) {
-                    dotenv = dotenvBuilder.filename(filename).load();
+                    dotenv = getDotenvBuilder(projectBasePath).filename(filename).load();
                     varValue = dotenv.get(varName);
                 }
             }
