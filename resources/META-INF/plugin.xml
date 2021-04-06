@@ -273,9 +273,9 @@
     <localInspection language="GraphQL" key="graphql.inspection.display.name.unexpected.type" enabledByDefault="true"
                      groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
                      implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnexpectedTypeInspection"/>
-    <localInspection language="GraphQL" key="graphql.inspection.display.name.field.redefinition" enabledByDefault="true"
+    <localInspection language="GraphQL" key="graphql.inspection.display.name.member.redefinition" enabledByDefault="true"
                      groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
-                     implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLFieldRedefinitionInspection"/>
+                     implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection"/>
     <localInspection language="GraphQL" key="graphql.inspection.display.name.illegal.name" enabledByDefault="true"
                      groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
                      implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalNameInspection"/>

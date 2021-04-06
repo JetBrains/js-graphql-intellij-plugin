@@ -17,7 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLFieldRedefinitionInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
@@ -35,6 +35,6 @@ public class OperationRedefinitionError extends BaseError {
 
     @Override
     public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLFieldRedefinitionInspection.class;
+        return GraphQLMemberRedefinitionInspection.class;
     }
 }

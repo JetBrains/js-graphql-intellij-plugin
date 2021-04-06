@@ -1,6 +1,6 @@
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLFieldRedefinitionInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.language.TypeName;
 import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
@@ -22,6 +22,6 @@ public class UnionMemberNotUniqueError extends BaseError {
 
     @Override
     public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLFieldRedefinitionInspection.class;
+        return GraphQLMemberRedefinitionInspection.class;
     }
 }

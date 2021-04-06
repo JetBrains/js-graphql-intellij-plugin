@@ -84,8 +84,8 @@ public class SchemaValidationError extends BaseError {
         switch (errorType) {
             case InvalidCustomizedNameError:
                 return GraphQLIllegalNameInspection.class;
-            default:
-                return null;
         }
+
+        return super.getInspectionClass();
     }
 }
