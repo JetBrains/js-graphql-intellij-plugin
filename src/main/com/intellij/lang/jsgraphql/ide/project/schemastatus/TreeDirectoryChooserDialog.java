@@ -131,7 +131,7 @@ public final class TreeDirectoryChooserDialog extends DialogWrapper {
 
         new TreeSpeedSearch(myTree);
 
-        return myTree;
+        return scrollPane;
     }
 
     private void handleSelectionChanged() {
