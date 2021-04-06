@@ -23,6 +23,6 @@ import com.intellij.lang.jsgraphql.types.Internal;
 public class QueryOperationMissingError extends BaseError {
 
     public QueryOperationMissingError() {
-        super(null, "A schema MUST have a 'query' operation defined");
+        super(null, "A schema should have a 'query' operation defined");
     }
 }

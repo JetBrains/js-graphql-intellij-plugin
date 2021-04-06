@@ -26,8 +26,8 @@ public class GraphQLInjectionHighlightingTest extends GraphQLBaseTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        myFixture.enableInspections(ourGeneralInspections);
-        myFixture.enableInspections(ourSchemaInspections);
+
+        enableAllInspections();
     }
 
     private void initPredefinedSchema() {

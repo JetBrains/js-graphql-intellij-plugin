@@ -9,6 +9,12 @@ public class GraphQLOperationsValidationTest extends GraphQLBaseTestCase {
         return "/validation/operations";
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        enableAllInspections();
+    }
+
     public void testRepeatableDirectives() {
         doHighlightingTest();
     }

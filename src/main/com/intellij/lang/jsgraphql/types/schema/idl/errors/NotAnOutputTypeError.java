@@ -17,10 +17,13 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnexpectedTypeInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Type;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -30,5 +33,10 @@ public class NotAnOutputTypeError extends BaseError {
     public NotAnOutputTypeError(@NotNull Type rawType, @NotNull TypeDefinition typeDefinition) {
         super(rawType, format("The type '%s' is not an output type, but was used to declare the output type of a field", typeDefinition.getName()));
         addReferences(typeDefinition);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLUnexpectedTypeInspection.class;
     }
 }

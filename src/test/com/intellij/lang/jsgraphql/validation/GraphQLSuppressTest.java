@@ -12,8 +12,7 @@ public class GraphQLSuppressTest extends GraphQLBaseTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        myFixture.enableInspections(ourGeneralInspections);
-        myFixture.enableInspections(ourSchemaInspections);
+        enableAllInspections();
     }
 
     public void testSuppressOnDefinition() {

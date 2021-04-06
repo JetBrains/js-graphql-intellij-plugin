@@ -12,9 +12,7 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-
-        myFixture.enableInspections(ourGeneralInspections);
-        myFixture.enableInspections(ourSchemaInspections);
+        enableAllInspections();
     }
 
     public void testTypeRegistryRedefinitionErrors() {
@@ -82,6 +80,10 @@ public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
     }
 
     public void testFieldDefinitionDirectiveErrors() {
+        doHighlightingTest();
+    }
+
+    public void testSchemaOperationTypeErrors() {
         doHighlightingTest();
     }
 

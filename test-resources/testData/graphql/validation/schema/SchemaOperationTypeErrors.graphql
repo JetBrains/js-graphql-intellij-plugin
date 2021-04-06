@@ -1,0 +1,7 @@
+input Input {
+    id: ID
+}
+
+schema {
+    <error descr="The operation type 'query' should have an object type as its definition">query</error>: <error descr="The type 'Input' is not an output type, but was used to declare the output type of a field">Input</error>
+}

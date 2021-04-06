@@ -20,6 +20,7 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotAnObjectTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionTypeError;
 
 import java.util.*;
@@ -76,7 +77,7 @@ class UnionTypesChecker {
             Optional<TypeDefinition> memberTypeDefinition = typeRegistry.getType(memberTypeName);
 
             if (!memberTypeDefinition.isPresent() || !(memberTypeDefinition.get() instanceof ObjectTypeDefinition)) {
-                errors.add(new UnionTypeError(unionTypeDefinition, format("The member types of a Union type must all be Object base types. Member type '%s' in Union '%s' is invalid.", ((TypeName) memberType).getName(), unionTypeDefinition.getName())));
+                errors.add(new UnionMemberNotAnObjectTypeError(unionTypeDefinition, ((TypeName) memberType)));
                 continue;
             }
 

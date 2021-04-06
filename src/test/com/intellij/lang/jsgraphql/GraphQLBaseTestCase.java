@@ -5,6 +5,7 @@ import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLSchemaValidationInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLTypeRedefinitionInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnexpectedTypeInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +19,8 @@ public abstract class GraphQLBaseTestCase extends BasePlatformTestCase {
 
     protected static final List<Class<? extends LocalInspectionTool>> ourSchemaInspections = Lists.newArrayList(
         GraphQLSchemaValidationInspection.class,
-        GraphQLTypeRedefinitionInspection.class
+        GraphQLTypeRedefinitionInspection.class,
+        GraphQLUnexpectedTypeInspection.class
     );
 
     @Override
@@ -38,5 +40,10 @@ public abstract class GraphQLBaseTestCase extends BasePlatformTestCase {
     protected void doHighlightingTest(@NotNull String ext) {
         myFixture.configureByFile(getTestName(false) + "." + ext);
         myFixture.checkHighlighting();
+    }
+
+    protected final void enableAllInspections() {
+        myFixture.enableInspections(ourGeneralInspections);
+        myFixture.enableInspections(ourSchemaInspections);
     }
 }

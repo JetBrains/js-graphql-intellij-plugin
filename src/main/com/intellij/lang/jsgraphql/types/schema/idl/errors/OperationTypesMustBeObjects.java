@@ -17,8 +17,11 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnexpectedTypeInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -26,6 +29,11 @@ import static java.lang.String.format;
 public class OperationTypesMustBeObjects extends BaseError {
 
     public OperationTypesMustBeObjects(OperationTypeDefinition op) {
-        super(op, format("The operation type '%s' MUST have a object type as its definition", op.getName()));
+        super(op, format("The operation type '%s' should have an object type as its definition", op.getName()));
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLUnexpectedTypeInspection.class;
     }
 }
