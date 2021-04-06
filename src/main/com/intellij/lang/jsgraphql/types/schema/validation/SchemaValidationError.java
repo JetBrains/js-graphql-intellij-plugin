@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.validation;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLEmptyTypeInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalNameInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
@@ -84,6 +85,10 @@ public class SchemaValidationError extends BaseError {
         switch (errorType) {
             case InvalidCustomizedNameError:
                 return GraphQLIllegalNameInspection.class;
+            case EnumLackOfValueError:
+            case InputObjectTypeLackOfFieldError:
+            case ImplementingTypeLackOfFieldError:
+                return GraphQLEmptyTypeInspection.class;
         }
 
         return super.getInspectionClass();

@@ -17,12 +17,20 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
-import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.Node;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLEmptyTypeInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
-@Internal
-public class UnionTypeError extends BaseError {
-    public UnionTypeError(Node node, String msg) {
-        super(node, msg);
+import static java.lang.String.format;
+
+public class EmptyUnionTypeError extends BaseError {
+    public EmptyUnionTypeError(UnionTypeDefinition definition) {
+        super(definition, format("Union type '%s' must include one or more member types.", definition.getName()));
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLEmptyTypeInspection.class;
     }
 }

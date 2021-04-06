@@ -20,10 +20,10 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.EmptyUnionTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.IllegalNameError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotAnObjectTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotUniqueError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionTypeError;
 
 import java.util.*;
 import java.util.function.Function;
@@ -69,7 +69,7 @@ class UnionTypesChecker {
 
         List<Type> memberTypes = unionTypeDefinition.getMemberTypes();
         if (memberTypes == null || memberTypes.size() == 0) {
-            errors.add(new UnionTypeError(unionTypeDefinition, format("Union type '%s' must include one or more member types.", unionTypeDefinition.getName())));
+            errors.add(new EmptyUnionTypeError(unionTypeDefinition));
             return;
         }
 
