@@ -20,8 +20,9 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotUniqueError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.IllegalNameError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotAnObjectTypeError;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotUniqueError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionTypeError;
 
 import java.util.*;
@@ -92,7 +93,7 @@ class UnionTypesChecker {
 
     private void assertTypeName(UnionTypeDefinition unionTypeDefinition, List<GraphQLError> errors) {
         if (unionTypeDefinition.getName().length() >= 2 && unionTypeDefinition.getName().startsWith("__")) {
-            errors.add((new UnionTypeError(unionTypeDefinition, String.format("'%s' must not begin with '__', which is reserved by GraphQL introspection.", unionTypeDefinition.getName()))));
+            errors.add((new IllegalNameError(unionTypeDefinition)));
         }
     }
 

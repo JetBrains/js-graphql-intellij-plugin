@@ -17,15 +17,21 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalNameInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.NamedNode;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @Internal
 public class IllegalNameError extends BaseError {
-    public IllegalNameError(NamedNode directiveDefinition) {
-        super(directiveDefinition,
-                String.format("'%s' must not begin with '__', which is reserved by GraphQL introspection.",
-                        directiveDefinition.getName()
-                ));
+    public IllegalNameError(@NotNull NamedNode namedNode) {
+        super(namedNode, String.format("'%s' must not begin with '__', which is reserved by GraphQL introspection.", namedNode.getName()));
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLIllegalNameInspection.class;
     }
 }

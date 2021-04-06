@@ -27,11 +27,7 @@ public enum SchemaValidationErrorType {
     ImplementingTypeLackOfFieldError,
     InputObjectTypeLackOfFieldError,
     EnumLackOfValueError,
-    UnionTypeLackOfTypeError,
-    InvalidUnionMemberTypeError,
     InvalidCustomizedNameError,
     NonNullWrapNonNullError,
-    RepetitiveElementError,
-    CompositeError
 
 }

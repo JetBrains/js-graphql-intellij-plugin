@@ -17,6 +17,8 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.validation;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalNameInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.BaseError;
@@ -75,5 +77,15 @@ public class SchemaValidationError extends BaseError {
         }
         SchemaValidationError that = (SchemaValidationError) other;
         return this.errorType.equals(that.errorType) && this.description.equals(that.description);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        switch (errorType) {
+            case InvalidCustomizedNameError:
+                return GraphQLIllegalNameInspection.class;
+            default:
+                return null;
+        }
     }
 }

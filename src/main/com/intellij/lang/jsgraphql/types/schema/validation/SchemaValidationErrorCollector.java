@@ -34,11 +34,4 @@ public class SchemaValidationErrorCollector {
     public Set<SchemaValidationError> getErrors() {
         return errors;
     }
-
-    public boolean containsValidationError(SchemaValidationErrorType validationErrorType) {
-        for (SchemaValidationError validationError : errors) {
-            if (validationError.getValidationErrorType() == validationErrorType) return true;
-        }
-        return false;
-    }
 }

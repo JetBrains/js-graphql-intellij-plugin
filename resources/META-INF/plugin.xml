@@ -270,12 +270,15 @@
     <localInspection language="GraphQL" key="graphql.inspection.display.name.type.redefinition" enabledByDefault="true"
                      groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
                      implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLTypeRedefinitionInspection"/>
-    <localInspection language="GraphQL" key="graphql.inspection.display.name.invalid.type" enabledByDefault="true"
+    <localInspection language="GraphQL" key="graphql.inspection.display.name.unexpected.type" enabledByDefault="true"
                      groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
                      implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnexpectedTypeInspection"/>
     <localInspection language="GraphQL" key="graphql.inspection.display.name.field.redefinition" enabledByDefault="true"
                      groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
                      implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLFieldRedefinitionInspection"/>
+    <localInspection language="GraphQL" key="graphql.inspection.display.name.illegal.name" enabledByDefault="true"
+                     groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
+                     implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalNameInspection"/>
 
     <lang.inspectionSuppressor language="GraphQL"
                                implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLInspectionSuppressor"/>
