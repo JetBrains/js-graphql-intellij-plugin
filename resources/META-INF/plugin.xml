@@ -282,6 +282,9 @@
     <localInspection language="GraphQL" key="graphql.inspection.display.name.empty.type" enabledByDefault="true"
                      groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
                      implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLEmptyTypeInspection"/>
+    <localInspection language="GraphQL" key="graphql.inspection.display.name.duplicate.argument" enabledByDefault="true"
+                     groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
+                     implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLDuplicateArgumentInspection"/>
 
     <lang.inspectionSuppressor language="GraphQL"
                                implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLInspectionSuppressor"/>

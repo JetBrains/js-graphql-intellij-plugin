@@ -136,7 +136,7 @@ public class SchemaTypeChecker {
             List<InputValueDefinition> arguments = directiveDefinition.getInputValueDefinitions();
 
             checkNamedUniqueness(errors, arguments, InputValueDefinition::getName,
-                    (name, arg) -> new NonUniqueNameError(directiveDefinition, arg));
+                    (name, arg) -> new NonUniqueArgumentError(directiveDefinition, arg));
 
             List<Type> inputValueTypes = arguments.stream()
                     .map(InputValueDefinition::getType)
