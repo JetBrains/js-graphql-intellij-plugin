@@ -3,10 +3,7 @@ package com.intellij.lang.jsgraphql;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLSchemaValidationInspection;
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLTypeRedefinitionInspection;
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnexpectedTypeInspection;
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.*;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,7 +17,8 @@ public abstract class GraphQLBaseTestCase extends BasePlatformTestCase {
     protected static final List<Class<? extends LocalInspectionTool>> ourSchemaInspections = Lists.newArrayList(
         GraphQLSchemaValidationInspection.class,
         GraphQLTypeRedefinitionInspection.class,
-        GraphQLUnexpectedTypeInspection.class
+        GraphQLUnexpectedTypeInspection.class,
+        GraphQLFieldRedefinitionInspection.class
     );
 
     @Override

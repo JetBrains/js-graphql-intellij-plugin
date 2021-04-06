@@ -20,6 +20,7 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotUniqueError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotAnObjectTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionTypeError;
 
@@ -82,7 +83,7 @@ class UnionTypesChecker {
             }
 
             if (typeNames.contains(memberTypeName)) {
-                errors.add(new UnionTypeError(unionTypeDefinition, format("The member type '%s' in Union '%s' is not unique. The member types of a Union type must be unique.", ((TypeName) memberType).getName(), unionTypeDefinition.getName())));
+                errors.add(new UnionMemberNotUniqueError(unionTypeDefinition, (TypeName) memberType));
                 continue;
             }
             typeNames.add(memberTypeName);

@@ -17,9 +17,12 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLFieldRedefinitionInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -34,5 +37,10 @@ public class TypeExtensionEnumValueRedefinitionError extends BaseError {
                         typeDefinition.getName(), enumValueDefinition.getName()
                 ));
         addReferences(redefinedValue);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLFieldRedefinitionInspection.class;
     }
 }
