@@ -188,6 +188,7 @@
     <annotator language="GraphQL Endpoint Doc"
                implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.ide.annotator.JSGraphQLEndpointDocHighlightAnnotator"/>
 
+    <daemon.changeLocalityDetector order="first" implementation="com.intellij.lang.jsgraphql.ide.validation.GraphQLChangeLocalityDetector"/>
 
     <!-- Query context highlighter -->
     <highlightVisitor implementation="com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor"/>
