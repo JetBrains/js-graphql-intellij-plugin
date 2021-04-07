@@ -1,0 +1,9 @@
+# comment 🚨 emoji
+
+"""
+Description 🚨 emoji
+"""
+type Query {
+    "Inline description 🚨 emoji"
+    id: ID
+}

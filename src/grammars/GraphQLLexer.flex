@@ -67,11 +67,10 @@ import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 %type IElementType
 %unicode
 
-SOURCE_CHARACTER = [\u0009\u000A\u000D\u0020-\uFFFF]
 UNICODE_BOM = \uFEFF
 WHITESPACE = \u0009|\u0020
 LINE_TERMINATOR = \u000A | (\u000D \u000A?)
-COMMENT = "#" [\u0009\u0020-\uFFFF]*
+COMMENT = "#" .*
 NAME = [_A-Za-z][_0-9A-Za-z]*
 VARIABLE = \${NAME}
 NUMBER = -?([0-9]+|[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)
