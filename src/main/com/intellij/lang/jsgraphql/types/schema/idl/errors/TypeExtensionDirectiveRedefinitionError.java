@@ -17,9 +17,12 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLDuplicateDirectiveInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Directive;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -30,5 +33,10 @@ public class TypeExtensionDirectiveRedefinitionError extends BaseError {
         super(typeExtensionDefinition,
             format("The extension '%s' type has redefined the directive called '%s'",
                 typeExtensionDefinition.getName(), directive.getName()));
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLDuplicateDirectiveInspection.class;
     }
 }

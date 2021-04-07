@@ -288,6 +288,9 @@
     <localInspection language="GraphQL" key="graphql.inspection.display.name.interface.implemented" enabledByDefault="true"
                      groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
                      implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementedInspection"/>
+    <localInspection language="GraphQL" key="graphql.inspection.display.name.duplicate.directive" enabledByDefault="true"
+                     groupKey="graphql.inspection.group.schema" groupPathKey="graphql" unfair="true" level="ERROR"
+                     implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLDuplicateDirectiveInspection"/>
 
     <lang.inspectionSuppressor language="GraphQL"
                                implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLInspectionSuppressor"/>

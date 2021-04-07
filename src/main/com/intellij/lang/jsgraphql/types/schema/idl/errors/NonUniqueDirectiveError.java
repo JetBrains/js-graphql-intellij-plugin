@@ -17,11 +17,14 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLDuplicateDirectiveInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
 import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
 import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -30,17 +33,21 @@ public class NonUniqueDirectiveError extends BaseError {
 
     public NonUniqueDirectiveError(TypeDefinition typeDefinition, FieldDefinition fieldDefinition, String directiveName) {
         super(typeDefinition, format("The type '%s' with field '%s' has declared a directive with a non unique name '%s'",
-                typeDefinition.getName(), fieldDefinition.getName(), directiveName));
+            typeDefinition.getName(), fieldDefinition.getName(), directiveName));
     }
 
     public NonUniqueDirectiveError(TypeDefinition typeDefinition, InputValueDefinition inputValueDefinition, String directiveName) {
         super(typeDefinition, format("The type '%s' with input value '%s' has declared a directive with a non unique name '%s'",
-                typeDefinition.getName(), inputValueDefinition.getName(), directiveName));
+            typeDefinition.getName(), inputValueDefinition.getName(), directiveName));
     }
 
     public NonUniqueDirectiveError(TypeDefinition typeDefinition, EnumValueDefinition enumValueDefinition, String directiveName) {
         super(typeDefinition, format("The '%s' type with enum value '%s' has declared a directive with a non unique name '%s'",
-                typeDefinition.getName(), enumValueDefinition.getName(), directiveName));
+            typeDefinition.getName(), enumValueDefinition.getName(), directiveName));
     }
 
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLDuplicateDirectiveInspection.class;
+    }
 }
