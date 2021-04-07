@@ -20,6 +20,7 @@ package com.intellij.lang.jsgraphql.types.schema.validation;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLEmptyTypeInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalNameInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementedInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.BaseError;
@@ -89,6 +90,8 @@ public class SchemaValidationError extends BaseError {
             case InputObjectTypeLackOfFieldError:
             case ImplementingTypeLackOfFieldError:
                 return GraphQLEmptyTypeInspection.class;
+            case ObjectDoesNotImplementItsInterfaces:
+                return GraphQLInterfaceImplementedInspection.class;
         }
 
         return super.getInspectionClass();

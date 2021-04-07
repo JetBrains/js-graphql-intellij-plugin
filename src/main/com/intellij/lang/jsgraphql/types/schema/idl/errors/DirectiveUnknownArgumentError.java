@@ -17,8 +17,11 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalArgumentInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Node;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -27,8 +30,13 @@ public class DirectiveUnknownArgumentError extends BaseError {
 
     public DirectiveUnknownArgumentError(Node element, String elementName, String directiveName, String argumentName) {
         super(element,
-                format("'%s' use an unknown argument '%s' on directive '%s'",
-                        elementName, argumentName, directiveName
-                ));
+            format("'%s' use an unknown argument '%s' on directive '%s'",
+                elementName, argumentName, directiveName
+            ));
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLIllegalArgumentInspection.class;
     }
 }

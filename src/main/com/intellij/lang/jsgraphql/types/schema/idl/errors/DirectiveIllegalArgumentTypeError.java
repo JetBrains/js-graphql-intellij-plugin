@@ -17,8 +17,11 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalArgumentInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Node;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -36,7 +39,11 @@ public class DirectiveIllegalArgumentTypeError extends BaseError {
     public static final String EXPECTED_LIST_MESSAGE = "Argument value is '%s', expected a list value.";
     public static final String EXPECTED_OBJECT_MESSAGE = "Argument value is of type '%s', expected an Object value.";
 
-    public DirectiveIllegalArgumentTypeError(Node element, String elementName, String directiveName, String argumentName, String detailedMessaged) {
+    public DirectiveIllegalArgumentTypeError(Node element,
+                                             String elementName,
+                                             String directiveName,
+                                             String argumentName,
+                                             String detailedMessaged) {
         super(element, mkDirectiveIllegalArgumentTypeErrorMessage(element, elementName, directiveName, argumentName, detailedMessaged));
     }
 
@@ -46,6 +53,11 @@ public class DirectiveIllegalArgumentTypeError extends BaseError {
                                                              String argumentName,
                                                              String detailedMessage) {
         return format("'%s' uses an illegal value for the argument '%s' on directive '%s'. %s",
-                elementName, argumentName, directiveName, detailedMessage);
+            elementName, argumentName, directiveName, detailedMessage);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLIllegalArgumentInspection.class;
     }
 }
