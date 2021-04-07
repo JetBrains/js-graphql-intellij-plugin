@@ -17,19 +17,29 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementedInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
 @Internal
 public class InterfaceWithCircularImplementationHierarchyError extends BaseError {
-    public InterfaceWithCircularImplementationHierarchyError(String typeOfType, ImplementingTypeDefinition typeDefinition, InterfaceTypeDefinition implementedInterface) {
+    public InterfaceWithCircularImplementationHierarchyError(String typeOfType,
+                                                             ImplementingTypeDefinition typeDefinition,
+                                                             InterfaceTypeDefinition implementedInterface) {
         super(typeDefinition, format("The %s type '%s' cannot implement '%s' as this would result in a circular reference",
-                typeOfType, typeDefinition.getName(),
-                implementedInterface.getName()
+            typeOfType, typeDefinition.getName(),
+            implementedInterface.getName()
         ));
         addReferences(implementedInterface);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLInterfaceImplementedInspection.class;
     }
 }

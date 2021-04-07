@@ -17,8 +17,8 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementedInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
 import com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition;
@@ -43,6 +43,6 @@ public class InterfaceFieldRedefinitionError extends BaseError {
 
     @Override
     public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLMemberRedefinitionInspection.class;
+        return GraphQLInterfaceImplementedInspection.class;
     }
 }

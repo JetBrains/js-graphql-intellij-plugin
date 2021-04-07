@@ -17,17 +17,28 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementedInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
 @Internal
 public class MissingTransitiveInterfaceError extends BaseError {
-    public MissingTransitiveInterfaceError(String typeOfType, ImplementingTypeDefinition typeDefinition, InterfaceTypeDefinition implementedInterface, InterfaceTypeDefinition missingInterface) {
+    public MissingTransitiveInterfaceError(String typeOfType,
+                                           ImplementingTypeDefinition typeDefinition,
+                                           InterfaceTypeDefinition implementedInterface,
+                                           InterfaceTypeDefinition missingInterface) {
         super(typeDefinition, format("The %s type '%s' must implement '%s' because it is implemented by '%s'",
-                typeOfType, typeDefinition.getName(), missingInterface.getName(), implementedInterface.getName()));
+            typeOfType, typeDefinition.getName(), missingInterface.getName(), implementedInterface.getName()));
         addReferences(missingInterface);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLInterfaceImplementedInspection.class;
     }
 }

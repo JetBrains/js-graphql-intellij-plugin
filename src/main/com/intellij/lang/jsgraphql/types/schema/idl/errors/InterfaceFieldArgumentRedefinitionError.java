@@ -17,10 +17,13 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementedInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
 import com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -34,7 +37,12 @@ public class InterfaceFieldArgumentRedefinitionError extends BaseError {
                                                    String interfaceArgStr,
                                                    FieldDefinition interfaceFieldDef) {
         super(typeDefinition, format("The %s type '%s' has tried to redefine field '%s' arguments defined via interface '%s' from '%s' to '%s'",
-                typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceTypeDef.getName(), interfaceArgStr, objectArgStr));
+            typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceTypeDef.getName(), interfaceArgStr, objectArgStr));
         addReferences(interfaceFieldDef);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLInterfaceImplementedInspection.class;
     }
 }

@@ -17,18 +17,29 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementedInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
 import com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
 @Internal
 public class MissingInterfaceFieldError extends BaseError {
-    public MissingInterfaceFieldError(String typeOfType, ImplementingTypeDefinition objectType, InterfaceTypeDefinition interfaceTypeDef, FieldDefinition interfaceFieldDef) {
+    public MissingInterfaceFieldError(String typeOfType,
+                                      ImplementingTypeDefinition objectType,
+                                      InterfaceTypeDefinition interfaceTypeDef,
+                                      FieldDefinition interfaceFieldDef) {
         super(objectType, format("The %s type '%s' does not have a field '%s' required via interface '%s'",
-                typeOfType, objectType.getName(), interfaceFieldDef.getName(), interfaceTypeDef.getName()));
+            typeOfType, objectType.getName(), interfaceFieldDef.getName(), interfaceTypeDef.getName()));
         addReferences(interfaceFieldDef);
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLInterfaceImplementedInspection.class;
     }
 }
