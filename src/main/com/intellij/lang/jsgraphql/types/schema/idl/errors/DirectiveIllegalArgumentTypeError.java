@@ -17,7 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalArgumentInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalDirectiveArgumentInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Node;
@@ -58,6 +58,6 @@ public class DirectiveIllegalArgumentTypeError extends BaseError {
 
     @Override
     public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLIllegalArgumentInspection.class;
+        return GraphQLIllegalDirectiveArgumentInspection.class;
     }
 }

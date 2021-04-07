@@ -25,7 +25,7 @@ public abstract class GraphQLBaseTestCase extends BasePlatformTestCase {
         GraphQLInterfaceImplementedInspection.class,
         GraphQLDuplicateDirectiveInspection.class,
         GraphQLMissingTypeInspection.class,
-        GraphQLIllegalArgumentInspection.class,
+        GraphQLIllegalDirectiveArgumentInspection.class,
         GraphQLInvalidDirectiveLocationInspection.class
     );
 
