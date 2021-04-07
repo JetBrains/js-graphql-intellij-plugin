@@ -17,8 +17,11 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMissingTypeInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Node;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -30,5 +33,10 @@ public class DirectiveUndeclaredError extends BaseError {
                 format("'%s' tried to use an undeclared directive '%s'",
                         elementName, directiveName
                 ));
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLMissingTypeInspection.class;
     }
 }

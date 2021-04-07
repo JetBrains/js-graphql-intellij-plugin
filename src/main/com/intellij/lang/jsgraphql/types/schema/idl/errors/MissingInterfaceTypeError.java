@@ -17,9 +17,12 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMissingTypeInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.TypeName;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -28,6 +31,11 @@ public class MissingInterfaceTypeError extends BaseError {
 
     public MissingInterfaceTypeError(String typeOfType, TypeDefinition typeDefinition, TypeName typeName) {
         super(typeDefinition, format("The %s type '%s' is not present when resolving type '%s'",
-                typeOfType, typeName.getName(), typeDefinition.getName()));
+            typeOfType, typeName.getName(), typeDefinition.getName()));
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLMissingTypeInspection.class;
     }
 }

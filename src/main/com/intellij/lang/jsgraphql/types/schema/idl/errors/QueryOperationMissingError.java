@@ -17,12 +17,20 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMissingTypeInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
+import org.jetbrains.annotations.Nullable;
 
 @Internal
 public class QueryOperationMissingError extends BaseError {
 
     public QueryOperationMissingError() {
         super(null, "A schema should have a 'query' operation defined");
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLMissingTypeInspection.class;
     }
 }

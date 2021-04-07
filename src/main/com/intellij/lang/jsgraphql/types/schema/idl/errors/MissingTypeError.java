@@ -17,10 +17,13 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMissingTypeInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.TypeName;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -40,5 +43,10 @@ public class MissingTypeError extends BaseError {
     public MissingTypeError(String typeOfType, Node node,String name) {
         super(node, format("The %s type is not present when resolving type '%s'",
                 typeOfType, name));
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLMissingTypeInspection.class;
     }
 }
