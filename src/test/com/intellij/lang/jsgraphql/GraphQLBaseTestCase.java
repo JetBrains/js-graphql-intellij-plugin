@@ -19,7 +19,10 @@ public abstract class GraphQLBaseTestCase extends BasePlatformTestCase {
         GraphQLTypeRedefinitionInspection.class,
         GraphQLUnexpectedTypeInspection.class,
         GraphQLMemberRedefinitionInspection.class,
-        GraphQLIllegalNameInspection.class
+        GraphQLIllegalNameInspection.class,
+        GraphQLDuplicateArgumentInspection.class,
+        GraphQLEmptyTypeInspection.class,
+        GraphQLInterfaceImplementedInspection.class
     );
 
     @Override
