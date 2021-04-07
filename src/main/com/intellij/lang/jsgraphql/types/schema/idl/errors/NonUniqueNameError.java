@@ -17,8 +17,11 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
+import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;
 
@@ -43,5 +46,10 @@ public class NonUniqueNameError extends BaseError {
     public NonUniqueNameError(UnionTypeDefinition typeDefinition, String memberName) {
         super(typeDefinition, format("The type '%s' has declared an union member with a non unique name '%s'",
             typeDefinition.getName(), memberName));
+    }
+
+    @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return GraphQLMemberRedefinitionInspection.class;
     }
 }
