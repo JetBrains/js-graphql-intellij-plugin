@@ -68,6 +68,7 @@ public class FieldCollector {
 
 
     private void collectFields(FieldCollectorParameters parameters, SelectionSet selectionSet, Set<String> visitedFragments, Map<String, MergedField> fields) {
+        if (selectionSet == null) return;
 
         for (Selection selection : selectionSet.getSelections()) {
             if (selection instanceof Field) {
