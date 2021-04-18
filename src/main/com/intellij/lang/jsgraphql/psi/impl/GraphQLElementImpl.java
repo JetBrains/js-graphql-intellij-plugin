@@ -10,9 +10,8 @@ package com.intellij.lang.jsgraphql.psi.impl;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLElement;
-import com.intellij.lang.jsgraphql.psi.GraphQLQuotedString;
+import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLElementImpl extends ASTWrapperPsiElement implements GraphQLElement {
@@ -22,16 +21,7 @@ public abstract class GraphQLElementImpl extends ASTWrapperPsiElement implements
 
     @Override
     public @NotNull PsiElement getNavigationElement() {
-        if (this instanceof GraphQLDescriptionAware) {
-            GraphQLQuotedString description = ((GraphQLDescriptionAware) this).getDescription();
-            if (description != null) {
-                PsiElement target = PsiTreeUtil.skipWhitespacesForward(description);
-                if (target != null) {
-                    return target;
-                }
-            }
-        }
-
-        return this;
+        return GraphQLPsiUtil.skipDescription(this);
     }
+
 }

@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.psi;
 
 import com.intellij.injected.editor.VirtualFileWindow;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.openapi.util.Ref;
@@ -121,5 +122,20 @@ public class GraphQLPsiUtil {
         }
 
         return comments;
+    }
+
+    @NotNull
+    public static PsiElement skipDescription(@NotNull PsiElement element) {
+        if (element instanceof GraphQLDescriptionAware) {
+            GraphQLQuotedString description = ((GraphQLDescriptionAware) element).getDescription();
+            if (description != null) {
+                PsiElement target = PsiTreeUtil.skipWhitespacesForward(description);
+                if (target != null) {
+                    return target;
+                }
+            }
+        }
+
+        return element;
     }
 }

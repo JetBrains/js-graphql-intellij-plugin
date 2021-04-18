@@ -277,6 +277,7 @@ public class GraphQLSchemaAnnotator implements Annotator {
             return element;
         }
 
+        element = GraphQLPsiUtil.skipDescription(element);
         LeafElement leaf = TreeUtil.findFirstLeaf(element.getNode());
         if (leaf != null) {
             element = leaf.getPsi();
