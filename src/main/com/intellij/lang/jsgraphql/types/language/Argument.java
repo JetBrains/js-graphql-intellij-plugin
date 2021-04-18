@@ -85,7 +85,7 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
 
     @Override
     public List<Node> getChildren() {
-        return ImmutableList.of(value);
+        return value != null ? ImmutableList.of(value) : emptyList();
     }
 
     @Override
