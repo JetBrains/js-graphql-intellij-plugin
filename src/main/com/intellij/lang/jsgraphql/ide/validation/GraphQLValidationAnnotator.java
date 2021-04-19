@@ -31,6 +31,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.text.EditDistance;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -220,8 +221,11 @@ public class GraphQLValidationAnnotator implements Annotator {
     }
 
     @NotNull
-    private List<String> getSuggestions(String text, List<String> candidates) {
+    private List<String> getSuggestions(@Nullable String text, @NotNull List<String> candidates) {
+        if (text == null) return Collections.emptyList();
+
         return candidates.stream()
+            .filter(s -> !text.equals(s))
             .map(suggestion -> new Pair<>(suggestion, EditDistance.optimalAlignment(text, suggestion, false)))
             .filter(p -> p.second <= 2)
             .sorted(Comparator.comparingInt(p -> p.second))
