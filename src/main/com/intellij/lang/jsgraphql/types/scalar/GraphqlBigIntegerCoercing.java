@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.scalar;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.FloatValue;
 import com.intellij.lang.jsgraphql.types.language.IntValue;
@@ -82,7 +83,7 @@ public class GraphqlBigIntegerCoercing implements Coercing<BigInteger, BigIntege
                 return new BigDecimal(((StringValue) input).getValue()).toBigIntegerExact();
             } catch (NumberFormatException | ArithmeticException e) {
                 throw new CoercingParseLiteralException(
-                        "Unable to turn AST input into a 'BigInteger' : '" + input + "'"
+                        "Unable to turn input into a 'BigInteger'"
                 );
             }
         } else if (input instanceof IntValue) {
@@ -92,12 +93,12 @@ public class GraphqlBigIntegerCoercing implements Coercing<BigInteger, BigIntege
                 return ((FloatValue) input).getValue().toBigIntegerExact();
             } catch (ArithmeticException e) {
                 throw new CoercingParseLiteralException(
-                        "Unable to turn AST input into a 'BigInteger' : '" + input + "'"
+                        "Unable to turn input into a 'BigInteger'"
                 );
             }
         }
         throw new CoercingParseLiteralException(
-                "Expected AST type 'IntValue', 'StringValue' or 'FloatValue' but was '" + typeName(input) + "'."
+                "Expected type 'Int', 'String' or 'Float' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
         );
     }
 }

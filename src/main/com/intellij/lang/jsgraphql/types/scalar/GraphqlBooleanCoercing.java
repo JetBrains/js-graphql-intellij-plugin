@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.scalar;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.BooleanValue;
 import com.intellij.lang.jsgraphql.types.schema.Coercing;
@@ -79,7 +80,7 @@ public class GraphqlBooleanCoercing implements Coercing<Boolean, Boolean> {
     public Boolean parseLiteral(Object input) {
         if (!(input instanceof BooleanValue)) {
             throw new CoercingParseLiteralException(
-                    "Expected AST type 'BooleanValue' but was '" + typeName(input) + "'."
+                    "Expected type 'Boolean' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
             );
         }
         return ((BooleanValue) input).isValue();

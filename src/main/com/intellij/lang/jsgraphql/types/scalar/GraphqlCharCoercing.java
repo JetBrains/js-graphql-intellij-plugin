@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.scalar;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.StringValue;
 import com.intellij.lang.jsgraphql.types.schema.Coercing;
@@ -66,13 +67,13 @@ public class GraphqlCharCoercing implements Coercing<Character, Character> {
     public Character parseLiteral(Object input) {
         if (!(input instanceof StringValue)) {
             throw new CoercingParseLiteralException(
-                    "Expected AST type 'StringValue' but was '" + typeName(input) + "'."
+                    "Expected type 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
             );
         }
         String value = ((StringValue) input).getValue();
         if (value.length() != 1) {
             throw new CoercingParseLiteralException(
-                    "Empty 'StringValue' provided."
+                    "Empty string value provided."
             );
         }
         return value.charAt(0);

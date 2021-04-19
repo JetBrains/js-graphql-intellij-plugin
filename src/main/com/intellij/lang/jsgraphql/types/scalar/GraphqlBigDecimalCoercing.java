@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.scalar;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.FloatValue;
 import com.intellij.lang.jsgraphql.types.language.IntValue;
@@ -75,7 +76,7 @@ public class GraphqlBigDecimalCoercing implements Coercing<BigDecimal, BigDecima
                 return new BigDecimal(((StringValue) input).getValue());
             } catch (NumberFormatException e) {
                 throw new CoercingParseLiteralException(
-                        "Unable to turn AST input into a 'BigDecimal' : '" + input + "'"
+                        "Unable to turn input into a 'BigDecimal'"
                 );
             }
         } else if (input instanceof IntValue) {
@@ -84,7 +85,7 @@ public class GraphqlBigDecimalCoercing implements Coercing<BigDecimal, BigDecima
             return ((FloatValue) input).getValue();
         }
         throw new CoercingParseLiteralException(
-                "Expected AST type 'IntValue', 'StringValue' or 'FloatValue' but was '" + typeName(input) + "'."
+                "Expected type is 'Int', 'String' or 'Float' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
         );
     }
 }

@@ -38,11 +38,14 @@ public class ArgumentsOfCorrectType extends AbstractRule {
         }
         ArgumentValidationUtil validationUtil = new ArgumentValidationUtil(argument);
         if (!validationUtil.isValidLiteralValue(argument.getValue(), fieldArgument.getType(), getValidationContext().getSchema())) {
-            addError(ValidationError.newValidationError()
+            addError(
+                ValidationError.newValidationError()
                     .validationErrorType(ValidationErrorType.WrongType)
                     .sourceLocation(argument.getSourceLocation())
                     .description(validationUtil.getMessage())
-                    .extensions(validationUtil.getErrorExtensions()));
+                    .extensions(validationUtil.getErrorExtensions())
+                    .node(argument)
+            );
         }
     }
 }

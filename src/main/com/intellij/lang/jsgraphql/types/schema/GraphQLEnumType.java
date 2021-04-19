@@ -20,6 +20,7 @@ package com.intellij.lang.jsgraphql.types.schema;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
@@ -124,14 +125,14 @@ public class GraphQLEnumType implements GraphQLNamedInputType, GraphQLNamedOutpu
     public Object parseLiteral(Object input) {
         if (!(input instanceof EnumValue)) {
             throw new CoercingParseLiteralException(
-                    "Expected AST type 'EnumValue' but was '" + typeName(input) + "'."
+                    "Expected type 'Enum' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
             );
         }
         EnumValue enumValue = (EnumValue) input;
         GraphQLEnumValueDefinition enumValueDefinition = valueDefinitionMap.get(enumValue.getName());
         if (enumValueDefinition == null) {
             throw new CoercingParseLiteralException(
-                    "Expected enum literal value not in allowable values -  '" + input + "'."
+                    "Expected enum literal value not in allowable values."
             );
         }
         return enumValueDefinition.getValue();

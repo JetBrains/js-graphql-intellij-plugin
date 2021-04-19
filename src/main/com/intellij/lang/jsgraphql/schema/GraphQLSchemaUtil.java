@@ -131,4 +131,27 @@ public class GraphQLSchemaUtil {
         }
         return type;
     }
+
+    public static @NotNull String getValueTypeName(@NotNull Object value) {
+        if (value instanceof IntValue) {
+            return "Int";
+        } else if (value instanceof FloatValue) {
+            return "Float";
+        } else if (value instanceof StringValue) {
+            return "String";
+        } else if (value instanceof EnumValue) {
+            return "Enum";
+        } else if (value instanceof BooleanValue) {
+            return "Boolean";
+        } else if (value instanceof NullValue) {
+            return "null";
+        } else if (value instanceof ArrayValue) {
+            return "Array";
+        } else if (value instanceof ObjectValue) {
+            return "Object";
+        } else if (value instanceof VariableReference) {
+            return "Reference";
+        }
+        return value.getClass().getSimpleName();
+    }
 }

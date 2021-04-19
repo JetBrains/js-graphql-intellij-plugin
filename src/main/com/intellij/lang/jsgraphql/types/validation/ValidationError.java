@@ -22,7 +22,9 @@ import com.intellij.lang.jsgraphql.types.ErrorType;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.GraphqlErrorHelper;
 import com.intellij.lang.jsgraphql.types.PublicApi;
+import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.language.SourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,41 +40,7 @@ public class ValidationError implements GraphQLError {
     private final ValidationErrorType validationErrorType;
     private final List<String> queryPath;
     private final Map<String, Object> extensions;
-
-    public ValidationError(ValidationErrorType validationErrorType) {
-        this(newValidationError()
-                .validationErrorType(validationErrorType));
-    }
-
-    public ValidationError(ValidationErrorType validationErrorType, SourceLocation sourceLocation, String description) {
-        this(newValidationError()
-                .validationErrorType(validationErrorType)
-                .sourceLocation(sourceLocation)
-                .description(description));
-    }
-
-    public ValidationError(ValidationErrorType validationErrorType, SourceLocation sourceLocation, String description, List<String> queryPath) {
-        this(newValidationError()
-                .validationErrorType(validationErrorType)
-                .sourceLocation(sourceLocation)
-                .description(description)
-                .queryPath(queryPath));
-    }
-
-    public ValidationError(ValidationErrorType validationErrorType, List<SourceLocation> sourceLocations, String description) {
-        this(newValidationError()
-                .validationErrorType(validationErrorType)
-                .sourceLocations(sourceLocations)
-                .description(description));
-    }
-
-    public ValidationError(ValidationErrorType validationErrorType, List<SourceLocation> sourceLocations, String description, List<String> queryPath) {
-        this(newValidationError()
-                .validationErrorType(validationErrorType)
-                .sourceLocations(sourceLocations)
-                .description(description)
-                .queryPath(queryPath));
-    }
+    private final Node node;
 
     private ValidationError(Builder builder) {
         this.validationErrorType = builder.validationErrorType;
@@ -83,6 +51,7 @@ public class ValidationError implements GraphQLError {
         this.message = mkMessage(builder.validationErrorType, builder.description, builder.queryPath);
         this.queryPath = builder.queryPath;
         this.extensions = builder.extensions;
+        this.node = builder.node;
     }
 
     private String mkMessage(ValidationErrorType validationErrorType, String description, List<String> queryPath) {
@@ -129,6 +98,11 @@ public class ValidationError implements GraphQLError {
     }
 
     @Override
+    public @Nullable Node getNode() {
+        return this.node;
+    }
+
+    @Override
     public String toString() {
         return "ValidationError{" +
                 "validationErrorType=" + validationErrorType +
@@ -161,6 +135,7 @@ public class ValidationError implements GraphQLError {
         private String description;
         private ValidationErrorType validationErrorType;
         private List<String> queryPath;
+        private Node node;
 
 
         public Builder validationErrorType(ValidationErrorType validationErrorType) {
@@ -190,6 +165,11 @@ public class ValidationError implements GraphQLError {
 
         public Builder extensions(Map<String, Object> extensions) {
             this.extensions = extensions;
+            return this;
+        }
+
+        public Builder node(Node node) {
+            this.node = node;
             return this;
         }
 

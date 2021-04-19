@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.scalar;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.IntValue;
 import com.intellij.lang.jsgraphql.types.language.StringValue;
@@ -87,20 +88,20 @@ public class GraphqlLongCoercing implements Coercing<Long, Long> {
                 return Long.parseLong(((StringValue) input).getValue());
             } catch (NumberFormatException e) {
                 throw new CoercingParseLiteralException(
-                        "Expected value to be a Long but it was '" + input + "'"
+                        "Expected value to be a Long but it was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'"
                 );
             }
         } else if (input instanceof IntValue) {
             BigInteger value = ((IntValue) input).getValue();
             if (value.compareTo(LONG_MIN) < 0 || value.compareTo(LONG_MAX) > 0) {
                 throw new CoercingParseLiteralException(
-                        "Expected value to be in the Long range but it was '" + value.toString() + "'"
+                        "Expected value to be in the Long range but it was '" + value + "'"
                 );
             }
             return value.longValue();
         }
         throw new CoercingParseLiteralException(
-                "Expected AST type 'IntValue' or 'StringValue' but was '" + typeName(input) + "'."
+                "Expected type 'Int' or 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
         );
     }
 }

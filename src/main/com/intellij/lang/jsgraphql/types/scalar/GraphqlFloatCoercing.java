@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.scalar;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.FloatValue;
 import com.intellij.lang.jsgraphql.types.language.IntValue;
@@ -79,7 +80,7 @@ public class GraphqlFloatCoercing implements Coercing<Double, Double> {
             return ((FloatValue) input).getValue().doubleValue();
         } else {
             throw new CoercingParseLiteralException(
-                    "Expected AST type 'IntValue' or 'FloatValue' but was '" + typeName(input) + "'."
+                    "Expected type 'Int' or 'Float' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
             );
         }
     }

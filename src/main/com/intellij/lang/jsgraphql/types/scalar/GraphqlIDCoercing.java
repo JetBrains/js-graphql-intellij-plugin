@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.scalar;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.IntValue;
 import com.intellij.lang.jsgraphql.types.language.StringValue;
@@ -84,7 +85,7 @@ public class GraphqlIDCoercing implements Coercing<Object, Object> {
             return ((IntValue) input).getValue().toString();
         }
         throw new CoercingParseLiteralException(
-                "Expected AST type 'IntValue' or 'StringValue' but was '" + typeName(input) + "'."
+                "Expected type 'Int' or 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
         );
     }
 }

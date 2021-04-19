@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.scalar;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.IntValue;
 import com.intellij.lang.jsgraphql.types.schema.Coercing;
@@ -83,13 +84,13 @@ public class GraphqlByteCoercing implements Coercing<Byte, Byte> {
     public Byte parseLiteral(Object input) {
         if (!(input instanceof IntValue)) {
             throw new CoercingParseLiteralException(
-                    "Expected AST type 'IntValue' but was '" + typeName(input) + "'."
+                    "Expected type 'Int' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
             );
         }
         BigInteger value = ((IntValue) input).getValue();
         if (value.compareTo(BYTE_MIN) < 0 || value.compareTo(BYTE_MAX) > 0) {
             throw new CoercingParseLiteralException(
-                    "Expected value to be in the Byte range but it was '" + value.toString() + "'"
+                    "Expected value to be in the Byte range but it was '" + value + "'"
             );
         }
         return value.byteValue();

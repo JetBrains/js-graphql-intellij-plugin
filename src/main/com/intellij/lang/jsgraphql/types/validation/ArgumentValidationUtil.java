@@ -109,9 +109,8 @@ public class ArgumentValidationUtil extends ValidationUtil {
             }
         }
         arguments.add(0, argument.toString());
-        arguments.add(1, argumentValue);
 
-        String message = "Argument '%s' with value '%s'" + " " + errorMessage;
+        String message = "Argument '%s'" + " " + errorMessage;
 
         return String.format(message, arguments.toArray());
     }

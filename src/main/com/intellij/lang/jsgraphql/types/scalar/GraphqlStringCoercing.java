@@ -17,12 +17,11 @@
  */
 package com.intellij.lang.jsgraphql.types.scalar;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.StringValue;
 import com.intellij.lang.jsgraphql.types.schema.Coercing;
 import com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException;
-
-import static com.intellij.lang.jsgraphql.types.scalar.CoercingUtil.typeName;
 
 @Internal
 public class GraphqlStringCoercing implements Coercing<String, String> {
@@ -40,7 +39,7 @@ public class GraphqlStringCoercing implements Coercing<String, String> {
     public String parseLiteral(Object input) {
         if (!(input instanceof StringValue)) {
             throw new CoercingParseLiteralException(
-                    "Expected AST type 'StringValue' but was '" + typeName(input) + "'."
+                    "Expected type 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
             );
         }
         return ((StringValue) input).getValue();

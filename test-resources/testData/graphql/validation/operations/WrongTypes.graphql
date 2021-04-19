@@ -15,7 +15,7 @@ extend type User {
 
 # WrongType
 query Departments {
-    user(<error descr="Argument 'id' with value 'NullValue{}' must not be null">id</error>: null) {
+    user(<error descr="Argument 'id' must not be null">id</error>: null) {
         field
     }
 }
