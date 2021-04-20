@@ -18,7 +18,7 @@
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementedInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementationInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition;
 import org.jetbrains.annotations.Nullable;
@@ -34,6 +34,6 @@ public class InterfaceImplementingItselfError extends BaseError {
 
     @Override
     public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLInterfaceImplementedInspection.class;
+        return GraphQLInterfaceImplementationInspection.class;
     }
 }
