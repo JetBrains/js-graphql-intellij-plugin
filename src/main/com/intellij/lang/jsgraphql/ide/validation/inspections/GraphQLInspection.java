@@ -1,6 +1,8 @@
 package com.intellij.lang.jsgraphql.ide.validation.inspections;
 
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
+import com.intellij.codeInsight.daemon.impl.analysis.FileHighlightingSetting;
+import com.intellij.codeInsight.daemon.impl.analysis.HighlightingSettingsPerFile;
 import com.intellij.codeInsight.intention.EmptyIntentionAction;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.*;
@@ -152,5 +154,10 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
             builder = builder.withFix(fix);
         }
         return builder;
+    }
+
+    public static boolean isInspectionHighlightingDisabled(@NotNull Project project, @NotNull PsiFile file) {
+        return HighlightingSettingsPerFile.getInstance(project)
+            .getHighlightingSettingForRoot(file) != FileHighlightingSetting.FORCE_HIGHLIGHTING;
     }
 }

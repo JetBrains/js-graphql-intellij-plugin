@@ -49,6 +49,8 @@ public class GraphQLSchemaAnnotator implements Annotator {
         final GraphQLFile file = (GraphQLFile) psiElement;
         final Project project = psiElement.getProject();
 
+        if (GraphQLInspection.isInspectionHighlightingDisabled(project, file)) return;
+
         try {
             GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiElement);
             if (schemaInfo.hasErrors()) {
