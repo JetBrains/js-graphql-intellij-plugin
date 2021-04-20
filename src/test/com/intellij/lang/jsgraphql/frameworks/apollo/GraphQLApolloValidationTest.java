@@ -1,9 +1,9 @@
 package com.intellij.lang.jsgraphql.frameworks.apollo;
 
-import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLApolloValidationTest extends GraphQLBaseTestCase {
+public class GraphQLApolloValidationTest extends GraphQLTestCaseBase {
     @Override
     protected @NotNull String getBasePath() {
         return "/frameworks/apollo/validation";

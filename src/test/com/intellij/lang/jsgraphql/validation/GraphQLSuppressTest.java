@@ -1,9 +1,9 @@
 package com.intellij.lang.jsgraphql.validation;
 
-import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLSuppressTest extends GraphQLBaseTestCase {
+public class GraphQLSuppressTest extends GraphQLTestCaseBase {
     @Override
     protected @NotNull String getBasePath() {
         return "/validation/suppress";

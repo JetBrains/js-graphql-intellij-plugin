@@ -8,14 +8,14 @@
 package com.intellij.lang.jsgraphql.completion;
 
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.List;
 
 
-public class GraphQLOperationsCompletionTest extends GraphQLBaseTestCase {
+public class GraphQLOperationsCompletionTest extends GraphQLTestCaseBase {
 
     @Override
     public void setUp() throws Exception {

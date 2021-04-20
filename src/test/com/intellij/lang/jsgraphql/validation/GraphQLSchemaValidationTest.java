@@ -1,9 +1,9 @@
 package com.intellij.lang.jsgraphql.validation;
 
-import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLSchemaValidationTest extends GraphQLBaseTestCase {
+public class GraphQLSchemaValidationTest extends GraphQLTestCaseBase {
     @Override
     protected @NotNull String getBasePath() {
         return "/validation/schema";

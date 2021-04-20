@@ -1,10 +1,10 @@
 package com.intellij.lang.jsgraphql.frameworks.relay;
 
-import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLRelayValidationTest extends GraphQLBaseTestCase {
+public class GraphQLRelayValidationTest extends GraphQLTestCaseBase {
     @Override
     protected @NotNull String getBasePath() {
         return "/frameworks/relay/validation";

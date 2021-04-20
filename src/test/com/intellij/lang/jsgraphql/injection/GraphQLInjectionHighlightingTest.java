@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.injection;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GraphQLInjectionHighlightingTest extends GraphQLBaseTestCase {
+public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();

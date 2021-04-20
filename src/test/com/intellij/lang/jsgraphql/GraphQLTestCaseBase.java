@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public abstract class GraphQLBaseTestCase extends BasePlatformTestCase {
+public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
     protected static final List<Class<? extends LocalInspectionTool>> ourGeneralInspections = Lists.newArrayList(
         GraphQLUnresolvedReferenceInspection.class
     );

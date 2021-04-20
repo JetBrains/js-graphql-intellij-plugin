@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.types.language.NamedNode;
 import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
@@ -26,7 +26,7 @@ import java.util.concurrent.locks.Lock;
 /**
  * Verifies that two schemas can be separated using graphql-config
  */
-public class GraphQLSchemaConfigTest extends GraphQLBaseTestCase {
+public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
     @Override
     protected @NotNull String getBasePath() {
         return "/graphql-config";

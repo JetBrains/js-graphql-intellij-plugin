@@ -9,12 +9,12 @@ package com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model;
 
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
-import com.intellij.lang.jsgraphql.GraphQLBaseTestCase;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import org.junit.Assert;
 
 import java.util.HashMap;
 
-public class GraphQLConfigVariableAwareEndpointTest extends GraphQLBaseTestCase {
+public class GraphQLConfigVariableAwareEndpointTest extends GraphQLTestCaseBase {
 
     public void testGetExpandedVariables() {
 
