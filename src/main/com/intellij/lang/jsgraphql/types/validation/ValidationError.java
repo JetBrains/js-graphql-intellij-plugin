@@ -18,12 +18,15 @@
 package com.intellij.lang.jsgraphql.types.validation;
 
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.types.ErrorType;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.GraphqlErrorHelper;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.language.SourceLocation;
+import com.intellij.util.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -41,6 +44,7 @@ public class ValidationError implements GraphQLError {
     private final List<String> queryPath;
     private final Map<String, Object> extensions;
     private final Node node;
+    private final Class<? extends GraphQLInspection> inspectionClass;
 
     private ValidationError(Builder builder) {
         this.validationErrorType = builder.validationErrorType;
@@ -52,6 +56,7 @@ public class ValidationError implements GraphQLError {
         this.queryPath = builder.queryPath;
         this.extensions = builder.extensions;
         this.node = builder.node;
+        this.inspectionClass = builder.inspectionClass;
     }
 
     private String mkMessage(ValidationErrorType validationErrorType, String description, List<String> queryPath) {
@@ -103,14 +108,19 @@ public class ValidationError implements GraphQLError {
     }
 
     @Override
+    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+        return ObjectUtils.coalesce(inspectionClass, GraphQLError.super.getInspectionClass());
+    }
+
+    @Override
     public String toString() {
         return "ValidationError{" +
-                "validationErrorType=" + validationErrorType +
-                ", queryPath=" + queryPath +
-                ", message=" + message +
-                ", locations=" + locations +
-                ", description='" + description + '\'' +
-                '}';
+            "validationErrorType=" + validationErrorType +
+            ", queryPath=" + queryPath +
+            ", message=" + message +
+            ", locations=" + locations +
+            ", description='" + description + '\'' +
+            '}';
     }
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
@@ -136,6 +146,7 @@ public class ValidationError implements GraphQLError {
         private ValidationErrorType validationErrorType;
         private List<String> queryPath;
         private Node node;
+        private Class<? extends GraphQLInspection> inspectionClass;
 
 
         public Builder validationErrorType(ValidationErrorType validationErrorType) {
@@ -168,8 +179,13 @@ public class ValidationError implements GraphQLError {
             return this;
         }
 
-        public Builder node(Node node) {
+        public Builder node(@Nullable Node node) {
             this.node = node;
+            return this;
+        }
+
+        public Builder inspectionClass(@NotNull Class<? extends GraphQLInspection> inspectionClass) {
+            this.inspectionClass = inspectionClass;
             return this;
         }
 

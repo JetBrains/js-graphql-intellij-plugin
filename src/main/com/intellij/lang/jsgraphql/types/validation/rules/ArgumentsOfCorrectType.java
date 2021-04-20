@@ -18,6 +18,7 @@
 package com.intellij.lang.jsgraphql.types.validation.rules;
 
 
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnexpectedTypeInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Argument;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
@@ -45,6 +46,7 @@ public class ArgumentsOfCorrectType extends AbstractRule {
                     .description(validationUtil.getMessage())
                     .extensions(validationUtil.getErrorExtensions())
                     .node(argument)
+                    .inspectionClass(GraphQLUnexpectedTypeInspection.class)
             );
         }
     }
