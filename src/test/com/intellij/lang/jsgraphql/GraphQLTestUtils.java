@@ -1,7 +1,8 @@
 package com.intellij.lang.jsgraphql;
 
-import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 public final class GraphQLTestUtils {
     public static @NotNull String getTestBasePath() {
@@ -9,6 +10,6 @@ public final class GraphQLTestUtils {
     }
 
     public static @NotNull String getTestDataPath(@NotNull String path) {
-        return FileUtil.join(getTestBasePath(), path);
+        return String.join(path.startsWith(File.separator) ? "" : File.separator, getTestBasePath(), path);
     }
 }
