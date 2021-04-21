@@ -109,9 +109,9 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
         PsiElement element = PsiTreeUtil.getParentOfType(psiFile.findElementAt(myFixture.getCaretOffset()), GraphQLIdentifier.class);
         assertNotNull(element);
         PsiReference reference = element.getReference();
-        assertNotNull(reference);
+        assertNotNull("Reference is null", reference);
         PsiElement target = reference.resolve();
-        assertNotNull(target);
+        assertNotNull("Resolved reference is null", target);
 
         return target;
     }

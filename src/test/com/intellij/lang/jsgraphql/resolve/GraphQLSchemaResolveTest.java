@@ -15,4 +15,16 @@ public class GraphQLSchemaResolveTest extends GraphQLTestCaseBase {
     public void testDirectiveObjectArgumentField() {
         doResolveTest("allow");
     }
+
+    public void testDefaultArgumentObjectValue() {
+        doResolveTest("field");
+    }
+
+    public void testDefaultArgumentObjectArrayValue() {
+        doResolveTest("field");
+    }
+
+    public void testDefaultArgumentObjectRecursiveArrayValue() {
+        doResolveTest("order");
+    }
 }

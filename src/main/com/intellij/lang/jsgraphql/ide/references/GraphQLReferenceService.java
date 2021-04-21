@@ -15,8 +15,8 @@ import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectiveImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferenceMixin;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
 import com.intellij.openapi.components.ServiceManager;
@@ -29,7 +29,6 @@ import com.intellij.psi.impl.AnyPsiChangeListener;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,9 +52,8 @@ public class GraphQLReferenceService {
             return null;
         }
 
-        @NotNull
         @Override
-        public Object[] getVariants() {
+        public Object @NotNull [] getVariants() {
             return PsiReference.EMPTY_ARRAY;
         }
     };
@@ -66,7 +64,7 @@ public class GraphQLReferenceService {
 
     public GraphQLReferenceService(@NotNull final Project project) {
         psiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
-        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
+        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
             public void beforePsiChanged(boolean isPhysical) {
                 // clear the cache on each PSI change
@@ -218,7 +216,7 @@ public class GraphQLReferenceService {
                 // __typename or introspection fields __schema and __type which implicitly extends the query root type
                 graphQLPsiSearchHelper.getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
                     @Override
-                    public void visitElement(final PsiElement schemaElement) {
+                    public void visitElement(final @NotNull PsiElement schemaElement) {
                         if (schemaElement instanceof GraphQLReferenceMixin && schemaElement.getText().equals(name)) {
                             reference.set(createReference(element, schemaElement));
                             return;
@@ -300,9 +298,8 @@ public class GraphQLReferenceService {
                 return resolvedElement;
             }
 
-            @NotNull
             @Override
-            public Object[] getVariants() {
+            public Object @NotNull [] getVariants() {
                 return PsiReference.EMPTY_ARRAY;
             }
         };
@@ -440,7 +437,7 @@ public class GraphQLReferenceService {
 
                         @NotNull
                         @Override
-                        public Object[] getVariants() {
+                        public Object @NotNull [] getVariants() {
                             return PsiReference.EMPTY_ARRAY;
                         }
                     });

@@ -123,7 +123,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         completeEnumNamesInList();
 
         // completion of "implements" in type or type extension
-        completeImpementsKeyword();
+        completeImplementsKeyword();
 
         // completion of interface name inside "implements"
         completeImplementsTypeName();
@@ -214,7 +214,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 PlatformPatterns.or(psiComment(), psiElement(TokenType.WHITE_SPACE), psiElement().withText("[")),
                 // until argument type colon occurs
                 psiElement().withText(":")
-            ).inside(GraphQLInputValueDefinition.class), provider);
+            ).inside(false, psiElement(GraphQLInputValueDefinition.class), psiElement(GraphQLDefaultValue.class)), provider);
     }
 
     private void completeFieldDefinitionOutputTypeName() {
@@ -349,7 +349,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.NAME).inside(psiElement(GraphQLElementTypes.TYPE_NAME).inside(psiElement(GraphQLElementTypes.IMPLEMENTS_INTERFACES))), provider);
     }
 
-    private void completeImpementsKeyword() {
+    private void completeImplementsKeyword() {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,

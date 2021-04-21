@@ -1,0 +1,10 @@
+enum Ordering { ASC DESC }
+
+input OrderBy {
+    <ref>field: String
+    order: Ordering
+}
+
+type Query {
+    brands(orderBy: [OrderBy!]! = [{fi<caret>eld: "123"}]): [String]
+}

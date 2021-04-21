@@ -116,6 +116,10 @@ public class GraphQLSchemaCompletionTest extends GraphQLTestCaseBase {
         doTestCompletion("enum", "input", "interface", "scalar", "schema", "type", "union");
     }
 
+    public void testDefaultArgumentObjectValue() {
+        doTestCompletion("ASC", "DESC");
+    }
+
     private void doTestCompletion(String @NotNull ... expectedCompletions) {
         doTestCompletion(getTestName(false) + ".graphql", Arrays.asList(expectedCompletions));
     }

@@ -38,7 +38,7 @@ public abstract class GraphQLObjectValueMixin extends GraphQLValueImpl implement
             }
             return typeScope;
         }
-        if (parent instanceof GraphQLDefaultValue) {
+        if (parent instanceof GraphQLDefaultValue || parent instanceof GraphQLArrayValue && parent.getParent() instanceof GraphQLDefaultValue) {
             // this object is the default value
             final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(parent, GraphQLInputValueDefinitionImpl.class);
             if (typeScopeProvider != null) {
