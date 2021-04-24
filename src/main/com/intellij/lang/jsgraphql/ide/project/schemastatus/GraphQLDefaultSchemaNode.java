@@ -40,7 +40,7 @@ public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
     @Override
     public SimpleNode[] buildChildren() {
         final List<SimpleNode> children = Lists.newArrayList(new GraphQLSchemaContentNode(this, mySchemaInfo));
-        if (mySchemaInfo.getRegistry().isProcessedGraphQL()) {
+        if (mySchemaInfo.getRegistryInfo().isProcessedGraphQL()) {
             children.add(new GraphQLSchemaErrorsListNode(this, mySchemaInfo));
         }
         children.add(new GraphQLSchemaEndpointsListNode(this, null, null));

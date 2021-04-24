@@ -131,7 +131,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
         final List<SimpleNode> children = Lists.newArrayList();
         if (performSchemaDiscovery) {
             children.add(new GraphQLSchemaContentNode(this, mySchemaInfo));
-            if (mySchemaInfo.getRegistry().isProcessedGraphQL()) {
+            if (mySchemaInfo.getRegistryInfo().isProcessedGraphQL()) {
                 children.add(new GraphQLSchemaErrorsListNode(this, mySchemaInfo));
             }
         }

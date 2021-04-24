@@ -37,7 +37,7 @@ public class GraphQLSchemaInfo {
         return mySchema;
     }
 
-    public @NotNull GraphQLRegistryInfo getRegistry() {
+    public @NotNull GraphQLRegistryInfo getRegistryInfo() {
         return myRegistry;
     }
 

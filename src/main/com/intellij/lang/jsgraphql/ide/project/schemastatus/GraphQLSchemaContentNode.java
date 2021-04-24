@@ -44,7 +44,7 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
         myValidatedSchema = validatedSchema;
 
         final List<String> parts = Lists.newArrayList();
-        TypeDefinitionRegistry registry = validatedSchema.getRegistry().getTypeDefinitionRegistry();
+        TypeDefinitionRegistry registry = validatedSchema.getRegistryInfo().getTypeDefinitionRegistry();
         parts.add(registry.getTypes(ObjectTypeDefinition.class).size() + " types");
         parts.add(registry.getTypes(InterfaceTypeDefinition.class).size() + " interfaces");
         parts.add(registry.getTypes(InputObjectTypeDefinition.class).size() + " inputs");
@@ -59,7 +59,7 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
         if (nonEmptyParts.length > 0) {
             getTemplatePresentation().setLocationString("- " + StringUtils.join(nonEmptyParts, ", "));
         } else {
-            final String message = validatedSchema.getRegistry().isProcessedGraphQL() ? "- schema is empty" : "- no schema definitions were found";
+            final String message = validatedSchema.getRegistryInfo().isProcessedGraphQL() ? "- schema is empty" : "- no schema definitions were found";
             getTemplatePresentation().setLocationString(message);
         }
 
@@ -75,15 +75,15 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
             @Override
             public String[] getNames() {
                 final List<String> names = Lists.newArrayList();
-                myValidatedSchema.getRegistry().getTypeDefinitionRegistry().types().values().forEach(type -> names.add(type.getName()));
-                myValidatedSchema.getRegistry().getTypeDefinitionRegistry().scalars().values().forEach(type -> names.add(type.getName()));
-                myValidatedSchema.getRegistry().getTypeDefinitionRegistry().getDirectiveDefinitions().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry().types().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry().scalars().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry().getDirectiveDefinitions().values().forEach(type -> names.add(type.getName()));
                 return names.toArray(new String[]{});
             }
 
             @Override
             protected Object[] getElementsByName(String name, String pattern) {
-                final TypeDefinitionRegistry registry = myValidatedSchema.getRegistry().getTypeDefinitionRegistry();
+                final TypeDefinitionRegistry registry = myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry();
                 Optional<TypeDefinition> type = registry.getType(name);
                 if (type.isPresent()) {
                     return new Object[]{type.get()};

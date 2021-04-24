@@ -32,7 +32,7 @@ public class GraphQLSchemaErrorsListNode extends CachingSimpleNode {
 
     @Override
     public SimpleNode[] buildChildren() {
-        if  (!myValidatedSchema.getRegistry().isProcessedGraphQL()) {
+        if  (!myValidatedSchema.getRegistryInfo().isProcessedGraphQL()) {
             // no GraphQL PSI files parse yet, so no need to show the "no query defined" error for a non-existing schema
             return SimpleNode.NO_CHILDREN;
         }
