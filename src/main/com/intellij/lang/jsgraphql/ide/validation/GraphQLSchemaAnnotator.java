@@ -204,7 +204,17 @@ public class GraphQLSchemaAnnotator implements Annotator {
         GraphQLInspection.createAnnotation(annotationHolder, element, message, error.getInspectionClass(), builder -> {
             builder = builder.range(getAnnotationAnchor(element));
 
-            List<Node> references = error.getReferences();
+            List<Node> references = ContainerUtil.filter(error.getReferences(), ref -> {
+                if (ref.getSourceLocation() == null) return false;
+
+                PsiElement refElement = ref.getElement();
+                if (refElement != null) {
+                    // NavigationLinkHandler can't handle non-physical PSI
+                    return refElement.getContainingFile().getViewProvider().isPhysical();
+                }
+                return true;
+            });
+
             if (!references.isEmpty()) {
                 builder = builder.tooltip(createTooltip(error, message, references.size() > 1));
             }
