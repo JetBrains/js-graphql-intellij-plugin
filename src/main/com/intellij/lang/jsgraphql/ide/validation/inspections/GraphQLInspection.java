@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.validation.inspections;
 
+import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeInsight.daemon.HighlightDisplayKey;
 import com.intellij.codeInsight.daemon.impl.analysis.FileHighlightingSetting;
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightingSettingsPerFile;
@@ -50,11 +51,18 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
         return getHighlightDisplayKeyByClass(inspectionClass).toString();
     }
 
-    public static @NotNull HighlightSeverity getSeverityForError(@NotNull Class<? extends GraphQLInspection> inspectionClass,
-                                                                 @NotNull PsiFile file) {
-        InspectionProfile inspectionProfile = InspectionProjectProfileManager.getInstance(file.getProject()).getCurrentProfile();
+    public static @NotNull HighlightSeverity getSeverity(@NotNull Class<? extends GraphQLInspection> inspectionClass,
+                                                         @NotNull PsiElement element) {
+
+        return getHighlightDisplayLevel(inspectionClass, element).getSeverity();
+    }
+
+    @NotNull
+    public static HighlightDisplayLevel getHighlightDisplayLevel(@NotNull Class<? extends GraphQLInspection> inspectionClass,
+                                                                 @NotNull PsiElement element) {
+        InspectionProfile inspectionProfile = InspectionProjectProfileManager.getInstance(element.getProject()).getCurrentProfile();
         HighlightDisplayKey highlightDisplayKey = getHighlightDisplayKeyByClass(inspectionClass);
-        return inspectionProfile.getErrorLevel(highlightDisplayKey, file).getSeverity();
+        return inspectionProfile.getErrorLevel(highlightDisplayKey, element);
     }
 
     private static @Nullable LocalInspectionToolWrapper getInspectionToolWrapper(@NotNull PsiElement element,
@@ -136,7 +144,7 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
                 return null;
             }
 
-            severity = GraphQLInspection.getSeverityForError(inspectionClass, element.getContainingFile());
+            severity = GraphQLInspection.getSeverity(inspectionClass, element.getContainingFile());
             problemGroup = new GraphQLProblemGroup(toolId);
 
             String displayName = HighlightDisplayKey.getDisplayNameByKey(key);
@@ -156,7 +164,7 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
         return builder;
     }
 
-    public static boolean isInspectionHighlightingDisabled(@NotNull Project project, @NotNull PsiFile file) {
+    public static boolean isEditorInspectionHighlightingDisabled(@NotNull Project project, @NotNull PsiFile file) {
         return HighlightingSettingsPerFile.getInstance(project)
             .getHighlightingSettingForRoot(file) != FileHighlightingSetting.FORCE_HIGHLIGHTING;
     }

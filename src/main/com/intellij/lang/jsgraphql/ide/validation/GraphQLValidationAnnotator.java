@@ -48,7 +48,7 @@ public class GraphQLValidationAnnotator implements Annotator {
 
     @Override
     public void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
-        if (GraphQLInspection.isInspectionHighlightingDisabled(psiElement.getProject(), annotationHolder.getCurrentAnnotationSession().getFile())) {
+        if (GraphQLInspection.isEditorInspectionHighlightingDisabled(psiElement.getProject(), annotationHolder.getCurrentAnnotationSession().getFile())) {
             return;
         }
 

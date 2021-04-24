@@ -22,6 +22,7 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -140,5 +141,10 @@ public interface Node<T extends Node> extends Serializable {
 
     default boolean isComposite() {
         return !getSourceNodes().isEmpty();
+    }
+
+    default @Nullable PsiFile getFile() {
+        PsiElement element = getElement();
+        return element != null ? element.getContainingFile() : null;
     }
 }
