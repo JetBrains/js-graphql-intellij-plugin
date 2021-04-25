@@ -160,7 +160,7 @@ public class GraphQLConfigVariableAwareEndpoint {
             if (projectDir != null) {
                 String filename = getFileName(projectDir);
                 if (filename != null) {
-                    dotenv = getDotenvBuilder(projectBasePath).filename(filename).load();
+                    dotenv = getDotenvBuilder(projectDir.getPath()).filename(filename).load();
                     varValue = dotenv.get(varName);
                 }
             }
