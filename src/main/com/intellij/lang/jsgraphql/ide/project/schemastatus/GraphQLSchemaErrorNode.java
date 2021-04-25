@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
-import com.intellij.icons.AllIcons;
+import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.schema.GraphQLUnexpectedSchemaError;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
@@ -34,15 +34,18 @@ import java.util.List;
  */
 public class GraphQLSchemaErrorNode extends CachingSimpleNode {
 
-    private final GraphQLError error;
+    private final GraphQLError myError;
 
     public GraphQLSchemaErrorNode(@Nullable SimpleNode parent, @NotNull GraphQLError error) {
         super(parent);
-        this.error = error;
+        myError = error;
         myName = error.getMessage();
         SourceLocation location = getLocation();
         if (location != null) {
-            getTemplatePresentation().setTooltip(location.getSourceName() + ":" + location.getLine() + ":" + location.getColumn());
+            String tooltip = getTooltip(location);
+            if (tooltip != null) {
+                getTemplatePresentation().setTooltip(tooltip);
+            }
         } else if (error instanceof GraphQLUnexpectedSchemaError) {
             getTemplatePresentation().setLocationString(" - double click to open stack trace");
         }
@@ -50,8 +53,16 @@ public class GraphQLSchemaErrorNode extends CachingSimpleNode {
         setIconFromError(error);
     }
 
+    @Nullable
+    private static String getTooltip(@NotNull SourceLocation location) {
+        if (location.getSourceName() == null || location.getLine() == -1 || location.getColumn() == -1) {
+            return null;
+        }
+        return location.getSourceName() + ":" + location.getLine() + ":" + location.getColumn();
+    }
+
     private void setIconFromError(GraphQLError error) {
-        Icon icon = AllIcons.Ide.FatalError;
+        Icon icon = HighlightDisplayLevel.ERROR.getIcon();
 
         Node<?> node = error.getNode();
         if (getProject() != null && error.getInspectionClass() != null && node != null) {
@@ -69,8 +80,8 @@ public class GraphQLSchemaErrorNode extends CachingSimpleNode {
         final SourceLocation location = getLocation();
         if (location != null && location.getSourceName() != null) {
             GraphQLTreeNodeNavigationUtil.openSourceLocation(myProject, location, false);
-        } else if (error instanceof GraphQLUnexpectedSchemaError) {
-            String stackTrace = ExceptionUtil.getThrowableText(((GraphQLUnexpectedSchemaError) error).getException());
+        } else if (myError instanceof GraphQLUnexpectedSchemaError) {
+            String stackTrace = ExceptionUtil.getThrowableText(((GraphQLUnexpectedSchemaError) myError).getException());
             PsiFile file = PsiFileFactory.getInstance(myProject).createFileFromText("graphql-error.txt", PlainTextLanguage.INSTANCE, stackTrace);
             new OpenFileDescriptor(myProject, file.getVirtualFile()).navigate(true);
         }
@@ -87,7 +98,7 @@ public class GraphQLSchemaErrorNode extends CachingSimpleNode {
     }
 
     private SourceLocation getLocation() {
-        final List<SourceLocation> locations = error.getLocations();
+        final List<SourceLocation> locations = myError.getLocations();
         return locations != null && !locations.isEmpty() ? locations.get(0) : null;
     }
 }

@@ -93,7 +93,7 @@ public final class SourceLocation implements Serializable {
     private @NotNull CachedValueProvider.Result<Location> computeLocation() {
         Objects.requireNonNull(myElement);
 
-        Location defaultLocation = new Location(-1, -1, "Unknown", -1);
+        Location defaultLocation = new Location(-1, -1, null, -1);
         PsiFile containingFile = myElement.getContainingFile();
         InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(myElement.getProject());
         PsiFile topLevelFile = injectedLanguageManager.getTopLevelFile(myElement);
