@@ -75,7 +75,7 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
             if(virtualFile.getFileType() == JsonFileType.INSTANCE && Boolean.TRUE.equals(virtualFile.getUserData(JSGraphQLLanguageUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE))) {
                 return true;
             }
-            if(virtualFile.getFileType() == KotlinFileType.INSTANCE && Boolean.TRUE.equals(virtualFile)) {
+            if(virtualFile.getFileType() == KotlinFileType.INSTANCE) {
                 return true;
             }
         }

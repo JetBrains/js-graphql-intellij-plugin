@@ -13,7 +13,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import java.util.Collection;
 
 /**
- * Contributor that enables the plugin to locate GraphQL in additional file types such as JavaScript
+ * Contributor that enables the plugin to locate GraphQL in additional file types such as Kotlin
  */
 public interface GraphQLFindUsagesFileTypeContributor {
 
