@@ -27,9 +27,11 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
@@ -80,8 +82,7 @@ public class GraphQLRegistryProvider implements Disposable {
 
         return scopeToRegistry.computeIfAbsent(schemaScope, s -> {
             List<GraphQLException> errors = new ArrayList<>();
-            Ref<Boolean> processedGraphQL = Ref.create(false);
-            GraphQLSchemaDocumentProcessor processor = new GraphQLSchemaDocumentProcessor(processedGraphQL);
+            GraphQLSchemaDocumentProcessor processor = new GraphQLSchemaDocumentProcessor();
 
             // GraphQL files
             FileTypeIndex.processFiles(GraphQLFileType.INSTANCE, file -> {
@@ -151,7 +152,7 @@ public class GraphQLRegistryProvider implements Disposable {
             }
 
             TypeDefinitionRegistry registry = processor.getCompositeRegistry().buildTypeDefinitionRegistry();
-            return new GraphQLRegistryInfo(registry, errors, processedGraphQL.get());
+            return new GraphQLRegistryInfo(registry, errors, processor.isProcessed());
         });
 
     }
