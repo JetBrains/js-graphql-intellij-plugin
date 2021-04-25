@@ -1,0 +1,23 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+
+        <!-- Formatting -->
+        <lang.formatter language="kotlin" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.kotlin.GraphQLInjectedFormattingModelBuilder" />
+
+        <!-- Language Injection -->
+        <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.kotlin.GraphQLTemplateFragmentLanguageInjector" order="first" />
+        <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.kotlin.GraphQLkotlinInjectionSearchHelper" />
+
+        <!-- Indexing -->
+        <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.kotlin.GraphQLInjectionIndex"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="JavaScript">
+        <JsonSchema.ProviderFactory implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.kotlin.GraphQLConfigJsonSchemaProvider"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">
+        <graphQLFindUsagesFileTypeContributor implementation="com.intellij.lang.jsgraphql.ide.references.kotlin.JavaScriptGraphQLFindUsagesFileTypeContributor" />
+    </extensions>
+
+</idea-plugin>

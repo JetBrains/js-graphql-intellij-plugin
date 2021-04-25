@@ -19,6 +19,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 
 public class JSGraphQLExecuteEditorAction extends AnAction {
 
@@ -72,6 +73,9 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
                 return true;
             }
             if(virtualFile.getFileType() == JsonFileType.INSTANCE && Boolean.TRUE.equals(virtualFile.getUserData(JSGraphQLLanguageUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE))) {
+                return true;
+            }
+            if(virtualFile.getFileType() == KotlinFileType.INSTANCE && Boolean.TRUE.equals(virtualFile)) {
                 return true;
             }
         }

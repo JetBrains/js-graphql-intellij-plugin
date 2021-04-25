@@ -13,6 +13,7 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileTypes.FileType;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 
 import java.util.Set;
 
@@ -23,6 +24,7 @@ public class GraphQLFindUsagesUtil {
     public GraphQLFindUsagesUtil() {
         includedFileTypes.add(GraphQLFileType.INSTANCE);
         includedFileTypes.add(JsonFileType.INSTANCE);
+        includedFileTypes.add(KotlinFileType.INSTANCE);
         final GraphQLFindUsagesFileTypeContributor[] contributors = Extensions.getExtensions(GraphQLFindUsagesFileTypeContributor.EP_NAME);
         for (GraphQLFindUsagesFileTypeContributor contributor : contributors) {
             includedFileTypes.addAll(contributor.getFileTypes());
