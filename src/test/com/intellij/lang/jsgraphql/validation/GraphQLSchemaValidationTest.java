@@ -35,6 +35,10 @@ public class GraphQLSchemaValidationTest extends GraphQLTestCaseBase {
         doHighlightingTest();
     }
 
+    public void testImplementingArgumentsErrors() {
+        doHighlightingTest();
+    }
+
     public void testEnumErrors() {
         doHighlightingTest();
     }

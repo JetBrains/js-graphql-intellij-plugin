@@ -13,16 +13,16 @@ interface WithArgs {
     field(arg1: Int, arg2: String): Int
 }
 
-type <error descr="The object type 'ImplArgs' field 'field' does not have the same number of arguments as specified via interface 'WithArgs'">ImplArgs</error> implements WithArgs {
-    field(arg1: Int): Int
+type ImplArgs implements WithArgs {
+    <error descr="The object type 'ImplArgs' field 'field' does not have the same number of arguments as specified via interface 'WithArgs'">field</error>(arg1: Int): Int
 }
 
-type <error descr="The object type 'ImplArgs1' has tried to redefine field 'field' arguments defined via interface 'WithArgs' from 'arg2:String' to 'arg2:Int'">ImplArgs1</error> implements WithArgs {
-    field(arg1: Int, arg2: Int): Int
+type ImplArgs1 implements WithArgs {
+    field(arg1: Int, <error descr="The object type 'ImplArgs1' has tried to redefine 'field' argument 'arg2' defined via interface 'WithArgs' from 'arg2:String' to 'arg2:Int'">arg2</error>: Int): Int
 }
 
-type <error descr="The object type 'ImplArgs2' field 'field' defines an additional non-optional argument 'arg3: Int!' which is not allowed because field is also defined in interface 'WithArgs'">ImplArgs2</error> implements WithArgs {
-    field(arg1: Int, arg2: String, arg3: Int!): Int
+type ImplArgs2 implements WithArgs {
+    field(arg1: Int, arg2: String, <error descr="The object type 'ImplArgs2' field 'field' defines an additional non-optional argument 'arg3' which is not allowed because field is also defined in interface 'WithArgs'">arg3</error>: Int!): Int
 }
 
 interface <error descr="The interface type 'Int3' cannot implement itself">Int3</error> implements Int3 {

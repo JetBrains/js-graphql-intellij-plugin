@@ -22,6 +22,7 @@ import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceIm
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
 import com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
 import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,10 +34,10 @@ public class InterfaceFieldArgumentNotOptionalError extends BaseError {
                                                   ImplementingTypeDefinition typeDefinition,
                                                   InterfaceTypeDefinition interfaceTypeDef,
                                                   FieldDefinition objectFieldDef,
-                                                  String objectArgStr,
+                                                  InputValueDefinition objectArgDef,
                                                   FieldDefinition interfaceFieldDef) {
-        super(typeDefinition, format("The %s type '%s' field '%s' defines an additional non-optional argument '%s' which is not allowed because field is also defined in interface '%s'.",
-            typeOfType, typeDefinition.getName(), objectFieldDef.getName(), objectArgStr, interfaceTypeDef.getName()));
+        super(objectArgDef, format("The %s type '%s' field '%s' defines an additional non-optional argument '%s' which is not allowed because field is also defined in interface '%s'.",
+            typeOfType, typeDefinition.getName(), objectFieldDef.getName(), objectArgDef.getName(), interfaceTypeDef.getName()));
         addReferences(interfaceFieldDef);
     }
 

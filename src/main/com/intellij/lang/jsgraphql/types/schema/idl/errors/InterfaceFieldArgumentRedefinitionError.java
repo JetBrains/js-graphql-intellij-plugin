@@ -22,6 +22,7 @@ import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceIm
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
 import com.intellij.lang.jsgraphql.types.language.ImplementingTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
 import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,10 +36,11 @@ public class InterfaceFieldArgumentRedefinitionError extends BaseError {
                                                    FieldDefinition objectFieldDef,
                                                    String objectArgStr,
                                                    String interfaceArgStr,
-                                                   FieldDefinition interfaceFieldDef) {
-        super(typeDefinition, format("The %s type '%s' has tried to redefine field '%s' arguments defined via interface '%s' from '%s' to '%s'",
-            typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceTypeDef.getName(), interfaceArgStr, objectArgStr));
-        addReferences(interfaceFieldDef);
+                                                   InputValueDefinition interfaceArgDef,
+                                                   InputValueDefinition objectArgDef) {
+        super(objectArgDef, format("The %s type '%s' has tried to redefine '%s' argument '%s' defined via interface '%s' from '%s' to '%s'",
+            typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceArgDef.getName(), interfaceTypeDef.getName(), interfaceArgStr, objectArgStr));
+        addReferences(interfaceArgDef);
     }
 
     @Override

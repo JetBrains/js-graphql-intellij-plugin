@@ -34,7 +34,7 @@ public class MissingInterfaceFieldArgumentsError extends BaseError {
                                                InterfaceTypeDefinition interfaceTypeDef,
                                                FieldDefinition objectFieldDef,
                                                FieldDefinition interfaceFieldDef) {
-        super(typeDefinition, format("The %s type '%s' field '%s' does not have the same number of arguments as specified via interface '%s'",
+        super(objectFieldDef, format("The %s type '%s' field '%s' does not have the same number of arguments as specified via interface '%s'",
             typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceTypeDef.getName()));
         addReferences(interfaceFieldDef);
     }

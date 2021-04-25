@@ -28,6 +28,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.mapNamedNodesByKey;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -174,22 +175,35 @@ class ImplementingTypesChecker {
     ) {
         List<InputValueDefinition> objectArgs = objectFieldDef.getInputValueDefinitions();
         List<InputValueDefinition> interfaceArgs = interfaceFieldDef.getInputValueDefinitions();
+        Map<String, InputValueDefinition> objectArgsByName = mapNamedNodesByKey(objectArgs);
+
         for (int i = 0; i < interfaceArgs.size(); i++) {
-            InputValueDefinition interfaceArg = interfaceArgs.get(i);
-            InputValueDefinition objectArg = objectArgs.get(i);
-            String interfaceArgStr = AstPrinter.printAstCompact(interfaceArg);
-            String objectArgStr = AstPrinter.printAstCompact(objectArg);
+            InputValueDefinition interfaceArgDef = interfaceArgs.get(i);
+            String argName = interfaceArgDef.getName();
+            InputValueDefinition objectArgDef = objectArgsByName.get(argName);
+            if (objectArgDef == null) {
+                errors.add(new MissingInterfaceFieldArgumentError(typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, interfaceArgDef));
+                continue;
+            }
+
+            String interfaceArgStr = AstPrinter.printAstCompact(interfaceArgDef);
+            String objectArgStr = AstPrinter.printAstCompact(objectArgDef);
             if (!interfaceArgStr.equals(objectArgStr)) {
-                errors.add(new InterfaceFieldArgumentRedefinitionError(typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArgStr, interfaceArgStr, interfaceFieldDef));
+                errors.add(new InterfaceFieldArgumentRedefinitionError(
+                    typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArgStr, interfaceArgStr, interfaceArgDef, objectArgDef));
             }
         }
 
         if (objectArgs.size() > interfaceArgs.size()) {
-            for (int i = interfaceArgs.size(); i < objectArgs.size(); i++) {
-                InputValueDefinition objectArg = objectArgs.get(i);
+            Map<String, InputValueDefinition> interfaceArgsByName = mapNamedNodesByKey(interfaceArgs);
+            for (InputValueDefinition objectArg : objectArgs) {
+                if (interfaceArgsByName.containsKey(objectArg.getName())) {
+                    continue;
+                }
+
                 if (objectArg.getType() instanceof NonNullType) {
-                    String objectArgStr = AstPrinter.printAst(objectArg);
-                    errors.add(new InterfaceFieldArgumentNotOptionalError(typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArgStr, interfaceFieldDef));
+                    errors.add(new InterfaceFieldArgumentNotOptionalError(
+                        typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArg, interfaceFieldDef));
                 }
             }
         }
