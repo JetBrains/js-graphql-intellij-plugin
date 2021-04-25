@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.kotlin;
 
 import com.intellij.lang.injection.InjectedLanguageManager;
-import com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLLanguageInjectionUtil;
+import com.intellij.lang.jsgraphql.ide.injection.kotlin.GraphQLLanguageInjectionUtil;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.psi.PsiElement;
@@ -22,11 +22,11 @@ import org.apache.commons.lang.StringUtils;
 import java.util.Collections;
 import java.util.function.Consumer;
 
-public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionSearchHelper {
+public class GraphQLKotlinInjectionSearchHelper implements GraphQLInjectionSearchHelper {
 
     @Override
-    public boolean isJSGraphQLLanguageInjectionTarget(PsiElement host) {
-        return GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(host);
+    public boolean isJSOrKotlinGraphQLLanguageInjectionTarget(PsiElement host) {
+        return GraphQLLanguageInjectionUtil.isKtGraphQLLanguageInjectionTarget(host);
     }
 
     /**
@@ -46,7 +46,7 @@ public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionS
                     fileWithInjection.accept(new PsiRecursiveElementVisitor() {
                         @Override
                         public void visitElement(PsiElement element) {
-                            if (GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
+                            if (GraphQLLanguageInjectionUtil.isKtGraphQLLanguageInjectionTarget(element)) {
                                 injectedLanguageManager.enumerate(element, (injectedPsi, places) -> {
                                     consumer.accept(injectedPsi);
                                 });

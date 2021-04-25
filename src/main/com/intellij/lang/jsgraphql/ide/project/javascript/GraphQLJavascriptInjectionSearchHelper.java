@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionSearchHelper {
 
     @Override
-    public boolean isJSGraphQLLanguageInjectionTarget(PsiElement host) {
+    public boolean isJSOrKotlinGraphQLLanguageInjectionTarget(PsiElement host) {
         return GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(host);
     }
 

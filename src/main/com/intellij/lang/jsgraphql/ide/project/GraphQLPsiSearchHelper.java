@@ -222,7 +222,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
      */
     private boolean visitLanguageInjectionHost(@NotNull PsiLanguageInjectionHost element,
                                                @NotNull Ref<PsiRecursiveElementVisitor> identifierVisitor) {
-        if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(element)) {
+        if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isJSOrKotlinGraphQLLanguageInjectionTarget(element)) {
             injectedLanguageManager.enumerateEx(
                 element, element.getContainingFile(), false,
                 (injectedPsi, places) -> injectedPsi.accept(identifierVisitor.get())

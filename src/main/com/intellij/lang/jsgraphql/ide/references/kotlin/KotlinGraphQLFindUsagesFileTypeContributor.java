@@ -19,7 +19,7 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * Registers the various JavaScript languages to support GraphQL in tagged templates
+ * Registers the various Kotlin languages to support GraphQL in tagged templates
  */
 public class KotlinGraphQLFindUsagesFileTypeContributor implements GraphQLFindUsagesFileTypeContributor {
     @Override

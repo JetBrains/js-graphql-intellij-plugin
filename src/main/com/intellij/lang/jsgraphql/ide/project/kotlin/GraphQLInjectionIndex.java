@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.kotlin;
 
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLLanguageInjectionUtil;
+import com.intellij.lang.jsgraphql.ide.injection.kotlin.GraphQLLanguageInjectionUtil;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.util.Ref;
@@ -42,7 +42,7 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
             inputData.getPsiFile().accept(new PsiRecursiveElementVisitor() {
                 @Override
                 public void visitElement(PsiElement element) {
-                    if (!GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element, environment)) {
+                    if (!GraphQLLanguageInjectionUtil.isKtGraphQLLanguageInjectionTarget(element, environment)) {
                         // visit deeper until injection found
                         super.visitElement(element);
                     }
