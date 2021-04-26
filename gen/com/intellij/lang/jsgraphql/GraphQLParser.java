@@ -36,6 +36,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
+    create_token_set_(BLOCK_STRING, QUOTED_STRING, STRING_LITERAL),
     create_token_set_(LIST_TYPE, NON_NULL_TYPE, TYPE, TYPE_NAME,
       TYPE_NAME_DEFINITION),
     create_token_set_(ARRAY_VALUE, BOOLEAN_VALUE, ENUM_VALUE, FLOAT_VALUE,
@@ -234,6 +235,32 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // OPEN_TRIPLE_QUOTE REGULAR_STRING_PART* CLOSING_TRIPLE_QUOTE
+  public static boolean blockString(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "blockString")) return false;
+    if (!nextTokenIs(builder, OPEN_TRIPLE_QUOTE)) return false;
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_, BLOCK_STRING, null);
+    result = consumeToken(builder, OPEN_TRIPLE_QUOTE);
+    pinned = result; // pin = 1
+    result = result && report_error_(builder, blockString_1(builder, level + 1));
+    result = pinned && consumeToken(builder, CLOSING_TRIPLE_QUOTE) && result;
+    exit_section_(builder, level, marker, result, pinned, null);
+    return result || pinned;
+  }
+
+  // REGULAR_STRING_PART*
+  private static boolean blockString_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "blockString_1")) return false;
+    while (true) {
+      int pos = current_position_(builder);
+      if (!consumeToken(builder, REGULAR_STRING_PART)) break;
+      if (!empty_element_parsed_guard_(builder, "blockString_1", pos)) break;
+    }
+    return true;
+  }
+
+  /* ********************************************************** */
   // 'true' | 'false'
   public static boolean booleanValue(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "booleanValue")) return false;
@@ -316,9 +343,15 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // quotedString
-  static boolean description(PsiBuilder builder, int level) {
-    return quotedString(builder, level + 1);
+  // stringLiteral
+  public static boolean description(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "description")) return false;
+    if (!nextTokenIs(builder, "<description>", OPEN_QUOTE, OPEN_TRIPLE_QUOTE)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder, level, _NONE_, DESCRIPTION, "<description>");
+    result = stringLiteral(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, null);
+    return result;
   }
 
   /* ********************************************************** */
@@ -347,7 +380,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'directive' '@' identifier argumentsDefinition? 'repeatable'? 'on' directiveLocations
   public static boolean directiveDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "directiveDefinition")) return false;
-    if (!nextTokenIs(builder, "<directive definition>", DIRECTIVE_KEYWORD, OPEN_QUOTE)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, DIRECTIVE_DEFINITION, "<directive definition>");
     result = directiveDefinition_0(builder, level + 1);
@@ -478,7 +510,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'enum' typeNameDefinition directives? enumValueDefinitions?
   public static boolean enumTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "enumTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<enum type definition>", ENUM_KEYWORD, OPEN_QUOTE)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, ENUM_TYPE_DEFINITION, "<enum type definition>");
     result = enumTypeDefinition_0(builder, level + 1);
@@ -950,7 +981,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'input' typeNameDefinition directives? inputObjectValueDefinitions?
   public static boolean inputObjectTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "inputObjectTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<input object type definition>", INPUT_KEYWORD, OPEN_QUOTE)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, INPUT_OBJECT_TYPE_DEFINITION, "<input object type definition>");
     result = inputObjectTypeDefinition_0(builder, level + 1);
@@ -1121,7 +1151,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'interface' typeNameDefinition implementsInterfaces? directives? fieldsDefinition?
   public static boolean interfaceTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "interfaceTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<interface type definition>", INTERFACE_KEYWORD, OPEN_QUOTE)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, INTERFACE_TYPE_DEFINITION, "<interface type definition>");
     result = interfaceTypeDefinition_0(builder, level + 1);
@@ -1298,7 +1327,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'type' typeNameDefinition implementsInterfaces? directives? fieldsDefinition?
   public static boolean objectTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "objectTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<object type definition>", OPEN_QUOTE, TYPE_KEYWORD)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, OBJECT_TYPE_DEFINITION, "<object type definition>");
     result = objectTypeDefinition_0(builder, level + 1);
@@ -1555,7 +1583,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // definition_keywords | '{' /* anon query */ | OPEN_QUOTE /* schema description */ | (DOLLAR BRACE_L)
+  // definition_keywords | '{' /* anon query */ | OPEN_QUOTE | OPEN_TRIPLE_QUOTE /* schema description */ | (DOLLAR BRACE_L)
   static boolean root_tokens(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "root_tokens")) return false;
     boolean result;
@@ -1563,14 +1591,15 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = definition_keywords(builder, level + 1);
     if (!result) result = consumeToken(builder, BRACE_L);
     if (!result) result = consumeToken(builder, OPEN_QUOTE);
-    if (!result) result = root_tokens_3(builder, level + 1);
+    if (!result) result = consumeToken(builder, OPEN_TRIPLE_QUOTE);
+    if (!result) result = root_tokens_4(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
 
   // DOLLAR BRACE_L
-  private static boolean root_tokens_3(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "root_tokens_3")) return false;
+  private static boolean root_tokens_4(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "root_tokens_4")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = consumeTokens(builder, 0, DOLLAR, BRACE_L);
@@ -1582,7 +1611,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'scalar' typeNameDefinition directives?
   public static boolean scalarTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "scalarTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<scalar type definition>", OPEN_QUOTE, SCALAR_KEYWORD)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, SCALAR_TYPE_DEFINITION, "<scalar type definition>");
     result = scalarTypeDefinition_0(builder, level + 1);
@@ -1634,7 +1662,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'schema' directives? operationTypeDefinitions
   public static boolean schemaDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "schemaDefinition")) return false;
-    if (!nextTokenIs(builder, "<schema definition>", OPEN_QUOTE, SCHEMA_KEYWORD)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, SCHEMA_DEFINITION, "<schema definition>");
     result = schemaDefinition_0(builder, level + 1);
@@ -1770,14 +1797,27 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // quotedString
+  // quotedString | blockString
+  public static boolean stringLiteral(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "stringLiteral")) return false;
+    if (!nextTokenIs(builder, "<string literal>", OPEN_QUOTE, OPEN_TRIPLE_QUOTE)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder, level, _COLLAPSE_, STRING_LITERAL, "<string literal>");
+    result = quotedString(builder, level + 1);
+    if (!result) result = blockString(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, null);
+    return result;
+  }
+
+  /* ********************************************************** */
+  // stringLiteral
   public static boolean stringValue(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "stringValue")) return false;
-    if (!nextTokenIs(builder, OPEN_QUOTE)) return false;
+    if (!nextTokenIs(builder, "<string value>", OPEN_QUOTE, OPEN_TRIPLE_QUOTE)) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
-    result = quotedString(builder, level + 1);
-    exit_section_(builder, marker, STRING_VALUE, result);
+    Marker marker = enter_section_(builder, level, _NONE_, STRING_VALUE, "<string value>");
+    result = stringLiteral(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
@@ -2081,7 +2121,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'union' typeNameDefinition directives? unionMembership?
   public static boolean unionTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "unionTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<union type definition>", OPEN_QUOTE, UNION_KEYWORD)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, UNION_TYPE_DEFINITION, "<union type definition>");
     result = unionTypeDefinition_0(builder, level + 1);

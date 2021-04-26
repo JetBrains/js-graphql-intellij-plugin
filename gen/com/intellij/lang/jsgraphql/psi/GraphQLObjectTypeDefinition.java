@@ -10,6 +10,9 @@ import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 public interface GraphQLObjectTypeDefinition extends GraphQLTypeDefinition, GraphQLDirectivesAware, GraphQLTypeNameDefinitionOwner {
 
   @Nullable
+  GraphQLDescription getDescription();
+
+  @Nullable
   GraphQLFieldsDefinition getFieldsDefinition();
 
   @Nullable
@@ -17,9 +20,6 @@ public interface GraphQLObjectTypeDefinition extends GraphQLTypeDefinition, Grap
 
   @Nullable
   GraphQLTypeNameDefinition getTypeNameDefinition();
-
-  @Nullable
-  GraphQLQuotedString getDescription();
 
   @NotNull
   List<GraphQLDirective> getDirectives();

@@ -10,13 +10,13 @@ import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 public interface GraphQLUnionTypeDefinition extends GraphQLTypeDefinition, GraphQLDirectivesAware, GraphQLTypeNameDefinitionOwner {
 
   @Nullable
+  GraphQLDescription getDescription();
+
+  @Nullable
   GraphQLTypeNameDefinition getTypeNameDefinition();
 
   @Nullable
   GraphQLUnionMembership getUnionMembership();
-
-  @Nullable
-  GraphQLQuotedString getDescription();
 
   @NotNull
   List<GraphQLDirective> getDirectives();

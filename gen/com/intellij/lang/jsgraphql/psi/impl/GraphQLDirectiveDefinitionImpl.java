@@ -33,14 +33,14 @@ public class GraphQLDirectiveDefinitionImpl extends GraphQLTypeSystemDefinitionI
 
   @Override
   @Nullable
-  public GraphQLDirectiveLocations getDirectiveLocations() {
-    return findChildByClass(GraphQLDirectiveLocations.class);
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
   }
 
   @Override
   @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
+  public GraphQLDirectiveLocations getDirectiveLocations() {
+    return findChildByClass(GraphQLDirectiveLocations.class);
   }
 
   @Override

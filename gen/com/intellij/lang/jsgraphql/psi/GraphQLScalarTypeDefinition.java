@@ -10,10 +10,10 @@ import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 public interface GraphQLScalarTypeDefinition extends GraphQLTypeDefinition, GraphQLDirectivesAware, GraphQLTypeNameDefinitionOwner {
 
   @Nullable
-  GraphQLTypeNameDefinition getTypeNameDefinition();
+  GraphQLDescription getDescription();
 
   @Nullable
-  GraphQLQuotedString getDescription();
+  GraphQLTypeNameDefinition getTypeNameDefinition();
 
   @NotNull
   List<GraphQLDirective> getDirectives();

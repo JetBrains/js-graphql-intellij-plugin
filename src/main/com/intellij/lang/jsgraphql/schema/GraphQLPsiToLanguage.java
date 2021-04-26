@@ -663,7 +663,7 @@ public class GraphQLPsiToLanguage {
             addCommonData(nullValue, value);
             return nullValue.build();
         } else if (value instanceof GraphQLStringValue) {
-            StringValue.Builder stringValue = StringValue.newStringValue().value(quotedString(((GraphQLStringValue) value).getQuotedString()));
+            StringValue.Builder stringValue = StringValue.newStringValue().value(quotedString(((GraphQLStringValue) value).getStringLiteral()));
             addCommonData(stringValue, value);
             return stringValue.build();
         } else if (value instanceof GraphQLEnumValue) {
@@ -705,8 +705,8 @@ public class GraphQLPsiToLanguage {
         return assertShouldNeverHappen();
     }
 
-    static @NotNull String quotedString(@NotNull GraphQLQuotedString quotedString) {
-        String text = quotedString.getText();
+    static @NotNull String quotedString(@NotNull GraphQLStringLiteral stringLiteral) {
+        String text = stringLiteral.getText();
         boolean multiLine = text.startsWith("\"\"\"");
         if (multiLine) {
             return parseTripleQuotedString(text);
@@ -720,7 +720,7 @@ public class GraphQLPsiToLanguage {
         nodeBuilder.element(element);
     }
 
-    protected @Nullable Description newDescription(@Nullable GraphQLQuotedString description) {
+    protected @Nullable Description newDescription(@Nullable GraphQLDescription description) {
         if (description == null) {
             return null;
         }

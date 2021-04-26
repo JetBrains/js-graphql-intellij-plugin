@@ -31,6 +31,10 @@ public class GraphQLVisitor extends PsiElementVisitor {
     visitValue(o);
   }
 
+  public void visitBlockString(@NotNull GraphQLBlockString o) {
+    visitStringLiteral(o);
+  }
+
   public void visitBooleanValue(@NotNull GraphQLBooleanValue o) {
     visitValue(o);
   }
@@ -40,6 +44,10 @@ public class GraphQLVisitor extends PsiElementVisitor {
   }
 
   public void visitDefinition(@NotNull GraphQLDefinition o) {
+    visitElement(o);
+  }
+
+  public void visitDescription(@NotNull GraphQLDescription o) {
     visitElement(o);
   }
 
@@ -212,7 +220,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
   }
 
   public void visitQuotedString(@NotNull GraphQLQuotedString o) {
-    visitElement(o);
+    visitStringLiteral(o);
   }
 
   public void visitScalarTypeDefinition(@NotNull GraphQLScalarTypeDefinition o) {
@@ -246,6 +254,10 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitSelectionSetOperationDefinition(@NotNull GraphQLSelectionSetOperationDefinition o) {
     visitOperationDefinition(o);
+  }
+
+  public void visitStringLiteral(@NotNull GraphQLStringLiteral o) {
+    visitElement(o);
   }
 
   public void visitStringValue(@NotNull GraphQLStringValue o) {

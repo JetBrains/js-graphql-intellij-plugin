@@ -27,8 +27,8 @@ public class GraphQLStringValueImpl extends GraphQLValueImpl implements GraphQLS
 
   @Override
   @NotNull
-  public GraphQLQuotedString getQuotedString() {
-    return findNotNullChildByClass(GraphQLQuotedString.class);
+  public GraphQLStringLiteral getStringLiteral() {
+    return findNotNullChildByClass(GraphQLStringLiteral.class);
   }
 
 }

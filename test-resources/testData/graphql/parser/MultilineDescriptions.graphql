@@ -25,3 +25,15 @@ scalar E
   A "" B " \"""
 """
 scalar F
+
+type G {
+    """
+    "\"""
+    """
+    f: String
+}
+
+"""
+\\"""
+"""
+scalar H

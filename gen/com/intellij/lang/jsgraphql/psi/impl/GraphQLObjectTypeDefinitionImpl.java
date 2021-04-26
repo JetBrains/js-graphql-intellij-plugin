@@ -27,6 +27,12 @@ public class GraphQLObjectTypeDefinitionImpl extends GraphQLTypeDefinitionImpl i
 
   @Override
   @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
+  }
+
+  @Override
+  @Nullable
   public GraphQLFieldsDefinition getFieldsDefinition() {
     return findChildByClass(GraphQLFieldsDefinition.class);
   }
@@ -41,12 +47,6 @@ public class GraphQLObjectTypeDefinitionImpl extends GraphQLTypeDefinitionImpl i
   @Nullable
   public GraphQLTypeNameDefinition getTypeNameDefinition() {
     return findChildByClass(GraphQLTypeNameDefinition.class);
-  }
-
-  @Override
-  @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
   }
 
   @Override

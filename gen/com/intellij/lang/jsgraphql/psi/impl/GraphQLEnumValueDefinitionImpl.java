@@ -26,15 +26,15 @@ public class GraphQLEnumValueDefinitionImpl extends GraphQLElementImpl implement
   }
 
   @Override
-  @NotNull
-  public GraphQLEnumValue getEnumValue() {
-    return findNotNullChildByClass(GraphQLEnumValue.class);
+  @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
   }
 
   @Override
-  @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
+  @NotNull
+  public GraphQLEnumValue getEnumValue() {
+    return findNotNullChildByClass(GraphQLEnumValue.class);
   }
 
   @Override

@@ -127,7 +127,7 @@ public class GraphQLPsiUtil {
     @NotNull
     public static PsiElement skipDescription(@NotNull PsiElement element) {
         if (element instanceof GraphQLDescriptionAware) {
-            GraphQLQuotedString description = ((GraphQLDescriptionAware) element).getDescription();
+            GraphQLDescription description = ((GraphQLDescriptionAware) element).getDescription();
             if (description != null) {
                 PsiElement target = PsiTreeUtil.skipWhitespacesForward(description);
                 if (target != null) {

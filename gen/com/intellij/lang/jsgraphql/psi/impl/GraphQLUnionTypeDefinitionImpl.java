@@ -27,6 +27,12 @@ public class GraphQLUnionTypeDefinitionImpl extends GraphQLTypeDefinitionImpl im
 
   @Override
   @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
+  }
+
+  @Override
+  @Nullable
   public GraphQLTypeNameDefinition getTypeNameDefinition() {
     return findChildByClass(GraphQLTypeNameDefinition.class);
   }
@@ -35,12 +41,6 @@ public class GraphQLUnionTypeDefinitionImpl extends GraphQLTypeDefinitionImpl im
   @Nullable
   public GraphQLUnionMembership getUnionMembership() {
     return findChildByClass(GraphQLUnionMembership.class);
-  }
-
-  @Override
-  @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
   }
 
   @Override

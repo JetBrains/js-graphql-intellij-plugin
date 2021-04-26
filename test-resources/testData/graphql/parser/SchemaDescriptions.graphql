@@ -43,8 +43,15 @@ directive
 """
 directive @Directive on SCHEMA
 
+""""""
 type TypeForUnion {
+    """
+    field
+    """
     id: ID
+
+    """"""
+    phone: String
 }
 
 """

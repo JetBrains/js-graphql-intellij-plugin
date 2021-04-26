@@ -18,6 +18,7 @@
 package com.intellij.lang.jsgraphql.types.parser;
 
 import com.intellij.lang.jsgraphql.types.Internal;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -33,6 +34,10 @@ public class StringValueParsing {
     private final static String THREE_QUOTES = "\"\"\"";
 
     public static String parseTripleQuotedString(String strText) {
+        if (strText.length() <= 6) {
+            return "";
+        }
+
         int end = strText.length() - 3;
         String s = strText.substring(3, end);
         s = s.replaceAll(ESCAPED_TRIPLE_QUOTES, THREE_QUOTES);
@@ -114,7 +119,14 @@ public class StringValueParsing {
         return leadingWhitespace(str) == str.length();
     }
 
-    public static String parseSingleQuotedString(String string) {
+    public static String parseSingleQuotedString(@NotNull String string) {
+        if (string.length() <= 2) {
+            return "";
+        }
+        if (string.charAt(0) != string.charAt(string.length() - 1)) {
+            return "";
+        }
+
         StringWriter writer = new StringWriter(string.length() - 2);
         int end = string.length() - 1;
         for (int i = 1; i < end; i++) {

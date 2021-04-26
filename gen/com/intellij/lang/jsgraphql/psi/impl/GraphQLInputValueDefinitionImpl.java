@@ -33,14 +33,14 @@ public class GraphQLInputValueDefinitionImpl extends GraphQLInputValueDefinition
 
   @Override
   @Nullable
-  public GraphQLType getType() {
-    return findChildByClass(GraphQLType.class);
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
   }
 
   @Override
   @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
+  public GraphQLType getType() {
+    return findChildByClass(GraphQLType.class);
   }
 
   @Override

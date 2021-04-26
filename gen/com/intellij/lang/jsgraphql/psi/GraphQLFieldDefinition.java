@@ -13,10 +13,10 @@ public interface GraphQLFieldDefinition extends GraphQLDirectivesAware, GraphQLN
   GraphQLArgumentsDefinition getArgumentsDefinition();
 
   @Nullable
-  GraphQLType getType();
+  GraphQLDescription getDescription();
 
   @Nullable
-  GraphQLQuotedString getDescription();
+  GraphQLType getType();
 
   @NotNull
   List<GraphQLDirective> getDirectives();

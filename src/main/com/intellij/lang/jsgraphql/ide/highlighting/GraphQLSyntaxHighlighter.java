@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
@@ -89,9 +88,9 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
       return KEYWORD_KEYS;
     } else if (tokenType.equals(GraphQLElementTypes.NUMBER)) {
       return NUMBER_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.OPEN_QUOTE) || tokenType.equals(GraphQLElementTypes.CLOSING_QUOTE) || tokenType.equals(GraphQLElementTypes.REGULAR_STRING_PART)) {
+    } else if (GraphQLExtendedElementTypes.STRING_TOKENS.contains(tokenType)) {
       return STRING_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.COMMENT)) {
+    } else if (tokenType.equals(GraphQLElementTypes.EOL_COMMENT)) {
       return COMMENT_KEYS;
     } else if (tokenType.equals(GraphQLElementTypes.BRACE_L) || tokenType.equals(GraphQLElementTypes.BRACE_R)) {
       return BRACES_KEYS;

@@ -27,6 +27,12 @@ public class GraphQLSchemaDefinitionImpl extends GraphQLTypeSystemDefinitionImpl
 
   @Override
   @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
+  }
+
+  @Override
+  @Nullable
   public GraphQLOperationTypeDefinitions getOperationTypeDefinitions() {
     return findChildByClass(GraphQLOperationTypeDefinitions.class);
   }
@@ -35,12 +41,6 @@ public class GraphQLSchemaDefinitionImpl extends GraphQLTypeSystemDefinitionImpl
   @NotNull
   public List<GraphQLDirective> getDirectives() {
     return PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLDirective.class);
-  }
-
-  @Override
-  @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
   }
 
 }

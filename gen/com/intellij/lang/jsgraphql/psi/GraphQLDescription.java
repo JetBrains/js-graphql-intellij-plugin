@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GraphQLStringValue extends GraphQLValue {
+public interface GraphQLDescription extends GraphQLElement {
 
   @NotNull
   GraphQLStringLiteral getStringLiteral();

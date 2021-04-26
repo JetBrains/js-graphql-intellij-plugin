@@ -10,37 +10,19 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLScalarTypeDefinitionImpl extends GraphQLTypeDefinitionImpl implements GraphQLScalarTypeDefinition {
+public class GraphQLBlockStringImpl extends GraphQLStringLiteralImpl implements GraphQLBlockString {
 
-  public GraphQLScalarTypeDefinitionImpl(ASTNode node) {
+  public GraphQLBlockStringImpl(ASTNode node) {
     super(node);
   }
 
   public void accept(@NotNull GraphQLVisitor visitor) {
-    visitor.visitScalarTypeDefinition(this);
+    visitor.visitBlockString(this);
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);
-  }
-
-  @Override
-  @Nullable
-  public GraphQLDescription getDescription() {
-    return findChildByClass(GraphQLDescription.class);
-  }
-
-  @Override
-  @Nullable
-  public GraphQLTypeNameDefinition getTypeNameDefinition() {
-    return findChildByClass(GraphQLTypeNameDefinition.class);
-  }
-
-  @Override
-  @NotNull
-  public List<GraphQLDirective> getDirectives() {
-    return PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLDirective.class);
   }
 
 }

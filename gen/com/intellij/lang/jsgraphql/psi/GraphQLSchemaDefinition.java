@@ -10,12 +10,12 @@ import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 public interface GraphQLSchemaDefinition extends GraphQLTypeSystemDefinition, GraphQLDirectivesAware, GraphQLDescriptionAware {
 
   @Nullable
+  GraphQLDescription getDescription();
+
+  @Nullable
   GraphQLOperationTypeDefinitions getOperationTypeDefinitions();
 
   @NotNull
   List<GraphQLDirective> getDirectives();
-
-  @Nullable
-  GraphQLQuotedString getDescription();
 
 }

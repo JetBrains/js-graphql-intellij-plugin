@@ -13,10 +13,10 @@ public interface GraphQLInputValueDefinition extends GraphQLDirectivesAware, Gra
   GraphQLDefaultValue getDefaultValue();
 
   @Nullable
-  GraphQLType getType();
+  GraphQLDescription getDescription();
 
   @Nullable
-  GraphQLQuotedString getDescription();
+  GraphQLType getType();
 
   @NotNull
   List<GraphQLDirective> getDirectives();

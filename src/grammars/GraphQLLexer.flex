@@ -68,9 +68,10 @@ import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 %unicode
 
 UNICODE_BOM = \uFEFF
-WHITESPACE = \u0009|\u0020
-LINE_TERMINATOR = \u000A | (\u000D \u000A?)
-COMMENT = "#" .*
+WHITESPACE_CHAR = [ \t]
+LINE_TERMINATOR = \n | (\r\n?)
+WHITESPACE = ({WHITESPACE_CHAR} | {LINE_TERMINATOR})+
+EOL_COMMENT = "#" .*
 NAME = [_A-Za-z][_0-9A-Za-z]*
 VARIABLE = \${NAME}
 NUMBER = -?([0-9]+|[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)
@@ -79,9 +80,9 @@ QUOTED_STRING_ESCAPE= \\[^\r\n]
 QUOTED_STRING_BODY = ([^\\\"\r\n] | {QUOTED_STRING_ESCAPE})+
 
 THREE_QUO = (\"\"\")
-ONE_TWO_QUO = (\"\"?[^\"])
-BLOCK_STRING_ESCAPE = (\\({THREE_QUO} | [^]))
-BLOCK_STRING_CHAR = [^\\\"] | {BLOCK_STRING_ESCAPE} | {ONE_TWO_QUO}
+ONE_TWO_QUO = (\"\"?)
+BLOCK_STRING_ESCAPE = (\\({THREE_QUO} | [^\\\"\r\n\t ]))
+BLOCK_STRING_CHAR = [^\\\"\r\n\t ]
 BLOCK_STRING_BODY = {BLOCK_STRING_CHAR}+
 
 %eof{
@@ -89,16 +90,15 @@ BLOCK_STRING_BODY = {BLOCK_STRING_CHAR}+
   myStateStack.clear();
 %eof}
 
-%state QUO_STRING THREE_QUO_STRING VARIABLE_OR_TEMPLATE TEMPLATE
+%state QUOTED_STRING BLOCK_STRING VARIABLE_OR_TEMPLATE TEMPLATE
 
 %%
 
 <YYINITIAL> {
   // Ignored tokens
-  {UNICODE_BOM}       { return WHITE_SPACE; }
-  {WHITESPACE}+      { return WHITE_SPACE; }
-  {LINE_TERMINATOR}   { return WHITE_SPACE; }
-  {COMMENT}          { return COMMENT; }
+  {UNICODE_BOM}      |
+  {WHITESPACE}       { return WHITE_SPACE; }
+  {EOL_COMMENT}      { return EOL_COMMENT; }
   ","                { return WHITE_SPACE; }
 
   // Punctuators
@@ -136,8 +136,8 @@ BLOCK_STRING_BODY = {BLOCK_STRING_CHAR}+
   "repeatable"       { return REPEATABLE_KEYWORD; }
 
   // string and number literals
-  \"                 { pushState(QUO_STRING);        return OPEN_QUOTE;    }
-  {THREE_QUO}        { pushState(THREE_QUO_STRING);  return OPEN_QUOTE;    }
+  \"                 { pushState(QUOTED_STRING); return OPEN_QUOTE;    }
+  {THREE_QUO}        { pushState(BLOCK_STRING);  return OPEN_TRIPLE_QUOTE;    }
   {NUMBER}           { return NUMBER; }
 
   // identifiers
@@ -153,16 +153,19 @@ BLOCK_STRING_BODY = {BLOCK_STRING_CHAR}+
   [^]                { popState(); return BAD_CHARACTER; }
 }
 
-<QUO_STRING> {
+<QUOTED_STRING> {
     {QUOTED_STRING_BODY}    { return REGULAR_STRING_PART; }
     \"                      { popState(); return CLOSING_QUOTE; }
     [^]                     { popState(); return BAD_CHARACTER; }
 }
 
-<THREE_QUO_STRING> {
+<BLOCK_STRING> {
+    {WHITESPACE}            { return WHITE_SPACE; }
+    {BLOCK_STRING_ESCAPE}   { return REGULAR_STRING_PART; }
+    {ONE_TWO_QUO} / [^\"]   { return REGULAR_STRING_PART; }
     {BLOCK_STRING_BODY}     { return REGULAR_STRING_PART; }
-    {THREE_QUO}             { popState(); return CLOSING_QUOTE; }
-    [^]                     { popState(); return BAD_CHARACTER; }
+    {THREE_QUO}             { popState(); return CLOSING_TRIPLE_QUOTE; }
+    [^]                     { return REGULAR_STRING_PART; }
 }
 
 <TEMPLATE> {

@@ -27,6 +27,12 @@ public class GraphQLEnumTypeDefinitionImpl extends GraphQLTypeDefinitionImpl imp
 
   @Override
   @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
+  }
+
+  @Override
+  @Nullable
   public GraphQLEnumValueDefinitions getEnumValueDefinitions() {
     return findChildByClass(GraphQLEnumValueDefinitions.class);
   }
@@ -35,12 +41,6 @@ public class GraphQLEnumTypeDefinitionImpl extends GraphQLTypeDefinitionImpl imp
   @Nullable
   public GraphQLTypeNameDefinition getTypeNameDefinition() {
     return findChildByClass(GraphQLTypeNameDefinition.class);
-  }
-
-  @Override
-  @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
   }
 
   @Override
