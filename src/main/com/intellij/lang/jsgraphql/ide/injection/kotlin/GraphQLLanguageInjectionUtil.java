@@ -82,32 +82,9 @@ public class GraphQLLanguageInjectionUtil {
     }
 
     public static boolean isKtGraphQLLanguageInjectionTarget(PsiElement host, @Nullable Ref<String> envRef) {
-        if (host instanceof KtStringTemplateExpression) {
-            KtStringTemplateExpression template = (KtStringTemplateExpression) host;
-            // check if we're a graphql tagged template
-            final KtReferenceExpression tagExpression = PsiTreeUtil.getPrevSiblingOfType(template, KtReferenceExpression.class);
-            if (tagExpression != null) {
-                final String tagText = tagExpression.getText();
-                if (SUPPORTED_TAG_NAMES.contains(tagText)) {
-                    if (envRef != null) {
-                        envRef.set(getEnvironmentFromTemplateTag(tagText, host));
-                    }
-                    return true;
-                }
-                final String builderTailName = tagExpression.getText();
-                if (builderTailName != null && SUPPORTED_TAG_NAMES.contains(builderTailName)) {
-                    // a builder pattern that ends in a tagged template, e.g. someQueryAPI.graphql``
-                    if (envRef != null) {
-                        envRef.set(getEnvironmentFromTemplateTag(builderTailName, host));
-                    }
-                    return true;
-                }
-            }
-            // also check for "manual" language=GraphQL injection comments
-            final GraphQLCommentBasedInjectionHelper commentBasedInjectionHelper = ServiceManager.getService(GraphQLCommentBasedInjectionHelper.class);
-            if (commentBasedInjectionHelper != null) {
-                return commentBasedInjectionHelper.isGraphQLInjectedUsingComment(host, envRef);
-            }
+        if (host instanceof KtStringTemplateExpression && host.textContains('q')) {
+            envRef.set(PropertiesComponent.getInstance(host.getProject()).getValue(PROJECT_GQL_ENV, DEFAULT_GQL_ENVIRONMENT));
+            return true;
         }
         return false;
     }
