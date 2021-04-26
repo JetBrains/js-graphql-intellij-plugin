@@ -20,4 +20,5 @@
         <graphQLFindUsagesFileTypeContributor implementation="com.intellij.lang.jsgraphql.ide.references.kotlin.KotlinGraphQLFindUsagesFileTypeContributor" />
     </extensions>
 
+  <depends>com.intellij.lang.jsgraphql</depends>
 </idea-plugin>
