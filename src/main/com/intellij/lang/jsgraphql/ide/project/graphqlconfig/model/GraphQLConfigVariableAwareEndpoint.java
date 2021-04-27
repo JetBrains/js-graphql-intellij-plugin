@@ -14,16 +14,20 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import io.github.cdimascio.dotenv.Dotenv;
+import io.github.cdimascio.dotenv.DotenvBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -141,30 +145,57 @@ public class GraphQLConfigVariableAwareEndpoint {
         if (configFile != null) {
             VirtualFile parentDir = configFile.getParent();
             if (parentDir != null) {
-                dotenv = Dotenv
-                    .configure()
-                    .directory(parentDir.getPath())
-                    .ignoreIfMalformed()
-                    .ignoreIfMissing()
-                    .load();
-
-                varValue = dotenv.get(varName);
+                String filename = getFileName(parentDir);
+                if (filename != null) {
+                    dotenv = getDotenvBuilder(parentDir.getPath()).filename(filename).load();
+                    varValue = dotenv.get(varName);
+                }
             }
         }
 
         // If that didn't resolve try to load the env file from the root of the project
         String projectBasePath = project.getBasePath();
         if (varValue == null && projectBasePath != null) {
-            dotenv = Dotenv
-                .configure()
-                .directory(projectBasePath)
-                .ignoreIfMalformed()
-                .ignoreIfMissing()
-                .load();
-
-            varValue = dotenv.get(varName);
+            VirtualFile projectDir = ProjectUtil.guessProjectDir(project);
+            if (projectDir != null) {
+                String filename = getFileName(projectDir);
+                if (filename != null) {
+                    dotenv = getDotenvBuilder(projectDir.getPath()).filename(filename).load();
+                    varValue = dotenv.get(varName);
+                }
+            }
         }
         return varValue;
+    }
+
+    private DotenvBuilder getDotenvBuilder(String path) {
+        return Dotenv
+            .configure()
+            .directory(path)
+            .ignoreIfMalformed()
+            .ignoreIfMissing();
+    }
+
+    private String getFileName(VirtualFile dirMaybeContainingEnvFile) {
+        if (!dirMaybeContainingEnvFile.isDirectory())
+            return null;
+
+        // List of supported names for .env files in prioritized order
+        List<String> supportedEnvFiles = Arrays.asList(
+            ".env.local",
+            ".env.development.local",
+            ".env.development",
+            ".env");
+
+        // Look through the supported names and return the first we find
+        for (String envFileName : supportedEnvFiles) {
+            VirtualFile maybeEnvFile = dirMaybeContainingEnvFile.findChild(envFileName);
+            if (maybeEnvFile != null && maybeEnvFile.exists()) {
+                return envFileName;
+            }
+        }
+
+        return null;
     }
 
     static class VariableDialog extends DialogWrapper {
