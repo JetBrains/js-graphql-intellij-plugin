@@ -10,7 +10,8 @@ package com.intellij.lang.jsgraphql.ide.validation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayModernAnnotationFilter;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
+import com.intellij.lang.jsgraphql.ide.project.JavascriptGraphQLInjectionSearchHelper;
+import com.intellij.lang.jsgraphql.ide.project.KotlinGraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
@@ -261,9 +262,13 @@ public class GraphQLSchemaValidationAnnotator implements Annotator {
     private String replacePlaceholdersWithValidGraphQL(PsiFile graphqlPsiFile) {
         String graphqlText = graphqlPsiFile.getText();
         if (graphqlPsiFile.getContext() instanceof PsiLanguageInjectionHost) {
-            final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
-            if (graphQLInjectionSearchHelper != null) {
-                graphqlText = graphQLInjectionSearchHelper.applyInjectionDelimitingQuotesEscape(graphqlText);
+            final JavascriptGraphQLInjectionSearchHelper jsGraphQLInjectionSearchHelper = ServiceManager.getService(JavascriptGraphQLInjectionSearchHelper.class);
+            final KotlinGraphQLInjectionSearchHelper ktGraphQLInjectionSearchHelper = ServiceManager.getService(KotlinGraphQLInjectionSearchHelper.class);
+
+            if (jsGraphQLInjectionSearchHelper != null) {
+                graphqlText = jsGraphQLInjectionSearchHelper.applyInjectionDelimitingQuotesEscape(graphqlText);
+            } else if(ktGraphQLInjectionSearchHelper != null){
+                graphqlText = ktGraphQLInjectionSearchHelper.applyInjectionDelimitingQuotesEscape(graphqlText);
             }
         }
         final StringBuilder buffer = new StringBuilder(graphqlText);
