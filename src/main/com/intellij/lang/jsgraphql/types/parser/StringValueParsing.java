@@ -33,7 +33,7 @@ public class StringValueParsing {
     private final static String ESCAPED_TRIPLE_QUOTES = "\\\\\"\"\""; // ahh Java + Regex
     private final static String THREE_QUOTES = "\"\"\"";
 
-    public static String parseTripleQuotedString(String strText) {
+    public static @NotNull String parseTripleQuotedString(@NotNull String strText) {
         if (strText.length() <= 6) {
             return "";
         }
@@ -119,7 +119,7 @@ public class StringValueParsing {
         return leadingWhitespace(str) == str.length();
     }
 
-    public static String parseSingleQuotedString(@NotNull String string) {
+    public static @NotNull String parseSingleQuotedString(@NotNull String string) {
         if (string.length() <= 2) {
             return "";
         }

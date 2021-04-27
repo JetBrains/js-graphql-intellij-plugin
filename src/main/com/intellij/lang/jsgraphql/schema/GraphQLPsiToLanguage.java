@@ -647,13 +647,21 @@ public class GraphQLPsiToLanguage {
         if (value == null) return null;
 
         if (value instanceof GraphQLIntValue) {
-            IntValue.Builder intValue = IntValue.newIntValue().value(new BigInteger(value.getText()));
-            addCommonData(intValue, value);
-            return intValue.build();
+            try {
+                IntValue.Builder intValue = IntValue.newIntValue().value(new BigInteger(value.getText()));
+                addCommonData(intValue, value);
+                return intValue.build();
+            } catch (NumberFormatException e) {
+                return null;
+            }
         } else if (value instanceof GraphQLFloatValue) {
-            FloatValue.Builder floatValue = FloatValue.newFloatValue().value(new BigDecimal(value.getText()));
-            addCommonData(floatValue, value);
-            return floatValue.build();
+            try {
+                FloatValue.Builder floatValue = FloatValue.newFloatValue().value(new BigDecimal(value.getText()));
+                addCommonData(floatValue, value);
+                return floatValue.build();
+            } catch (NumberFormatException e) {
+                return null;
+            }
         } else if (value instanceof GraphQLBooleanValue) {
             BooleanValue.Builder booleanValue = BooleanValue.newBooleanValue().value(Boolean.parseBoolean(value.getText()));
             addCommonData(booleanValue, value);

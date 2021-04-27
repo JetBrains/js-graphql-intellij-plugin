@@ -74,7 +74,6 @@ WHITESPACE = ({WHITESPACE_CHAR} | {LINE_TERMINATOR})+
 EOL_COMMENT = "#" .*
 NAME = [_A-Za-z][_0-9A-Za-z]*
 VARIABLE = \${NAME}
-NUMBER = -?([0-9]+|[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)
 
 QUOTED_STRING_ESCAPE= \\[^\r\n]
 QUOTED_STRING_BODY = ([^\\\"\r\n] | {QUOTED_STRING_ESCAPE})+
@@ -84,6 +83,15 @@ ONE_TWO_QUO = (\"\"?)
 BLOCK_STRING_ESCAPE = (\\({THREE_QUO} | [^\\\"\r\n\t ]))
 BLOCK_STRING_CHAR = [^\\\"\r\n\t ]
 BLOCK_STRING_BODY = {BLOCK_STRING_CHAR}+
+
+DIGIT = [0-9]
+NON_ZERO_DIGIT = [1-9]
+INTEGER_PART = -? (0 | {NON_ZERO_DIGIT} {DIGIT}*)
+FRACTIONAL_PART = "." {DIGIT}+
+EXPONENT_PART = [eE] [+-]? {DIGIT}+
+
+NUMBER = {INTEGER_PART}
+FLOAT = {INTEGER_PART} {FRACTIONAL_PART} | {INTEGER_PART} {EXPONENT_PART} | {INTEGER_PART} {FRACTIONAL_PART} {EXPONENT_PART}
 
 %eof{
   myLeftBraceCount = 0;
@@ -139,6 +147,7 @@ BLOCK_STRING_BODY = {BLOCK_STRING_CHAR}+
   \"                 { pushState(QUOTED_STRING); return OPEN_QUOTE;    }
   {THREE_QUO}        { pushState(BLOCK_STRING);  return OPEN_TRIPLE_QUOTE;    }
   {NUMBER}           { return NUMBER; }
+  {FLOAT}            { return FLOAT; }
 
   // identifiers
   {NAME}             { return NAME; }

@@ -20,4 +20,6 @@ public interface GraphQLExtendedElementTypes {
     TokenSet STRING_TOKENS = TokenSet.orSet(QUOTES, TokenSet.create(REGULAR_STRING_PART));
     TokenSet STRING_LITERALS = TokenSet.create(QUOTED_STRING, BLOCK_STRING);
 
+    TokenSet NUMBER_LITERALS = TokenSet.create(NUMBER, FLOAT);
+
 }

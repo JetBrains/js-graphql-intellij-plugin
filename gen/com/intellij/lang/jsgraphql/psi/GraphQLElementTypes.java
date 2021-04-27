@@ -101,6 +101,7 @@ public interface GraphQLElementTypes {
   IElementType EOL_COMMENT = new GraphQLTokenType("EOL_COMMENT");
   IElementType EQUALS = new GraphQLTokenType("=");
   IElementType EXTEND_KEYWORD = new GraphQLTokenType("extend");
+  IElementType FLOAT = new GraphQLTokenType("FLOAT");
   IElementType FRAGMENT_KEYWORD = new GraphQLTokenType("fragment");
   IElementType IMPLEMENTS_KEYWORD = new GraphQLTokenType("implements");
   IElementType INPUT_KEYWORD = new GraphQLTokenType("input");

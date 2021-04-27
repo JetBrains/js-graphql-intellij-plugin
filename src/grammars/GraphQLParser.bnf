@@ -68,7 +68,8 @@
     // identifiers and literals
     VARIABLE_NAME='regexp:\$[_A-Za-z][_0-9A-Za-z]*'
     NAME='regexp:[_A-Za-z][_0-9A-Za-z]*'
-    NUMBER='regexp:\d+(\.\d*)?((e|E)-?[0-9+])?'
+    NUMBER='regexp:-?\d+'
+    FLOAT='regexp:-?\d+(\.\d+)?([eE][+-]?\d+)?'
 
     // language injection
     TEMPLATE_CHAR='regexp:.*'
@@ -168,8 +169,6 @@ variable ::= VARIABLE_NAME {
 
 defaultValue ::= '=' value {pin=1}
 
-stringValue ::= stringLiteral {extends=value}
-
 type ::= nonNullType | listType | typeName
 
 typeName ::= !(definition_keywords) identifier {
@@ -186,14 +185,13 @@ booleanValue ::= 'true' | 'false' {extends=value}
 
 nullValue ::= 'null' {extends=value}
 
+stringValue ::= stringLiteral {extends=value}
 stringLiteral ::= quotedString | blockString {mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLStringLiteralMixin"}
 quotedString ::= OPEN_QUOTE REGULAR_STRING_PART? CLOSING_QUOTE {pin=1 extends=stringLiteral}
 blockString ::= OPEN_TRIPLE_QUOTE REGULAR_STRING_PART* CLOSING_TRIPLE_QUOTE {pin=1 extends=stringLiteral}
 
 intValue ::= NUMBER {extends=value}
-
-floatValue ::= NUMBER {extends=value}
-
+floatValue ::= FLOAT {extends=value}
 
 // operations
 

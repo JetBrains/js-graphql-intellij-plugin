@@ -796,13 +796,13 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // NUMBER
+  // FLOAT
   public static boolean floatValue(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "floatValue")) return false;
-    if (!nextTokenIs(builder, NUMBER)) return false;
+    if (!nextTokenIs(builder, FLOAT)) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = consumeToken(builder, NUMBER);
+    result = consumeToken(builder, FLOAT);
     exit_section_(builder, marker, FLOAT_VALUE, result);
     return result;
   }

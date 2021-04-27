@@ -71,8 +71,6 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final TextAttributesKey[] BAD_CHARACTER_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
   private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
-  private static final Set<IElementType> KEYWORDS = new HashSet<>(Arrays.asList(GraphQLExtendedElementTypes.KEYWORDS.getTypes()));
-
   @NotNull
   @Override
   public Lexer getHighlightingLexer() {
@@ -84,9 +82,9 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
     if (tokenType.equals(GraphQLElementTypes.NAME)) {
       return IDENTIFIER_KEYS;
-    } else if (KEYWORDS.contains(tokenType)) {
+    } else if (GraphQLExtendedElementTypes.KEYWORDS.contains(tokenType)) {
       return KEYWORD_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.NUMBER)) {
+    } else if (GraphQLExtendedElementTypes.NUMBER_LITERALS.contains(tokenType)) {
       return NUMBER_KEYS;
     } else if (GraphQLExtendedElementTypes.STRING_TOKENS.contains(tokenType)) {
       return STRING_KEYS;
