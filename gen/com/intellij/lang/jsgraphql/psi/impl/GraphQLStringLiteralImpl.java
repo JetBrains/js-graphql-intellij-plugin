@@ -20,6 +20,7 @@ public abstract class GraphQLStringLiteralImpl extends GraphQLStringLiteralMixin
     visitor.visitStringLiteral(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

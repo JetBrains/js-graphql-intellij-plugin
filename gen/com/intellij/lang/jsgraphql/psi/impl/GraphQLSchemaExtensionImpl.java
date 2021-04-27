@@ -16,10 +16,12 @@ public class GraphQLSchemaExtensionImpl extends GraphQLTypeSystemDefinitionImpl 
     super(node);
   }
 
+  @Override
   public void accept(@NotNull GraphQLVisitor visitor) {
     visitor.visitSchemaExtension(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

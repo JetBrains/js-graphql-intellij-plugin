@@ -20,6 +20,7 @@ public class GraphQLTypeNameImpl extends GraphQLTypeNameMixin implements GraphQL
     visitor.visitTypeName(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

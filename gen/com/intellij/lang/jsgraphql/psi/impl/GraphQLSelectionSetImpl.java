@@ -20,6 +20,7 @@ public class GraphQLSelectionSetImpl extends GraphQLElementImpl implements Graph
     visitor.visitSelectionSet(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

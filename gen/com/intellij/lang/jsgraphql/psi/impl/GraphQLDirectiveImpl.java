@@ -20,6 +20,7 @@ public class GraphQLDirectiveImpl extends GraphQLNamedElementImpl implements Gra
     visitor.visitDirective(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

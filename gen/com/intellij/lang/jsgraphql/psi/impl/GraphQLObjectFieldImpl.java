@@ -20,6 +20,7 @@ public class GraphQLObjectFieldImpl extends GraphQLObjectFieldMixin implements G
     visitor.visitObjectField(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

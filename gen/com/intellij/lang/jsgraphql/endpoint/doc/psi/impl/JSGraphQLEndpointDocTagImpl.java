@@ -21,6 +21,7 @@ public class JSGraphQLEndpointDocTagImpl extends JSGraphQLEndpointDocPsiElement 
     visitor.visitTag(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof JSGraphQLEndpointDocVisitor) accept((JSGraphQLEndpointDocVisitor)visitor);
     else super.accept(visitor);

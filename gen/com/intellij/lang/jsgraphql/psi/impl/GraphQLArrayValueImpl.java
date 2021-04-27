@@ -16,10 +16,12 @@ public class GraphQLArrayValueImpl extends GraphQLValueImpl implements GraphQLAr
     super(node);
   }
 
+  @Override
   public void accept(@NotNull GraphQLVisitor visitor) {
     visitor.visitArrayValue(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

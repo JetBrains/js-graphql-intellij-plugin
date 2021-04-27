@@ -20,6 +20,7 @@ public class GraphQLDefinitionImpl extends GraphQLElementImpl implements GraphQL
     visitor.visitDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

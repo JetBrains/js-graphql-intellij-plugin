@@ -20,6 +20,7 @@ public class GraphQLDirectiveLocationImpl extends GraphQLDirectiveLocationMixin 
     visitor.visitDirectiveLocation(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

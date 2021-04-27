@@ -20,6 +20,7 @@ public class GraphQLVariableDefinitionsImpl extends GraphQLElementImpl implement
     visitor.visitVariableDefinitions(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

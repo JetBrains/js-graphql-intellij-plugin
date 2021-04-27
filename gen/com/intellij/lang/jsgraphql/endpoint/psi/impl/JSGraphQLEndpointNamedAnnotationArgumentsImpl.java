@@ -21,6 +21,7 @@ public class JSGraphQLEndpointNamedAnnotationArgumentsImpl extends JSGraphQLEndp
     visitor.visitNamedAnnotationArguments(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof JSGraphQLEndpointVisitor) accept((JSGraphQLEndpointVisitor)visitor);
     else super.accept(visitor);

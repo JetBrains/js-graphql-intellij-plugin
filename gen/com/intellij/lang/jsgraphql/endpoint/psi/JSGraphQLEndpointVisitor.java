@@ -146,7 +146,7 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
   }
 
   public void visitString(@NotNull JSGraphQLEndpointString o) {
-    visitPsiElement(o);
+    visitPsiLiteralValue(o);
   }
 
   public void visitUnionMember(@NotNull JSGraphQLEndpointUnionMember o) {
@@ -163,6 +163,10 @@ public class JSGraphQLEndpointVisitor extends PsiElementVisitor {
 
   public void visitNamedTypeDefinition(@NotNull JSGraphQLEndpointNamedTypeDefinition o) {
     visitPsiElement(o);
+  }
+
+  public void visitPsiLiteralValue(@NotNull PsiLiteralValue o) {
+    visitElement(o);
   }
 
   public void visitPsiNameIdentifierOwner(@NotNull PsiNameIdentifierOwner o) {

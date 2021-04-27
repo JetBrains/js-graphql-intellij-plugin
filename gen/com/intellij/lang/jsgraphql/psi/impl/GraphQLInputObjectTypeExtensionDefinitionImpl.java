@@ -16,10 +16,12 @@ public class GraphQLInputObjectTypeExtensionDefinitionImpl extends GraphQLTypeEx
     super(node);
   }
 
+  @Override
   public void accept(@NotNull GraphQLVisitor visitor) {
     visitor.visitInputObjectTypeExtensionDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

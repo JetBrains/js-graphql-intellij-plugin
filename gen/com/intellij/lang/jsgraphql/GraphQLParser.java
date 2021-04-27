@@ -91,7 +91,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 1
     result = result && report_error_(builder, consumeToken(builder, COLON));
     result = pinned && value(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, argument_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::argument_recover);
     return result || pinned;
   }
 
@@ -210,7 +210,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_);
     result = value(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, arrayValueElement_recover_parser_);
+    exit_section_(builder, level, marker, result, false, GraphQLParser::arrayValueElement_recover);
     return result;
   }
 
@@ -299,7 +299,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     if (!result) result = fragmentDefinition(builder, level + 1);
     if (!result) result = typeSystemDefinition(builder, level + 1);
     if (!result) result = templateDefinition(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, definition_recover_parser_);
+    exit_section_(builder, level, marker, result, false, GraphQLParser::definition_recover);
     return result;
   }
 
@@ -594,7 +594,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = result && enumValue(builder, level + 1);
     pinned = result; // pin = 2
     result = result && enumValueDefinition_2(builder, level + 1);
-    exit_section_(builder, level, marker, result, pinned, enumValueDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::enumValueDefinition_recover);
     return result || pinned;
   }
 
@@ -721,7 +721,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = pinned && report_error_(builder, consumeToken(builder, COLON)) && result;
     result = pinned && report_error_(builder, type(builder, level + 1)) && result;
     result = pinned && fieldDefinition_5(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, fieldDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::fieldDefinition_recover);
     return result || pinned;
   }
 
@@ -1087,7 +1087,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = pinned && report_error_(builder, type(builder, level + 1)) && result;
     result = pinned && report_error_(builder, inputValueDefinition_4(builder, level + 1)) && result;
     result = pinned && inputValueDefinition_5(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, inputValueDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::inputValueDefinition_recover);
     return result || pinned;
   }
 
@@ -1299,7 +1299,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 1
     result = result && report_error_(builder, consumeToken(builder, COLON));
     result = pinned && value(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, objectField_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::objectField_recover);
     return result || pinned;
   }
 
@@ -1467,7 +1467,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 1
     result = result && report_error_(builder, consumeToken(builder, COLON));
     result = pinned && typeName(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, operationTypeDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::operationTypeDefinition_recover);
     return result || pinned;
   }
 
@@ -1727,7 +1727,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = field(builder, level + 1);
     if (!result) result = fragmentSelection(builder, level + 1);
     if (!result) result = templateSelection(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, selection_recover_parser_);
+    exit_section_(builder, level, marker, result, false, GraphQLParser::selection_recover);
     return result;
   }
 
@@ -2237,7 +2237,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = pinned && report_error_(builder, type(builder, level + 1)) && result;
     result = pinned && report_error_(builder, variableDefinition_3(builder, level + 1)) && result;
     result = pinned && variableDefinition_4(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, variableDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::variableDefinition_recover);
     return result || pinned;
   }
 
@@ -2308,54 +2308,4 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  static final Parser argument_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return argument_recover(builder, level + 1);
-    }
-  };
-  static final Parser arrayValueElement_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return arrayValueElement_recover(builder, level + 1);
-    }
-  };
-  static final Parser definition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return definition_recover(builder, level + 1);
-    }
-  };
-  static final Parser enumValueDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return enumValueDefinition_recover(builder, level + 1);
-    }
-  };
-  static final Parser fieldDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return fieldDefinition_recover(builder, level + 1);
-    }
-  };
-  static final Parser inputValueDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return inputValueDefinition_recover(builder, level + 1);
-    }
-  };
-  static final Parser objectField_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return objectField_recover(builder, level + 1);
-    }
-  };
-  static final Parser operationTypeDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return operationTypeDefinition_recover(builder, level + 1);
-    }
-  };
-  static final Parser selection_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return selection_recover(builder, level + 1);
-    }
-  };
-  static final Parser variableDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return variableDefinition_recover(builder, level + 1);
-    }
-  };
 }
