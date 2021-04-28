@@ -18,58 +18,55 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.ui.EditorNotifications;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GraphQLTemplateFragmentLanguageInjector implements MultiHostInjector {
 
-    private static final ArrayList<Class<JSStringTemplateExpression>> INJECTION_CLASSES = Lists.newArrayList(JSStringTemplateExpression.class);
+    private static final List<Class<JSStringTemplateExpression>> INJECTION_CLASSES = Lists.newArrayList(JSStringTemplateExpression.class);
 
     @Override
     public void getLanguagesToInject(@NotNull MultiHostRegistrar registrar, @NotNull PsiElement context) {
+        if (!GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(context)) {
+            return;
+        }
 
+        final JSStringTemplateExpression template = (JSStringTemplateExpression) context;
 
-        if(GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(context)) {
+        final TextRange graphQlTextRange = GraphQLLanguageInjectionUtil.getGraphQLTextRange(template);
+        if (graphQlTextRange.isEmpty()) {
+            // all whitespace
+            return;
+        }
 
-            final JSStringTemplateExpression template = (JSStringTemplateExpression)context;
+        registrar.startInjecting(GraphQLLanguage.INSTANCE);
 
-            final TextRange graphQlTextRange = GraphQLLanguageInjectionUtil.getGraphQLTextRange(template);
-            if(graphQlTextRange.isEmpty()) {
-                // all whitespace
-                return;
+        final StringBuilder sb = new StringBuilder();
+        final TextRange[] stringRanges = template.getStringRanges();
+        int stringIndex = 0;
+        boolean insideTemplate = false;
+        for (ASTNode astNode : template.getNode().getChildren(null)) {
+            if (astNode.getElementType() == JSTokenTypes.BACKQUOTE) {
+                insideTemplate = true;
+                continue;
             }
-
-            registrar.startInjecting(GraphQLLanguage.INSTANCE);
-
-            final StringBuilder sb = new StringBuilder();
-            final TextRange[] stringRanges = template.getStringRanges();
-            int stringIndex = 0;
-            boolean insideTemplate = false;
-            for (ASTNode astNode : template.getNode().getChildren(null)) {
-                if(astNode.getElementType() == JSTokenTypes.BACKQUOTE) {
-                    insideTemplate = true;
-                    continue;
-                }
-                if(astNode.getElementType() == JSTokenTypes.STRING_TEMPLATE_PART) {
-                    registrar.addPlace(sb.toString(), "", (PsiLanguageInjectionHost) template, stringRanges[stringIndex]);
-                    stringIndex++;
-                    sb.setLength(0);
-                } else if(insideTemplate) {
-                    sb.append(astNode.getText());
-                }
+            if (astNode.getElementType() == JSTokenTypes.STRING_TEMPLATE_PART) {
+                registrar.addPlace(sb.toString(), "", template, stringRanges[stringIndex]);
+                stringIndex++;
+                sb.setLength(0);
+            } else if (insideTemplate) {
+                sb.append(astNode.getText());
             }
+        }
 
-            registrar.doneInjecting();
+        registrar.doneInjecting();
 
-            // update graphql config notifications
-            final VirtualFile virtualFile = context.getContainingFile().getVirtualFile();
-            if(virtualFile != null && !ApplicationManager.getApplication().isUnitTestMode()) {
-                EditorNotifications.getInstance(context.getProject()).updateNotifications(virtualFile);
-            }
+        // update graphql config notifications
+        final VirtualFile virtualFile = context.getContainingFile().getVirtualFile();
+        if (virtualFile != null && !ApplicationManager.getApplication().isUnitTestMode()) {
+            EditorNotifications.getInstance(context.getProject()).updateNotifications(virtualFile);
         }
     }
 

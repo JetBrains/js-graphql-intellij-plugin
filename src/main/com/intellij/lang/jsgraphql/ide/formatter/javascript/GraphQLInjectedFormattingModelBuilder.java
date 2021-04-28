@@ -1,18 +1,13 @@
 /**
- *  Copyright (c) 2015-present, Jim Kynde Meyer
- *  All rights reserved.
- *
- *  This source code is licensed under the MIT license found in the
- *  LICENSE file in the root directory of this source tree.
+ * Copyright (c) 2015-present, Jim Kynde Meyer
+ * All rights reserved.
+ * <p>
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.intellij.lang.jsgraphql.ide.formatter.javascript;
 
-import com.intellij.formatting.Block;
-import com.intellij.formatting.CustomFormattingModelBuilder;
-import com.intellij.formatting.DelegatingFormattingModel;
-import com.intellij.formatting.FormattingModel;
-import com.intellij.formatting.FormattingModelBuilder;
-import com.intellij.formatting.SpacingBuilder;
+import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.LanguageFormatting;
 import com.intellij.lang.javascript.psi.JSFile;
@@ -36,8 +31,8 @@ public class GraphQLInjectedFormattingModelBuilder implements CustomFormattingMo
     @NotNull
     @Override
     public FormattingModel createModel(PsiElement element, CodeStyleSettings settings) {
-        if(element instanceof JSFile || element.getContainingFile() instanceof JSFile) {
-            final JSFile file = (JSFile)(element instanceof JSFile ? element : element.getContainingFile());
+        if (element instanceof JSFile || element.getContainingFile() instanceof JSFile) {
+            final JSFile file = (JSFile) (element instanceof JSFile ? element : element.getContainingFile());
             file.putUserData(WANT_DEFAULT_FORMATTER_KEY, true);
             try {
                 final FormattingModelBuilder formattingModelBuilder = LanguageFormatting.INSTANCE.forContext(file.getLanguage(), element);
@@ -65,14 +60,14 @@ public class GraphQLInjectedFormattingModelBuilder implements CustomFormattingMo
 
     @Override
     public boolean isEngagedToFormat(PsiElement context) {
-        if(context instanceof JSFile) {
-            if(Boolean.TRUE.equals(context.getUserData(WANT_DEFAULT_FORMATTER_KEY))) {
+        if (context instanceof JSFile) {
+            if (Boolean.TRUE.equals(context.getUserData(WANT_DEFAULT_FORMATTER_KEY))) {
                 // we're looking up the default formatter at the moment
                 return false;
             }
             Collection<JSStringTemplateExpression> templateExpressions = PsiTreeUtil.findChildrenOfType(context, JSStringTemplateExpression.class);
             for (JSStringTemplateExpression templateExpression : templateExpressions) {
-                if(GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(templateExpression)) {
+                if (GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(templateExpression)) {
                     return true;
                 }
             }

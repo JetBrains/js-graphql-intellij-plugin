@@ -11,6 +11,7 @@ import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import org.intellij.plugins.intelliLang.inject.InjectorUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -19,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 public class GraphQLCommentBasedInjectionHelperImpl implements GraphQLCommentBasedInjectionHelper {
 
     @Override
-    public boolean isGraphQLInjectedUsingComment(PsiElement host, @Nullable Ref<String> envRef) {
+    public boolean isGraphQLInjectedUsingComment(@NotNull PsiElement host, @Nullable Ref<String> envRef) {
         final InjectorUtils.CommentInjectionData injectionData = InjectorUtils.findCommentInjectionData(host, true, null);
         if (injectionData != null) {
             if (GraphQLLanguage.INSTANCE.getID().equals(injectionData.getInjectedLanguageId())) {

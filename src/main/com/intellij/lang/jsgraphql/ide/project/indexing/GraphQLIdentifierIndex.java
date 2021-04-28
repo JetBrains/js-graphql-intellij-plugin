@@ -13,7 +13,6 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.*;
 import com.intellij.util.indexing.*;
@@ -23,6 +22,7 @@ import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -35,7 +35,7 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
     public static final ID<String, IdentifierKind> NAME = ID.create("GraphQLIdentifierIndex");
     public static final int VERSION = 2;
 
-    private final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
+    private final @Nullable GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
 
     private final Set<FileType> includedFileTypes;
 
@@ -105,7 +105,7 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
             return identifiers;
         };
         includedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
-        graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
+        graphQLInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
     }
 
     private boolean isIntrospectionJsonFile(JsonFile jsonFile) {

@@ -44,7 +44,7 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
             inputData.getPsiFile().accept(new PsiRecursiveElementVisitor() {
                 @Override
                 public void visitElement(@NotNull PsiElement element) {
-                    if (!GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element, environment)) {
+                    if (!GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(element, environment)) {
                         // visit deeper until injection found
                         super.visitElement(element);
                     }

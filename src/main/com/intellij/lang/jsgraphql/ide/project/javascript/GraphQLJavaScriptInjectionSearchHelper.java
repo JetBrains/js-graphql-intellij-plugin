@@ -23,18 +23,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
-public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionSearchHelper {
+public class GraphQLJavaScriptInjectionSearchHelper implements GraphQLInjectionSearchHelper {
 
     @Override
     public boolean isGraphQLLanguageInjectionTarget(PsiElement host) {
-        return GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(host);
+        return GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(host);
     }
 
     /**
      * Uses the {@link GraphQLInjectionIndex} to process injected GraphQL PsiFiles
-     *  @param scopedElement the starting point of the enumeration settings the scopedElement of the processing
+     *
+     * @param scopedElement the starting point of the enumeration settings the scopedElement of the processing
      * @param schemaScope   the search scope to use for limiting the schema definitions
-     * @param processor      a processor that will be invoked for each injected GraphQL PsiFile
+     * @param processor     a processor that will be invoked for each injected GraphQL PsiFile
      */
     public void processInjectedGraphQLPsiFiles(PsiElement scopedElement, GlobalSearchScope schemaScope, Processor<PsiFile> processor) {
         try {
@@ -46,7 +47,7 @@ public class GraphQLJavascriptInjectionSearchHelper implements GraphQLInjectionS
                     fileWithInjection.accept(new PsiRecursiveElementVisitor() {
                         @Override
                         public void visitElement(@NotNull PsiElement element) {
-                            if (GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
+                            if (GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(element)) {
                                 injectedLanguageManager.enumerate(element, (injectedPsi, places) -> processor.process(injectedPsi));
                             } else {
                                 // visit deeper until injection found

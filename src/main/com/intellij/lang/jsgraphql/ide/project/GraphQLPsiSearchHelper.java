@@ -74,7 +74,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
 
     private final GraphQLFile defaultProjectFile;
     private final PsiManager psiManager;
-    private final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
+    private final @Nullable GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
     private final InjectedLanguageManager injectedLanguageManager;
 
     public static GraphQLPsiSearchHelper getInstance(@NotNull Project project) {
@@ -84,7 +84,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
     public GraphQLPsiSearchHelper(@NotNull final Project project) {
         myProject = project;
         psiManager = PsiManager.getInstance(myProject);
-        graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
+        graphQLInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
         injectedLanguageManager = InjectedLanguageManager.getInstance(myProject);
         graphQLConfigManager = GraphQLConfigManager.getService(myProject);
 
@@ -407,7 +407,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
      *
      * @param scopedElement the starting point of the enumeration settings the scopedElement of the processing
      * @param schemaScope   the search scope to use for limiting the schema definitions
-     * @param processor      a processor that will be invoked for each injected GraphQL PsiFile
+     * @param processor     a processor that will be invoked for each injected GraphQL PsiFile
      */
     public void processInjectedGraphQLPsiFiles(@NotNull PsiElement scopedElement,
                                                @NotNull GlobalSearchScope schemaScope,
@@ -421,7 +421,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
      * Process built-in GraphQL PsiFiles that are not the spec schema
      *
      * @param schemaScope the search scope to use for limiting the schema definitions
-     * @param processor    a processor that will be invoked for each injected GraphQL PsiFile
+     * @param processor   a processor that will be invoked for each injected GraphQL PsiFile
      */
     public void processAdditionalBuiltInPsiFiles(@NotNull GlobalSearchScope schemaScope, @NotNull Processor<PsiFile> processor) {
         final PsiFile relayModernDirectivesSchema = getRelayModernDirectivesSchema();

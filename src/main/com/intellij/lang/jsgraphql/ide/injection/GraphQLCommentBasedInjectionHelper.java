@@ -7,17 +7,24 @@
  */
 package com.intellij.lang.jsgraphql.ide.injection;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GraphQLCommentBasedInjectionHelper {
 
+    static GraphQLCommentBasedInjectionHelper getInstance() {
+        return ApplicationManager.getApplication().getService(GraphQLCommentBasedInjectionHelper.class);
+    }
+
     /**
      * Gets whether the specified host element has a GraphQL injection based a language=GraphQL comment
-     * @param host the host to check
+     *
+     * @param host   the host to check
      * @param envRef optional GraphQL environment ref to set if the host is a match
      * @return <code>true</code> if the host has an active GraphQL injection, <code>false</code> otherwise
      */
-    boolean isGraphQLInjectedUsingComment(PsiElement host, @Nullable Ref<String> envRef);
+    boolean isGraphQLInjectedUsingComment(@NotNull PsiElement host, @Nullable Ref<String> envRef);
 }

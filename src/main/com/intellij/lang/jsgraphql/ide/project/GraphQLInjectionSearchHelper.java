@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project;
 
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLanguageInjectionHost;
@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 public interface GraphQLInjectionSearchHelper {
 
     static @Nullable GraphQLInjectionSearchHelper getInstance() {
-        return ServiceManager.getService(GraphQLInjectionSearchHelper.class);
+        return ApplicationManager.getApplication().getService(GraphQLInjectionSearchHelper.class);
     }
 
     /**

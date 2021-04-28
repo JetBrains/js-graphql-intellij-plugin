@@ -12,7 +12,6 @@ import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.*;
@@ -23,6 +22,7 @@ import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
@@ -38,7 +38,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
     public static final int VERSION = 1;
 
 
-    private final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
+    private final @Nullable GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
 
     private final Set<FileType> includedFileTypes;
 
@@ -85,7 +85,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
 
         };
         includedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
-        graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
+        graphQLInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
     }
 
     @NotNull

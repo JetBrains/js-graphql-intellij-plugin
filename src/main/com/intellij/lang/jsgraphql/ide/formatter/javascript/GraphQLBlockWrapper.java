@@ -1,20 +1,13 @@
 /**
- *  Copyright (c) 2015-present, Jim Kynde Meyer
- *  All rights reserved.
- *
- *  This source code is licensed under the MIT license found in the
- *  LICENSE file in the root directory of this source tree.
+ * Copyright (c) 2015-present, Jim Kynde Meyer
+ * All rights reserved.
+ * <p>
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 package com.intellij.lang.jsgraphql.ide.formatter.javascript;
 
-import com.intellij.formatting.ASTBlock;
-import com.intellij.formatting.Alignment;
-import com.intellij.formatting.Block;
-import com.intellij.formatting.BlockEx;
-import com.intellij.formatting.Indent;
-import com.intellij.formatting.Spacing;
-import com.intellij.formatting.SpacingBuilder;
-import com.intellij.formatting.Wrap;
+import com.intellij.formatting.*;
 import com.intellij.injected.editor.DocumentWindow;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
@@ -47,7 +40,13 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
     private Block wrapped;
     private List<Block> subBlocks;
 
-    protected GraphQLBlockWrapper(Block wrapped, @Nullable GraphQLBlockWrapper parent, @NotNull ASTNode node, @Nullable Wrap wrap, @Nullable Alignment alignment, SpacingBuilder spacingBuilder, CodeStyleSettings settings) {
+    protected GraphQLBlockWrapper(Block wrapped,
+                                  @Nullable GraphQLBlockWrapper parent,
+                                  @NotNull ASTNode node,
+                                  @Nullable Wrap wrap,
+                                  @Nullable Alignment alignment,
+                                  SpacingBuilder spacingBuilder,
+                                  CodeStyleSettings settings) {
         super(node, wrap, alignment);
         this.wrapped = wrapped;
         this.parent = parent;
@@ -59,15 +58,15 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
     protected List<Block> buildChildren() {
 
         // check if there's children we need to handle -- otherwise just return the wrapped child blocks
-        if(wrapped != null) {
+        if (wrapped != null) {
             Ref<Boolean> myNodeContainsGraphQL = new Ref<>(false);
             myNode.getPsi().accept(new PsiRecursiveElementVisitor() {
                 @Override
-                public void visitElement(PsiElement element) {
-                    if(myNodeContainsGraphQL.get()) {
+                public void visitElement(@NotNull PsiElement element) {
+                    if (myNodeContainsGraphQL.get()) {
                         return;
                     } else if (element instanceof JSStringTemplateExpression) {
-                        if (GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element)) {
+                        if (GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(element)) {
                             myNodeContainsGraphQL.set(true);
                             return;
                         }
@@ -83,7 +82,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
 
         final List<Block> blocks = new ArrayList<>();
 
-        if(myNode.getPsi() instanceof JSStringTemplateExpression && GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(myNode.getPsi())) {
+        if (myNode.getPsi() instanceof JSStringTemplateExpression && GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(myNode.getPsi())) {
 
             JSStringTemplateExpression psi = (JSStringTemplateExpression) myNode.getPsi();
             InjectedLanguageUtil.enumerate(psi, (injectedPsi, places) -> {
@@ -94,18 +93,18 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
             return blocks;
         }
 
-        if(wrapped != null) {
+        if (wrapped != null) {
             final List<Block> subBlocks = wrapped.getSubBlocks();
             for (Block subBlock : subBlocks) {
-                if(subBlock instanceof ASTBlock) {
+                if (subBlock instanceof ASTBlock) {
                     final ASTNode node = ((ASTBlock) subBlock).getNode();
                     final Block block = new GraphQLBlockWrapper(subBlock, this, node, subBlock.getWrap(), subBlock.getAlignment(), spacingBuilder, settings);
                     blocks.add(block);
-                } else if(subBlock instanceof CompositeBlock) {
+                } else if (subBlock instanceof CompositeBlock) {
                     // the block represents multiple blocks, e.g. a method call and its parameter list
                     final List<Block> nestedSubBlocks = subBlock.getSubBlocks();
                     for (Block nestedSubBlock : nestedSubBlocks) {
-                        if(nestedSubBlock instanceof ASTBlock) {
+                        if (nestedSubBlock instanceof ASTBlock) {
                             final Block block = new GraphQLBlockWrapper(nestedSubBlock, this, ((ASTBlock) nestedSubBlock).getNode(), nestedSubBlock.getWrap(), nestedSubBlock.getAlignment(), spacingBuilder, settings);
                             blocks.add(block);
                         } else {
@@ -127,9 +126,9 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
     @NotNull
     @Override
     public List<Block> getSubBlocks() {
-        if(subBlocks == null) {
+        if (subBlocks == null) {
             subBlocks = super.getSubBlocks();
-            if(subBlocks.isEmpty()) {
+            if (subBlocks.isEmpty()) {
                 subBlocks = buildInjectedBlocks();
             }
         }
@@ -139,14 +138,14 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
     @Nullable
     @Override
     protected Indent getChildIndent() {
-        if(myNode.getPsi() instanceof JSStringTemplateExpression) {
+        if (myNode.getPsi() instanceof JSStringTemplateExpression) {
             // enter in a top-level block inside template indents, e.g. queries etc.
             return Indent.getNormalIndent();
         }
-        if(wrapped != null) {
+        if (wrapped != null) {
             return wrapped.getChildAttributes(0).getChildIndent();
         }
-        if(parent == null) {
+        if (parent == null) {
             return Indent.getNoneIndent();
         }
         return Indent.getIndent(Indent.Type.NORMAL, false, false);
@@ -154,13 +153,13 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
 
     @Override
     public Indent getIndent() {
-        if(myNode.getPsi() instanceof JSStringTemplateExpression) {
+        if (myNode.getPsi() instanceof JSStringTemplateExpression) {
             // we're a GraphQL block for a JS string template expression, so return normal indent to indent queries inside the template string
             return Indent.getNormalIndent();
         }
-        if(wrapped != null) {
+        if (wrapped != null) {
             Indent indent = wrapped.getIndent();
-            if(indent != null) {
+            if (indent != null) {
                 return indent;
             }
         }
@@ -170,9 +169,9 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
     @Nullable
     @Override
     public Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
-        if(wrapped != null) {
+        if (wrapped != null) {
             Spacing wrappedSpacing = wrapped.getSpacing(child1, child2);
-            if(wrappedSpacing == null) {
+            if (wrappedSpacing == null) {
                 // the wrapped formatter might not recognize a wrapped block, so try with the orignal wrapped children instead
                 wrappedSpacing = wrapped.getSpacing(unwrap(child1), unwrap(child2));
             }
@@ -183,7 +182,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
 
     @Override
     public boolean isLeaf() {
-        if(wrapped != null) {
+        if (wrapped != null) {
             return wrapped.isLeaf();
         }
         return myNode.getFirstChildNode() == null;
@@ -193,7 +192,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
     @Override
     public TextRange getTextRange() {
         final TextRange textRange;
-        if(wrapped != null) {
+        if (wrapped != null) {
             textRange = wrapped.getTextRange();
         } else {
             textRange = super.getTextRange();
@@ -204,7 +203,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
     @Nullable
     @Override
     public Language getLanguage() {
-        if(wrapped != null) {
+        if (wrapped != null) {
             return myNode.getPsi().getLanguage();
         }
         return GraphQLLanguage.INSTANCE;
@@ -220,7 +219,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
     // ---- implementation ----
 
     private Block unwrap(Block child) {
-        if(child instanceof GraphQLBlockWrapper) {
+        if (child instanceof GraphQLBlockWrapper) {
             return ((GraphQLBlockWrapper) child).wrapped;
         }
         return child;

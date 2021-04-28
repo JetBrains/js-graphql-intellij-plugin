@@ -13,7 +13,6 @@ import com.intellij.lang.javascript.psi.JSExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLCommentBasedInjectionHelper;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
@@ -52,11 +51,11 @@ public class GraphQLLanguageInjectionUtil {
 
     private static final String PROJECT_GQL_ENV = GraphQLLanguageInjectionUtil.class.getName() + ".gql";
 
-    public static boolean isJSGraphQLLanguageInjectionTarget(@Nullable PsiElement host) {
-        return isJSGraphQLLanguageInjectionTarget(host, null);
+    public static boolean isGraphQLLanguageInjectionTarget(@Nullable PsiElement host) {
+        return isGraphQLLanguageInjectionTarget(host, null);
     }
 
-    public static boolean isJSGraphQLLanguageInjectionTarget(@Nullable PsiElement host, @Nullable Ref<String> envRef) {
+    public static boolean isGraphQLLanguageInjectionTarget(@Nullable PsiElement host, @Nullable Ref<String> envRef) {
         if (!(host instanceof JSStringTemplateExpression)) {
             return false;
         }
@@ -84,7 +83,7 @@ public class GraphQLLanguageInjectionUtil {
         }
 
         // also check for "manual" language=GraphQL injection comments
-        final GraphQLCommentBasedInjectionHelper commentBasedInjectionHelper = ServiceManager.getService(GraphQLCommentBasedInjectionHelper.class);
+        final GraphQLCommentBasedInjectionHelper commentBasedInjectionHelper = GraphQLCommentBasedInjectionHelper.getInstance();
         if (commentBasedInjectionHelper != null && commentBasedInjectionHelper.isGraphQLInjectedUsingComment(host, envRef)) {
             return true;
         }
