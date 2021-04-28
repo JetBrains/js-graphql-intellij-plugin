@@ -97,6 +97,18 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
         doTestNoInjections("eolCommentInvalid1.js");
     }
 
+    public void testInjectedWithCStyleComment() {
+        doTestInjectedFile("cStyleComment.js");
+    }
+
+    public void testInjectedWithCStyleCommentTagged() {
+        doTestInjectedFile("cStyleCommentTagged.js");
+    }
+
+    public void testInjectedWithCStyleCommentMultipleVars() {
+        doTestInjectedFile("cStyleCommentMultipleVars.js");
+    }
+
     private @NotNull PsiFile doTestInjectedFile(@NotNull String sourcePath) {
         myFixture.configureByFile(sourcePath);
 
