@@ -35,25 +35,23 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
     private static final Map<String, Void> INJECTED_KEY = Collections.singletonMap(DATA_KEY, null);
     public static final int VERSION = 3;
 
-    private final DataIndexer<String, Void, FileContent> myDataIndexer;
-    private final Set<FileType> includedFileTypes;
-
-    public GraphQLInjectionIndex() {
-        myDataIndexer = inputData -> {
-            final Ref<String> environment = new Ref<>();
-            inputData.getPsiFile().accept(new PsiRecursiveElementVisitor() {
-                @Override
-                public void visitElement(@NotNull PsiElement element) {
-                    if (!GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(element, environment)) {
-                        // visit deeper until injection found
-                        super.visitElement(element);
-                    }
+    private final DataIndexer<String, Void, FileContent> myDataIndexer = inputData -> {
+        final Ref<Boolean> isInjected = new Ref<>(Boolean.FALSE);
+        inputData.getPsiFile().accept(new PsiRecursiveElementVisitor() {
+            @Override
+            public void visitElement(@NotNull PsiElement element) {
+                if (GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(element)) {
+                    isInjected.set(Boolean.TRUE);
+                } else {
+                    // visit deeper until injection found
+                    super.visitElement(element);
                 }
-            });
-            return environment.isNull() ? Collections.emptyMap() : INJECTED_KEY;
-        };
-        includedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
-    }
+            }
+        });
+        return isInjected.get() == Boolean.FALSE ? Collections.emptyMap() : INJECTED_KEY;
+    };
+
+    private final Set<FileType> myIncludedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
 
     @NotNull
     @Override
@@ -76,7 +74,7 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
     @NotNull
     @Override
     public FileBasedIndex.InputFilter getInputFilter() {
-        return file -> file.getFileType() != GraphQLFileType.INSTANCE && includedFileTypes.contains(file.getFileType());
+        return file -> file.getFileType() != GraphQLFileType.INSTANCE && myIncludedFileTypes.contains(file.getFileType());
     }
 
     @Override
