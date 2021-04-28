@@ -62,6 +62,11 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             }
 
             @Override
+            public void visitTypeNameDefinition(@NotNull GraphQLTypeNameDefinition definition) {
+                applyTextAttributes(definition.getNameIdentifier(), TYPE_NAME);
+            }
+
+            @Override
             public void visitIdentifier(@NotNull GraphQLIdentifier identifier) {
                 // the annotator visitor skips fields, directives etc if they have errors (empty arguments list for instance)
                 // so we do a pass here as well to highlight
