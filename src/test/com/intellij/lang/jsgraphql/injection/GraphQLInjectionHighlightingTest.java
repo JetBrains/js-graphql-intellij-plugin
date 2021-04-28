@@ -9,8 +9,8 @@ package com.intellij.lang.jsgraphql.injection;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.types.language.AstPrinter;
@@ -76,7 +76,29 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
     }
 
     public void testInjectedTemplatesDontFail() {
-        myFixture.configureByFile("injectedTemplates/injectedTemplates.js");
+        PsiFile injectedFile = doTestInjectedFile("injectedTemplates/injectedTemplates.js");
+        myFixture.configureByText(GraphQLFileType.INSTANCE, AstPrinter.printAst(((GraphQLFile) injectedFile).getDocument()));
+        myFixture.checkResultByFile("injectedTemplates/injectedTemplates.graphql");
+    }
+
+    public void testInjectedWithEOLComment() {
+        doTestInjectedFile("eolComment.js");
+    }
+
+    public void testInjectedWithEOLComment1() {
+        doTestInjectedFile("eolComment1.js");
+    }
+
+    public void testInjectedWithEOLCommentInvalid() {
+        doTestNoInjections("eolCommentInvalid.js");
+    }
+
+    public void testInjectedWithEOLCommentInvalid1() {
+        doTestNoInjections("eolCommentInvalid1.js");
+    }
+
+    private @NotNull PsiFile doTestInjectedFile(@NotNull String sourcePath) {
+        myFixture.configureByFile(sourcePath);
 
         List<PsiFile> psiFiles = new ArrayList<>();
         GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLPsiFiles(
@@ -86,8 +108,16 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
         PsiFile injectedFile = psiFiles.get(0);
         assertInstanceOf(injectedFile, GraphQLFile.class);
 
-        myFixture.configureByText(GraphQLFileType.INSTANCE, AstPrinter.printAst(((GraphQLFile) injectedFile).getDocument()));
-        myFixture.checkResultByFile("injectedTemplates/injectedTemplates.graphql");
+        return injectedFile;
+    }
+
+    private void doTestNoInjections(@NotNull String sourcePath) {
+        myFixture.configureByFile(sourcePath);
+
+        List<PsiFile> psiFiles = new ArrayList<>();
+        GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLPsiFiles(
+            myFixture.getFile(), GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
+        assertEmpty(psiFiles);
     }
 
 }
