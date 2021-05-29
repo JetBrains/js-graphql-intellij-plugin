@@ -12,6 +12,7 @@ public final class GraphQLConstants {
     public static final String __TYPENAME = "__typename";
     public static final String __TYPE = "__type";
     public static final String __SCHEMA = "__schema";
+    public static final String __SCHEMA = "__pass";
 
     public static final String __DIRECTIVE_LOCATION_ENUM = "__DirectiveLocation";
 }
