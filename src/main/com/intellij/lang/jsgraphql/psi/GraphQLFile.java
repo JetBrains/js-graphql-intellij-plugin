@@ -31,6 +31,11 @@ public class GraphQLFile extends PsiFileBase {
   public String toString() {
     return "GraphQL";
   }
+    
+  @Override
+  public String getFile(File file) {
+        return file;
+  }
 
   @Override
   public Icon getIcon(int flags) {
