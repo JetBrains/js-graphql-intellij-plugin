@@ -27,8 +27,10 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,13 +145,13 @@ public class GraphQLSchemaAnnotator implements Annotator {
     }
 
     private @NotNull Collection<PsiElement> getElementsToAnnotate(@NotNull PsiFile containingFile, @NotNull GraphQLError error) {
-        String currentFileName = GraphQLPsiUtil.getFileName(containingFile);
-
         Node<?> node = error.getNode();
         if (node != null) {
             PsiElement element = node.getElement();
-            if (element != null && element.isValid() && element.getContainingFile() == containingFile) {
-                return Collections.singletonList(element);
+            if (element != null) {
+                return element.isValid() && element.getContainingFile() == containingFile
+                    ? Collections.singletonList(element)
+                    : Collections.emptyList();
             }
         }
 
@@ -158,14 +160,15 @@ public class GraphQLSchemaAnnotator implements Annotator {
             return Collections.emptyList();
         }
 
+        String currentFileName = GraphQLPsiUtil.getFileName(containingFile);
         return ContainerUtil.mapNotNull(locations, location -> {
             if (!currentFileName.equals(location.getSourceName())) {
                 return null;
             }
 
             PsiElement element = location.getElement();
-            if (element != null && element.isValid() && element.getContainingFile() == containingFile) {
-                return element;
+            if (element != null) {
+                return element.isValid() && element.getContainingFile() == containingFile ? element : null;
             }
 
             int positionToOffset = location.getOffset();
@@ -191,6 +194,7 @@ public class GraphQLSchemaAnnotator implements Annotator {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     private void createErrorAnnotation(@NotNull AnnotationHolder annotationHolder,
                                        @NotNull GraphQLError error,
                                        @NotNull PsiElement element,
@@ -222,6 +226,7 @@ public class GraphQLSchemaAnnotator implements Annotator {
         });
     }
 
+    @SuppressWarnings("rawtypes")
     @NotNull
     private String createTooltip(@NotNull GraphQLError error, @NotNull String message, boolean isMultiple) {
         StringBuilder sb = new StringBuilder();
@@ -261,6 +266,12 @@ public class GraphQLSchemaAnnotator implements Annotator {
     }
 
     private @NotNull PsiElement getAnnotationAnchor(@NotNull PsiElement element) {
+        if (element instanceof PsiWhiteSpace) {
+            PsiElement next = PsiTreeUtil.skipWhitespacesForward(element);
+            if (next != null) {
+                element = next;
+            }
+        }
         if (element instanceof GraphQLTypeNameDefinitionOwner) {
             GraphQLTypeNameDefinition typeName = ((GraphQLTypeNameDefinitionOwner) element).getTypeNameDefinition();
             if (typeName != null) {
