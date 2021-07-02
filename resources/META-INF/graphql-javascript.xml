@@ -15,8 +15,6 @@
 
     <!-- Indexing -->
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLInjectionIndex"/>
-
-    <externalAnnotator language="GraphQL" implementationClass="com.intellij.lang.javascript.linter.eslint.EslintExternalAnnotator"/>
   </extensions>
 
   <extensions defaultExtensionNs="JavaScript">
