@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.endpoint.ide.intentions;
 
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction;
-import com.intellij.ide.impl.DataManagerImpl;
+import com.intellij.ide.DataManager;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.doc.psi.JSGraphQLEndpointDocPsiUtil;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
@@ -21,11 +21,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -43,9 +39,7 @@ public abstract class JSGraphQLEndpointCreateDefinitionIntention extends PsiElem
         return getText();
     }
 
-    protected abstract
-    @NotNull
-    IElementType getSupportedDefinitionType();
+    protected abstract @NotNull IElementType getSupportedDefinitionType();
 
     @Override
     public void invoke(@NotNull Project project, Editor editor, @NotNull PsiElement element) throws IncorrectOperationException {
@@ -79,9 +73,9 @@ public abstract class JSGraphQLEndpointCreateDefinitionIntention extends PsiElem
                 }
                 final Document document = editor.getDocument();
                 final int insertOffset;
-                if(insertBefore) {
+                if (insertBefore) {
                     final PsiComment documentationStartElement = JSGraphQLEndpointDocPsiUtil.getDocumentationStartElement(definition);
-                    if(documentationStartElement != null) {
+                    if (documentationStartElement != null) {
                         insertOffset = documentationStartElement.getTextRange().getStartOffset();
                     } else {
                         insertOffset = definition.getTextRange().getStartOffset();
@@ -98,9 +92,9 @@ public abstract class JSGraphQLEndpointCreateDefinitionIntention extends PsiElem
                         AnAction editorLineEnd = ActionManager.getInstance().getAction("EditorLineEnd");
                         if (editorLineEnd != null) {
                             final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
-                                    ActionPlaces.UNKNOWN,
-                                    null,
-                                    new DataManagerImpl.MyDataContext(editor.getComponent())
+                                ActionPlaces.UNKNOWN,
+                                null,
+                                DataManager.getInstance().getDataContext(editor.getComponent())
                             );
                             editorLineEnd.actionPerformed(actionEvent);
                         }
