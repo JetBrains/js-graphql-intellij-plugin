@@ -267,14 +267,14 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         settingsActions.add(new GraphQLEditConfigAction());
         settingsActions.add(new JSGraphQLToggleVariablesAction());
 
-        final JComponent settingsToolbar = createToolbar(settingsActions);
+        final JComponent settingsToolbar = createToolbar(settingsActions, headerComponent);
         headerComponent.add(settingsToolbar, BorderLayout.WEST);
 
         // query execute
         final DefaultActionGroup queryActions = new DefaultActionGroup();
         final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(JSGraphQLExecuteEditorAction.class.getName());
         queryActions.add(executeGraphQLAction);
-        final JComponent queryToolbar = createToolbar(queryActions);
+        final JComponent queryToolbar = createToolbar(queryActions, headerComponent);
 
         // configured endpoints combo box
         final List<GraphQLConfigEndpoint> endpoints = GraphQLConfigManager.getService(myProject).getEndpoints(file);
@@ -331,9 +331,10 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         return headerComponent;
     }
 
-    private JComponent createToolbar(ActionGroup actionGroup) {
+    private JComponent createToolbar(ActionGroup actionGroup, JComponent parent) {
         final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, actionGroup, true);
         toolbar.setReservePlaceAutoPopupIcon(false); // don't want space after the last button
+        toolbar.setTargetComponent(parent);
         final JComponent component = toolbar.getComponent();
         component.setBorder(BorderFactory.createEmptyBorder());
         return component;
