@@ -1,0 +1,1 @@
+directive @Dir on QUERY | ARGUMENT_DEFINITION | <caret> | ENUM_VALUE

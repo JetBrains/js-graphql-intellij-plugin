@@ -1,0 +1,48 @@
+enum Language {
+    EN
+    RU
+}
+
+extend enum <error descr="'Language' extension type tried to redefine enum value 'RU'">Language</error> {
+    RU
+    CN
+}
+
+type <error descr="'Obj' type tried to redefine existing 'Obj' type">Obj</error> {
+    id: ID
+}
+
+type Obj {
+    str: String
+}
+
+extend type <error descr="'Obj' extension type tried to redefine field 'id'"><error descr="'Obj' extension type tried to redefine field 'str'">Obj</error></error> {
+    id: String
+    str: String
+}
+
+type MyType {
+    id: ID
+}
+
+extend type <error descr="'MyType' extension type tried to redefine field 'id'">MyType</error> {
+    id: ID
+}
+
+directive @DirToExtend on OBJECT
+
+type WithDirective @DirToExtend {
+    id: String
+}
+
+extend type <error descr="The extension 'WithDirective' type has redefined the directive called 'DirToExtend'">WithDirective</error> <error descr="The directive 'DirToExtend' should be defined as repeatable if its repeated on an SDL element">@DirToExtend</error> {
+    name: String
+}
+
+input MyInputType {
+    id: ID
+}
+
+extend input <error descr="'MyInputType' extension type tried to redefine field 'id'">MyInputType</error> {
+    id: ID
+}

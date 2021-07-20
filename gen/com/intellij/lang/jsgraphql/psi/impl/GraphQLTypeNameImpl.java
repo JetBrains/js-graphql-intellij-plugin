@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLTypeNameImpl extends GraphQLTypeNamePsiElement implements GraphQLTypeName {
+public class GraphQLTypeNameImpl extends GraphQLTypeNameMixin implements GraphQLTypeName {
 
   public GraphQLTypeNameImpl(ASTNode node) {
     super(node);
@@ -20,6 +20,7 @@ public class GraphQLTypeNameImpl extends GraphQLTypeNamePsiElement implements Gr
     visitor.visitTypeName(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

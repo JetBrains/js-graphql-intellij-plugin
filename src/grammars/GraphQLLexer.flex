@@ -67,40 +67,46 @@ import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 %type IElementType
 %unicode
 
-SourceCharacter = [\u0009\u000A\u000D\u0020-\uFFFF]
-UnicodeBOM = \uFEFF
-WhiteSpace = \u0009|\u0020
-LineTerminator = \u000A | (\u000D \u000A?)
-Comment = "#" [\u0009\u0020-\uFFFF]*
-Name = [_A-Za-z][_0-9A-Za-z]*
-Variable = \${Name}
-Number = -?([0-9]+|[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?)
+UNICODE_BOM = \uFEFF
+WHITESPACE_CHAR = [ \t]
+LINE_TERMINATOR = \n | (\r\n?)
+WHITESPACE = ({WHITESPACE_CHAR} | {LINE_TERMINATOR})+
+EOL_COMMENT = "#" .*
+NAME = [_A-Za-z][_0-9A-Za-z]*
+VARIABLE = \${NAME}
 
-ANY_ESCAPE_SEQUENCE = \\[^]
-ESCAPE_SEQUENCE=\\[^\r\n]
+QUOTED_STRING_ESCAPE= \\[^\r\n]
+QUOTED_STRING_BODY = ([^\\\"\r\n] | {QUOTED_STRING_ESCAPE})+
 
 THREE_QUO = (\"\"\")
-ONE_TWO_QUO = (\"[^\\\"]) | (\"\\[^]) | (\"\"[^\\\"]) | (\"\"\\[^])
-QUO_STRING_CHAR = [^\\\"\r\n\u0009\u0020] | {ANY_ESCAPE_SEQUENCE} | {ONE_TWO_QUO}
+ONE_TWO_QUO = (\"\"?)
+BLOCK_STRING_ESCAPE = (\\({THREE_QUO} | [^\\\"\r\n\t ]))
+BLOCK_STRING_CHAR = [^\\\"\r\n\t ]
+BLOCK_STRING_BODY = {BLOCK_STRING_CHAR}+
 
-DOUBLE_QUOTED_STRING_BODY = ([^\\\"\r\n]|{ESCAPE_SEQUENCE}|(\\[\r\n]))+
-TRIPEL_QUOTED_STRING_BODY = {QUO_STRING_CHAR}+
+DIGIT = [0-9]
+NON_ZERO_DIGIT = [1-9]
+INTEGER_PART = -? (0 | {NON_ZERO_DIGIT} {DIGIT}*)
+FRACTIONAL_PART = "." {DIGIT}+
+EXPONENT_PART = [eE] [+-]? {DIGIT}+
+
+NUMBER = {INTEGER_PART}
+FLOAT = {INTEGER_PART} {FRACTIONAL_PART} | {INTEGER_PART} {EXPONENT_PART} | {INTEGER_PART} {FRACTIONAL_PART} {EXPONENT_PART}
 
 %eof{
   myLeftBraceCount = 0;
   myStateStack.clear();
 %eof}
 
-%state QUO_STRING THREE_QUO_STRING VARIABLE_OR_TEMPLATE TEMPLATE
+%state QUOTED_STRING BLOCK_STRING VARIABLE_OR_TEMPLATE TEMPLATE
 
 %%
 
 <YYINITIAL> {
   // Ignored tokens
-  {UnicodeBOM}       { return WHITE_SPACE; }
-  {WhiteSpace}+      { return WHITE_SPACE; }
-  {LineTerminator}   { return WHITE_SPACE; }
-  {Comment}          { return COMMENT; }
+  {UNICODE_BOM}      |
+  {WHITESPACE}       { return WHITE_SPACE; }
+  {EOL_COMMENT}      { return EOL_COMMENT; }
   ","                { return WHITE_SPACE; }
 
   // Punctuators
@@ -135,37 +141,40 @@ TRIPEL_QUOTED_STRING_BODY = {QUO_STRING_CHAR}+
   "extend"           { return EXTEND_KEYWORD; }
   "input"            { return INPUT_KEYWORD; }
   "directive"        { return DIRECTIVE_KEYWORD; }
+  "repeatable"       { return REPEATABLE_KEYWORD; }
 
   // string and number literals
-  \"                 { pushState(QUO_STRING);        return OPEN_QUOTE;    }
-  {THREE_QUO}        { pushState(THREE_QUO_STRING);  return OPEN_QUOTE;    }
-  {Number}           { return NUMBER; }
+  \"                 { pushState(QUOTED_STRING); return OPEN_QUOTE;    }
+  {THREE_QUO}        { pushState(BLOCK_STRING);  return OPEN_TRIPLE_QUOTE;    }
+  {NUMBER}           { return NUMBER; }
+  {FLOAT}            { return FLOAT; }
 
   // identifiers
-  {Name}             { return NAME; }
-  {Variable}         { return VARIABLE_NAME; }
+  {NAME}             { return NAME; }
+  {VARIABLE}         { return VARIABLE_NAME; }
 
   [^]                { return BAD_CHARACTER; }
 }
 
 <VARIABLE_OR_TEMPLATE> {
   "{"                { pushState(TEMPLATE); return BRACE_L; }
-  {Name}             { popState(); return NAME; }
+  {NAME}             { popState(); return NAME; }
   [^]                { popState(); return BAD_CHARACTER; }
 }
 
-<QUO_STRING> {
-    {DOUBLE_QUOTED_STRING_BODY}     { return REGULAR_STRING_PART; }
-    \"                              { popState(); return CLOSING_QUOTE; }
-    [^]                             { popState(); return BAD_CHARACTER; }
+<QUOTED_STRING> {
+    {QUOTED_STRING_BODY}    { return REGULAR_STRING_PART; }
+    \"                      { popState(); return CLOSING_QUOTE; }
+    [^]                     { popState(); return BAD_CHARACTER; }
 }
 
-<THREE_QUO_STRING> {
-    {WhiteSpace}+                   { return WHITE_SPACE; }
-    {LineTerminator}                { return WHITE_SPACE; }
-    {TRIPEL_QUOTED_STRING_BODY}     { return REGULAR_STRING_PART; }
-    {THREE_QUO}                     { popState(); return CLOSING_QUOTE; }
-    [^]                             { popState(); return BAD_CHARACTER; }
+<BLOCK_STRING> {
+    {WHITESPACE}            { return WHITE_SPACE; }
+    {BLOCK_STRING_ESCAPE}   { return REGULAR_STRING_PART; }
+    {ONE_TWO_QUO} / [^\"]   { return REGULAR_STRING_PART; }
+    {BLOCK_STRING_BODY}     { return REGULAR_STRING_PART; }
+    {THREE_QUO}             { popState(); return CLOSING_TRIPLE_QUOTE; }
+    [^]                     { return REGULAR_STRING_PART; }
 }
 
 <TEMPLATE> {

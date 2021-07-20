@@ -1,0 +1,16 @@
+directive @QueryDir on QUERY
+directive @MutationDir on MUTATION
+directive @SubscriptionDir on SUBSCRIPTION
+directive @SubscriptionDir1 on SUBSCRIPTION
+
+type Subscription {
+    id: ID
+}
+
+schema {
+    subscription: Subscription
+}
+
+subscription S @<caret> {
+    id
+}

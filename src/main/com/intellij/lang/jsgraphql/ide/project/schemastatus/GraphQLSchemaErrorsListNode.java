@@ -9,10 +9,13 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
-import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
+import com.intellij.lang.jsgraphql.types.GraphQLError;
+import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
-import graphql.GraphQLError;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -21,29 +24,37 @@ import java.util.List;
  */
 public class GraphQLSchemaErrorsListNode extends CachingSimpleNode {
 
-    private final GraphQLValidatedSchema myValidatedSchema;
+    private final GraphQLSchemaInfo mySchemaInfo;
 
-    public GraphQLSchemaErrorsListNode(SimpleNode parent, GraphQLValidatedSchema validatedSchema) {
+    public GraphQLSchemaErrorsListNode(SimpleNode parent, GraphQLSchemaInfo schemaInfo) {
         super(parent);
-        this.myValidatedSchema = validatedSchema;
+        mySchemaInfo = schemaInfo;
         myName = "Schema errors";
         setIcon(AllIcons.Nodes.Folder);
     }
 
     @Override
     public SimpleNode[] buildChildren() {
-        if  (!myValidatedSchema.getRegistry().isProcessedGraphQL()) {
+        if (!mySchemaInfo.getRegistryInfo().isProcessedGraphQL()) {
             // no GraphQL PSI files parse yet, so no need to show the "no query defined" error for a non-existing schema
             return SimpleNode.NO_CHILDREN;
         }
+
         final List<SimpleNode> children = Lists.newArrayList();
-        for (GraphQLError error : myValidatedSchema.getErrors()) {
+        for (GraphQLError error : mySchemaInfo.getErrors()) {
+            Node<?> node = error.getNode();
+            if (getProject() != null &&
+                error.getInspectionClass() != null &&
+                !GraphQLInspection.isToolEnabled(getProject(), error.getInspectionClass(), node != null ? node.getFile() : null)) {
+                continue;
+            }
+
             children.add(new GraphQLSchemaErrorNode(this, error));
         }
         if (children.isEmpty()) {
             SimpleNode noErrors = new SimpleNode(this) {
                 @Override
-                public SimpleNode[] getChildren() {
+                public SimpleNode @NotNull [] getChildren() {
                     return NO_CHILDREN;
                 }
 

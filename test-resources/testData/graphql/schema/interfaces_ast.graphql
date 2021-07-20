@@ -11,11 +11,14 @@ interface User implements WithID @one @two {
   name: String
 }
 
-extend interface User implements Named @three {
+extend interface User implements WithID & Named @three {
+  name: String
   phone: String
 }
 
-extend interface User @four {
+extend interface User implements WithID & Named @three @four {
+  name: String
+  phone: String
   zip: String
 }
 
@@ -24,4 +27,3 @@ interface WithID {
 }
 
 type Query {}
-

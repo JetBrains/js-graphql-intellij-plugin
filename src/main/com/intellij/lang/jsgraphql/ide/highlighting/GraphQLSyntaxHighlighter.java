@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.highlighting;
 
 import com.intellij.lang.jsgraphql.GraphQLLexerAdapter;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
+import com.intellij.lang.jsgraphql.psi.GraphQLExtendedElementTypes;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.HighlighterColors;
@@ -18,10 +19,10 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
@@ -70,25 +71,6 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final TextAttributesKey[] BAD_CHARACTER_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
   private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
 
-  private static final Set<IElementType> KEYWORDS = new HashSet<>();
-  static {
-    KEYWORDS.add(QUERY_KEYWORD);
-    KEYWORDS.add(MUTATION_KEYWORD);
-    KEYWORDS.add(SUBSCRIPTION_KEYWORD);
-    KEYWORDS.add(FRAGMENT_KEYWORD);
-    KEYWORDS.add(ON_KEYWORD);
-    KEYWORDS.add(SCHEMA_KEYWORD);
-    KEYWORDS.add(TYPE_KEYWORD);
-    KEYWORDS.add(SCALAR_KEYWORD);
-    KEYWORDS.add(INTERFACE_KEYWORD);
-    KEYWORDS.add(IMPLEMENTS_KEYWORD);
-    KEYWORDS.add(ENUM_KEYWORD);
-    KEYWORDS.add(UNION_KEYWORD);
-    KEYWORDS.add(EXTEND_KEYWORD);
-    KEYWORDS.add(INPUT_KEYWORD);
-    KEYWORDS.add(DIRECTIVE_KEYWORD);
-  }
-
   @NotNull
   @Override
   public Lexer getHighlightingLexer() {
@@ -97,16 +79,16 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
 
   @NotNull
   @Override
-  public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
+  public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
     if (tokenType.equals(GraphQLElementTypes.NAME)) {
       return IDENTIFIER_KEYS;
-    } else if (KEYWORDS.contains(tokenType)) {
+    } else if (GraphQLExtendedElementTypes.KEYWORDS.contains(tokenType)) {
       return KEYWORD_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.NUMBER)) {
+    } else if (GraphQLExtendedElementTypes.NUMBER_LITERALS.contains(tokenType)) {
       return NUMBER_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.OPEN_QUOTE) || tokenType.equals(GraphQLElementTypes.CLOSING_QUOTE) || tokenType.equals(GraphQLElementTypes.REGULAR_STRING_PART)) {
+    } else if (GraphQLExtendedElementTypes.STRING_TOKENS.contains(tokenType)) {
       return STRING_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.COMMENT)) {
+    } else if (tokenType.equals(GraphQLElementTypes.EOL_COMMENT)) {
       return COMMENT_KEYS;
     } else if (tokenType.equals(GraphQLElementTypes.BRACE_L) || tokenType.equals(GraphQLElementTypes.BRACE_R)) {
       return BRACES_KEYS;

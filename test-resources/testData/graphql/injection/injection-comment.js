@@ -5,8 +5,8 @@ const result = (
 
             extend type Query {
                 manualExtension: String
-            }                
-            
+            }
+
             fragment Login on Login {
                 message
                 success
@@ -15,10 +15,10 @@ const result = (
             mutation login($email: String! $pwd: String!) {
                 login(email: $email pwd: $pwd) {
                     ...Login
-                    ...OnlyTheUnknownFragmentShouldBeHighlightedAsError
+                    ...<error descr="Unknown fragment spread \"OnlyTheUnknownFragmentShouldBeHighlightedAsError\"">OnlyTheUnknownFragmentShouldBeHighlightedAsError</error>
                 }
             }
-            
+
             query Foo {
                 manualExtension
             }

@@ -2,6 +2,32 @@
 
 # Changelog
 
+## [3.0.0] - 2021-07-16
+
+### Added
+
+- Added separate configurable inspections for existing schema and query validation rules, e.g. **Unresolved reference**, **Type redefinition**, **Member redefinition**, **Duplicate argument**, **Duplicate directive**, and many more.
+- Added support for repeatable directives.
+- Added support for `extend schema` syntax.
+- Added support for schema descriptions.
+- Added support for subscription directives.
+- Added several Relay built-in directives.
+- Supported suppression of inspections with comment for the definition or the whole file.
+- Changing the file highlight level in the editor prevents any inspections from being displayed.
+- Load variables from .env files. Supported file names: `.env.local`,`.env.development.local`,`.env.development`,`.env`.
+- Injections using `#graphql` and `/* GraphQL */` comments.
+- Enabled ESLint support for GraphQL.
+
+### Changed
+- Improved completion for variables in queries.
+- Improved readability of error messages.
+
+### Fixed
+- Emojis in the end-of-line comments.
+- Fixed resolve for directive arguments.
+- Fixed resolve for default object argument fields.
+- Fixed displaying Apollo `@client` fields as errors.
+
 ## [2.9.1] - 2021-03-02
 
 ### Fixed

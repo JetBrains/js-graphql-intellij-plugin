@@ -20,21 +20,22 @@ public class GraphQLEnumValueDefinitionImpl extends GraphQLElementImpl implement
     visitor.visitEnumValueDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);
   }
 
   @Override
-  @NotNull
-  public GraphQLEnumValue getEnumValue() {
-    return findNotNullChildByClass(GraphQLEnumValue.class);
+  @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
   }
 
   @Override
-  @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
+  @NotNull
+  public GraphQLEnumValue getEnumValue() {
+    return findNotNullChildByClass(GraphQLEnumValue.class);
   }
 
   @Override

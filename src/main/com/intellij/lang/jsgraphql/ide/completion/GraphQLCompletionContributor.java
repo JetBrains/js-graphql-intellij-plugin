@@ -27,8 +27,12 @@ import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLObjectValueImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
+import com.intellij.lang.jsgraphql.types.introspection.Introspection;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.validation.rules.VariablesTypesMatcher;
 import com.intellij.openapi.editor.EditorModificationUtil;
 import com.intellij.openapi.editor.LogicalPosition;
 import com.intellij.openapi.util.Pair;
@@ -40,14 +44,12 @@ import com.intellij.patterns.StandardPatterns;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.Consumer;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.ProcessingContext;
-import graphql.introspection.Introspection;
-import graphql.language.*;
-import graphql.schema.GraphQLType;
-import graphql.schema.*;
-import graphql.schema.idl.TypeDefinitionRegistry;
-import graphql.validation.rules.VariablesTypesMatcher;
+import com.intellij.util.SmartList;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -57,6 +59,7 @@ import static com.intellij.lang.jsgraphql.GraphQLConstants.__DIRECTIVE_LOCATION_
 import static com.intellij.patterns.PlatformPatterns.psiComment;
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 
+@SuppressWarnings("rawtypes")
 public class GraphQLCompletionContributor extends CompletionContributor {
 
     // top level keywords (incomplete keywords such as "q" is inside error Psi element, hence superParent
@@ -71,7 +74,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
     };
 
     private static final String[] EXTEND_KEYWORDS = new String[]{
-        "scalar", "type", "interface", "input", "enum", "union"
+        "scalar", "type", "interface", "input", "enum", "union", "schema"
     };
 
 
@@ -120,7 +123,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         completeEnumNamesInList();
 
         // completion of "implements" in type or type extension
-        completeImpementsKeyword();
+        completeImplementsKeyword();
 
         // completion of interface name inside "implements"
         completeImplementsTypeName();
@@ -153,7 +156,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLOperationTypeDefinition operationTypeDefinition = PsiTreeUtil.getParentOfType(completionElement, GraphQLOperationTypeDefinition.class);
@@ -175,10 +178,11 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
-                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(parameters.getOriginalFile());
+                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
                 final Collection<GraphQLTypeName> currentTypes = PsiTreeUtil.findChildrenOfType(PsiTreeUtil.getTopmostParentOfType(completionElement, GraphQLElement.class), GraphQLTypeName.class);
                 final Set<String> currentTypeNames = currentTypes.stream().map(PsiNamedElement::getName).collect(Collectors.toSet());
                 registry.types().values().forEach(type -> {
@@ -195,11 +199,12 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = parameters.getPosition();
-                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(parameters.getOriginalFile());
+                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
                 addInputTypeCompletions(result, registry);
             }
         };
@@ -209,33 +214,31 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 PlatformPatterns.or(psiComment(), psiElement(TokenType.WHITE_SPACE), psiElement().withText("[")),
                 // until argument type colon occurs
                 psiElement().withText(":")
-            ).inside(GraphQLInputValueDefinition.class), provider);
+            ).inside(false, psiElement(GraphQLInputValueDefinition.class), psiElement(GraphQLDefaultValue.class)), provider);
     }
 
     private void completeFieldDefinitionOutputTypeName() {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = parameters.getPosition();
-                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(parameters.getOriginalFile());
-                final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantSchema(completionElement);
-                if (registry != null && schema != null) {
-                    registry.scalars().values().forEach(scalar -> {
-                        result.addElement(LookupElementBuilder.create(scalar.getName()));
-                    });
-                    final String queryName = schema.getQueryType() != null ? schema.getQueryType().getName() : "Query";
-                    final String mutationName = schema.getMutationType() != null ? schema.getMutationType().getName() : "Mutation";
-                    final String subscriptionName = schema.getSubscriptionType() != null ? schema.getSubscriptionType().getName() : "Subscription";
-                    final Set<String> nonOutputTypes = Sets.newLinkedHashSet(Lists.newArrayList(queryName, mutationName, subscriptionName));
-                    registry.types().values().forEach(type -> {
-                        if (!(type instanceof InputObjectTypeDefinition) && !nonOutputTypes.contains(type.getName())) {
-                            result.addElement(LookupElementBuilder.create(type.getName()));
-                        }
-                    });
-                }
+                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
+                final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getSchemaInfo(completionElement).getSchema();
+                registry.scalars().values().forEach(scalar -> result.addElement(LookupElementBuilder.create(scalar.getName())));
+                final String queryName = schema.getQueryType() != null ? schema.getQueryType().getName() : "Query";
+                final String mutationName = schema.getMutationType() != null ? schema.getMutationType().getName() : "Mutation";
+                final String subscriptionName = schema.getSubscriptionType() != null ? schema.getSubscriptionType().getName() : "Subscription";
+                final Set<String> nonOutputTypes = Sets.newLinkedHashSet(Lists.newArrayList(queryName, mutationName, subscriptionName));
+                registry.types().values().forEach(type -> {
+                    if (!(type instanceof InputObjectTypeDefinition) && !nonOutputTypes.contains(type.getName())) {
+                        result.addElement(LookupElementBuilder.create(type.getName()));
+                    }
+                });
             }
         };
         extend(CompletionType.BASIC,
@@ -255,27 +258,27 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLUnionMembers unionMembers = PsiTreeUtil.getParentOfType(completionElement, GraphQLUnionMembers.class);
                 if (unionMembers != null) {
                     final Set<String> currentMembers = Sets.newHashSet();
-                    final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantSchema(completionElement);
-                    if (schema != null) {
-                        // don't want the root types in the list
-                        if (schema.getQueryType() != null) {
-                            currentMembers.add(schema.getQueryType().getName());
-                        }
-                        if (schema.getMutationType() != null) {
-                            currentMembers.add(schema.getMutationType().getName());
-                        }
-                        if (schema.getSubscriptionType() != null) {
-                            currentMembers.add(schema.getSubscriptionType().getName());
-                        }
+                    final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                        .getSchemaInfo(completionElement).getSchema();
+                    // don't want the root types in the list
+                    if (schema.getQueryType() != null) {
+                        currentMembers.add(schema.getQueryType().getName());
+                    }
+                    if (schema.getMutationType() != null) {
+                        currentMembers.add(schema.getMutationType().getName());
+                    }
+                    if (schema.getSubscriptionType() != null) {
+                        currentMembers.add(schema.getSubscriptionType().getName());
                     }
                     unionMembers.getTypeNameList().forEach(t -> currentMembers.add(t.getName()));
-                    final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(parameters.getOriginalFile());
+                    final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                        .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
                     typeDefinitionRegistry.getTypes(ObjectTypeDefinition.class).forEach(schemaType -> {
                         if (currentMembers.add(schemaType.getName())) {
                             result.addElement(LookupElementBuilder.create(schemaType.getName()));
@@ -291,7 +294,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLDefinition definition = PsiTreeUtil.getParentOfType(completionElement, GraphQLDefinition.class);
@@ -326,14 +329,15 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLImplementsInterfaces implementsInterfaces = PsiTreeUtil.getParentOfType(completionElement, GraphQLImplementsInterfaces.class);
                 if (implementsInterfaces != null) {
                     final Set<String> currentInterfaces = Sets.newHashSet();
                     implementsInterfaces.getTypeNameList().forEach(t -> currentInterfaces.add(t.getName()));
-                    final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(parameters.getOriginalFile());
+                    final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                        .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
                     typeDefinitionRegistry.getTypes(InterfaceTypeDefinition.class).forEach(schemaInterface -> {
                         if (currentInterfaces.add(schemaInterface.getName())) {
                             result.addElement(LookupElementBuilder.create(schemaInterface.getName()));
@@ -345,11 +349,11 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.NAME).inside(psiElement(GraphQLElementTypes.TYPE_NAME).inside(psiElement(GraphQLElementTypes.IMPLEMENTS_INTERFACES))), provider);
     }
 
-    private void completeImpementsKeyword() {
+    private void completeImplementsKeyword() {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLTypeSystemDefinition typeDefinition = PsiTreeUtil.getParentOfType(completionElement, GraphQLObjectTypeDefinition.class, GraphQLObjectTypeExtensionDefinition.class, GraphQLInterfaceTypeDefinition.class, GraphQLInterfaceTypeExtensionDefinition.class);
@@ -381,7 +385,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = parameters.getPosition();
@@ -398,11 +402,9 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                             result.addElement(LookupElementBuilder.create("[]").withInsertHandler(literalInsertHandler));
                         } else {
                             // raw type is enum, boolean or object
-                            final GraphQLUnmodifiedType rawType = GraphQLUtil.getUnmodifiedType(typeScope);
+                            final GraphQLUnmodifiedType rawType = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
                             if (rawType instanceof GraphQLEnumType) {
-                                ((GraphQLEnumType) rawType).getValues().forEach(value -> {
-                                    result.addElement(LookupElementBuilder.create(value.getName()).withTypeText(GraphQLUtil.getName(typeScope)));
-                                });
+                                ((GraphQLEnumType) rawType).getValues().forEach(value -> result.addElement(LookupElementBuilder.create(value.getName()).withTypeText(GraphQLSchemaUtil.getTypeName(typeScope))));
                             } else if (rawType instanceof GraphQLInputObjectType) {
                                 if (parameters.getOriginalPosition() != null && !parameters.getOriginalPosition().getText().equals("{")) {
                                     result.addElement(LookupElementBuilder.create("{}").withInsertHandler(literalInsertHandler));
@@ -428,7 +430,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = parameters.getPosition();
@@ -436,11 +438,9 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 if (typeScopeProvider != null) {
                     final GraphQLType typeScope = typeScopeProvider.getTypeScope();
                     if (typeScope != null) {
-                        final GraphQLUnmodifiedType rawType = GraphQLUtil.getUnmodifiedType(typeScope);
+                        final GraphQLUnmodifiedType rawType = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
                         if (rawType instanceof GraphQLEnumType) {
-                            ((GraphQLEnumType) rawType).getValues().forEach(value -> {
-                                result.addElement(LookupElementBuilder.create(value.getName()).withTypeText(rawType.getName()));
-                            });
+                            ((GraphQLEnumType) rawType).getValues().forEach(value -> result.addElement(LookupElementBuilder.create(value.getName()).withTypeText(rawType.getName())));
                         }
                     }
                 }
@@ -455,11 +455,12 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
-                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(parameters.getOriginalFile());
+                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
                 addInputTypeCompletions(result, registry);
             }
         };
@@ -468,9 +469,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
 
     private void addInputTypeCompletions(@NotNull CompletionResultSet result, TypeDefinitionRegistry registry) {
         if (registry != null) {
-            registry.scalars().values().forEach(scalar -> {
-                result.addElement(LookupElementBuilder.create(scalar.getName()));
-            });
+            registry.scalars().values().forEach(scalar -> result.addElement(LookupElementBuilder.create(scalar.getName())));
             registry.types().values().forEach(type -> {
                 if (type instanceof EnumTypeDefinition || type instanceof InputObjectTypeDefinition) {
                     result.addElement(LookupElementBuilder.create(type.getName()));
@@ -483,37 +482,51 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLDirectiveLocations directiveLocations = PsiTreeUtil.getParentOfType(completionElement, GraphQLDirectiveLocations.class);
-                if (directiveLocations != null) {
-                    final Set<String> currentLocations = Sets.newHashSet();
-                    directiveLocations.getDirectiveLocationList().forEach(location -> currentLocations.add(location.getText()));
-                    final PsiFile builtInSchema = GraphQLPsiSearchHelper.getInstance(completionElement.getProject()).getBuiltInSchema();
+                if (directiveLocations == null) {
+                    return;
+                }
 
-                    builtInSchema.accept(new PsiRecursiveElementVisitor() {
-                        @Override
-                        public void visitElement(PsiElement element) {
-                            if (element instanceof GraphQLEnumTypeDefinition) {
-                                final GraphQLEnumTypeDefinition enumTypeDefinition = (GraphQLEnumTypeDefinition) element;
-                                final GraphQLTypeNameDefinition enumTypeName = enumTypeDefinition.getTypeNameDefinition();
-                                if (enumTypeName != null && __DIRECTIVE_LOCATION_ENUM.equals(enumTypeName.getName())) {
-                                    final GraphQLEnumValueDefinitions enumValueDefinitions = enumTypeDefinition.getEnumValueDefinitions();
-                                    if (enumValueDefinitions != null) {
-                                        enumValueDefinitions.getEnumValueDefinitionList().forEach(value -> {
-                                            final String locationName = value.getEnumValue().getText();
-                                            if (currentLocations.add(locationName)) {
-                                                result.addElement(LookupElementBuilder.create(locationName).bold());
-                                            }
-                                        });
-                                    }
-                                }
-                                return; // no additional visiting needed
+                PsiElement prevSibling = PsiTreeUtil.skipWhitespacesAndCommentsBackward(directiveLocations);
+                if (prevSibling instanceof PsiErrorElement) {
+                    List<String> keywords = new SmartList<>("on");
+                    if (PsiUtilCore.getElementType(prevSibling.getPrevSibling()) != GraphQLElementTypes.REPEATABLE_KEYWORD) {
+                        keywords.add("repeatable");
+                    }
+
+                    for (String keyword : keywords) {
+                        result.addElement(LookupElementBuilder
+                            .create(keyword).withBoldness(true).withInsertHandler(AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP));
+                    }
+                    return;
+                }
+
+                final Set<String> currentLocations = Sets.newHashSet();
+                directiveLocations.getDirectiveLocationList().forEach(location -> currentLocations.add(location.getText()));
+                final GraphQLFile builtInSchema = ObjectUtils.tryCast(
+                    GraphQLPsiSearchHelper.getInstance(completionElement.getProject()).getBuiltInSchema(), GraphQLFile.class);
+                if (builtInSchema == null) {
+                    return;
+                }
+
+                for (GraphQLDefinition definition : ContainerUtil.filter(builtInSchema.getTypeDefinitions(), t -> t instanceof GraphQLEnumTypeDefinition)) {
+                    final GraphQLTypeNameDefinition enumTypeName = ((GraphQLEnumTypeDefinition) definition).getTypeNameDefinition();
+                    if (enumTypeName == null || !__DIRECTIVE_LOCATION_ENUM.equals(enumTypeName.getName())) {
+                        continue;
+                    }
+
+                    final GraphQLEnumValueDefinitions enumValueDefinitions = ((GraphQLEnumTypeDefinition) definition).getEnumValueDefinitions();
+                    if (enumValueDefinitions != null) {
+                        enumValueDefinitions.getEnumValueDefinitionList().forEach(value -> {
+                            final String locationName = value.getEnumValue().getText();
+                            if (currentLocations.add(locationName)) {
+                                result.addElement(LookupElementBuilder.create(locationName).bold());
                             }
-                            super.visitElement(element);
-                        }
-                    });
+                        });
+                    }
                 }
             }
         };
@@ -524,11 +537,12 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
-                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(completionElement);
+                final TypeDefinitionRegistry registry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getRegistryInfo(completionElement).getTypeDefinitionRegistry();
 
                 final Set<String> addedDirectiveNames = Sets.newHashSet();
 
@@ -560,28 +574,27 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 }
 
                 // directive including the built-in ones from a valid and working schema
-                final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantSchema(completionElement);
-                if (schema != null) {
-                    for (graphql.schema.GraphQLDirective graphQLDirective : schema.getDirectives()) {
-                        if (!addedDirectiveNames.add(graphQLDirective.getName())) {
-                            continue;
-                        }
-                        if (!isValidDirectiveLocation(graphQLDirective.validLocations(), parameters.getPosition())) {
-                            continue;
-                        }
-                        LookupElementBuilder element = LookupElementBuilder.create(graphQLDirective.getName());
-                        for (graphql.schema.GraphQLArgument directiveArgument : graphQLDirective.getArguments()) {
-                            if (directiveArgument.getType() instanceof GraphQLNonNull) {
-                                // found a required argument so insert the '()' for arguments
-                                element = element.withInsertHandler((ctx, item) -> {
-                                    ParenthesesInsertHandler.WITH_PARAMETERS.handleInsert(ctx, item);
-                                    AutoPopupController.getInstance(ctx.getProject()).autoPopupMemberLookup(ctx.getEditor(), null);
-                                });
-                                break;
-                            }
-                        }
-                        result.addElement(element);
+                final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getSchemaInfo(completionElement).getSchema();
+                for (com.intellij.lang.jsgraphql.types.schema.GraphQLDirective graphQLDirective : schema.getDirectives()) {
+                    if (!addedDirectiveNames.add(graphQLDirective.getName())) {
+                        continue;
                     }
+                    if (!isValidDirectiveLocation(graphQLDirective.validLocations(), parameters.getPosition())) {
+                        continue;
+                    }
+                    LookupElementBuilder element = LookupElementBuilder.create(graphQLDirective.getName());
+                    for (com.intellij.lang.jsgraphql.types.schema.GraphQLArgument directiveArgument : graphQLDirective.getArguments()) {
+                        if (directiveArgument.getType() instanceof GraphQLNonNull) {
+                            // found a required argument so insert the '()' for arguments
+                            element = element.withInsertHandler((ctx, item) -> {
+                                ParenthesesInsertHandler.WITH_PARAMETERS.handleInsert(ctx, item);
+                                AutoPopupController.getInstance(ctx.getProject()).autoPopupMemberLookup(ctx.getEditor(), null);
+                            });
+                            break;
+                        }
+                    }
+                    result.addElement(element);
                 }
 
             }
@@ -593,7 +606,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = parameters.getPosition();
@@ -602,7 +615,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     GraphQLType typeScope = typeScopeProvider.getTypeScope();
                     if (typeScope != null) {
                         // unwrap lists, non-null etc:
-                        typeScope = GraphQLUtil.getUnmodifiedType(typeScope);
+                        typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
                         if (typeScope instanceof GraphQLInputFieldsContainer) {
                             final List<GraphQLInputObjectField> fieldDefinitions = ((GraphQLInputFieldsContainer) typeScope).getFieldDefinitions();
                             final GraphQLObjectValue objectValue = PsiTreeUtil.getParentOfType(completionElement, GraphQLObjectValue.class);
@@ -633,7 +646,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
@@ -642,22 +655,21 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 if (directive != null) {
                     // directive arguments
                     if (directive.getName() != null) {
-                        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantSchema(completionElement);
-                        if (schema != null) {
-                            graphql.schema.GraphQLDirective directiveDefinition = schema.getDirective(directive.getName());
-                            if (directiveDefinition != null) {
+                        final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                            .getSchemaInfo(completionElement).getSchema();
+                        com.intellij.lang.jsgraphql.types.schema.GraphQLDirective directiveDefinition = schema.getFirstDirective(directive.getName());
+                        if (directiveDefinition != null) {
 
-                                final Set<String> existingArgumentNames = Sets.newHashSet();
-                                if (directive.getArguments() != null) {
-                                    for (GraphQLArgument directiveArgument : directive.getArguments().getArgumentList()) {
-                                        existingArgumentNames.add(directiveArgument.getName());
-                                    }
+                            final Set<String> existingArgumentNames = Sets.newHashSet();
+                            if (directive.getArguments() != null) {
+                                for (GraphQLArgument directiveArgument : directive.getArguments().getArgumentList()) {
+                                    existingArgumentNames.add(directiveArgument.getName());
                                 }
-                                for (graphql.schema.GraphQLArgument graphQLArgument : directiveDefinition.getArguments()) {
-                                    final String name = graphQLArgument.getName();
-                                    if (!existingArgumentNames.contains(name)) {
-                                        result.addElement(LookupElementBuilder.create(name).withTypeText(GraphQLSchemaUtil.typeString(graphQLArgument.getType())).withInsertHandler(AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP));
-                                    }
+                            }
+                            for (com.intellij.lang.jsgraphql.types.schema.GraphQLArgument graphQLArgument : directiveDefinition.getArguments()) {
+                                final String name = graphQLArgument.getName();
+                                if (!existingArgumentNames.contains(name)) {
+                                    result.addElement(LookupElementBuilder.create(name).withTypeText(GraphQLSchemaUtil.typeString(graphQLArgument.getType())).withInsertHandler(AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP));
                                 }
                             }
                         }
@@ -669,11 +681,11 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                         GraphQLType typeScope = typeScopeProvider.getTypeScope();
                         if (typeScope != null) {
                             // we need the raw type to get the fields
-                            typeScope = GraphQLUtil.getUnmodifiedType(typeScope);
+                            typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
                         }
                         if (typeScope != null) {
                             if (typeScope instanceof GraphQLFieldsContainer) {
-                                final graphql.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) typeScope).getFieldDefinition(field.getName());
+                                final com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) typeScope).getFieldDefinition(field.getName());
                                 if (fieldDefinition != null && field.getArguments() != null) {
                                     final Set<String> existingArgumentNames = field.getArguments().getArgumentList().stream().map(PsiNamedElement::getName).collect(Collectors.toSet());
                                     fieldDefinition.getArguments().forEach(argumentDefinition -> {
@@ -701,7 +713,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
@@ -712,10 +724,11 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     GraphQLType typeScope = typeScopeProvider.getTypeScope();
                     if (typeScope != null) {
                         // unwrap non-nulls, lists etc. since we want the raw type to match with the fragment type conditions
-                        typeScope = GraphQLUtil.getUnmodifiedType(typeScope);
+                        typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
 
                         // fragment must be compatible with the type in scope
-                        final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(parameters.getOriginalFile());
+                        final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                            .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
 
                         final List<GraphQLFragmentDefinition> knownFragmentDefinitions = GraphQLPsiSearchHelper.getInstance(completionElement.getProject()).getKnownFragmentDefinitions(parameters.getOriginalFile());
                         for (GraphQLFragmentDefinition fragmentDefinition : knownFragmentDefinitions) {
@@ -748,7 +761,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 final PsiElement completionElement = parameters.getPosition();
@@ -761,8 +774,9 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 }
                 final boolean fragmentDefinition = typeCondition != null && typeCondition.getParent() instanceof GraphQLFragmentDefinition;
 
-                final GraphQLSchemaProvider typeDefinitionRegistryService = GraphQLSchemaProvider.getInstance(completionElement.getProject());
-                final TypeDefinitionRegistry typeDefinitionRegistry = typeDefinitionRegistryService.getTolerantRegistry(parameters.getOriginalFile());
+                final GraphQLSchemaProvider schemaProvider = GraphQLSchemaProvider.getInstance(completionElement.getProject());
+                final TypeDefinitionRegistry typeDefinitionRegistry = schemaProvider
+                    .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
 
                 final List<Pair<TypeDefinition, Description>> fragmentTypes = Lists.newArrayList();
 
@@ -787,7 +801,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
 
                     GraphQLType rawTypeScope = typeScopeProvider != null ? typeScopeProvider.getTypeScope() : null;
                     if (rawTypeScope != null) {
-                        GraphQLUnmodifiedType typeScope = GraphQLUtil.getUnmodifiedType(rawTypeScope); // unwrap non-null and lists since fragments are about the raw type
+                        GraphQLUnmodifiedType typeScope = GraphQLSchemaUtil.getUnmodifiedType(rawTypeScope); // unwrap non-null and lists since fragments are about the raw type
                         final TypeDefinition fragmentType = typeDefinitionRegistry.getType(typeScope.getName()).orElse(null);
                         if (fragmentType != null) {
                             final Ref<Consumer<TypeDefinition<?>>> addTypesRecursive = new Ref<>();
@@ -810,9 +824,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                 } else if (typeToFragmentOn instanceof UnionTypeDefinition) {
                                     final List<Type> memberTypes = ((UnionTypeDefinition) typeToFragmentOn).getMemberTypes();
                                     if (memberTypes != null) {
-                                        memberTypes.forEach(memberType -> {
-                                            typeDefinitionRegistry.getType(memberType).ifPresent(memberTypeDefinition -> addTypesRecursive.get().consume(memberTypeDefinition));
-                                        });
+                                        memberTypes.forEach(memberType -> typeDefinitionRegistry.getType(memberType).ifPresent(memberTypeDefinition -> addTypesRecursive.get().consume(memberTypeDefinition)));
                                     }
                                 }
                             };
@@ -843,7 +855,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
                 // move "__*" fields to bottom
@@ -872,7 +884,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                         GraphQLType typeScope = typeScopeProvider.getTypeScope();
                         if (typeScope != null) {
                             // we need the raw type to get the fields
-                            typeScope = GraphQLUtil.getUnmodifiedType(typeScope);
+                            typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
                         }
                         if (typeScope instanceof GraphQLFieldsContainer) {
                             ((GraphQLFieldsContainer) typeScope).getFieldDefinitions().forEach(field -> {
@@ -891,7 +903,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                         element = element.withTailText(" - Deprecated: " + deprecationReason, true);
                                     }
                                 }
-                                for (graphql.schema.GraphQLArgument fieldArgument : field.getArguments()) {
+                                for (com.intellij.lang.jsgraphql.types.schema.GraphQLArgument fieldArgument : field.getArguments()) {
                                     if (fieldArgument.getType() instanceof GraphQLNonNull) {
                                         // on of the field arguments are required, so add the '()' for arguments
                                         element = element.withInsertHandler((ctx, item) -> {
@@ -906,9 +918,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                         }
                         if (!(typeScopeProvider instanceof GraphQLOperationDefinition)) {
                             // show the '...' except when top level selection in an operation
-                            orderedResult.addElement(LookupElementBuilder.create("...").withInsertHandler((ctx, item) -> {
-                                AutoPopupController.getInstance(ctx.getProject()).autoPopupMemberLookup(ctx.getEditor(), null);
-                            }));
+                            orderedResult.addElement(LookupElementBuilder.create("...").withInsertHandler((ctx, item) -> AutoPopupController.getInstance(ctx.getProject()).autoPopupMemberLookup(ctx.getEditor(), null)));
                             // and add the built-in __typename option
                             orderedResult.addElement(LookupElementBuilder.create("__typename"));
                         }
@@ -923,12 +933,13 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLTypeExtension typeExtension = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypeExtension.class);
-                final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantRegistry(parameters.getOriginalFile());
-                if (typeExtension != null && typeDefinitionRegistry != null) {
+                final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
+                if (typeExtension != null) {
                     final List<TypeDefinition<?>> types = Lists.newArrayList();
                     if (typeExtension instanceof GraphQLScalarTypeExtensionDefinition) {
                         // scalars aren't fully fledged types in the registry
@@ -973,7 +984,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 for (String keyword : EXTEND_KEYWORDS) {
                     LookupElementBuilder element = LookupElementBuilder.create(keyword).withBoldness(true).withInsertHandler(AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP);
@@ -988,7 +999,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final LogicalPosition completionPos = parameters.getEditor().offsetToLogicalPosition(parameters.getOffset());
                 final PsiElement prevVisibleLeaf = PsiTreeUtil.prevVisibleLeaf(parameters.getPosition());
@@ -1023,80 +1034,90 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         CompletionProvider<CompletionParameters> provider = new CompletionProvider<CompletionParameters>() {
             @Override
             protected void addCompletions(@NotNull final CompletionParameters parameters,
-                                          ProcessingContext context,
+                                          @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypeScopeProvider.class);
+                if (typeScopeProvider == null) {
+                    return;
+                }
 
-                if (typeScopeProvider != null) {
-                    final GraphQLType typeScope = typeScopeProvider.getTypeScope();
+                final GraphQLType typeScope = typeScopeProvider.getTypeScope();
+                if (typeScope == null) {
+                    return;
+                }
 
-                    if (typeScope != null) {
-                        final GraphQLTypedOperationDefinition query = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypedOperationDefinition.class);
+                final GraphQLTypedOperationDefinition query = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypedOperationDefinition.class);
+                if (query == null || query.getVariableDefinitions() == null) {
+                    return;
+                }
+                final VariablesTypesMatcher variablesTypesMatcher = new VariablesTypesMatcher();
+                final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getSchemaInfo(parameters.getOriginalFile()).getSchema();
 
-                        if (query != null && query.getVariableDefinitions() != null) {
-                            final VariablesTypesMatcher variablesTypesMatcher = new VariablesTypesMatcher();
-                            final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(completionElement.getProject()).getTolerantSchema(parameters.getOriginalFile());
+                for (GraphQLVariableDefinition variableDefinition : query.getVariableDefinitions().getVariableDefinitions()) {
+                    if (variableDefinition.getType() == null) {
+                        continue;
+                    }
 
-                            for (GraphQLVariableDefinition variableDefinition : query.getVariableDefinitions().getVariableDefinitions()) {
-                                if (variableDefinition.getType() != null) {
+                    final GraphQLIdentifier variableTypeIdentifier = PsiTreeUtil.findChildOfType(variableDefinition.getType(), GraphQLIdentifier.class);
+                    if (variableTypeIdentifier == null) {
+                        continue;
+                    }
+                    GraphQLType declaredType = schema.getType(variableTypeIdentifier.getText());
+                    if (declaredType == null) {
+                        continue;
+                    }
+                    if (variableTypeIdentifier.getNextSibling() instanceof LeafPsiElement && "!".equals(variableTypeIdentifier.getNextSibling().getText())) {
+                        declaredType = new GraphQLNonNull(declaredType);
+                    }
+                    PsiElement parent = variableTypeIdentifier.getParent();
+                    while (parent != null && !(parent instanceof GraphQLVariableDefinition)) {
+                        if (parent instanceof GraphQLListType) {
+                            declaredType = new GraphQLList(declaredType);
+                        } else if (parent instanceof GraphQLNonNullType) {
+                            declaredType = new GraphQLNonNull(declaredType);
+                        }
+                        parent = parent.getParent();
+                    }
 
-                                    final GraphQLIdentifier variableTypeIdentifier = PsiTreeUtil.findChildOfType(variableDefinition.getType(), GraphQLIdentifier.class);
-                                    if (variableTypeIdentifier != null) {
-                                        GraphQLType declaredType = schema.getType(variableTypeIdentifier.getText());
-                                        if (declaredType != null) {
-                                            if (variableTypeIdentifier.getNextSibling() instanceof LeafPsiElement && "!".equals(variableTypeIdentifier.getNextSibling().getText())) {
-                                                declaredType = new GraphQLNonNull(declaredType);
-                                            }
-                                            PsiElement parent = variableTypeIdentifier.getParent();
-                                            while (parent != null && !(parent instanceof GraphQLVariableDefinition)) {
-                                                if (parent instanceof GraphQLListType) {
-                                                    declaredType = new GraphQLList(declaredType);
-                                                } else if (parent instanceof GraphQLNonNullType) {
-                                                    declaredType = new GraphQLNonNull(declaredType);
-                                                }
-                                                parent = parent.getParent();
-                                            }
-
-                                            final String variableNameCompletion = variableDefinition.getVariable().getText();
-                                            if (variablesTypesMatcher.doesVariableTypesMatch(declaredType, null, typeScope)) {
-                                                result.addElement(LookupElementBuilder.create(variableNameCompletion).withTypeText(declaredType.toString()));
-                                            } else if (completionElement.getParent() instanceof GraphQLVariable && completionElement.getParent().getParent() instanceof GraphQLArrayValue) {
-                                                // variable is used inside a list literal, e.g. [$myVar], so need to unwrap the type scope
-                                                GraphQLType typeScopeWithoutList = typeScope;
-                                                while (typeScopeWithoutList instanceof GraphQLModifiedType) {
-                                                    boolean done = typeScopeWithoutList instanceof GraphQLList;
-                                                    typeScopeWithoutList = ((GraphQLModifiedType) typeScopeWithoutList).getWrappedType();
-                                                    if (done) {
-                                                        break;
-                                                    }
-                                                }
-                                                if (variablesTypesMatcher.doesVariableTypesMatch(declaredType, null, typeScopeWithoutList)) {
-                                                    result.addElement(LookupElementBuilder.create(variableNameCompletion).withTypeText(declaredType.toString()));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                    final String variableNameCompletion = variableDefinition.getVariable().getText();
+                    if (variablesTypesMatcher.doesVariableTypesMatch(declaredType, null, typeScope)) {
+                        result.addElement(LookupElementBuilder.create(variableNameCompletion)
+                            .withTypeText(GraphQLSchemaUtil.typeString(declaredType)));
+                    } else {
+                        PsiElement elementParent = completionElement.getParent();
+                        PsiElement elementGrandParent = elementParent.getParent();
+                        if ((elementParent instanceof GraphQLVariable && elementGrandParent instanceof GraphQLArrayValue) ||
+                            (elementParent instanceof GraphQLIdentifier && elementGrandParent instanceof GraphQLEnumValue &&
+                                elementGrandParent.getParent() instanceof GraphQLArrayValue)) {
+                            // variable is used inside a list literal, e.g. [$myVar], so need to unwrap the type scope
+                            GraphQLType typeScopeWithoutList = GraphQLSchemaUtil.unwrapListType(typeScope);
+                            if (variablesTypesMatcher.doesVariableTypesMatch(declaredType, null, typeScopeWithoutList)) {
+                                result.addElement(LookupElementBuilder.create(variableNameCompletion)
+                                    .withTypeText(GraphQLSchemaUtil.typeString(declaredType)));
                             }
                         }
                     }
                 }
             }
         };
-        extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.VARIABLE_NAME).inside(GraphQLArgument.class), provider);
+        extend(CompletionType.BASIC, psiElement().andOr(
+            psiElement(GraphQLElementTypes.VARIABLE_NAME),
+            psiElement(GraphQLElementTypes.NAME).inside(GraphQLEnumValue.class)
+        ).inside(GraphQLArgument.class), provider);
     }
 
 
     @Override
     public boolean invokeAutoPopup(@NotNull PsiElement position, char typeChar) {
-        if (typeChar == '@') {
-            // suggest annotations automatically after typing @
+        if (typeChar == '@' || typeChar == '$') {
             return true;
         }
         return super.invokeAutoPopup(position, typeChar);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isValidDirectiveLocation(EnumSet<Introspection.DirectiveLocation> validLocations, PsiElement completionPosition) {
         final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(completionPosition, GraphQLDirectivesAware.class);
         if (directivesAware == null) {
@@ -1125,9 +1146,12 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     return type.getNode().findChildByType(GraphQLElementTypes.MUTATION_KEYWORD) != null;
                 }
                 break;
-            // TODO JKM not yet supported by graphql-java
-            // case SUBSCRIPTION:
-            //    break;
+            case SUBSCRIPTION:
+                if (directivesAware instanceof GraphQLTypedOperationDefinition) {
+                    GraphQLOperationType type = ((GraphQLTypedOperationDefinition) directivesAware).getOperationType();
+                    return type.getNode().findChildByType(GraphQLElementTypes.SUBSCRIPTION_KEYWORD) != null;
+                }
+                break;
             case FIELD:
                 return directivesAware instanceof GraphQLField;
             case FRAGMENT_DEFINITION:
@@ -1139,7 +1163,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
 
             // SDL
             case SCHEMA:
-                return directivesAware instanceof GraphQLSchemaDefinition;
+                return directivesAware instanceof GraphQLSchemaDefinition || directivesAware instanceof GraphQLSchemaExtension;
             case SCALAR:
                 return directivesAware instanceof GraphQLScalarTypeDefinition || directivesAware instanceof GraphQLScalarTypeExtensionDefinition;
             case OBJECT:
@@ -1180,7 +1204,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                                     GraphQLType requiredTypeScope) {
 
         // unwrap non-nullable and list types
-        requiredTypeScope = GraphQLUtil.getUnmodifiedType(requiredTypeScope);
+        requiredTypeScope = GraphQLSchemaUtil.getUnmodifiedType(requiredTypeScope);
 
         final GraphQLTypeCondition typeCondition = fragmentCandidate.getTypeCondition();
         if (typeCondition == null || typeCondition.getTypeName() == null) {
@@ -1188,7 +1212,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         }
 
         final String fragmentTypeName = Optional.ofNullable(typeCondition.getTypeName().getName()).orElse("");
-        if (fragmentTypeName.equals(GraphQLUtil.getName(requiredTypeScope))) {
+        if (fragmentTypeName.equals(GraphQLSchemaUtil.getTypeName(requiredTypeScope))) {
             // direct match, e.g. User scope, fragment on User
             return true;
         }
@@ -1211,7 +1235,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                          String fragmentTypeName) {
 
         // unwrap non-nullable and list types
-        GraphQLUnmodifiedType requiredTypeScope = GraphQLUtil.getUnmodifiedType(rawRequiredTypeScope);
+        GraphQLUnmodifiedType requiredTypeScope = GraphQLSchemaUtil.getUnmodifiedType(rawRequiredTypeScope);
 
         if (requiredTypeScope instanceof GraphQLInterfaceType) {
             // also include fragments on types implementing the interface scope
@@ -1263,7 +1287,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
      */
     private static class LookupElementComparator implements Comparable<LookupElementComparator> {
 
-        private LookupElement lookupElement;
+        private final LookupElement lookupElement;
 
         public LookupElementComparator(LookupElement lookupElement) {
             this.lookupElement = lookupElement;

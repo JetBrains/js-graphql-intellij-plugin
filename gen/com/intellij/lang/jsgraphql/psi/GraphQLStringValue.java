@@ -8,6 +8,6 @@ import com.intellij.psi.PsiElement;
 public interface GraphQLStringValue extends GraphQLValue {
 
   @NotNull
-  GraphQLQuotedString getQuotedString();
+  GraphQLStringLiteral getStringLiteral();
 
 }

@@ -8,34 +8,40 @@
 package com.intellij.lang.jsgraphql.psi;
 
 import com.intellij.injected.editor.VirtualFileWindow;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
+import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class GraphQLPsiUtil {
 
-    public static String getTypeName(PsiElement psiElement, @Nullable Ref<GraphQLIdentifier> typeNameRef) {
+    public static @Nullable String getTypeName(@Nullable PsiElement psiElement, @Nullable Ref<GraphQLIdentifier> typeNameRef) {
 
         if (psiElement != null) {
 
-            final PsiElement typeOwner = PsiTreeUtil.getParentOfType(psiElement, GraphQLTypeNameDefinitionOwnerPsiElement.class, GraphQLTypeNameExtensionOwnerPsiElement.class);
+            final PsiElement typeOwner = PsiTreeUtil.getParentOfType(psiElement, GraphQLTypeNameDefinitionOwner.class, GraphQLTypeNameExtensionOwner.class);
 
             GraphQLIdentifier nameIdentifier = null;
 
-            if (typeOwner instanceof GraphQLTypeNameDefinitionOwnerPsiElement) {
-                final GraphQLTypeNameDefinition typeNameDefinition = ((GraphQLTypeNameDefinitionOwnerPsiElement) typeOwner).getTypeNameDefinition();
+            if (typeOwner instanceof GraphQLTypeNameDefinitionOwner) {
+                final GraphQLTypeNameDefinition typeNameDefinition = ((GraphQLTypeNameDefinitionOwner) typeOwner).getTypeNameDefinition();
                 if (typeNameDefinition != null) {
                     nameIdentifier = typeNameDefinition.getNameIdentifier();
                 }
-            } else if (typeOwner instanceof GraphQLTypeNameExtensionOwnerPsiElement) {
-                final GraphQLTypeName typeName = ((GraphQLTypeNameExtensionOwnerPsiElement) typeOwner).getTypeName();
+            } else if (typeOwner instanceof GraphQLTypeNameExtensionOwner) {
+                final GraphQLTypeName typeName = ((GraphQLTypeNameExtensionOwner) typeOwner).getTypeName();
                 if (typeName != null) {
                     nameIdentifier = typeName.getNameIdentifier();
                 }
@@ -54,7 +60,7 @@ public class GraphQLPsiUtil {
     }
 
     @Nullable
-    public static VirtualFile getVirtualFileFromPsiFile(@Nullable PsiFile containingFile) {
+    public static VirtualFile getOriginalVirtualFile(@Nullable PsiFile containingFile) {
         if (containingFile == null || !containingFile.isValid()) return null;
 
         VirtualFile file = containingFile.getVirtualFile();
@@ -69,7 +75,7 @@ public class GraphQLPsiUtil {
     }
 
     @Nullable
-    public static VirtualFile getVirtualFile(@Nullable VirtualFile virtualFile) {
+    public static VirtualFile getPhysicalVirtualFile(@Nullable VirtualFile virtualFile) {
         if (virtualFile == null) return null;
 
         if (virtualFile instanceof LightVirtualFile) {
@@ -87,9 +93,9 @@ public class GraphQLPsiUtil {
     }
 
     @Nullable
-    public static VirtualFile getVirtualFile(@Nullable PsiFile psiFile) {
+    public static VirtualFile getPhysicalVirtualFile(@Nullable PsiFile psiFile) {
         if (psiFile == null) return null;
-        return getVirtualFile(getVirtualFileFromPsiFile(psiFile));
+        return getPhysicalVirtualFile(getOriginalVirtualFile(psiFile));
     }
 
     /**
@@ -97,10 +103,39 @@ public class GraphQLPsiUtil {
      */
     @NotNull
     public static String getFileName(@NotNull PsiFile psiFile) {
-        VirtualFile virtualFile = getVirtualFile(psiFile);
+        VirtualFile virtualFile = getPhysicalVirtualFile(psiFile);
         if (virtualFile != null) {
             return virtualFile.getPath();
         }
         return psiFile.getName();
+    }
+
+    public static @NotNull List<PsiComment> getLeadingFileComments(@NotNull PsiFile file) {
+        List<PsiComment> comments = new SmartList<>();
+        PsiElement child = file.getFirstChild();
+        if (child instanceof PsiWhiteSpace) {
+            child = PsiTreeUtil.skipWhitespacesForward(child);
+        }
+        while (child instanceof PsiComment) {
+            comments.add(((PsiComment) child));
+            child = PsiTreeUtil.skipWhitespacesForward(child);
+        }
+
+        return comments;
+    }
+
+    @NotNull
+    public static PsiElement skipDescription(@NotNull PsiElement element) {
+        if (element instanceof GraphQLDescriptionAware) {
+            GraphQLDescription description = ((GraphQLDescriptionAware) element).getDescription();
+            if (description != null) {
+                PsiElement target = PsiTreeUtil.skipWhitespacesForward(description);
+                if (target != null) {
+                    return target;
+                }
+            }
+        }
+
+        return element;
     }
 }

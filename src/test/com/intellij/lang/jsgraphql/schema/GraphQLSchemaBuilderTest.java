@@ -1,19 +1,19 @@
 package com.intellij.lang.jsgraphql.schema;
 
-import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.SchemaPrinter;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.UnaryOperator;
 
 
-public class GraphQLSchemaBuilderTest extends BasePlatformTestCase {
+public class GraphQLSchemaBuilderTest extends GraphQLTestCaseBase {
 
     @Override
-    protected String getTestDataPath() {
-        return "test-resources/testData/graphql/schema";
+    protected @NotNull String getBasePath() {
+        return "/schema";
     }
 
     public void testObjects() {
@@ -55,7 +55,7 @@ public class GraphQLSchemaBuilderTest extends BasePlatformTestCase {
     private void doTest(@Nullable UnaryOperator<SchemaPrinter.Options> optionsBuilder) {
         myFixture.configureByFile(getTestName(true) + ".graphql");
         GraphQLSchemaProvider schemaProvider = GraphQLSchemaProvider.getInstance(myFixture.getProject());
-        GraphQLSchema schema = schemaProvider.getTolerantSchema(myFixture.getFile());
+        GraphQLSchema schema = schemaProvider.getSchemaInfo(myFixture.getFile()).getSchema();
 
         myFixture.configureByText("schema.graphql", new SchemaPrinter(getOptions(optionsBuilder)).print(schema));
         myFixture.checkResultByFile(getTestName(true) + "_schema.graphql");

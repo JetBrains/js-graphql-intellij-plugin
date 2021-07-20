@@ -9,11 +9,15 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.psi.PsiDocumentManager;
+import com.intellij.lang.jsgraphql.types.language.NamedNode;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
-import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import com.intellij.psi.PsiManager;
+import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -22,38 +26,45 @@ import java.util.concurrent.locks.Lock;
 /**
  * Verifies that two schemas can be separated using graphql-config
  */
-public class GraphQLSchemaConfigTest extends BasePlatformTestCase {
-
-    private PsiFile[] files;
-
+public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
     @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        files = myFixture.configureByFiles(
-                "schema-one/.graphqlconfig",
-                "schema-one/schema-one.graphql",
-                "schema-two/.graphqlconfig",
-                "schema-two/schema-two.graphql",
-                "schema-two/schema-excluded-two.graphql",
-                "schema-one/query-one.graphql",
-                "schema-two/query-two.graphql"
-        );
-        // use the synchronous method of building the configuration for the unit test
-        GraphQLConfigManager.getService(getProject()).doBuildConfigurationModel(null);
-    }
-
-    @Override
-    protected String getTestDataPath() {
-        return "test-resources/testData/graphql/graphql-config";
+    protected @NotNull String getBasePath() {
+        return "/graphql-config";
     }
 
     public void testCompletionSchemas() {
-        doTestCompletion("schema-one/query-one.graphql", Lists.newArrayList("fieldOne"));
-        doTestCompletion("schema-two/query-two.graphql", Lists.newArrayList("fieldTwo"));
+        PsiFile[] files = myFixture.configureByFiles(
+            "completionSchemas/schema-one/.graphqlconfig",
+            "completionSchemas/schema-one/schema-one.graphql",
+            "completionSchemas/schema-two/.graphqlconfig",
+            "completionSchemas/schema-two/schema-two.graphql",
+            "completionSchemas/schema-two/schema-excluded-two.graphql",
+            "completionSchemas/schema-one/query-one.graphql",
+            "completionSchemas/schema-two/query-two.graphql"
+        );
+        loadConfiguration();
+
+        doTestCompletion("completionSchemas/schema-one/query-one.graphql", Lists.newArrayList("fieldOne"), files);
+        doTestCompletion("completionSchemas/schema-two/query-two.graphql", Lists.newArrayList("fieldTwo"), files);
     }
 
-    private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {
-        for (PsiFile file : this.files) {
+    public void testExcludeFilesAndDirectories() {
+        test("/Types3.graphql", "TheOnlyType");
+    }
+
+    private void test(@NotNull String initialFile, String @NotNull ... expectedTypes) {
+        VirtualFile directory = myFixture.copyDirectoryToProject(getTestName(true), "/");
+        loadConfiguration();
+        VirtualFile file = directory.findFileByRelativePath(initialFile);
+        assertNotNull(file);
+        PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
+        assertNotNull(psiFile);
+        TypeDefinitionRegistry registry = GraphQLRegistryProvider.getInstance(getProject()).getRegistryInfo(psiFile).getTypeDefinitionRegistry();
+        assertSameElements(ContainerUtil.map(registry.types().values(), NamedNode::getName), expectedTypes);
+    }
+
+    private void doTestCompletion(String sourceFile, List<String> expectedCompletions, PsiFile @NotNull [] files) {
+        for (PsiFile file : files) {
             if (file.getVirtualFile().getPath().endsWith(sourceFile)) {
                 myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
                 break;
@@ -68,10 +79,5 @@ public class GraphQLSchemaConfigTest extends BasePlatformTestCase {
         } finally {
             readLock.unlock();
         }
-        ApplicationManager.getApplication().runWriteAction(() -> {
-            myFixture.getEditor().getDocument().setText(""); // blank out the file so it doesn't affect other tests
-            PsiDocumentManager.getInstance(myFixture.getProject()).commitAllDocuments();
-        });
     }
-
 }

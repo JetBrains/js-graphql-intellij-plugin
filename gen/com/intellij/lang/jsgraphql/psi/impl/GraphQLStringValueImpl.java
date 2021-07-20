@@ -16,10 +16,12 @@ public class GraphQLStringValueImpl extends GraphQLValueImpl implements GraphQLS
     super(node);
   }
 
+  @Override
   public void accept(@NotNull GraphQLVisitor visitor) {
     visitor.visitStringValue(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);
@@ -27,8 +29,8 @@ public class GraphQLStringValueImpl extends GraphQLValueImpl implements GraphQLS
 
   @Override
   @NotNull
-  public GraphQLQuotedString getQuotedString() {
-    return findNotNullChildByClass(GraphQLQuotedString.class);
+  public GraphQLStringLiteral getStringLiteral() {
+    return findNotNullChildByClass(GraphQLStringLiteral.class);
   }
 
 }

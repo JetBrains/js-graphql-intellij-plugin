@@ -1,0 +1,109 @@
+directive @ObjectDir on OBJECT
+directive @InputDir on INPUT_OBJECT
+directive @UnionDir on UNION
+directive @EnumDir on ENUM
+directive @InterfaceDir on INTERFACE
+directive @ScalarDir on SCALAR
+
+directive @ObjectDirWithArgs(id: String!, name: String) on OBJECT
+directive @InputDirWithArgs(id: String!, name: String) on INPUT_OBJECT
+directive @UnionDirWithArgs(id: String!, name: String) on UNION
+directive @EnumDirWithArgs(id: String!, name: String) on ENUM
+directive @InterfaceDirWithArgs(id: String!, name: String) on INTERFACE
+directive @ScalarDirWithArgs(id: String!, name: String) on SCALAR
+
+directive @ComplexArgs(scalarValue: Int, inputObj: InputObject, enumValue: MyEnum, inputObjRequired: InputObjectRequired) on OBJECT
+directive @ListArgs(scalarValue: [Int], inputObj: [InputObject], enumValue: [MyEnum]) on OBJECT
+
+input InputObject {
+    a: Int
+    b: Int
+}
+input InputObjectRequired {
+    a: Int!
+}
+enum MyEnum {
+    A
+    B
+}
+
+<error descr="The directive definition 'Dir' has declared an argument with a non unique name 'a'"><error descr="The directive definition 'Dir' has declared an argument with a non unique name 'b'">directive</error></error> @Dir(a: Int, a: Int, b: Int, b: Int) on OBJECT
+<error descr="'Dir1' type tried to redefine existing directive 'Dir1' type"><error descr="The directive definition type 'In' is not present when resolving type 'Dir1'">directive</error></error> @Dir1(<error descr="The In type is not present when resolving type 'a'">a</error>: <error descr="Unknown type \"In\"">In</error>) on OBJECT
+<error descr="'Dir1' tried to use a location 'INVALID' but that is illegal">directive</error> @Dir1(a: Int) on <error descr="Unknown directive location 'INVALID'">INVALID</error>
+<error descr="'__DirInvalidName' must not begin with '__', which is reserved by GraphQL introspection">directive</error> @__DirInvalidName(<error descr="'__id' must not begin with '__', which is reserved by GraphQL introspection">__id</error>: ID) on SCHEMA
+<error descr="'Recursive' must not reference itself on 'in'">directive</error> @Recursive(in: Int @Recursive) on ARGUMENT_DEFINITION
+
+# Object types
+
+type <error descr="'ObjectType' tried to use a directive 'InputDir' in the 'OBJECT' location but that is illegal"><error descr="'ObjectType' type tried to redefine existing 'ObjectType' type">ObjectType</error></error> @InputDir {
+    id: Int
+}
+
+type <error descr="'ObjectType' tried to use a directive 'UnionDir' in the 'OBJECT' location but that is illegal">ObjectType</error> @UnionDir {
+    id: Int
+}
+
+extend type <error descr="'ObjectType' tried to use a directive 'ScalarDir' in the 'OBJECT' location but that is illegal">ObjectType</error> @ScalarDir {
+}
+
+type <error descr="'ObjectType1' tried to use an undeclared directive 'Unknown'">ObjectType1</error> @<error descr="Unknown directive \"Unknown\"">Unknown</error> {
+    id: ID
+}
+
+type <error descr="'ObjectArgs' failed to provide a value for the non null argument 'id' on directive 'ObjectDirWithArgs'"><error descr="'ObjectArgs' use an unknown argument 'unknown' on directive 'ObjectDirWithArgs'">ObjectArgs</error></error> @ObjectDirWithArgs(<error descr="Unknown argument \"unknown\"">unknown</error>: ID) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs1' uses an illegal value for the argument 'id' on directive 'ObjectDirWithArgs'. Argument value is not a valid value of scalar 'String'">ObjectArgs1</error> @ObjectDirWithArgs(id: 123) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs2' uses an illegal value for the argument 'id' on directive 'ObjectDirWithArgs'. Argument value is 'null', expected a non-null value">ObjectArgs2</error> @ObjectDirWithArgs(id: null) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs3' uses an illegal value for the argument 'id' on directive 'ObjectDirWithArgs'. Argument value is of type 'EnumValue', expected a scalar">ObjectArgs3</error> @ObjectDirWithArgs(id: MyEnum) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs4' uses an illegal value for the argument 'enumValue' on directive 'ComplexArgs'. Argument value is of type 'IntValue', expected an enum value">ObjectArgs4</error> @ComplexArgs(enumValue: 123) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs5' uses an illegal value for the argument 'enumValue' on directive 'ComplexArgs'. Argument value 'UNKNOWN' doesn't match any of the allowed enum values ['A,B']">ObjectArgs5</error> @ComplexArgs(enumValue: UNKNOWN) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs6' uses an illegal value for the argument 'inputObj' on directive 'ComplexArgs'. Argument value is of type 'IntValue', expected an Object value">ObjectArgs6</error> @ComplexArgs(inputObj: 123) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs7' uses an illegal value for the argument 'inputObj' on directive 'ComplexArgs'. Argument value object keys [a,b] appear more than once">ObjectArgs7</error> @ComplexArgs(inputObj: {a: 123, a: 33, b: 123, b: 323}) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs8' uses an illegal value for the argument 'inputObj' on directive 'ComplexArgs'. Fields ['c'] not present in type 'InputObject'">ObjectArgs8</error> @ComplexArgs(inputObj: {<error descr="Unknown field \"c\" on input type \"InputObject\". Did you mean \"a\", or \"b\"?">c</error>: 123}) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs9' uses an illegal value for the argument 'inputObj' on directive 'ComplexArgs'. Argument value is not a valid value of scalar 'Int'">ObjectArgs9</error> @ComplexArgs(inputObj: {a: "BC"}) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs10' uses an illegal value for the argument 'inputObjRequired' on directive 'ComplexArgs'. Missing required field 'a'">ObjectArgs10</error> @ComplexArgs(inputObjRequired: {}) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs11' uses an illegal value for the argument 'enumValue' on directive 'ListArgs'. Argument value is of type 'IntValue', expected an enum value">ObjectArgs11</error> @ListArgs(enumValue: [1]) {
+    id: ID
+}
+
+type <error descr="'ObjectArgs12' uses an illegal value for the argument 'enumValue' on directive 'ListArgs'. Argument value is of type 'IntValue', expected an enum value">ObjectArgs12</error> @ListArgs(enumValue: 1) {
+    id: ID
+}
+
+type ObjectFields {
+    <error descr="'a' tried to use a directive 'EnumDir' in the 'FIELD_DEFINITION' location but that is illegal">a</error>: Int @EnumDir
+    <error descr="'b' tried to use a directive 'InterfaceDir' in the 'FIELD_DEFINITION' location but that is illegal">b</error>: Int @InterfaceDir
+    c(<error descr="'name' tried to use a directive 'ScalarDir' in the 'ARGUMENT_DEFINITION' location but that is illegal">name</error>: String @ScalarDir): Int
+}

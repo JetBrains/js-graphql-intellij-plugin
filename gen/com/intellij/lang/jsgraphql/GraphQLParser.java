@@ -36,6 +36,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   public static final TokenSet[] EXTENDS_SETS_ = new TokenSet[] {
+    create_token_set_(BLOCK_STRING, QUOTED_STRING, STRING_LITERAL),
     create_token_set_(LIST_TYPE, NON_NULL_TYPE, TYPE, TYPE_NAME,
       TYPE_NAME_DEFINITION),
     create_token_set_(ARRAY_VALUE, BOOLEAN_VALUE, ENUM_VALUE, FLOAT_VALUE,
@@ -44,9 +45,9 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     create_token_set_(DEFINITION, DIRECTIVE_DEFINITION, ENUM_TYPE_DEFINITION, ENUM_TYPE_EXTENSION_DEFINITION,
       FRAGMENT_DEFINITION, INPUT_OBJECT_TYPE_DEFINITION, INPUT_OBJECT_TYPE_EXTENSION_DEFINITION, INTERFACE_TYPE_DEFINITION,
       INTERFACE_TYPE_EXTENSION_DEFINITION, OBJECT_TYPE_DEFINITION, OBJECT_TYPE_EXTENSION_DEFINITION, OPERATION_DEFINITION,
-      SCALAR_TYPE_DEFINITION, SCALAR_TYPE_EXTENSION_DEFINITION, SCHEMA_DEFINITION, SELECTION_SET_OPERATION_DEFINITION,
-      TEMPLATE_DEFINITION, TYPED_OPERATION_DEFINITION, TYPE_DEFINITION, TYPE_EXTENSION,
-      TYPE_SYSTEM_DEFINITION, UNION_TYPE_DEFINITION, UNION_TYPE_EXTENSION_DEFINITION),
+      SCALAR_TYPE_DEFINITION, SCALAR_TYPE_EXTENSION_DEFINITION, SCHEMA_DEFINITION, SCHEMA_EXTENSION,
+      SELECTION_SET_OPERATION_DEFINITION, TEMPLATE_DEFINITION, TYPED_OPERATION_DEFINITION, TYPE_DEFINITION,
+      TYPE_EXTENSION, TYPE_SYSTEM_DEFINITION, UNION_TYPE_DEFINITION, UNION_TYPE_EXTENSION_DEFINITION),
   };
 
   /* ********************************************************** */
@@ -90,7 +91,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 1
     result = result && report_error_(builder, consumeToken(builder, COLON));
     result = pinned && value(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, argument_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::argument_recover);
     return result || pinned;
   }
 
@@ -209,7 +210,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     boolean result;
     Marker marker = enter_section_(builder, level, _NONE_);
     result = value(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, arrayValueElement_recover_parser_);
+    exit_section_(builder, level, marker, result, false, GraphQLParser::arrayValueElement_recover);
     return result;
   }
 
@@ -231,6 +232,32 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = consumeToken(builder, BRACKET_R);
     if (!result) result = value(builder, level + 1);
     return result;
+  }
+
+  /* ********************************************************** */
+  // OPEN_TRIPLE_QUOTE REGULAR_STRING_PART* CLOSING_TRIPLE_QUOTE
+  public static boolean blockString(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "blockString")) return false;
+    if (!nextTokenIs(builder, OPEN_TRIPLE_QUOTE)) return false;
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_, BLOCK_STRING, null);
+    result = consumeToken(builder, OPEN_TRIPLE_QUOTE);
+    pinned = result; // pin = 1
+    result = result && report_error_(builder, blockString_1(builder, level + 1));
+    result = pinned && consumeToken(builder, CLOSING_TRIPLE_QUOTE) && result;
+    exit_section_(builder, level, marker, result, pinned, null);
+    return result || pinned;
+  }
+
+  // REGULAR_STRING_PART*
+  private static boolean blockString_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "blockString_1")) return false;
+    while (true) {
+      int pos = current_position_(builder);
+      if (!consumeToken(builder, REGULAR_STRING_PART)) break;
+      if (!empty_element_parsed_guard_(builder, "blockString_1", pos)) break;
+    }
+    return true;
   }
 
   /* ********************************************************** */
@@ -260,10 +287,10 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // operationDefinition |
-  //     fragmentDefinition |
-  //     typeSystemDefinition |
-  //     templateDefinition
+  // operationDefinition |
+  //   fragmentDefinition |
+  //   typeSystemDefinition |
+  //   templateDefinition
   public static boolean definition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "definition")) return false;
     boolean result;
@@ -272,7 +299,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     if (!result) result = fragmentDefinition(builder, level + 1);
     if (!result) result = typeSystemDefinition(builder, level + 1);
     if (!result) result = templateDefinition(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, definition_recover_parser_);
+    exit_section_(builder, level, marker, result, false, GraphQLParser::definition_recover);
     return result;
   }
 
@@ -316,9 +343,15 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // quotedString
-  static boolean description(PsiBuilder builder, int level) {
-    return quotedString(builder, level + 1);
+  // stringLiteral
+  public static boolean description(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "description")) return false;
+    if (!nextTokenIs(builder, "<description>", OPEN_QUOTE, OPEN_TRIPLE_QUOTE)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder, level, _NONE_, DESCRIPTION, "<description>");
+    result = stringLiteral(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, null);
+    return result;
   }
 
   /* ********************************************************** */
@@ -344,10 +377,9 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // description? 'directive' '@' identifier argumentsDefinition? 'on' directiveLocations
+  // description? 'directive' '@' identifier argumentsDefinition? 'repeatable'? 'on' directiveLocations
   public static boolean directiveDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "directiveDefinition")) return false;
-    if (!nextTokenIs(builder, "<directive definition>", DIRECTIVE_KEYWORD, OPEN_QUOTE)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, DIRECTIVE_DEFINITION, "<directive definition>");
     result = directiveDefinition_0(builder, level + 1);
@@ -355,6 +387,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 2
     result = result && report_error_(builder, identifier(builder, level + 1));
     result = pinned && report_error_(builder, directiveDefinition_4(builder, level + 1)) && result;
+    result = pinned && report_error_(builder, directiveDefinition_5(builder, level + 1)) && result;
     result = pinned && report_error_(builder, consumeToken(builder, ON_KEYWORD)) && result;
     result = pinned && directiveLocations(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, null);
@@ -375,8 +408,17 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     return true;
   }
 
+  // 'repeatable'?
+  private static boolean directiveDefinition_5(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "directiveDefinition_5")) return false;
+    consumeToken(builder, REPEATABLE_KEYWORD);
+    return true;
+  }
+
   /* ********************************************************** */
-  // 'QUERY' | 'MUTATION' | 'SUBSCRIPTION' | 'FIELD' | 'FRAGMENT_DEFINITION' | 'FRAGMENT_SPREAD' | 'INLINE_FRAGMENT' | 'SCHEMA' | 'SCALAR' | 'OBJECT' | 'FIELD_DEFINITION' | 'ARGUMENT_DEFINITION' | 'INTERFACE' | 'UNION' | 'ENUM' | 'ENUM_VALUE' | 'INPUT_OBJECT' | 'INPUT_FIELD_DEFINITION' | NAME
+  // 'QUERY' | 'MUTATION' | 'SUBSCRIPTION' | 'FIELD' | 'FRAGMENT_DEFINITION' | 'FRAGMENT_SPREAD' | 'INLINE_FRAGMENT' |
+  //   'SCHEMA' | 'SCALAR' | 'OBJECT' | 'FIELD_DEFINITION' | 'ARGUMENT_DEFINITION' | 'INTERFACE' | 'UNION' | 'ENUM' |
+  //   'ENUM_VALUE' | 'INPUT_OBJECT' | 'INPUT_FIELD_DEFINITION' | NAME
   public static boolean directiveLocation(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "directiveLocation")) return false;
     boolean result;
@@ -468,7 +510,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'enum' typeNameDefinition directives? enumValueDefinitions?
   public static boolean enumTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "enumTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<enum type definition>", ENUM_KEYWORD, OPEN_QUOTE)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, ENUM_TYPE_DEFINITION, "<enum type definition>");
     result = enumTypeDefinition_0(builder, level + 1);
@@ -553,7 +594,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = result && enumValue(builder, level + 1);
     pinned = result; // pin = 2
     result = result && enumValueDefinition_2(builder, level + 1);
-    exit_section_(builder, level, marker, result, pinned, enumValueDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::enumValueDefinition_recover);
     return result || pinned;
   }
 
@@ -680,7 +721,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = pinned && report_error_(builder, consumeToken(builder, COLON)) && result;
     result = pinned && report_error_(builder, type(builder, level + 1)) && result;
     result = pinned && fieldDefinition_5(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, fieldDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::fieldDefinition_recover);
     return result || pinned;
   }
 
@@ -755,13 +796,13 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // NUMBER
+  // FLOAT
   public static boolean floatValue(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "floatValue")) return false;
-    if (!nextTokenIs(builder, NUMBER)) return false;
+    if (!nextTokenIs(builder, FLOAT)) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = consumeToken(builder, NUMBER);
+    result = consumeToken(builder, FLOAT);
     exit_section_(builder, marker, FLOAT_VALUE, result);
     return result;
   }
@@ -856,7 +897,8 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' | 'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on'
+  // NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' |
+  //   'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on'
   public static boolean identifier(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "identifier")) return false;
     boolean result;
@@ -939,7 +981,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'input' typeNameDefinition directives? inputObjectValueDefinitions?
   public static boolean inputObjectTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "inputObjectTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<input object type definition>", INPUT_KEYWORD, OPEN_QUOTE)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, INPUT_OBJECT_TYPE_DEFINITION, "<input object type definition>");
     result = inputObjectTypeDefinition_0(builder, level + 1);
@@ -1046,7 +1087,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = pinned && report_error_(builder, type(builder, level + 1)) && result;
     result = pinned && report_error_(builder, inputValueDefinition_4(builder, level + 1)) && result;
     result = pinned && inputValueDefinition_5(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, inputValueDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::inputValueDefinition_recover);
     return result || pinned;
   }
 
@@ -1110,7 +1151,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'interface' typeNameDefinition implementsInterfaces? directives? fieldsDefinition?
   public static boolean interfaceTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "interfaceTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<interface type definition>", INTERFACE_KEYWORD, OPEN_QUOTE)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, INTERFACE_TYPE_DEFINITION, "<interface type definition>");
     result = interfaceTypeDefinition_0(builder, level + 1);
@@ -1259,7 +1299,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 1
     result = result && report_error_(builder, consumeToken(builder, COLON));
     result = pinned && value(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, objectField_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::objectField_recover);
     return result || pinned;
   }
 
@@ -1287,7 +1327,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'type' typeNameDefinition implementsInterfaces? directives? fieldsDefinition?
   public static boolean objectTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "objectTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<object type definition>", OPEN_QUOTE, TYPE_KEYWORD)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, OBJECT_TYPE_DEFINITION, "<object type definition>");
     result = objectTypeDefinition_0(builder, level + 1);
@@ -1428,7 +1467,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     pinned = result; // pin = 1
     result = result && report_error_(builder, consumeToken(builder, COLON));
     result = pinned && typeName(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, operationTypeDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::operationTypeDefinition_recover);
     return result || pinned;
   }
 
@@ -1522,7 +1561,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // OPEN_QUOTE quotedStringBody? CLOSING_QUOTE
+  // OPEN_QUOTE REGULAR_STRING_PART? CLOSING_QUOTE
   public static boolean quotedString(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "quotedString")) return false;
     if (!nextTokenIs(builder, OPEN_QUOTE)) return false;
@@ -1536,32 +1575,15 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     return result || pinned;
   }
 
-  // quotedStringBody?
+  // REGULAR_STRING_PART?
   private static boolean quotedString_1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "quotedString_1")) return false;
-    quotedStringBody(builder, level + 1);
+    consumeToken(builder, REGULAR_STRING_PART);
     return true;
   }
 
   /* ********************************************************** */
-  // REGULAR_STRING_PART+
-  static boolean quotedStringBody(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "quotedStringBody")) return false;
-    if (!nextTokenIs(builder, REGULAR_STRING_PART)) return false;
-    boolean result;
-    Marker marker = enter_section_(builder);
-    result = consumeToken(builder, REGULAR_STRING_PART);
-    while (result) {
-      int pos = current_position_(builder);
-      if (!consumeToken(builder, REGULAR_STRING_PART)) break;
-      if (!empty_element_parsed_guard_(builder, "quotedStringBody", pos)) break;
-    }
-    exit_section_(builder, marker, null, result);
-    return result;
-  }
-
-  /* ********************************************************** */
-  // definition_keywords | '{' /* anon query */ | OPEN_QUOTE /* schema description */ | (DOLLAR BRACE_L)
+  // definition_keywords | '{' /* anon query */ | OPEN_QUOTE | OPEN_TRIPLE_QUOTE /* schema description */ | (DOLLAR BRACE_L)
   static boolean root_tokens(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "root_tokens")) return false;
     boolean result;
@@ -1569,14 +1591,15 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = definition_keywords(builder, level + 1);
     if (!result) result = consumeToken(builder, BRACE_L);
     if (!result) result = consumeToken(builder, OPEN_QUOTE);
-    if (!result) result = root_tokens_3(builder, level + 1);
+    if (!result) result = consumeToken(builder, OPEN_TRIPLE_QUOTE);
+    if (!result) result = root_tokens_4(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
 
   // DOLLAR BRACE_L
-  private static boolean root_tokens_3(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "root_tokens_3")) return false;
+  private static boolean root_tokens_4(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "root_tokens_4")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = consumeTokens(builder, 0, DOLLAR, BRACE_L);
@@ -1588,7 +1611,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'scalar' typeNameDefinition directives?
   public static boolean scalarTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "scalarTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<scalar type definition>", OPEN_QUOTE, SCALAR_KEYWORD)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, SCALAR_TYPE_DEFINITION, "<scalar type definition>");
     result = scalarTypeDefinition_0(builder, level + 1);
@@ -1637,30 +1659,66 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'schema' directives? operationTypeDefinitions
+  // description? 'schema' directives? operationTypeDefinitions
   public static boolean schemaDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "schemaDefinition")) return false;
-    if (!nextTokenIs(builder, SCHEMA_KEYWORD)) return false;
     boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_, SCHEMA_DEFINITION, null);
-    result = consumeToken(builder, SCHEMA_KEYWORD);
-    pinned = result; // pin = 1
-    result = result && report_error_(builder, schemaDefinition_1(builder, level + 1));
+    Marker marker = enter_section_(builder, level, _NONE_, SCHEMA_DEFINITION, "<schema definition>");
+    result = schemaDefinition_0(builder, level + 1);
+    result = result && consumeToken(builder, SCHEMA_KEYWORD);
+    pinned = result; // pin = 2
+    result = result && report_error_(builder, schemaDefinition_2(builder, level + 1));
     result = pinned && operationTypeDefinitions(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, null);
     return result || pinned;
   }
 
+  // description?
+  private static boolean schemaDefinition_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaDefinition_0")) return false;
+    description(builder, level + 1);
+    return true;
+  }
+
   // directives?
-  private static boolean schemaDefinition_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "schemaDefinition_1")) return false;
+  private static boolean schemaDefinition_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaDefinition_2")) return false;
     directives(builder, level + 1);
     return true;
   }
 
   /* ********************************************************** */
-  // field |
-  //     fragmentSelection |
+  // 'extend' 'schema' directives? operationTypeDefinitions?
+  public static boolean schemaExtension(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaExtension")) return false;
+    if (!nextTokenIs(builder, EXTEND_KEYWORD)) return false;
+    boolean result, pinned;
+    Marker marker = enter_section_(builder, level, _NONE_, SCHEMA_EXTENSION, null);
+    result = consumeTokens(builder, 2, EXTEND_KEYWORD, SCHEMA_KEYWORD);
+    pinned = result; // pin = 2
+    result = result && report_error_(builder, schemaExtension_2(builder, level + 1));
+    result = pinned && schemaExtension_3(builder, level + 1) && result;
+    exit_section_(builder, level, marker, result, pinned, null);
+    return result || pinned;
+  }
+
+  // directives?
+  private static boolean schemaExtension_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaExtension_2")) return false;
+    directives(builder, level + 1);
+    return true;
+  }
+
+  // operationTypeDefinitions?
+  private static boolean schemaExtension_3(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "schemaExtension_3")) return false;
+    operationTypeDefinitions(builder, level + 1);
+    return true;
+  }
+
+  /* ********************************************************** */
+  // field |
+  //     fragmentSelection |
   //     templateSelection
   public static boolean selection(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "selection")) return false;
@@ -1669,7 +1727,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = field(builder, level + 1);
     if (!result) result = fragmentSelection(builder, level + 1);
     if (!result) result = templateSelection(builder, level + 1);
-    exit_section_(builder, level, marker, result, false, selection_recover_parser_);
+    exit_section_(builder, level, marker, result, false, GraphQLParser::selection_recover);
     return result;
   }
 
@@ -1739,14 +1797,27 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // quotedString
+  // quotedString | blockString
+  public static boolean stringLiteral(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "stringLiteral")) return false;
+    if (!nextTokenIs(builder, "<string literal>", OPEN_QUOTE, OPEN_TRIPLE_QUOTE)) return false;
+    boolean result;
+    Marker marker = enter_section_(builder, level, _COLLAPSE_, STRING_LITERAL, "<string literal>");
+    result = quotedString(builder, level + 1);
+    if (!result) result = blockString(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, null);
+    return result;
+  }
+
+  /* ********************************************************** */
+  // stringLiteral
   public static boolean stringValue(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "stringValue")) return false;
-    if (!nextTokenIs(builder, OPEN_QUOTE)) return false;
+    if (!nextTokenIs(builder, "<string value>", OPEN_QUOTE, OPEN_TRIPLE_QUOTE)) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
-    result = quotedString(builder, level + 1);
-    exit_section_(builder, marker, STRING_VALUE, result);
+    Marker marker = enter_section_(builder, level, _NONE_, STRING_VALUE, "<string value>");
+    result = stringLiteral(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
@@ -1839,12 +1910,12 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // scalarTypeDefinition |
-  //     objectTypeDefinition |
-  //     interfaceTypeDefinition |
-  //     unionTypeDefinition |
-  //     enumTypeDefinition |
-  //     inputObjectTypeDefinition
+  // scalarTypeDefinition |
+  //   objectTypeDefinition |
+  //   interfaceTypeDefinition |
+  //   unionTypeDefinition |
+  //   enumTypeDefinition |
+  //   inputObjectTypeDefinition
   public static boolean typeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeDefinition")) return false;
     boolean result;
@@ -1860,12 +1931,12 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // objectTypeExtensionDefinition |
-  //     interfaceTypeExtensionDefinition |
-  //     unionTypeExtensionDefinition |
-  //     scalarTypeExtensionDefinition |
-  //     enumTypeExtensionDefinition |
-  //     inputObjectTypeExtensionDefinition
+  // objectTypeExtensionDefinition |
+  //   interfaceTypeExtensionDefinition |
+  //   unionTypeExtensionDefinition |
+  //   scalarTypeExtensionDefinition |
+  //   enumTypeExtensionDefinition |
+  //   inputObjectTypeExtensionDefinition
   public static boolean typeExtension(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeExtension")) return false;
     if (!nextTokenIs(builder, EXTEND_KEYWORD)) return false;
@@ -1946,15 +2017,17 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // schemaDefinition |
-  //     typeDefinition |
-  //     typeExtension |
+  // schemaDefinition |
+  //     schemaExtension |
+  //     typeDefinition |
+  //     typeExtension |
   //     directiveDefinition
   public static boolean typeSystemDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typeSystemDefinition")) return false;
     boolean result;
     Marker marker = enter_section_(builder, level, _COLLAPSE_, TYPE_SYSTEM_DEFINITION, "<type system definition>");
     result = schemaDefinition(builder, level + 1);
+    if (!result) result = schemaExtension(builder, level + 1);
     if (!result) result = typeDefinition(builder, level + 1);
     if (!result) result = typeExtension(builder, level + 1);
     if (!result) result = directiveDefinition(builder, level + 1);
@@ -2048,7 +2121,6 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // description? 'union' typeNameDefinition directives? unionMembership?
   public static boolean unionTypeDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "unionTypeDefinition")) return false;
-    if (!nextTokenIs(builder, "<union type definition>", OPEN_QUOTE, UNION_KEYWORD)) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, UNION_TYPE_DEFINITION, "<union type definition>");
     result = unionTypeDefinition_0(builder, level + 1);
@@ -2113,15 +2185,15 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // templateVariable |
-  //     variable |
-  //     stringValue |
-  //     intValue |
-  //     floatValue |
-  //     booleanValue |
-  //     nullValue |
-  //     enumValue |
-  //     arrayValue |
+  // templateVariable |
+  //     variable |
+  //     stringValue |
+  //     intValue |
+  //     floatValue |
+  //     booleanValue |
+  //     nullValue |
+  //     enumValue |
+  //     arrayValue |
   //     objectValue
   public static boolean value(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "value")) return false;
@@ -2165,7 +2237,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     result = pinned && report_error_(builder, type(builder, level + 1)) && result;
     result = pinned && report_error_(builder, variableDefinition_3(builder, level + 1)) && result;
     result = pinned && variableDefinition_4(builder, level + 1) && result;
-    exit_section_(builder, level, marker, result, pinned, variableDefinition_recover_parser_);
+    exit_section_(builder, level, marker, result, pinned, GraphQLParser::variableDefinition_recover);
     return result || pinned;
   }
 
@@ -2236,54 +2308,4 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  static final Parser argument_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return argument_recover(builder, level + 1);
-    }
-  };
-  static final Parser arrayValueElement_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return arrayValueElement_recover(builder, level + 1);
-    }
-  };
-  static final Parser definition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return definition_recover(builder, level + 1);
-    }
-  };
-  static final Parser enumValueDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return enumValueDefinition_recover(builder, level + 1);
-    }
-  };
-  static final Parser fieldDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return fieldDefinition_recover(builder, level + 1);
-    }
-  };
-  static final Parser inputValueDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return inputValueDefinition_recover(builder, level + 1);
-    }
-  };
-  static final Parser objectField_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return objectField_recover(builder, level + 1);
-    }
-  };
-  static final Parser operationTypeDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return operationTypeDefinition_recover(builder, level + 1);
-    }
-  };
-  static final Parser selection_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return selection_recover(builder, level + 1);
-    }
-  };
-  static final Parser variableDefinition_recover_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder, int level) {
-      return variableDefinition_recover(builder, level + 1);
-    }
-  };
 }

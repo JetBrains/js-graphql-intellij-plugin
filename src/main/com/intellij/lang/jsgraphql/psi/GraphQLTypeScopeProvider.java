@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.psi;
 
 import com.intellij.psi.PsiElement;
-import graphql.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 
 public interface GraphQLTypeScopeProvider extends PsiElement {
 

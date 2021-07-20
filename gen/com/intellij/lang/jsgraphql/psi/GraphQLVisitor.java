@@ -4,10 +4,9 @@ package com.intellij.lang.jsgraphql.psi;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwnerPsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.psi.PsiNamedElement;
 
 public class GraphQLVisitor extends PsiElementVisitor {
@@ -32,6 +31,10 @@ public class GraphQLVisitor extends PsiElementVisitor {
     visitValue(o);
   }
 
+  public void visitBlockString(@NotNull GraphQLBlockString o) {
+    visitStringLiteral(o);
+  }
+
   public void visitBooleanValue(@NotNull GraphQLBooleanValue o) {
     visitValue(o);
   }
@@ -41,6 +44,10 @@ public class GraphQLVisitor extends PsiElementVisitor {
   }
 
   public void visitDefinition(@NotNull GraphQLDefinition o) {
+    visitElement(o);
+  }
+
+  public void visitDescription(@NotNull GraphQLDescription o) {
     visitElement(o);
   }
 
@@ -63,12 +70,12 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitEnumTypeDefinition(@NotNull GraphQLEnumTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameDefinitionOwner(o);
   }
 
   public void visitEnumTypeExtensionDefinition(@NotNull GraphQLEnumTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameExtensionOwner(o);
   }
 
   public void visitEnumValue(@NotNull GraphQLEnumValue o) {
@@ -78,6 +85,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitEnumValueDefinition(@NotNull GraphQLEnumValueDefinition o) {
     visitDirectivesAware(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitEnumValueDefinitions(@NotNull GraphQLEnumValueDefinitions o) {
@@ -92,6 +100,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
   public void visitFieldDefinition(@NotNull GraphQLFieldDefinition o) {
     visitDirectivesAware(o);
     // visitNamedElement(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitFieldsDefinition(@NotNull GraphQLFieldsDefinition o) {
@@ -131,12 +140,12 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitInputObjectTypeDefinition(@NotNull GraphQLInputObjectTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameDefinitionOwner(o);
   }
 
   public void visitInputObjectTypeExtensionDefinition(@NotNull GraphQLInputObjectTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameExtensionOwner(o);
   }
 
   public void visitInputObjectValueDefinitions(@NotNull GraphQLInputObjectValueDefinitions o) {
@@ -146,6 +155,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
   public void visitInputValueDefinition(@NotNull GraphQLInputValueDefinition o) {
     visitDirectivesAware(o);
     // visitNamedElement(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitIntValue(@NotNull GraphQLIntValue o) {
@@ -154,12 +164,12 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitInterfaceTypeDefinition(@NotNull GraphQLInterfaceTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameDefinitionOwner(o);
   }
 
   public void visitInterfaceTypeExtensionDefinition(@NotNull GraphQLInterfaceTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameExtensionOwner(o);
   }
 
   public void visitListType(@NotNull GraphQLListType o) {
@@ -180,12 +190,12 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitObjectTypeDefinition(@NotNull GraphQLObjectTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameDefinitionOwner(o);
   }
 
   public void visitObjectTypeExtensionDefinition(@NotNull GraphQLObjectTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameExtensionOwner(o);
   }
 
   public void visitObjectValue(@NotNull GraphQLObjectValue o) {
@@ -210,20 +220,26 @@ public class GraphQLVisitor extends PsiElementVisitor {
   }
 
   public void visitQuotedString(@NotNull GraphQLQuotedString o) {
-    visitElement(o);
+    visitStringLiteral(o);
   }
 
   public void visitScalarTypeDefinition(@NotNull GraphQLScalarTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameDefinitionOwner(o);
   }
 
   public void visitScalarTypeExtensionDefinition(@NotNull GraphQLScalarTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameExtensionOwner(o);
   }
 
   public void visitSchemaDefinition(@NotNull GraphQLSchemaDefinition o) {
+    visitTypeSystemDefinition(o);
+    // visitDirectivesAware(o);
+    // visitDescriptionAware(o);
+  }
+
+  public void visitSchemaExtension(@NotNull GraphQLSchemaExtension o) {
     visitTypeSystemDefinition(o);
     // visitDirectivesAware(o);
   }
@@ -238,6 +254,10 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitSelectionSetOperationDefinition(@NotNull GraphQLSelectionSetOperationDefinition o) {
     visitOperationDefinition(o);
+  }
+
+  public void visitStringLiteral(@NotNull GraphQLStringLiteral o) {
+    visitElement(o);
   }
 
   public void visitStringValue(@NotNull GraphQLStringValue o) {
@@ -266,6 +286,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitTypeDefinition(@NotNull GraphQLTypeDefinition o) {
     visitTypeSystemDefinition(o);
+    // visitDescriptionAware(o);
   }
 
   public void visitTypeExtension(@NotNull GraphQLTypeExtension o) {
@@ -301,12 +322,12 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitUnionTypeDefinition(@NotNull GraphQLUnionTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameDefinitionOwner(o);
   }
 
   public void visitUnionTypeExtensionDefinition(@NotNull GraphQLUnionTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitDirectivesAware(o);
+    // visitTypeNameExtensionOwner(o);
   }
 
   public void visitValue(@NotNull GraphQLValue o) {
@@ -326,11 +347,11 @@ public class GraphQLVisitor extends PsiElementVisitor {
     visitElement(o);
   }
 
-  public void visitDirectivesAware(@NotNull GraphQLDirectivesAware o) {
+  public void visitNamedElement(@NotNull GraphQLNamedElement o) {
     visitElement(o);
   }
 
-  public void visitNamedElement(@NotNull GraphQLNamedElement o) {
+  public void visitDirectivesAware(@NotNull GraphQLDirectivesAware o) {
     visitElement(o);
   }
 

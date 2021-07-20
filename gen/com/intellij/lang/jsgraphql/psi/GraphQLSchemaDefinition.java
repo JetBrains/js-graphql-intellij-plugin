@@ -5,8 +5,12 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 
-public interface GraphQLSchemaDefinition extends GraphQLTypeSystemDefinition, GraphQLDirectivesAware {
+public interface GraphQLSchemaDefinition extends GraphQLTypeSystemDefinition, GraphQLDirectivesAware, GraphQLDescriptionAware {
+
+  @Nullable
+  GraphQLDescription getDescription();
 
   @Nullable
   GraphQLOperationTypeDefinitions getOperationTypeDefinitions();

@@ -1,0 +1,15 @@
+directive @SchemaDir on SCHEMA
+directive @EnumDir on ENUM
+directive @ScalarDir on SCALAR
+
+type ObjectType {
+    id: ID
+}
+
+<error descr="'schema' tried to use a directive 'ScalarDir' in the 'SCHEMA' location but that is illegal"><error descr="There is already a schema defined">schema</error></error> @SchemaDir @ScalarDir {
+    query: ObjectType
+}
+
+<error descr="'schema' tried to use a directive 'EnumDir' in the 'SCHEMA' location but that is illegal">schema</error> @EnumDir {
+    mutation: ObjectType
+}

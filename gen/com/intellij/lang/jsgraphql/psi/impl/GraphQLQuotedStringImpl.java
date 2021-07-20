@@ -10,16 +10,18 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLQuotedStringImpl extends GraphQLElementImpl implements GraphQLQuotedString {
+public class GraphQLQuotedStringImpl extends GraphQLStringLiteralImpl implements GraphQLQuotedString {
 
   public GraphQLQuotedStringImpl(ASTNode node) {
     super(node);
   }
 
+  @Override
   public void accept(@NotNull GraphQLVisitor visitor) {
     visitor.visitQuotedString(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

@@ -13,9 +13,9 @@ import com.google.common.collect.Sets;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLNamedScope;
+import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaEventListener;
-import com.intellij.lang.jsgraphql.schema.GraphQLValidatedTypeDefinitionRegistry;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedTypeRegistry;
@@ -25,10 +25,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
-import graphql.GraphQLException;
-import graphql.introspection.Introspection;
-import graphql.language.*;
-import graphql.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
+import com.intellij.lang.jsgraphql.types.introspection.Introspection;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +46,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
 
     private final Map<GraphQLNamedScope, Map<String, JSGraphQLNamedType>> endpointTypesByName = Maps.newConcurrentMap();
     private final Map<GraphQLNamedScope, PsiFile> endpointEntryPsiFile = Maps.newConcurrentMap();
-    private final Map<GraphQLNamedScope, GraphQLValidatedTypeDefinitionRegistry> projectToRegistry = Maps.newConcurrentMap();
+    private final Map<GraphQLNamedScope, GraphQLRegistryInfo> projectToRegistry = Maps.newConcurrentMap();
 
     public static JSGraphQLEndpointNamedTypeRegistry getService(@NotNull Project project) {
         return ServiceManager.getService(project, JSGraphQLEndpointNamedTypeRegistry.class);
@@ -93,10 +93,10 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         computeNamedTypes(scopedElement).forEach((key, jsGraphQLNamedType) -> consumer.accept(jsGraphQLNamedType));
     }
 
-    public GraphQLValidatedTypeDefinitionRegistry getTypesAsRegistry(PsiElement scopedElement) {
+    public GraphQLRegistryInfo getTypesAsRegistry(PsiElement scopedElement) {
         final GraphQLNamedScope schemaScope = getSchemaScope(scopedElement);
         if (schemaScope == null) {
-            return new GraphQLValidatedTypeDefinitionRegistry(new TypeDefinitionRegistry(), Collections.emptyList(), false);
+            return new GraphQLRegistryInfo(new TypeDefinitionRegistry(), Collections.emptyList(), false);
         }
         return projectToRegistry.computeIfAbsent(schemaScope, p -> doGetTypesAsRegistry(scopedElement));
     }
@@ -111,7 +111,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         return virtualFile != null ? graphQLConfigManager.getSchemaScope(virtualFile) : null;
     }
 
-    private GraphQLValidatedTypeDefinitionRegistry doGetTypesAsRegistry(PsiElement scopedElement) {
+    private GraphQLRegistryInfo doGetTypesAsRegistry(PsiElement scopedElement) {
 
         final TypeDefinitionRegistry registry = new TypeDefinitionRegistry();
         final List<GraphQLException> errors = Lists.newArrayList();
@@ -285,7 +285,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
             }
         });
 
-        return new GraphQLValidatedTypeDefinitionRegistry(registry, errors, !namedTypes.isEmpty());
+        return new GraphQLRegistryInfo(registry, errors, !namedTypes.isEmpty());
     }
 
     private Description getDescription(JSGraphQLEndpointNamedTypeDefinition typeDefinition, SourceLocation sourceLocation) {

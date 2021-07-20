@@ -7,12 +7,15 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
-import graphql.language.*;
-import graphql.schema.*;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Stack;
+
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
 
 public class GraphQLSchemaUtil {
 
@@ -86,5 +89,69 @@ public class GraphQLSchemaUtil {
             description = ((GraphQLUnionType) graphQLType).getDescription();
         }
         return description;
+    }
+
+    public static boolean isExtension(@Nullable SDLDefinition<?> definition) {
+        return definition instanceof SchemaExtensionDefinition ||
+            definition instanceof InputObjectTypeExtensionDefinition ||
+            definition instanceof ObjectTypeExtensionDefinition ||
+            definition instanceof InterfaceTypeExtensionDefinition ||
+            definition instanceof ScalarTypeExtensionDefinition ||
+            definition instanceof UnionTypeExtensionDefinition ||
+            definition instanceof EnumTypeExtensionDefinition;
+    }
+
+    public static @NotNull String getTypeName(@Nullable GraphQLType type) {
+        String typeName = null;
+        if (type instanceof GraphQLNamedSchemaElement) {
+            typeName = ((GraphQLNamedSchemaElement) type).getName();
+        }
+        return StringUtil.notNullize(typeName);
+    }
+
+    /**
+     * Gets the raw named type that sits within a non-null/list modifier type, or the type as-is if no unwrapping is needed
+     *
+     * @param graphQLType the type to unwrap
+     * @return the raw type as-is, or the type wrapped inside a non-null/list modifier type
+     */
+    public static GraphQLUnmodifiedType getUnmodifiedType(GraphQLType graphQLType) {
+        if (graphQLType instanceof GraphQLModifiedType) {
+            return getUnmodifiedType(((GraphQLModifiedType) graphQLType).getWrappedType());
+        }
+        return (GraphQLUnmodifiedType) graphQLType;
+    }
+
+    public static GraphQLType unwrapListType(GraphQLType type) {
+        while (isWrapped(type)) {
+            if (isList(type)) {
+                return unwrapOne(type);
+            }
+            type = unwrapOne(type);
+        }
+        return type;
+    }
+
+    public static @NotNull String getValueTypeName(@NotNull Object value) {
+        if (value instanceof IntValue) {
+            return "Int";
+        } else if (value instanceof FloatValue) {
+            return "Float";
+        } else if (value instanceof StringValue) {
+            return "String";
+        } else if (value instanceof EnumValue) {
+            return "Enum";
+        } else if (value instanceof BooleanValue) {
+            return "Boolean";
+        } else if (value instanceof NullValue) {
+            return "null";
+        } else if (value instanceof ArrayValue) {
+            return "Array";
+        } else if (value instanceof ObjectValue) {
+            return "Object";
+        } else if (value instanceof VariableReference) {
+            return "Reference";
+        }
+        return value.getClass().getSimpleName();
     }
 }

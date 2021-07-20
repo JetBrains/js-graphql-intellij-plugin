@@ -31,4 +31,3 @@ type Query {}
 enum Two {
   VALUE
 }
-

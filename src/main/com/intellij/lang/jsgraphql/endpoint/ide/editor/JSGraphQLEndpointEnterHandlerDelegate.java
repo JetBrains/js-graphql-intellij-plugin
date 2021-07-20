@@ -7,17 +7,11 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.editor;
 
-import org.jetbrains.annotations.NotNull;
-
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegateAdapter;
-import com.intellij.ide.impl.DataManagerImpl;
+import com.intellij.ide.DataManager;
 import com.intellij.injected.editor.EditorWindow;
 import com.intellij.lang.jsgraphql.endpoint.doc.psi.JSGraphQLEndpointDocFile;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -31,6 +25,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.util.DocumentUtil;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Adds  '# ' on enter in comments
@@ -64,26 +59,21 @@ public class JSGraphQLEndpointEnterHandlerDelegate extends EnterHandlerDelegateA
 							application.invokeLater(() -> {
 								final PsiFile parentPsiFile = PsiDocumentManager.getInstance(project).getPsiFile(parentEditor.getDocument());
 								if (parentPsiFile != null) {
-									application.runWriteAction(() -> {
-										new WriteCommandAction.Simple(project) {
-											@Override
-											protected void run() throws Throwable {
-												if(!parentPsiFile.isValid()) {
-													return;
-												}
-												CodeStyleManager.getInstance(project).adjustLineIndent(parentPsiFile, parentEditor.getCaretModel().getOffset());
-												AnAction editorLineEnd = ActionManager.getInstance().getAction("EditorLineEnd");
-												if (editorLineEnd != null) {
-													final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
-															ActionPlaces.UNKNOWN,
-															null,
-															new DataManagerImpl.MyDataContext(parentEditor.getComponent())
-													);
-													editorLineEnd.actionPerformed(actionEvent);
-												}
-											}
-										}.execute();
-									});
+								    WriteCommandAction.runWriteCommandAction(project, () -> {
+                                        if(!parentPsiFile.isValid()) {
+                                            return;
+                                        }
+                                        CodeStyleManager.getInstance(project).adjustLineIndent(parentPsiFile, parentEditor.getCaretModel().getOffset());
+                                        AnAction editorLineEnd = ActionManager.getInstance().getAction("EditorLineEnd");
+                                        if (editorLineEnd != null) {
+                                            final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
+                                                ActionPlaces.UNKNOWN,
+                                                null,
+                                                DataManager.getInstance().getDataContext(parentEditor.getComponent())
+                                            );
+                                            editorLineEnd.actionPerformed(actionEvent);
+                                        }
+                                    });
 								}
 							});
 						}

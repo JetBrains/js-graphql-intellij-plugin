@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.project.javascript;
 
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLLanguageInjectionUtil;
+import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIndexUtil;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.util.Ref;
@@ -32,26 +33,25 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
     public static final String DATA_KEY = "true";
 
     private static final Map<String, Void> INJECTED_KEY = Collections.singletonMap(DATA_KEY, null);
+    public static final int VERSION = 3;
 
-    private final DataIndexer<String, Void, FileContent> myDataIndexer;
-    private final Set<FileType> includedFileTypes;
-
-    public GraphQLInjectionIndex() {
-        myDataIndexer = inputData -> {
-            final Ref<String> environment = new Ref<>();
-            inputData.getPsiFile().accept(new PsiRecursiveElementVisitor() {
-                @Override
-                public void visitElement(PsiElement element) {
-                    if (!GraphQLLanguageInjectionUtil.isJSGraphQLLanguageInjectionTarget(element, environment)) {
-                        // visit deeper until injection found
-                        super.visitElement(element);
-                    }
+    private final DataIndexer<String, Void, FileContent> myDataIndexer = inputData -> {
+        final Ref<Boolean> isInjected = new Ref<>(Boolean.FALSE);
+        inputData.getPsiFile().accept(new PsiRecursiveElementVisitor() {
+            @Override
+            public void visitElement(@NotNull PsiElement element) {
+                if (GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(element)) {
+                    isInjected.set(Boolean.TRUE);
+                } else {
+                    // visit deeper until injection found
+                    super.visitElement(element);
                 }
-            });
-            return environment.isNull() ? Collections.emptyMap() : INJECTED_KEY;
-        };
-        includedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
-    }
+            }
+        });
+        return isInjected.get() == Boolean.FALSE ? Collections.emptyMap() : INJECTED_KEY;
+    };
+
+    private final Set<FileType> myIncludedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
 
     @NotNull
     @Override
@@ -74,7 +74,7 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
     @NotNull
     @Override
     public FileBasedIndex.InputFilter getInputFilter() {
-        return file -> file.getFileType() != GraphQLFileType.INSTANCE && includedFileTypes.contains(file.getFileType());
+        return file -> file.getFileType() != GraphQLFileType.INSTANCE && myIncludedFileTypes.contains(file.getFileType());
     }
 
     @Override
@@ -84,6 +84,6 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
 
     @Override
     public int getVersion() {
-        return 3;
+        return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
     }
 }

@@ -21,6 +21,7 @@ public class JSGraphQLEndpointImplementsInterfacesImpl extends JSGraphQLEndpoint
     visitor.visitImplementsInterfaces(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof JSGraphQLEndpointVisitor) accept((JSGraphQLEndpointVisitor)visitor);
     else super.accept(visitor);

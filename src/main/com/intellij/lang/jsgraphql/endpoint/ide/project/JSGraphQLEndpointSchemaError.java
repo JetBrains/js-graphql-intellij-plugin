@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.endpoint.ide.project;
 
 import com.intellij.psi.PsiElement;
-import graphql.GraphQLException;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
 
 /**
  * Represents a schema error in the Endpoint language that prevents a complete and valid schema to be created.

@@ -5,18 +5,18 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
 
-public interface GraphQLInputValueDefinition extends GraphQLDirectivesAware, GraphQLDescriptionAware, GraphQLNamedElement {
+public interface GraphQLInputValueDefinition extends GraphQLDirectivesAware, GraphQLNamedElement, GraphQLDescriptionAware {
 
   @Nullable
   GraphQLDefaultValue getDefaultValue();
 
   @Nullable
-  GraphQLType getType();
+  GraphQLDescription getDescription();
 
   @Nullable
-  GraphQLQuotedString getDescription();
+  GraphQLType getType();
 
   @NotNull
   List<GraphQLDirective> getDirectives();

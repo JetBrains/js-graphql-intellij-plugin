@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.references;
 
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferencePsiElement;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferenceMixin;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceBase;
@@ -22,11 +22,11 @@ import java.util.function.Function;
 /**
  * Adds a layer of GraphQL Reference Caching based on ResolveCache
  */
-public class GraphQLCachingReference extends PsiReferenceBase<GraphQLReferencePsiElement> {
+public class GraphQLCachingReference extends PsiReferenceBase<GraphQLReferenceMixin> {
 
-    private final Function<GraphQLReferencePsiElement, PsiElement> innerResolver;
+    private final Function<GraphQLReferenceMixin, PsiElement> innerResolver;
 
-    public GraphQLCachingReference(@NotNull GraphQLReferencePsiElement element, Function<GraphQLReferencePsiElement, PsiElement> innerResolver) {
+    public GraphQLCachingReference(@NotNull GraphQLReferenceMixin element, Function<GraphQLReferenceMixin, PsiElement> innerResolver) {
         super(element);
         this.innerResolver = innerResolver;
     }

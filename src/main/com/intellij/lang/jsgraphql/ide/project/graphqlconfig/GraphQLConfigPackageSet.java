@@ -150,7 +150,7 @@ public class GraphQLConfigPackageSet implements PackageSet {
     private boolean matchesGlobs(String filePath, List<String> globs) {
         return Optional.ofNullable(globs).orElse(Collections.emptyList()).stream().anyMatch(glob -> {
             VirtualFile relativePath = configBaseDir.findFileByRelativePath(glob);
-            if (relativePath != null) {
+            if (relativePath != null && relativePath.isDirectory()) {
                 // glob is a directory, so include the files in it
                 glob = glob + "/**";
             }

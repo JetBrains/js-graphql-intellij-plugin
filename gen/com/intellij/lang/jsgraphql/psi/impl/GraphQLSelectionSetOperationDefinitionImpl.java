@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLSelectionSetOperationDefinitionImpl extends GraphQLSelectionSetOperationDefinitionPsiElement implements GraphQLSelectionSetOperationDefinition {
+public class GraphQLSelectionSetOperationDefinitionImpl extends GraphQLSelectionSetOperationDefinitionMixin implements GraphQLSelectionSetOperationDefinition {
 
   public GraphQLSelectionSetOperationDefinitionImpl(ASTNode node) {
     super(node);
@@ -20,6 +20,7 @@ public class GraphQLSelectionSetOperationDefinitionImpl extends GraphQLSelection
     visitor.visitSelectionSetOperationDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

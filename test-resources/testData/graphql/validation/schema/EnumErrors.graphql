@@ -1,0 +1,27 @@
+type A {
+    id: ID
+}
+
+type B {
+    id: ID
+}
+
+type C {
+    id: ID
+}
+
+input IA {
+    id: ID
+}
+
+input IB {
+    id: ID
+}
+
+union <error descr="The member types of a Union type must all be Object base types. Member type 'IA' in Union 'MyUnion' is invalid"><error descr="The member types of a Union type must all be Object base types. Member type 'IB' in Union 'MyUnion' is invalid">MyUnion</error></error> = <error descr="The type 'IA' is not an output type, but was used to declare the output type of a field">IA</error> | <error descr="The type 'IB' is not an output type, but was used to declare the output type of a field">IB</error>
+
+union <error descr="The member type 'A' in Union 'MyUnion1' is not unique. The member types of a Union type must be unique"><error descr="The member type 'B' in Union 'MyUnion1' is not unique. The member types of a Union type must be unique">MyUnion1</error></error> = A | A | B | C |  B
+
+union <error descr="Union type 'EmptyUnion' must include one or more member types">EmptyUnion</error>
+
+union <error descr="'__BadName' must not begin with '__', which is reserved by GraphQL introspection">__BadName</error> = A | B

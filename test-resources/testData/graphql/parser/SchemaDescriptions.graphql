@@ -1,0 +1,60 @@
+"""
+schema
+"""
+schema {
+    query: Query
+}
+
+"""
+type
+"""
+type Query {
+    id: ID
+}
+
+"""
+input
+"""
+input Input {
+    id: ID
+}
+
+"""
+interface
+"""
+interface Interface {
+    id: ID
+}
+
+"""
+enum
+"""
+enum Enum {
+    A
+}
+
+"""
+scalar
+"""
+scalar Scalar
+
+"""
+directive
+"""
+directive @Directive on SCHEMA
+
+""""""
+type TypeForUnion {
+    """
+    field
+    """
+    id: ID
+
+    """"""
+    phone: String
+}
+
+"""
+union
+"""
+union Union = TypeForUnion

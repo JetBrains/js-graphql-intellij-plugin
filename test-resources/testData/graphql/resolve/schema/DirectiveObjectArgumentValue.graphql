@@ -1,0 +1,14 @@
+type Post @auth(rules: [{ allow: ow<caret>ner }, { allow: public, operations: [read] }]) {
+    id: ID!
+    title: String!
+    content: String!
+}
+
+directive @auth(rules: [AuthRule!]!) on OBJECT | FIELD_DEFINITION
+input AuthRule {
+    allow: AuthStrategy!
+    operations: [ModelOperation!]
+}
+
+enum AuthStrategy { <ref>owner groups private public }
+enum ModelOperation { create update delete read }

@@ -1,8 +1,8 @@
-union U @one @two = A | B | C
+union U @one @one @two = A | B | C
 
-extend union U @three = D
+extend union U @three = C | D
 
-extend union U @four = E
+extend union U @three @four = D | E
 
 type A {}
 
@@ -15,4 +15,3 @@ type D {}
 type E {}
 
 type Query {}
-

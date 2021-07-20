@@ -12,7 +12,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.gotoByName.ChooseByNamePopup;
 import com.intellij.ide.util.gotoByName.ChooseByNamePopupComponent;
 import com.intellij.ide.util.gotoByName.SimpleChooseByNameModel;
-import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.psi.PsiElement;
 import com.intellij.ui.ColoredListCellRenderer;
@@ -20,9 +20,9 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
-import graphql.language.*;
-import graphql.schema.idl.ScalarInfo;
-import graphql.schema.idl.TypeDefinitionRegistry;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,14 +37,14 @@ import java.util.Optional;
  */
 public class GraphQLSchemaContentNode extends CachingSimpleNode {
 
-    private final GraphQLValidatedSchema myValidatedSchema;
+    private final GraphQLSchemaInfo myValidatedSchema;
 
-    public GraphQLSchemaContentNode(SimpleNode parent, GraphQLValidatedSchema validatedSchema) {
+    public GraphQLSchemaContentNode(SimpleNode parent, GraphQLSchemaInfo validatedSchema) {
         super(parent);
         myValidatedSchema = validatedSchema;
 
         final List<String> parts = Lists.newArrayList();
-        TypeDefinitionRegistry registry = validatedSchema.getRegistry().getRegistry();
+        TypeDefinitionRegistry registry = validatedSchema.getRegistryInfo().getTypeDefinitionRegistry();
         parts.add(registry.getTypes(ObjectTypeDefinition.class).size() + " types");
         parts.add(registry.getTypes(InterfaceTypeDefinition.class).size() + " interfaces");
         parts.add(registry.getTypes(InputObjectTypeDefinition.class).size() + " inputs");
@@ -59,7 +59,7 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
         if (nonEmptyParts.length > 0) {
             getTemplatePresentation().setLocationString("- " + StringUtils.join(nonEmptyParts, ", "));
         } else {
-            final String message = validatedSchema.getRegistry().isProcessedGraphQL() ? "- schema is empty" : "- no schema definitions were found";
+            final String message = validatedSchema.getRegistryInfo().isProcessedGraphQL() ? "- schema is empty" : "- no schema definitions were found";
             getTemplatePresentation().setLocationString(message);
         }
 
@@ -75,15 +75,15 @@ public class GraphQLSchemaContentNode extends CachingSimpleNode {
             @Override
             public String[] getNames() {
                 final List<String> names = Lists.newArrayList();
-                myValidatedSchema.getRegistry().getRegistry().types().values().forEach(type -> names.add(type.getName()));
-                myValidatedSchema.getRegistry().getRegistry().scalars().values().forEach(type -> names.add(type.getName()));
-                myValidatedSchema.getRegistry().getRegistry().getDirectiveDefinitions().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry().types().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry().scalars().values().forEach(type -> names.add(type.getName()));
+                myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry().getDirectiveDefinitions().values().forEach(type -> names.add(type.getName()));
                 return names.toArray(new String[]{});
             }
 
             @Override
             protected Object[] getElementsByName(String name, String pattern) {
-                final TypeDefinitionRegistry registry = myValidatedSchema.getRegistry().getRegistry();
+                final TypeDefinitionRegistry registry = myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry();
                 Optional<TypeDefinition> type = registry.getType(name);
                 if (type.isPresent()) {
                     return new Object[]{type.get()};

@@ -23,7 +23,7 @@ public class GraphQLFindUsagesUtil {
     public GraphQLFindUsagesUtil() {
         includedFileTypes.add(GraphQLFileType.INSTANCE);
         includedFileTypes.add(JsonFileType.INSTANCE);
-        final GraphQLFindUsagesFileTypeContributor[] contributors = Extensions.getExtensions(GraphQLFindUsagesFileTypeContributor.EP_NAME);
+        final GraphQLFindUsagesFileTypeContributor[] contributors = GraphQLFindUsagesFileTypeContributor.EP_NAME.getExtensions();
         for (GraphQLFindUsagesFileTypeContributor contributor : contributors) {
             includedFileTypes.addAll(contributor.getFileTypes());
         }

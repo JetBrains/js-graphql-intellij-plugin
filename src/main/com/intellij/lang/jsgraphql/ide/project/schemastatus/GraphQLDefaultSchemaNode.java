@@ -12,8 +12,7 @@ import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProviderImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -26,7 +25,7 @@ import java.util.List;
  */
 public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
 
-    private final GraphQLValidatedSchema myValidatedSchema;
+    private final GraphQLSchemaInfo mySchemaInfo;
 
     protected GraphQLDefaultSchemaNode(Project project, GraphQLSchemasRootNode graphQLSchemasRootNode) {
         super(project, graphQLSchemasRootNode);
@@ -35,14 +34,14 @@ public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
         getPresentation().setIcon(JSGraphQLIcons.Files.GraphQLSchema);
         final GraphQLFile defaultProjectFile = GraphQLPsiSearchHelper.getInstance(myProject).getDefaultProjectFile();
         final GraphQLSchemaProvider registry = GraphQLSchemaProvider.getInstance(myProject);
-        myValidatedSchema = registry.getValidatedSchema(defaultProjectFile);
+        mySchemaInfo = registry.getSchemaInfo(defaultProjectFile);
     }
 
     @Override
     public SimpleNode[] buildChildren() {
-        final List<SimpleNode> children = Lists.newArrayList(new GraphQLSchemaContentNode(this, myValidatedSchema));
-        if (myValidatedSchema.getRegistry().isProcessedGraphQL()) {
-            children.add(new GraphQLSchemaErrorsListNode(this, myValidatedSchema));
+        final List<SimpleNode> children = Lists.newArrayList(new GraphQLSchemaContentNode(this, mySchemaInfo));
+        if (mySchemaInfo.getRegistryInfo().isProcessedGraphQL()) {
+            children.add(new GraphQLSchemaErrorsListNode(this, mySchemaInfo));
         }
         children.add(new GraphQLSchemaEndpointsListNode(this, null, null));
         return children.toArray(SimpleNode.NO_CHILDREN);
@@ -56,6 +55,6 @@ public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
     @NotNull
     @Override
     public Object[] getEqualityObjects() {
-        return new Object[]{"Default schema", myValidatedSchema};
+        return new Object[]{"Default schema", mySchemaInfo};
     }
 }

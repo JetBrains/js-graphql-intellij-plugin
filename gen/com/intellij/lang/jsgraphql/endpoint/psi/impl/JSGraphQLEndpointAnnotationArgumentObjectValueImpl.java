@@ -16,10 +16,12 @@ public class JSGraphQLEndpointAnnotationArgumentObjectValueImpl extends JSGraphQ
     super(node);
   }
 
+  @Override
   public void accept(@NotNull JSGraphQLEndpointVisitor visitor) {
     visitor.visitAnnotationArgumentObjectValue(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof JSGraphQLEndpointVisitor) accept((JSGraphQLEndpointVisitor)visitor);
     else super.accept(visitor);

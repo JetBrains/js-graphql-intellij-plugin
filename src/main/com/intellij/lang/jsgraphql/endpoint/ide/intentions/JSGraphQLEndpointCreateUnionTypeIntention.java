@@ -19,7 +19,7 @@ public class JSGraphQLEndpointCreateUnionTypeIntention extends JSGraphQLEndpoint
     }
 
     @Override
-    protected IElementType getSupportedDefinitionType() {
+    protected @NotNull IElementType getSupportedDefinitionType() {
         return JSGraphQLEndpointTokenTypes.UNION;
     }
 }

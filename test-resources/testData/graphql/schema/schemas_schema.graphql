@@ -1,6 +1,7 @@
-schema {
+schema @one @three @two @two{
   query: MyQuery
   mutation: MyMutation
+  subscription: MySubscription
 }
 
 type MyMutation

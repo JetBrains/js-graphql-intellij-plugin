@@ -48,7 +48,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     result_ = consumeToken(builder_, AT_ANNOTATION);
     pinned_ = result_; // pin = 1
     result_ = result_ && Annotation_1(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverAnnotation_parser_);
+    exit_section_(builder_, level_, marker_, result_, pinned_, JSGraphQLEndpointParser::RecoverAnnotation);
     return result_ || pinned_;
   }
 
@@ -276,7 +276,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     pinned_ = result_; // pin = 1
     result_ = result_ && report_error_(builder_, InputValueDefinitions(builder_, level_ + 1));
     result_ = pinned_ && consumeToken(builder_, RPAREN) && result_;
-    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverArgumentsDefinition_parser_);
+    exit_section_(builder_, level_, marker_, result_, pinned_, JSGraphQLEndpointParser::RecoverArgumentsDefinition);
     return result_ || pinned_;
   }
 
@@ -289,7 +289,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     result_ = consumeToken(builder_, COMMA);
     pinned_ = result_; // pin = 1
     result_ = result_ && EnumValueDefinition(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverCommaEnumValueDefinition_parser_);
+    exit_section_(builder_, level_, marker_, result_, pinned_, JSGraphQLEndpointParser::RecoverCommaEnumValueDefinition);
     return result_ || pinned_;
   }
 
@@ -302,7 +302,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     result_ = consumeToken(builder_, COMMA);
     pinned_ = result_; // pin = 1
     result_ = result_ && NamedAnnotationArgument(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverNamedAnnotationArgument_parser_);
+    exit_section_(builder_, level_, marker_, result_, pinned_, JSGraphQLEndpointParser::RecoverNamedAnnotationArgument);
     return result_ || pinned_;
   }
 
@@ -315,7 +315,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     result_ = consumeToken(builder_, COMMA);
     pinned_ = result_; // pin = 1
     result_ = result_ && NamedType(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverCommaNamedType_parser_);
+    exit_section_(builder_, level_, marker_, result_, pinned_, JSGraphQLEndpointParser::RecoverCommaNamedType);
     return result_ || pinned_;
   }
 
@@ -351,14 +351,14 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // ObjectTypeDefinition
-  //     | InterfaceTypeDefinition
-  //     | InputObjectTypeDefinition
-  //     | EnumTypeDefinition
-  //     | UnionTypeDefinition
-  //     | ScalarTypeDefinition
-  //     | ImportDeclaration
-  //     | SchemaDefinition
+  // ObjectTypeDefinition
+  //     | InterfaceTypeDefinition
+  //     | InputObjectTypeDefinition
+  //     | EnumTypeDefinition
+  //     | UnionTypeDefinition
+  //     | ScalarTypeDefinition
+  //     | ImportDeclaration
+  //     | SchemaDefinition
   //     | AnnotationDefinition
   static boolean Definition(PsiBuilder builder_, int level_) {
     if (!recursion_guard_(builder_, level_, "Definition")) return false;
@@ -373,7 +373,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     if (!result_) result_ = ImportDeclaration(builder_, level_ + 1);
     if (!result_) result_ = SchemaDefinition(builder_, level_ + 1);
     if (!result_) result_ = AnnotationDefinition(builder_, level_ + 1);
-    exit_section_(builder_, level_, marker_, result_, false, RecoverDefinition_parser_);
+    exit_section_(builder_, level_, marker_, result_, false, JSGraphQLEndpointParser::RecoverDefinition);
     return result_;
   }
 
@@ -480,7 +480,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     result_ = result_ && report_error_(builder_, FieldDefinition_2(builder_, level_ + 1));
     result_ = pinned_ && report_error_(builder_, consumeToken(builder_, COLON)) && result_;
     result_ = pinned_ && CompositeType(builder_, level_ + 1) && result_;
-    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverFieldDefinition_parser_);
+    exit_section_(builder_, level_, marker_, result_, pinned_, JSGraphQLEndpointParser::RecoverFieldDefinition);
     return result_ || pinned_;
   }
 
@@ -717,7 +717,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     pinned_ = result_; // pin = 1
     result_ = result_ && report_error_(builder_, NamedAnnotationArgument_1(builder_, level_ + 1));
     result_ = pinned_ && AnnotationArgumentValue(builder_, level_ + 1) && result_;
-    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverNamedAnnotationArgument_parser_);
+    exit_section_(builder_, level_, marker_, result_, pinned_, JSGraphQLEndpointParser::RecoverNamedAnnotationArgument);
     return result_ || pinned_;
   }
 
@@ -819,7 +819,7 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     pinned_ = result_; // pin = 1
     result_ = result_ && report_error_(builder_, consumeToken(builder_, COLON));
     result_ = pinned_ && NamedType(builder_, level_ + 1) && result_;
-    exit_section_(builder_, level_, marker_, result_, pinned_, RecoverOperation_parser_);
+    exit_section_(builder_, level_, marker_, result_, pinned_, JSGraphQLEndpointParser::RecoverOperation);
     return result_ || pinned_;
   }
 
@@ -1187,44 +1187,4 @@ public class JSGraphQLEndpointParser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  static final Parser RecoverAnnotation_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return RecoverAnnotation(builder_, level_ + 1);
-    }
-  };
-  static final Parser RecoverArgumentsDefinition_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return RecoverArgumentsDefinition(builder_, level_ + 1);
-    }
-  };
-  static final Parser RecoverCommaEnumValueDefinition_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return RecoverCommaEnumValueDefinition(builder_, level_ + 1);
-    }
-  };
-  static final Parser RecoverCommaNamedType_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return RecoverCommaNamedType(builder_, level_ + 1);
-    }
-  };
-  static final Parser RecoverDefinition_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return RecoverDefinition(builder_, level_ + 1);
-    }
-  };
-  static final Parser RecoverFieldDefinition_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return RecoverFieldDefinition(builder_, level_ + 1);
-    }
-  };
-  static final Parser RecoverNamedAnnotationArgument_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return RecoverNamedAnnotationArgument(builder_, level_ + 1);
-    }
-  };
-  static final Parser RecoverOperation_parser_ = new Parser() {
-    public boolean parse(PsiBuilder builder_, int level_) {
-      return RecoverOperation(builder_, level_ + 1);
-    }
-  };
 }

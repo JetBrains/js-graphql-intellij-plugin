@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLIdentifierImpl extends GraphQLReferencePsiElement implements GraphQLIdentifier {
+public class GraphQLIdentifierImpl extends GraphQLReferenceMixin implements GraphQLIdentifier {
 
   public GraphQLIdentifierImpl(ASTNode node) {
     super(node);
@@ -20,6 +20,7 @@ public class GraphQLIdentifierImpl extends GraphQLReferencePsiElement implements
     visitor.visitIdentifier(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

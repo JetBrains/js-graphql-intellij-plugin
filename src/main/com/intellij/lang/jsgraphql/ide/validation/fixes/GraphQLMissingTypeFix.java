@@ -10,9 +10,9 @@ package com.intellij.lang.jsgraphql.ide.validation.fixes;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFixAndIntentionActionOnPsiElement;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorModificationUtil;
@@ -60,50 +60,55 @@ public class GraphQLMissingTypeFix extends LocalQuickFixAndIntentionActionOnPsiE
     }
 
     @Override
-    public void invoke(@NotNull Project project, @NotNull PsiFile file, @Nullable("is null when called from inspection") Editor editor, @NotNull PsiElement startElement, @NotNull PsiElement endElement) {
+    public void invoke(@NotNull Project project,
+                       @NotNull PsiFile file,
+                       @Nullable("is null when called from inspection") Editor editor,
+                       @NotNull PsiElement startElement,
+                       @NotNull PsiElement endElement) {
         if (editor == null) {
             editor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(startElement);
             if (editor == null) {
                 return;
             }
         }
-        final GraphQLTypeSystemDefinition definition = PsiTreeUtil.getParentOfType(startElement, GraphQLTypeSystemDefinition.class);
-        if (definition != null) {
-            editor.getCaretModel().moveToOffset(definition.getTextRange().getEndOffset() + 1);
-            String code = typeKind.name().toLowerCase() + " " + typeName;
-            String caret = "__caret__";
-            switch (typeKind) {
-                case ENUM:
-                case TYPE:
-                case INTERFACE:
-                case INPUT:
-                    code += " {\n" + caret + "\n}";
-                    break;
-                case SCALAR:
-                    code += caret;
-                    break;
-                case UNION:
-                    code += " = " + caret;
-                    break;
-            }
-            final PsiFile codeFile = PsiFileFactory.getInstance(project).createFileFromText("", GraphQLLanguage.INSTANCE, code);
-            CodeStyleManagerImpl.getInstance(project).reformat(codeFile);
-            assert codeFile.getViewProvider().getDocument() != null;
-            CodeStyleManagerImpl.getInstance(project).reformat(codeFile);
-            final Document document = codeFile.getViewProvider().getDocument();
-            if (document != null) {
-                code = document.getText();
-            }
-            int caretDelta = 0;
-            if (code.contains(caret)) {
-                caretDelta = code.indexOf(caret) + 1;
-                code = code.replace(caret, "");
-            }
-
-            final String lineBefore = definition.getNextSibling() instanceof PsiWhiteSpace ? "" : "\n";
-
-            EditorModificationUtil.insertStringAtCaret(editor, lineBefore + "\n" + code + "\n", false, caretDelta);
+        final GraphQLDefinition definition = PsiTreeUtil.getParentOfType(startElement, GraphQLDefinition.class);
+        if (definition == null) {
+            return;
         }
+        editor.getCaretModel().moveToOffset(definition.getTextRange().getEndOffset() + 1);
+        String code = typeKind.name().toLowerCase() + " " + typeName;
+        String caret = "__caret__";
+        switch (typeKind) {
+            case ENUM:
+            case TYPE:
+            case INTERFACE:
+            case INPUT:
+                code += " {\n" + caret + "\n}";
+                break;
+            case SCALAR:
+                code += caret;
+                break;
+            case UNION:
+                code += " = " + caret;
+                break;
+        }
+        final PsiFile codeFile = PsiFileFactory.getInstance(project).createFileFromText("", GraphQLLanguage.INSTANCE, code);
+        CodeStyleManagerImpl.getInstance(project).reformat(codeFile);
+        assert codeFile.getViewProvider().getDocument() != null;
+        CodeStyleManagerImpl.getInstance(project).reformat(codeFile);
+        final Document document = codeFile.getViewProvider().getDocument();
+        if (document != null) {
+            code = document.getText();
+        }
+        int caretDelta = 0;
+        if (code.contains(caret)) {
+            caretDelta = code.indexOf(caret) + 1;
+            code = code.replace(caret, "");
+        }
+
+        final String lineBefore = definition.getNextSibling() instanceof PsiWhiteSpace ? "" : "\n";
+
+        EditorModificationUtil.insertStringAtCaret(editor, lineBefore + "\n" + code + "\n", false, caretDelta);
     }
 
     @Nls(capitalization = Nls.Capitalization.Sentence)

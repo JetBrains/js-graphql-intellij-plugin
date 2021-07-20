@@ -1,0 +1,3 @@
+extend schema @SchemaDirOneMore {
+    mutation: MyMutation
+}

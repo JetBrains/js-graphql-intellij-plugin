@@ -18,8 +18,8 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.lang.jsgraphql.schema.GraphQLValidatedSchema;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
@@ -41,7 +41,7 @@ import java.util.Map;
  */
 public class GraphQLConfigSchemaNode extends CachingSimpleNode {
 
-    private final GraphQLValidatedSchema myValidatedSchema;
+    private final GraphQLSchemaInfo mySchemaInfo;
     private final GraphQLConfigManager configManager;
     private final GraphQLResolvedConfigData configData;
     private final VirtualFile configBaseDir;
@@ -87,9 +87,9 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
             configurationEntryFile = configManager.getConfigurationEntryFile(configData);
             endpoints = GraphQLFileType.isGraphQLFile(project, configurationEntryFile.getVirtualFile())
                 ? configManager.getEndpoints(configurationEntryFile.getVirtualFile()) : null;
-            myValidatedSchema = registry.getValidatedSchema(configurationEntryFile);
+            mySchemaInfo = registry.getSchemaInfo(configurationEntryFile);
         } else {
-            myValidatedSchema = null;
+            mySchemaInfo = null;
             endpoints = null;
             configurationEntryFile = null;
         }
@@ -130,9 +130,9 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     public SimpleNode[] buildChildren() {
         final List<SimpleNode> children = Lists.newArrayList();
         if (performSchemaDiscovery) {
-            children.add(new GraphQLSchemaContentNode(this, myValidatedSchema));
-            if (myValidatedSchema.getRegistry().isProcessedGraphQL()) {
-                children.add(new GraphQLSchemaErrorsListNode(this, myValidatedSchema));
+            children.add(new GraphQLSchemaContentNode(this, mySchemaInfo));
+            if (mySchemaInfo.getRegistryInfo().isProcessedGraphQL()) {
+                children.add(new GraphQLSchemaErrorsListNode(this, mySchemaInfo));
             }
         }
         if (projectsConfigData != null && !projectsConfigData.isEmpty()) {
@@ -153,7 +153,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     @NotNull
     @Override
     public Object[] getEqualityObjects() {
-        return new Object[]{configData, myValidatedSchema};
+        return new Object[]{configData, mySchemaInfo};
     }
 
     private boolean representsCurrentFile() {

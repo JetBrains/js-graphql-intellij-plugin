@@ -1,0 +1,23 @@
+type Query {
+    users(name: String): [User]
+}
+
+directive @RepeatableType repeatable on OBJECT
+directive @NonRepeatableType on OBJECT
+
+directive @RepeatableField repeatable on FIELD_DEFINITION
+directive @NonRepeatableField on FIELD_DEFINITION
+
+type <error descr="'User' type tried to redefine existing 'User' type"><error descr="The type 'User' with field 'name' has declared a directive with a non unique name 'NonRepeatableField'">User</error></error> @RepeatableType @NonRepeatableType @RepeatableType <error descr="The directive 'NonRepeatableType' should be defined as repeatable if its repeated on an SDL element">@NonRepeatableType</error> <error descr="The directive 'NonRepeatableType' should be defined as repeatable if its repeated on an SDL element">@NonRepeatableType</error> {
+    id: ID
+    name: String @RepeatableField @RepeatableField @NonRepeatableField <error descr="The directive 'NonRepeatableField' should be defined as repeatable if its repeated on an SDL element">@NonRepeatableField</error>
+    phone: String
+}
+
+type User <error descr="The directive 'NonRepeatableType' should be defined as repeatable if its repeated on an SDL element">@NonRepeatableType</error> @RepeatableType {
+    oneMoreField: String
+}
+
+extend type <error descr="The extension 'User' type has redefined the directive called 'NonRepeatableType'">User</error> @RepeatableType <error descr="The directive 'NonRepeatableType' should be defined as repeatable if its repeated on an SDL element">@NonRepeatableType</error> {
+    field: String
+}

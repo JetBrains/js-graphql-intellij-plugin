@@ -1,24 +1,30 @@
 <idea-plugin>
-    <extensions defaultExtensionNs="com.intellij">
+  <extensions defaultExtensionNs="com.intellij">
 
-        <!-- Formatting -->
-        <lang.formatter language="JavaScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder" />
-        <lang.formatter language="TypeScript" implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder" /><!-- Own reg required -->
+    <!-- Formatting -->
+    <lang.formatter language="JavaScript"
+                    implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder"/>
+    <lang.formatter language="TypeScript"
+                    implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder"/><!-- Own reg required -->
 
-        <!-- Language Injection -->
-        <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLTemplateFragmentLanguageInjector" order="first" />
-        <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLJavascriptInjectionSearchHelper" />
+    <!-- Language Injection -->
+    <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLTemplateFragmentLanguageInjector"
+                       order="first"/>
+    <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper"
+                        serviceImplementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLJavaScriptInjectionSearchHelper"/>
 
-        <!-- Indexing -->
-        <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLInjectionIndex"/>
-    </extensions>
+    <!-- Indexing -->
+    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLInjectionIndex"/>
+  </extensions>
 
-    <extensions defaultExtensionNs="JavaScript">
-        <JsonSchema.ProviderFactory implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.javascript.GraphQLConfigJsonSchemaProvider"/>
-    </extensions>
+  <extensions defaultExtensionNs="JavaScript">
+    <JsonSchema.ProviderFactory
+      implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.javascript.GraphQLConfigJsonSchemaProvider"/>
+  </extensions>
 
-    <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">
-        <graphQLFindUsagesFileTypeContributor implementation="com.intellij.lang.jsgraphql.ide.references.javascript.JavaScriptGraphQLFindUsagesFileTypeContributor" />
-    </extensions>
+  <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">
+    <findUsagesFileTypeContributor
+      implementation="com.intellij.lang.jsgraphql.ide.references.javascript.JavaScriptGraphQLFindUsagesFileTypeContributor"/>
+  </extensions>
 
 </idea-plugin>

@@ -1,0 +1,36 @@
+type Query {
+    users(name: String): [User]
+    user(id: ID!): User
+}
+
+type User {
+    id: ID
+    name: String
+    phone: String
+}
+
+extend type User {
+    field: String
+}
+
+# DuplicateArgumentNames
+query Departments {
+    <error descr="There can be only one argument named 'name'">users</error>(name: "asd", name: "asd") {
+        id
+    }
+}
+
+# DuplicateFragmentName
+fragment Abc on User {
+    id
+}
+<error descr="There can be only one fragment named 'Abc'">fragment</error> Abc on User {
+    id
+}
+
+# DuplicateVariableName
+query Departments($id: String, <error descr="There can be only one variable named 'id'">$id</error>: String) {
+    users(name: $id) {
+        id
+    }
+}

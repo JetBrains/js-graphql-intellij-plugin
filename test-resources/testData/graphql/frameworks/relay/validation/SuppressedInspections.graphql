@@ -1,0 +1,26 @@
+schema {
+    query: TodoList
+}
+
+type TodoItem {
+    id: ID
+}
+
+type TodoList {
+    title: String
+    todoItems(userID: ID, first: Int): TodoItem
+}
+
+query TodoListQuery($userID: ID, $count: Int) {
+    ...TodoList_list @arguments(count: $count, userID: $userID)
+}
+
+fragment TodoList_list on TodoList @argumentDefinitions(
+    count: {type: "Int", defaultValue: 10},  # Optional argument
+    userID: {type: "ID"},                    # Required argument
+) {
+    title
+    todoItems(userID: $userID, first: $count) {
+        id
+    }
+}

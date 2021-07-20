@@ -1,9 +1,9 @@
-/**
- * Copyright (c) 2015-present, Jim Kynde Meyer
- * All rights reserved.
- * <p>
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
+/*
+  Copyright (c) 2015-present, Jim Kynde Meyer
+  All rights reserved.
+  <p>
+  This source code is licensed under the MIT license found in the
+  LICENSE file in the root directory of this source tree.
  */
 package com.intellij.lang.jsgraphql.ide.documentation;
 
@@ -16,14 +16,13 @@ import com.intellij.lang.jsgraphql.psi.GraphQLType;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLDirective;
-import graphql.schema.GraphQLEnumValueDefinition;
-import graphql.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumValueDefinition;
+import com.intellij.lang.jsgraphql.types.schema.*;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +35,6 @@ import static com.intellij.lang.documentation.DocumentationMarkup.*;
 public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
     private final static String GRAPHQL_DOC_PREFIX = "GraphQL";
-    private final static String GRAPHQL_DOC_TYPE = "Type";
 
     @Nullable
     @Override
@@ -71,7 +69,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
         }
 
         final GraphQLSchemaProvider typeRegistryService = GraphQLSchemaProvider.getInstance(element.getProject());
-        final GraphQLSchema schema = typeRegistryService.getTolerantSchema(element);
+        final GraphQLSchema schema = typeRegistryService.getSchemaInfo(element).getSchema();
 
         if (element instanceof GraphQLNamedElement) {
 
@@ -115,29 +113,33 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     @Nullable
     private String getDirectiveDocumentation(GraphQLSchema schema, GraphQLDirectiveDefinition parent) {
         final GraphQLIdentifier directiveName = parent.getNameIdentifier();
-        if (directiveName != null) {
-            final GraphQLDirective schemaDirective = schema.getDirective(directiveName.getText());
-            if (schemaDirective != null) {
-                final StringBuilder result = new StringBuilder().append(DEFINITION_START);
-                result.append("@").append(schemaDirective.getName());
-                result.append(DEFINITION_END);
-                final String description = schemaDirective.getDescription();
-                if (description != null) {
-                    result.append(CONTENT_START);
-                    result.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
-                    result.append(CONTENT_END);
-                }
-                return result.toString();
-            }
+        if (directiveName == null) {
+            return null;
         }
-        return null;
+        final GraphQLDirective schemaDirective = schema.getFirstDirective(directiveName.getText());
+        if (schemaDirective == null) {
+            return null;
+        }
+        final StringBuilder result = new StringBuilder().append(DEFINITION_START);
+        result.append("@").append(schemaDirective.getName());
+        if (schemaDirective.isRepeatable()) {
+            result.append(" ").append(GRAYED_START).append("(repeatable)").append(GRAYED_END);
+        }
+        result.append(DEFINITION_END);
+        final String description = schemaDirective.getDescription();
+        if (description != null) {
+            result.append(CONTENT_START);
+            result.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
+            result.append(CONTENT_END);
+        }
+        return result.toString();
     }
 
     @Nullable
     private String getEnumValueDocumentation(GraphQLSchema schema, GraphQLEnumValue parent) {
         final String enumName = GraphQLPsiUtil.getTypeName(parent, null);
         if (enumName != null) {
-            graphql.schema.GraphQLType schemaType = schema.getType(enumName);
+            com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(enumName);
             if (schemaType instanceof GraphQLEnumType) {
                 final String enumValueName = parent.getName();
                 final StringBuilder result = new StringBuilder().append(DEFINITION_START);
@@ -173,8 +175,8 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
                 final String typeName = GraphQLPsiUtil.getTypeName(parent, null);
                 if (typeName != null) {
-                    final graphql.schema.GraphQLType schemaType = schema.getType(typeName);
-                    List<graphql.schema.GraphQLFieldDefinition> fieldDefinitions;
+                    final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(typeName);
+                    List<com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition> fieldDefinitions;
                     if (schemaType instanceof GraphQLObjectType) {
                         fieldDefinitions = ((GraphQLObjectType) schemaType).getFieldDefinitions();
                     } else if (schemaType instanceof GraphQLInterfaceType) {
@@ -183,7 +185,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                         return null;
                     }
                     final String fieldName = ((GraphQLFieldDefinition) definition).getName();
-                    for (graphql.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
+                    for (com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
                         if (Objects.equals(fieldDefinition.getName(), fieldName)) {
                             for (GraphQLArgument argument : fieldDefinition.getArguments()) {
                                 if (Objects.equals(argument.getName(), inputValueName)) {
@@ -198,7 +200,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
                 final GraphQLIdentifier directiveName = ((GraphQLDirectiveDefinition) definition).getNameIdentifier();
                 if (directiveName != null) {
-                    final GraphQLDirective schemaDirective = schema.getDirective(directiveName.getText());
+                    final GraphQLDirective schemaDirective = schema.getFirstDirective(directiveName.getText());
                     if (schemaDirective != null) {
                         for (GraphQLArgument argument : schemaDirective.getArguments()) {
                             if (inputValueName.equals(argument.getName())) {
@@ -210,14 +212,14 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
             } else if (definition instanceof GraphQLInputObjectTypeDefinition || definition instanceof GraphQLInputObjectTypeExtensionDefinition) {
 
                 final String inputTypeName = GraphQLPsiUtil.getTypeName(parent, null);
-                final graphql.schema.GraphQLType schemaType = schema.getType(inputTypeName);
+                final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(inputTypeName);
                 if (schemaType instanceof GraphQLInputObjectType) {
                     for (GraphQLInputObjectField inputObjectField : ((GraphQLInputObjectType) schemaType).getFieldDefinitions()) {
                         if (inputValueName.equals(inputObjectField.getName())) {
                             GraphQLInputType type = inputObjectField.getType();
                             final StringBuilder result = new StringBuilder().append(DEFINITION_START);
-                            result.append(GraphQLUtil.getName(schemaType)).append(".");
-                            result.append(inputValueName).append(type != null ? ": " : "").append(type != null ? GraphQLUtil.getName(type) : "");
+                            result.append(GraphQLSchemaUtil.getTypeName(schemaType)).append(".");
+                            result.append(inputValueName).append(type != null ? ": " : "").append(type != null ? GraphQLSchemaUtil.getTypeName(type) : "");
                             result.append(DEFINITION_END);
 
                             final String description = inputObjectField.getDescription();
@@ -236,7 +238,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     private String getArgumentDocumentation(String inputValueName, GraphQLArgument argument) {
         final StringBuilder html = new StringBuilder().append(DEFINITION_START);
         GraphQLInputType argumentType = argument.getType();
-        html.append(inputValueName).append(argumentType != null ? ": " : " ").append(argumentType != null ? GraphQLUtil.getName(argumentType) : "");
+        html.append(inputValueName).append(argumentType != null ? ": " : " ").append(argumentType != null ? GraphQLSchemaUtil.getTypeName(argumentType) : "");
         html.append(DEFINITION_END);
         appendDescription(html, GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(argument.getDescription()));
         return html.toString();
@@ -253,21 +255,21 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
         final GraphQLTypeSystemDefinition psiDefinition = PsiTreeUtil.getParentOfType(parent, GraphQLTypeSystemDefinition.class);
         final GraphQLNamedElement psiTypeName = PsiTreeUtil.findChildOfType(psiDefinition, GraphQLNamedElement.class);
         if (psiTypeName != null) {
-            final graphql.schema.GraphQLType schemaType = schema.getType(psiTypeName.getText());
+            final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(psiTypeName.getText());
             if (schemaType != null) {
                 final String fieldName = element.getText();
                 final StringBuilder html = new StringBuilder().append(DEFINITION_START);
-                html.append(GraphQLUtil.getName(schemaType)).append(".");
+                html.append(GraphQLSchemaUtil.getTypeName(schemaType)).append(".");
                 html.append(fieldName).append(psiFieldType != null ? ": " : "").append(psiFieldType != null ? psiFieldType.getText() : "");
                 html.append(DEFINITION_END);
-                List<graphql.schema.GraphQLFieldDefinition> fieldDefinitions = null;
+                List<com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition> fieldDefinitions = null;
                 if (schemaType instanceof GraphQLObjectType) {
                     fieldDefinitions = ((GraphQLObjectType) schemaType).getFieldDefinitions();
                 } else if (schemaType instanceof GraphQLInterfaceType) {
                     fieldDefinitions = ((GraphQLInterfaceType) schemaType).getFieldDefinitions();
                 }
                 if (fieldDefinitions != null) {
-                    for (graphql.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
+                    for (com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
                         if (fieldName.equals(fieldDefinition.getName())) {
                             appendDescription(html, GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(fieldDefinition.getDescription()));
                             break;
@@ -283,7 +285,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
     @Nullable
     private String getTypeDocumentation(PsiElement element, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
-        graphql.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement) element).getName());
+        com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement) element).getName());
         if (schemaType != null) {
             final StringBuilder html = new StringBuilder().append(DEFINITION_START);
             PsiElement keyword = PsiTreeUtil.prevVisibleLeaf(parent);

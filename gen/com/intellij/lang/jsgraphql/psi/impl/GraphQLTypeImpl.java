@@ -20,6 +20,7 @@ public abstract class GraphQLTypeImpl extends GraphQLElementImpl implements Grap
     visitor.visitType(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

@@ -13,9 +13,11 @@ public interface GraphQLElementTypes {
   IElementType ARGUMENTS = new GraphQLCompositeElementType("ARGUMENTS");
   IElementType ARGUMENTS_DEFINITION = new GraphQLCompositeElementType("ARGUMENTS_DEFINITION");
   IElementType ARRAY_VALUE = new GraphQLCompositeElementType("ARRAY_VALUE");
+  IElementType BLOCK_STRING = new GraphQLCompositeElementType("BLOCK_STRING");
   IElementType BOOLEAN_VALUE = new GraphQLCompositeElementType("BOOLEAN_VALUE");
   IElementType DEFAULT_VALUE = new GraphQLCompositeElementType("DEFAULT_VALUE");
   IElementType DEFINITION = new GraphQLCompositeElementType("DEFINITION");
+  IElementType DESCRIPTION = new GraphQLCompositeElementType("DESCRIPTION");
   IElementType DIRECTIVE = new GraphQLCompositeElementType("DIRECTIVE");
   IElementType DIRECTIVE_DEFINITION = new GraphQLCompositeElementType("DIRECTIVE_DEFINITION");
   IElementType DIRECTIVE_LOCATION = new GraphQLCompositeElementType("DIRECTIVE_LOCATION");
@@ -57,9 +59,11 @@ public interface GraphQLElementTypes {
   IElementType SCALAR_TYPE_DEFINITION = new GraphQLCompositeElementType("SCALAR_TYPE_DEFINITION");
   IElementType SCALAR_TYPE_EXTENSION_DEFINITION = new GraphQLCompositeElementType("SCALAR_TYPE_EXTENSION_DEFINITION");
   IElementType SCHEMA_DEFINITION = new GraphQLCompositeElementType("SCHEMA_DEFINITION");
+  IElementType SCHEMA_EXTENSION = new GraphQLCompositeElementType("SCHEMA_EXTENSION");
   IElementType SELECTION = new GraphQLCompositeElementType("SELECTION");
   IElementType SELECTION_SET = new GraphQLCompositeElementType("SELECTION_SET");
   IElementType SELECTION_SET_OPERATION_DEFINITION = new GraphQLCompositeElementType("SELECTION_SET_OPERATION_DEFINITION");
+  IElementType STRING_LITERAL = new GraphQLCompositeElementType("STRING_LITERAL");
   IElementType STRING_VALUE = new GraphQLCompositeElementType("STRING_VALUE");
   IElementType TEMPLATE_DEFINITION = new GraphQLCompositeElementType("TEMPLATE_DEFINITION");
   IElementType TEMPLATE_SELECTION = new GraphQLCompositeElementType("TEMPLATE_SELECTION");
@@ -84,19 +88,20 @@ public interface GraphQLElementTypes {
   IElementType AMP = new GraphQLTokenType("&");
   IElementType AT = new GraphQLTokenType("@");
   IElementType BANG = new GraphQLTokenType("!");
-  IElementType BLOCK_STRING = new GraphQLTokenType("BLOCK_STRING");
   IElementType BRACE_L = new GraphQLTokenType("{");
   IElementType BRACE_R = new GraphQLTokenType("}");
   IElementType BRACKET_L = new GraphQLTokenType("[");
   IElementType BRACKET_R = new GraphQLTokenType("]");
   IElementType CLOSING_QUOTE = new GraphQLTokenType("CLOSING_QUOTE");
+  IElementType CLOSING_TRIPLE_QUOTE = new GraphQLTokenType("CLOSING_TRIPLE_QUOTE");
   IElementType COLON = new GraphQLTokenType(":");
-  IElementType COMMENT = new GraphQLTokenType("COMMENT");
   IElementType DIRECTIVE_KEYWORD = new GraphQLTokenType("directive");
   IElementType DOLLAR = new GraphQLTokenType("$");
   IElementType ENUM_KEYWORD = new GraphQLTokenType("enum");
+  IElementType EOL_COMMENT = new GraphQLTokenType("EOL_COMMENT");
   IElementType EQUALS = new GraphQLTokenType("=");
   IElementType EXTEND_KEYWORD = new GraphQLTokenType("extend");
+  IElementType FLOAT = new GraphQLTokenType("FLOAT");
   IElementType FRAGMENT_KEYWORD = new GraphQLTokenType("fragment");
   IElementType IMPLEMENTS_KEYWORD = new GraphQLTokenType("implements");
   IElementType INPUT_KEYWORD = new GraphQLTokenType("input");
@@ -106,11 +111,13 @@ public interface GraphQLElementTypes {
   IElementType NUMBER = new GraphQLTokenType("NUMBER");
   IElementType ON_KEYWORD = new GraphQLTokenType("on");
   IElementType OPEN_QUOTE = new GraphQLTokenType("OPEN_QUOTE");
+  IElementType OPEN_TRIPLE_QUOTE = new GraphQLTokenType("OPEN_TRIPLE_QUOTE");
   IElementType PAREN_L = new GraphQLTokenType("(");
   IElementType PAREN_R = new GraphQLTokenType(")");
   IElementType PIPE = new GraphQLTokenType("|");
   IElementType QUERY_KEYWORD = new GraphQLTokenType("query");
   IElementType REGULAR_STRING_PART = new GraphQLTokenType("REGULAR_STRING_PART");
+  IElementType REPEATABLE_KEYWORD = new GraphQLTokenType("repeatable");
   IElementType SCALAR_KEYWORD = new GraphQLTokenType("scalar");
   IElementType SCHEMA_KEYWORD = new GraphQLTokenType("schema");
   IElementType SPREAD = new GraphQLTokenType("...");
@@ -139,6 +146,9 @@ public interface GraphQLElementTypes {
       else if (type == ARRAY_VALUE) {
         return new GraphQLArrayValueImpl(node);
       }
+      else if (type == BLOCK_STRING) {
+        return new GraphQLBlockStringImpl(node);
+      }
       else if (type == BOOLEAN_VALUE) {
         return new GraphQLBooleanValueImpl(node);
       }
@@ -147,6 +157,9 @@ public interface GraphQLElementTypes {
       }
       else if (type == DEFINITION) {
         return new GraphQLDefinitionImpl(node);
+      }
+      else if (type == DESCRIPTION) {
+        return new GraphQLDescriptionImpl(node);
       }
       else if (type == DIRECTIVE) {
         return new GraphQLDirectiveImpl(node);
@@ -267,6 +280,9 @@ public interface GraphQLElementTypes {
       }
       else if (type == SCHEMA_DEFINITION) {
         return new GraphQLSchemaDefinitionImpl(node);
+      }
+      else if (type == SCHEMA_EXTENSION) {
+        return new GraphQLSchemaExtensionImpl(node);
       }
       else if (type == SELECTION) {
         return new GraphQLSelectionImpl(node);

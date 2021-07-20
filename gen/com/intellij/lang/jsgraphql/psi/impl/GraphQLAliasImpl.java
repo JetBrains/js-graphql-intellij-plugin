@@ -20,6 +20,7 @@ public class GraphQLAliasImpl extends GraphQLElementImpl implements GraphQLAlias
     visitor.visitAlias(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

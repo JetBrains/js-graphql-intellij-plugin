@@ -16,13 +16,21 @@ public class GraphQLInputObjectTypeDefinitionImpl extends GraphQLTypeDefinitionI
     super(node);
   }
 
+  @Override
   public void accept(@NotNull GraphQLVisitor visitor) {
     visitor.visitInputObjectTypeDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);
+  }
+
+  @Override
+  @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
   }
 
   @Override
@@ -35,12 +43,6 @@ public class GraphQLInputObjectTypeDefinitionImpl extends GraphQLTypeDefinitionI
   @Nullable
   public GraphQLTypeNameDefinition getTypeNameDefinition() {
     return findChildByClass(GraphQLTypeNameDefinition.class);
-  }
-
-  @Override
-  @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
   }
 
   @Override

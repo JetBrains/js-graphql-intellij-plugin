@@ -20,6 +20,7 @@ public class GraphQLFieldDefinitionImpl extends GraphQLNamedElementImpl implemen
     visitor.visitFieldDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);
@@ -33,14 +34,14 @@ public class GraphQLFieldDefinitionImpl extends GraphQLNamedElementImpl implemen
 
   @Override
   @Nullable
-  public GraphQLType getType() {
-    return findChildByClass(GraphQLType.class);
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
   }
 
   @Override
   @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
+  public GraphQLType getType() {
+    return findChildByClass(GraphQLType.class);
   }
 
   @Override

@@ -1,0 +1,89 @@
+/*
+    The MIT License (MIT)
+
+    Copyright (c) 2015 Andreas Marek and Contributors
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
+    (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
+    publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do
+    so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+    LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+    CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.intellij.lang.jsgraphql.types.execution;
+
+import com.google.common.collect.ImmutableList;
+import com.intellij.lang.jsgraphql.types.Assert;
+import com.intellij.lang.jsgraphql.types.PublicApi;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+
+@PublicApi
+public class MergedSelectionSet {
+
+    private final Map<String, MergedField> subFields;
+
+    private MergedSelectionSet(Map<String, MergedField> subFields) {
+        this.subFields = Assert.assertNotNull(subFields);
+    }
+
+    public Map<String, MergedField> getSubFields() {
+        return subFields;
+    }
+
+    public List<MergedField> getSubFieldsList() {
+        return ImmutableList.copyOf(subFields.values());
+    }
+
+    public int size() {
+        return subFields.size();
+    }
+
+    public Set<String> keySet() {
+        return subFields.keySet();
+    }
+
+    public MergedField getSubField(String key) {
+        return subFields.get(key);
+    }
+
+    public List<String> getKeys() {
+        return ImmutableList.copyOf(keySet());
+    }
+
+    public boolean isEmpty() {
+        return subFields.isEmpty();
+    }
+
+    public static Builder newMergedSelectionSet() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private Map<String, MergedField> subFields = new LinkedHashMap<>();
+
+        private Builder() {
+
+        }
+
+        public Builder subFields(Map<String, MergedField> subFields) {
+            this.subFields = subFields;
+            return this;
+        }
+
+        public MergedSelectionSet build() {
+            return new MergedSelectionSet(subFields);
+        }
+
+    }
+
+}

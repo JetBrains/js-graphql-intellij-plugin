@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLObjectFieldImpl extends GraphQLObjectFieldPsiElement implements GraphQLObjectField {
+public class GraphQLObjectFieldImpl extends GraphQLObjectFieldMixin implements GraphQLObjectField {
 
   public GraphQLObjectFieldImpl(ASTNode node) {
     super(node);
@@ -20,6 +20,7 @@ public class GraphQLObjectFieldImpl extends GraphQLObjectFieldPsiElement impleme
     visitor.visitObjectField(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

@@ -20,7 +20,7 @@ public class JSGraphQLEndpointCreateInterfaceTypeIntention extends JSGraphQLEndp
     }
 
     @Override
-    protected IElementType getSupportedDefinitionType() {
+    protected @NotNull IElementType getSupportedDefinitionType() {
         return JSGraphQLEndpointTokenTypes.INTERFACE;
     }
 }

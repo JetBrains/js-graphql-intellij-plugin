@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLInputValueDefinitionImpl extends GraphQLInputValueDefinitionPsiElement implements GraphQLInputValueDefinition {
+public class GraphQLInputValueDefinitionImpl extends GraphQLInputValueDefinitionMixin implements GraphQLInputValueDefinition {
 
   public GraphQLInputValueDefinitionImpl(ASTNode node) {
     super(node);
@@ -20,6 +20,7 @@ public class GraphQLInputValueDefinitionImpl extends GraphQLInputValueDefinition
     visitor.visitInputValueDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);
@@ -33,14 +34,14 @@ public class GraphQLInputValueDefinitionImpl extends GraphQLInputValueDefinition
 
   @Override
   @Nullable
-  public GraphQLType getType() {
-    return findChildByClass(GraphQLType.class);
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
   }
 
   @Override
   @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
+  public GraphQLType getType() {
+    return findChildByClass(GraphQLType.class);
   }
 
   @Override

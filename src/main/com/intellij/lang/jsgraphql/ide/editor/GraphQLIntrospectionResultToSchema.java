@@ -2,16 +2,16 @@ package com.intellij.lang.jsgraphql.ide.editor;
 
 import com.google.common.collect.Lists;
 import com.intellij.util.containers.ContainerUtil;
-import graphql.PublicApi;
-import graphql.language.*;
-import graphql.schema.idl.ScalarInfo;
+import com.intellij.lang.jsgraphql.types.PublicApi;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static graphql.Assert.*;
+import static com.intellij.lang.jsgraphql.types.Assert.*;
 
 @SuppressWarnings("unchecked")
 @PublicApi

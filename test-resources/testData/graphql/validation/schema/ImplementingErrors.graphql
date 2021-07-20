@@ -1,0 +1,65 @@
+interface I1 {
+    id: ID
+}
+
+interface <error descr="\"I2\" must define one or more fields"><error descr="The interface type 'I2' does not have a field 'id' required via interface 'I1'">I2</error></error> implements I1 {
+}
+
+interface <error descr="The interface type 'I3' has tried to redefine field 'id' defined via interface 'I1' from 'ID' to 'String'">I3</error> implements I1 {
+    id: String
+}
+
+interface WithArgs {
+    field(arg1: Int, arg2: String): Int
+}
+
+type ImplArgs implements WithArgs {
+    <error descr="The object type 'ImplArgs' field 'field' does not have the same number of arguments as specified via interface 'WithArgs'">field</error>(arg1: Int): Int
+}
+
+type ImplArgs1 implements WithArgs {
+    field(arg1: Int, <error descr="The object type 'ImplArgs1' has tried to redefine 'field' argument 'arg2' defined via interface 'WithArgs' from 'arg2:String' to 'arg2:Int'">arg2</error>: Int): Int
+}
+
+type ImplArgs2 implements WithArgs {
+    field(arg1: Int, arg2: String, <error descr="The object type 'ImplArgs2' field 'field' defines an additional non-optional argument 'arg3' which is not allowed because field is also defined in interface 'WithArgs'">arg3</error>: Int!): Int
+}
+
+interface <error descr="The interface type 'Int3' cannot implement itself">Int3</error> implements Int3 {
+    id: Int
+}
+
+interface Hierarchy1 {
+    id: ID
+}
+
+interface <error descr="The interface type 'Hierarchy2' has tried to redefine field 'id' defined via interface 'Hierarchy1' from 'ID' to 'String'">Hierarchy2</error> implements Hierarchy1 {
+    id: String
+    name: String
+}
+
+interface <error descr="The interface type 'Hierarchy3' does not have a field 'id' required via interface 'Hierarchy2'"><error descr="The interface type 'Hierarchy3' must implement 'Hierarchy1' because it is implemented by 'Hierarchy2'">Hierarchy3</error></error> implements Hierarchy2 {
+    name: String
+    age: Int
+}
+
+interface <error descr="The interface type 'Hierarchy4' cannot implement 'Hierarchy5' as this would result in a circular reference">Hierarchy4</error> implements Hierarchy5 {
+    id: String
+}
+
+interface <error descr="The interface type 'Hierarchy5' cannot implement 'Hierarchy4' as this would result in a circular reference">Hierarchy5</error> implements Hierarchy4 {
+    id: String
+}
+
+interface <error descr="'Abc' type tried to redefine existing 'Abc' type"><error descr="The interface type 'Abc' does not have a field 'f1' required via interface 'Ex'">Abc</error></error> implements Ex {
+    f2: Int
+}
+
+interface <error descr="The interface type 'Abc' does not have a field 'f2' required via interface 'Ex'">Abc</error> implements Ex {
+    f1: Int
+}
+
+interface Ex {
+    f1: Int
+    f2: Int
+}

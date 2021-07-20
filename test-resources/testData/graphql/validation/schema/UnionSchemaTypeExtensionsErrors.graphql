@@ -1,0 +1,11 @@
+directive @Name on UNION
+
+type A {
+    id: ID
+}
+
+extend union <error descr="The extension 'Un' type is missing its base underlying type"><error descr="Unknown type \"Un\"">Un</error></error>
+
+union BaseUnion @Name = A
+
+extend union <error descr="The extension 'BaseUnion' type has redefined the directive called 'Name'"><error descr="The type 'BaseUnion' has declared an union member with a non unique name 'A'"><error descr="The union member type 'B' is not present when resolving type 'BaseUnion'">BaseUnion</error></error></error> <error descr="The directive 'Name' should be defined as repeatable if its repeated on an SDL element">@Name</error> = A | A | <error descr="Unknown type \"B\"">B</error>

@@ -6,11 +6,12 @@ enum User @one @two {
   ADDRESS
 }
 
-extend enum User @three {
+extend enum User @one @three {
+  ADDRESS
   ZIP
 }
 
-extend enum User @four {
+extend enum User @three @four {
+  ZIP
   AGE
 }
-

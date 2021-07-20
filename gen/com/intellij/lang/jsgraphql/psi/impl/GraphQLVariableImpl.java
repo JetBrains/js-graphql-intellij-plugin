@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLVariableImpl extends GraphQLRenameAwareVariableElementImpl implements GraphQLVariable {
+public class GraphQLVariableImpl extends GraphQLVariableMixin implements GraphQLVariable {
 
   public GraphQLVariableImpl(ASTNode node) {
     super(node);
@@ -20,6 +20,7 @@ public class GraphQLVariableImpl extends GraphQLRenameAwareVariableElementImpl i
     visitor.visitVariable(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

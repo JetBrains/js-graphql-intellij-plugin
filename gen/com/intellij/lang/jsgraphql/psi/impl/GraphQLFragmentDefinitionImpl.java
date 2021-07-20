@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLFragmentDefinitionImpl extends GraphQLFragmentDefinitionPsiElement implements GraphQLFragmentDefinition {
+public class GraphQLFragmentDefinitionImpl extends GraphQLFragmentDefinitionMixin implements GraphQLFragmentDefinition {
 
   public GraphQLFragmentDefinitionImpl(ASTNode node) {
     super(node);
@@ -20,6 +20,7 @@ public class GraphQLFragmentDefinitionImpl extends GraphQLFragmentDefinitionPsiE
     visitor.visitFragmentDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

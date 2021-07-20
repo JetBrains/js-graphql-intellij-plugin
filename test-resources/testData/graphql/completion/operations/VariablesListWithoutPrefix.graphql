@@ -1,0 +1,5 @@
+query MyQuery($var1: String, $var2: Float, $var3: String, $var4: ID, $var5: String!, $var6: String!) {
+    users(zipCodes: [<caret>]) {
+        id
+    }
+}

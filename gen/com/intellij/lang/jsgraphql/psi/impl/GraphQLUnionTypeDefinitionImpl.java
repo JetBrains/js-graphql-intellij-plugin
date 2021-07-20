@@ -16,13 +16,21 @@ public class GraphQLUnionTypeDefinitionImpl extends GraphQLTypeDefinitionImpl im
     super(node);
   }
 
+  @Override
   public void accept(@NotNull GraphQLVisitor visitor) {
     visitor.visitUnionTypeDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);
+  }
+
+  @Override
+  @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
   }
 
   @Override
@@ -35,12 +43,6 @@ public class GraphQLUnionTypeDefinitionImpl extends GraphQLTypeDefinitionImpl im
   @Nullable
   public GraphQLUnionMembership getUnionMembership() {
     return findChildByClass(GraphQLUnionMembership.class);
-  }
-
-  @Override
-  @Nullable
-  public GraphQLQuotedString getDescription() {
-    return findChildByClass(GraphQLQuotedString.class);
   }
 
   @Override

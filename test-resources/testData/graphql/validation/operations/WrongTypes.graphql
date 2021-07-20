@@ -1,0 +1,21 @@
+type Query {
+    users(name: String): [User]
+    user(id: ID!): User
+}
+
+type User {
+    id: ID
+    name: String
+    phone: String
+}
+
+extend type User {
+    field: String
+}
+
+# WrongType
+query Departments {
+    user(<error descr="Argument 'id' must not be null">id</error>: null) {
+        field
+    }
+}

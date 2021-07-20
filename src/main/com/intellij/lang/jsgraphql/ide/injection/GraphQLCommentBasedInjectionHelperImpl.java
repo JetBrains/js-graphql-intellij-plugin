@@ -8,10 +8,9 @@
 package com.intellij.lang.jsgraphql.ide.injection;
 
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import org.intellij.plugins.intelliLang.inject.InjectorUtils;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Detects manual GraphQL injections using IntelliLang <code>language=GraphQL</code> injection comments.
@@ -19,16 +18,11 @@ import org.jetbrains.annotations.Nullable;
 public class GraphQLCommentBasedInjectionHelperImpl implements GraphQLCommentBasedInjectionHelper {
 
     @Override
-    public boolean isGraphQLInjectedUsingComment(PsiElement host, @Nullable Ref<String> envRef) {
+    public boolean isGraphQLInjectedUsingComment(@NotNull PsiElement host) {
         final InjectorUtils.CommentInjectionData injectionData = InjectorUtils.findCommentInjectionData(host, true, null);
-        if (injectionData != null) {
-            if (GraphQLLanguage.INSTANCE.getID().equals(injectionData.getInjectedLanguageId())) {
-                if (envRef != null) {
-                    envRef.set("graphql");
-                }
-                return true;
-            }
+        if (injectionData == null) {
+            return false;
         }
-        return false;
+        return GraphQLLanguage.INSTANCE.getID().equals(injectionData.getInjectedLanguageId());
     }
 }

@@ -14,9 +14,9 @@ import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectiveImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldImpl;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferencePsiElement;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
-import com.intellij.lang.jsgraphql.utils.GraphQLUtil;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferenceMixin;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
 import com.intellij.openapi.components.ServiceManager;
@@ -29,7 +29,6 @@ import com.intellij.psi.impl.AnyPsiChangeListener;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import graphql.schema.GraphQLType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,9 +52,8 @@ public class GraphQLReferenceService {
             return null;
         }
 
-        @NotNull
         @Override
-        public Object[] getVariants() {
+        public Object @NotNull [] getVariants() {
             return PsiReference.EMPTY_ARRAY;
         }
     };
@@ -66,7 +64,7 @@ public class GraphQLReferenceService {
 
     public GraphQLReferenceService(@NotNull final Project project) {
         psiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
-        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener.Adapter() {
+        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
             public void beforePsiChanged(boolean isPhysical) {
                 // clear the cache on each PSI change
@@ -75,16 +73,16 @@ public class GraphQLReferenceService {
         });
     }
 
-    public PsiReference resolveReference(GraphQLReferencePsiElement element) {
+    public PsiReference resolveReference(GraphQLReferenceMixin element) {
         return new GraphQLCachingReference(element, this::doResolveReference);
     }
 
-    private PsiElement doResolveReference(GraphQLReferencePsiElement element) {
+    private PsiElement doResolveReference(GraphQLReferenceMixin element) {
         PsiReference reference = innerResolveReference(element);
         return reference != null ? reference.resolve() : null;
     }
 
-    private PsiReference innerResolveReference(GraphQLReferencePsiElement element) {
+    private PsiReference innerResolveReference(GraphQLReferenceMixin element) {
         if (element != null) {
             final PsiElement parent = element.getParent();
             if (parent instanceof GraphQLField) {
@@ -115,7 +113,7 @@ public class GraphQLReferenceService {
         return null;
     }
 
-    private PsiReference resolveFieldDefinition(GraphQLReferencePsiElement element, GraphQLFieldDefinition fieldDefinition) {
+    private PsiReference resolveFieldDefinition(GraphQLReferenceMixin element, GraphQLFieldDefinition fieldDefinition) {
         final String name = fieldDefinition.getName();
         if (name != null) {
             final GraphQLTypeSystemDefinition typeSystemDefinition = PsiTreeUtil.getParentOfType(element, GraphQLTypeSystemDefinition.class);
@@ -143,7 +141,7 @@ public class GraphQLReferenceService {
         return null;
     }
 
-    private PsiReference resolveArgument(GraphQLReferencePsiElement element) {
+    private PsiReference resolveArgument(GraphQLReferenceMixin element) {
         final String name = element.getName();
         if (name != null) {
             final GraphQLDirectiveImpl directive = PsiTreeUtil.getParentOfType(element, GraphQLDirectiveImpl.class);
@@ -205,11 +203,11 @@ public class GraphQLReferenceService {
     }
 
     @NotNull
-    PsiReference createInputValueDefinitionReference(GraphQLReferencePsiElement element, GraphQLInputValueDefinition inputValueDefinition) {
+    PsiReference createInputValueDefinitionReference(GraphQLReferenceMixin element, GraphQLInputValueDefinition inputValueDefinition) {
         return createReference(element, inputValueDefinition.getNameIdentifier());
     }
 
-    PsiReference resolveFieldReference(GraphQLReferencePsiElement element, GraphQLField field) {
+    PsiReference resolveFieldReference(GraphQLReferenceMixin element, GraphQLField field) {
         final String name = element.getName();
         Ref<PsiReference> reference = new Ref<>();
         if (name != null) {
@@ -218,8 +216,8 @@ public class GraphQLReferenceService {
                 // __typename or introspection fields __schema and __type which implicitly extends the query root type
                 graphQLPsiSearchHelper.getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
                     @Override
-                    public void visitElement(final PsiElement schemaElement) {
-                        if (schemaElement instanceof GraphQLReferencePsiElement && schemaElement.getText().equals(name)) {
+                    public void visitElement(final @NotNull PsiElement schemaElement) {
+                        if (schemaElement instanceof GraphQLReferenceMixin && schemaElement.getText().equals(name)) {
                             reference.set(createReference(element, schemaElement));
                             return;
                         }
@@ -231,7 +229,7 @@ public class GraphQLReferenceService {
             if (reference.isNull() && typeScopeProvider != null) {
                 GraphQLType typeScope = typeScopeProvider.getTypeScope();
                 if (typeScope != null) {
-                    final GraphQLType fieldType = GraphQLUtil.getUnmodifiedType(typeScope);
+                    final GraphQLType fieldType = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
                     graphQLPsiSearchHelper.processElementsWithWord(element, name, psiNamedElement -> {
                         if (psiNamedElement.getParent() instanceof com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition) {
                             final GraphQLFieldDefinition fieldDefinition = (GraphQLFieldDefinition) psiNamedElement.getParent();
@@ -243,14 +241,14 @@ public class GraphQLReferenceService {
                             final GraphQLTypeDefinition typeDefinition = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLTypeDefinition.class);
                             if (typeDefinition != null) {
                                 final GraphQLTypeNameDefinition typeNameDefinition = PsiTreeUtil.findChildOfType(typeDefinition, GraphQLTypeNameDefinition.class);
-                                isTypeMatch = typeNameDefinition != null && GraphQLUtil.getName(fieldType).equals(typeNameDefinition.getName());
+                                isTypeMatch = typeNameDefinition != null && GraphQLSchemaUtil.getTypeName(fieldType).equals(typeNameDefinition.getName());
                             }
                             if (!isTypeMatch) {
                                 // check type extension
                                 final GraphQLTypeExtension typeExtension = PsiTreeUtil.getParentOfType(psiNamedElement, GraphQLTypeExtension.class);
                                 if (typeExtension != null) {
                                     final GraphQLTypeName typeName = PsiTreeUtil.findChildOfType(typeExtension, GraphQLTypeName.class);
-                                    isTypeMatch = typeName != null && GraphQLUtil.getName(fieldType).equals(typeName.getName());
+                                    isTypeMatch = typeName != null && GraphQLSchemaUtil.getTypeName(fieldType).equals(typeName.getName());
                                 }
                             }
                             if (isTypeMatch) {
@@ -263,7 +261,7 @@ public class GraphQLReferenceService {
                     if (reference.isNull()) {
                         // Endpoint language
                         final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(GraphQLUtil.getUnmodifiedType(typeScope).getName(), field);
+                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName(), field);
                         if (namedType != null) {
                             JSGraphQLPropertyType property = namedType.properties.get(name);
                             if (property != null) {
@@ -293,23 +291,22 @@ public class GraphQLReferenceService {
     }
 
     @NotNull
-    private PsiReferenceBase<GraphQLReferencePsiElement> createReference(GraphQLReferencePsiElement fromElement, PsiElement resolvedElement) {
-        return new PsiReferenceBase<GraphQLReferencePsiElement>(fromElement, TextRange.from(0, fromElement.getTextLength())) {
+    private PsiReferenceBase<GraphQLReferenceMixin> createReference(GraphQLReferenceMixin fromElement, PsiElement resolvedElement) {
+        return new PsiReferenceBase<GraphQLReferenceMixin>(fromElement, TextRange.from(0, fromElement.getTextLength())) {
             @Override
             public PsiElement resolve() {
                 return resolvedElement;
             }
 
-            @NotNull
             @Override
-            public Object[] getVariants() {
+            public Object @NotNull [] getVariants() {
                 return PsiReference.EMPTY_ARRAY;
             }
         };
     }
 
 
-    PsiReference resolveTypeName(GraphQLReferencePsiElement element) {
+    PsiReference resolveTypeName(GraphQLReferenceMixin element) {
         final String logicalTypeName = GraphQLPsiUtil.getFileName(element.getContainingFile()) + ":" + element.getName();
         // intentionally not using computeIfAbsent here to avoid locking during long-running write actions
         // it's better to compute multiple times in certain rare cases than blocking
@@ -332,18 +329,18 @@ public class GraphQLReferenceService {
     }
 
 
-    PsiReference resolveFragmentDefinition(GraphQLReferencePsiElement element) {
+    PsiReference resolveFragmentDefinition(GraphQLReferenceMixin element) {
         return resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLFragmentDefinition);
     }
 
-    private PsiReference resolveObjectField(GraphQLReferencePsiElement element, GraphQLObjectField field) {
+    private PsiReference resolveObjectField(GraphQLReferenceMixin element, GraphQLObjectField field) {
         final String name = element.getName();
         if (name != null) {
             final GraphQLTypeScopeProvider fieldTypeScopeProvider = PsiTreeUtil.getParentOfType(field, GraphQLTypeScopeProvider.class);
             if (fieldTypeScopeProvider != null) {
                 GraphQLType typeScope = fieldTypeScopeProvider.getTypeScope();
                 if (typeScope != null) {
-                    final String namedTypeScope = GraphQLUtil.getUnmodifiedType(typeScope).getName();
+                    final String namedTypeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName();
                     final Ref<Boolean> resolved = Ref.create(false);
                     final PsiReference reference = resolveUsingIndex(element, psiNamedElement -> {
                         if (psiNamedElement.getParent() instanceof GraphQLInputValueDefinition) {
@@ -375,14 +372,14 @@ public class GraphQLReferenceService {
         return null;
     }
 
-    private PsiReference resolveEnumValue(GraphQLReferencePsiElement element) {
+    private PsiReference resolveEnumValue(GraphQLReferenceMixin element) {
         final String name = element.getName();
         if (name != null) {
             final GraphQLTypeScopeProvider enumTypeScopeProvider = PsiTreeUtil.getParentOfType(element, GraphQLTypeScopeProvider.class);
             if (enumTypeScopeProvider != null) {
                 GraphQLType typeScope = enumTypeScopeProvider.getTypeScope();
                 if (typeScope != null) {
-                    final String namedTypeScope = GraphQLUtil.getUnmodifiedType(typeScope).getName();
+                    final String namedTypeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName();
                     final Ref<Boolean> resolved = Ref.create(false);
                     final PsiReference reference = resolveUsingIndex(element, psiNamedElement -> {
                         if (psiNamedElement.getParent() instanceof GraphQLEnumValue) {
@@ -419,12 +416,12 @@ public class GraphQLReferenceService {
         return null;
     }
 
-    private PsiReference resolveDirective(GraphQLReferencePsiElement element) {
+    private PsiReference resolveDirective(GraphQLReferenceMixin element) {
         return resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLDirectiveDefinition);
     }
 
 
-    private PsiReference resolveUsingIndex(GraphQLReferencePsiElement element, Predicate<PsiNamedElement> isMatch) {
+    private PsiReference resolveUsingIndex(GraphQLReferenceMixin element, Predicate<PsiNamedElement> isMatch) {
         final String name = element.getName();
         Ref<PsiReference> reference = new Ref<>();
         if (name != null) {
@@ -440,7 +437,7 @@ public class GraphQLReferenceService {
 
                         @NotNull
                         @Override
-                        public Object[] getVariants() {
+                        public Object @NotNull [] getVariants() {
                             return PsiReference.EMPTY_ARRAY;
                         }
                     });

@@ -19,7 +19,7 @@ public class JSGraphQLEndpointCreateScalarTypeIntention extends JSGraphQLEndpoin
     }
 
     @Override
-    protected IElementType getSupportedDefinitionType() {
+    protected @NotNull IElementType getSupportedDefinitionType() {
         return JSGraphQLEndpointTokenTypes.SCALAR;
     }
 }

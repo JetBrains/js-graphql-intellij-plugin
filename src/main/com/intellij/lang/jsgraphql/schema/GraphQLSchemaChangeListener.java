@@ -35,9 +35,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class GraphQLSchemaChangeListener {
 
     public final static Topic<GraphQLSchemaEventListener> TOPIC = new Topic<>(
-            "GraphQL Schema Change Events",
-            GraphQLSchemaEventListener.class,
-            Topic.BroadcastDirection.TO_PARENT
+        "GraphQL Schema Change Events",
+        GraphQLSchemaEventListener.class,
+        Topic.BroadcastDirection.TO_PARENT
     );
 
     public static GraphQLSchemaChangeListener getService(@NotNull Project project) {
@@ -71,8 +71,8 @@ public class GraphQLSchemaChangeListener {
                     signalSchemaChanged();
                 }
                 if (event.getParent() instanceof PsiLanguageInjectionHost) {
-                    GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
-                    if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(event.getParent())) {
+                    GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
+                    if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isGraphQLLanguageInjectionTarget(event.getParent())) {
                         // change in injection target
                         signalSchemaChanged();
                     }
@@ -87,7 +87,7 @@ public class GraphQLSchemaChangeListener {
                             introspectionJsonUpdated = true;
                         }
                     }
-                    if(introspectionJsonUpdated) {
+                    if (introspectionJsonUpdated) {
                         signalSchemaChanged();
                     }
                 }

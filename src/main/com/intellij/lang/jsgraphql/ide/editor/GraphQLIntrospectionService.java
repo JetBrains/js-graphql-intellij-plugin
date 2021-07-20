@@ -55,13 +55,10 @@ import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.ObjectUtils;
-import graphql.introspection.IntrospectionQuery;
-import graphql.language.*;
-import graphql.schema.Coercing;
-import graphql.schema.GraphQLScalarType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.*;
-import graphql.util.EscapeUtil;
+import com.intellij.lang.jsgraphql.types.introspection.IntrospectionQuery;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.*;
+import com.intellij.lang.jsgraphql.types.util.EscapeUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -256,7 +253,8 @@ public class GraphQLIntrospectionService implements Disposable {
             .includeSchemaDefinition(true)
             .includeDirectives(directive -> !DEFAULT_DIRECTIVES.contains(directive.getName()));
         final TypeDefinitionRegistry registry = new SchemaParser().buildRegistry(schemaDefinition);
-        final StringBuilder sb = new StringBuilder(new SchemaPrinter(options).print(buildIntrospectionSchema(registry)));
+
+        final StringBuilder sb = new StringBuilder(new SchemaPrinter(options).print(UnExecutableSchemaGenerator.makeUnExecutableSchema(registry)));
 
         // graphql-java only prints scalars that are used by fields since it visits fields to discover types, so add the scalars here manually
         final Set<String> knownScalars = Sets.newHashSet();
@@ -328,49 +326,6 @@ public class GraphQLIntrospectionService implements Disposable {
             emptyErrorNotification.addAction(dontShowAgainAction);
             Notifications.Bus.notify(emptyErrorNotification, myProject);
         }
-    }
-
-    private GraphQLSchema buildIntrospectionSchema(TypeDefinitionRegistry registry) {
-        final RuntimeWiring runtimeWiring = EchoingWiringFactory.newEchoingWiring(wiring -> {
-            Map<String, ScalarTypeDefinition> scalars = registry.scalars();
-            scalars.forEach((name, v) -> {
-                if (!ScalarInfo.isGraphqlSpecifiedScalar(name)) {
-                    wiring.scalar(createCustomIntrospectionScalar(name));
-                }
-            });
-        });
-
-        return new SchemaGenerator().makeExecutableSchema(registry, runtimeWiring);
-    }
-
-    private GraphQLScalarType createCustomIntrospectionScalar(String name) {
-        return new GraphQLScalarType(name, name, new Coercing() {
-            @Override
-            public Object serialize(Object dataFetcherResult) {
-                return dataFetcherResult;
-            }
-
-            @Override
-            public Object parseValue(Object input) {
-                return input;
-            }
-
-            @Override
-            public Object parseLiteral(Object input) {
-                if (input instanceof ScalarValue) {
-                    if (input instanceof IntValue) {
-                        return ((IntValue) input).getValue();
-                    } else if (input instanceof FloatValue) {
-                        return ((FloatValue) input).getValue();
-                    } else if (input instanceof StringValue) {
-                        return ((StringValue) input).getValue();
-                    } else if (input instanceof BooleanValue) {
-                        return ((BooleanValue) input).isValue();
-                    }
-                }
-                return input;
-            }
-        });
     }
 
     public GraphQLIntrospectionTask getLatestIntrospection() {

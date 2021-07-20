@@ -5,19 +5,18 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
-import  com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwnerPsiElement;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 
-public interface GraphQLEnumTypeDefinition extends GraphQLTypeDefinition, GraphQLDirectivesAware, GraphQLDescriptionAware, GraphQLTypeNameDefinitionOwnerPsiElement {
+public interface GraphQLEnumTypeDefinition extends GraphQLTypeDefinition, GraphQLDirectivesAware, GraphQLTypeNameDefinitionOwner {
+
+  @Nullable
+  GraphQLDescription getDescription();
 
   @Nullable
   GraphQLEnumValueDefinitions getEnumValueDefinitions();
 
   @Nullable
   GraphQLTypeNameDefinition getTypeNameDefinition();
-
-  @Nullable
-  GraphQLQuotedString getDescription();
 
   @NotNull
   List<GraphQLDirective> getDirectives();

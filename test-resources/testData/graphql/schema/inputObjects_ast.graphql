@@ -6,15 +6,15 @@ input User @one @two {
   phone: String
 }
 
-extend input User {
+extend input User @one {
   address: String
+  phone: String
 }
 
 extend input User @three {}
 
-extend input User {}
+extend input User @three {}
 
 extend input User {
   zip: String
 }
-

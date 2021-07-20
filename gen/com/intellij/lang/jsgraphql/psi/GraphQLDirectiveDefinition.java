@@ -12,12 +12,15 @@ public interface GraphQLDirectiveDefinition extends GraphQLTypeSystemDefinition,
   GraphQLArgumentsDefinition getArgumentsDefinition();
 
   @Nullable
+  GraphQLDescription getDescription();
+
+  @Nullable
   GraphQLDirectiveLocations getDirectiveLocations();
 
   @Nullable
-  GraphQLQuotedString getDescription();
+  GraphQLIdentifier getNameIdentifier();
 
   @Nullable
-  GraphQLIdentifier getNameIdentifier();
+  PsiElement getRepeatable();
 
 }

@@ -1,0 +1,1 @@
+const QUERY = `#graphql`;

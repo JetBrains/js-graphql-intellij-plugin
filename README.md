@@ -23,13 +23,43 @@ The main documentation site is available at https://jimkyndemeyer.github.io/js-g
 
 ## Which IDEs are compatible with the plugin?
 
-The plugin is compatible with version 2018.2+ (182.711 or later) of all IDEs based on the IntelliJ Platform, including but not limited to WebStorm, IntelliJ IDEA, Android Studio, RubyMine, PhpStorm, and PyCharm.
+The plugin is compatible with version 2019.3+ (193.7288 or later) of all IDEs based on the IntelliJ Platform, including but not limited to WebStorm, IntelliJ IDEA, Android Studio, RubyMine, PhpStorm, and PyCharm.
 
 ## Where can I get the plugin?
 
 The plugin is published to the [JetBrains Plugin Repository](https://plugins.jetbrains.com/plugin/8097-js-graphql).
 
 To install it, open your IDE "Settings", "Plugins", "Marketplace" and search for "GraphQL".
+
+## Injections
+
+### Tagged template literals
+
+Supported tags are: `graphql`, `gql`, `Relay.QL`, `Apollo.gql`.
+```
+const QUERY = gql``;
+```
+
+### IntelliJ default comment-based injection
+
+```
+// language=GraphQL
+const QUERY = `query { field }`;
+```
+
+### C-style comments
+```
+const QUERY = /* GraphQL */ `query { field }`;
+```
+
+### GraphQL comments
+```
+const QUERY = `
+    #graphql
+    
+    query { field }
+`;
+```
 
 ## Acknowledgements
 

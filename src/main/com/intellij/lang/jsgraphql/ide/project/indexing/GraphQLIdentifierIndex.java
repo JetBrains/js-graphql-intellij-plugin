@@ -13,9 +13,7 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.util.Ref;
 import com.intellij.psi.*;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
@@ -24,6 +22,7 @@ import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Set;
@@ -34,8 +33,9 @@ import java.util.Set;
 public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, GraphQLIdentifierIndex.IdentifierKind> {
 
     public static final ID<String, IdentifierKind> NAME = ID.create("GraphQLIdentifierIndex");
+    public static final int VERSION = 2;
 
-    private final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
+    private final @Nullable GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
 
     private final Set<FileType> includedFileTypes;
 
@@ -64,10 +64,9 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
 
             final HashMap<String, IdentifierKind> identifiers = Maps.newHashMap();
 
-            final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
-            identifierVisitor.set(new PsiRecursiveElementVisitor() {
+            PsiRecursiveElementVisitor visitor = new PsiRecursiveElementVisitor() {
                 @Override
-                public void visitElement(PsiElement element) {
+                public void visitElement(@NotNull PsiElement element) {
                     if (element instanceof GraphQLIdentifier) {
                         identifiers.put(element.getText(), IdentifierKind.IDENTIFIER_NAME);
                         return; // no need to visit deeper
@@ -89,24 +88,24 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
                             }
                         }
                     } else if (element instanceof PsiLanguageInjectionHost && graphQLInjectionSearchHelper != null) {
-                        if (graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(element)) {
+                        if (graphQLInjectionSearchHelper.isGraphQLLanguageInjectionTarget(element)) {
                             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
                             final String graphqlBuffer = StringUtils.strip(element.getText(), "` \t\n");
                             final PsiFile graphqlInjectedPsiFile = psiFileFactory.createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
-                            graphqlInjectedPsiFile.accept(identifierVisitor.get());
+                            graphqlInjectedPsiFile.accept(this);
                             return;
                         }
                     }
                     super.visitElement(element);
                 }
-            });
+            };
 
-            inputData.getPsiFile().accept(identifierVisitor.get());
+            inputData.getPsiFile().accept(visitor);
 
             return identifiers;
         };
         includedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
-        graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
+        graphQLInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
     }
 
     private boolean isIntrospectionJsonFile(JsonFile jsonFile) {
@@ -119,7 +118,7 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
                     }
                 }
                 final JsonProperty schemaProperty = ((JsonObject) child).findProperty("__schema");
-                if(schemaProperty != null) {
+                if (schemaProperty != null) {
                     return true;
                 }
             }
@@ -153,7 +152,7 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
 
     @Override
     public int getVersion() {
-        return 2;
+        return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
     }
 
     @NotNull

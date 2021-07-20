@@ -20,6 +20,7 @@ public class GraphQLInputObjectValueDefinitionsImpl extends GraphQLElementImpl i
     visitor.visitInputObjectValueDefinitions(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

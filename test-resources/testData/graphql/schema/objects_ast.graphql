@@ -18,15 +18,15 @@ type User implements Named @one @two {
   phone: String
 }
 
-extend type User implements WithPhone {
+extend type User implements Named & WithPhone @one {
   address: String
+  phone: String
 }
 
-extend type User @three {}
+extend type User implements WithPhone @three {}
 
-extend type User implements Other {}
+extend type User implements Other @three {}
 
 extend type User {
   zip: String
 }
-

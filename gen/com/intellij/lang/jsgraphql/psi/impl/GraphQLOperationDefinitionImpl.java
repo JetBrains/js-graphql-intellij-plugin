@@ -20,6 +20,7 @@ public abstract class GraphQLOperationDefinitionImpl extends GraphQLNamedElement
     visitor.visitOperationDefinition(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

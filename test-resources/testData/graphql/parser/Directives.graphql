@@ -1,0 +1,2 @@
+directive @RepeatableDirective repeatable on OBJECT
+directive @NonRepeatableDirective on OBJECT

@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLDirectiveLocationImpl extends GraphQLDirectiveLocationPsiElement implements GraphQLDirectiveLocation {
+public class GraphQLDirectiveLocationImpl extends GraphQLDirectiveLocationMixin implements GraphQLDirectiveLocation {
 
   public GraphQLDirectiveLocationImpl(ASTNode node) {
     super(node);
@@ -20,6 +20,7 @@ public class GraphQLDirectiveLocationImpl extends GraphQLDirectiveLocationPsiEle
     visitor.visitDirectiveLocation(this);
   }
 
+  @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
     if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
     else super.accept(visitor);

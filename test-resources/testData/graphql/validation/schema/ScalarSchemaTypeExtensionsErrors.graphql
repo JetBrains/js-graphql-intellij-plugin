@@ -1,0 +1,7 @@
+directive @Name on SCALAR
+
+extend scalar <error descr="The extension 'Un' type is missing its base underlying type"><error descr="Unknown type \"Un\"">Un</error></error>
+
+scalar ScalarBase @Name
+
+extend scalar <error descr="The extension 'ScalarBase' type has redefined the directive called 'Name'">ScalarBase</error> <error descr="The directive 'Name' should be defined as repeatable if its repeated on an SDL element">@Name</error>

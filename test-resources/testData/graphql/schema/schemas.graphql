@@ -19,8 +19,6 @@ directive @one on SCHEMA
 directive @two on SCHEMA
 directive @three on SCHEMA
 
-
-# TODO: schema extensions are not supported by our parser now
-# extend schema @two @three {
-#     subscription: MySubscription
-# }
+extend schema @two @three {
+    subscription: MySubscription
+}

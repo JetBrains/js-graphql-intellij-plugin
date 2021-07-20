@@ -1,0 +1,19 @@
+interface In {
+    field(a: Int, b: Int, c: Int): String
+}
+
+type Obj implements In {
+    field(b: Int, c: Int, a: Int): String
+}
+
+type Obj1 implements In {
+    <error descr="The object type 'Obj1' field 'field' is missing the argument 'a' specified via interface 'In'">field</error>(b: Int, <error descr="The object type 'Obj1' has tried to redefine 'field' argument 'c' defined via interface 'In' from 'c:Int' to 'c:Int!'">c</error>: Int!, d: Int): String
+}
+
+type Obj2 implements In {
+    <error descr="The object type 'Obj2' field 'field' does not have the same number of arguments as specified via interface 'In'">field</error>(b: Int, c: Int): String
+}
+
+type Obj3 implements In {
+    field(b: Int, <error descr="The object type 'Obj3' field 'field' defines an additional non-optional argument 'e' which is not allowed because field is also defined in interface 'In'">e</error>: Int!, c: Int, a: Int, <error descr="The object type 'Obj3' field 'field' defines an additional non-optional argument 'f' which is not allowed because field is also defined in interface 'In'">f</error>: String!): String
+}

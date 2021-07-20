@@ -19,7 +19,7 @@ public class JSGraphQLEndpointCreateEnumTypeIntention extends JSGraphQLEndpointC
     }
 
     @Override
-    protected IElementType getSupportedDefinitionType() {
+    protected @NotNull IElementType getSupportedDefinitionType() {
         return JSGraphQLEndpointTokenTypes.ENUM;
     }
 }

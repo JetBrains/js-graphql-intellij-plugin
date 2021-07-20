@@ -1,6 +1,6 @@
 type Query
 
-enum User @four @one @three @two {
+enum User @four @one @one @three @three @two {
   ADDRESS
   AGE
   NAME

@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
+import com.intellij.codeInspection.InspectionProfile;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeEventQueue;
@@ -14,6 +15,7 @@ import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAction;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,6 +28,7 @@ import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.profile.ProfileChangeAdapter;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBScrollPane;
@@ -37,6 +40,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -49,16 +53,25 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Tool window panel that shows the status of the GraphQL schemas discovered in the project.
  */
-public class GraphQLSchemasPanel extends JPanel {
+public class GraphQLSchemasPanel extends JPanel implements Disposable {
 
     private final Project myProject;
+    private final MessageBusConnection myConnection;
     private SimpleTree myTree;
 
     public GraphQLSchemasPanel(Project project) {
-        setLayout(new BorderLayout());
         myProject = project;
+        Disposer.register(myProject, this);
+
+        myConnection = project.getMessageBus().connect(this);
+
+        setLayout(new BorderLayout());
         add(createToolPanel(), BorderLayout.WEST);
         add(createTreePanel(), BorderLayout.CENTER);
+    }
+
+    @Override
+    public void dispose() {
     }
 
     enum TreeUpdate {
@@ -151,16 +164,15 @@ public class GraphQLSchemasPanel extends JPanel {
         Disposer.register(myProject, () -> IdeEventQueue.getInstance().removeIdleListener(treeUpdater));
 
         // update tree on schema or config changes
-        final MessageBusConnection connection = myProject.getMessageBus().connect();
-        connection.subscribe(GraphQLSchemaChangeListener.TOPIC, (schemaVersion) -> {
+        myConnection.subscribe(GraphQLSchemaChangeListener.TOPIC, (schemaVersion) -> {
             currentSchemaVersion.set(schemaVersion);
             shouldUpdateTree.compareAndSet(TreeUpdate.NONE, TreeUpdate.UPDATE);
         });
-        connection.subscribe(GraphQLConfigManager.TOPIC, () -> shouldUpdateTree.set(TreeUpdate.REBUILD));
+        myConnection.subscribe(GraphQLConfigManager.TOPIC, () -> shouldUpdateTree.set(TreeUpdate.REBUILD));
 
 
         // update tree in response to indexing changes
-        connection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
+        myConnection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
             @Override
             public void enteredDumbMode() {
                 shouldUpdateTree.set(TreeUpdate.REBUILD);
@@ -176,7 +188,7 @@ public class GraphQLSchemasPanel extends JPanel {
         scrollPane.setBorder(IdeBorderFactory.createBorder(SideBorder.LEFT));
 
         // "bold" the schema node that matches the edited file
-        connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+        myConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
             @Override
             public void selectionChanged(@NotNull FileEditorManagerEvent event) {
                 if (event.getNewFile() != null) {
@@ -190,6 +202,13 @@ public class GraphQLSchemasPanel extends JPanel {
                         shouldUpdateTree.set(TreeUpdate.UPDATE);
                     }
                 }
+            }
+        });
+
+        myConnection.subscribe(ProfileChangeAdapter.TOPIC, new ProfileChangeAdapter() {
+            @Override
+            public void profileChanged(@Nullable InspectionProfile profile) {
+                shouldUpdateTree.set(TreeUpdate.UPDATE);
             }
         });
 

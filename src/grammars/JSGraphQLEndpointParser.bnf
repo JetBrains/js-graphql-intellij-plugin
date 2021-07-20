@@ -177,4 +177,4 @@ private RecoverOperation ::= !(RBRACE | QUERY | MUTATION | SUBSCRIPTION)
 
 QuotedString ::= OPEN_QUOTE String? CLOSING_QUOTE {pin=1}
 
-String ::= STRING_BODY {implements="com.intellij.psi.PsiElement,com.intellij.psi.PsiLiteralValue" mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointStringLiteralPsiElement"}
+String ::= STRING_BODY {implements="com.intellij.psi.PsiLiteralValue" mixin="com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointStringLiteralPsiElement"}

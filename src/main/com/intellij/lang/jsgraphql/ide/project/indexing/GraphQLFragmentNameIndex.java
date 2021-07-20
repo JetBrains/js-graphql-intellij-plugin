@@ -12,7 +12,6 @@ import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.*;
@@ -23,6 +22,7 @@ import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
@@ -35,9 +35,10 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
     public static final ID<String, Boolean> NAME = ID.create("GraphQLFragmentNameIndex");
 
     public static final String HAS_FRAGMENTS = "fragments";
+    public static final int VERSION = 1;
 
 
-    private final GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
+    private final @Nullable GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
 
     private final Set<FileType> includedFileTypes;
 
@@ -51,7 +52,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
             final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
             identifierVisitor.set(new PsiRecursiveElementVisitor() {
                 @Override
-                public void visitElement(PsiElement element) {
+                public void visitElement(@NotNull PsiElement element) {
                     if (hasFragments.get()) {
                         // done
                         return;
@@ -62,7 +63,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
                         }
                         return; // no need to visit deeper than definitions since fragments are top level
                     } else if (element instanceof PsiLanguageInjectionHost && graphQLInjectionSearchHelper != null) {
-                        if (graphQLInjectionSearchHelper.isJSGraphQLLanguageInjectionTarget(element)) {
+                        if (graphQLInjectionSearchHelper.isGraphQLLanguageInjectionTarget(element)) {
                             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
                             final String graphqlBuffer = StringUtils.strip(element.getText(), "` \t\n");
                             final PsiFile graphqlInjectedPsiFile = psiFileFactory.createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
@@ -84,7 +85,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
 
         };
         includedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
-        graphQLInjectionSearchHelper = ServiceManager.getService(GraphQLInjectionSearchHelper.class);
+        graphQLInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
     }
 
     @NotNull
@@ -113,7 +114,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
 
     @Override
     public int getVersion() {
-        return 1;
+        return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
     }
 
     @NotNull
