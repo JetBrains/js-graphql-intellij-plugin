@@ -57,7 +57,7 @@ public class GraphQLScopeEditorNotificationProvider extends Provider<EditorNotif
         panel.createActionLabel(GraphQLBundle.message("graphql.notification.file.out.of.scope.edit"), () -> {
             final GraphQLEditConfigAction action = new GraphQLEditConfigAction();
             final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
-                ActionPlaces.UNKNOWN,
+                "GraphQLConfigEditorNotification",
                 null,
                 DataManager.getInstance().getDataContext(panel)
             );

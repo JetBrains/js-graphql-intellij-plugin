@@ -92,7 +92,7 @@ public abstract class JSGraphQLEndpointCreateDefinitionIntention extends PsiElem
                         AnAction editorLineEnd = ActionManager.getInstance().getAction("EditorLineEnd");
                         if (editorLineEnd != null) {
                             final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
-                                ActionPlaces.UNKNOWN,
+                                "GraphQLEndpointCreateDefinition",
                                 null,
                                 DataManager.getInstance().getDataContext(editor.getComponent())
                             );

@@ -293,6 +293,7 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
         final JPanel panel = new JPanel(new BorderLayout());
         final ActionManager actionManager = ActionManager.getInstance();
         final ActionToolbar leftToolbar = actionManager.createActionToolbar(ActionPlaces.COMPILER_MESSAGES_TOOLBAR, leftActionGroup, false);
+        leftToolbar.setTargetComponent(panel);
         panel.add(leftToolbar.getComponent(), BorderLayout.WEST);
         return panel;
     }

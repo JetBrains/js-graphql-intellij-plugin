@@ -67,7 +67,7 @@ public class JSGraphQLEndpointEnterHandlerDelegate extends EnterHandlerDelegateA
                                         AnAction editorLineEnd = ActionManager.getInstance().getAction("EditorLineEnd");
                                         if (editorLineEnd != null) {
                                             final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
-                                                ActionPlaces.UNKNOWN,
+                                                "GraphQLEndpointEnterHandler",
                                                 null,
                                                 DataManager.getInstance().getDataContext(parentEditor.getComponent())
                                             );
