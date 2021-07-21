@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.ide.editor;
 
-import com.intellij.codeHighlighting.Pass;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.icons.AllIcons;
@@ -28,9 +27,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Line marker which shows an action to turn a GraphQL Introspection JSON result into a GraphQL schema expressed in GraphQL SDL.
@@ -88,23 +84,20 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
                     }
                 });
 
+                PsiElement anchor = jsonProperty.getNameElement().getFirstChild();
+                if (anchor == null) return null;
+                
                 return new LineMarkerInfo<>(
-                    jsonProperty,
-                    jsonProperty.getTextRange(),
+                    anchor,
+                    anchor.getTextRange(),
                     AllIcons.RunConfigurations.TestState.Run,
-                    Pass.UPDATE_ALL,
                     o -> GraphQLBundle.message("graphql.line.marker.generate.schema.file"),
                     (evt, elt) -> generateAction.get().run(),
-                    GutterIconRenderer.Alignment.CENTER
+                    GutterIconRenderer.Alignment.CENTER,
+                    () -> GraphQLBundle.message("graphql.line.marker.generate.schema.file")
                 );
             }
         }
         return null;
-    }
-
-    @Override
-    public void collectSlowLineMarkers(@NotNull List<? extends PsiElement> elements,
-                                       @NotNull Collection<? super LineMarkerInfo<?>> result) {
-        // compatibility with 182
     }
 }

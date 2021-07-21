@@ -8,7 +8,6 @@
 package com.intellij.lang.jsgraphql.ide.editor;
 
 import com.google.gson.Gson;
-import com.intellij.codeHighlighting.Pass;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.icons.AllIcons;
@@ -29,7 +28,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
@@ -39,8 +37,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -49,8 +45,6 @@ import java.util.stream.Stream;
  * Line marker for running an introspection against a configured endpoint url in a .graphqlconfig file
  */
 public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarkerProvider {
-    private String pathOfConfigFileParent;
-
     @Nullable
     @Override
     public LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
@@ -61,31 +55,41 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             final JsonProperty jsonProperty = (JsonProperty) element;
             final Ref<String> urlRef = Ref.create();
             if (isEndpointUrl(jsonProperty, urlRef) && !hasErrors(jsonProperty.getContainingFile())) {
-                return new LineMarkerInfo<>(jsonProperty, jsonProperty.getTextRange(), AllIcons.RunConfigurations.TestState.Run, Pass.UPDATE_ALL, o -> "Run introspection query to generate GraphQL SDL schema file", (evt, jsonUrl) -> {
+                PsiElement anchor = jsonProperty.getNameElement().getFirstChild();
+                if (anchor == null) return null;
 
-                    String introspectionUrl;
-                    if (jsonUrl.getValue() instanceof JsonStringLiteral) {
-                        introspectionUrl = ((JsonStringLiteral) jsonUrl.getValue()).getValue();
-                    } else {
-                        return;
-                    }
+                return new LineMarkerInfo<>(
+                    anchor,
+                    anchor.getTextRange(),
+                    AllIcons.RunConfigurations.TestState.Run,
+                    o -> GraphQLBundle.message("graphql.introspection.run.query"),
+                    (evt, el) -> {
+                        String introspectionUrl;
+                        if (jsonProperty.getValue() instanceof JsonStringLiteral) {
+                            introspectionUrl = ((JsonStringLiteral) jsonProperty.getValue()).getValue();
+                        } else {
+                            return;
+                        }
 
-                    final GraphQLConfigVariableAwareEndpoint endpoint = getEndpoint(introspectionUrl, jsonProperty, element.getContainingFile().getVirtualFile());
-                    if (endpoint == null) {
-                        return;
-                    }
+                        final GraphQLConfigVariableAwareEndpoint endpoint = getEndpoint(introspectionUrl, jsonProperty, element.getContainingFile().getVirtualFile());
+                        if (endpoint == null) {
+                            return;
+                        }
 
-                    String schemaPath = getSchemaPath(jsonProperty, true);
-                    if (StringUtil.isEmptyOrSpaces(schemaPath)) {
-                        return;
-                    }
+                        String schemaPath = getSchemaPath(jsonProperty, true);
+                        if (StringUtil.isEmptyOrSpaces(schemaPath)) {
+                            return;
+                        }
 
-                    final Project project = element.getProject();
-                    final VirtualFile introspectionSourceFile = element.getContainingFile().getVirtualFile();
+                        final Project project = element.getProject();
+                        final VirtualFile introspectionSourceFile = element.getContainingFile().getVirtualFile();
 
-                    GraphQLIntrospectionService.getInstance(project).performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile);
+                        GraphQLIntrospectionService.getInstance(project).performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile);
 
-                }, GutterIconRenderer.Alignment.CENTER);
+                    },
+                    GutterIconRenderer.Alignment.CENTER,
+                    () -> GraphQLBundle.message("graphql.introspection.run.query")
+                );
             }
         }
         return null;
@@ -188,14 +192,13 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
             return new GraphQLConfigVariableAwareEndpoint(endpointConfig, urlJsonProperty.getProject(), configFile);
 
         } catch (Exception e) {
-            Notifications.Bus.notify(new Notification("GraphQL", "GraphQL Configuration Error", e.getMessage(), NotificationType.ERROR), urlJsonProperty.getProject());
+            Notifications.Bus.notify(new Notification(
+                GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                GraphQLBundle.message("graphql.notification.configuration.error"),
+                e.getMessage(),
+                NotificationType.ERROR
+            ), urlJsonProperty.getProject());
         }
         return null;
-    }
-
-    @Override
-    public void collectSlowLineMarkers(@NotNull List<? extends PsiElement> elements,
-                                       @NotNull Collection<? super LineMarkerInfo<?>> result) {
-        // compatibility with 182
     }
 }
