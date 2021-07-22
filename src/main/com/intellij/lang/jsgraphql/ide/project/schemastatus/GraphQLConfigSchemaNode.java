@@ -28,6 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.intellij.util.SlowOperations;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -87,7 +88,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
             configurationEntryFile = configManager.getConfigurationEntryFile(configData);
             endpoints = GraphQLFileType.isGraphQLFile(project, configurationEntryFile.getVirtualFile())
                 ? configManager.getEndpoints(configurationEntryFile.getVirtualFile()) : null;
-            mySchemaInfo = registry.getSchemaInfo(configurationEntryFile);
+            mySchemaInfo = SlowOperations.allowSlowOperations(() -> registry.getSchemaInfo(configurationEntryFile));
         } else {
             mySchemaInfo = null;
             endpoints = null;
