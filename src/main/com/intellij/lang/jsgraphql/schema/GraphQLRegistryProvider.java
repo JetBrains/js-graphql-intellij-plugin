@@ -124,6 +124,8 @@ public class GraphQLRegistryProvider implements Disposable {
                             }
                         } catch (ProcessCanceledException e) {
                             throw e;
+                        } catch (SchemaProblem e) {
+                            errors.add(e);
                         } catch (Exception e) {
                             final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(1, 1, GraphQLPsiUtil.getFileName(psiFile)));
                             errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, e.getMessage()))));
