@@ -138,6 +138,8 @@
 
 
     <!-- Spellchecking and to-do view-->
+    <spellchecker.support language="GraphQL"
+                          implementationClass="com.intellij.lang.jsgraphql.ide.spellchecking.GraphQLSpellcheckingStrategy"/>
     <spellchecker.support language="GraphQL Endpoint"
                           implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointSpellcheckingStrategy"/>
     <todoIndexer filetype="GraphQL Endpoint" implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTodoIndexer"/>
