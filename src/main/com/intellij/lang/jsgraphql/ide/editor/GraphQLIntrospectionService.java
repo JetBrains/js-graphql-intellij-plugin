@@ -30,6 +30,7 @@ import com.intellij.lang.jsgraphql.types.language.ScalarTypeDefinition;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaParser;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter;
 import com.intellij.lang.jsgraphql.types.schema.idl.UnExecutableSchemaGenerator;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.lang.jsgraphql.types.util.EscapeUtil;
 import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService;
 import com.intellij.notification.Notification;
@@ -267,9 +268,11 @@ public class GraphQLIntrospectionService implements Disposable {
         );
 
         if (schemaInfo.hasErrors()) {
-            for (GraphQLError error : schemaInfo.getErrors()) {
+            List<GraphQLError> errors = schemaInfo.getErrors();
+            for (GraphQLError error : errors) {
                 LOG.warn(error.getMessage());
             }
+            throw new SchemaProblem(errors);
         }
 
         final StringBuilder sb = new StringBuilder(new SchemaPrinter(options).print(schemaInfo.getSchema()));
@@ -295,7 +298,12 @@ public class GraphQLIntrospectionService implements Disposable {
                 }
             }
         }
-        return sb.toString();
+
+        String sdl = sb.toString();
+        if (LOG.isDebugEnabled()) {
+            LOG.debug(sdl);
+        }
+        return sdl;
     }
 
     @SuppressWarnings("unchecked")
@@ -396,13 +404,13 @@ public class GraphQLIntrospectionService implements Disposable {
                     CodeStyleManager.getInstance(myProject).reformat(psiFile);
                 }
             });
-        } catch (IOException ioe) {
-            LOG.info(ioe);
+        } catch (IOException e) {
+            LOG.info(e);
             Notifications.Bus.notify(new Notification(
                 GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
                 GraphQLBundle.message("graphql.notification.error.title"),
                 GraphQLBundle.message("graphql.notification.unable.to.create.file",
-                    outputFileName, introspectionSourceFile.getParent().getPath(), GraphQLNotificationUtil.formatExceptionMessage(ioe)),
+                    outputFileName, introspectionSourceFile.getParent().getPath(), GraphQLNotificationUtil.formatExceptionMessage(e)),
                 NotificationType.ERROR
             ));
         }
