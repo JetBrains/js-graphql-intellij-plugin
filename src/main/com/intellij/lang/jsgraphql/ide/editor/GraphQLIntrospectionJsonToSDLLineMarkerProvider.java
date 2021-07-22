@@ -20,6 +20,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -70,6 +71,8 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
                         final String outputFileName = jsonFile.getName() + ".graphql";
 
                         graphQLIntrospectionService.createOrUpdateIntrospectionOutputFile(schemaAsSDL, GraphQLIntrospectionService.IntrospectionOutputFormat.SDL, jsonFile, outputFileName);
+                    } catch (ProcessCanceledException e) {
+                        throw e;
                     } catch (Exception e) {
                         Notification notification = new Notification(
                             GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
@@ -86,7 +89,7 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
 
                 PsiElement anchor = jsonProperty.getNameElement().getFirstChild();
                 if (anchor == null) return null;
-                
+
                 return new LineMarkerInfo<>(
                     anchor,
                     anchor.getTextRange(),
