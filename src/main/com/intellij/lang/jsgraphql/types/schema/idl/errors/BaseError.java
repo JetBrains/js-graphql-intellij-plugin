@@ -32,7 +32,7 @@ import java.util.List;
 @SuppressWarnings("rawtypes")
 @Internal
 public class BaseError extends GraphQLException implements GraphQLError {
-    protected static final SourceLocation NO_WHERE = new SourceLocation(-1, -1);
+    protected static final SourceLocation EMPTY = new SourceLocation(-1, -1);
 
     private final Node node;
     private final List<Node> myReferences = new ArrayList<>();
@@ -43,13 +43,15 @@ public class BaseError extends GraphQLException implements GraphQLError {
     }
 
     public static String lineCol(Node node) {
-        SourceLocation sourceLocation = node.getSourceLocation() == null ? NO_WHERE : node.getSourceLocation();
+        SourceLocation sourceLocation = node.getSourceLocation() == null ? EMPTY : node.getSourceLocation();
         return String.format("[@%d:%d]", sourceLocation.getLine(), sourceLocation.getColumn());
     }
 
     @Override
     public List<SourceLocation> getLocations() {
-        return node == null ? Collections.singletonList(NO_WHERE) : Collections.singletonList(node.getSourceLocation());
+        return node == null || node.getSourceLocation() == null ?
+            Collections.singletonList(EMPTY) :
+            Collections.singletonList(node.getSourceLocation());
     }
 
     @Override
