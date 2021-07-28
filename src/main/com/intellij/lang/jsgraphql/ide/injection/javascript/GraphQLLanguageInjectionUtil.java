@@ -17,7 +17,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
+import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.text.CharArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -123,7 +123,7 @@ public class GraphQLLanguageInjectionUtil {
         }
 
         PsiElement element = PsiTreeUtil.skipWhitespacesBackward(initialElement);
-        if (PsiUtil.getElementType(element) != JSTokenTypes.C_STYLE_COMMENT) {
+        if (PsiUtilCore.getElementType(element) != JSTokenTypes.C_STYLE_COMMENT) {
             return false;
         }
 
