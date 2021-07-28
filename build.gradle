@@ -55,7 +55,7 @@ intellij {
 }
 
 runPluginVerifier {
-    ideVersions = ['IU-2019.3.5', 'IU-2020.2.4', 'IU-2021.2']
+    ideVersions = ['IU-2021.1', 'IU-2021.2']
 }
 
 runIde {
