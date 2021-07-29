@@ -42,6 +42,7 @@ import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.GlobalSearchScopesCore;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
+import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
@@ -281,10 +282,13 @@ public class GraphQLPsiSearchHelper implements Disposable {
                                 return; // no need to visit other elements
                             }
                         } else if (element instanceof JsonStringLiteral) {
-                            final GraphQLFile graphQLFile = element.getContainingFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
-                            if (graphQLFile != null && introspectionFiles.add(graphQLFile)) {
-                                // index the associated introspection SDL from a JSON introspection result file
-                                graphQLFile.accept(identifierVisitor.get());
+                            final CachedValue<GraphQLFile> cachedFile = element.getContainingFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
+                            if (cachedFile != null && cachedFile.hasUpToDateValue()) {
+                                GraphQLFile graphQLFile = cachedFile.getValue();
+                                if (introspectionFiles.add(graphQLFile)) {
+                                    // index the associated introspection SDL from a JSON introspection result file
+                                    graphQLFile.accept(identifierVisitor.get());
+                                }
                             }
                             return; // no need to visit deeper
                         } else if (element instanceof PsiLanguageInjectionHost) {

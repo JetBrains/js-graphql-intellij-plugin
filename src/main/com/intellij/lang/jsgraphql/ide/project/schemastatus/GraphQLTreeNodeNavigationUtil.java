@@ -19,6 +19,7 @@ import com.intellij.psi.NavigatablePsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.CachedValue;
 
 public final class GraphQLTreeNodeNavigationUtil {
 
@@ -38,10 +39,10 @@ public final class GraphQLTreeNodeNavigationUtil {
                 return;
             }
             if (file instanceof JsonFile && resolveSDLFromJSON) {
-                GraphQLFile graphQLFile = file.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
-                if (graphQLFile != null) {
+                CachedValue<GraphQLFile> cachedFile = file.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
+                if (cachedFile != null && cachedFile.hasUpToDateValue()) {
                     // open the SDL file and not the JSON introspection file it was based on
-                    file = graphQLFile;
+                    file = cachedFile.getValue();
                     sourceFile = file.getVirtualFile();
                 }
             }

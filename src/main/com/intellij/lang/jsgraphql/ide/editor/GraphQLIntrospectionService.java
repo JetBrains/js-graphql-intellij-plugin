@@ -45,10 +45,7 @@ import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -59,10 +56,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
@@ -299,11 +293,7 @@ public class GraphQLIntrospectionService implements Disposable {
             }
         }
 
-        String sdl = sb.toString();
-        if (LOG.isDebugEnabled()) {
-            LOG.debug(sdl);
-        }
-        return sdl;
+        return sb.toString();
     }
 
     @SuppressWarnings("unchecked")
@@ -380,7 +370,7 @@ public class GraphQLIntrospectionService implements Disposable {
                     throw new IllegalArgumentException("unsupported output format: " + format);
             }
 
-            VirtualFile outputFile = createSchemaFile(introspectionSourceFile, FileUtil.toSystemIndependentName(outputFileName));
+            VirtualFile outputFile = createOrUpdateSchemaFile(introspectionSourceFile, FileUtil.toSystemIndependentName(outputFileName));
 
             final FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(outputFile, true, true);
             if (fileEditors.length == 0) {
@@ -422,8 +412,8 @@ public class GraphQLIntrospectionService implements Disposable {
     }
 
     @NotNull
-    private VirtualFile createSchemaFile(@NotNull VirtualFile introspectionSourceFile,
-                                         @NotNull String relativeOutputFileName) throws IOException {
+    private VirtualFile createOrUpdateSchemaFile(@NotNull VirtualFile introspectionSourceFile,
+                                                 @NotNull String relativeOutputFileName) throws IOException {
         VirtualFile outputFile = introspectionSourceFile.getParent().findFileByRelativePath(relativeOutputFileName);
         if (outputFile == null) {
             outputFile = WriteAction.compute(() -> {

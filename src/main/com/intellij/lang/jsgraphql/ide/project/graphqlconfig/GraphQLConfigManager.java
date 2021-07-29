@@ -854,7 +854,7 @@ public class GraphQLConfigManager implements Disposable {
 
             if (configBaseDir == null) {
                 final PsiFile jsonIntrospectionFile = inMemoryVirtualFile.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_SDL_TO_JSON);
-                if (jsonIntrospectionFile != null && jsonIntrospectionFile.getVirtualFile() != null) {
+                if (jsonIntrospectionFile != null && jsonIntrospectionFile.isValid() && jsonIntrospectionFile.getVirtualFile() != null) {
                     // the file is the SDL derived from a JSON introspection file, so use the JSON file directory to find the associated config
                     configBaseDir = jsonIntrospectionFile.getVirtualFile().getParent();
                 } else if (inMemoryVirtualFile.getOriginalFile() != null) {
