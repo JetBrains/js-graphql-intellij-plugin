@@ -48,6 +48,7 @@
               extensions="graphql;graphqls;gql"/>
     <lang.parserDefinition language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLParserDefinition"/>
     <lang.fileViewProviderFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.psi.GraphQLFileViewProviderFactory"/>
+    <lang.fileViewProviderFactory language="JSON" implementationClass="com.intellij.lang.jsgraphql.psi.JsonFileViewProviderFactory"/>
 
     <!-- File templates -->
     <internalFileTemplate name="GraphQL File"/>
