@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -33,7 +34,7 @@ import java.util.Set;
 public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, GraphQLIdentifierIndex.IdentifierKind> {
 
     public static final ID<String, IdentifierKind> NAME = ID.create("GraphQLIdentifierIndex");
-    public static final int VERSION = 2;
+    public static final int VERSION = 3;
 
     private final @Nullable GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
 
@@ -166,4 +167,8 @@ public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, Grap
         return true;
     }
 
+    @Override
+    public @NotNull Collection<FileType> getFileTypesWithSizeLimitNotApplicable() {
+        return GraphQLIndexUtil.FILE_TYPES_WITH_IGNORED_SIZE_LIMIT;
+    }
 }

@@ -47,6 +47,7 @@
     <fileType name="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLFileType" fieldName="INSTANCE" language="GraphQL"
               extensions="graphql;graphqls;gql"/>
     <lang.parserDefinition language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLParserDefinition"/>
+    <lang.fileViewProviderFactory language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.psi.GraphQLFileViewProviderFactory"/>
 
     <!-- File templates -->
     <internalFileTemplate name="GraphQL File"/>
