@@ -30,7 +30,7 @@ public class ConditionalGlobalSearchScope extends DelegatingGlobalSearchScope {
 
     @Override
     public boolean contains(@NotNull VirtualFile file) {
-        if(!isEnabled.get()) {
+        if (!isEnabled.get()) {
             return false;
         }
         return super.contains(file);
@@ -46,7 +46,7 @@ public class ConditionalGlobalSearchScope extends DelegatingGlobalSearchScope {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), isEnabled);
+    public int calcHashCode() {
+        return Objects.hash(super.calcHashCode(), isEnabled);
     }
 }
