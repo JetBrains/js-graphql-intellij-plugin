@@ -35,7 +35,7 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
                 e.getPresentation().setEnabled(false);
                 return;
             }
-            final Boolean querying = Boolean.TRUE.equals(editor.getUserData(JSGraphQLLanguageUIProjectService.JS_GRAPH_QL_EDITOR_QUERYING));
+            final Boolean querying = Boolean.TRUE.equals(editor.getUserData(JSGraphQLLanguageUIProjectService.GRAPH_QL_EDITOR_QUERYING));
             e.getPresentation().setEnabled(!querying);
         }
     }
@@ -47,7 +47,7 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
         if(isQueryableFile(project, virtualFile)) {
             Editor editor = e.getData(CommonDataKeys.EDITOR);
             if(project != null && editor instanceof EditorEx) {
-                final Boolean querying = Boolean.TRUE.equals(editor.getUserData(JSGraphQLLanguageUIProjectService.JS_GRAPH_QL_EDITOR_QUERYING));
+                final Boolean querying = Boolean.TRUE.equals(editor.getUserData(JSGraphQLLanguageUIProjectService.GRAPH_QL_EDITOR_QUERYING));
                 if(querying) {
                     // already doing a query
                     return;

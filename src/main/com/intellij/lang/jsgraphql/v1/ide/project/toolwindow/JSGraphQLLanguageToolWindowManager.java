@@ -38,20 +38,16 @@ public class JSGraphQLLanguageToolWindowManager implements Disposable {
 
     private volatile ToolWindow myToolWindow;
 
-    private String myHelpId;
-
     private final Icon myIcon;
-
-    private AnAction[] myActions;
 
     private final String myToolWindowName;
 
-    public JSGraphQLLanguageToolWindowManager(@NotNull Project project, @NotNull String toolWindowName, @NotNull String helpId, @Nullable Icon icon, @Nullable AnAction... actions) {
+    public JSGraphQLLanguageToolWindowManager(@NotNull Project project,
+                                              @NotNull String toolWindowName,
+                                              @Nullable Icon icon) {
         myProject = project;
         myToolWindowName = toolWindowName;
-        myHelpId = helpId;
         myIcon = icon;
-        myActions = actions;
     }
 
     public synchronized void init() {
@@ -59,7 +55,9 @@ public class JSGraphQLLanguageToolWindowManager implements Disposable {
             ApplicationManager.getApplication().assertIsDispatchThread();
             ToolWindowManager manager = ToolWindowManager.getInstance(myProject);
             myToolWindow = manager.registerToolWindow(myToolWindowName, true, ToolWindowAnchor.BOTTOM, myProject, true);
-            myToolWindow.setIcon(myIcon);
+            if (myIcon != null) {
+                myToolWindow.setIcon(myIcon);
+            }
             createSchemasPanel();
             myFirstInitialized = true;
         }

@@ -66,7 +66,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.impl.ContentImpl;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.lang.StringUtils;
@@ -86,10 +86,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Provides the project-specific GraphQL tool window, including errors view, console, and query result editor.
@@ -98,8 +96,6 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
     public final static String GRAPH_QL_TOOL_WINDOW_NAME = "GraphQL";
     public static final String GRAPH_QL_VARIABLES_JSON = "GraphQL.variables.json";
-
-    private static final Key<Boolean> JSGRAPHQL_SHOW_CONSOLE_ON_ERROR = Key.create("JSGraphQL.showConsoleOnError");
 
     /**
      * Indicates that this virtual file backs a GraphQL variables editor
@@ -118,17 +114,14 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
     public final static Key<JSGraphQLEndpointsModel> JS_GRAPH_QL_ENDPOINTS_MODEL = Key.create("JSGraphQLEndpointsModel");
 
-    public final static Key<Boolean> JS_GRAPH_QL_EDITOR_QUERYING = Key.create("JSGraphQLEditorQuerying");
+    public final static Key<Boolean> GRAPH_QL_EDITOR_QUERYING = Key.create("JSGraphQLEditorQuerying");
 
     private static final String FILE_URL_PROPERTY = "fileUrl";
 
     private final JSGraphQLLanguageToolWindowManager myToolWindowManager;
-    private boolean myToolWindowManagerInitialized = false;
 
     @NotNull
     private final Project myProject;
-
-    private final Object myLock = new Object();
 
     private FileEditor fileEditor;
     private JBLabel queryResultLabel;
@@ -141,7 +134,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         final MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
 
         // tool window
-        myToolWindowManager = new JSGraphQLLanguageToolWindowManager(project, GRAPH_QL_TOOL_WINDOW_NAME, GRAPH_QL_TOOL_WINDOW_NAME, JSGraphQLIcons.UI.GraphQLToolwindow);
+        myToolWindowManager = new JSGraphQLLanguageToolWindowManager(project, GRAPH_QL_TOOL_WINDOW_NAME, JSGraphQLIcons.UI.GraphQLToolwindow);
         Disposer.register(this, this.myToolWindowManager);
 
         // listen for editor file tab changes to update the list of current errors
@@ -219,7 +212,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                 continue;
             }
             final List<GraphQLConfigEndpoint> endpoints = graphQLConfigManager.getEndpoints(file);
-            GuiUtils.invokeLaterIfNeeded(() -> {
+            ModalityUiUtil.invokeLaterIfNeeded(() -> {
                 ApplicationManager.getApplication().runReadAction(() -> {
                     for (FileEditor editor : fileEditorManager.getEditors(file)) {
                         if (editor instanceof TextEditor) {
@@ -359,7 +352,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                         errorEditor.getContentComponent().grabFocus();
                         final VirtualFile errorFile = FileDocumentManager.getInstance().getFile(errorEditor.getDocument());
                         if (errorFile != null) {
-                            final List<CodeSmellInfo> errors = CodeSmellDetector.getInstance(myProject).findCodeSmells(ContainerUtil.list(errorFile));
+                            final List<CodeSmellInfo> errors = CodeSmellDetector.getInstance(myProject).findCodeSmells(Collections.singletonList(errorFile));
                             for (CodeSmellInfo error : errors) {
                                 errorMessage = error.getDescription();
                                 errorEditor.getCaretModel().moveToOffset(error.getTextRange().getStartOffset());
@@ -400,7 +393,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
         try {
             try (final CloseableHttpClient httpClient = introspectionService.createHttpClient()) {
-                editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, true);
+                editor.putUserData(GRAPH_QL_EDITOR_QUERYING, true);
 
                 String responseJson;
                 Header contentType;
@@ -440,7 +433,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                         }
 
                         querySuccessLabel.setVisible(errorCount != null);
-                        if (querySuccessLabel.isVisible()) {
+                        if (querySuccessLabel.isVisible() && errorCount != null) {
                             if (errorCount == 0) {
                                 querySuccessLabel.setBorder(BorderFactory.createEmptyBorder(2, 8, 0, 0));
                                 querySuccessLabel.setIcon(AllIcons.General.InspectionsOK);
@@ -453,7 +446,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     });
                 }
             } finally {
-                editor.putUserData(JS_GRAPH_QL_EDITOR_QUERYING, null);
+                editor.putUserData(GRAPH_QL_EDITOR_QUERYING, null);
             }
         } catch (IOException | GeneralSecurityException e) {
             GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.WARNING, null);
@@ -625,7 +618,6 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                 if (toolWindow != null) {
                     createToolWindowResultEditor(toolWindow);
                 }
-                myToolWindowManagerInitialized = true;
             }, myProject.getDisposed()));
         }
     }
