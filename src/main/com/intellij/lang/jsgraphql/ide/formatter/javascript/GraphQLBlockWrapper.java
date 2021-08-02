@@ -11,6 +11,7 @@ import com.intellij.formatting.*;
 import com.intellij.injected.editor.DocumentWindow;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
+import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLLanguageInjectionUtil;
@@ -23,8 +24,6 @@ import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.formatter.common.SettingsAwareBlock;
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
-import com.intellij.util.containers.ContainerUtilRt;
 import com.intellij.webcore.formatter.CompositeBlock;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,10 +33,10 @@ import java.util.List;
 
 public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, SettingsAwareBlock {
     @Nullable
-    private GraphQLBlockWrapper parent;
-    private SpacingBuilder spacingBuilder;
+    private final GraphQLBlockWrapper parent;
+    private final SpacingBuilder spacingBuilder;
     private final CodeStyleSettings settings;
-    private Block wrapped;
+    private final Block wrapped;
     private List<Block> subBlocks;
 
     protected GraphQLBlockWrapper(Block wrapped,
@@ -85,7 +84,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
         if (myNode.getPsi() instanceof JSStringTemplateExpression && GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(myNode.getPsi())) {
 
             JSStringTemplateExpression psi = (JSStringTemplateExpression) myNode.getPsi();
-            InjectedLanguageUtil.enumerate(psi, (injectedPsi, places) -> {
+            InjectedLanguageManager.getInstance(psi.getProject()).enumerate(psi, (injectedPsi, places) -> {
                 // NO-OP here, but we need to enumerate for injection blocks to work in AbstractBlock#buildInjectedBlocks
                 // since they call InjectedLanguageUtil.getCachedInjectedDocuments and return if empty
             });
@@ -98,15 +97,34 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
             for (Block subBlock : subBlocks) {
                 if (subBlock instanceof ASTBlock) {
                     final ASTNode node = ((ASTBlock) subBlock).getNode();
-                    final Block block = new GraphQLBlockWrapper(subBlock, this, node, subBlock.getWrap(), subBlock.getAlignment(), spacingBuilder, settings);
-                    blocks.add(block);
+                    if (node != null) {
+                        blocks.add(new GraphQLBlockWrapper(
+                            subBlock,
+                            this,
+                            node,
+                            subBlock.getWrap(),
+                            subBlock.getAlignment(),
+                            spacingBuilder,
+                            settings
+                        ));
+                    }
                 } else if (subBlock instanceof CompositeBlock) {
                     // the block represents multiple blocks, e.g. a method call and its parameter list
                     final List<Block> nestedSubBlocks = subBlock.getSubBlocks();
                     for (Block nestedSubBlock : nestedSubBlocks) {
                         if (nestedSubBlock instanceof ASTBlock) {
-                            final Block block = new GraphQLBlockWrapper(nestedSubBlock, this, ((ASTBlock) nestedSubBlock).getNode(), nestedSubBlock.getWrap(), nestedSubBlock.getAlignment(), spacingBuilder, settings);
-                            blocks.add(block);
+                            ASTNode node = ((ASTBlock) nestedSubBlock).getNode();
+                            if (node != null) {
+                                blocks.add(new GraphQLBlockWrapper(
+                                    nestedSubBlock,
+                                    this,
+                                    node,
+                                    nestedSubBlock.getWrap(),
+                                    nestedSubBlock.getAlignment(),
+                                    spacingBuilder,
+                                    settings
+                                ));
+                            }
                         } else {
                             // don't know how to wrap this, but we need to add it to main valid ranges for formatting
                             blocks.add(nestedSubBlock);
@@ -172,7 +190,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
         if (wrapped != null) {
             Spacing wrappedSpacing = wrapped.getSpacing(child1, child2);
             if (wrappedSpacing == null) {
-                // the wrapped formatter might not recognize a wrapped block, so try with the orignal wrapped children instead
+                // the wrapped formatter might not recognize a wrapped block, so try with the original wrapped children instead
                 wrappedSpacing = wrapped.getSpacing(unwrap(child1), unwrap(child2));
             }
             return wrappedSpacing;
@@ -239,19 +257,20 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
             return EMPTY;
         }
 
-        if (InjectedLanguageUtil.getCachedInjectedDocuments(file).isEmpty()) {
+        InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(psi.getProject());
+        List<DocumentWindow> injectedDocuments = injectedLanguageManager.getCachedInjectedDocumentsInRange(file, file.getTextRange());
+        if (injectedDocuments.isEmpty()) {
             return EMPTY;
         }
 
         TextRange blockRange = myNode.getTextRange();
-        List<DocumentWindow> documentWindows = InjectedLanguageUtil.getCachedInjectedDocuments(file);
-        for (DocumentWindow documentWindow : documentWindows) {
+        for (DocumentWindow documentWindow : injectedDocuments) {
             int startOffset = documentWindow.injectedToHost(0);
             int endOffset = startOffset + documentWindow.getTextLength();
             if (blockRange.containsRange(startOffset, endOffset)) {
                 PsiFile injected = PsiDocumentManager.getInstance(psi.getProject()).getCachedPsiFile(documentWindow);
                 if (injected != null) {
-                    List<Block> result = ContainerUtilRt.newArrayList();
+                    List<Block> result = new ArrayList<>();
                     GraphQLInjectedLanguageBlockBuilder builder = new GraphQLInjectedLanguageBlockBuilder(settings);
                     builder.addInjectedBlocks(result, myNode, getWrap(), getAlignment(), getIndent());
                     return result;
