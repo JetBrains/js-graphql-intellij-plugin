@@ -43,6 +43,10 @@
 
     <applicationService serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil"/>
 
+    <!-- Color scheme -->
+    <additionalTextAttributes scheme="Default" file="colorSchemes/GraphQLLanguageDefault.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorSchemes/GraphQLLanguageDarcula.xml"/>
+
     <!-- Language registration -->
     <fileType name="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLFileType" fieldName="INSTANCE" language="GraphQL"
               extensions="graphql;graphqls;gql"/>

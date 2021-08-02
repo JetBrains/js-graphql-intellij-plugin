@@ -36,6 +36,7 @@ public class GraphQLColorSettingsPage implements ColorSettingsPage {
       new AttributesDescriptor("Type name", GraphQLSyntaxAnnotator.TYPE_NAME),
       new AttributesDescriptor("Constant", GraphQLSyntaxAnnotator.CONSTANT),
       new AttributesDescriptor("Directive", GraphQLSyntaxAnnotator.DIRECTIVE),
+      new AttributesDescriptor("Unused fragment", GraphQLSyntaxAnnotator.UNUSED_FRAGMENT),
   };
 
   private static final Map<String, TextAttributesKey> TAG_TO_DESCRIPTOR_MAP = new HashMap<>();

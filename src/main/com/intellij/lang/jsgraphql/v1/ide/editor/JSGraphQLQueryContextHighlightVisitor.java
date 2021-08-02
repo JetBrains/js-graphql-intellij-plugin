@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
+import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.codeInsight.daemon.impl.HighlightVisitor;
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightInfoHolder;
 import com.intellij.codeInsight.highlighting.HighlightManager;
@@ -20,8 +21,8 @@ import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.lang.annotation.Annotation;
-import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxAnnotator;
+import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -53,7 +54,10 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -129,10 +133,14 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                     showAsUsed = true;
                 }
                 if (showAsUsed) {
-                    final TextRange range = psiElement.getTextRange();
-                    final Annotation annotation = new Annotation(range.getStartOffset(), range.getEndOffset(), HighlightSeverity.INFORMATION, ELEMENT_INCLUDED_MESSAGE, null);
-                    annotation.setEnforcedTextAttributes(textAttributes);
-                    holder.add(HighlightInfo.fromAnnotation(annotation));
+                    holder.add(
+                        HighlightInfo
+                            .newHighlightInfo(HighlightInfoType.INFORMATION)
+                            .textAttributes(textAttributes)
+                            .range(psiElement.getTextRange())
+                            .description(ELEMENT_INCLUDED_MESSAGE)
+                            .create()
+                    );
                 }
             }
 
@@ -149,7 +157,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                 if (!Boolean.TRUE.equals(editor.getUserData(QUERY_HIGHLIGHT_LISTENER_ADDED))) {
                     editor.getCaretModel().addCaretListener(new CaretListener() {
                         @Override
-                        public void caretPositionChanged(CaretEvent e) {
+                        public void caretPositionChanged(@NotNull CaretEvent e) {
                             // re-highlight when the operation changes
 
                             final Editor currentEditor = e.getEditor();
@@ -188,7 +196,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                             }
                         }
                     });
-                    // finally indicate we've added the listener
+                    // finally, indicate we've added the listener
                     editor.putUserData(QUERY_HIGHLIGHT_LISTENER_ADDED, true);
                 }
             }
@@ -229,16 +237,11 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
         return false;
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     @NotNull
     @Override
-    @SuppressWarnings("CloneDoesntCallSuperClone")
     public HighlightVisitor clone() {
         return new JSGraphQLQueryContextHighlightVisitor();
-    }
-
-    @Override
-    public int order() {
-        return 9999;
     }
 
     /**
@@ -294,7 +297,6 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                     }
 
                     // indicate in the editor which text wasn't used
-                    final TextAttributes unusedTextAttributes = getUnusedTextAttributes();
                     int startOffset = 0;
                     final Collection<TextRange> unusedRanges = Lists.newArrayList();
                     for (TextRange selectedRange : selectedRanges) {
@@ -308,7 +310,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                     }
 
                     for (TextRange unusedRange : unusedRanges) {
-                        highlightUnusedRange(editor, unusedTextAttributes, unusedRange);
+                        highlightUnusedRange(editor, unusedRange);
                     }
 
                     showQueryContextHint(editor, "Executed selection");
@@ -321,20 +323,20 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                         // query error callback
                         // add a hint to use caret position instead
                         final Notification notification = new Notification(
-                                "GraphQL",
-                                "Limit the GraphQL that is sent to the server?",
-                                QUERY_CONTEXT_HINT_MESSAGE,
-                                NotificationType.INFORMATION,
-                                (source, event) -> {
-                                    if (HIDE_LINK.equals(event.getDescription())) {
-                                        PropertiesComponent.getInstance(editor.getProject()).setValue(QUERY_SELECT_OPERATION_HINT_PREF_KEY, HIDE_LINK);
-                                    } else if (SELECT_OPERATION_LINK.equals(event.getDescription())) {
-                                        placeCaretInsideFirstOperation(editor, psiFile);
-                                        removeHighlights(editor, editor.getProject());
-                                    }
-                                    source.expire();
-                                }
+                            GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                            "Limit the GraphQL that is sent to the server?",
+                            QUERY_CONTEXT_HINT_MESSAGE,
+                            NotificationType.INFORMATION
                         );
+                        notification.setListener((source, event) -> {
+                            if (HIDE_LINK.equals(event.getDescription())) {
+                                PropertiesComponent.getInstance(editor.getProject()).setValue(QUERY_SELECT_OPERATION_HINT_PREF_KEY, HIDE_LINK);
+                            } else if (SELECT_OPERATION_LINK.equals(event.getDescription())) {
+                                placeCaretInsideFirstOperation(editor, psiFile);
+                                removeHighlights(editor, editor.getProject());
+                            }
+                            source.expire();
+                        });
                         Notifications.Bus.notify(notification, editor.getProject());
                     });
 
@@ -350,7 +352,6 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                     Set<PsiElement> queryElements = Sets.newHashSet(foundFragments.values());
                     queryElements.add(operationAtCursor);
                     final StringBuilder query = new StringBuilder(editorLength);
-                    final TextAttributes unusedTextAttributes = getUnusedTextAttributes();
                     for (PsiElement psiElement : psiFile.getChildren()) {
                         if (psiElement instanceof PsiWhiteSpace) {
                             if (!queryElements.isEmpty()) {
@@ -384,7 +385,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                                     }
                                 }
                                 // tone down to indicate the text wasn't included
-                                highlightUnusedRange(editor, unusedTextAttributes, textRange);
+                                highlightUnusedRange(editor, textRange);
                             }
                         }
                     }
@@ -420,24 +421,15 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
     /**
      * Uses a range highlighter to show a range of unused text as dimmed
      */
-    private static void highlightUnusedRange(Editor editor, TextAttributes unusedTextAttributes, TextRange textRange) {
+    private static void highlightUnusedRange(Editor editor, TextRange textRange) {
         final Project project = editor.getProject();
         if (project != null) {
             HighlightManager.getInstance(project).addRangeHighlight(
-                    editor,
-                    textRange.getStartOffset(),
-                    textRange.getEndOffset(),
-                    unusedTextAttributes, true, true, null);
+                editor,
+                textRange.getStartOffset(),
+                textRange.getEndOffset(),
+                GraphQLSyntaxAnnotator.UNUSED_FRAGMENT, true, true, null);
         }
-    }
-
-    /**
-     * Gets text attributes for dimming unused text
-     */
-    @NotNull
-    private static TextAttributes getUnusedTextAttributes() {
-        final Color unusedColor = EditorColorsManager.getInstance().getGlobalScheme().getColor(EditorColors.TEARLINE_COLOR);
-        return new TextAttributes(unusedColor, null, null, null, 0);
     }
 
     /**
@@ -448,10 +440,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
             return "query";
         }
         if (operation instanceof GraphQLTypedOperationDefinition) {
-            final GraphQLOperationType operationType = ((GraphQLTypedOperationDefinition) operation).getOperationType();
-            if (operationType != null) {
-                return operationType.getText();
-            }
+            return ((GraphQLTypedOperationDefinition) operation).getOperationType().getText();
         }
         return "operation";
     }
@@ -516,10 +505,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                         // try to find the name of the operation
                         if (operationOrNull instanceof GraphQLSelectionSetOperationDefinition) {
                             // unnamed query
-                            final GraphQLSelectionSet selectionSet = ((GraphQLSelectionSetOperationDefinition) operationOrNull).getSelectionSet();
-                            if (selectionSet != null) {
-                                navigationTarget = selectionSet;
-                            }
+                            navigationTarget = ((GraphQLSelectionSetOperationDefinition) operationOrNull).getSelectionSet();
                         } else if (operationOrNull.getNameIdentifier() != null) {
                             navigationTarget = operationOrNull.getNameIdentifier();
                         }
@@ -550,13 +536,12 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
             private boolean done = false;
 
             @Override
-            public void visitElement(PsiElement element) {
+            public void visitElement(@NotNull PsiElement element) {
                 if (done) {
                     return;
                 }
                 if (element instanceof GraphQLFragmentSpread) {
-                    final GraphQLIdentifier fragmentSpreadName = ((GraphQLFragmentSpread) element).getNameIdentifier();
-                    final PsiReference reference = fragmentSpreadName != null ? fragmentSpreadName.getReference() : null;
+                    final PsiReference reference = ((GraphQLFragmentSpread) element).getNameIdentifier().getReference();
                     if (reference != null) {
                         PsiElement fragmentDefinitionRef = reference.resolve();
                         if (fragmentDefinitionRef instanceof GraphQLIdentifier) {
