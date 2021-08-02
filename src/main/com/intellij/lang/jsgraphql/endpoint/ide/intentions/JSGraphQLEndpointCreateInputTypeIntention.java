@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright (c) 2015-present, Jim Kynde Meyer
  *  All rights reserved.
  *
