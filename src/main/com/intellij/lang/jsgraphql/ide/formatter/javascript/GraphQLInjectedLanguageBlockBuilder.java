@@ -8,14 +8,12 @@
 package com.intellij.lang.jsgraphql.ide.formatter.javascript;
 
 import com.google.common.collect.Lists;
-import com.intellij.formatting.Alignment;
-import com.intellij.formatting.Block;
-import com.intellij.formatting.FormattingModelBuilder;
-import com.intellij.formatting.Indent;
-import com.intellij.formatting.Wrap;
+import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.LanguageFormatting;
+import com.intellij.lang.injection.InjectedLanguageManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
@@ -24,7 +22,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.formatter.common.DefaultInjectedLanguageBlockBuilder;
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +37,7 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
     @Override
     public boolean addInjectedBlocks(List<? super Block> result, ASTNode injectionHost, Wrap wrap, Alignment alignment, Indent indent) {
         boolean added = super.addInjectedBlocks(result, injectionHost, wrap, alignment, indent);
-        if(!added) {
+        if (!added) {
             // 'if (places.size() != 1) {' guard in super
             // happens when the GraphQL is interrupted by JS/TS template fragments
             added = graphQLSupportingAddInjectedBlocks(result, injectionHost, wrap, alignment, indent);
@@ -50,7 +47,11 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
 
 
     // based on DefaultInjectedLanguageBlockBuilder.addInjectedBlocks but merges multiple shreds into one
-    private boolean graphQLSupportingAddInjectedBlocks(List<? super Block> result, ASTNode injectionHost, Wrap wrap, Alignment alignment, Indent indent) {
+    private boolean graphQLSupportingAddInjectedBlocks(List<? super Block> result,
+                                                       ASTNode injectionHost,
+                                                       Wrap wrap,
+                                                       Alignment alignment,
+                                                       Indent indent) {
         final PsiFile[] injectedFile = new PsiFile[1];
         final Ref<TextRange> injectedRangeInsideHost = new Ref<>();
         final Ref<Integer> prefixLength = new Ref<>();
@@ -61,7 +62,7 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
 
             List<PsiLanguageInjectionHost.Shred> places = Lists.newArrayList(defaultImplPlaces);
             if (places.size() != 1) {
-                // this is where DefaultInjectedLanguageBlockBuilder.addInjectedBlocks bails and we don't get our injected formatting blocks
+                // this is where DefaultInjectedLanguageBlockBuilder.addInjectedBlocks bails, and we don't get our injected formatting blocks
                 places = mergePlacesIntoOne(places);
             }
 
@@ -93,8 +94,8 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
 
             String childText;
             if ((injectionHost.getTextLength() == textRange.getEndOffset() && textRange.getStartOffset() == 0) ||
-                    (canProcessFragment((childText = injectionHost.getText()).substring(0, textRange.getStartOffset()), injectionHost) &&
-                            canProcessFragment(childText.substring(textRange.getEndOffset()), injectionHost))) {
+                (canProcessFragment((childText = injectionHost.getText()).substring(0, textRange.getStartOffset()), injectionHost) &&
+                    canProcessFragment(childText.substring(textRange.getEndOffset()), injectionHost))) {
                 injectedFile[0] = injectedPsi;
                 injectedRangeInsideHost.set(textRange);
                 prefixLength.set(shred.getPrefix().length());
@@ -102,9 +103,12 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
             }
         };
         final PsiElement injectionHostPsi = injectionHost.getPsi();
-        InjectedLanguageUtil.enumerate(injectionHostPsi, injectionHostPsi.getContainingFile(), false, injectedPsiVisitor);
+        Project project = injectionHostPsi.getProject();
 
-        if  (injectedFile[0] != null) {
+        InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(project);
+        injectedLanguageManager.enumerateEx(injectionHostPsi, injectionHostPsi.getContainingFile(), false, injectedPsiVisitor);
+
+        if (injectedFile[0] != null) {
             final Language childLanguage = injectedFile[0].getLanguage();
             final FormattingModelBuilder builder = LanguageFormatting.INSTANCE.forContext(childLanguage, injectionHostPsi);
 
@@ -120,7 +124,7 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
                 }
 
                 addInjectedLanguageBlockWrapper(result, injectedFile[0].getNode(), indent, childOffset + startOffset,
-                        new TextRange(prefixLength.get(), injectedFile[0].getTextLength() - suffixLength.get()));
+                    new TextRange(prefixLength.get(), injectedFile[0].getTextLength() - suffixLength.get()));
 
                 if (endOffset != injectionHostToUse.get().getTextLength()) {
                     final ASTNode leaf = injectionHostToUse.get().findLeafElementAt(endOffset);
@@ -141,13 +145,13 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
             }
 
             private PsiLanguageInjectionHost.Shred getLast() {
-                return places.get(places.size()-1);
+                return places.get(places.size() - 1);
             }
 
             @Nullable
             @Override
             public Segment getHostRangeMarker() {
-                if(getFirst().getHostRangeMarker() != null && getLast().getHostRangeMarker() != null) {
+                if (getFirst().getHostRangeMarker() != null && getLast().getHostRangeMarker() != null) {
                     return new Segment() {
                         @Override
                         public int getStartOffset() {
@@ -178,7 +182,7 @@ public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguage
             @Override
             public boolean isValid() {
                 for (PsiLanguageInjectionHost.Shred place : places) {
-                    if(!place.isValid()) {
+                    if (!place.isValid()) {
                         return false;
                     }
                 }
