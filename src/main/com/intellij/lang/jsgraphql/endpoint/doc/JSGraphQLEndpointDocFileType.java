@@ -9,10 +9,10 @@ package com.intellij.lang.jsgraphql.endpoint.doc;
 
 import javax.swing.*;
 
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 
 public class JSGraphQLEndpointDocFileType extends LanguageFileType {
@@ -44,6 +44,6 @@ public class JSGraphQLEndpointDocFileType extends LanguageFileType {
 	@Nullable
 	@Override
 	public Icon getIcon() {
-		return JSGraphQLIcons.Files.GraphQLSchema;
+		return GraphQLIcons.Files.GraphQLSchema;
 	}
 }

@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
@@ -82,7 +82,7 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
             myName = endpoint.name;
             getTemplatePresentation().setTooltip("Endpoints allow you to perform GraphQL introspection, queries and mutations");
             getTemplatePresentation().setLocationString(endpoint.url);
-            setIcon(JSGraphQLIcons.UI.GraphQLNode);
+            setIcon(GraphQLIcons.UI.GraphQLNode);
         }
 
         @Override

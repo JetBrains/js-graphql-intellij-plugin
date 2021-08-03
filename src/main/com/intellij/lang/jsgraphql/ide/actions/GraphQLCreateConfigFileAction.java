@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.ide.actions;
 
 import com.intellij.ide.IdeView;
-import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -15,7 +15,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 public class GraphQLCreateConfigFileAction extends AnAction {
 
     public GraphQLCreateConfigFileAction() {
-        super("GraphQL Configuration File", "Creates a new GraphQL Configuration file (.graphqlconfig)", JSGraphQLIcons.Logos.GraphQL);
+        super("GraphQL Configuration File", "Creates a new GraphQL Configuration file (.graphqlconfig)", GraphQLIcons.Logos.GraphQL);
     }
 
     @Override

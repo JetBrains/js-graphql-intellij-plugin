@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.v1.ide.actions;
 
-import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -25,7 +25,7 @@ public class JSGraphQLToggleVariablesAction extends ToggleAction {
     public final static Key<Boolean> JS_GRAPH_QL_VARIABLES_MODEL = Key.create("JSGraphQLVariablesModel");
 
     public JSGraphQLToggleVariablesAction() {
-        super("Toggle variables editor", "Toggles the GraphQL variables editor", JSGraphQLIcons.UI.GraphQLVariables);
+        super("Toggle variables editor", "Toggles the GraphQL variables editor", GraphQLIcons.UI.GraphQLVariables);
     }
 
     @Override

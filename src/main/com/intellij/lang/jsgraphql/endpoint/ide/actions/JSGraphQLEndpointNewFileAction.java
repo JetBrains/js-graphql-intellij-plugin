@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.endpoint.ide.actions;
 
 import com.intellij.ide.actions.CreateFileFromTemplateAction;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
-import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -22,7 +22,7 @@ import com.intellij.psi.PsiDirectory;
 public class JSGraphQLEndpointNewFileAction extends CreateFileFromTemplateAction implements DumbAware {
 
     public JSGraphQLEndpointNewFileAction() {
-        super("GraphQL Endpoint File", "Creates a new GraphQL Endpoint file", JSGraphQLIcons.Files.GraphQLSchema);
+        super("GraphQL Endpoint File", "Creates a new GraphQL Endpoint file", GraphQLIcons.Files.GraphQLSchema);
     }
 
     @Override
@@ -57,6 +57,6 @@ public class JSGraphQLEndpointNewFileAction extends CreateFileFromTemplateAction
     protected void buildDialog(Project project, PsiDirectory directory, CreateFileFromTemplateDialog.Builder builder) {
         builder
                 .setTitle("New GraphQL Endpoint File")
-                .addKind("GraphQL Endpoint File", JSGraphQLIcons.Files.GraphQLSchema, "GraphQL Endpoint File");
+                .addKind("GraphQL Endpoint File", GraphQLIcons.Files.GraphQLSchema, "GraphQL Endpoint File");
     }
 }

@@ -17,7 +17,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
-import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
@@ -134,7 +134,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         final MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
 
         // tool window
-        myToolWindowManager = new JSGraphQLLanguageToolWindowManager(project, GRAPH_QL_TOOL_WINDOW_NAME, JSGraphQLIcons.UI.GraphQLToolwindow);
+        myToolWindowManager = new JSGraphQLLanguageToolWindowManager(project, GRAPH_QL_TOOL_WINDOW_NAME, GraphQLIcons.UI.GraphQLToolWindow);
         Disposer.register(this, this.myToolWindowManager);
 
         // listen for editor file tab changes to update the list of current errors

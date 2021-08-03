@@ -58,7 +58,7 @@
     <internalFileTemplate name="GraphQL File"/>
 
     <!-- Icons -->
-    <iconProvider implementation="com.intellij.lang.jsgraphql.GraphQLIconProvider"/>
+    <iconProvider implementation="com.intellij.lang.jsgraphql.icons.GraphQLIconProvider"/>
 
     <!-- Project services -->
     <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider"

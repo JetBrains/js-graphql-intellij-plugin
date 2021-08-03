@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import org.jetbrains.annotations.NotNull;
 
 import com.google.common.collect.Lists;
@@ -31,7 +32,6 @@ import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypesSets;
 import com.intellij.lang.jsgraphql.endpoint.psi.impl.JSGraphQLEndpointImplementsInterfacesImpl;
-import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotation;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotationArgument;
@@ -261,11 +261,11 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		final PsiElement colonBefore = findPreviousLeaf(completionElement, JSGraphQLEndpointTokenTypes.COLON, skipping);
 		if (colonBefore != null) {
 			for (String scalarType : JSGraphQLScalars.SCALAR_TYPES) {
-				LookupElementBuilder element = LookupElementBuilder.create(scalarType).withIcon(JSGraphQLIcons.Schema.Scalar);
+				LookupElementBuilder element = LookupElementBuilder.create(scalarType).withIcon(GraphQLIcons.Schema.Scalar);
 				result.addElement(element);
 			}
 			for (JSGraphQLEndpointTypeResult enumType : getKnownEnumTypeNames(completionElement, autoImport)) {
-				LookupElementBuilder element = LookupElementBuilder.create(enumType.name).withIcon(JSGraphQLIcons.Schema.Enum);
+				LookupElementBuilder element = LookupElementBuilder.create(enumType.name).withIcon(GraphQLIcons.Schema.Enum);
 				element = withAutoImport(element, enumType, autoImport);
 				result.addElement(element);
 			}
@@ -282,24 +282,24 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 					}
 				}
 				for (JSGraphQLEndpointTypeResult typeResult : knownInputTypeNames) {
-					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(JSGraphQLIcons.Schema.Type);
+					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(GraphQLIcons.Schema.Type);
 					element = withAutoImport(element, typeResult, autoImport);
 					result.addElement(element);
 				}
 			} else {
 				// field return type (type, interface, union)
 				for (JSGraphQLEndpointTypeResult typeResult : getAvailableInterfaceNames(completionElement, autoImport)) {
-					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(JSGraphQLIcons.Schema.Interface);
+					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(GraphQLIcons.Schema.Interface);
 					element = withAutoImport(element, typeResult, autoImport);
 					result.addElement(element);
 				}
 				for (JSGraphQLEndpointTypeResult typeResult : getKnownTypeNames(completionElement, autoImport)) {
-					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(JSGraphQLIcons.Schema.Type);
+					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(GraphQLIcons.Schema.Type);
 					element = withAutoImport(element, typeResult, autoImport);
 					result.addElement(element);
 				}
 				for (JSGraphQLEndpointTypeResult typeResult : getKnownUnionTypeNames(completionElement, autoImport)) {
-					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(JSGraphQLIcons.Schema.Type);
+					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(GraphQLIcons.Schema.Type);
 					element = withAutoImport(element, typeResult, autoImport);
 					result.addElement(element);
 				}
@@ -322,7 +322,7 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 				if (!afterAtAnnotation) {
 					completion = "@" + completion;
 				}
-				LookupElementBuilder element = LookupElementBuilder.create(completion).withIcon(JSGraphQLIcons.Schema.Attribute);
+				LookupElementBuilder element = LookupElementBuilder.create(completion).withIcon(GraphQLIcons.Schema.Attribute);
 				if(endpointAnnotation.arguments != null && endpointAnnotation.arguments.size() > 0) {
 					element = element.withInsertHandler(ParenthesesInsertHandler.WITH_PARAMETERS);
 				}
@@ -420,7 +420,7 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 			final PsiElement colonBefore = findPreviousLeaf(completionElement, JSGraphQLEndpointTokenTypes.COLON, skipping);
 			if (colonBefore != null) {
 				for (JSGraphQLEndpointTypeResult typeResult : getKnownTypeNames(completionElement, false)) {
-					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(JSGraphQLIcons.Schema.Type);
+					LookupElementBuilder element = LookupElementBuilder.create(typeResult.name).withIcon(GraphQLIcons.Schema.Type);
 					result.addElement(element);
 				}
 			} else {

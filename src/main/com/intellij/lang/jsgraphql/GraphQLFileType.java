@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql;
 
 import com.intellij.ide.scratch.ScratchUtil;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;

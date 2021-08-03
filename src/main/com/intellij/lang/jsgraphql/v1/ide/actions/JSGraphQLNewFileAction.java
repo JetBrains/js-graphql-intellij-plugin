@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.v1.ide.actions;
 
 import com.intellij.ide.actions.CreateFileFromTemplateAction;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
-import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
 import com.intellij.openapi.module.Module;
@@ -20,7 +20,7 @@ import com.intellij.psi.PsiDirectory;
 public class JSGraphQLNewFileAction extends CreateFileFromTemplateAction implements DumbAware {
 
     public JSGraphQLNewFileAction() {
-        super("GraphQL File", "Creates a new GraphQL file", JSGraphQLIcons.Files.GraphQL);
+        super("GraphQL File", "Creates a new GraphQL file", GraphQLIcons.Files.GraphQL);
     }
 
     @Override
@@ -41,6 +41,6 @@ public class JSGraphQLNewFileAction extends CreateFileFromTemplateAction impleme
     protected void buildDialog(Project project, PsiDirectory directory, CreateFileFromTemplateDialog.Builder builder) {
         builder
                 .setTitle("New GraphQL File")
-                .addKind("GraphQL File", JSGraphQLIcons.Files.GraphQL, "GraphQL File");
+                .addKind("GraphQL File", GraphQLIcons.Files.GraphQL, "GraphQL File");
     }
 }

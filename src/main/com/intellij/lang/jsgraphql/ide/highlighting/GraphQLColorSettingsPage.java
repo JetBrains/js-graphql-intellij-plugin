@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.highlighting;
 
-import com.intellij.lang.jsgraphql.GraphQLIcons;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighter;
 import com.intellij.openapi.options.colors.AttributesDescriptor;

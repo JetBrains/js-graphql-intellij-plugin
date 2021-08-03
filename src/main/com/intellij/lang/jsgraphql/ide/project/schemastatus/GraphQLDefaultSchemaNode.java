@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.google.common.collect.Lists;
-import com.intellij.lang.jsgraphql.icons.JSGraphQLIcons;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
@@ -31,7 +31,7 @@ public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
         super(project, graphQLSchemasRootNode);
         myName = "Default project-wide schema";
         getPresentation().setLocationString(project.getPresentableUrl());
-        getPresentation().setIcon(JSGraphQLIcons.Files.GraphQLSchema);
+        getPresentation().setIcon(GraphQLIcons.Files.GraphQLSchema);
         final GraphQLFile defaultProjectFile = GraphQLPsiSearchHelper.getInstance(myProject).getDefaultProjectFile();
         final GraphQLSchemaProvider registry = GraphQLSchemaProvider.getInstance(myProject);
         mySchemaInfo = registry.getSchemaInfo(defaultProjectFile);
