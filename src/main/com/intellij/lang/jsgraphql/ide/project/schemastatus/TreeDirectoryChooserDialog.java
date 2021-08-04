@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
-import com.intellij.ide.projectView.BaseProjectTreeBuilder;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.impl.AbstractProjectTreeStructure;
@@ -24,7 +23,7 @@ import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -44,7 +43,7 @@ public final class TreeDirectoryChooserDialog extends DialogWrapper {
     private Tree myTree;
     private VirtualFile mySelectedFile = null;
     private final Project myProject;
-    private BaseProjectTreeBuilder myBuilder;
+    private ProjectTreeBuilder myBuilder;
 
     public TreeDirectoryChooserDialog(final Project project, String title) {
         super(project, true);
@@ -101,7 +100,6 @@ public final class TreeDirectoryChooserDialog extends DialogWrapper {
         myTree.expandRow(0);
         myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         myTree.setCellRenderer(new NodeRenderer());
-        UIUtil.setLineStyleAngled(myTree);
 
         final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myTree);
         scrollPane.setPreferredSize(JBUI.size(500, 300));
@@ -117,7 +115,7 @@ public final class TreeDirectoryChooserDialog extends DialogWrapper {
 
         new DoubleClickListener() {
             @Override
-            protected boolean onDoubleClick(MouseEvent e) {
+            protected boolean onDoubleClick(@NotNull MouseEvent e) {
                 final TreePath path = myTree.getPathForLocation(e.getX(), e.getY());
                 if (path != null && myTree.isPathSelected(path)) {
                     doOKAction();
