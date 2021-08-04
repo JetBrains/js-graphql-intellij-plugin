@@ -26,18 +26,19 @@ import java.util.Collection;
 
 public class GraphQLInjectedFormattingModelBuilder implements CustomFormattingModelBuilder {
 
-    private static final Key<Boolean> WANT_DEFAULT_FORMATTER_KEY = Key.<Boolean>create("GraphQLInjectedFormattingModelBuilder.wantDefault");
+    private static final Key<Boolean> WANT_DEFAULT_FORMATTER_KEY = Key.create("GraphQLInjectedFormattingModelBuilder.wantDefault");
 
-    @NotNull
     @Override
-    public FormattingModel createModel(PsiElement element, CodeStyleSettings settings) {
+    public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
+        PsiElement element = formattingContext.getPsiElement();
+        CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
         if (element instanceof JSFile || element.getContainingFile() instanceof JSFile) {
             final JSFile file = (JSFile) (element instanceof JSFile ? element : element.getContainingFile());
             file.putUserData(WANT_DEFAULT_FORMATTER_KEY, true);
             try {
                 final FormattingModelBuilder formattingModelBuilder = LanguageFormatting.INSTANCE.forContext(file.getLanguage(), element);
                 if (formattingModelBuilder != null) {
-                    final FormattingModel model = formattingModelBuilder.createModel(element, settings);
+                    final FormattingModel model = formattingModelBuilder.createModel(formattingContext);
                     final Block rootBlock = model.getRootBlock();
                     return new DelegatingFormattingModel(model, new GraphQLBlockWrapper(rootBlock, null, element.getNode(), rootBlock.getWrap(), rootBlock.getAlignment(), createSpaceBuilder(settings, element), settings));
                 }

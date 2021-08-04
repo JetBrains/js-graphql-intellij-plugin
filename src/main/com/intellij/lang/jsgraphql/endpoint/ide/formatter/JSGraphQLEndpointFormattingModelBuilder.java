@@ -7,28 +7,23 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.formatter;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import com.intellij.formatting.FormattingModel;
-import com.intellij.formatting.FormattingModelBuilder;
-import com.intellij.formatting.FormattingModelProvider;
-import com.intellij.formatting.SpacingBuilder;
+import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointLanguage;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class JSGraphQLEndpointFormattingModelBuilder implements FormattingModelBuilder {
-    @NotNull
     @Override
-    public FormattingModel createModel(PsiElement element, CodeStyleSettings settings) {
+    public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
+        CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
         return FormattingModelProvider.createFormattingModelForPsiFile(
-                element.getContainingFile(),
-                new JSGraphQLEndpointBlock(null, element.getNode(), null, null, createSpaceBuilder(settings)),
-                settings);
+            formattingContext.getContainingFile(),
+            new JSGraphQLEndpointBlock(null, formattingContext.getNode(), null, null, createSpaceBuilder(settings)),
+            settings);
     }
 
     private static SpacingBuilder createSpaceBuilder(CodeStyleSettings settings) {
