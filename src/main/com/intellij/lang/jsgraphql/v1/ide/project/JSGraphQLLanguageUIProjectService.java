@@ -67,8 +67,8 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.impl.ContentImpl;
-import com.intellij.util.ModalityUiUtil;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
@@ -81,7 +81,6 @@ import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -144,9 +143,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         // add editor headers to already open files since we've only just added the listener for fileOpened()
         final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
         for (VirtualFile virtualFile : fileEditorManager.getOpenFiles()) {
-            UIUtil.invokeLaterIfNeeded(() -> {
-                insertEditorHeaderComponentIfApplicable(fileEditorManager, virtualFile);
-            });
+            UIUtil.invokeLaterIfNeeded(() -> insertEditorHeaderComponentIfApplicable(fileEditorManager, virtualFile));
         }
 
         // listen for configuration changes
@@ -213,18 +210,19 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                 continue;
             }
             final List<GraphQLConfigEndpoint> endpoints = graphQLConfigManager.getEndpoints(file);
-            ModalityUiUtil.invokeLaterIfNeeded(() -> {
-                ApplicationManager.getApplication().runReadAction(() -> {
+
+            ApplicationManager.getApplication().invokeLater(
+                () -> ApplicationManager.getApplication().runReadAction(() -> {
                     for (FileEditor editor : fileEditorManager.getEditors(file)) {
                         if (editor instanceof TextEditor) {
-                            final JSGraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
+                            final JSGraphQLEndpointsModel endpointsModel =
+                                ((TextEditor) editor).getEditor().getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
                             if (endpointsModel != null) {
                                 endpointsModel.reload(endpoints);
                             }
                         }
                     }
-                });
-            }, ModalityState.defaultModalityState());
+                }), ModalityState.defaultModalityState(), myProject.getDisposed());
         }
     }
 
@@ -374,6 +372,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                 final String url = endpoint.getUrl();
                 try {
                     final HttpPost request = GraphQLIntrospectionService.createRequest(endpoint, url, requestJson);
+                    //noinspection DialogTitleCapitalization
                     final Task.Backgroundable task = new Task.Backgroundable(myProject, "Executing GraphQL", false) {
                         @Override
                         public void run(@NotNull ProgressIndicator indicator) {
@@ -579,7 +578,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             header.add(querySuccessLabel, BorderLayout.WEST);
 
             queryResultLabel = new JBLabel("", null, SwingConstants.LEFT);
-            queryResultLabel.setBorder(new EmptyBorder(4, 6, 4, 6));
+            queryResultLabel.setBorder(JBUI.Borders.empty(4, 6));
             queryResultLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             queryResultLabel.setVisible(false);
             queryResultLabel.addMouseListener(new MouseAdapter() {
@@ -602,7 +601,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             editorEx.setPermanentHeaderComponent(header);
         }
 
-        final ContentImpl content = new ContentImpl(fileEditor.getComponent(), "Query result", true);
+        final ContentImpl content = new ContentImpl(fileEditor.getComponent(), "Query Result", true);
         content.setCloseable(false);
         content.setShouldDisposeContent(false);
         toolWindow.getContentManager().addContent(content);
