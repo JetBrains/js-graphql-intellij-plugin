@@ -42,7 +42,7 @@ public class GraphQLCreateConfigFileAction extends AnAction {
                 if (module != null) {
                     final VirtualFile actionDirectory = getActionDirectory(e);
                     if (actionDirectory != null) {
-                        isAvailable = (actionDirectory.findChild(GraphQLConfigManager.GRAPHQLCONFIG) == null);
+                        isAvailable = actionDirectory.findChild(GraphQLConfigManager.GRAPHQLCONFIG) == null;
                     }
                 }
             }
