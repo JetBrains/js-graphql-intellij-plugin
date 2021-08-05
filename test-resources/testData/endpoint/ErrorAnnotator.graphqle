@@ -33,7 +33,7 @@ type Test implements Node, <error descr="'NotInterface' must be an interface to 
 
     inputAsReturnType: <error descr="Field return type 'MyInput' cannot be an input type">MyInput</error>
 
-    @DataFetcher(batched = <error descr="true or false expected">"test"</error>, value = <error descr="String value expected">true</error>, <error descr="Unknown argument 'another'">another</error> = 10)
+    @DataFetcher(batched = <error descr="True or false expected">"test"</error>, value = <error descr="String value expected">true</error>, <error descr="Unknown argument 'another'">another</error> = 10)
     <error descr="Unknown annotation '@Unknown'.">@Unknown</error>("")
     wrongAnnotations: String
 

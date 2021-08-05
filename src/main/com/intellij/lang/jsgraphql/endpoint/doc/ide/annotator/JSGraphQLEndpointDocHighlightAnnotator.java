@@ -7,9 +7,9 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.doc.ide.annotator;
 
-import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.doc.psi.JSGraphQLEndpointDocPsiUtil;
 import com.intellij.lang.jsgraphql.endpoint.doc.psi.JSGraphQLEndpointDocTag;
@@ -44,7 +44,6 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
 
     private static final Key<PsiElement> TODO_ELEMENT = Key.create("JSGraphQLEndpointDocHighlightAnnotator.Todo");
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
 
@@ -54,14 +53,14 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
         if(elementType == JSGraphQLEndpointDocTokenTypes.DOCTEXT) {
 			final String elementText = element.getText().toLowerCase();
 			if(isTodoToken(elementText)) {
-				setTextAttributes(element, holder, CodeInsightColors.TODO_DEFAULT_ATTRIBUTES);
+				setTextAttributes(holder, CodeInsightColors.TODO_DEFAULT_ATTRIBUTES);
                 holder.getCurrentAnnotationSession().putUserData(TODO_ELEMENT, element);
 				return;
 			} else {
                 PsiElement prevSibling = element.getPrevSibling();
                 while (prevSibling != null) {
                     if(prevSibling == holder.getCurrentAnnotationSession().getUserData(TODO_ELEMENT)) {
-                        setTextAttributes(element, holder, CodeInsightColors.TODO_DEFAULT_ATTRIBUTES);
+                        setTextAttributes(holder, CodeInsightColors.TODO_DEFAULT_ATTRIBUTES);
                         return;
                     }
                     prevSibling = prevSibling.getPrevSibling();
@@ -70,10 +69,10 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
 		}
 
 		final PsiComment comment = PsiTreeUtil.getContextOfType(element, PsiComment.class);
-		if (comment != null && JSGraphQLEndpointDocPsiUtil.isDocumentationComment(comment)) {
+		if (JSGraphQLEndpointDocPsiUtil.isDocumentationComment(comment)) {
 			final TextAttributesKey textAttributesKey = ATTRIBUTES.get(elementType);
 			if (textAttributesKey != null) {
-				setTextAttributes(element, holder, textAttributesKey);
+				setTextAttributes(holder, textAttributesKey);
 			}
 			// highlight invalid argument names after @param
 			if(elementType == JSGraphQLEndpointDocTokenTypes.DOCVALUE) {
@@ -84,8 +83,9 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
 						final String paramName = element.getText();
 						final JSGraphQLEndpointInputValueDefinitions arguments = PsiTreeUtil.findChildOfType(field, JSGraphQLEndpointInputValueDefinitions.class);
 						if(arguments == null) {
-							// no arguments so invalid use of @param
-							holder.createErrorAnnotation(element, "Invalid use of @param. The property has no arguments");
+                            // no arguments so invalid use of @param
+                            holder.newAnnotation(HighlightSeverity.ERROR, "Invalid use of @param. The property has no arguments")
+                                .range(element).create();
 						} else {
 							final JSGraphQLEndpointInputValueDefinition[] inputValues = PsiTreeUtil.getChildrenOfType(arguments, JSGraphQLEndpointInputValueDefinition.class);
 							boolean found = false;
@@ -97,9 +97,12 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
 									}
 								}
 							}
-							if(!found) {
-								holder.createErrorAnnotation(element, "@param name '" + element.getText() + "' doesn't match any of the field arguments");
-							}
+                            if (!found) {
+                                holder.newAnnotation(
+                                    HighlightSeverity.ERROR,
+                                    "@param name '" + element.getText() + "' doesn't match any of the field arguments"
+                                ).range(element).create();
+                            }
 
 						}
 					}
@@ -115,8 +118,7 @@ public class JSGraphQLEndpointDocHighlightAnnotator implements Annotator {
 		return false;
 	}
 
-	private void setTextAttributes(PsiElement element, AnnotationHolder holder, TextAttributesKey key) {
-		final Annotation annotation = holder.createInfoAnnotation(element, null);
-		annotation.setTextAttributes(key);
+	private void setTextAttributes(AnnotationHolder holder, TextAttributesKey key) {
+		holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(key).create();
 	}
 }

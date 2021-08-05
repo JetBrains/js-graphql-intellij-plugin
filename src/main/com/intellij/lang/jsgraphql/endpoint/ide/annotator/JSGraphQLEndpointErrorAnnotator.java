@@ -7,40 +7,29 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.annotator;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.intellij.lang.jsgraphql.endpoint.psi.*;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.lang.jsgraphql.v1.JSGraphQLScalars;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
+import com.intellij.lang.jsgraphql.endpoint.psi.*;
+import com.intellij.lang.jsgraphql.v1.JSGraphQLScalars;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotation;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiRecursiveElementVisitor;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 
@@ -56,13 +45,17 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 			if (reference != null) {
 				final PsiElement resolved = reference.resolve();
 				if (resolved == null) {
-					holder.createErrorAnnotation(element, "Unknown type '" + element.getText() + "'. Are you missing an import?").setTextAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES);
+					holder.newAnnotation(HighlightSeverity.ERROR, "Unknown type '" + element.getText() + "'. Are you missing an import?")
+                        .textAttributes(CodeInsightColors.WRONG_REFERENCES_ATTRIBUTES)
+                        .range(element)
+                        .create();
 				} else {
-
 					// types referenced after implements must be interfaces
 					if (PsiTreeUtil.getParentOfType(element, JSGraphQLEndpointImplementsInterfaces.class) != null) {
 						if (PsiTreeUtil.getParentOfType(resolved, JSGraphQLEndpointInterfaceTypeDefinition.class) == null) {
-							holder.createErrorAnnotation(element, "'" + element.getText() + "' must be an interface to be used here");
+							holder.newAnnotation(HighlightSeverity.ERROR, "'" + element.getText() + "' must be an interface to be used here")
+                                .range(element)
+                                .create();
 						}
 					}
 
@@ -70,8 +63,10 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 					final JSGraphQLEndpointInputObjectTypeDefinition resolvedInputDef = PsiTreeUtil.getParentOfType(resolved, JSGraphQLEndpointInputObjectTypeDefinition.class);
 					if (resolvedInputDef != null) {
 						if(resolvedInputDef.getTextOffset() > element.getTextOffset() && resolvedInputDef.getContainingFile() == element.getContainingFile()) {
-							// non-imported input types must be declare earlier in the buffer than the usage
-							holder.createErrorAnnotation(element, "Input type must be declared before use");
+							// non-imported input types must be declared earlier in the buffer than the usage
+							holder.newAnnotation(HighlightSeverity.ERROR, "Input type must be declared before use")
+                                .range(element)
+                                .create();
 						}
 					}
 
@@ -86,7 +81,9 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 			final PsiReference reference = element.getReference();
 			if (reference == null || reference.resolve() == null) {
 				// file not found
-				holder.createErrorAnnotation(element, "Cannot resolve file " + element.getText());
+				holder.newAnnotation(HighlightSeverity.ERROR, "Cannot resolve file " + element.getText())
+                    .range(element)
+                    .create();
 			}
 
 			final JSGraphQLEndpointImportDeclaration[] importDeclarations = PsiTreeUtil.getChildrenOfType(element.getContainingFile(), JSGraphQLEndpointImportDeclaration.class);
@@ -96,7 +93,9 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 					final JSGraphQLEndpointImportFileReference fileReference = anImport.getImportFileReference();
 					if (fileReference != null && fileReference != element) {
 						if (Objects.equals(fileReference.getText(), importName)) {
-							holder.createErrorAnnotation(element, element.getText() + " is imported more than once");
+							holder.newAnnotation(HighlightSeverity.ERROR, element.getText() + " is imported more than once")
+                                .range(element)
+                                .create();
 						}
 					}
 				}
@@ -120,7 +119,9 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 							continue;
 						}
 						if (Objects.equals(otherField.getProperty().getIdentifier().getText(), fieldName)) {
-							holder.createErrorAnnotation(identifier, "Field '" + identifier.getText() + "' is declared more than once");
+							holder.newAnnotation(HighlightSeverity.ERROR, "Field '" + identifier.getText() + "' is declared more than once")
+                                .range(identifier)
+                                .create();
 						}
 					}
 				}
@@ -133,22 +134,26 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 					if (reference != null) {
 						final PsiElement resolved = reference.resolve();
 						if (resolved != null && PsiTreeUtil.getParentOfType(resolved, JSGraphQLEndpointInputObjectTypeDefinition.class) != null) {
-							holder.createErrorAnnotation(fieldReturnType, "Field return type '" + fieldReturnType.getText() + "' cannot be an input type");
+							holder.newAnnotation(HighlightSeverity.ERROR, "Field return type '" + fieldReturnType.getText() + "' cannot be an input type")
+                                .range(fieldReturnType)
+                                .create();
 						}
 					}
 				}
 			}
 
-			final JSGraphQLEndpointFieldDefinition overridenField = getOverriddenField(fieldDefinition);
-			if (overridenField != null) {
-				if (!hasSameSignature(fieldDefinition, overridenField)) {
-					final JSGraphQLEndpointInterfaceTypeDefinition overridenInterface = PsiTreeUtil.getParentOfType(overridenField, JSGraphQLEndpointInterfaceTypeDefinition.class);
-					if (overridenInterface != null && overridenInterface.getNamedTypeDef() != null) {
+			final JSGraphQLEndpointFieldDefinition overriddenField = getOverriddenField(fieldDefinition);
+			if (overriddenField != null) {
+				if (!hasSameSignature(fieldDefinition, overriddenField)) {
+					final JSGraphQLEndpointInterfaceTypeDefinition overriddenInterface = PsiTreeUtil.getParentOfType(overriddenField, JSGraphQLEndpointInterfaceTypeDefinition.class);
+					if (overriddenInterface != null && overriddenInterface.getNamedTypeDef() != null) {
 						int endOffset = fieldDefinition.getProperty().getTextRange().getEndOffset();
 						if (fieldDefinition.getCompositeType() != null) {
 							endOffset = fieldDefinition.getCompositeType().getTextRange().getEndOffset();
 						}
-						holder.createErrorAnnotation(TextRange.create(fieldDefinition.getProperty().getTextOffset(), endOffset), "Field signature doesn't match the field it overrides in interface '" + overridenInterface.getNamedTypeDef().getText() + "'");
+						holder.newAnnotation(HighlightSeverity.ERROR, "Field signature doesn't match the field it overrides in interface '" + overriddenInterface.getNamedTypeDef().getText() + "'")
+                            .range(TextRange.create(fieldDefinition.getProperty().getTextOffset(), endOffset))
+                            .create();
 					}
 				}
 			}
@@ -175,7 +180,9 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 								valid = false;
 							}
 							if (!valid) {
-								holder.createErrorAnnotation(argumentType, "Argument type '" + argumentType.getText() + "' must be one of the following: 'input', 'enum', 'scalar'");
+								holder.newAnnotation(HighlightSeverity.ERROR, "Argument type '" + argumentType.getText() + "' must be one of the following: 'input', 'enum', 'scalar'")
+                                    .range(argumentType)
+                                    .create();
 							}
 						}
 					}
@@ -206,20 +213,26 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 							for (JSGraphQLEndpointNamedAnnotationArgument namedArgument : annotation.getAnnotationArguments().getNamedAnnotationArguments().getNamedAnnotationArgumentList()) {
 								final String type = argumentNameToType.get(namedArgument.getIdentifier().getText());
 								if (type == null) {
-									holder.createErrorAnnotation(namedArgument.getIdentifier(), "Unknown argument '" + namedArgument.getIdentifier().getText() + "'");
+                                    holder.newAnnotation(HighlightSeverity.ERROR, "Unknown argument '" + namedArgument.getIdentifier().getText() + "'")
+                                        .range(namedArgument.getIdentifier())
+                                        .create();
 								} else {
 									if (namedArgument.getAnnotationArgumentValue() != null) {
 										switch (type) {
 											case "String":
 												if (namedArgument.getAnnotationArgumentValue().getQuotedString() == null) {
-													holder.createErrorAnnotation(namedArgument.getAnnotationArgumentValue(), "String value expected");
+													holder.newAnnotation(HighlightSeverity.ERROR, "String value expected")
+                                                        .range(namedArgument.getAnnotationArgumentValue())
+                                                        .create();
 												}
 												break;
 											case "Boolean": {
 												final PsiElement firstChild = namedArgument.getAnnotationArgumentValue().getFirstChild();
 												if (firstChild != null) {
 													if (!TokenSet.create(JSGraphQLEndpointTokenTypes.TRUE, JSGraphQLEndpointTokenTypes.FALSE).contains(firstChild.getNode().getElementType())) {
-														holder.createErrorAnnotation(namedArgument.getAnnotationArgumentValue(), "true or false expected");
+														holder.newAnnotation(HighlightSeverity.ERROR, "True or false expected")
+                                                            .range(namedArgument.getAnnotationArgumentValue())
+                                                            .create();
 													}
 												}
 												break;
@@ -230,7 +243,9 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 												final PsiElement firstChild = namedArgument.getAnnotationArgumentValue().getFirstChild();
 												if (firstChild != null) {
 													if (!JSGraphQLEndpointTokenTypes.NUMBER.equals(firstChild.getNode().getElementType())) {
-														holder.createErrorAnnotation(namedArgument.getAnnotationArgumentValue(), "Number expected");
+														holder.newAnnotation(HighlightSeverity.ERROR, "Number expected")
+                                                            .range(namedArgument.getAnnotationArgumentValue())
+                                                            .create();
 													}
 												}
 												break;
@@ -245,7 +260,9 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 				}
 			}
 			if (!knownAnnotation) {
-				holder.createErrorAnnotation(atAnnotation, "Unknown annotation '" + atAnnotation.getText() + "'.");
+				holder.newAnnotation(HighlightSeverity.ERROR, "Unknown annotation '" + atAnnotation.getText() + "'.")
+                    .range(atAnnotation)
+                    .create();
 			}
 			return;
 
@@ -263,7 +280,8 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 
 	}
 
-	private void annotateRedeclarations(@NotNull JSGraphQLEndpointNamedTypeDef element, PsiFile importingFile, Key<Multimap<String, JSGraphQLEndpointNamedTypeDefinition>> key, @NotNull AnnotationHolder holder) {
+	@SuppressWarnings("SameParameterValue")
+    private void annotateRedeclarations(@NotNull JSGraphQLEndpointNamedTypeDef element, PsiFile importingFile, Key<Multimap<String, JSGraphQLEndpointNamedTypeDefinition>> key, @NotNull AnnotationHolder holder) {
 		final Key<Boolean> annotationKey = Key.create(element.getContainingFile().getName() + ":" + element.getTextOffset());
 		if (holder.getCurrentAnnotationSession().getUserData(annotationKey) == Boolean.TRUE) {
 			// already annotated about redeclaration
@@ -282,7 +300,9 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 		final Collection<JSGraphQLEndpointNamedTypeDefinition> typesWithSameName = knownDefinitionsByName.get(typeName);
 		if (typesWithSameName != null && typesWithSameName.size() > 1) {
 			final Set<String> files = typesWithSameName.stream().map(t -> "'" + t.getContainingFile().getName() + "'").collect(Collectors.toSet());
-			holder.createErrorAnnotation(element, "'" + typeName + "' is redeclared in " + StringUtils.join(files, ", "));
+            holder.newAnnotation(HighlightSeverity.ERROR, "'" + typeName + "' is redeclared in " + StringUtils.join(files, ", "))
+                .range(element)
+                .create();
 			holder.getCurrentAnnotationSession().putUserData(annotationKey, Boolean.TRUE);
 		}
 	}
@@ -324,7 +344,7 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 		final Ref<StringBuilder> sb = new Ref<>();
 		final PsiElementVisitor visitor = new PsiRecursiveElementVisitor() {
 			@Override
-			public void visitElement(PsiElement element) {
+			public void visitElement(@NotNull PsiElement element) {
 				if (element instanceof JSGraphQLEndpointAnnotation) {
 					return;
 				}
