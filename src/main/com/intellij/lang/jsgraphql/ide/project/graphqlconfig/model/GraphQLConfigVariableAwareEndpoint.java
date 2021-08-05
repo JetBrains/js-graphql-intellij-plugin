@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model;
 
 import com.google.common.collect.Maps;
+import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -96,13 +97,23 @@ public class GraphQLConfigVariableAwareEndpoint {
             String var = matcher.group(1);
             String[] parts = var.split(":");
             if (parts.length != 2) {
-                Notifications.Bus.notify(new Notification("GraphQL", "Unexpected env variable format", "Expected variable source and variable value separated by a colon, e.g. env:myvar, got: " + var, NotificationType.ERROR));
+                Notifications.Bus.notify(new Notification(
+                    GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                    "Unexpected env variable format",
+                    "Expected variable source and variable value separated by a colon, e.g. env:myvar, got: " + var,
+                    NotificationType.ERROR)
+                );
                 continue;
             }
             final String varSource = parts[0];
             final String varName = parts[1];
             if (!"env".equals(varSource)) {
-                Notifications.Bus.notify(new Notification("GraphQL", "Unsupported variable source", "Supported variables sources are 'env', but got: " + varSource, NotificationType.ERROR));
+                Notifications.Bus.notify(new Notification(
+                    GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                    "Unsupported variable source",
+                    "Supported variables sources are 'env', but got: " + varSource,
+                    NotificationType.ERROR)
+                );
                 continue;
             }
 

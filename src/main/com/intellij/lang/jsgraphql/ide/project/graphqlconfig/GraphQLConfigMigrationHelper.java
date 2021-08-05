@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.json.JsonFileType;
+import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.legacy.GraphQLConfigJsonConfiguration;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.legacy.GraphQLConfigJsonEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.legacy.GraphQLConfigJsonSchemaConfiguration;
@@ -56,13 +57,13 @@ public final class GraphQLConfigMigrationHelper {
 
     public static void checkGraphQLConfigJsonMigrations(Project project) {
 
-        final Task.Backgroundable task = new Task.Backgroundable(project, "Verifying GraphQL Configuration", false) {
+        final Task.Backgroundable task = new Task.Backgroundable(project, "Verifying GraphQL configuration", false) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 indicator.setIndeterminate(true);
                 final GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
                 final Collection<VirtualFile> legacyConfigFiles = ApplicationManager.getApplication().runReadAction(
-                        (Computable<Collection<VirtualFile>>) () -> FilenameIndex.getVirtualFilesByName(project, "graphql.config.json", scope)
+                    (Computable<Collection<VirtualFile>>) () -> FilenameIndex.getVirtualFilesByName(project, "graphql.config.json", scope)
                 );
                 for (VirtualFile virtualFile : legacyConfigFiles) {
                     if (!virtualFile.isDirectory() && virtualFile.isInLocalFileSystem()) {
@@ -119,12 +120,18 @@ public final class GraphQLConfigMigrationHelper {
                     }
 
                     // show migration
-                    Notification migrateNotifcation = new Notification("GraphQL", "GraphQL configuration migration required", "The <a href=\"config-v1\">graphql.config.json</a> file is deprecated.", NotificationType.INFORMATION, (notification, event) -> {
+                    Notification migrateNotification = new Notification(
+                        GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                        "GraphQL configuration migration required",
+                        "The <a href=\"config-v1\">graphql.config.json</a> file is deprecated.",
+                        NotificationType.INFORMATION
+                    ).setImportant(true).setListener((notification, event) -> {
                         if ("config-v1".equals(event.getDescription())) {
                             FileEditorManager.getInstance(project).openFile(configurationFile, true);
                         }
-                    }).setImportant(true);
-                    migrateNotifcation.addAction(new NotificationAction("Migrate to .graphqlconfig") {
+                    });
+
+                    migrateNotification.addAction(new NotificationAction("Migrate to .graphqlconfig") {
                         @Override
                         public void actionPerformed(@NotNull AnActionEvent evt, @NotNull Notification notification) {
                             GraphQLConfigManager.getService(project).createAndOpenConfigFile(configurationFile.getParent(), true, outputStream -> {
@@ -148,24 +155,34 @@ public final class GraphQLConfigMigrationHelper {
                             notification.expire();
                         }
                     });
-                    migrateNotifcation.addAction(new NotificationAction("About graphql-config") {
+                    migrateNotification.addAction(new NotificationAction("About graphql-config") {
 
                         @Override
                         public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                             BrowserUtil.browse(GRAPHQL_CONFIG_DOCS);
                         }
                     });
-                    Notifications.Bus.notify(migrateNotifcation);
+                    Notifications.Bus.notify(migrateNotification);
                     return;
                 }
             }
 
         } catch (IOException | JsonSyntaxException e) {
-            Notifications.Bus.notify(new Notification("GraphQL", "Unable to read " + configurationFile.getPresentableName(), e.getMessage(), NotificationType.ERROR));
+            Notifications.Bus.notify(new Notification(
+                GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                "Unable to read " + configurationFile.getPresentableName(),
+                e.getMessage(),
+                NotificationType.ERROR)
+            );
         }
 
         // fallback is to notify that work is required to setup the project
-        Notifications.Bus.notify(new Notification("GraphQL", "Unable to migrate graphql.config.json", "Your <a href=\"config-v1\">graphql.config.json</a> could not be migrated to <a href=\"config-v2\">.graphqlconfig</a>. Schema discovery and endpoints is using defaults.<div style='margin-top: 6px'><a href=\"graphql-config\">About graphql-config</a></div>", NotificationType.WARNING, (notification, event) -> {
+        Notifications.Bus.notify(new Notification(
+            GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+            "Unable to migrate graphql.config.json",
+            "Your <a href=\"config-v1\">graphql.config.json</a> could not be migrated to <a href=\"config-v2\">.graphqlconfig</a>. Schema discovery and endpoints is using defaults.<div style='margin-top: 6px'><a href=\"graphql-config\">About graphql-config</a></div>",
+            NotificationType.WARNING
+        ).setImportant(true).setListener((notification, event) -> {
             if ("config-v1".equals(event.getDescription())) {
                 FileEditorManager.getInstance(project).openFile(configurationFile, true);
             } else if ("config-v2".equals(event.getDescription())) {
@@ -173,7 +190,7 @@ public final class GraphQLConfigMigrationHelper {
             } else if ("graphql-config".equals(event.getDescription())) {
                 BrowserUtil.browse(GRAPHQL_CONFIG_DOCS);
             }
-        }).setImportant(true));
+        }));
     }
 
     @SuppressWarnings("unchecked")
