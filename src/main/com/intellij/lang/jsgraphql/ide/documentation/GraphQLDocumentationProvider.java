@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.documentation;
 
 import com.intellij.lang.documentation.DocumentationProviderEx;
+import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointDocumentationAware;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
@@ -34,7 +35,7 @@ import static com.intellij.lang.documentation.DocumentationMarkup.*;
 
 public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
-    private final static String GRAPHQL_DOC_PREFIX = "GraphQL";
+    private final static String GRAPHQL_DOC_PREFIX = GraphQLConstants.GraphQL;
 
     @Nullable
     @Override

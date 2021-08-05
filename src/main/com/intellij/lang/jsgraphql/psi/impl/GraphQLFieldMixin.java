@@ -38,9 +38,9 @@ public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implemen
                         final com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) parentType).getFieldDefinition(fieldName);
                         if (fieldDefinition != null) {
                             return fieldDefinition.getType();
-                        } else if (fieldName.equals(GraphQLConstants.__TYPE)) {
+                        } else if (fieldName.equals(GraphQLConstants.Schema.__TYPE)) {
                             return Introspection.__Type;
-                        } else if (fieldName.equals(GraphQLConstants.__SCHEMA)) {
+                        } else if (fieldName.equals(GraphQLConstants.Schema.__SCHEMA)) {
                             return Introspection.__Schema;
                         }
                     }

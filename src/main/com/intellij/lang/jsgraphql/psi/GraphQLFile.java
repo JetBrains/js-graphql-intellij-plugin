@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.psi;
 
 import com.intellij.extapi.psi.PsiFileBase;
+import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.schema.GraphQLPsiToLanguage;
@@ -35,7 +36,7 @@ public class GraphQLFile extends PsiFileBase {
 
     @Override
     public String toString() {
-        return "GraphQL";
+        return GraphQLConstants.GraphQL;
     }
 
     @Override

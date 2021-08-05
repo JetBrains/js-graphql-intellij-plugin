@@ -15,6 +15,7 @@ import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.json.JsonFileType;
+import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
@@ -94,7 +95,7 @@ import java.util.*;
  */
 public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditorManagerListener, JSGraphQLConfigurationListener {
 
-    public final static String GRAPH_QL_TOOL_WINDOW_NAME = "GraphQL";
+    public final static String GRAPH_QL_TOOL_WINDOW_NAME = GraphQLConstants.GraphQL;
     public static final String GRAPH_QL_VARIABLES_JSON = "GraphQL.variables.json";
 
     /**

@@ -1,6 +1,7 @@
 package com.intellij.lang.jsgraphql.ide.notifications;
 
 import com.intellij.lang.jsgraphql.GraphQLBundle;
+import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.notification.Notification;
@@ -23,7 +24,7 @@ import javax.net.ssl.SSLException;
 
 public class GraphQLNotificationUtil {
     private static final Logger LOG = Logger.getInstance(GraphQLNotificationUtil.class);
-    public static final String NOTIFICATION_GROUP_ID = "GraphQL";
+    public static final String NOTIFICATION_GROUP_ID = GraphQLConstants.GraphQL;
 
     public static void showInvalidConfigurationNotification(@NotNull String message,
                                                             @Nullable VirtualFile introspectionSourceFile,

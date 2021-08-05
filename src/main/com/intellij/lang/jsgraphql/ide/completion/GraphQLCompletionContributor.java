@@ -55,7 +55,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.intellij.lang.jsgraphql.GraphQLConstants.__DIRECTIVE_LOCATION_ENUM;
+import static com.intellij.lang.jsgraphql.GraphQLConstants.Schema.__DIRECTIVE_LOCATION_ENUM;
 import static com.intellij.patterns.PlatformPatterns.psiComment;
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 

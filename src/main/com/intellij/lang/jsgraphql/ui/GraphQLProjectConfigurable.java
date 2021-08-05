@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ui;
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
+import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -35,7 +36,7 @@ public class GraphQLProjectConfigurable implements SearchableConfigurable {
     @Nls
     @Override
     public String getDisplayName() {
-        return "GraphQL";
+        return GraphQLConstants.GraphQL;
     }
 
     private final Project myProject;

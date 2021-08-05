@@ -30,7 +30,7 @@ public class GraphQLFileType extends LanguageFileType {
     @NotNull
     @Override
     public String getName() {
-        return "GraphQL";
+        return GraphQLConstants.GraphQL;
     }
 
     @NotNull
