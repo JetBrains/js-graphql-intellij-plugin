@@ -1,0 +1,6 @@
+<idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <typedHandler
+      implementation="com.intellij.lang.jsgraphql.endpoint.ide.editor.JSGraphQLEndpointTypedHandlerDelegate"/>
+  </extensions>
+</idea-plugin>

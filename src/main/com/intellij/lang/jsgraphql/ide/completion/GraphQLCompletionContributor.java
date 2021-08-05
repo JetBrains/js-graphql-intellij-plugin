@@ -1108,15 +1108,6 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         ).inside(GraphQLArgument.class), provider);
     }
 
-
-    @Override
-    public boolean invokeAutoPopup(@NotNull PsiElement position, char typeChar) {
-        if (typeChar == '@' || typeChar == '$') {
-            return true;
-        }
-        return super.invokeAutoPopup(position, typeChar);
-    }
-
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isValidDirectiveLocation(EnumSet<Introspection.DirectiveLocation> validLocations, PsiElement completionPosition) {
         final GraphQLDirectivesAware directivesAware = PsiTreeUtil.getParentOfType(completionPosition, GraphQLDirectivesAware.class);

@@ -7,7 +7,7 @@
  *  LICENSE file in the root directory of this source tree.
  */
 -->
-<idea-plugin>
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.intellij.lang.jsgraphql</id>
   <name>JS GraphQL</name>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
@@ -30,6 +30,8 @@
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
   <depends optional="true" config-file="graphql-intellilang.xml">org.intellij.intelliLang</depends>
+
+  <xi:include href="/META-INF/graphql-endpoint.xml" xpointer="xpointer(/idea-plugin/*)"/>
 
   <resource-bundle>messages.GraphQLMessages</resource-bundle>
 
@@ -102,6 +104,7 @@
     <lang.quoteHandler language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLQuoteHandler"/>
     <lang.commenter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLCommenter"/>
     <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.GraphQLEnterInEmptyListHandler"/>
+    <typedHandler implementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLTypedHandlerDelegate"/>
 
     <!-- Completion -->
     <completion.contributor language="GraphQL"

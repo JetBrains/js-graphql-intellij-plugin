@@ -7,49 +7,34 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.completion;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import com.intellij.lang.jsgraphql.endpoint.psi.*;
-import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import org.jetbrains.annotations.NotNull;
-
 import com.google.common.collect.Lists;
-import com.intellij.codeInsight.completion.AddSpaceInsertHandler;
-import com.intellij.codeInsight.completion.CompletionContributor;
-import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionProvider;
-import com.intellij.codeInsight.completion.CompletionResultSet;
-import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.lang.jsgraphql.v1.JSGraphQLScalars;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypesSets;
+import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.endpoint.psi.impl.JSGraphQLEndpointImplementsInterfacesImpl;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
+import com.intellij.lang.jsgraphql.v1.JSGraphQLScalars;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotation;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotationArgument;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiErrorElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.*;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class JSGraphQLEndpointCompletionContributor extends CompletionContributor {
@@ -144,15 +129,6 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		extend(CompletionType.BASIC, PlatformPatterns.psiElement(), provider);
 		extend(CompletionType.SMART, PlatformPatterns.psiElement(), provider);
 
-	}
-
-	@Override
-	public boolean invokeAutoPopup(@NotNull PsiElement position, char typeChar) {
-		if(typeChar == '@') {
-			// suggest annotations automatically after typing @
-			return true;
-		}
-		return super.invokeAutoPopup(position, typeChar);
 	}
 
 	private boolean completeImplementableInterface(@NotNull CompletionResultSet result, boolean autoImport, PsiElement completionElement, PsiElement leafBeforeCompletion) {
