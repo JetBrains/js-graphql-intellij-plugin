@@ -15,20 +15,20 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManage
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLNamedScope;
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaEventListener;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
+import com.intellij.lang.jsgraphql.types.introspection.Introspection;
+import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.lang.jsgraphql.types.GraphQLException;
-import com.intellij.lang.jsgraphql.types.introspection.Introspection;
-import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +38,7 @@ import java.util.function.Consumer;
 /**
  * Registry for resolving references to PSI Elements in the Endpoint language.
  */
-public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeRegistry {
+public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeRegistry, Disposable {
 
     private final JSGraphQLConfigurationProvider configurationProvider;
     private final GraphQLConfigManager graphQLConfigManager;
@@ -56,18 +56,11 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         this.project = project;
         this.configurationProvider = JSGraphQLConfigurationProvider.getService(project);
         graphQLConfigManager = GraphQLConfigManager.getService(project);
-        project.getMessageBus().connect().subscribe(GraphQLSchemaChangeListener.TOPIC, new GraphQLSchemaEventListener() {
-            @Override
-            public void onGraphQLSchemaChanged(Integer schemaVersion) {
-                endpointTypesByName.clear();
-                endpointEntryPsiFile.clear();
-                projectToRegistry.clear();
-            }
+        project.getMessageBus().connect(this).subscribe(GraphQLSchemaChangeListener.TOPIC, schemaVersion -> {
+            endpointTypesByName.clear();
+            endpointEntryPsiFile.clear();
+            projectToRegistry.clear();
         });
-    }
-
-    public boolean hasEndpointEntryFile(PsiElement scopedPsiElement) {
-        return getEndpointEntryPsiFile(scopedPsiElement) != null;
     }
 
     private PsiFile getEndpointEntryPsiFile(PsiElement scopedPsiElement) {
@@ -120,7 +113,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
 
         final PsiRecursiveElementVisitor errorsVisitor = new PsiRecursiveElementVisitor() {
             @Override
-            public void visitElement(PsiElement element) {
+            public void visitElement(@NotNull PsiElement element) {
                 if(element instanceof PsiErrorElement) {
                     errors.add(new JSGraphQLEndpointSchemaError("Syntax error in '" + element.getContainingFile().getName() + "': " + ((PsiErrorElement) element).getErrorDescription(), element));
                 }
@@ -438,5 +431,9 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
             return result;
 
         });
+    }
+
+    @Override
+    public void dispose() {
     }
 }

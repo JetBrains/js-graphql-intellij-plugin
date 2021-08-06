@@ -19,6 +19,7 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
 import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -37,7 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-public class GraphQLReferenceService {
+public class GraphQLReferenceService implements Disposable {
 
     private final Map<String, PsiReference> logicalTypeNameToReference = Maps.newConcurrentMap();
     private final GraphQLPsiSearchHelper psiSearchHelper;
@@ -64,7 +65,7 @@ public class GraphQLReferenceService {
 
     public GraphQLReferenceService(@NotNull final Project project) {
         psiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
-        project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
+        project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
             public void beforePsiChanged(boolean isPhysical) {
                 // clear the cache on each PSI change
@@ -447,5 +448,9 @@ public class GraphQLReferenceService {
             });
         }
         return reference.get();
+    }
+
+    @Override
+    public void dispose() {
     }
 }

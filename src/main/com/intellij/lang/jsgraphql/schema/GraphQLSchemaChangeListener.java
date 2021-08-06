@@ -16,6 +16,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -32,7 +33,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Tracks PSI changes that can affect declared GraphQL schemas
  */
-public class GraphQLSchemaChangeListener {
+public class GraphQLSchemaChangeListener implements Disposable {
 
     public final static Topic<GraphQLSchemaEventListener> TOPIC = new Topic<>(
         "GraphQL Schema Change Events",
@@ -44,21 +45,20 @@ public class GraphQLSchemaChangeListener {
         return ServiceManager.getService(project, GraphQLSchemaChangeListener.class);
     }
 
-
     private final Project myProject;
-    private final PsiTreeChangeAdapter listener;
-    private final PsiManager psiManager;
+    private final PsiTreeChangeAdapter myPsiTreeChangeListener;
+    private final PsiManager myPsiManager;
 
-    private AtomicInteger schemaVersion = new AtomicInteger(0);
+    private final AtomicInteger schemaVersion = new AtomicInteger(0);
 
     public GraphQLSchemaChangeListener(Project project) {
         myProject = project;
-        psiManager = PsiManager.getInstance(myProject);
-        listener = new PsiTreeChangeAdapter() {
+        myPsiManager = PsiManager.getInstance(myProject);
+        myPsiTreeChangeListener = new PsiTreeChangeAdapter() {
 
             private void checkForSchemaChange(PsiTreeChangeEvent event) {
                 if (myProject.isDisposed()) {
-                    psiManager.removePsiTreeChangeListener(listener);
+                    myPsiManager.removePsiTreeChangeListener(myPsiTreeChangeListener);
                     return;
                 }
                 if (event.getFile() instanceof GraphQLFile) {
@@ -129,10 +129,10 @@ public class GraphQLSchemaChangeListener {
                 }
             }
         };
-        psiManager.addPsiTreeChangeListener(listener);
+        myPsiManager.addPsiTreeChangeListener(myPsiTreeChangeListener, this);
 
         // also consider the schema changed when the underlying schema configuration files change
-        final MessageBusConnection connection = myProject.getMessageBus().connect();
+        final MessageBusConnection connection = myProject.getMessageBus().connect(this);
         connection.subscribe(GraphQLConfigManager.TOPIC, this::signalSchemaChanged);
     }
 
@@ -166,4 +166,7 @@ public class GraphQLSchemaChangeListener {
         return true;
     }
 
+    @Override
+    public void dispose() {
+    }
 }

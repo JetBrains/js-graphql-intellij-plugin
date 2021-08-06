@@ -247,6 +247,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         // variables editor
         final LightVirtualFile virtualFile = new LightVirtualFile(GRAPH_QL_VARIABLES_JSON, JsonFileType.INSTANCE, "");
         final FileEditor variablesFileEditor = PsiAwareTextEditorProvider.getInstance().createEditor(myProject, virtualFile);
+        Disposer.register(this, variablesFileEditor);
         final EditorEx variablesEditor = (EditorEx) ((TextEditor) variablesFileEditor).getEditor();
         virtualFile.putUserData(IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE, Boolean.TRUE);
         variablesEditor.setPlaceholder("{ variables }");
@@ -269,8 +270,6 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
         final NonOpaquePanel variablesPanel = new NonOpaquePanel(variablesFileEditor.getComponent());
         variablesPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.TOP));
-
-        Disposer.register(fileEditor, variablesFileEditor);
 
         headerComponent.add(variablesPanel, BorderLayout.SOUTH);
 
