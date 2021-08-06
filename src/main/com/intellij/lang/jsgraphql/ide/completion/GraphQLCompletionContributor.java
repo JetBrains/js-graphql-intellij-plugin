@@ -25,6 +25,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLObjectValueImpl;
+import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection;
@@ -507,7 +508,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 final Set<String> currentLocations = Sets.newHashSet();
                 directiveLocations.getDirectiveLocationList().forEach(location -> currentLocations.add(location.getText()));
                 final GraphQLFile builtInSchema = ObjectUtils.tryCast(
-                    GraphQLPsiSearchHelper.getInstance(completionElement.getProject()).getBuiltInSchema(), GraphQLFile.class);
+                    GraphQLExternalTypeDefinitionsProvider.getInstance(completionElement.getProject()).getBuiltInSchema(), GraphQLFile.class);
                 if (builtInSchema == null) {
                     return;
                 }

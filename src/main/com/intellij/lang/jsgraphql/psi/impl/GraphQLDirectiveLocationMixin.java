@@ -8,10 +8,10 @@
 package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveLocation;
 import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
+import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
@@ -19,7 +19,6 @@ import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceBase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl implements GraphQLDirectiveLocation {
 
@@ -32,13 +31,12 @@ public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl i
         final Ref<PsiReference> reference = new Ref<>();
         final GraphQLDirectiveLocationMixin psiElement = this;
         final String locationName = psiElement.getText();
-        GraphQLPsiSearchHelper.getInstance(getProject()).getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
+        GraphQLExternalTypeDefinitionsProvider.getInstance(getProject()).getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
             @Override
-            public void visitElement(PsiElement element) {
-                if(element instanceof GraphQLEnumValue && element.getText().equals(locationName)) {
+            public void visitElement(@NotNull PsiElement element) {
+                if (element instanceof GraphQLEnumValue && element.getText().equals(locationName)) {
                     final GraphQLIdentifier referencedEnumValue = ((GraphQLEnumValue) element).getNameIdentifier();
                     reference.set(new PsiReferenceBase<PsiElement>(psiElement, new TextRange(0, psiElement.getTextLength())) {
-                        @Nullable
                         @Override
                         public PsiElement resolve() {
                             return referencedEnumValue;
@@ -46,7 +44,7 @@ public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl i
 
                         @NotNull
                         @Override
-                        public Object[] getVariants() {
+                        public Object @NotNull [] getVariants() {
                             return PsiReference.EMPTY_ARRAY;
                         }
                     });

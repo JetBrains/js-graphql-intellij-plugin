@@ -83,6 +83,7 @@
     <projectService
       serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextCaretListener"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLPluginDisposable"/>
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider"/>
 
     <!-- Indexing -->
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex"/>

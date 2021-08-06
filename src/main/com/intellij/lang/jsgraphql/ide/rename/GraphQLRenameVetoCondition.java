@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.rename;
 
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
 import com.intellij.openapi.util.Condition;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -18,7 +18,7 @@ import com.intellij.psi.PsiFile;
 public class GraphQLRenameVetoCondition implements Condition<PsiElement> {
     @Override
     public boolean value(PsiElement psiElement) {
-        final PsiFile builtInSchema = GraphQLPsiSearchHelper.getInstance(psiElement.getProject()).getBuiltInSchema();
+        final PsiFile builtInSchema = GraphQLExternalTypeDefinitionsProvider.getInstance(psiElement.getProject()).getBuiltInSchema();
         return builtInSchema == psiElement.getContainingFile();
     }
 }
