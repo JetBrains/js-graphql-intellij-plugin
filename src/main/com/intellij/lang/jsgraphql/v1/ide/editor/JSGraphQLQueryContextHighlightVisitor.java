@@ -21,6 +21,7 @@ import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.lang.jsgraphql.GraphQLPluginDisposable;
 import com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxAnnotator;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.psi.*;
@@ -79,14 +80,14 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
     private static final String HIDE_LINK = "hide";
     private static final String SELECT_OPERATION_LINK = "select-operation";
     public static final String QUERY_CONTEXT_HINT_MESSAGE = "Place the caret <a href=\"" +
-            SELECT_OPERATION_LINK +
-            "\">inside an operation</a>" +
-            " to execute it on its own.<br> " +
-            "Referenced fragments are automatically included.<br>" +
-            "<div style=\"margin: 4px 0 4px 0;\">" +
-            "<a style=\"text-decoration: none\" href=\"" +
-            HIDE_LINK +
-            "\">Don't show this again</a></div>";
+        SELECT_OPERATION_LINK +
+        "\">inside an operation</a>" +
+        " to execute it on its own.<br> " +
+        "Referenced fragments are automatically included.<br>" +
+        "<div style=\"margin: 4px 0 4px 0;\">" +
+        "<a style=\"text-decoration: none\" href=\"" +
+        HIDE_LINK +
+        "\">Don't show this again</a></div>";
 
     private static final String ELEMENT_INCLUDED_MESSAGE = "Element is included in query execution";
 
@@ -195,7 +196,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                                 }
                             }
                         }
-                    });
+                    }, GraphQLPluginDisposable.getInstance(file.getProject()));
                     // finally, indicate we've added the listener
                     editor.putUserData(QUERY_HIGHLIGHT_LISTENER_ADDED, true);
                 }
@@ -270,10 +271,10 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                     final StringBuilder query = new StringBuilder(editorLength);
                     final Stream<Caret> carets = editor.getCaretModel().getAllCarets().stream();
                     final Collection<TextRange> selectedRanges = carets
-                            .filter(Caret::hasSelection)
-                            .map(caret -> new TextRange(caret.getSelectionStart(), caret.getSelectionEnd()))
-                            .sorted(Comparator.comparingInt(TextRange::getStartOffset))
-                            .collect(Collectors.toList());
+                        .filter(Caret::hasSelection)
+                        .map(caret -> new TextRange(caret.getSelectionStart(), caret.getSelectionEnd()))
+                        .sorted(Comparator.comparingInt(TextRange::getStartOffset))
+                        .collect(Collectors.toList());
 
                     for (int i = 0; i < editorLength; i++) {
                         final char c = editorBuffer.charAt(i);
