@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager.GRAPHQLCONFIG_COMMENT;
-import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService.JS_GRAPH_QL_ENDPOINTS_MODEL;
+import static com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL;
 
 /**
  * Tree node which provides a schema endpoints list
@@ -105,7 +105,7 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
                                 FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(scratchFile, true);
                                 for (FileEditor editor : fileEditors) {
                                     if (editor instanceof TextEditor) {
-                                        final JSGraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
+                                        final JSGraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
                                         if (endpointsModel != null) {
                                             endpointsModel.setSelectedItem(endpoint);
                                         }

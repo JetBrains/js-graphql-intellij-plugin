@@ -7,9 +7,9 @@
  */
 package com.intellij.lang.jsgraphql.ide.startup;
 
+import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextCaretListener;
-import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -32,7 +32,7 @@ public class GraphQLStartupActivity implements StartupActivity, DumbAware {
             return;
         }
         // startup the UI service
-        JSGraphQLLanguageUIProjectService.getService(project);
+        GraphQLUIProjectService.getService(project);
 
         JSGraphQLQueryContextCaretListener.getInstance(project).listen();
     }

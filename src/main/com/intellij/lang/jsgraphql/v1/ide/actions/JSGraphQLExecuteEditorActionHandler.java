@@ -8,8 +8,8 @@
 package com.intellij.lang.jsgraphql.v1.ide.actions;
 
 import com.intellij.ide.IdeEventQueue;
+import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
-import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
@@ -50,7 +50,7 @@ public class JSGraphQLExecuteEditorActionHandler extends EditorActionHandler {
 
     private boolean isQueryVariablesFile(DataContext dataContext) {
         final VirtualFile virtualFile = (VirtualFile)dataContext.getData(CommonDataKeys.VIRTUAL_FILE.getName());
-        if(virtualFile != null && Boolean.TRUE.equals(virtualFile.getUserData(JSGraphQLLanguageUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE))) {
+        if(virtualFile != null && Boolean.TRUE.equals(virtualFile.getUserData(GraphQLUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE))) {
             return true;
         }
         return false;

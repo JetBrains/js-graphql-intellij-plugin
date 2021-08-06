@@ -10,8 +10,8 @@ package com.intellij.lang.jsgraphql.v1.ide.actions;
 import com.intellij.icons.AllIcons;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
+import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
-import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -30,12 +30,12 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
     public void update(AnActionEvent e) {
         final Editor editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE);
         if(editor != null) {
-            final JSGraphQLEndpointsModel endpointsModel = editor.getUserData(JSGraphQLLanguageUIProjectService.JS_GRAPH_QL_ENDPOINTS_MODEL);
+            final JSGraphQLEndpointsModel endpointsModel = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL);
             if(endpointsModel == null || endpointsModel.getSelectedItem() == null) {
                 e.getPresentation().setEnabled(false);
                 return;
             }
-            final Boolean querying = Boolean.TRUE.equals(editor.getUserData(JSGraphQLLanguageUIProjectService.GRAPH_QL_EDITOR_QUERYING));
+            final Boolean querying = Boolean.TRUE.equals(editor.getUserData(GraphQLUIProjectService.GRAPH_QL_EDITOR_QUERYING));
             e.getPresentation().setEnabled(!querying);
         }
     }
@@ -47,18 +47,18 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
         if(isQueryableFile(project, virtualFile)) {
             Editor editor = e.getData(CommonDataKeys.EDITOR);
             if(project != null && editor instanceof EditorEx) {
-                final Boolean querying = Boolean.TRUE.equals(editor.getUserData(JSGraphQLLanguageUIProjectService.GRAPH_QL_EDITOR_QUERYING));
+                final Boolean querying = Boolean.TRUE.equals(editor.getUserData(GraphQLUIProjectService.GRAPH_QL_EDITOR_QUERYING));
                 if(querying) {
                     // already doing a query
                     return;
                 }
-                final Editor queryEditor = editor.getUserData(JSGraphQLLanguageUIProjectService.GRAPH_QL_QUERY_EDITOR);
+                final Editor queryEditor = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_QUERY_EDITOR);
                 if(queryEditor != null) {
                     // this action comes from the variables editor, so we need to resolve the query editor which contains the GraphQL
                     editor = queryEditor;
                     virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(((EditorEx)editor).getDataContext());
                 }
-                JSGraphQLLanguageUIProjectService.getService(project).executeGraphQL(editor, virtualFile);
+                GraphQLUIProjectService.getService(project).executeGraphQL(editor, virtualFile);
             }
         }
     }
@@ -71,7 +71,7 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
             if(GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
                 return true;
             }
-            if(virtualFile.getFileType() == JsonFileType.INSTANCE && Boolean.TRUE.equals(virtualFile.getUserData(JSGraphQLLanguageUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE))) {
+            if(virtualFile.getFileType() == JsonFileType.INSTANCE && Boolean.TRUE.equals(virtualFile.getUserData(GraphQLUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE))) {
                 return true;
             }
         }

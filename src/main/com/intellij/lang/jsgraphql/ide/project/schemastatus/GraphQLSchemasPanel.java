@@ -37,7 +37,6 @@ import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.SimpleTreeBuilder;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
 import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +60,6 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
 
     public GraphQLSchemasPanel(@NotNull Project project) {
         myProject = project;
-        Disposer.register(myProject, this);
 
         myConnection = project.getMessageBus().connect(this);
 
@@ -117,7 +115,7 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
                 return application.isDispatchThread();
             }
         };
-        Disposer.register(myProject, myBuilder);
+        Disposer.register(this, myBuilder);
 
         // queue tree updates for when the user is idle to prevent perf-hit in the editor
         final AtomicReference<TreeUpdate> shouldUpdateTree = new AtomicReference<>(TreeUpdate.NONE);
@@ -160,7 +158,7 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
         // update the tree after being idle for a short while
         IdeEventQueue.getInstance().addIdleListener(treeUpdater, 750);
 
-        Disposer.register(myProject, () -> IdeEventQueue.getInstance().removeIdleListener(treeUpdater));
+        Disposer.register(this, () -> IdeEventQueue.getInstance().removeIdleListener(treeUpdater));
 
         // update tree on schema or config changes
         myConnection.subscribe(GraphQLSchemaChangeListener.TOPIC, (schemaVersion) -> {

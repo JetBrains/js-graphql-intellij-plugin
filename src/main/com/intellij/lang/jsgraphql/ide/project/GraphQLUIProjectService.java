@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.project;
+package com.intellij.lang.jsgraphql.ide.project;
 
 import com.google.gson.*;
 import com.intellij.codeInsight.CodeSmellInfo;
@@ -15,23 +15,21 @@ import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.json.JsonFileType;
-import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
-import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
+import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
 import com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLToggleVariablesAction;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContext;
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
-import com.intellij.lang.jsgraphql.v1.ide.project.toolwindow.JSGraphQLLanguageToolWindowManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -48,16 +46,12 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vcs.CodeSmellDetector;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.impl.source.codeStyle.CodeStyleManagerImpl;
@@ -65,10 +59,7 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
-import com.intellij.ui.content.Content;
-import com.intellij.ui.content.impl.ContentImpl;
 import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
@@ -82,19 +73,13 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.*;
 
-/**
- * Provides the project-specific GraphQL tool window, including errors view, console, and query result editor.
- */
-public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditorManagerListener, JSGraphQLConfigurationListener {
+public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, JSGraphQLConfigurationListener {
 
-    public final static String GRAPH_QL_TOOL_WINDOW_NAME = GraphQLConstants.GraphQL;
     public static final String GRAPH_QL_VARIABLES_JSON = "GraphQL.variables.json";
 
     /**
@@ -112,30 +97,18 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
      */
     public static final Key<Editor> GRAPH_QL_QUERY_EDITOR = Key.create(GRAPH_QL_VARIABLES_JSON + ".query.editor");
 
-    public final static Key<JSGraphQLEndpointsModel> JS_GRAPH_QL_ENDPOINTS_MODEL = Key.create("JSGraphQLEndpointsModel");
+    public final static Key<JSGraphQLEndpointsModel> GRAPH_QL_ENDPOINTS_MODEL = Key.create("JSGraphQLEndpointsModel");
 
     public final static Key<Boolean> GRAPH_QL_EDITOR_QUERYING = Key.create("JSGraphQLEditorQuerying");
-
-    private static final String FILE_URL_PROPERTY = "fileUrl";
-
-    private final JSGraphQLLanguageToolWindowManager myToolWindowManager;
 
     @NotNull
     private final Project myProject;
 
-    private FileEditor fileEditor;
-    private JBLabel queryResultLabel;
-    private JBLabel querySuccessLabel;
-
-    public JSGraphQLLanguageUIProjectService(@NotNull final Project project) {
+    public GraphQLUIProjectService(@NotNull final Project project) {
 
         myProject = project;
 
         final MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
-
-        // tool window
-        myToolWindowManager = new JSGraphQLLanguageToolWindowManager(project, GRAPH_QL_TOOL_WINDOW_NAME, GraphQLIcons.UI.GraphQLToolWindow);
-        Disposer.register(this, this.myToolWindowManager);
 
         // listen for editor file tab changes to update the list of current errors
         messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this);
@@ -149,33 +122,14 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         // listen for configuration changes
         messageBusConnection.subscribe(JSGraphQLConfigurationListener.TOPIC, this);
 
-        // finally init the tool window tabs
-        initToolWindow();
-
         // and notify to configure the schema
         project.putUserData(GraphQLParserDefinition.JSGRAPHQL_ACTIVATED, true);
         EditorNotifications.getInstance(project).updateAllNotifications();
     }
 
 
-    public static JSGraphQLLanguageUIProjectService getService(@NotNull Project project) {
-        return ServiceManager.getService(project, JSGraphQLLanguageUIProjectService.class);
-    }
-
-    private static void showToolWindowContent(@NotNull Project project, @NotNull Class<?> contentClass) {
-        UIUtil.invokeLaterIfNeeded(() -> {
-            final ToolWindow toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GRAPH_QL_TOOL_WINDOW_NAME);
-            if (toolWindow != null) {
-                toolWindow.show(() -> {
-                    for (Content content : toolWindow.getContentManager().getContents()) {
-                        if (contentClass.isAssignableFrom(content.getComponent().getClass())) {
-                            toolWindow.getContentManager().setSelectedContent(content);
-                            break;
-                        }
-                    }
-                });
-            }
-        });
+    public static GraphQLUIProjectService getService(@NotNull Project project) {
+        return ServiceManager.getService(project, GraphQLUIProjectService.class);
     }
 
     // ---- editor tabs listener ----
@@ -216,7 +170,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     for (FileEditor editor : fileEditorManager.getEditors(file)) {
                         if (editor instanceof TextEditor) {
                             final JSGraphQLEndpointsModel endpointsModel =
-                                ((TextEditor) editor).getEditor().getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
+                                ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
                             if (endpointsModel != null) {
                                 endpointsModel.reload(endpoints);
                             }
@@ -237,7 +191,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
                     if (editor.getHeaderComponent() instanceof JSGraphQLEditorHeaderComponent) {
                         return;
                     }
-                    final JComponent headerComponent = createHeaderComponent(fileEditor, editor, file);
+                    final JComponent headerComponent = createEditorHeaderComponent(fileEditor, editor, file);
                     editor.setHeaderComponent(headerComponent);
                     if (editor instanceof EditorEx) {
                         ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
@@ -250,7 +204,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     private static class JSGraphQLEditorHeaderComponent extends EditorHeaderComponent {
     }
 
-    private JComponent createHeaderComponent(FileEditor fileEditor, Editor editor, VirtualFile file) {
+    private JComponent createEditorHeaderComponent(FileEditor fileEditor, Editor editor, VirtualFile file) {
 
         final JSGraphQLEditorHeaderComponent headerComponent = new JSGraphQLEditorHeaderComponent();
 
@@ -273,7 +227,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         final JSGraphQLEndpointsModel endpointsModel = new JSGraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
         final ComboBox endpointComboBox = new ComboBox(endpointsModel);
         endpointComboBox.setToolTipText("GraphQL endpoint");
-        editor.putUserData(JS_GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
+        editor.putUserData(GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
         final JPanel endpointComboBoxPanel = new JPanel(new BorderLayout());
         endpointComboBoxPanel.setBorder(BorderFactory.createEmptyBorder(1, 2, 2, 2));
         endpointComboBoxPanel.add(endpointComboBox);
@@ -304,7 +258,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
         variablesEditor.getSettings().setLineNumbersShown(false);
         variablesEditor.getSettings().setLineMarkerAreaShown(false);
         variablesEditor.getSettings().setCaretRowShown(false);
-        variablesEditor.putUserData(JS_GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
+        variablesEditor.putUserData(GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
 
         // hide variables by default
         variablesEditor.getComponent().setVisible(false);
@@ -333,7 +287,7 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
     }
 
     public void executeGraphQL(Editor editor, VirtualFile virtualFile) {
-        final JSGraphQLEndpointsModel endpointsModel = editor.getUserData(JS_GRAPH_QL_ENDPOINTS_MODEL);
+        final JSGraphQLEndpointsModel endpointsModel = editor.getUserData(GRAPH_QL_ENDPOINTS_MODEL);
         if (endpointsModel != null) {
             final GraphQLConfigEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
             if (selectedEndpoint != null && selectedEndpoint.url != null) {
@@ -408,49 +362,86 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
 
                 final boolean reformatJson = contentType != null && contentType.getValue() != null && contentType.getValue().startsWith("application/json");
                 final Integer errorCount = getErrorCount(responseJson);
-                if (fileEditor instanceof TextEditor) {
-                    final TextEditor textEditor = (TextEditor) fileEditor;
-                    UIUtil.invokeLaterIfNeeded(() -> {
-                        updateQueryResultEditor(responseJson, textEditor, reformatJson);
-                        final StringBuilder queryResultText = new StringBuilder(virtualFile.getName()).
-                            append(": ").
-                            append(sw.getTime()).
-                            append(" ms execution time, ").
-                            append(bytesToDisplayString(responseJson.length())).
-                            append(" response");
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    TextEditor queryResultEditor = GraphQLToolWindow.getQueryResultEditor(myProject);
+                    if (queryResultEditor == null) {
+                        return;
+                    }
 
-                        if (errorCount != null && errorCount > 0) {
-                            queryResultText.append(", ").append(errorCount).append(" error").append(errorCount > 1 ? "s" : "");
-                            if (context.onError != null) {
-                                context.onError.run();
-                            }
-                        }
+                    updateQueryResultEditor(responseJson, queryResultEditor, reformatJson);
+                    final StringBuilder queryResultText = new StringBuilder(virtualFile.getName()).
+                        append(": ").
+                        append(sw.getTime()).
+                        append(" ms execution time, ").
+                        append(bytesToDisplayString(responseJson.length())).
+                        append(" response");
 
-                        queryResultLabel.setText(queryResultText.toString());
-                        queryResultLabel.putClientProperty(FILE_URL_PROPERTY, virtualFile.getUrl());
-                        if (!queryResultLabel.isVisible()) {
-                            queryResultLabel.setVisible(true);
+                    if (errorCount != null && errorCount > 0) {
+                        queryResultText.append(", ").append(errorCount).append(" error").append(errorCount > 1 ? "s" : "");
+                        if (context.onError != null) {
+                            context.onError.run();
                         }
+                    }
 
-                        querySuccessLabel.setVisible(errorCount != null);
-                        if (querySuccessLabel.isVisible() && errorCount != null) {
-                            if (errorCount == 0) {
-                                querySuccessLabel.setBorder(BorderFactory.createEmptyBorder(2, 8, 0, 0));
-                                querySuccessLabel.setIcon(AllIcons.General.InspectionsOK);
-                            } else {
-                                querySuccessLabel.setBorder(BorderFactory.createEmptyBorder(2, 12, 0, 4));
-                                querySuccessLabel.setIcon(AllIcons.Ide.ErrorPoint);
-                            }
+                    GraphQLToolWindow.GraphQLQueryResultHeaderComponent queryResultHeader =
+                        GraphQLToolWindow.getQueryResultHeader(queryResultEditor);
+                    if (queryResultHeader == null) return;
+
+                    JBLabel queryResultLabel = queryResultHeader.getResultLabel();
+                    queryResultLabel.setText(queryResultText.toString());
+                    queryResultLabel.putClientProperty(GraphQLToolWindow.FILE_URL_PROPERTY, virtualFile.getUrl());
+                    if (!queryResultLabel.isVisible()) {
+                        queryResultLabel.setVisible(true);
+                    }
+
+                    JBLabel queryStatusLabel = queryResultHeader.getStatusLabel();
+                    queryStatusLabel.setVisible(errorCount != null);
+                    if (queryStatusLabel.isVisible() && errorCount != null) {
+                        if (errorCount == 0) {
+                            queryStatusLabel.setBorder(BorderFactory.createEmptyBorder(2, 8, 0, 0));
+                            queryStatusLabel.setIcon(AllIcons.General.InspectionsOK);
+                        } else {
+                            queryStatusLabel.setBorder(BorderFactory.createEmptyBorder(2, 12, 0, 4));
+                            queryStatusLabel.setIcon(AllIcons.Ide.ErrorPoint);
                         }
-                        showQueryResultEditor(textEditor);
-                    });
-                }
+                    }
+
+                    GraphQLToolWindow.showQueryResultEditor(myProject);
+                });
             } finally {
                 editor.putUserData(GRAPH_QL_EDITOR_QUERYING, null);
             }
         } catch (IOException | GeneralSecurityException e) {
             GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.WARNING, null);
         }
+    }
+
+    public void showQueryResult(@NotNull String jsonResponse) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            TextEditor textEditor = GraphQLToolWindow.getQueryResultEditor(myProject);
+            if (textEditor == null) return;
+
+            updateQueryResultEditor(jsonResponse, textEditor, true);
+            GraphQLToolWindow.showQueryResultEditor(myProject);
+        });
+    }
+
+    private void updateQueryResultEditor(final String responseJson, TextEditor textEditor, boolean reformatJson) {
+        ApplicationManager.getApplication().runWriteAction(() -> {
+            String documentJson = StringUtil.convertLineSeparators(responseJson);
+            if (reformatJson) {
+                final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
+                final PsiFile jsonPsiFile = psiFileFactory.createFileFromText("", JsonFileType.INSTANCE, documentJson);
+                CodeStyleManagerImpl.getInstance(myProject).reformat(jsonPsiFile);
+                final Document document = jsonPsiFile.getViewProvider().getDocument();
+                if (document != null) {
+                    documentJson = document.getText();
+                }
+            }
+
+            final Document document = textEditor.getEditor().getDocument();
+            document.setText(documentJson);
+        });
     }
 
     @NotNull
@@ -471,41 +462,6 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             // explicit nulls could be a part of a service api
             .serializeNulls()
             .create();
-    }
-
-    public void showQueryResult(@NotNull String jsonResponse) {
-        if (!(fileEditor instanceof TextEditor)) {
-            return;
-        }
-
-        ApplicationManager.getApplication().invokeLater(() -> {
-            TextEditor textEditor = (TextEditor) fileEditor;
-            updateQueryResultEditor(jsonResponse, textEditor, true);
-            showQueryResultEditor(textEditor);
-        });
-    }
-
-    private void showQueryResultEditor(TextEditor textEditor) {
-        showToolWindowContent(myProject, fileEditor.getComponent().getClass());
-        textEditor.getEditor().getScrollingModel().scrollVertically(0);
-    }
-
-    private void updateQueryResultEditor(final String responseJson, TextEditor textEditor, boolean reformatJson) {
-        ApplicationManager.getApplication().runWriteAction(() -> {
-            String documentJson = responseJson.replace("\r\n", "\n");
-            if (reformatJson) {
-                final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
-                final PsiFile jsonPsiFile = psiFileFactory.createFileFromText("", JsonFileType.INSTANCE, documentJson);
-                CodeStyleManagerImpl.getInstance(myProject).reformat(jsonPsiFile);
-                final Document document = jsonPsiFile.getViewProvider().getDocument();
-                if (document != null) {
-                    documentJson = document.getText();
-                }
-            }
-
-            final Document document = textEditor.getEditor().getDocument();
-            document.setText(documentJson);
-        });
     }
 
     private Integer getErrorCount(String responseJson) {
@@ -547,78 +503,6 @@ public class JSGraphQLLanguageUIProjectService implements Disposable, FileEditor
             for (Map.Entry<String, Object> entry : headers.entrySet()) {
                 request.setHeader(entry.getKey(), String.valueOf(entry.getValue()));
             }
-        }
-    }
-
-
-    // -- instance management --
-
-    private void createToolWindowResultEditor(ToolWindow toolWindow) {
-
-        final LightVirtualFile virtualFile = new LightVirtualFile("GraphQL.result.json", JsonFileType.INSTANCE, "");
-        fileEditor = PsiAwareTextEditorProvider.getInstance().createEditor(myProject, virtualFile);
-
-        if (fileEditor instanceof TextEditor) {
-            final Editor editor = ((TextEditor) fileEditor).getEditor();
-            final EditorEx editorEx = (EditorEx) editor;
-
-            // set read-only mode
-            editorEx.setViewer(true);
-            editorEx.getSettings().setShowIntentionBulb(false);
-            editor.getSettings().setAdditionalLinesCount(0);
-            editor.getSettings().setCaretRowShown(false);
-            editor.getSettings().setBlinkCaret(false);
-
-            // query result header
-            final JSGraphQLEditorHeaderComponent header = new JSGraphQLEditorHeaderComponent();
-
-            querySuccessLabel = new JBLabel();
-            querySuccessLabel.setVisible(false);
-            querySuccessLabel.setIconTextGap(0);
-            header.add(querySuccessLabel, BorderLayout.WEST);
-
-            queryResultLabel = new JBLabel("", null, SwingConstants.LEFT);
-            queryResultLabel.setBorder(JBUI.Borders.empty(4, 6));
-            queryResultLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            queryResultLabel.setVisible(false);
-            queryResultLabel.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    final String fileUrl = (String) queryResultLabel.getClientProperty(FILE_URL_PROPERTY);
-                    if (fileUrl != null) {
-                        final VirtualFile queryFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl);
-                        if (queryFile != null) {
-                            final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
-                            fileEditorManager.openFile(queryFile, true, true);
-                        }
-                    }
-                }
-            });
-            header.add(queryResultLabel, BorderLayout.CENTER);
-
-            // finally set the header as permanent such that it's restored after searches
-            editor.setHeaderComponent(header);
-            editorEx.setPermanentHeaderComponent(header);
-        }
-
-        final ContentImpl content = new ContentImpl(fileEditor.getComponent(), "Query Result", true);
-        content.setCloseable(false);
-        content.setShouldDisposeContent(false);
-        toolWindow.getContentManager().addContent(content);
-        Disposer.register(content, fileEditor);
-    }
-
-    private void initToolWindow() {
-        if (this.myToolWindowManager != null && !this.myProject.isDisposed()) {
-            StartupManager.getInstance(this.myProject).runWhenProjectIsInitialized(() -> ApplicationManager.getApplication().invokeLater(() -> {
-
-                myToolWindowManager.init();
-
-                final ToolWindow toolWindow = ToolWindowManager.getInstance(myProject).getToolWindow(GRAPH_QL_TOOL_WINDOW_NAME);
-                if (toolWindow != null) {
-                    createToolWindowResultEditor(toolWindow);
-                }
-            }, myProject.getDisposed()));
         }
     }
 

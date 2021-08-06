@@ -74,7 +74,7 @@
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService"/>
     <projectService
-      serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService"/>
+      serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService"/>
@@ -164,6 +164,10 @@
     <!-- Project Language services -->
     <projectService
       serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider"/>
+
+    <!-- Tool window -->
+    <toolWindow id="GraphQL" factoryClass="com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow"
+                anchor="bottom" icon="com.intellij.lang.jsgraphql.icons.GraphQLIcons.UI.GraphQLToolWindow"/>
 
     <!-- Spellchecking and to-do view-->
     <spellchecker.support language="GraphQL"

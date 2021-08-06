@@ -15,6 +15,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
+import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
@@ -32,7 +33,6 @@ import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter;
 import com.intellij.lang.jsgraphql.types.schema.idl.UnExecutableSchemaGenerator;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.lang.jsgraphql.types.util.EscapeUtil;
-import com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
@@ -86,7 +86,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static com.intellij.lang.jsgraphql.v1.ide.project.JSGraphQLLanguageUIProjectService.setHeadersFromOptions;
+import static com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService.setHeadersFromOptions;
 
 public class GraphQLIntrospectionService implements Disposable {
     private static final Logger LOG = Logger.getInstance(GraphQLIntrospectionService.class);
@@ -472,8 +472,8 @@ public class GraphQLIntrospectionService implements Disposable {
             Map<String, Object> introspection;
             try {
                 introspection = parseIntrospectionJson(responseJson);
-                if (getErrorCount(introspection) > 0) {
-                    JSGraphQLLanguageUIProjectService.getService(myProject).showQueryResult(responseJson);
+                if (getErrorCount(introspection) > 0 && myProject != null) {
+                    GraphQLUIProjectService.getService(myProject).showQueryResult(responseJson);
                 }
             } catch (JsonSyntaxException exception) {
                 handleIntrospectionError(exception, GraphQLBundle.message("graphql.notification.introspection.parse.error"), responseJson);
@@ -529,7 +529,9 @@ public class GraphQLIntrospectionService implements Disposable {
 
             Notifications.Bus.notify(notification, myProject);
 
-            JSGraphQLLanguageUIProjectService.getService(myProject).showQueryResult(responseJson);
+            if (myProject != null) {
+                GraphQLUIProjectService.getService(myProject).showQueryResult(responseJson);
+            }
         }
     }
 }
