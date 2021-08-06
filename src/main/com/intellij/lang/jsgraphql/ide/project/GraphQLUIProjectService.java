@@ -188,7 +188,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                 FileEditor fileEditor = source.getSelectedEditor(file);
                 if (fileEditor instanceof TextEditor) {
                     final Editor editor = ((TextEditor) fileEditor).getEditor();
-                    if (editor.getHeaderComponent() instanceof JSGraphQLEditorHeaderComponent) {
+                    if (editor.getHeaderComponent() instanceof GraphQLEditorHeaderComponent) {
                         return;
                     }
                     final JComponent headerComponent = createEditorHeaderComponent(fileEditor, editor, file);
@@ -201,12 +201,12 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         }
     }
 
-    private static class JSGraphQLEditorHeaderComponent extends EditorHeaderComponent {
+    private static class GraphQLEditorHeaderComponent extends EditorHeaderComponent {
     }
 
     private JComponent createEditorHeaderComponent(FileEditor fileEditor, Editor editor, VirtualFile file) {
 
-        final JSGraphQLEditorHeaderComponent headerComponent = new JSGraphQLEditorHeaderComponent();
+        final GraphQLEditorHeaderComponent headerComponent = new GraphQLEditorHeaderComponent();
 
         // variables & settings actions
         final DefaultActionGroup settingsActions = new DefaultActionGroup();
@@ -508,6 +508,27 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
     @Override
     public void dispose() {
+        removeHeaderComponents();
+    }
+
+    private void removeHeaderComponents() {
+        for (FileEditor fileEditor : FileEditorManager.getInstance(myProject).getAllEditors()) {
+            if (!(fileEditor instanceof TextEditor)) {
+                continue;
+            }
+
+            Editor editor = ((TextEditor) fileEditor).getEditor();
+            if (!(editor.getHeaderComponent() instanceof GraphQLEditorHeaderComponent)) {
+                continue;
+            }
+
+            if (editor instanceof EditorEx) {
+                ((EditorEx) editor).setPermanentHeaderComponent(null);
+            }
+            editor.setHeaderComponent(null);
+            editor.putUserData(GRAPH_QL_ENDPOINTS_MODEL, null);
+            editor.putUserData(GRAPH_QL_VARIABLES_EDITOR, null);
+        }
     }
 
 }
