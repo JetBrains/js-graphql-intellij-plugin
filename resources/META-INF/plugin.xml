@@ -121,7 +121,8 @@
     <lang.quoteHandler language="GraphQL"
                        implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLQuoteHandler"/>
     <lang.commenter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLCommenter"/>
-    <enterHandlerDelegate implementation="com.intellij.lang.jsgraphql.ide.formatter.GraphQLEnterInEmptyListHandler"/>
+    <enterBetweenBracesDelegate language="GraphQL"
+                                implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLEnterInEmptyListHandler"/>
     <typedHandler implementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLTypedHandlerDelegate"/>
 
     <!-- Completion -->
