@@ -64,7 +64,7 @@ public class GraphQLParserDefinition implements ParserDefinition {
         return new GraphQLFile(viewProvider);
     }
 
-    public @NotNull SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
+    public @NotNull SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
         return SpaceRequirements.MAY;
     }
 
