@@ -30,34 +30,34 @@ import java.util.Objects;
  */
 public class GraphQLNamedScope extends NamedScope {
 
-    private VirtualFile configBaseDir;
-    private GraphQLResolvedConfigData configData;
+    private VirtualFile myConfigBaseDir;
+    private GraphQLResolvedConfigData myConfigData;
 
-    public GraphQLNamedScope(@NotNull String name, @Nullable GraphQLConfigPackageSet value) {
-        super(name, value);
-        if(value != null) {
-            this.configData = value.getConfigData();
-            configBaseDir = value.getConfigBaseDir();
+    public GraphQLNamedScope(@NotNull String scopeId, @Nullable GraphQLConfigPackageSet value) {
+        super(scopeId, value);
+        if (value != null) {
+            myConfigData = value.getConfigData();
+            myConfigBaseDir = value.getConfigBaseDir();
         }
     }
 
     public GraphQLResolvedConfigData getConfigData() {
-        return configData;
+        return myConfigData;
     }
 
     public VirtualFile getConfigBaseDir() {
-        return configBaseDir;
+        return myConfigBaseDir;
     }
 
     public GraphQLConfigPackageSet getPackageSet() {
-        return (GraphQLConfigPackageSet)getValue();
+        return (GraphQLConfigPackageSet) getValue();
     }
 
     @NotNull
     @Override
     public NamedScope createCopy() {
         final PackageSet value = getValue();
-        return new GraphQLNamedScope(getName(), value != null ? (GraphQLConfigPackageSet)value.createCopy() : null);
+        return new GraphQLNamedScope(getScopeId(), value != null ? (GraphQLConfigPackageSet) value.createCopy() : null);
     }
 
     @Override
@@ -66,12 +66,12 @@ public class GraphQLNamedScope extends NamedScope {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         GraphQLNamedScope that = (GraphQLNamedScope) o;
-        return Objects.equals(getName(), that.getName()) && Objects.equals(getValue(), that.getValue());
+        return Objects.equals(getScopeId(), that.getScopeId()) && Objects.equals(getValue(), that.getValue());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getName(), getValue());
+        return Objects.hash(getScopeId(), getValue());
     }
 
 }
