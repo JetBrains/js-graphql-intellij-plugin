@@ -151,6 +151,8 @@
     <!-- Editor notifications -->
     <editorNotificationProvider
       implementation="com.intellij.lang.jsgraphql.ide.notifications.GraphQLScopeEditorNotificationProvider"/>
+    <editorNotificationProvider
+      implementation="com.intellij.lang.jsgraphql.ide.notifications.GraphQLConfigInvalidFileTypeEditorNotificationProvider"/>
 
     <!-- Introspection -->
     <codeInsight.lineMarkerProvider
