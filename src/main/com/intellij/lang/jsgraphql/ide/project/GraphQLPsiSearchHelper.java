@@ -20,6 +20,7 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManage
 import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex;
 import com.intellij.lang.jsgraphql.ide.project.scopes.ConditionalGlobalSearchScope;
+import com.intellij.lang.jsgraphql.ide.project.scopes.SchemaInLibraryScope;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
@@ -94,8 +95,9 @@ public class GraphQLPsiSearchHelper implements Disposable {
 
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
         myGlobalScope = GlobalSearchScope
-            .getScopeRestrictedByFileTypes(GlobalSearchScope.allScope(myProject), searchScopeFileTypes)
-            .union(myBuiltInSchemaScopes);
+            .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes)
+            .union(myBuiltInSchemaScopes)
+            .union(new SchemaInLibraryScope(project));
 
         project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
