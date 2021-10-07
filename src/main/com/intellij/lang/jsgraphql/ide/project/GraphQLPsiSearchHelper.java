@@ -94,7 +94,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
 
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
         myGlobalScope = GlobalSearchScope
-            .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes)
+            .getScopeRestrictedByFileTypes(GlobalSearchScope.allScope(myProject), searchScopeFileTypes)
             .union(myBuiltInSchemaScopes);
 
         project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
