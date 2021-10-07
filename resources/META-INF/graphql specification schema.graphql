@@ -39,7 +39,7 @@ scalar Int
 
 """
 The @include directive may be provided for fields, fragment spreads, and inline fragments,
-and allows for conditional inclusion during execution as described by the if argumen
+and allows for conditional inclusion during execution as described by the if argument.
 """
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 
