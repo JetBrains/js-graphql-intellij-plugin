@@ -25,6 +25,7 @@ import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigSecurity;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;

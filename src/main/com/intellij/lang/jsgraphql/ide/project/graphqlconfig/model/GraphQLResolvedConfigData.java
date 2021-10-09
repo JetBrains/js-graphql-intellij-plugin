@@ -24,4 +24,5 @@ public class GraphQLResolvedConfigData {
 
     public Map<String, Object> extensions;
 
+    public GraphQLConfigSecurity sslConfiguration;
 }
