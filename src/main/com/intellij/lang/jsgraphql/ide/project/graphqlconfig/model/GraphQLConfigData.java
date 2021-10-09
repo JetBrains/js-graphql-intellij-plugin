@@ -13,7 +13,5 @@ import java.util.Map;
  * graphql-config root config
  */
 public class GraphQLConfigData extends GraphQLResolvedConfigData {
-
     public Map<String, GraphQLResolvedConfigData> projects;
-
 }

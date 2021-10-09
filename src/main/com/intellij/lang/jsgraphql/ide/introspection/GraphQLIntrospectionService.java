@@ -16,8 +16,7 @@ import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
@@ -80,6 +79,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+
 import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -88,6 +88,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.*;
+import java.security.cert.CertificateException;
 
 import static com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService.setHeadersFromOptions;
 
@@ -99,6 +103,7 @@ public class GraphQLIntrospectionService implements Disposable {
 
     private GraphQLIntrospectionTask latestIntrospection = null;
     private final Project myProject;
+    private Project myProject1;
 
     public static GraphQLIntrospectionService getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLIntrospectionService.class);
@@ -186,14 +191,38 @@ public class GraphQLIntrospectionService implements Disposable {
     }
 
     @NotNull
-    public CloseableHttpClient createHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+    public CloseableHttpClient createHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException, CertificateException {
         HttpClientBuilder builder = HttpClients.custom();
         builder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
 
         if (PropertiesComponent.getInstance(myProject).isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) {
-            builder
-                .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
-                .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
+            Map<VirtualFile, GraphQLConfigData> configEntries =
+                GraphQLConfigManager.getService(myProject).getConfigurationsByPath();
+            GraphQLConfigSecurity sslConfig = configEntries.get(myProject.getBaseDir()).sslConfiguration;
+            if (sslConfig != null) {
+                if (sslConfig.clientCertificate.path == null || sslConfig.clientCertificateKey.path == null) {
+                    throw new RuntimeException("Path needs to be specified for the key and certificate");
+                }
+                Path certPath = Paths.get(sslConfig.clientCertificate.path);
+                Path keyPath = Paths.get(sslConfig.clientCertificateKey.path);
+                GraphQLConfigCertificate.Encoding keyFormat = sslConfig.clientCertificateKey.format;
+
+                KeyStore store = GraphQLIntrospectionSSLBuilder.makeKeyStore(certPath, keyPath, keyFormat);
+                builder
+                    .setSSLContext(
+                        new SSLContextBuilder()
+                            .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
+                            .loadKeyMaterial(store, null)
+                            .build())
+                    .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
+            } else {
+                builder
+                    .setSSLContext(
+                        new SSLContextBuilder()
+                            .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
+                            .build())
+                    .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
+            }
         }
         return builder.build();
     }
