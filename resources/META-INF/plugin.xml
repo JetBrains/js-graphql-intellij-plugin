@@ -122,7 +122,7 @@
                        implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLQuoteHandler"/>
     <lang.commenter language="GraphQL" implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLCommenter"/>
     <enterBetweenBracesDelegate language="GraphQL"
-                                implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLEnterInEmptyListHandler"/>
+                                implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLEnterBetweenBracesHandler"/>
     <typedHandler implementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLTypedHandlerDelegate"/>
 
     <!-- Completion -->
