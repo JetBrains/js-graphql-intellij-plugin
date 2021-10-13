@@ -10,17 +10,21 @@ import com.intellij.psi.search.DelegatingGlobalSearchScope;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
-public class SchemaInLibraryScope extends DelegatingGlobalSearchScope {
+public class MetaInfSchemaScope extends DelegatingGlobalSearchScope {
     private final ProjectFileIndex myIndex;
 
-    public SchemaInLibraryScope(@NotNull Project project) {
+    public MetaInfSchemaScope(@NotNull Project project) {
         super(GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.allScope(project), GraphQLFileType.INSTANCE));
         myIndex = ProjectRootManager.getInstance(project).getFileIndex();
     }
 
     @Override
     public boolean contains(@NotNull VirtualFile file) {
-        return super.contains(file) && myIndex.isInLibrary(file) && myIndex.isInLibraryClasses(file) && file.getParent().getPath().endsWith("META-INF/schema");
+        return super.contains(file)
+            && myIndex.isInLibrary(file)
+            && myIndex.isInLibraryClasses(file)
+            && file.getParent() != null
+            && file.getParent().getPath().endsWith("META-INF/schema");
     }
 
     @Override
