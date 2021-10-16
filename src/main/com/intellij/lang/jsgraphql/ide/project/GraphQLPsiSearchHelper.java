@@ -20,6 +20,7 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManage
 import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex;
 import com.intellij.lang.jsgraphql.ide.project.scopes.ConditionalGlobalSearchScope;
+import com.intellij.lang.jsgraphql.ide.project.scopes.MetaInfSchemaScope;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
@@ -93,9 +94,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
             .union(defaultProjectFileScope);
 
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
-        myGlobalScope = GlobalSearchScope
-            .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(myProject), searchScopeFileTypes)
-            .union(myBuiltInSchemaScopes);
+        myGlobalScope = createScope(null);
 
         project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
@@ -108,6 +107,23 @@ public class GraphQLPsiSearchHelper implements Disposable {
             public void afterPsiChanged(boolean isPhysical) {
             }
         });
+    }
+
+    @NotNull
+    private GlobalSearchScope createScope(@Nullable GlobalSearchScope filteredScope) {
+        GlobalSearchScope scope = GlobalSearchScope.projectScope(myProject);
+        if (filteredScope != null) {
+            scope = scope.intersectWith(filteredScope);
+        }
+
+        // these scopes are used unconditionally, both for global and config filtered scopes
+        scope = scope
+            .union(myBuiltInSchemaScopes)
+            .union(new MetaInfSchemaScope(myProject));
+
+        // filter all the resulting scopes by file types, we don't want some child scope to override this
+        FileType[] fileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
+        return GlobalSearchScope.getScopeRestrictedByFileTypes(scope, fileTypes);
     }
 
     /**
@@ -126,10 +142,9 @@ public class GraphQLPsiSearchHelper implements Disposable {
         PsiFile containingFile = element.getContainingFile();
         return myFileNameToSchemaScope.computeIfAbsent(GraphQLPsiUtil.getFileName(containingFile), fileName -> {
             final VirtualFile virtualFile = GraphQLPsiUtil.getOriginalVirtualFile(containingFile);
-            final NamedScope schemaScope = myConfigManager.getSchemaScope(virtualFile);
-            if (schemaScope != null) {
-                final GlobalSearchScope filterSearchScope = GlobalSearchScopesCore.filterScope(myProject, schemaScope);
-                return myGlobalScope.intersectWith(filterSearchScope.union(myBuiltInSchemaScopes));
+            final NamedScope configScope = myConfigManager.getSchemaScope(virtualFile);
+            if (configScope != null) {
+                return createScope(GlobalSearchScopesCore.filterScope(myProject, configScope));
             }
 
             // default is entire project limited by relevant file types
