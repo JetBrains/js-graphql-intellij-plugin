@@ -23,6 +23,7 @@ public class GraphQLExternalTypeDefinitionsProvider {
 
     private static final String BUILT_IN_SCHEMA = "BUILT_IN";
     private static final String RELAY = "RELAY";
+    private static final String FEDERATION_SCHEMA = "FEDERATION";
 
     private final Project myProject;
     private final Map<String, PsiFile> myDefinitionFiles = new ConcurrentHashMap<>();
@@ -44,6 +45,18 @@ public class GraphQLExternalTypeDefinitionsProvider {
             "graphql specification schema.graphql",
             "GraphQL Specification Schema",
             BUILT_IN_SCHEMA
+        );
+    }
+
+    /**
+     * Gets the built-in Schema that all endpoints support, including the introspection types, fields, directives and default scalars.
+     */
+    @NotNull
+    public PsiFile getBuiltInFederationSchema() {
+        return getPsiFileFromResources(
+            "federation specification schema.graphql",
+            "GraphQL Federation Specification Schema",
+            FEDERATION_SCHEMA
         );
     }
 

@@ -1,0 +1,25 @@
+# https://www.apollographql.com/docs/federation/federation-spec/#federation-schema-specification
+scalar _Any
+scalar _FieldSet
+
+# a union of all types that use the @key directive
+# noinspection GraphQLEmptyType
+union _Entity
+
+type _Service {
+    sdl: String
+}
+
+extend type Query {
+    _entities(representations: [_Any!]!): [_Entity]!
+    _service: _Service!
+}
+
+directive @external on FIELD_DEFINITION
+directive @requires(fields: _FieldSet!) on FIELD_DEFINITION
+directive @provides(fields: _FieldSet!) on FIELD_DEFINITION
+directive @key(fields: _FieldSet!) repeatable on OBJECT | INTERFACE
+
+# `repeatable` is technically not part of the spec, but is added here so that multiple `type Query @extends { ... }`
+# definitions from different DGS schemas would pass validation
+directive @extends repeatable on OBJECT | INTERFACE
