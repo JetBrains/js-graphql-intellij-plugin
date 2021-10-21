@@ -76,9 +76,7 @@ public class GraphQLRegistryProvider implements Disposable {
         graphQLConfigManager = GraphQLConfigManager.getService(project);
         mySettings = GraphQLSettings.getSettings(project);
 
-        project.getMessageBus().connect(this).subscribe(GraphQLSchemaChangeListener.TOPIC, schemaVersion -> {
-            scopeToRegistry.clear();
-        });
+        project.getMessageBus().connect(this).subscribe(GraphQLSchemaChangeTracker.TOPIC, scopeToRegistry::clear);
     }
 
     @NotNull

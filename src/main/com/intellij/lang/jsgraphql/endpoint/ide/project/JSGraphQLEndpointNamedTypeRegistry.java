@@ -14,7 +14,7 @@ import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLNamedScope;
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeListener;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeTracker;
 import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection;
 import com.intellij.lang.jsgraphql.types.language.*;
@@ -56,7 +56,7 @@ public class JSGraphQLEndpointNamedTypeRegistry implements JSGraphQLNamedTypeReg
         this.project = project;
         this.configurationProvider = JSGraphQLConfigurationProvider.getService(project);
         graphQLConfigManager = GraphQLConfigManager.getService(project);
-        project.getMessageBus().connect(this).subscribe(GraphQLSchemaChangeListener.TOPIC, schemaVersion -> {
+        project.getMessageBus().connect(this).subscribe(GraphQLSchemaChangeTracker.TOPIC, () -> {
             endpointTypesByName.clear();
             endpointEntryPsiFile.clear();
             projectToRegistry.clear();

@@ -43,7 +43,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
     public GraphQLSchemaProviderImpl(@NotNull Project project) {
         myRegistryProvider = GraphQLRegistryProvider.getInstance(project);
 
-        project.getMessageBus().connect(this).subscribe(GraphQLSchemaChangeListener.TOPIC, schemaVersion -> {
+        project.getMessageBus().connect(this).subscribe(GraphQLSchemaChangeTracker.TOPIC, () -> {
             // clear the cache on each PSI change
             fileNameToRegistry.clear();
             fileNameToSchema.clear();
