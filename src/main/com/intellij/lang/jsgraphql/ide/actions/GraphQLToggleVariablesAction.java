@@ -5,11 +5,11 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.actions;
+package com.intellij.lang.jsgraphql.ide.actions;
 
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
-import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
+import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -20,11 +20,11 @@ import com.intellij.openapi.util.Key;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 
-public class JSGraphQLToggleVariablesAction extends ToggleAction {
+public class GraphQLToggleVariablesAction extends ToggleAction {
 
-    public final static Key<Boolean> JS_GRAPH_QL_VARIABLES_MODEL = Key.create("JSGraphQLVariablesModel");
+    public final static Key<Boolean> GRAPH_QL_VARIABLES_MODEL = Key.create("JSGraphQLVariablesModel");
 
-    public JSGraphQLToggleVariablesAction() {
+    public GraphQLToggleVariablesAction() {
         super("Toggle variables editor", "Toggles the GraphQL variables editor", GraphQLIcons.UI.GraphQLVariables);
     }
 
@@ -32,7 +32,7 @@ public class JSGraphQLToggleVariablesAction extends ToggleAction {
     public void update(@NotNull AnActionEvent e) {
         final Editor editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE);
         if(editor != null) {
-            final JSGraphQLEndpointsModel endpointsModel = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL);
+            final GraphQLEndpointsModel endpointsModel = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL);
             if (endpointsModel == null || endpointsModel.getSelectedItem() == null) {
                 e.getPresentation().setEnabled(false);
             } else {
@@ -45,7 +45,7 @@ public class JSGraphQLToggleVariablesAction extends ToggleAction {
     public boolean isSelected(AnActionEvent e) {
         final Editor editor = getVariablesEditor(e);
         if (editor != null) {
-            return Boolean.TRUE.equals(editor.getUserData(JS_GRAPH_QL_VARIABLES_MODEL));
+            return Boolean.TRUE.equals(editor.getUserData(GRAPH_QL_VARIABLES_MODEL));
         }
         return false;
     }
@@ -65,7 +65,7 @@ public class JSGraphQLToggleVariablesAction extends ToggleAction {
             final ScrollingModel scroll = queryEditor.getScrollingModel();
             final int currentScroll = scroll.getVerticalScrollOffset();
 
-            variablesEditor.putUserData(JS_GRAPH_QL_VARIABLES_MODEL, state ? Boolean.TRUE : Boolean.FALSE);
+            variablesEditor.putUserData(GRAPH_QL_VARIABLES_MODEL, state ? Boolean.TRUE : Boolean.FALSE);
             variablesEditor.getComponent().setVisible(state);
 
             if (state) {

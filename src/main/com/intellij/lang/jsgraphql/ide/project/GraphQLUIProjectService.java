@@ -25,11 +25,11 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfiguratio
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
-import com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLExecuteEditorAction;
-import com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLToggleVariablesAction;
-import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContext;
-import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor;
-import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
+import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
+import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
+import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
+import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
+import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -98,7 +98,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
      */
     public static final Key<Editor> GRAPH_QL_QUERY_EDITOR = Key.create(GRAPH_QL_VARIABLES_JSON + ".query.editor");
 
-    public final static Key<JSGraphQLEndpointsModel> GRAPH_QL_ENDPOINTS_MODEL = Key.create("JSGraphQLEndpointsModel");
+    public final static Key<GraphQLEndpointsModel> GRAPH_QL_ENDPOINTS_MODEL = Key.create("JSGraphQLEndpointsModel");
 
     public final static Key<Boolean> GRAPH_QL_EDITOR_QUERYING = Key.create("JSGraphQLEditorQuerying");
 
@@ -173,7 +173,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                     () -> ApplicationManager.getApplication().runReadAction(() -> {
                         for (FileEditor editor : fileEditorManager.getEditors(file)) {
                             if (editor instanceof TextEditor) {
-                                final JSGraphQLEndpointsModel endpointsModel =
+                                final GraphQLEndpointsModel endpointsModel =
                                     ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
                                 if (endpointsModel != null) {
                                     endpointsModel.reload(endpoints);
@@ -217,20 +217,20 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         // variables & settings actions
         final DefaultActionGroup settingsActions = new DefaultActionGroup();
         settingsActions.add(new GraphQLEditConfigAction());
-        settingsActions.add(new JSGraphQLToggleVariablesAction());
+        settingsActions.add(new GraphQLToggleVariablesAction());
 
         final JComponent settingsToolbar = createToolbar(settingsActions, headerComponent);
         headerComponent.add(settingsToolbar, BorderLayout.WEST);
 
         // query execute
         final DefaultActionGroup queryActions = new DefaultActionGroup();
-        final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(JSGraphQLExecuteEditorAction.class.getName());
+        final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(GraphQLExecuteEditorAction.class.getName());
         queryActions.add(executeGraphQLAction);
         final JComponent queryToolbar = createToolbar(queryActions, headerComponent);
 
         // configured endpoints combo box
         final List<GraphQLConfigEndpoint> endpoints = GraphQLConfigManager.getService(myProject).getEndpoints(file);
-        final JSGraphQLEndpointsModel endpointsModel = new JSGraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
+        final GraphQLEndpointsModel endpointsModel = new GraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
         final ComboBox endpointComboBox = new ComboBox(endpointsModel);
         endpointComboBox.setToolTipText("GraphQL endpoint");
         editor.putUserData(GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
@@ -292,12 +292,12 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     }
 
     public void executeGraphQL(Editor editor, VirtualFile virtualFile) {
-        final JSGraphQLEndpointsModel endpointsModel = editor.getUserData(GRAPH_QL_ENDPOINTS_MODEL);
+        final GraphQLEndpointsModel endpointsModel = editor.getUserData(GRAPH_QL_ENDPOINTS_MODEL);
         if (endpointsModel != null) {
             final GraphQLConfigEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
             if (selectedEndpoint != null && selectedEndpoint.url != null) {
                 final GraphQLConfigVariableAwareEndpoint endpoint = new GraphQLConfigVariableAwareEndpoint(selectedEndpoint, myProject, virtualFile);
-                final JSGraphQLQueryContext context = JSGraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
+                final GraphQLQueryContext context = GraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
 
                 Map<String, Object> requestData = new HashMap<>();
                 requestData.put("query", context.query);
@@ -348,7 +348,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         }
     }
 
-    private void runQuery(Editor editor, VirtualFile virtualFile, JSGraphQLQueryContext context, String url, HttpPost request) {
+    private void runQuery(Editor editor, VirtualFile virtualFile, GraphQLQueryContext context, String url, HttpPost request) {
         GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
         try {
             try (final CloseableHttpClient httpClient = introspectionService.createHttpClient()) {

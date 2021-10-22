@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.editor;
+package com.intellij.lang.jsgraphql.ide.highlighting.query;
 
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.Disposable;
@@ -24,18 +24,18 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Updates the current caret position in GraphQL files to enable contextual queries and highlighting of included fragments
  */
-public class JSGraphQLQueryContextCaretListener implements Disposable {
+public class GraphQLQueryContextCaretListener implements Disposable {
 
     static final Key<Integer> CARET_OFFSET = Key.create("JSGraphQL.QueryContext.CaretOffset");
 
     private final Project myProject;
 
-    public JSGraphQLQueryContextCaretListener(@NotNull Project project) {
+    public GraphQLQueryContextCaretListener(@NotNull Project project) {
         myProject = project;
     }
 
-    public static JSGraphQLQueryContextCaretListener getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, JSGraphQLQueryContextCaretListener.class);
+    public static GraphQLQueryContextCaretListener getInstance(@NotNull Project project) {
+        return ServiceManager.getService(project, GraphQLQueryContextCaretListener.class);
     }
 
     public void listen() {

@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.actions;
+package com.intellij.lang.jsgraphql.ide.actions;
 
 import com.intellij.ide.actions.CreateFileFromTemplateAction;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
@@ -17,9 +17,9 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDirectory;
 
-public class JSGraphQLNewFileAction extends CreateFileFromTemplateAction implements DumbAware {
+public class GraphQLNewFileAction extends CreateFileFromTemplateAction implements DumbAware {
 
-    public JSGraphQLNewFileAction() {
+    public GraphQLNewFileAction() {
         super("GraphQL File", "Creates a new GraphQL file", GraphQLIcons.Files.GraphQL);
     }
 

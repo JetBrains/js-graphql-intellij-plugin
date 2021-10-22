@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.editor;
+package com.intellij.lang.jsgraphql.ide.highlighting;
 
 import com.intellij.codeInsight.highlighting.HighlightErrorFilter;
 import com.intellij.json.psi.JsonFile;
@@ -14,7 +14,7 @@ import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
-public class JSGraphQLVariablesHighlightErrorFilter extends HighlightErrorFilter {
+public class GraphQLVariablesHighlightErrorFilter extends HighlightErrorFilter {
 
     @Override
     public boolean shouldHighlightErrorElement(@NotNull PsiErrorElement element) {

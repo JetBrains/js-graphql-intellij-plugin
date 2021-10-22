@@ -13,7 +13,6 @@ import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
-import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
@@ -105,7 +104,7 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
                                 FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(scratchFile, true);
                                 for (FileEditor editor : fileEditors) {
                                     if (editor instanceof TextEditor) {
-                                        final JSGraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
+                                        final GraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
                                         if (endpointsModel != null) {
                                             endpointsModel.setSelectedItem(endpoint);
                                         }

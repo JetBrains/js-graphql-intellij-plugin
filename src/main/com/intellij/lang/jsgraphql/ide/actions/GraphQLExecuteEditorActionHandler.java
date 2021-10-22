@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.actions;
+package com.intellij.lang.jsgraphql.ide.actions;
 
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
@@ -25,11 +25,11 @@ import java.awt.event.InputEvent;
  * Control+Enter is "split line" by default in IDEA and the JS GraphQL editor uses that binding to execute queries for .graphqil files.
  * This EditorActionHandler stops that default behavior and runs the "execute GraphQL" action.
  */
-public class JSGraphQLExecuteEditorActionHandler extends EditorActionHandler {
+public class GraphQLExecuteEditorActionHandler extends EditorActionHandler {
 
     private final EditorActionHandler myOriginalHandler;
 
-    public JSGraphQLExecuteEditorActionHandler(EditorActionHandler originalHandler) {
+    public GraphQLExecuteEditorActionHandler(EditorActionHandler originalHandler) {
         this.myOriginalHandler = originalHandler;
     }
 
@@ -39,7 +39,7 @@ public class JSGraphQLExecuteEditorActionHandler extends EditorActionHandler {
         if(file instanceof GraphQLFile || isQueryVariablesFile(dataContext)) {
             final InputEvent event = getKeyboardEvent();
             if(event != null) {
-                final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(JSGraphQLExecuteEditorAction.class.getName());
+                final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(GraphQLExecuteEditorAction.class.getName());
                 final AnActionEvent actionEvent = AnActionEvent.createFromInputEvent(event, ActionPlaces.EDITOR_TOOLBAR, executeGraphQLAction.getTemplatePresentation(), dataContext);
                 executeGraphQLAction.actionPerformed(actionEvent);
                 return;

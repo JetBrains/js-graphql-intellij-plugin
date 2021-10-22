@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.editor;
+package com.intellij.lang.jsgraphql.ide.highlighting.query;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -68,7 +68,7 @@ import java.util.stream.Stream;
  * Also provides the query buffer that corresponds to that highlight to execute it against a server.
  * Elements not included in query execution are dimmed down.
  */
-public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, DumbAware {
+public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, DumbAware {
 
     // operation user data
     private static final Key<Boolean> QUERY_HIGHLIGHT_LISTENER_ADDED = Key.create("JSGraphQL.Query.Highlighter.Listener.Added");
@@ -242,7 +242,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
     @NotNull
     @Override
     public HighlightVisitor clone() {
-        return new JSGraphQLQueryContextHighlightVisitor();
+        return new GraphQLQueryContextHighlightVisitor();
     }
 
     /**
@@ -251,7 +251,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
      * @param editor the editor containing the query buffer
      * @return a query context with minimal query buffer that contains the current selection, operation, or the entire buffer if none is found
      */
-    public static JSGraphQLQueryContext getQueryContextBufferAndHighlightUnused(final Editor editor) {
+    public static GraphQLQueryContext getQueryContextBufferAndHighlightUnused(final Editor editor) {
         if (editor.getProject() != null) {
 
             final PsiFile psiFile = PsiDocumentManager.getInstance(editor.getProject()).getPsiFile(editor.getDocument());
@@ -316,7 +316,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
 
                     showQueryContextHint(editor, "Executed selection");
 
-                    return new JSGraphQLQueryContext(query.toString(), () -> {
+                    return new GraphQLQueryContext(query.toString(), () -> {
                         if (HIDE_LINK.equals(PropertiesComponent.getInstance(editor.getProject()).getValue(QUERY_SELECT_OPERATION_HINT_PREF_KEY))) {
                             // user has clicked hide to not see this message again
                             return;
@@ -405,7 +405,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
                         // anonymous operation
                         showQueryContextHint(editor, "Executed anonymous " + getOperationKind(operationAtCursor));
                     }
-                    return new JSGraphQLQueryContext(query.toString(), null);
+                    return new GraphQLQueryContext(query.toString(), null);
                 }
             }
 
@@ -416,7 +416,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
             showQueryContextHint(editor, "Executed buffer \"" + file.getPresentableName() + "\"");
         }
 
-        return new JSGraphQLQueryContext(editor.getDocument().getText(), null);
+        return new GraphQLQueryContext(editor.getDocument().getText(), null);
     }
 
     /**
@@ -465,7 +465,7 @@ public class JSGraphQLQueryContextHighlightVisitor implements HighlightVisitor, 
      */
     private static GraphQLOperationDefinition getOperationAtCursor(PsiFile psiFile) {
 
-        final Integer caretOffset = psiFile.getUserData(JSGraphQLQueryContextCaretListener.CARET_OFFSET);
+        final Integer caretOffset = psiFile.getUserData(GraphQLQueryContextCaretListener.CARET_OFFSET);
 
         if (caretOffset != null) {
             PsiElement currentElement = psiFile.findElementAt(caretOffset);

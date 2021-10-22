@@ -5,13 +5,13 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.actions;
+package com.intellij.lang.jsgraphql.ide.actions;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
-import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
+import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -20,9 +20,9 @@ import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 
-public class JSGraphQLExecuteEditorAction extends AnAction {
+public class GraphQLExecuteEditorAction extends AnAction {
 
-    public JSGraphQLExecuteEditorAction() {
+    public GraphQLExecuteEditorAction() {
         super("Execute GraphQL", "Executes the current GraphQL file against the specified GraphQL endpoint", AllIcons.Actions.Execute);
     }
 
@@ -30,7 +30,7 @@ public class JSGraphQLExecuteEditorAction extends AnAction {
     public void update(AnActionEvent e) {
         final Editor editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE);
         if(editor != null) {
-            final JSGraphQLEndpointsModel endpointsModel = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL);
+            final GraphQLEndpointsModel endpointsModel = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL);
             if(endpointsModel == null || endpointsModel.getSelectedItem() == null) {
                 e.getPresentation().setEnabled(false);
                 return;

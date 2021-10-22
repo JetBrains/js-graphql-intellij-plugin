@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.endpoints;
+package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
@@ -15,11 +15,11 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.util.List;
 
-public class JSGraphQLEndpointsModel extends ListComboBoxModel<GraphQLConfigEndpoint> {
+public class GraphQLEndpointsModel extends ListComboBoxModel<GraphQLConfigEndpoint> {
 
-    private final static String INDEX_PROPERTY_NAME = JSGraphQLEndpointsModel.class.getName() + ".index";
+    private final static String INDEX_PROPERTY_NAME = GraphQLEndpointsModel.class.getName() + ".index";
 
-    public JSGraphQLEndpointsModel(List<GraphQLConfigEndpoint> list, PropertiesComponent propertiesComponent) {
+    public GraphQLEndpointsModel(List<GraphQLConfigEndpoint> list, PropertiesComponent propertiesComponent) {
         super(list);
         if(!list.isEmpty()) {
             int defaultSelectedIndex = propertiesComponent.getInt(INDEX_PROPERTY_NAME + getConfigPathPersistenceKey(), 0);
