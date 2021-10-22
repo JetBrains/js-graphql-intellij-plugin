@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.configuration;
+package com.intellij.lang.jsgraphql.endpoint.ide.configuration;
 
 import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
@@ -21,18 +21,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 
-public class JSGraphQLConfigurationProvider {
+public class JSGraphQLEndpointConfigurationProvider {
 
     private final Project myProject;
     private final GraphQLConfigManager graphQLConfigManager;
 
-    public JSGraphQLConfigurationProvider(@NotNull Project myProject) {
+    public JSGraphQLEndpointConfigurationProvider(@NotNull Project myProject) {
         this.myProject = myProject;
         graphQLConfigManager = GraphQLConfigManager.getService(myProject);
     }
 
-    public static JSGraphQLConfigurationProvider getService(@NotNull Project project) {
-        return ServiceManager.getService(project, JSGraphQLConfigurationProvider.class);
+    public static JSGraphQLEndpointConfigurationProvider getService(@NotNull Project project) {
+        return ServiceManager.getService(project, JSGraphQLEndpointConfigurationProvider.class);
     }
 
     public VirtualFile getEndpointEntryFile(PsiFile psiFile) {
@@ -42,7 +42,7 @@ public class JSGraphQLConfigurationProvider {
     public VirtualFile getEndpointEntryFile(VirtualFile virtualFile) {
 
         final Ref<VirtualFile> configBaseDir = Ref.create();
-        final JSGraphQLSchemaEndpointConfiguration configuration = graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, configBaseDir);
+        final JSGraphQLEndpointSchemaConfiguration configuration = graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, configBaseDir);
         if (configuration != null) {
             final String entryRelativeFileName = configuration.entry;
             if (StringUtil.isNotEmpty(entryRelativeFileName) && configBaseDir.get() != null) {
@@ -55,10 +55,10 @@ public class JSGraphQLConfigurationProvider {
         return null;
     }
 
-    public List<JSGraphQLSchemaEndpointAnnotation> getEndpointAnnotations(PsiFile psiFile) {
-        final List<JSGraphQLSchemaEndpointAnnotation> annotations = Lists.newArrayList();
+    public List<JSGraphQLEndpointSchemaAnnotation> getEndpointAnnotations(PsiFile psiFile) {
+        final List<JSGraphQLEndpointSchemaAnnotation> annotations = Lists.newArrayList();
 
-        final JSGraphQLSchemaEndpointConfiguration endpointLanguageConfiguration = graphQLConfigManager.getEndpointLanguageConfiguration(psiFile.getVirtualFile(), null);
+        final JSGraphQLEndpointSchemaConfiguration endpointLanguageConfiguration = graphQLConfigManager.getEndpointLanguageConfiguration(psiFile.getVirtualFile(), null);
         if (endpointLanguageConfiguration != null && endpointLanguageConfiguration.annotations != null) {
             annotations.addAll(endpointLanguageConfiguration.annotations);
         }
@@ -70,12 +70,12 @@ public class JSGraphQLConfigurationProvider {
                 false
         );
         for (JSGraphQLEndpointTypeResult<JSGraphQLEndpointAnnotationDefinition> languageAnnotation : languageAnnotations) {
-            final JSGraphQLSchemaEndpointAnnotation annotationConfig = new JSGraphQLSchemaEndpointAnnotation();
+            final JSGraphQLEndpointSchemaAnnotation annotationConfig = new JSGraphQLEndpointSchemaAnnotation();
             annotationConfig.name = languageAnnotation.name;
             final JSGraphQLEndpointArgumentsDefinition argumentsDefinition = languageAnnotation.element.getArgumentsDefinition();
             if (argumentsDefinition != null && argumentsDefinition.getInputValueDefinitions() != null) {
                 for (JSGraphQLEndpointInputValueDefinition argument : argumentsDefinition.getInputValueDefinitions().getInputValueDefinitionList()) {
-                    final JSGraphQLSchemaEndpointAnnotationArgument argumentConfig = new JSGraphQLSchemaEndpointAnnotationArgument();
+                    final JSGraphQLEndpointSchemaAnnotationArgument argumentConfig = new JSGraphQLEndpointSchemaAnnotationArgument();
                     argumentConfig.name = argument.getInputValueDefinitionIdentifier().getText();
                     if (argument.getCompositeType() != null) {
                         argumentConfig.type = argument.getCompositeType().getText();

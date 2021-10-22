@@ -8,6 +8,9 @@
               implementationClass="com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocFileType"
               fieldName="INSTANCE" language="GraphQL Endpoint Doc" extensions="graphqld"/>
 
+    <projectService
+      serviceImplementation="com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointConfigurationProvider"/>
+
     <lang.parserDefinition language="GraphQL Endpoint"
                            implementationClass="com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointParserDefinition"/>
     <lang.parserDefinition language="GraphQL Endpoint Doc"

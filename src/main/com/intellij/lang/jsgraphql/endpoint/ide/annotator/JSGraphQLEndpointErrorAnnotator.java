@@ -14,9 +14,9 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
-import com.intellij.lang.jsgraphql.v1.JSGraphQLScalars;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotation;
+import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLEndpointScalars;
+import com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointConfigurationProvider;
+import com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointSchemaAnnotation;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 
 	private static final Key<Multimap<String, JSGraphQLEndpointNamedTypeDefinition>> KNOWN_DEFINITIONS = Key.create("JSGraphQLEndpointErrorAnnotator.knownDefinitions");
-	private static final Key<List<JSGraphQLSchemaEndpointAnnotation>> ANNOTATIONS = Key.create(JSGraphQLSchemaEndpointAnnotation.class.getName());
+	private static final Key<List<JSGraphQLEndpointSchemaAnnotation>> ANNOTATIONS = Key.create(JSGraphQLEndpointSchemaAnnotation.class.getName());
 
 	@Override
 	public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
@@ -170,7 +170,7 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 					final PsiElement resolved = reference.resolve();
 					if (resolved != null) {
 						boolean valid = true;
-						boolean builtInScalar = JSGraphQLScalars.SCALAR_TYPES.contains(resolved.getText());
+						boolean builtInScalar = JSGraphQLEndpointScalars.SCALAR_TYPES.contains(resolved.getText());
 						if (!builtInScalar) {
 							if (PsiTreeUtil.getParentOfType(resolved, JSGraphQLEndpointObjectTypeDefinition.class) != null) {
 								valid = false;
@@ -196,14 +196,14 @@ public class JSGraphQLEndpointErrorAnnotator implements Annotator {
 		if (element instanceof JSGraphQLEndpointAnnotation) {
 			final JSGraphQLEndpointAnnotation annotation = (JSGraphQLEndpointAnnotation) element;
 			final PsiElement atAnnotation = annotation.getAtAnnotation();
-			List<JSGraphQLSchemaEndpointAnnotation> annotations = holder.getCurrentAnnotationSession().getUserData(ANNOTATIONS);
+			List<JSGraphQLEndpointSchemaAnnotation> annotations = holder.getCurrentAnnotationSession().getUserData(ANNOTATIONS);
 			if (annotations == null) {
-				final JSGraphQLConfigurationProvider configurationProvider = JSGraphQLConfigurationProvider.getService(element.getProject());
+				final JSGraphQLEndpointConfigurationProvider configurationProvider = JSGraphQLEndpointConfigurationProvider.getService(element.getProject());
 				annotations = configurationProvider.getEndpointAnnotations(element.getContainingFile());
 				holder.getCurrentAnnotationSession().putUserData(ANNOTATIONS, annotations);
 			}
 			boolean knownAnnotation = false;
-			for (JSGraphQLSchemaEndpointAnnotation endpointAnnotation : annotations) {
+			for (JSGraphQLEndpointSchemaAnnotation endpointAnnotation : annotations) {
 				if (Objects.equals("@" + endpointAnnotation.name, atAnnotation.getText())) {
 					knownAnnotation = true;
 					// check argument names and types

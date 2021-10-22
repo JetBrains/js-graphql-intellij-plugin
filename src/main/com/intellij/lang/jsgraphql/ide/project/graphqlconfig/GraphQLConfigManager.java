@@ -29,7 +29,7 @@ import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointConfiguration;
+import com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointSchemaConfiguration;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
@@ -132,7 +132,7 @@ public class GraphQLConfigManager implements Disposable {
     private final Map<GraphQLResolvedConfigData, GraphQLFile> configDataToEntryFiles = Maps.newConcurrentMap();
     private final Map<GraphQLResolvedConfigData, GraphQLConfigPackageSet> configDataToPackageSet = Maps.newConcurrentMap();
     private final Map<String, GraphQLNamedScope> virtualFilePathToScopes = Maps.newConcurrentMap();
-    private final Map<GraphQLNamedScope, JSGraphQLSchemaEndpointConfiguration> scopeToSchemaEndpointLanguageConfiguration = Maps.newConcurrentMap();
+    private final Map<GraphQLNamedScope, JSGraphQLEndpointSchemaConfiguration> scopeToSchemaEndpointLanguageConfiguration = Maps.newConcurrentMap();
 
     private final ReadWriteLock cacheLock = new ReentrantReadWriteLock(true);
     private final Lock writeLock = cacheLock.writeLock();
@@ -324,7 +324,7 @@ public class GraphQLConfigManager implements Disposable {
     }
 
     @Nullable
-    public JSGraphQLSchemaEndpointConfiguration getEndpointLanguageConfiguration(@NotNull VirtualFile virtualFile,
+    public JSGraphQLEndpointSchemaConfiguration getEndpointLanguageConfiguration(@NotNull VirtualFile virtualFile,
                                                                                  @Nullable Ref<VirtualFile> configBasedir) {
         if (virtualFile.getFileType() != GraphQLFileType.INSTANCE && virtualFile.getFileType() != JSGraphQLEndpointFileType.INSTANCE && !GraphQLFileType.isGraphQLScratchFile(myProject, virtualFile)) {
             if (!GraphQLFindUsagesUtil.getService().getIncludedFileTypes().contains(virtualFile.getFileType())) {
@@ -335,22 +335,22 @@ public class GraphQLConfigManager implements Disposable {
             readLock.lock();
             GraphQLNamedScope schemaScope = getSchemaScope(virtualFile);
             if (schemaScope != null) {
-                JSGraphQLSchemaEndpointConfiguration configuration = scopeToSchemaEndpointLanguageConfiguration.computeIfAbsent(schemaScope, scope -> {
+                JSGraphQLEndpointSchemaConfiguration configuration = scopeToSchemaEndpointLanguageConfiguration.computeIfAbsent(schemaScope, scope -> {
                     if (schemaScope.getConfigData() != null) {
                         final Map<String, Object> extensions = schemaScope.getConfigData().extensions;
                         if (extensions != null && extensions.containsKey(ENDPOINT_LANGUAGE_EXTENSION)) {
                             try {
                                 final Gson gson = new Gson();
-                                return gson.fromJson(gson.toJsonTree(extensions.get(ENDPOINT_LANGUAGE_EXTENSION)), JSGraphQLSchemaEndpointConfiguration.class);
+                                return gson.fromJson(gson.toJsonTree(extensions.get(ENDPOINT_LANGUAGE_EXTENSION)), JSGraphQLEndpointSchemaConfiguration.class);
                             } catch (JsonSyntaxException je) {
                                 LOG.warn("Invalid JSON in config file", je);
                             }
                         }
                     }
                     // using sentinel value to avoid re-computing values which happens on nulls
-                    return JSGraphQLSchemaEndpointConfiguration.NONE;
+                    return JSGraphQLEndpointSchemaConfiguration.NONE;
                 });
-                if (configuration != JSGraphQLSchemaEndpointConfiguration.NONE) {
+                if (configuration != JSGraphQLEndpointSchemaConfiguration.NONE) {
                     if (configBasedir != null) {
                         configBasedir.set(schemaScope.getConfigBaseDir());
                     }

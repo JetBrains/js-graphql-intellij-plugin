@@ -166,10 +166,6 @@
     <editorTabTitleProvider
       implementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionEditorTabTitleProvider"/>
 
-    <!-- Project Language services -->
-    <projectService
-      serviceImplementation="com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider"/>
-
     <!-- Tool window -->
     <toolWindow id="GraphQL" factoryClass="com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow"
                 anchor="bottom" icon="com.intellij.lang.jsgraphql.icons.GraphQLIcons.UI.GraphQLToolWindow"/>

@@ -7,28 +7,19 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.ide.formatter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.google.common.collect.Sets;
-import com.intellij.formatting.Alignment;
-import com.intellij.formatting.Block;
-import com.intellij.formatting.Indent;
-import com.intellij.formatting.Spacing;
-import com.intellij.formatting.SpacingBuilder;
-import com.intellij.formatting.Wrap;
+import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.jsgraphql.v1.JSGraphQLDebugUtil;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class JSGraphQLEndpointBlock extends AbstractBlock {
 
@@ -119,26 +110,6 @@ public class JSGraphQLEndpointBlock extends AbstractBlock {
 	@Override
 	public boolean isLeaf() {
 		return myNode.getFirstChildNode() == null;
-	}
-
-	@NotNull
-	@Override
-	public TextRange getTextRange() {
-		TextRange textRange = super.getTextRange();
-		if (JSGraphQLDebugUtil.debug) {
-			if (parent != null) {
-				try {
-					assert textRange.getStartOffset() >= parent.getTextRange().getStartOffset();
-					assert textRange.getEndOffset() <= parent.getTextRange().getEndOffset();
-				} catch (AssertionError e) {
-					Logger.getInstance(JSGraphQLEndpointBlock.class).error("Invalid range " + textRange + ": " + this.getNode().getText());
-				}
-			}
-			if (textRange.getStartOffset() > textRange.getEndOffset()) {
-				System.out.println("Invalid range:" + this);
-			}
-		}
-		return textRange;
 	}
 
 

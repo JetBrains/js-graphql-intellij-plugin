@@ -17,10 +17,10 @@ import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypesSets;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.endpoint.psi.impl.JSGraphQLEndpointImplementsInterfacesImpl;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.v1.JSGraphQLScalars;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationProvider;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotation;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointAnnotationArgument;
+import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLEndpointScalars;
+import com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointConfigurationProvider;
+import com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointSchemaAnnotation;
+import com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointSchemaAnnotationArgument;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -164,7 +164,7 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		if ((parent instanceof JSGraphQLEndpointQuotedString || parent instanceof JSGraphQLEndpointString) && PsiTreeUtil.getParentOfType(parent, JSGraphQLEndpointImportFileReference.class) != null) {
 
 			final Project project = file.getProject();
-			final VirtualFile entryFile = JSGraphQLConfigurationProvider.getService(project).getEndpointEntryFile(file);
+			final VirtualFile entryFile = JSGraphQLEndpointConfigurationProvider.getService(project).getEndpointEntryFile(file);
 			final GlobalSearchScope scope = JSGraphQLEndpointPsiUtil.getImportScopeFromEntryFile(project, entryFile, file);
 			final Collection<VirtualFile> files = FileTypeIndex.getFiles(JSGraphQLEndpointFileType.INSTANCE, scope);
 			for (VirtualFile virtualFile : files) {
@@ -239,7 +239,7 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		final TokenSet skipping = TokenSet.create(JSGraphQLEndpointTokenTypes.LBRACKET);
 		final PsiElement colonBefore = findPreviousLeaf(completionElement, JSGraphQLEndpointTokenTypes.COLON, skipping);
 		if (colonBefore != null) {
-			for (String scalarType : JSGraphQLScalars.SCALAR_TYPES) {
+			for (String scalarType : JSGraphQLEndpointScalars.SCALAR_TYPES) {
 				LookupElementBuilder element = LookupElementBuilder.create(scalarType).withIcon(GraphQLIcons.Schema.Scalar);
 				result.addElement(element);
 			}
@@ -295,8 +295,8 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		final boolean afterAtAnnotation = completionElement.getNode().getElementType() == JSGraphQLEndpointTokenTypes.AT_ANNOTATION;
 		final boolean isTopLevelCompletion = completionElement.getParent() instanceof JSGraphQLEndpointFile;
 		if (afterAtAnnotation || isTopLevelCompletion || field != null || nextAnnotation != null || property != null) {
-			final JSGraphQLConfigurationProvider configurationProvider = JSGraphQLConfigurationProvider.getService(file.getProject());
-			for (JSGraphQLSchemaEndpointAnnotation endpointAnnotation : configurationProvider.getEndpointAnnotations(file)) {
+			final JSGraphQLEndpointConfigurationProvider configurationProvider = JSGraphQLEndpointConfigurationProvider.getService(file.getProject());
+			for (JSGraphQLEndpointSchemaAnnotation endpointAnnotation : configurationProvider.getEndpointAnnotations(file)) {
 				String completion = endpointAnnotation.name;
 				if (!afterAtAnnotation) {
 					completion = "@" + completion;
@@ -317,14 +317,14 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 		if (annotationArguments != null && leafBeforeCompletion != null) {
 			final JSGraphQLEndpointAnnotation annotation = PsiTreeUtil.getParentOfType(annotationArguments, JSGraphQLEndpointAnnotation.class);
 			if(annotation != null) {
-				final JSGraphQLConfigurationProvider configurationProvider = JSGraphQLConfigurationProvider.getService(file.getProject());
-				for (JSGraphQLSchemaEndpointAnnotation endpointAnnotation : configurationProvider.getEndpointAnnotations(file)) {
+				final JSGraphQLEndpointConfigurationProvider configurationProvider = JSGraphQLEndpointConfigurationProvider.getService(file.getProject());
+				for (JSGraphQLEndpointSchemaAnnotation endpointAnnotation : configurationProvider.getEndpointAnnotations(file)) {
 					if (annotation.getAtAnnotation().getText().equals("@" + endpointAnnotation.name)) {
 						final IElementType elementType = leafBeforeCompletion.getNode().getElementType();
 						if(elementType == JSGraphQLEndpointTokenTypes.LPAREN || elementType == JSGraphQLEndpointTokenTypes.COMMA) {
 							// completion on argument name
 							if(endpointAnnotation.arguments != null) {
-								for (JSGraphQLSchemaEndpointAnnotationArgument argument : endpointAnnotation.arguments) {
+								for (JSGraphQLEndpointSchemaAnnotationArgument argument : endpointAnnotation.arguments) {
 									LookupElementBuilder element = LookupElementBuilder.create(argument.name + " = ").withTypeText(" " + argument.type, true);
 									element = element.withPresentableText(argument.name + "");
 									result.addElement(element);
@@ -335,7 +335,7 @@ public class JSGraphQLEndpointCompletionContributor extends CompletionContributo
 							if(endpointAnnotation.arguments != null) {
 								final PsiElement annotationName = PsiTreeUtil.prevVisibleLeaf(leafBeforeCompletion);
 								if(annotationName != null) {
-									for (JSGraphQLSchemaEndpointAnnotationArgument argument : endpointAnnotation.arguments) {
+									for (JSGraphQLEndpointSchemaAnnotationArgument argument : endpointAnnotation.arguments) {
 										if(annotationName.getText().equals(argument.name)) {
 											if("Boolean".equals(argument.type)) {
 												result.addElement(LookupElementBuilder.create("true").withBoldness(true));

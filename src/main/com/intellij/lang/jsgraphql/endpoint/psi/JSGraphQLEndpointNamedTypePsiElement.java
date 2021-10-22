@@ -11,12 +11,12 @@ import static com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointImportFi
 
 import java.util.Collection;
 
+import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLEndpointScalars;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.jsgraphql.v1.JSGraphQLScalars;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointTokenTypes;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
@@ -59,7 +59,7 @@ public class JSGraphQLEndpointNamedTypePsiElement extends JSGraphQLEndpointPsiEl
 		final JSGraphQLEndpointNamedTypePsiElement self = this;
 		final PsiElement nameIdentifier = getNameIdentifier();
 		if(nameIdentifier != null) {
-			if(JSGraphQLScalars.SCALAR_TYPES.contains(nameIdentifier.getText())) {
+			if(JSGraphQLEndpointScalars.SCALAR_TYPES.contains(nameIdentifier.getText())) {
 				return new PsiReferenceBase.Immediate<PsiElement>(this, TextRange.allOf(nameIdentifier.getText()), getFirstChild());
 			}
 			return new PsiReferenceBase<PsiElement>(this, TextRange.from(nameIdentifier.getTextOffset() - self.getTextOffset(), nameIdentifier.getTextLength())) {

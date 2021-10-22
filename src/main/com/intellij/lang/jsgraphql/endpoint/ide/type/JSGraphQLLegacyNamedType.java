@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.schema.ide.type;
+package com.intellij.lang.jsgraphql.endpoint.ide.type;
 
 import com.google.common.collect.Maps;
 import com.intellij.psi.PsiElement;
@@ -16,7 +16,7 @@ import java.util.Map;
 /**
  * Represents a named type in a GraphQL schema, e.g. Query, Mutation, StarShip etc.
  */
-public class JSGraphQLNamedType {
+public class JSGraphQLLegacyNamedType {
 
     /** PSI element for the type definition, e.g. 'type Foo {}' */
     public final PsiElement definitionElement;
@@ -24,9 +24,9 @@ public class JSGraphQLNamedType {
     /** PSI element representing the name of a type definition, e.g. 'Foo' in 'type Foo {}' */
     public final PsiNamedElement nameElement;
 
-    public final Map<String, JSGraphQLPropertyType> properties = Maps.newHashMap();
+    public final Map<String, JSGraphQLLegacyPropertyType> properties = Maps.newHashMap();
 
-    public JSGraphQLNamedType(PsiElement definitionElement, PsiNamedElement nameElement) {
+    public JSGraphQLLegacyNamedType(PsiElement definitionElement, PsiNamedElement nameElement) {
         this.definitionElement = definitionElement;
         this.nameElement = nameElement;
     }

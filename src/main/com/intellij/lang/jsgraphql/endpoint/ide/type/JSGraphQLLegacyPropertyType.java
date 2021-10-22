@@ -5,20 +5,20 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.schema.ide.type;
+package com.intellij.lang.jsgraphql.endpoint.ide.type;
 
 import com.intellij.psi.PsiNamedElement;
 
 /**
  * Represents the property aspect of a field in a GraphQL schema, e.g. 'username' on type 'User'.
  */
-public class JSGraphQLPropertyType {
+public class JSGraphQLLegacyPropertyType {
 
     public final PsiNamedElement propertyElement;
-    public final JSGraphQLNamedType declaringTypeElement;
+    public final JSGraphQLLegacyNamedType declaringTypeElement;
     public final String propertyValueTypeName;
 
-    public JSGraphQLPropertyType(PsiNamedElement propertyElement, JSGraphQLNamedType declaringTypeElement, String propertyValueTypeName) {
+    public JSGraphQLLegacyPropertyType(PsiNamedElement propertyElement, JSGraphQLLegacyNamedType declaringTypeElement, String propertyValueTypeName) {
         this.propertyElement = propertyElement;
         this.declaringTypeElement = declaringTypeElement;
         this.propertyValueTypeName = propertyValueTypeName;

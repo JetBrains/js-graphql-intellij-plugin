@@ -5,13 +5,13 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1;
+package com.intellij.lang.jsgraphql.endpoint.ide.type;
 
 import java.util.Set;
 
 import com.google.common.collect.Sets;
 
-public interface JSGraphQLScalars {
+public interface JSGraphQLEndpointScalars {
 
 	String STRING = "String";
 	String BOOLEAN = "Boolean";

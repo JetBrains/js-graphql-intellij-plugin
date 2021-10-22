@@ -5,18 +5,18 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.v1.ide.configuration;
+package com.intellij.lang.jsgraphql.endpoint.ide.configuration;
 
 import java.util.List;
 
 import com.google.common.collect.Lists;
 
-public class JSGraphQLSchemaEndpointConfiguration {
+public class JSGraphQLEndpointSchemaConfiguration {
 
-	public static JSGraphQLSchemaEndpointConfiguration NONE = new JSGraphQLSchemaEndpointConfiguration();
+	public static JSGraphQLEndpointSchemaConfiguration NONE = new JSGraphQLEndpointSchemaConfiguration();
 
 	public String entry;
 
-	public List<JSGraphQLSchemaEndpointAnnotation> annotations = Lists.newArrayList();
+	public List<JSGraphQLEndpointSchemaAnnotation> annotations = Lists.newArrayList();
 
 }

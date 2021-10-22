@@ -18,8 +18,8 @@ import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferenceMixin;
 import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
-import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLNamedType;
-import com.intellij.lang.jsgraphql.v1.schema.ide.type.JSGraphQLPropertyType;
+import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyNamedType;
+import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyPropertyType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -266,9 +266,9 @@ public class GraphQLReferenceService implements Disposable {
                     if (reference.isNull()) {
                         // Endpoint language
                         final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName(), field);
+                        final JSGraphQLLegacyNamedType namedType = endpointNamedTypeRegistry.getNamedType(GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName(), field);
                         if (namedType != null) {
-                            JSGraphQLPropertyType property = namedType.properties.get(name);
+                            JSGraphQLLegacyPropertyType property = namedType.properties.get(name);
                             if (property != null) {
                                 reference.set(createReference(element, property.propertyElement));
                             } else if (namedType.definitionElement instanceof JSGraphQLEndpointObjectTypeDefinition) {
@@ -276,7 +276,7 @@ public class GraphQLReferenceService implements Disposable {
                                 final JSGraphQLEndpointImplementsInterfaces implementsInterfaces = ((JSGraphQLEndpointObjectTypeDefinition) namedType.definitionElement).getImplementsInterfaces();
                                 if (implementsInterfaces != null) {
                                     for (JSGraphQLEndpointNamedType implementedType : implementsInterfaces.getNamedTypeList()) {
-                                        final JSGraphQLNamedType interfaceType = endpointNamedTypeRegistry.getNamedType(implementedType.getName(), field);
+                                        final JSGraphQLLegacyNamedType interfaceType = endpointNamedTypeRegistry.getNamedType(implementedType.getName(), field);
                                         if (interfaceType != null) {
                                             property = interfaceType.properties.get(name);
                                             if (property != null) {
@@ -322,7 +322,7 @@ public class GraphQLReferenceService implements Disposable {
             if (psiReference == null) {
                 // fallback to resolving to Endpoint language elements
                 final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(element.getName(), element);
+                final JSGraphQLLegacyNamedType namedType = endpointNamedTypeRegistry.getNamedType(element.getName(), element);
                 if (namedType != null) {
                     psiReference = createReference(element, namedType.nameElement);
                 }
@@ -362,9 +362,9 @@ public class GraphQLReferenceService implements Disposable {
                     if (!resolved.get()) {
                         // Endpoint language
                         final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(namedTypeScope, element);
+                        final JSGraphQLLegacyNamedType namedType = endpointNamedTypeRegistry.getNamedType(namedTypeScope, element);
                         if (namedType != null) {
-                            final JSGraphQLPropertyType property = namedType.properties.get(field.getName());
+                            final JSGraphQLLegacyPropertyType property = namedType.properties.get(field.getName());
                             if (property != null) {
                                 return createReference(element, property.propertyElement);
                             }
@@ -401,7 +401,7 @@ public class GraphQLReferenceService implements Disposable {
                     if (!resolved.get()) {
                         // Endpoint Language
                         final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                        final JSGraphQLNamedType namedType = endpointNamedTypeRegistry.getNamedType(namedTypeScope, element);
+                        final JSGraphQLLegacyNamedType namedType = endpointNamedTypeRegistry.getNamedType(namedTypeScope, element);
                         if (namedType != null && namedType.definitionElement instanceof JSGraphQLEndpointEnumTypeDefinition) {
                             final JSGraphQLEndpointEnumValueDefinitionSet enumValueDefinitionSet = ((JSGraphQLEndpointEnumTypeDefinition) namedType.definitionElement).getEnumValueDefinitionSet();
                             if (enumValueDefinitionSet != null) {
