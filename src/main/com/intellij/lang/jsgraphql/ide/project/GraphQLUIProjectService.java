@@ -21,12 +21,12 @@ import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
 import com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.v1.ide.actions.JSGraphQLToggleVariablesAction;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContext;
 import com.intellij.lang.jsgraphql.v1.ide.editor.JSGraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.v1.ide.endpoints.JSGraphQLEndpointsModel;
@@ -35,6 +35,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -78,7 +79,7 @@ import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.*;
 
-public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, JSGraphQLConfigurationListener {
+public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, GraphQLConfigurationListener {
 
     public static final String GRAPH_QL_VARIABLES_JSON = "GraphQL.variables.json";
 
@@ -120,7 +121,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         }
 
         // listen for configuration changes
-        messageBusConnection.subscribe(JSGraphQLConfigurationListener.TOPIC, this);
+        messageBusConnection.subscribe(GraphQLConfigManager.TOPIC, this);
 
         // and notify to configure the schema
         project.putUserData(GraphQLParserDefinition.JSGRAPHQL_ACTIVATED, true);
@@ -146,10 +147,9 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     // ---- configuration listener ----
 
     @Override
-    public void onEndpointsChanged() {
+    public void onConfigurationChanged() {
         reloadEndpoints();
     }
-
 
     // ---- implementation ----
 
@@ -157,27 +157,33 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     // -- endpoints --
 
     private void reloadEndpoints() {
-        final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
-        final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
-        for (VirtualFile file : fileEditorManager.getOpenFiles()) {
-            if (!GraphQLFileType.isGraphQLFile(myProject, file)) {
-                continue;
-            }
-            final List<GraphQLConfigEndpoint> endpoints = graphQLConfigManager.getEndpoints(file);
+        if (ApplicationManager.getApplication().isHeadlessEnvironment()) return;
 
-            ApplicationManager.getApplication().invokeLater(
-                () -> ApplicationManager.getApplication().runReadAction(() -> {
-                    for (FileEditor editor : fileEditorManager.getEditors(file)) {
-                        if (editor instanceof TextEditor) {
-                            final JSGraphQLEndpointsModel endpointsModel =
-                                ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
-                            if (endpointsModel != null) {
-                                endpointsModel.reload(endpoints);
+        ApplicationManager.getApplication().executeOnPooledThread(() -> ReadAction.run(() -> {
+            if (myProject.isDisposed()) return;
+            final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
+            final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
+            for (VirtualFile file : fileEditorManager.getOpenFiles()) {
+                if (!GraphQLFileType.isGraphQLFile(myProject, file)) {
+                    continue;
+                }
+                final List<GraphQLConfigEndpoint> endpoints = graphQLConfigManager.getEndpoints(file);
+
+                ApplicationManager.getApplication().invokeLater(
+                    () -> ApplicationManager.getApplication().runReadAction(() -> {
+                        for (FileEditor editor : fileEditorManager.getEditors(file)) {
+                            if (editor instanceof TextEditor) {
+                                final JSGraphQLEndpointsModel endpointsModel =
+                                    ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
+                                if (endpointsModel != null) {
+                                    endpointsModel.reload(endpoints);
+                                    EditorNotifications.getInstance(myProject).updateNotifications(file);
+                                }
                             }
                         }
-                    }
-                }), ModalityState.defaultModalityState(), myProject.getDisposed());
-        }
+                    }), ModalityState.defaultModalityState(), myProject.getDisposed());
+            }
+        }));
     }
 
     // -- editor header component --

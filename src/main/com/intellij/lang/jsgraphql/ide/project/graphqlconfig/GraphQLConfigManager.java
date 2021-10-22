@@ -29,7 +29,6 @@ import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
-import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.v1.ide.configuration.JSGraphQLSchemaEndpointConfiguration;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
@@ -65,7 +64,6 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.ui.EditorNotifications;
 import com.intellij.util.Processor;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
@@ -98,10 +96,11 @@ public class GraphQLConfigManager implements Disposable {
 
     private final static Logger LOG = Logger.getInstance(GraphQLConfigManager.class);
 
-    public final static Topic<GraphQLConfigFileEventListener> TOPIC = new Topic<>(
+    @Topic.ProjectLevel
+    public final static Topic<GraphQLConfigurationListener> TOPIC = new Topic<>(
         "GraphQL Configuration File Change Events",
-        GraphQLConfigFileEventListener.class,
-        Topic.BroadcastDirection.TO_PARENT
+        GraphQLConfigurationListener.class,
+        Topic.BroadcastDirection.NONE
     );
 
     public static final String ENDPOINTS_EXTENSION = "endpoints";
@@ -371,7 +370,7 @@ public class GraphQLConfigManager implements Disposable {
     @NotNull
     public List<GraphQLConfigEndpoint> getEndpoints(@NotNull VirtualFile virtualFile) {
         // NOTE: modifiable list since it powers the endpoint UI and must support item operations
-        ArrayList<GraphQLConfigEndpoint> emptyList = Lists.newArrayListWithExpectedSize(1);
+        List<GraphQLConfigEndpoint> emptyList = new ArrayList<>(1);
 
         if (!GraphQLFileType.isGraphQLFile(myProject, virtualFile)) {
             return emptyList;
@@ -697,16 +696,20 @@ public class GraphQLConfigManager implements Disposable {
             writeLock.unlock();
         }
 
-        myProject.getMessageBus().syncPublisher(TOPIC).onGraphQLConfigurationFileChanged();
-        myProject.getMessageBus().syncPublisher(JSGraphQLConfigurationListener.TOPIC).onEndpointsChanged();
+        fireConfigurationChanged();
+    }
 
-        EditorNotifications.getInstance(myProject).updateAllNotifications();
+    private void fireConfigurationChanged() {
+        ApplicationManager.getApplication().invokeLater(
+            () -> myProject.getMessageBus().syncPublisher(TOPIC).onConfigurationChanged(),
+            ModalityState.defaultModalityState(), myProject.getDisposed()
+        );
     }
 
     private void introspectEndpoints() {
         final List<GraphQLResolvedConfigData> configDataList = Lists.newArrayList();
+        readLock.lock();
         try {
-            readLock.lock();
             for (GraphQLConfigData configData : configFilesToConfigurations.values()) {
                 configDataList.add(configData);
                 if (configData.projects != null) {

@@ -7,16 +7,16 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 
-import java.util.EventListener;
-
 /**
  * Events relating to GraphQL configuration (graphql-config .graphqlconfig files)
  */
-public interface GraphQLConfigFileEventListener extends EventListener {
+public interface GraphQLConfigurationListener {
 
     /**
      * One or more changes occurred in the .graphqlconfig files
+     *
      * @see GraphQLConfigManager
      */
-    void onGraphQLConfigurationFileChanged();
+    void onConfigurationChanged();
+
 }
