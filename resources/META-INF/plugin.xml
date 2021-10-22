@@ -200,6 +200,8 @@
     <highlightErrorFilter
       implementation="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLVariablesHighlightErrorFilter"/>
 
+    <errorHandler implementation="com.intellij.lang.jsgraphql.GraphQLGithubErrorReporter" />
+
     <!-- Inspections -->
     <localInspection language="GraphQL" key="graphql.inspection.display.name.unresolved.reference"
                      enabledByDefault="true"
