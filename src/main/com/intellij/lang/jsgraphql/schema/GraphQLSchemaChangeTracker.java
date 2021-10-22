@@ -17,6 +17,8 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
@@ -61,8 +63,10 @@ public class GraphQLSchemaChangeTracker implements Disposable {
     }
 
     public void schemaChanged() {
-        myModificationTracker.incModificationCount();
-        myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeTracker.TOPIC).onSchemaChanged();
+        ApplicationManager.getApplication().invokeLater(() -> {
+            myModificationTracker.incModificationCount();
+            myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeTracker.TOPIC).onSchemaChanged();
+        }, ModalityState.defaultModalityState(), myProject.getDisposed());
     }
 
     @NotNull
