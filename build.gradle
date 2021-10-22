@@ -134,13 +134,13 @@ task generateGraphQLEndpointDocParser(type: GenerateParser) {
     pathToPsiRoot = 'com/intellij/lang/jsgraphql/endpoint/doc/psi'
 }
 
-compileJava {
-    dependsOn generateGraphQLEndpointLexer
-    dependsOn generateGraphQLEndpointParser
-    dependsOn generateGraphQLEndpointDocLexer
-    dependsOn generateGraphQLEndpointDocParser
-    dependsOn generateGraphQLLexer
-    dependsOn generateGraphQLParser
-}
+//compileJava {
+//    dependsOn generateGraphQLEndpointLexer
+//    dependsOn generateGraphQLEndpointParser
+//    dependsOn generateGraphQLEndpointDocLexer
+//    dependsOn generateGraphQLEndpointDocParser
+//    dependsOn generateGraphQLLexer
+//    dependsOn generateGraphQLParser
+//}
 
 compileJava.options.encoding = 'UTF-8'
