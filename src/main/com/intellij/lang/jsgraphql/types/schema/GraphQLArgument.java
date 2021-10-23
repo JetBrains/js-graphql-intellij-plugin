@@ -107,6 +107,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
      *
      * @deprecated use the {@link #newArgument()} builder pattern instead, as this constructor will be made private in a future version.
      */
+    @Deprecated
     public GraphQLArgument(String name, String description, GraphQLInputType type, Object defaultValue, InputValueDefinition definition) {
         this(name, description, type, defaultValue, null, definition, Collections.emptyList());
     }
