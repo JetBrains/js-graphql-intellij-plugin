@@ -22,7 +22,7 @@ import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseS
 import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseTripleQuotedString;
 
 @SuppressWarnings("rawtypes")
-public class GraphQLPsiToLanguage {
+public final class GraphQLPsiToLanguage {
     public static final GraphQLPsiToLanguage INSTANCE = new GraphQLPsiToLanguage();
 
     public @NotNull Document createDocument(@NotNull GraphQLFile file) {
@@ -32,7 +32,8 @@ public class GraphQLPsiToLanguage {
         return document.build();
     }
 
-    protected @Nullable Definition createDefinition(@NotNull GraphQLDefinition definition) {
+    @Nullable
+    private Definition createDefinition(@NotNull GraphQLDefinition definition) {
         if (definition instanceof GraphQLOperationDefinition) {
             return createOperationDefinition(((GraphQLOperationDefinition) definition));
         } else if (definition instanceof GraphQLFragmentDefinition) {
@@ -50,7 +51,8 @@ public class GraphQLPsiToLanguage {
         }
     }
 
-    protected @NotNull OperationDefinition createOperationDefinition(@NotNull GraphQLOperationDefinition definition) {
+    @NotNull
+    private OperationDefinition createOperationDefinition(@NotNull GraphQLOperationDefinition definition) {
         OperationDefinition.Builder operationDefinition = OperationDefinition.newOperationDefinition();
         addCommonData(operationDefinition, definition);
         if (definition instanceof GraphQLSelectionSetOperationDefinition) {
@@ -72,7 +74,8 @@ public class GraphQLPsiToLanguage {
         return operationDefinition.build();
     }
 
-    protected @NotNull OperationDefinition.Operation parseOperation(@NotNull GraphQLTypedOperationDefinition operation) {
+    @NotNull
+    private OperationDefinition.Operation parseOperation(@NotNull GraphQLTypedOperationDefinition operation) {
         switch (operation.getOperationType().getText()) {
             case "query":
                 return OperationDefinition.Operation.QUERY;
@@ -85,21 +88,24 @@ public class GraphQLPsiToLanguage {
         }
     }
 
-    protected @Nullable FragmentSpread createFragmentSpread(@NotNull GraphQLFragmentSpread fragment) {
+    @Nullable
+    private FragmentSpread createFragmentSpread(@NotNull GraphQLFragmentSpread fragment) {
         FragmentSpread.Builder fragmentSpread = FragmentSpread.newFragmentSpread().name(fragment.getName());
         addCommonData(fragmentSpread, fragment);
         fragmentSpread.directives(createDirectives(fragment.getDirectives()));
         return checkNode(fragmentSpread.build());
     }
 
-    protected @NotNull List<VariableDefinition> createVariableDefinitions(@Nullable GraphQLVariableDefinitions definitions) {
+    @NotNull
+    private List<VariableDefinition> createVariableDefinitions(@Nullable GraphQLVariableDefinitions definitions) {
         if (definitions == null) {
             return emptyList();
         }
         return mapNotNull(definitions.getVariableDefinitions(), this::createVariableDefinition);
     }
 
-    protected @Nullable VariableDefinition createVariableDefinition(@NotNull GraphQLVariableDefinition definition) {
+    @Nullable
+    private VariableDefinition createVariableDefinition(@NotNull GraphQLVariableDefinition definition) {
         VariableDefinition.Builder variableDefinition = VariableDefinition.newVariableDefinition();
         addCommonData(variableDefinition, definition);
         variableDefinition.name(definition.getVariable().getName());
@@ -113,7 +119,8 @@ public class GraphQLPsiToLanguage {
 
     }
 
-    protected @Nullable FragmentDefinition createFragmentDefinition(@NotNull GraphQLFragmentDefinition definition) {
+    @Nullable
+    private FragmentDefinition createFragmentDefinition(@NotNull GraphQLFragmentDefinition definition) {
         FragmentDefinition.Builder fragmentDefinition = FragmentDefinition.newFragmentDefinition();
         addCommonData(fragmentDefinition, definition);
         fragmentDefinition.name(definition.getName());
@@ -133,7 +140,8 @@ public class GraphQLPsiToLanguage {
     }
 
 
-    protected @Nullable SelectionSet createSelectionSet(@Nullable GraphQLSelectionSet selectionSet) {
+    @Nullable
+    private SelectionSet createSelectionSet(@Nullable GraphQLSelectionSet selectionSet) {
         if (selectionSet == null) {
             return null;
         }
@@ -169,7 +177,8 @@ public class GraphQLPsiToLanguage {
     }
 
 
-    protected @Nullable Field createField(@NotNull GraphQLField field) {
+    @Nullable
+    private Field createField(@NotNull GraphQLField field) {
         Field.Builder builder = Field.newField();
         addCommonData(builder, field);
         builder.name(field.getName());
@@ -185,7 +194,8 @@ public class GraphQLPsiToLanguage {
     }
 
 
-    protected @NotNull InlineFragment createInlineFragment(@NotNull GraphQLInlineFragment fragment) {
+    @NotNull
+    private InlineFragment createInlineFragment(@NotNull GraphQLInlineFragment fragment) {
         InlineFragment.Builder inlineFragment = InlineFragment.newInlineFragment();
         addCommonData(inlineFragment, fragment);
         GraphQLTypeCondition typeCondition = fragment.getTypeCondition();
@@ -200,7 +210,8 @@ public class GraphQLPsiToLanguage {
         return inlineFragment.build();
     }
 
-    protected @Nullable SDLDefinition createTypeSystemDefinition(@NotNull GraphQLTypeSystemDefinition definition) {
+    @Nullable
+    private SDLDefinition createTypeSystemDefinition(@NotNull GraphQLTypeSystemDefinition definition) {
         if (definition instanceof GraphQLSchemaDefinition) {
             return createSchemaDefinition((GraphQLSchemaDefinition) definition);
         } else if (definition instanceof GraphQLDirectiveDefinition) {
@@ -212,7 +223,8 @@ public class GraphQLPsiToLanguage {
         }
     }
 
-    protected @Nullable TypeDefinition createTypeExtension(@NotNull GraphQLTypeExtension extension) {
+    @Nullable
+    private TypeDefinition createTypeExtension(@NotNull GraphQLTypeExtension extension) {
         if (extension instanceof GraphQLEnumTypeExtensionDefinition) {
             return createEnumTypeExtensionDefinition(((GraphQLEnumTypeExtensionDefinition) extension));
         } else if (extension instanceof GraphQLObjectTypeExtensionDefinition) {
@@ -230,7 +242,8 @@ public class GraphQLPsiToLanguage {
         }
     }
 
-    protected @Nullable TypeDefinition createTypeDefinition(@NotNull GraphQLTypeDefinition definition) {
+    @Nullable
+    private TypeDefinition createTypeDefinition(@NotNull GraphQLTypeDefinition definition) {
         if (definition instanceof GraphQLEnumTypeDefinition) {
             return createEnumTypeDefinition(((GraphQLEnumTypeDefinition) definition));
 
@@ -254,8 +267,8 @@ public class GraphQLPsiToLanguage {
         }
     }
 
-
-    protected @Nullable Type createType(@Nullable GraphQLType type) {
+    @Nullable
+    private Type createType(@Nullable GraphQLType type) {
         if (type == null) return null;
 
         if (type instanceof GraphQLTypeName) {
@@ -269,7 +282,8 @@ public class GraphQLPsiToLanguage {
         }
     }
 
-    protected @Nullable TypeName createTypeName(@Nullable GraphQLTypeName typeName) {
+    @Nullable
+    private TypeName createTypeName(@Nullable GraphQLTypeName typeName) {
         if (typeName == null) return null;
         TypeName.Builder builder = TypeName.newTypeName();
         builder.name(typeName.getName());
@@ -277,7 +291,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(builder.build());
     }
 
-    protected @Nullable NonNullType createNonNullType(@NotNull GraphQLNonNullType nonNullType) {
+    @Nullable
+    private NonNullType createNonNullType(@NotNull GraphQLNonNullType nonNullType) {
         NonNullType.Builder builder = NonNullType.newNonNullType();
         addCommonData(builder, nonNullType);
         GraphQLType type = nonNullType.getType();
@@ -291,14 +306,16 @@ public class GraphQLPsiToLanguage {
         return checkNode(builder.build());
     }
 
-    protected @NotNull ListType createListType(@NotNull GraphQLListType listType) {
+    @NotNull
+    private ListType createListType(@NotNull GraphQLListType listType) {
         ListType.Builder builder = ListType.newListType();
         addCommonData(builder, listType);
         builder.type(createType(listType.getType()));
         return checkNode(builder.build());
     }
 
-    protected @Nullable Argument createArgument(@NotNull GraphQLArgument argument) {
+    @Nullable
+    private Argument createArgument(@NotNull GraphQLArgument argument) {
         Argument.Builder builder = Argument.newArgument();
         addCommonData(builder, argument);
         builder.name(argument.getName());
@@ -306,7 +323,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(builder.build());
     }
 
-    protected @NotNull List<Argument> createArguments(@Nullable GraphQLArguments arguments) {
+    @NotNull
+    private List<Argument> createArguments(@Nullable GraphQLArguments arguments) {
         if (arguments == null) {
             return emptyList();
         }
@@ -314,11 +332,13 @@ public class GraphQLPsiToLanguage {
     }
 
 
-    protected @NotNull List<Directive> createDirectives(@NotNull List<GraphQLDirective> directives) {
+    @NotNull
+    private List<Directive> createDirectives(@NotNull List<GraphQLDirective> directives) {
         return mapNotNull(directives, this::createDirective);
     }
 
-    protected @Nullable Directive createDirective(@NotNull GraphQLDirective directive) {
+    @Nullable
+    private Directive createDirective(@NotNull GraphQLDirective directive) {
         Directive.Builder builder = Directive.newDirective();
         builder.name(directive.getName());
         addCommonData(builder, directive);
@@ -326,31 +346,36 @@ public class GraphQLPsiToLanguage {
         return checkNode(builder.build());
     }
 
-    protected @NotNull SchemaDefinition createSchemaDefinition(@NotNull GraphQLSchemaDefinition schemaDefinition) {
+    @NotNull
+    private SchemaDefinition createSchemaDefinition(@NotNull GraphQLSchemaDefinition schemaDefinition) {
         SchemaDefinition.Builder def = SchemaDefinition.newSchemaDefinition();
         addCommonData(def, schemaDefinition);
         def.directives(createDirectives(schemaDefinition.getDirectives()));
         def.description(newDescription(schemaDefinition.getDescription()));
         GraphQLOperationTypeDefinitions operationTypeDefinitions = schemaDefinition.getOperationTypeDefinitions();
         if (operationTypeDefinitions != null) {
-            def.operationTypeDefinitions(mapNotNull(operationTypeDefinitions.getOperationTypeDefinitionList(), this::createOperationTypeDefinition));
+            def.operationTypeDefinitions(mapNotNull(operationTypeDefinitions.getOperationTypeDefinitionList(),
+                this::createOperationTypeDefinition));
         }
         return def.build();
     }
 
-    protected @NotNull SchemaExtensionDefinition createSchemaExtension(@NotNull GraphQLSchemaExtension extension) {
+    @NotNull
+    private SchemaExtensionDefinition createSchemaExtension(@NotNull GraphQLSchemaExtension extension) {
         SchemaExtensionDefinition.Builder def = SchemaExtensionDefinition.newSchemaExtensionDefinition();
         addCommonData(def, extension);
         def.directives(createDirectives(extension.getDirectives()));
 
         GraphQLOperationTypeDefinitions operationTypeDefinitions = extension.getOperationTypeDefinitions();
         if (operationTypeDefinitions != null) {
-            def.operationTypeDefinitions(mapNotNull(operationTypeDefinitions.getOperationTypeDefinitionList(), this::createOperationTypeDefinition));
+            def.operationTypeDefinitions(mapNotNull(operationTypeDefinitions.getOperationTypeDefinitionList(),
+                this::createOperationTypeDefinition));
         }
         return def.build();
     }
 
-    protected @Nullable OperationTypeDefinition createOperationTypeDefinition(@NotNull GraphQLOperationTypeDefinition definition) {
+    @Nullable
+    private OperationTypeDefinition createOperationTypeDefinition(@NotNull GraphQLOperationTypeDefinition definition) {
         OperationTypeDefinition.Builder def = OperationTypeDefinition.newOperationTypeDefinition();
         GraphQLOperationType operationType = definition.getOperationType();
         if (operationType != null) {
@@ -361,7 +386,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable ScalarTypeDefinition createScalarTypeDefinition(@NotNull GraphQLScalarTypeDefinition typeDefinition) {
+    @Nullable
+    private ScalarTypeDefinition createScalarTypeDefinition(@NotNull GraphQLScalarTypeDefinition typeDefinition) {
         ScalarTypeDefinition.Builder def = ScalarTypeDefinition.newScalarTypeDefinition();
         GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
         if (typeNameDefinition != null) {
@@ -373,7 +399,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable ScalarTypeExtensionDefinition createScalarTypeExtensionDefinition(@NotNull GraphQLScalarTypeExtensionDefinition extensionDefinition) {
+    @Nullable
+    private ScalarTypeExtensionDefinition createScalarTypeExtensionDefinition(@NotNull GraphQLScalarTypeExtensionDefinition extensionDefinition) {
         ScalarTypeExtensionDefinition.Builder def = ScalarTypeExtensionDefinition.newScalarTypeExtensionDefinition();
         GraphQLTypeName typeName = extensionDefinition.getTypeName();
         if (typeName != null) {
@@ -384,7 +411,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable ObjectTypeDefinition createObjectTypeDefinition(@NotNull GraphQLObjectTypeDefinition typeDefinition) {
+    @Nullable
+    private ObjectTypeDefinition createObjectTypeDefinition(@NotNull GraphQLObjectTypeDefinition typeDefinition) {
         ObjectTypeDefinition.Builder def = ObjectTypeDefinition.newObjectTypeDefinition();
         GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
         if (typeNameDefinition != null) {
@@ -398,7 +426,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable ObjectTypeExtensionDefinition createObjectTypeExtensionDefinition(@NotNull GraphQLObjectTypeExtensionDefinition extensionDefinition) {
+    @Nullable
+    private ObjectTypeExtensionDefinition createObjectTypeExtensionDefinition(@NotNull GraphQLObjectTypeExtensionDefinition extensionDefinition) {
         ObjectTypeExtensionDefinition.Builder def = ObjectTypeExtensionDefinition.newObjectTypeExtensionDefinition();
         GraphQLTypeName typeName = extensionDefinition.getTypeName();
         if (typeName != null) {
@@ -415,14 +444,16 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @NotNull List<FieldDefinition> createFieldDefinitions(@Nullable GraphQLFieldsDefinition fieldsDefinition) {
+    @NotNull
+    private List<FieldDefinition> createFieldDefinitions(@Nullable GraphQLFieldsDefinition fieldsDefinition) {
         if (fieldsDefinition == null) {
             return emptyList();
         }
         return mapNotNull(fieldsDefinition.getFieldDefinitionList(), this::createFieldDefinition);
     }
 
-    protected @Nullable FieldDefinition createFieldDefinition(@NotNull GraphQLFieldDefinition fieldDefinition) {
+    @Nullable
+    private FieldDefinition createFieldDefinition(@NotNull GraphQLFieldDefinition fieldDefinition) {
         FieldDefinition.Builder def = FieldDefinition.newFieldDefinition();
         def.name(fieldDefinition.getName());
         def.type(createType(fieldDefinition.getType()));
@@ -436,11 +467,13 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @NotNull List<InputValueDefinition> createInputValueDefinitions(@NotNull List<GraphQLInputValueDefinition> defs) {
+    @NotNull
+    private List<InputValueDefinition> createInputValueDefinitions(@NotNull List<GraphQLInputValueDefinition> defs) {
         return mapNotNull(defs, this::createInputValueDefinition);
     }
 
-    protected @Nullable InputValueDefinition createInputValueDefinition(@NotNull GraphQLInputValueDefinition valueDefinition) {
+    @Nullable
+    private InputValueDefinition createInputValueDefinition(@NotNull GraphQLInputValueDefinition valueDefinition) {
         InputValueDefinition.Builder def = InputValueDefinition.newInputValueDefinition();
         def.name(valueDefinition.getName());
         def.type(createType(valueDefinition.getType()));
@@ -454,7 +487,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable InterfaceTypeDefinition createInterfaceTypeDefinition(@NotNull GraphQLInterfaceTypeDefinition typeDefinition) {
+    @Nullable
+    private InterfaceTypeDefinition createInterfaceTypeDefinition(@NotNull GraphQLInterfaceTypeDefinition typeDefinition) {
         InterfaceTypeDefinition.Builder def = InterfaceTypeDefinition.newInterfaceTypeDefinition();
         GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
         if (typeNameDefinition != null) {
@@ -469,7 +503,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable InterfaceTypeExtensionDefinition createInterfaceTypeExtensionDefinition(@NotNull GraphQLInterfaceTypeExtensionDefinition extensionDefinition) {
+    @Nullable
+    private InterfaceTypeExtensionDefinition createInterfaceTypeExtensionDefinition(@NotNull GraphQLInterfaceTypeExtensionDefinition extensionDefinition) {
         InterfaceTypeExtensionDefinition.Builder def = InterfaceTypeExtensionDefinition.newInterfaceTypeExtensionDefinition();
         GraphQLTypeName typeName = extensionDefinition.getTypeName();
         if (typeName != null) {
@@ -483,7 +518,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable UnionTypeDefinition createUnionTypeDefinition(@NotNull GraphQLUnionTypeDefinition typeDefinition) {
+    @Nullable
+    private UnionTypeDefinition createUnionTypeDefinition(@NotNull GraphQLUnionTypeDefinition typeDefinition) {
         UnionTypeDefinition.Builder def = UnionTypeDefinition.newUnionTypeDefinition();
         GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
         if (typeNameDefinition != null) {
@@ -509,7 +545,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable UnionTypeExtensionDefinition createUnionTypeExtensionDefinition(@NotNull GraphQLUnionTypeExtensionDefinition extensionDefinition) {
+    @Nullable
+    private UnionTypeExtensionDefinition createUnionTypeExtensionDefinition(@NotNull GraphQLUnionTypeExtensionDefinition extensionDefinition) {
         UnionTypeExtensionDefinition.Builder def = UnionTypeExtensionDefinition.newUnionTypeExtensionDefinition();
         GraphQLTypeName typeName = extensionDefinition.getTypeName();
         if (typeName != null) {
@@ -534,7 +571,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable EnumTypeDefinition createEnumTypeDefinition(@NotNull GraphQLEnumTypeDefinition enumTypeDefinition) {
+    @Nullable
+    private EnumTypeDefinition createEnumTypeDefinition(@NotNull GraphQLEnumTypeDefinition enumTypeDefinition) {
         EnumTypeDefinition.Builder def = EnumTypeDefinition.newEnumTypeDefinition();
         GraphQLTypeNameDefinition typeNameDefinition = enumTypeDefinition.getTypeNameDefinition();
         if (typeNameDefinition != null) {
@@ -551,7 +589,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable EnumTypeExtensionDefinition createEnumTypeExtensionDefinition(@NotNull GraphQLEnumTypeExtensionDefinition extensionDefinition) {
+    @Nullable
+    private EnumTypeExtensionDefinition createEnumTypeExtensionDefinition(@NotNull GraphQLEnumTypeExtensionDefinition extensionDefinition) {
         EnumTypeExtensionDefinition.Builder def = EnumTypeExtensionDefinition.newEnumTypeExtensionDefinition();
         GraphQLTypeName typeName = extensionDefinition.getTypeName();
         if (typeName != null) {
@@ -561,12 +600,14 @@ public class GraphQLPsiToLanguage {
         def.directives(createDirectives(extensionDefinition.getDirectives()));
         GraphQLEnumValueDefinitions enumValueDefinitions = extensionDefinition.getEnumValueDefinitions();
         if (enumValueDefinitions != null) {
-            def.enumValueDefinitions(mapNotNull(enumValueDefinitions.getEnumValueDefinitionList(), this::createEnumValueDefinition));
+            def.enumValueDefinitions(
+                mapNotNull(enumValueDefinitions.getEnumValueDefinitionList(), this::createEnumValueDefinition));
         }
         return checkNode(def.build());
     }
 
-    protected @Nullable EnumValueDefinition createEnumValueDefinition(@NotNull GraphQLEnumValueDefinition valueDefinition) {
+    @Nullable
+    private EnumValueDefinition createEnumValueDefinition(@NotNull GraphQLEnumValueDefinition valueDefinition) {
         EnumValueDefinition.Builder def = EnumValueDefinition.newEnumValueDefinition();
         def.name(valueDefinition.getEnumValue().getName());
         addCommonData(def, valueDefinition);
@@ -575,7 +616,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable InputObjectTypeDefinition createInputObjectTypeDefinition(@NotNull GraphQLInputObjectTypeDefinition typeDefinition) {
+    @Nullable
+    private InputObjectTypeDefinition createInputObjectTypeDefinition(@NotNull GraphQLInputObjectTypeDefinition typeDefinition) {
         InputObjectTypeDefinition.Builder def = InputObjectTypeDefinition.newInputObjectDefinition();
         GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
         if (typeNameDefinition != null) {
@@ -591,7 +633,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable InputObjectTypeExtensionDefinition createInputObjectTypeExtensionDefinition(@NotNull GraphQLInputObjectTypeExtensionDefinition extensionDefinition) {
+    @Nullable
+    private InputObjectTypeExtensionDefinition createInputObjectTypeExtensionDefinition(@NotNull GraphQLInputObjectTypeExtensionDefinition extensionDefinition) {
         InputObjectTypeExtensionDefinition.Builder def = InputObjectTypeExtensionDefinition.newInputObjectTypeExtensionDefinition();
         GraphQLTypeName typeName = extensionDefinition.getTypeName();
         if (typeName != null) {
@@ -606,7 +649,8 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable DirectiveDefinition createDirectiveDefinition(@NotNull GraphQLDirectiveDefinition directiveDefinition) {
+    @Nullable
+    private DirectiveDefinition createDirectiveDefinition(@NotNull GraphQLDirectiveDefinition directiveDefinition) {
         DirectiveDefinition.Builder def = DirectiveDefinition.newDirectiveDefinition();
         GraphQLIdentifier nameIdentifier = directiveDefinition.getNameIdentifier();
         if (nameIdentifier != null) {
@@ -636,14 +680,16 @@ public class GraphQLPsiToLanguage {
         return checkNode(def.build());
     }
 
-    protected @Nullable DirectiveLocation createDirectiveLocation(@NotNull GraphQLDirectiveLocation directiveLocation) {
+    @Nullable
+    private DirectiveLocation createDirectiveLocation(@NotNull GraphQLDirectiveLocation directiveLocation) {
         DirectiveLocation.Builder def = DirectiveLocation.newDirectiveLocation();
         def.name(directiveLocation.getText());
         addCommonData(def, directiveLocation);
         return checkNode(def.build());
     }
 
-    protected @Nullable Value createValue(@Nullable GraphQLValue value) {
+    @Nullable
+    private Value createValue(@Nullable GraphQLValue value) {
         if (value == null) return null;
 
         if (value instanceof GraphQLIntValue) {
@@ -663,7 +709,8 @@ public class GraphQLPsiToLanguage {
                 return null;
             }
         } else if (value instanceof GraphQLBooleanValue) {
-            BooleanValue.Builder booleanValue = BooleanValue.newBooleanValue().value(Boolean.parseBoolean(value.getText()));
+            BooleanValue.Builder booleanValue = BooleanValue.newBooleanValue()
+                .value(Boolean.parseBoolean(value.getText()));
             addCommonData(booleanValue, value);
             return booleanValue.build();
         } else if (value instanceof GraphQLNullValue) {
@@ -671,7 +718,8 @@ public class GraphQLPsiToLanguage {
             addCommonData(nullValue, value);
             return nullValue.build();
         } else if (value instanceof GraphQLStringValue) {
-            StringValue.Builder stringValue = StringValue.newStringValue().value(quotedString(((GraphQLStringValue) value).getStringLiteral()));
+            StringValue.Builder stringValue = StringValue.newStringValue()
+                .value(quotedString(((GraphQLStringValue) value).getStringLiteral()));
             addCommonData(stringValue, value);
             return stringValue.build();
         } else if (value instanceof GraphQLEnumValue) {
@@ -704,7 +752,8 @@ public class GraphQLPsiToLanguage {
             }
             return objectValue.objectFields(objectFields).build();
         } else if (value instanceof GraphQLVariable) {
-            VariableReference.Builder variableReference = VariableReference.newVariableReference().name(((GraphQLVariable) value).getName());
+            VariableReference.Builder variableReference = VariableReference.newVariableReference()
+                .name(((GraphQLVariable) value).getName());
             addCommonData(variableReference, value);
             return checkNode(variableReference.build());
         } else if (value instanceof GraphQLTemplateVariable) {
@@ -723,12 +772,13 @@ public class GraphQLPsiToLanguage {
         }
     }
 
-    protected void addCommonData(NodeBuilder nodeBuilder, @NotNull PsiElement element) {
+    private void addCommonData(NodeBuilder nodeBuilder, @NotNull PsiElement element) {
         nodeBuilder.sourceLocation(getSourceLocation(element));
         nodeBuilder.element(element);
     }
 
-    protected @Nullable Description newDescription(@Nullable GraphQLDescription description) {
+    @Nullable
+    private Description newDescription(@Nullable GraphQLDescription description) {
         if (description == null) {
             return null;
         }
@@ -749,7 +799,8 @@ public class GraphQLPsiToLanguage {
         return new Description(content, sourceLocation, multiLine, description);
     }
 
-    protected @NotNull SourceLocation getSourceLocation(@NotNull PsiElement element) {
+    @NotNull
+    private SourceLocation getSourceLocation(@NotNull PsiElement element) {
         return new SourceLocation(element);
     }
 

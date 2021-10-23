@@ -17,6 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
+import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionResultToSchema;
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.*;
@@ -277,7 +278,7 @@ public class SchemaPrinter {
     /**
      * This can print an in memory GraphQL IDL document back to a logical schema definition.
      * If you want to turn a Introspection query result into a Document (and then into a printed
-     * schema) then use {@link com.intellij.lang.jsgraphql.types.introspection.IntrospectionResultToSchema#createSchemaDefinition(Map)}
+     * schema) then use {@link GraphQLIntrospectionResultToSchema#createSchemaDefinition(Map)}
      * first to get the {@link com.intellij.lang.jsgraphql.types.language.Document} and then print that.
      *
      * @param schemaIDL the parsed schema IDL

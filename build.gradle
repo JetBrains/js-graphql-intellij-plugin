@@ -26,7 +26,6 @@ dependencies {
     implementation 'fr.opensagres.js:minimatch.java:1.1.0'
     implementation 'io.github.cdimascio:dotenv-kotlin:6.2.2'
 
-    implementation 'org.antlr:antlr4-runtime:4.8'
     implementation 'com.graphql-java:java-dataloader:2.2.3'
     implementation 'org.reactivestreams:reactive-streams:1.0.2'
 

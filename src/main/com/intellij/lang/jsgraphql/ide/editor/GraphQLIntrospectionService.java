@@ -253,7 +253,8 @@ public class GraphQLIntrospectionService implements Disposable {
             defaultValueVisitJson.get().consume(introspection);
         }
 
-        final Document schemaDefinition = new GraphQLIntrospectionResultToSchema().createSchemaDefinition(introspection);
+        final Document schemaDefinition = new GraphQLIntrospectionResultToSchema(myProject)
+            .createSchemaDefinition(introspection);
         final SchemaPrinter.Options options = SchemaPrinter.Options
             .defaultOptions()
             .includeScalarTypes(false)

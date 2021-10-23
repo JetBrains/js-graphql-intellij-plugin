@@ -1,10 +1,14 @@
 package com.intellij.lang.jsgraphql.ide.editor;
 
 import com.google.common.collect.Lists;
-import com.intellij.util.containers.ContainerUtil;
-import com.intellij.lang.jsgraphql.types.PublicApi;
+import com.intellij.lang.jsgraphql.psi.GraphQLElementFactory;
+import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,9 +17,16 @@ import java.util.stream.Collectors;
 
 import static com.intellij.lang.jsgraphql.types.Assert.*;
 
-@SuppressWarnings("unchecked")
-@PublicApi
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class GraphQLIntrospectionResultToSchema {
+
+    private static final Logger LOG = Logger.getInstance(GraphQLIntrospectionResultToSchema.class);
+
+    private final Project myProject;
+
+    public GraphQLIntrospectionResultToSchema(@NotNull Project project) {
+        myProject = project;
+    }
 
     /**
      * Returns a IDL Document that represents the schema as defined by the introspection result map
@@ -35,14 +46,16 @@ public class GraphQLIntrospectionResultToSchema {
         boolean nonDefaultQueryName = !"Query".equals(query.getName());
 
         SchemaDefinition.Builder schemaDefinition = SchemaDefinition.newSchemaDefinition();
-        schemaDefinition.operationTypeDefinition(OperationTypeDefinition.newOperationTypeDefinition().name("query").typeName(query).build());
+        schemaDefinition.operationTypeDefinition(
+            OperationTypeDefinition.newOperationTypeDefinition().name("query").typeName(query).build());
 
         Map<String, Object> mutationType = (Map<String, Object>) schema.get("mutationType");
         boolean nonDefaultMutationName = false;
         if (mutationType != null) {
             TypeName mutation = TypeName.newTypeName().name((String) mutationType.get("name")).build();
             nonDefaultMutationName = !"Mutation".equals(mutation.getName());
-            schemaDefinition.operationTypeDefinition(OperationTypeDefinition.newOperationTypeDefinition().name("mutation").typeName(mutation).build());
+            schemaDefinition.operationTypeDefinition(
+                OperationTypeDefinition.newOperationTypeDefinition().name("mutation").typeName(mutation).build());
         }
 
         Map<String, Object> subscriptionType = (Map<String, Object>) schema.get("subscriptionType");
@@ -50,7 +63,9 @@ public class GraphQLIntrospectionResultToSchema {
         if (subscriptionType != null) {
             TypeName subscription = TypeName.newTypeName().name(((String) subscriptionType.get("name"))).build();
             nonDefaultSubscriptionName = !"Subscription".equals(subscription.getName());
-            schemaDefinition.operationTypeDefinition(OperationTypeDefinition.newOperationTypeDefinition().name("subscription").typeName(subscription).build());
+            schemaDefinition.operationTypeDefinition(
+                OperationTypeDefinition.newOperationTypeDefinition().name("subscription")
+                    .typeName(subscription).build());
         }
 
         Document.Builder document = Document.newDocument();
@@ -73,7 +88,8 @@ public class GraphQLIntrospectionResultToSchema {
 
     @Nullable
     private TypeDefinition<?> createTypeDefinition(@NotNull Map<String, Object> type) {
-        String kind = assertNotNull((String) type.get("kind"), () -> String.format("null object kind: %s", type.toString()));
+        String kind = assertNotNull((String) type.get("kind"),
+            () -> String.format("null object kind: %s", type));
         String name = (String) type.get("name");
 
         if (name.startsWith("__")) return null;
@@ -242,7 +258,7 @@ public class GraphQLIntrospectionResultToSchema {
 
     @SuppressWarnings("unchecked")
     @NotNull
-    private static List<InputValueDefinition> createInputValueDefinitions(@Nullable List<Map<String, Object>> args) {
+    private List<InputValueDefinition> createInputValueDefinitions(@Nullable List<Map<String, Object>> args) {
         if (args == null) return ContainerUtil.emptyList();
 
         List<InputValueDefinition> result = new ArrayList<>();
@@ -251,7 +267,7 @@ public class GraphQLIntrospectionResultToSchema {
 
             Type argType = createTypeIndirection((Map<String, Object>) arg.get("type"));
             String valueLiteral = (String) arg.get("defaultValue");
-            Value defaultValue = valueLiteral != null ? AstValueHelper.valueFromAst(valueLiteral) : null;
+            Value defaultValue = valueLiteral != null ? valueFromAst(valueLiteral) : null;
             InputValueDefinition inputValueDefinition = InputValueDefinition.newInputValueDefinition()
                 .name((String) arg.get("name"))
                 .type(argType)
@@ -263,7 +279,6 @@ public class GraphQLIntrospectionResultToSchema {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     @Nullable
     private static Type createTypeIndirection(@Nullable Map<String, Object> type) {
         if (type == null) return null;
@@ -282,7 +297,8 @@ public class GraphQLIntrospectionResultToSchema {
                 if (ofType == null) return null;
                 return NonNullType.newNonNullType().type(ofType).build();
             case "LIST":
-                return ListType.newListType().type(createTypeIndirection((Map<String, Object>) type.get("ofType"))).build();
+                return ListType.newListType()
+                    .type(createTypeIndirection((Map<String, Object>) type.get("ofType"))).build();
             default:
                 return assertShouldNeverHappen("Unknown kind %s", kind);
         }
@@ -304,6 +320,24 @@ public class GraphQLIntrospectionResultToSchema {
                 return new Description(description, new SourceLocation(1, 1), multiLine);
             }
         }
+        return null;
+    }
+
+    @Nullable
+    private Value<?> valueFromAst(@NotNull String literal) {
+        try {
+            Document doc = ReadAction.compute(() -> {
+                String text = "input X { x: String = " + literal + "}";
+                GraphQLFile file = GraphQLElementFactory.createFile(myProject, text);
+                return file.getDocument();
+            });
+            InputObjectTypeDefinition inputType = (InputObjectTypeDefinition) doc.getDefinitions().get(0);
+            InputValueDefinition inputValueDefinition = inputType.getInputValueDefinitions().get(0);
+            return inputValueDefinition.getDefaultValue();
+        } catch (Exception e) {
+            LOG.error(e);
+        }
+
         return null;
     }
 

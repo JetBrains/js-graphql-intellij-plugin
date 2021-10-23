@@ -17,12 +17,7 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.diff;
 
-import com.intellij.lang.jsgraphql.types.Assert;
-import com.intellij.lang.jsgraphql.types.ExecutionResult;
-import com.intellij.lang.jsgraphql.types.GraphQL;
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.lang.jsgraphql.types.introspection.IntrospectionQuery;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 
 import java.util.Map;
 
@@ -56,37 +51,4 @@ public class DiffSet {
         return introspectionNew;
     }
 
-
-    /**
-     * Creates a diff set out of the result of 2 introspection queries.
-     *
-     * @param introspectionOld the older introspection query
-     * @param introspectionNew the newer introspection query
-     *
-     * @return a diff set representing them
-     */
-    public static DiffSet diffSet(Map<String, Object> introspectionOld, Map<String, Object> introspectionNew) {
-        return new DiffSet(introspectionOld, introspectionNew);
-    }
-
-    /**
-     * Creates a diff set out of the result of 2 schemas.
-     *
-     * @param schemaOld the older schema
-     * @param schemaNew the newer schema
-     *
-     * @return a diff set representing them
-     */
-    public static DiffSet diffSet(GraphQLSchema schemaOld, GraphQLSchema schemaNew) {
-        Map<String, Object> introspectionOld = introspect(schemaOld);
-        Map<String, Object> introspectionNew = introspect(schemaNew);
-        return diffSet(introspectionOld, introspectionNew);
-    }
-
-    private static Map<String, Object> introspect(GraphQLSchema schema) {
-        GraphQL gql = GraphQL.newGraphQL(schema).build();
-        ExecutionResult result = gql.execute(IntrospectionQuery.INTROSPECTION_QUERY);
-        Assert.assertTrue(result.getErrors().size() == 0, () -> "The schema has errors during Introspection");
-        return result.getData();
-    }
 }

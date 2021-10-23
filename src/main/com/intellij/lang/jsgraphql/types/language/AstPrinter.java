@@ -296,7 +296,7 @@ public class AstPrinter {
     }
 
     private NodePrinter<ObjectField> objectField() {
-        String nameValueSep = compactMode ? ":" : " : ";
+        String nameValueSep = compactMode ? ":" : ": ";
         return (out, node) -> out.append(node.getName()).append(nameValueSep).append(value(node.getValue()));
     }
 
