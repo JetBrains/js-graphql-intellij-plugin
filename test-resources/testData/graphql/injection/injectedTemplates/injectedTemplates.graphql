@@ -3,7 +3,7 @@ type SomeType {
 }
 
 query Departments($arg: String) @Dir(arg: ) {
-  users(filter: {name : , addresses : ["abc"]}) {}
+  users(filter: {name: , addresses: ["abc"]}) {}
 }
 
 directive @Dir(arg: String) on QUERY
