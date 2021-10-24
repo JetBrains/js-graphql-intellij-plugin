@@ -77,8 +77,6 @@ sourceSets {
 
 }
 
-apply plugin: 'org.jetbrains.grammarkit'
-
 // import is optional to make task creation easier
 
 import org.jetbrains.grammarkit.tasks.GenerateLexer
