@@ -37,12 +37,12 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
     @Nullable
     @Override
     public GraphQLSettings.GraphQLSettingsState getState() {
-        return this.myState;
+        return myState;
     }
 
     @Override
     public void loadState(@NotNull GraphQLSettings.GraphQLSettingsState state) {
-        this.myState = state;
+        myState = state;
     }
 
     public String getIntrospectionQuery() {
@@ -53,11 +53,11 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
         myState.introspectionQuery = introspectionQuery;
     }
 
-    public boolean isEnableRelayModernFrameworkSupport() {
+    public boolean isRelaySupportEnabled() {
         return myState.enableRelayModernFrameworkSupport;
     }
 
-    public void setEnableRelayModernFrameworkSupport(boolean enableRelayModernFrameworkSupport) {
+    public void setRelaySupportEnabled(boolean enableRelayModernFrameworkSupport) {
         myState.enableRelayModernFrameworkSupport = enableRelayModernFrameworkSupport;
     }
 
@@ -68,6 +68,14 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
     public void setEnableIntrospectionDefaultValues(boolean enableIntrospectionDefaultValues) {
         mySchemaSettingsTracker.incModificationCount();
         myState.enableIntrospectionDefaultValues = enableIntrospectionDefaultValues;
+    }
+
+    public boolean isOpenEditorWithIntrospectionResult() {
+        return myState.openEditorWithIntrospectionResult;
+    }
+
+    public void setOpenEditorWithIntrospectionResult(boolean openEditorWithIntrospectionResult) {
+        myState.openEditorWithIntrospectionResult = openEditorWithIntrospectionResult;
     }
 
     public ModificationTracker getSchemaSettingsModificationTracker() {
@@ -81,6 +89,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
     static class GraphQLSettingsState {
         public String introspectionQuery = "";
         public boolean enableIntrospectionDefaultValues = true;
+        public boolean openEditorWithIntrospectionResult = true;
         public boolean enableRelayModernFrameworkSupport;
     }
 }

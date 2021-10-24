@@ -376,13 +376,11 @@ public class GraphQLIntrospectionService implements Disposable {
             try {
                 VirtualFile outputFile =
                     createOrUpdateSchemaFile(introspectionSourceFile, FileUtil.toSystemIndependentName(outputFileName));
-                VfsUtil.saveText(outputFile, header + schemaText);
-                outputFile.refresh(false, false);
-
                 com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(outputFile);
                 if (document == null) {
                     throw new IllegalStateException("Document not found");
                 }
+                document.setText(StringUtil.convertLineSeparators(header + schemaText));
                 PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
                 psiDocumentManager.commitDocument(document);
                 PsiFile psiFile = psiDocumentManager.getPsiFile(document);
@@ -408,6 +406,10 @@ public class GraphQLIntrospectionService implements Disposable {
     }
 
     private void openSchemaInEditor(@NotNull VirtualFile file) {
+        if (!GraphQLSettings.getSettings(myProject).isOpenEditorWithIntrospectionResult()) {
+            return;
+        }
+
         ApplicationManager.getApplication().invokeLater(() -> {
             final FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(file, true, true);
             if (fileEditors.length == 0) {

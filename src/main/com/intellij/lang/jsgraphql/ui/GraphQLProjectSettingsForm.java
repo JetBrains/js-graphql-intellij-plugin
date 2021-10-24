@@ -7,80 +7,67 @@
  */
 package com.intellij.lang.jsgraphql.ui;
 
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.fields.ExpandableTextField;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 public class GraphQLProjectSettingsForm {
 
     private JPanel rootPanel;
 
-    // introspection
     private JPanel introspectionPanel;
     private ExpandableTextField introspectionQueryTextField;
     private JCheckBox enableIntrospectionDefaultValues;
-    JPanel relayModernPanel;
-    JCheckBox enableRelayModernCheckBox;
+    private JPanel frameworksPanel;
+    private JCheckBox enableRelay;
+    private JCheckBox openEditorWithIntrospectionResult;
 
     private GraphQLSettings mySettings;
 
-    GraphQLProjectSettingsForm initialize(GraphQLSettings mySettings) {
-
-        this.mySettings = mySettings;
-        introspectionPanel.setBorder(IdeBorderFactory.createTitledBorder("GraphQL Introspection"));
-        relayModernPanel.setBorder(IdeBorderFactory.createTitledBorder("GraphQL Frameworks"));
+    @NotNull
+    GraphQLProjectSettingsForm initialize(@NotNull GraphQLSettings settings) {
+        mySettings = settings;
+        introspectionPanel.setBorder(
+            IdeBorderFactory.createTitledBorder(GraphQLBundle.message("graphql.settings.introspection")));
+        frameworksPanel.setBorder(
+            IdeBorderFactory.createTitledBorder(GraphQLBundle.message("graphql.settings.frameworks")));
 
         return this;
     }
 
+    @NotNull
     JPanel getComponent() {
         return rootPanel;
     }
 
-    void visit(Container container, Predicate<Component> componentPredicate) {
-        for (int i = 0; i < container.getComponentCount(); i++) {
-            Component child = container.getComponent(i);
-            if (componentPredicate.test(child)) {
-                return;
-            }
-            if (child instanceof Container) {
-                visit((Container) child, componentPredicate);
-            }
-        }
-    }
-
-    void apply() throws ConfigurationException {
+    void apply() {
         mySettings.setIntrospectionQuery(introspectionQueryTextField.getText());
-        mySettings.setEnableRelayModernFrameworkSupport(enableRelayModernCheckBox.isSelected());
+        mySettings.setRelaySupportEnabled(enableRelay.isSelected());
         mySettings.setEnableIntrospectionDefaultValues(enableIntrospectionDefaultValues.isSelected());
+        mySettings.setOpenEditorWithIntrospectionResult(openEditorWithIntrospectionResult.isSelected());
     }
 
     void reset() {
         introspectionQueryTextField.setText(mySettings.getIntrospectionQuery());
         enableIntrospectionDefaultValues.setSelected(mySettings.isEnableIntrospectionDefaultValues());
-        enableRelayModernCheckBox.setSelected(mySettings.isEnableRelayModernFrameworkSupport());
+        enableRelay.setSelected(mySettings.isRelaySupportEnabled());
+        openEditorWithIntrospectionResult.setSelected(mySettings.isOpenEditorWithIntrospectionResult());
     }
 
     boolean isModified() {
-        if (!Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText())) {
-            return true;
-        }
-        if (mySettings.isEnableRelayModernFrameworkSupport() != enableRelayModernCheckBox.isSelected()) {
-            return true;
-        }
-        if (mySettings.isEnableIntrospectionDefaultValues() != enableIntrospectionDefaultValues.isSelected()) {
-            return true;
-        }
-        return false;
+        return !Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText()) ||
+            mySettings.isRelaySupportEnabled() != enableRelay.isSelected() ||
+            mySettings.isEnableIntrospectionDefaultValues() != enableIntrospectionDefaultValues.isSelected() ||
+            mySettings.isOpenEditorWithIntrospectionResult() != openEditorWithIntrospectionResult.isSelected();
     }
 
     {
@@ -118,14 +105,16 @@ public class GraphQLProjectSettingsForm {
         enableIntrospectionDefaultValues.setText("Include argument default values in schema introspection");
         enableIntrospectionDefaultValues.setToolTipText("Skipping default values improves interoperability with endpoints that don't follow the GraphQL specification for default values. The schema can still be used, but information about the default values will be unavailable.");
         introspectionPanel.add(enableIntrospectionDefaultValues, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        relayModernPanel = new JPanel();
-        relayModernPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
-        rootPanel.add(relayModernPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        enableRelayModernCheckBox = new JCheckBox();
-        enableRelayModernCheckBox.setEnabled(true);
-        enableRelayModernCheckBox.setText("Enable Relay Modern support");
-        enableRelayModernCheckBox.setToolTipText("Adds Relay Modern directives to schema discovery and filters  non-spec errors such as fragment arguments");
-        relayModernPanel.add(enableRelayModernCheckBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        frameworksPanel = new JPanel();
+        frameworksPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
+        rootPanel.add(
+            frameworksPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        enableRelay = new JCheckBox();
+        enableRelay.setEnabled(true);
+        enableRelay.setText("Enable Relay Modern support");
+        enableRelay.setToolTipText("Adds Relay Modern directives to schema discovery and filters  non-spec errors such as fragment arguments");
+        frameworksPanel.add(
+            enableRelay, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

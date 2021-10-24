@@ -62,11 +62,6 @@ runIde {
     jvmArgs '-Xmx2G'
 }
 
-buildSearchableOptions {
-    // workaround for https://youtrack.jetbrains.com/issue/JBR-1550
-    jbrVersion = '11_0_2b159'
-}
-
 sourceSets {
 
     main.java.srcDirs = ['src/main', 'gen']

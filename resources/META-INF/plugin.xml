@@ -143,7 +143,7 @@
     <vetoRenameCondition implementation="com.intellij.lang.jsgraphql.ide.rename.GraphQLRenameVetoCondition"/>
 
     <!-- Settings -->
-    <projectConfigurable groupId="language" instance="com.intellij.lang.jsgraphql.ui.GraphQLProjectConfigurable"/>
+    <projectConfigurable id="settings.jsgraphql" groupId="language" instance="com.intellij.lang.jsgraphql.ui.GraphQLProjectConfigurable"/>
 
     <!-- .graphqlconfig JSON -->
     <fileType name="JSON" extensions="graphqlconfig"/>

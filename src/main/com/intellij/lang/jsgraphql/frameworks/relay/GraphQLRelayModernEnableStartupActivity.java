@@ -43,7 +43,7 @@ public class GraphQLRelayModernEnableStartupActivity implements StartupActivity 
     public void runActivity(@NotNull Project project) {
         ReadAction.nonBlocking(() -> {
             final GraphQLSettings settings = GraphQLSettings.getSettings(project);
-            if (isDisplayed.get() || settings.isEnableRelayModernFrameworkSupport()) {
+            if (isDisplayed.get() || settings.isRelaySupportEnabled()) {
                 // already enabled Relay Modern
                 return;
             }
@@ -61,7 +61,7 @@ public class GraphQLRelayModernEnableStartupActivity implements StartupActivity 
                                     "<a href=\"enable\">Enable Relay Modern</a> GraphQL tooling",
                                     NotificationType.INFORMATION,
                                     (notification, event) -> {
-                                        settings.setEnableRelayModernFrameworkSupport(true);
+                                        settings.setRelaySupportEnabled(true);
                                         ApplicationManager.getApplication().saveSettings();
                                         notification.expire();
                                         DaemonCodeAnalyzer.getInstance(project).restart();

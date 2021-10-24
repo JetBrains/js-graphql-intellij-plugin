@@ -90,7 +90,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
 
         GraphQLSettings settings = GraphQLSettings.getSettings(project);
         myBuiltInSchemaScopes = builtInSchemaScope
-            .union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, settings::isEnableRelayModernFrameworkSupport))
+            .union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, settings::isRelaySupportEnabled))
             .union(defaultProjectFileScope);
 
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);

@@ -41,46 +41,36 @@ public class GraphQLProjectConfigurable implements SearchableConfigurable {
 
     private final Project myProject;
     private final GraphQLSettings mySettings;
-    private volatile GraphQLProjectSettingsForm myForm;
+    private GraphQLProjectSettingsForm myForm;
 
     public GraphQLProjectConfigurable(Project project) {
-        this.myProject = project;
-        this.mySettings = GraphQLSettings.getSettings(project);
+        myProject = project;
+        mySettings = GraphQLSettings.getSettings(project);
     }
 
     @Nullable
     public JComponent createComponent() {
-        if (myForm == null) {
-            myForm = new GraphQLProjectSettingsForm().initialize(mySettings);
-        }
+        myForm = new GraphQLProjectSettingsForm().initialize(mySettings);
         return myForm.getComponent();
     }
 
     public void apply() throws ConfigurationException {
-        if (myForm != null) {
-            if (myProject.isDefault()) {
-                myForm.apply();
-            } else {
-                WriteAction.run(() -> {
-                    myForm.apply();
-                });
-                ApplicationManager.getApplication().invokeLater(() -> {
-                    if (!myProject.isDisposed()) {
-                        DaemonCodeAnalyzer.getInstance(myProject).restart();
-                        EditorNotifications.getInstance(myProject).updateAllNotifications();
-                    }
-                }, myProject.getDisposed());
-            }
+        if (myProject.isDefault()) {
+            myForm.apply();
+        } else {
+            WriteAction.run(() -> myForm.apply());
+            ApplicationManager.getApplication().invokeLater(() -> {
+                DaemonCodeAnalyzer.getInstance(myProject).restart();
+                EditorNotifications.getInstance(myProject).updateAllNotifications();
+            }, myProject.getDisposed());
         }
     }
 
     public void reset() {
-        if (myForm != null) {
-            myForm.reset();
-        }
+        myForm.reset();
     }
 
     public boolean isModified() {
-        return myForm != null && myForm.isModified();
+        return myForm.isModified();
     }
 }

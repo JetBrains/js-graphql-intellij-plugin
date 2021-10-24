@@ -13,7 +13,7 @@ public class GraphQLRelayValidationTest extends GraphQLTestCaseBase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        GraphQLSettings.getSettings(getProject()).setEnableRelayModernFrameworkSupport(true);
+        GraphQLSettings.getSettings(getProject()).setRelaySupportEnabled(true);
     }
 
     public void testSuppressedInspections() {

@@ -30,7 +30,7 @@ public class GraphQLRelayModernErrorFilter implements GraphQLErrorFilter {
         if (!toolId.equals(GraphQLUnresolvedReferenceInspection.SHORT_NAME)) return false;
 
         GraphQLSettings settings = GraphQLSettings.getSettings(project);
-        if (!settings.isEnableRelayModernFrameworkSupport()) {
+        if (!settings.isRelaySupportEnabled()) {
             return false;
         }
 
