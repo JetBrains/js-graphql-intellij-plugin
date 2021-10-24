@@ -7,6 +7,7 @@ import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -334,6 +335,8 @@ public class GraphQLIntrospectionResultToSchema {
             InputObjectTypeDefinition inputType = (InputObjectTypeDefinition) doc.getDefinitions().get(0);
             InputValueDefinition inputValueDefinition = inputType.getInputValueDefinitions().get(0);
             return inputValueDefinition.getDefaultValue();
+        } catch (ProcessCanceledException e) {
+            throw e;
         } catch (Exception e) {
             LOG.error(e);
         }
