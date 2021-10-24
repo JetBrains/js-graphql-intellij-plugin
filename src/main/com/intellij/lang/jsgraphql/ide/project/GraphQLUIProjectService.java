@@ -18,18 +18,18 @@ import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
+import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
+import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
+import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
-import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
-import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
-import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
-import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
-import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
+import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -60,6 +60,7 @@ import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
+import com.intellij.util.Alarm;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.lang.StringUtils;
@@ -78,6 +79,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, GraphQLConfigurationListener {
 
@@ -101,6 +103,9 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     public final static Key<GraphQLEndpointsModel> GRAPH_QL_ENDPOINTS_MODEL = Key.create("JSGraphQLEndpointsModel");
 
     public final static Key<Boolean> GRAPH_QL_EDITOR_QUERYING = Key.create("JSGraphQLEditorQuerying");
+
+    private static final int UPDATE_MS = 500;
+    private final Alarm myUpdateUIAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
 
     @NotNull
     private final Project myProject;
@@ -159,31 +164,33 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     private void reloadEndpoints() {
         if (ApplicationManager.getApplication().isHeadlessEnvironment()) return;
 
-        ApplicationManager.getApplication().executeOnPooledThread(() -> ReadAction.run(() -> {
+        myUpdateUIAlarm.cancelAllRequests();
+        myUpdateUIAlarm.addRequest(() -> {
             if (myProject.isDisposed()) return;
             final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
             final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
-            for (VirtualFile file : fileEditorManager.getOpenFiles()) {
-                if (!GraphQLFileType.isGraphQLFile(myProject, file)) {
-                    continue;
-                }
-                final List<GraphQLConfigEndpoint> endpoints = graphQLConfigManager.getEndpoints(file);
+            List<VirtualFile> files = Arrays.stream(fileEditorManager.getOpenFiles())
+                .filter(f -> GraphQLFileType.isGraphQLFile(myProject, f))
+                .collect(Collectors.toList());
 
-                ApplicationManager.getApplication().invokeLater(
-                    () -> ApplicationManager.getApplication().runReadAction(() -> {
-                        for (FileEditor editor : fileEditorManager.getEditors(file)) {
-                            if (editor instanceof TextEditor) {
-                                final GraphQLEndpointsModel endpointsModel =
-                                    ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
-                                if (endpointsModel != null) {
-                                    endpointsModel.reload(endpoints);
-                                    EditorNotifications.getInstance(myProject).updateNotifications(file);
-                                }
+            for (VirtualFile file : files) {
+                List<GraphQLConfigEndpoint> endpoints =
+                    ReadAction.compute(() -> graphQLConfigManager.getEndpoints(file));
+
+                ApplicationManager.getApplication().invokeLater(() -> ReadAction.run(() -> {
+                    for (FileEditor editor : fileEditorManager.getEditors(file)) {
+                        if (editor instanceof TextEditor) {
+                            final GraphQLEndpointsModel endpointsModel =
+                                ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
+                            if (endpointsModel != null) {
+                                endpointsModel.reload(endpoints);
+                                EditorNotifications.getInstance(myProject).updateNotifications(file);
                             }
                         }
-                    }), ModalityState.defaultModalityState(), myProject.getDisposed());
+                    }
+                }), ModalityState.defaultModalityState(), myProject.getDisposed());
             }
-        }));
+        }, UPDATE_MS);
     }
 
     // -- editor header component --

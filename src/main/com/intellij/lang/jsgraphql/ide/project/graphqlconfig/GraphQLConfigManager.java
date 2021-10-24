@@ -372,7 +372,7 @@ public class GraphQLConfigManager implements Disposable {
         // NOTE: modifiable list since it powers the endpoint UI and must support item operations
         List<GraphQLConfigEndpoint> emptyList = new ArrayList<>(1);
 
-        if (!GraphQLFileType.isGraphQLFile(myProject, virtualFile)) {
+        if (myProject.isDisposed() || !GraphQLFileType.isGraphQLFile(myProject, virtualFile)) {
             return emptyList;
         }
 
