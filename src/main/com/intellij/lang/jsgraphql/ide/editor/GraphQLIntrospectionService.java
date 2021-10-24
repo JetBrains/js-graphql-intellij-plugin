@@ -41,14 +41,10 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -58,16 +54,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
 import com.intellij.util.ExceptionUtil;
 import com.intellij.util.ObjectUtils;
+import com.intellij.util.concurrency.annotations.RequiresWriteLock;
 import com.intellij.util.messages.MessageBusConnection;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
@@ -365,70 +360,87 @@ public class GraphQLIntrospectionService implements Disposable {
                                                @NotNull IntrospectionOutputFormat format,
                                                @NotNull VirtualFile introspectionSourceFile,
                                                @NotNull String outputFileName) {
-        try {
-            final String header;
-            switch (format) {
-                case SDL:
-                    header = "# This file was generated based on \"" + introspectionSourceFile.getName() + "\". Do not edit manually.\n\n";
-                    break;
-                case JSON:
-                    header = "";
-                    break;
-                default:
-                    throw new IllegalArgumentException("unsupported output format: " + format);
+        final String header;
+        switch (format) {
+            case SDL:
+                header = "# This file was generated based on \"" + introspectionSourceFile.getName() + "\". Do not edit manually.\n\n";
+                break;
+            case JSON:
+                header = "";
+                break;
+            default:
+                throw new IllegalArgumentException("unsupported output format: " + format);
+        }
+
+        WriteCommandAction.runWriteCommandAction(myProject, () -> {
+            try {
+                VirtualFile outputFile =
+                    createOrUpdateSchemaFile(introspectionSourceFile, FileUtil.toSystemIndependentName(outputFileName));
+                VfsUtil.saveText(outputFile, header + schemaText);
+                outputFile.refresh(false, false);
+
+                com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(outputFile);
+                if (document == null) {
+                    throw new IllegalStateException("Document not found");
+                }
+                PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
+                psiDocumentManager.commitDocument(document);
+                PsiFile psiFile = psiDocumentManager.getPsiFile(document);
+                if (psiFile != null) {
+                    CodeStyleManager.getInstance(myProject).reformat(psiFile);
+                }
+                openSchemaInEditor(outputFile);
+            } catch (ProcessCanceledException e) {
+                throw e;
+            } catch (IOException e) {
+                LOG.info(e);
+                Notifications.Bus.notify(new Notification(
+                    GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                    GraphQLBundle.message("graphql.notification.error.title"),
+                    GraphQLBundle.message("graphql.notification.unable.to.create.file",
+                        outputFileName, introspectionSourceFile.getParent().getPath(), GraphQLNotificationUtil.formatExceptionMessage(e)),
+                    NotificationType.ERROR
+                ));
+            } catch (Exception e) {
+                LOG.error(e);
             }
+        });
+    }
 
-            VirtualFile outputFile = createOrUpdateSchemaFile(introspectionSourceFile, FileUtil.toSystemIndependentName(outputFileName));
-
-            final FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(outputFile, true, true);
+    private void openSchemaInEditor(@NotNull VirtualFile file) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+            final FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(file, true, true);
             if (fileEditors.length == 0) {
-                showUnableToOpenEditorNotification(outputFile);
+                showUnableToOpenEditorNotification(file);
                 return;
             }
 
             TextEditor textEditor = ObjectUtils.tryCast(fileEditors[0], TextEditor.class);
             if (textEditor == null) {
-                showUnableToOpenEditorNotification(outputFile);
-                return;
+                showUnableToOpenEditorNotification(file);
             }
-
-            WriteCommandAction.runWriteCommandAction(myProject, () -> {
-                com.intellij.openapi.editor.Document document = textEditor.getEditor().getDocument();
-                document.setText(StringUtil.convertLineSeparators(header + schemaText));
-                PsiDocumentManager.getInstance(myProject).commitDocument(document);
-
-                PsiFile psiFile = PsiDocumentManager.getInstance(myProject).getPsiFile(document);
-                if (psiFile != null) {
-                    CodeStyleManager.getInstance(myProject).reformat(psiFile);
-                }
-            });
-        } catch (IOException e) {
-            LOG.info(e);
-            Notifications.Bus.notify(new Notification(
-                GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
-                GraphQLBundle.message("graphql.notification.error.title"),
-                GraphQLBundle.message("graphql.notification.unable.to.create.file",
-                    outputFileName, introspectionSourceFile.getParent().getPath(), GraphQLNotificationUtil.formatExceptionMessage(e)),
-                NotificationType.ERROR
-            ));
-        }
+        });
     }
 
     private void showUnableToOpenEditorNotification(@NotNull VirtualFile outputFile) {
-        Notifications.Bus.notify(new Notification(GraphQLNotificationUtil.NOTIFICATION_GROUP_ID, GraphQLBundle.message("graphql.notification.error.title"),
-            GraphQLBundle.message("graphql.notification.unable.to.open.editor", outputFile.getPath()), NotificationType.ERROR));
+        Notifications.Bus.notify(
+            new Notification(
+                GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                GraphQLBundle.message("graphql.notification.error.title"),
+                GraphQLBundle.message("graphql.notification.unable.to.open.editor", outputFile.getPath()),
+                NotificationType.ERROR)
+        );
     }
 
+    @RequiresWriteLock
     @NotNull
     private VirtualFile createOrUpdateSchemaFile(@NotNull VirtualFile introspectionSourceFile,
                                                  @NotNull String relativeOutputFileName) throws IOException {
         VirtualFile outputFile = introspectionSourceFile.getParent().findFileByRelativePath(relativeOutputFileName);
         if (outputFile == null) {
-            outputFile = WriteAction.compute(() -> {
-                PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(introspectionSourceFile.getParent());
-                CreateFileAction.MkDirs dirs = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
-                return dirs.directory.getVirtualFile().createChildData(introspectionSourceFile, dirs.newName);
-            });
+            PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(introspectionSourceFile.getParent());
+            CreateFileAction.MkDirs dirs = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
+            outputFile = dirs.directory.getVirtualFile().createChildData(introspectionSourceFile, dirs.newName);
         }
         outputFile.putUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON, true);
         return outputFile;
