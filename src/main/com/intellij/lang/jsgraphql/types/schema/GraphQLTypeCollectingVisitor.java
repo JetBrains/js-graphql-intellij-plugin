@@ -21,6 +21,7 @@ import com.intellij.lang.jsgraphql.types.AssertException;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.openapi.diagnostic.Logger;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,6 +30,8 @@ import static java.lang.String.format;
 
 @Internal
 public class GraphQLTypeCollectingVisitor extends GraphQLTypeVisitorStub {
+
+    private static final Logger LOG = Logger.getInstance(GraphQLTypeCollectingVisitor.class);
 
     private final Map<String, GraphQLNamedType> result = new LinkedHashMap<>();
 
@@ -118,10 +121,11 @@ public class GraphQLTypeCollectingVisitor extends GraphQLTypeVisitorStub {
             if (!(existingType instanceof GraphQLTypeReference || type instanceof GraphQLTypeReference))
                 // object comparison here is deliberate
                 if (existingType != type) {
-                    throw new AssertException(format("All types within a GraphQL schema must have unique names. No two provided types may have the same name.\n" +
-                                    "No provided type may have a name which conflicts with any built in types (including Scalar and Introspection types).\n" +
-                                    "You have redefined the type '%s' from being a '%s' to a '%s'",
-                            type.getName(), existingType.getClass().getSimpleName(), type.getClass().getSimpleName()));
+                    LOG.error(new AssertException(
+                        format("All types within a GraphQL schema must have unique names. No two provided types may have the same name.\n" +
+                                "No provided type may have a name which conflicts with any built in types (including Scalar and Introspection types).\n" +
+                                "You have redefined the type '%s' from being a '%s' to a '%s'",
+                            type.getName(), existingType.getClass().getSimpleName(), type.getClass().getSimpleName())));
                 }
         }
     }

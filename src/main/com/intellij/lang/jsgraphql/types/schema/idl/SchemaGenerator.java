@@ -20,10 +20,7 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -104,13 +101,9 @@ public class SchemaGenerator {
         } catch (ProcessCanceledException e) {
             throw e;
         } catch (Exception e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.error(e); // we should prevent any errors during schema build
-            } else {
-                LOG.warn(e);
-            }
-
-            schema = GraphQLSchema.newSchema().build();
+            LOG.error("Schema build error: ", e); // we should prevent any thrown exceptions during schema build
+            schema = GraphQLSchema.newSchema()
+                .query(GraphQLObjectType.newObject().name("Query").build()).build();
         }
 
         if (!errors.isEmpty()) {

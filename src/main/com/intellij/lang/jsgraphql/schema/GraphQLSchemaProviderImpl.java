@@ -68,7 +68,7 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
             } catch (ProcessCanceledException e) {
                 throw e;
             } catch (Exception e) {
-                logBuildError(e);
+                LOG.error("Schema build error: ", e); // should never happen
                 return new GraphQLSchemaInfo(
                     EMPTY_SCHEMA,
                     Lists.newArrayList(e instanceof GraphQLException ? ((GraphQLException) e) : new GraphQLException(e)),
@@ -76,14 +76,6 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
                 );
             }
         });
-    }
-
-    private static void logBuildError(@NotNull Exception e) {
-        if (LOG.isDebugEnabled()) {
-            LOG.error(e); // should never happen
-        } else {
-            LOG.warn("Schema build error: ", e);
-        }
     }
 
     @NotNull
