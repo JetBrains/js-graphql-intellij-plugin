@@ -37,6 +37,7 @@ import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.util.TimeoutUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -85,6 +86,8 @@ public class GraphQLRegistryProvider implements Disposable {
         GlobalSearchScope schemaScope = graphQLPsiSearchHelper.getSchemaScope(scopedElement);
 
         return scopeToRegistry.computeIfAbsent(schemaScope, s -> {
+            long start = System.nanoTime();
+
             List<GraphQLException> errors = new ArrayList<>();
             GraphQLSchemaDocumentProcessor processor = new GraphQLSchemaDocumentProcessor();
 
@@ -127,6 +130,7 @@ public class GraphQLRegistryProvider implements Disposable {
             }
 
             TypeDefinitionRegistry registry = processor.getCompositeRegistry().buildTypeDefinitionRegistry();
+            LOG.info(String.format("Registry build completed in %d ms", TimeoutUtil.getDurationMillis(start)));
             return new GraphQLRegistryInfo(registry, errors, processor.isProcessed());
         });
 

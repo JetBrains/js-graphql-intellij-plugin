@@ -235,9 +235,7 @@ public class SchemaGeneratorHelper {
             }
             return result;
         } catch (Exception e) {
-            if (LOG.isDebugEnabled()) {
-                LOG.warn(e);
-            }
+            LOG.warn(e);
             return null;
         }
     }

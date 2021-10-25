@@ -20,6 +20,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.SimpleModificationTracker;
@@ -37,6 +38,8 @@ import java.util.List;
  * Tracks PSI changes that can affect declared GraphQL schemas
  */
 public class GraphQLSchemaChangeTracker implements Disposable {
+
+    private static final Logger LOG = Logger.getInstance(GraphQLSchemaChangeTracker.class);
 
     @Topic.ProjectLevel
     public final static Topic<GraphQLSchemaChangeListener> TOPIC = new Topic<>(
@@ -63,6 +66,8 @@ public class GraphQLSchemaChangeTracker implements Disposable {
     }
 
     public void schemaChanged() {
+        LOG.info("GraphQL schema cache invalidated", LOG.isDebugEnabled() ? new Throwable() : null);
+
         ApplicationManager.getApplication().invokeLater(() -> {
             myModificationTracker.incModificationCount();
             myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeTracker.TOPIC).onSchemaChanged();

@@ -22,6 +22,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.TimeoutUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -60,10 +61,12 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
                 containingFileName, f -> myRegistryProvider.getRegistryInfo(psiElement));
 
             try {
+                long start = System.nanoTime();
                 GraphQLSchema schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryWithErrors.getTypeDefinitionRegistry());
                 Collection<SchemaValidationError> validationErrors = new SchemaValidator().validateSchema(schema);
                 List<GraphQLException> errors = validationErrors.isEmpty()
                     ? Collections.emptyList() : Collections.singletonList(new InvalidSchemaException(validationErrors));
+                LOG.info(String.format("Schema build completed in %d ms", TimeoutUtil.getDurationMillis(start)));
                 return new GraphQLSchemaInfo(schema, errors, registryWithErrors);
             } catch (ProcessCanceledException e) {
                 throw e;

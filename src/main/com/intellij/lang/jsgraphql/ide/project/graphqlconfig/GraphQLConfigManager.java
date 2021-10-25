@@ -20,6 +20,7 @@ import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
+import com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointSchemaConfiguration;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
@@ -29,7 +30,6 @@ import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
-import com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointSchemaConfiguration;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
@@ -700,6 +700,8 @@ public class GraphQLConfigManager implements Disposable {
     }
 
     private void fireConfigurationChanged() {
+        LOG.info("GraphQL configuration changed", LOG.isDebugEnabled() ? new Throwable() : null);
+
         ApplicationManager.getApplication().invokeLater(
             () -> myProject.getMessageBus().syncPublisher(TOPIC).onConfigurationChanged(),
             ModalityState.defaultModalityState(), myProject.getDisposed()
