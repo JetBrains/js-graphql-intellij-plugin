@@ -704,7 +704,7 @@ public class GraphQLConfigManager implements Disposable {
 
         ApplicationManager.getApplication().invokeLater(
             () -> myProject.getMessageBus().syncPublisher(TOPIC).onConfigurationChanged(),
-            ModalityState.defaultModalityState(), myProject.getDisposed()
+            ModalityState.NON_MODAL, myProject.getDisposed()
         );
     }
 

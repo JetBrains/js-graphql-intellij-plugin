@@ -71,7 +71,7 @@ public class GraphQLSchemaChangeTracker implements Disposable {
         ApplicationManager.getApplication().invokeLater(() -> {
             myModificationTracker.incModificationCount();
             myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeTracker.TOPIC).onSchemaChanged();
-        }, ModalityState.defaultModalityState(), myProject.getDisposed());
+        }, ModalityState.NON_MODAL, myProject.getDisposed());
     }
 
     @NotNull
