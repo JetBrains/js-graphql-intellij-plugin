@@ -6,7 +6,7 @@ type Post @auth(rules: [{ all<caret>ow: owner }, { allow: public, operations: [r
 
 directive @auth(rules: [AuthRule!]!) on OBJECT | FIELD_DEFINITION
 input AuthRule {
-    <ref>allow: AuthStrategy!
+    allow: AuthStrategy!
     operations: [ModelOperation!]
 }
 

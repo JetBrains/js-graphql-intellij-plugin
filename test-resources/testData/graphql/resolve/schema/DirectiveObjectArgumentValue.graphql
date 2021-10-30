@@ -10,5 +10,5 @@ input AuthRule {
     operations: [ModelOperation!]
 }
 
-enum AuthStrategy { <ref>owner groups private public }
+enum AuthStrategy { owner groups private public }
 enum ModelOperation { create update delete read }

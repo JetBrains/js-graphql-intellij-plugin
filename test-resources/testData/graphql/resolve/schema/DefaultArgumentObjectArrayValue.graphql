@@ -1,7 +1,7 @@
 enum Ordering { ASC DESC }
 
 input OrderBy {
-    <ref>field: String
+    field: String
     order: Ordering
 }
 

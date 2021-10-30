@@ -2,7 +2,7 @@ enum Ordering { ASC DESC }
 
 input OrderBy {
     field: String
-    <ref>order: Ordering
+    order: Ordering
     recursive: [OrderBy!]
 }
 
