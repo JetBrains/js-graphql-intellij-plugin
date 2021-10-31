@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.ide.highlighting;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.annotation.Annotation;
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.psi.*;
@@ -183,10 +183,11 @@ public class GraphQLSyntaxAnnotator implements Annotator {
         private void applyTextAttributes(@Nullable PsiElement element, @NotNull TextAttributesKey attributes, @NotNull TextRange range) {
             if (element == null) return;
 
-            String message = ApplicationManager.getApplication().isUnitTestMode() ? attributes.getExternalName() : null;
-            Annotation annotation =
-                myHolder.createAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY, range, message);
-            annotation.setTextAttributes(attributes);
+            AnnotationBuilder builder = ApplicationManager.getApplication().isUnitTestMode()
+                ? myHolder.newAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY, attributes.getExternalName())
+                : myHolder.newSilentAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY);
+
+            builder.range(range).textAttributes(attributes).create();
         }
 
         private void resetKeywordAttributes(@Nullable PsiElement element) {
@@ -199,9 +200,11 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             IElementType elementType = PsiUtilCore.getElementType(node);
             if (!GraphQLExtendedElementTypes.KEYWORDS.contains(elementType)) return;
 
-            Annotation annotation =
-                myHolder.createAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY, element.getTextRange(), null);
-            annotation.setEnforcedTextAttributes(TextAttributes.ERASE_MARKER);
+            myHolder
+                .newSilentAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY)
+                .range(element.getTextRange())
+                .enforcedTextAttributes(TextAttributes.ERASE_MARKER)
+                .create();
         }
     }
 }
