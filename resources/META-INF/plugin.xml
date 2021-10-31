@@ -49,6 +49,7 @@
     <!-- Color scheme -->
     <additionalTextAttributes scheme="Default" file="colorSchemes/GraphQLLanguageDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/GraphQLLanguageDarcula.xml"/>
+    <additionalTextAttributes scheme="Monokai" file="colorSchemes/GraphQLLanguageMonokai.xml"/>
 
     <!-- Language registration -->
     <fileType name="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLFileType" fieldName="INSTANCE"
@@ -100,7 +101,8 @@
     <lang.syntaxHighlighterFactory language="GraphQL"
                                    implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxHighlighterFactory"/>
     <annotator language="GraphQL"
-               implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxAnnotator"/>
+               implementationClass="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxAnnotator"
+               order="first"/>
     <annotator language="GraphQL"
                implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLValidationAnnotator"/>
     <annotator language="GraphQL"
@@ -200,7 +202,7 @@
     <highlightErrorFilter
       implementation="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLVariablesHighlightErrorFilter"/>
 
-    <errorHandler implementation="com.intellij.lang.jsgraphql.GraphQLGithubErrorReporter" />
+    <errorHandler implementation="com.intellij.lang.jsgraphql.GraphQLGithubErrorReporter"/>
 
     <!-- Inspections -->
     <localInspection language="GraphQL" key="graphql.inspection.display.name.unresolved.reference"

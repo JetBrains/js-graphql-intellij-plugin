@@ -1,14 +1,14 @@
 type <symbolName descr="GRAPHQL_TYPE_NAME">Mutation</symbolName> {
-    <symbolName descr="GRAPHQL_FIELD_NAME">createUser</symbolName>(<symbolName descr="GRAPHQL_ARGUMENT">userInput</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">UserInput</symbolName>): <symbolName descr="GRAPHQL_TYPE_NAME">ID</symbolName> <symbolName descr="GRAPHQL_DIRECTIVE">@delegateField</symbolName>(<symbolName descr="GRAPHQL_ARGUMENT">name</symbolName>: "createAccount", <symbolName descr="GRAPHQL_ARGUMENT">description</symbolName>: "Historical reasons")
+    <symbolName descr="GRAPHQL_FIELD_NAME">createUser</symbolName>(<symbolName descr="GRAPHQL_PARAMETER">userInput</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">UserInput</symbolName>): <symbolName descr="GRAPHQL_TYPE_NAME">ID</symbolName> <symbolName descr="GRAPHQL_DIRECTIVE">@delegateField</symbolName>(<symbolName descr="GRAPHQL_ARGUMENT">name</symbolName>: "createAccount", <symbolName descr="GRAPHQL_ARGUMENT">description</symbolName>: "Historical reasons")
 }
 
 mutation <symbolName descr="GRAPHQL_OPERATION_DEFINITION">M</symbolName> {
     <symbolName descr="GRAPHQL_FIELD_NAME">createUser</symbolName>(<symbolName descr="GRAPHQL_ARGUMENT">userInput</symbolName>: {
-        <symbolName descr="GRAPHQL_ARGUMENT">name</symbolName>: "N"
-        <symbolName descr="GRAPHQL_ARGUMENT">friends</symbolName>: [
+        <symbolName descr="GRAPHQL_OBJECT_FIELD">name</symbolName>: "N"
+        <symbolName descr="GRAPHQL_OBJECT_FIELD">friends</symbolName>: [
             {
-                <symbolName descr="GRAPHQL_ARGUMENT">name</symbolName>: "A",
-                <symbolName descr="GRAPHQL_ARGUMENT">friends</symbolName>: [{<symbolName descr="GRAPHQL_ARGUMENT">name</symbolName>: "B"}]
+                <symbolName descr="GRAPHQL_OBJECT_FIELD">name</symbolName>: "A",
+                <symbolName descr="GRAPHQL_OBJECT_FIELD">friends</symbolName>: [{<symbolName descr="GRAPHQL_OBJECT_FIELD">name</symbolName>: "B"}]
             }
         ]
     })

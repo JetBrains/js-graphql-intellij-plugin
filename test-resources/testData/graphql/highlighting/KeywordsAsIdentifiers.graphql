@@ -1,11 +1,11 @@
 type <symbolName descr="GRAPHQL_TYPE_NAME">User</symbolName> {
     <symbolName descr="GRAPHQL_FIELD_NAME">picture</symbolName>(
-        <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">enum</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Int</symbolName>,
-        <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">type</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
+        <symbolName descr="null"><symbolName descr="GRAPHQL_PARAMETER">enum</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Int</symbolName>,
+        <symbolName descr="null"><symbolName descr="GRAPHQL_PARAMETER">type</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
     ): <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
 }
 
-directive <symbolName descr="GRAPHQL_DIRECTIVE">@delegateField</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">input</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>!) repeatable on OBJECT
+directive <symbolName descr="GRAPHQL_DIRECTIVE">@delegateField</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_PARAMETER">input</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>!) repeatable on <symbolName descr="GRAPHQL_TYPE_NAME">OBJECT</symbolName>
 
 input <symbolName descr="GRAPHQL_TYPE_NAME">Point</symbolName> {
     <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">schema</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>

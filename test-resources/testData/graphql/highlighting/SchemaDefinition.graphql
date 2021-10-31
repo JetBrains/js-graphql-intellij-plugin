@@ -1,0 +1,4 @@
+schema {
+    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">mutation</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Mutation</symbolName>
+    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">query</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Query</symbolName>
+}

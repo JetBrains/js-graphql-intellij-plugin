@@ -22,97 +22,115 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GraphQLColorSettingsPage implements ColorSettingsPage {
-  private static final AttributesDescriptor[] DESCRIPTORS = new AttributesDescriptor[]{
-      new AttributesDescriptor("Keyword", GraphQLSyntaxHighlighter.KEYWORD),
-      new AttributesDescriptor("Number", GraphQLSyntaxHighlighter.NUMBER),
-      new AttributesDescriptor("String", GraphQLSyntaxHighlighter.STRING),
-      new AttributesDescriptor("Comment", GraphQLSyntaxHighlighter.COMMENT),
-      new AttributesDescriptor("Operation definition", GraphQLSyntaxAnnotator.OPERATION_DEFINITION),
-      new AttributesDescriptor("Fragment definition", GraphQLSyntaxAnnotator.FRAGMENT_DEFINITION),
-      new AttributesDescriptor("Fragment spread", GraphQLSyntaxAnnotator.FRAGMENT_SPREAD),
-      new AttributesDescriptor("Field name", GraphQLSyntaxAnnotator.FIELD_NAME),
-      new AttributesDescriptor("Field alias", GraphQLSyntaxAnnotator.FIELD_ALIAS),
-      new AttributesDescriptor("Argument", GraphQLSyntaxAnnotator.ARGUMENT),
-      new AttributesDescriptor("Variable", GraphQLSyntaxAnnotator.VARIABLE),
-      new AttributesDescriptor("Type name", GraphQLSyntaxAnnotator.TYPE_NAME),
-      new AttributesDescriptor("Constant", GraphQLSyntaxAnnotator.CONSTANT),
-      new AttributesDescriptor("Directive", GraphQLSyntaxAnnotator.DIRECTIVE),
-      new AttributesDescriptor("Unused fragment", GraphQLSyntaxAnnotator.UNUSED_FRAGMENT),
-  };
+    private static final AttributesDescriptor[] DESCRIPTORS = new AttributesDescriptor[]{
+        new AttributesDescriptor("Keyword", GraphQLSyntaxHighlighter.KEYWORD),
+        new AttributesDescriptor("Number", GraphQLSyntaxHighlighter.NUMBER),
+        new AttributesDescriptor("String", GraphQLSyntaxHighlighter.STRING),
+        new AttributesDescriptor("Comment", GraphQLSyntaxHighlighter.COMMENT),
+        new AttributesDescriptor("Operation definition", GraphQLSyntaxAnnotator.OPERATION_DEFINITION),
+        new AttributesDescriptor("Fragment definition", GraphQLSyntaxAnnotator.FRAGMENT_DEFINITION),
+        new AttributesDescriptor("Fragment spread", GraphQLSyntaxAnnotator.FRAGMENT_SPREAD),
+        new AttributesDescriptor("Field name", GraphQLSyntaxAnnotator.FIELD_NAME),
+        new AttributesDescriptor("Field alias", GraphQLSyntaxAnnotator.FIELD_ALIAS),
+        new AttributesDescriptor("Parameter", GraphQLSyntaxAnnotator.PARAMETER),
+        new AttributesDescriptor("Argument", GraphQLSyntaxAnnotator.ARGUMENT),
+        new AttributesDescriptor("Object field", GraphQLSyntaxAnnotator.OBJECT_FIELD),
+        new AttributesDescriptor("Variable definition", GraphQLSyntaxAnnotator.VARIABLE_DEFINITION),
+        new AttributesDescriptor("Variable", GraphQLSyntaxAnnotator.VARIABLE),
+        new AttributesDescriptor("Type name", GraphQLSyntaxAnnotator.TYPE_NAME),
+        new AttributesDescriptor("Constant", GraphQLSyntaxAnnotator.CONSTANT),
+        new AttributesDescriptor("Directive", GraphQLSyntaxAnnotator.DIRECTIVE),
+        new AttributesDescriptor("Unused fragment", GraphQLSyntaxAnnotator.UNUSED_FRAGMENT),
+    };
 
-  private static final Map<String, TextAttributesKey> TAG_TO_DESCRIPTOR_MAP = new HashMap<>();
-  static {
-    TAG_TO_DESCRIPTOR_MAP.put("operationDefinition", GraphQLSyntaxAnnotator.OPERATION_DEFINITION);
-    TAG_TO_DESCRIPTOR_MAP.put("fragmentDefinition", GraphQLSyntaxAnnotator.FRAGMENT_DEFINITION);
-    TAG_TO_DESCRIPTOR_MAP.put("fragmentSpread", GraphQLSyntaxAnnotator.FRAGMENT_SPREAD);
-    TAG_TO_DESCRIPTOR_MAP.put("fieldName", GraphQLSyntaxAnnotator.FIELD_NAME);
-    TAG_TO_DESCRIPTOR_MAP.put("fieldAlias", GraphQLSyntaxAnnotator.FIELD_ALIAS);
-    TAG_TO_DESCRIPTOR_MAP.put("argument", GraphQLSyntaxAnnotator.ARGUMENT);
-    TAG_TO_DESCRIPTOR_MAP.put("variable", GraphQLSyntaxAnnotator.VARIABLE);
-    TAG_TO_DESCRIPTOR_MAP.put("typeName", GraphQLSyntaxAnnotator.TYPE_NAME);
-    TAG_TO_DESCRIPTOR_MAP.put("constant", GraphQLSyntaxAnnotator.CONSTANT);
-    TAG_TO_DESCRIPTOR_MAP.put("directive", GraphQLSyntaxAnnotator.DIRECTIVE);
-  }
+    private static final Map<String, TextAttributesKey> TAG_TO_DESCRIPTOR_MAP = new HashMap<>();
 
-  @Nullable
-  @Override
-  public Icon getIcon() {
-    return GraphQLIcons.FILE;
-  }
+    static {
+        TAG_TO_DESCRIPTOR_MAP.put("operationDefinition", GraphQLSyntaxAnnotator.OPERATION_DEFINITION);
+        TAG_TO_DESCRIPTOR_MAP.put("fragmentDefinition", GraphQLSyntaxAnnotator.FRAGMENT_DEFINITION);
+        TAG_TO_DESCRIPTOR_MAP.put("fragmentSpread", GraphQLSyntaxAnnotator.FRAGMENT_SPREAD);
+        TAG_TO_DESCRIPTOR_MAP.put("fieldName", GraphQLSyntaxAnnotator.FIELD_NAME);
+        TAG_TO_DESCRIPTOR_MAP.put("fieldAlias", GraphQLSyntaxAnnotator.FIELD_ALIAS);
+        TAG_TO_DESCRIPTOR_MAP.put("parameter", GraphQLSyntaxAnnotator.PARAMETER);
+        TAG_TO_DESCRIPTOR_MAP.put("argument", GraphQLSyntaxAnnotator.ARGUMENT);
+        TAG_TO_DESCRIPTOR_MAP.put("objectField", GraphQLSyntaxAnnotator.OBJECT_FIELD);
+        TAG_TO_DESCRIPTOR_MAP.put("variableDefinition", GraphQLSyntaxAnnotator.VARIABLE_DEFINITION);
+        TAG_TO_DESCRIPTOR_MAP.put("variable", GraphQLSyntaxAnnotator.VARIABLE);
+        TAG_TO_DESCRIPTOR_MAP.put("typeName", GraphQLSyntaxAnnotator.TYPE_NAME);
+        TAG_TO_DESCRIPTOR_MAP.put("constant", GraphQLSyntaxAnnotator.CONSTANT);
+        TAG_TO_DESCRIPTOR_MAP.put("directive", GraphQLSyntaxAnnotator.DIRECTIVE);
+        TAG_TO_DESCRIPTOR_MAP.put("string", GraphQLSyntaxHighlighter.STRING);
+    }
 
-  @NotNull
-  @Override
-  public SyntaxHighlighter getHighlighter() {
-    return new GraphQLSyntaxHighlighter();
-  }
+    @Nullable
+    @Override
+    public Icon getIcon() {
+        return GraphQLIcons.FILE;
+    }
 
-  @NotNull
-  @Override
-  public String getDemoText() {
-    return
-        "# Comment\n" +
-        "\n" +
-        "query <operationDefinition>Hero</operationDefinition>(<variable>$episode</variable>: <typeName>Episode</typeName>!, <variable>$withFriends</variable>: <typeName>Boolean</typeName>!) {\n" +
-        "  <fieldName>hero</fieldName>(<argument>episode</argument>: <variable>$episode</variable>) {\n" +
-        "    <fieldName>name</fieldName>\n" +
-        "    ...<fragmentSpread>HeroDetails</fragmentSpread>\n" +
-        "    <fieldAlias>acquaintances</fieldAlias>: <fieldName>friends</fieldName> <directive>@include</directive>(<argument>if</argument>: <variable>$withFriends</variable>) {\n" +
-        "      <fieldName>name</fieldName>\n" +
-        "    }\n" +
-        "  }\n" +
-        "}\n" +
-        "\n" +
-        "fragment <fragmentDefinition>HeroDetails</fragmentDefinition> on <typeName>Character</typeName> {\n" +
-        "  <fieldName>name</fieldName>\n" +
-        "  ... on <typeName>Human</typeName> {\n" +
-        "    <fieldName>height</fieldName>(<argument>unit</argument>: <constant>METER</constant>)\n" +
-        "  }\n" +
-        "  ... on <typeName>Droid</typeName> {\n" +
-        "    <fieldName>primaryFunction</fieldName>\n" +
-        "  }\n" +
-        "}";
-  }
+    @NotNull
+    @Override
+    public SyntaxHighlighter getHighlighter() {
+        return new GraphQLSyntaxHighlighter();
+    }
 
-  @Nullable
-  @Override
-  public Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {
-    return TAG_TO_DESCRIPTOR_MAP;
-  }
+    @NotNull
+    @Override
+    public String getDemoText() {
+        return "# Comment\n" +
+            "\n" +
+            "query <operationDefinition>Hero</operationDefinition>(<variableDefinition>$episode</variableDefinition>: <typeName>Episode</typeName>!, <variableDefinition>$withFriends</variableDefinition>: <typeName>Boolean</typeName>!) {\n" +
+            "  <fieldName>hero</fieldName>(<argument>episode</argument>: <variable>$episode</variable>) {\n" +
+            "    <fieldName>name</fieldName>\n" +
+            "    ...<fragmentSpread>HeroDetails</fragmentSpread>\n" +
+            "    <fieldAlias>acquaintances</fieldAlias>: <fieldName>friends</fieldName> <directive>@include</directive>(<argument>if</argument>: <variable>$withFriends</variable>) {\n" +
+            "      <fieldName>name</fieldName>\n" +
+            "    }\n" +
+            "  }\n" +
+            "}\n" +
+            "\n" +
+            "fragment <fragmentDefinition>HeroDetails</fragmentDefinition> on <typeName>Character</typeName> {\n" +
+            "  <fieldName>name</fieldName>\n" +
+            "  ... on <typeName>Human</typeName> {\n" +
+            "    <fieldName>height</fieldName>(<argument>unit</argument>: <constant>METER</constant>)\n" +
+            "  }\n" +
+            "  ... on <typeName>Droid</typeName> {\n" +
+            "    <fieldName>primaryFunction</fieldName>\n" +
+            "  }\n" +
+            "}\n" +
+            "\n" +
+            "mutation <typeName>CreateUser</typeName> {\n" +
+            "    <fieldName>createUser</fieldName>(<argument>userInput</argument>: {\n" +
+            "        <objectField>name</objectField>: <string>\"John\"</string>\n" +
+            "        <objectField>friends</objectField>: [{ <objectField>name</objectField>: <string>\"Bob\"</string> }]\n" +
+            "    })\n" +
+            "}\n" +
+            "\n" +
+            "type <typeName>Mutation</typeName> {\n" +
+            "    <fieldName>createUser</fieldName>(<parameter>id</parameter>: <typeName>String</typeName>, <parameter>userInput</parameter>: <typeName>UserInput</typeName>): <typeName>ID</typeName>\n" +
+            "}";
+    }
 
-  @Override
-  public AttributesDescriptor @NotNull [] getAttributeDescriptors() {
-    return DESCRIPTORS;
-  }
+    @Nullable
+    @Override
+    public Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {
+        return TAG_TO_DESCRIPTOR_MAP;
+    }
 
-  @NotNull
-  @Override
-  public ColorDescriptor @NotNull [] getColorDescriptors() {
-    return ColorDescriptor.EMPTY_ARRAY;
-  }
+    @Override
+    public AttributesDescriptor @NotNull [] getAttributeDescriptors() {
+        return DESCRIPTORS;
+    }
 
-  @NotNull
-  @Override
-  public String getDisplayName() {
-    return GraphQLConstants.GraphQL;
-  }
+    @NotNull
+    @Override
+    public ColorDescriptor @NotNull [] getColorDescriptors() {
+        return ColorDescriptor.EMPTY_ARRAY;
+    }
+
+    @NotNull
+    @Override
+    public String getDisplayName() {
+        return GraphQLConstants.GraphQL;
+    }
 }

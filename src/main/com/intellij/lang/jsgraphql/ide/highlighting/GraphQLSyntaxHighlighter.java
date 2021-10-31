@@ -47,7 +47,7 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   public static final TextAttributesKey COLON =
           createTextAttributesKey("GRAPHQL_COLON", DefaultLanguageHighlighterColors.SEMICOLON);
   public static final TextAttributesKey BANG =
-          createTextAttributesKey("GRAPHQL_BANG", DefaultLanguageHighlighterColors.SEMICOLON);
+          createTextAttributesKey("GRAPHQL_BANG", DefaultLanguageHighlighterColors.OPERATION_SIGN);
   public static final TextAttributesKey PIPE =
           createTextAttributesKey("GRAPHQL_PIPE", DefaultLanguageHighlighterColors.SEMICOLON);
   public static final TextAttributesKey AMP =

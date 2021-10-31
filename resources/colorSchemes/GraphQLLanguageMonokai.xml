@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<list>
+  <option name="GRAPHQL_TYPE_NAME">
+    <value>
+      <option name="FOREGROUND" value="66D9EF"/>
+      <option name="FONT_TYPE" value="2"/>
+    </value>
+  </option>
+  <option name="GRAPHQL_DIRECTIVE">
+    <value>
+      <option name="FOREGROUND" value="A6E22E"/>
+    </value>
+  </option>
+  <option name="GRAPHQL_OBJECT_FIELD">
+    <value>
+      <option name="FOREGROUND" value="E6DB74"/>
+    </value>
+  </option>
+  <option name="GRAPHQL_CONSTANT">
+    <value>
+      <option name="FOREGROUND" value="AE81FF"/>
+    </value>
+  </option>
+</list>

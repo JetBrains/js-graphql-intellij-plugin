@@ -39,11 +39,17 @@ public class GraphQLSyntaxAnnotator implements Annotator {
     public static final TextAttributesKey FIELD_ALIAS =
         createTextAttributesKey("GRAPHQL_FIELD_ALIAS", DefaultLanguageHighlighterColors.LABEL);
     public static final TextAttributesKey ARGUMENT =
-        createTextAttributesKey("GRAPHQL_ARGUMENT", DefaultLanguageHighlighterColors.LOCAL_VARIABLE);
+        createTextAttributesKey("GRAPHQL_ARGUMENT", DefaultLanguageHighlighterColors.PARAMETER);
+    public static final TextAttributesKey PARAMETER =
+        createTextAttributesKey("GRAPHQL_PARAMETER", ARGUMENT);
+    public static final TextAttributesKey OBJECT_FIELD =
+        createTextAttributesKey("GRAPHQL_OBJECT_FIELD", ARGUMENT);
+    public static final TextAttributesKey VARIABLE_DEFINITION =
+        createTextAttributesKey("GRAPHQL_VARIABLE_DEFINITION", PARAMETER);
     public static final TextAttributesKey VARIABLE =
         createTextAttributesKey("GRAPHQL_VARIABLE", DefaultLanguageHighlighterColors.LOCAL_VARIABLE);
     public static final TextAttributesKey TYPE_NAME =
-        createTextAttributesKey("GRAPHQL_TYPE_NAME", DefaultLanguageHighlighterColors.GLOBAL_VARIABLE);
+        createTextAttributesKey("GRAPHQL_TYPE_NAME", DefaultLanguageHighlighterColors.CLASS_NAME);
     public static final TextAttributesKey CONSTANT =
         createTextAttributesKey("GRAPHQL_CONSTANT", DefaultLanguageHighlighterColors.CONSTANT);
     public static final TextAttributesKey DIRECTIVE =
@@ -63,8 +69,17 @@ public class GraphQLSyntaxAnnotator implements Annotator {
         }
 
         @Override
-        public void visitOperationDefinition(@NotNull GraphQLOperationDefinition operationDefinition) {
+        public void visitTypedOperationDefinition(@NotNull GraphQLTypedOperationDefinition operationDefinition) {
             applyTextAttributes(operationDefinition.getNameIdentifier(), OPERATION_DEFINITION);
+        }
+
+        @Override
+        public void visitOperationType(@NotNull GraphQLOperationType operationType) {
+            PsiElement parent = operationType.getParent();
+            if (parent instanceof GraphQLOperationTypeDefinition) {
+                resetKeywordAttributes(operationType);
+                applyTextAttributes(operationType, FIELD_NAME);
+            }
         }
 
         public void visitFragmentDefinition(@NotNull GraphQLFragmentDefinition fragmentDefinition) {
@@ -99,8 +114,8 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
             PsiElement parent = element.getParent();
             if (parent instanceof GraphQLArgumentsDefinition) {
-                // element is an argument so color as such
-                applyTextAttributes(identifier, ARGUMENT);
+                // element is a parameter declaration so color as such
+                applyTextAttributes(identifier, PARAMETER);
             } else {
                 // otherwise consider the "fields" in an in put
                 applyTextAttributes(identifier, FIELD_NAME);
@@ -120,12 +135,22 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
         @Override
         public void visitVariable(@NotNull GraphQLVariable variable) {
-            applyTextAttributes(variable, VARIABLE);
+            PsiElement parent = variable.getParent();
+            if (parent instanceof GraphQLVariableDefinition) {
+                applyTextAttributes(variable, VARIABLE_DEFINITION);
+            } else {
+                applyTextAttributes(variable, VARIABLE);
+            }
         }
 
         @Override
         public void visitTypeName(@NotNull GraphQLTypeName typeName) {
             applyTextAttributes(typeName.getNameIdentifier(), TYPE_NAME);
+        }
+
+        @Override
+        public void visitDirectiveLocation(@NotNull GraphQLDirectiveLocation location) {
+            applyTextAttributes(location, TYPE_NAME);
         }
 
         @Override
@@ -172,7 +197,7 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             resetKeywordAttributes(objectField.getNameIdentifier());
 
             // then apply argument font style
-            applyTextAttributes(objectField.getNameIdentifier(), ARGUMENT);
+            applyTextAttributes(objectField.getNameIdentifier(), OBJECT_FIELD);
         }
 
         private void applyTextAttributes(@Nullable PsiElement element, @NotNull TextAttributesKey attributes) {
@@ -191,7 +216,7 @@ public class GraphQLSyntaxAnnotator implements Annotator {
         }
 
         private void resetKeywordAttributes(@Nullable PsiElement element) {
-            if (!(element instanceof GraphQLIdentifier)) return;
+            if (element == null) return;
 
             // reset only for keywords used as fields, arguments, etc
             ASTNode node = element.getNode();
