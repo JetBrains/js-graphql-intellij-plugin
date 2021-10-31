@@ -3,4 +3,4 @@ type <symbolName descr="GRAPHQL_TYPE_NAME">User</symbolName> {
     <symbolName descr="GRAPHQL_FIELD_NAME">allPictures</symbolName>(<symbolName descr="GRAPHQL_ARGUMENT">filter</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName> = "png"): [<symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>]
 }
 
-directive @delegateField(<symbolName descr="GRAPHQL_ARGUMENT">name</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>!) repeatable on OBJECT | INTERFACE
+directive <symbolName descr="GRAPHQL_DIRECTIVE">@delegateField</symbolName>(<symbolName descr="GRAPHQL_ARGUMENT">name</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>!) repeatable on OBJECT | INTERFACE

@@ -5,7 +5,7 @@ type <symbolName descr="GRAPHQL_TYPE_NAME">User</symbolName> {
     ): <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
 }
 
-directive @delegateField(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">input</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>!) repeatable on OBJECT
+directive <symbolName descr="GRAPHQL_DIRECTIVE">@delegateField</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">input</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>!) repeatable on OBJECT
 
 input <symbolName descr="GRAPHQL_TYPE_NAME">Point</symbolName> {
     <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">schema</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>

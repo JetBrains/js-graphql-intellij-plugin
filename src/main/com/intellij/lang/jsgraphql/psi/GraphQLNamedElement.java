@@ -10,8 +10,8 @@ package com.intellij.lang.jsgraphql.psi;
 import com.intellij.psi.PsiNameIdentifierOwner;
 import org.jetbrains.annotations.Nullable;
 
-public interface GraphQLNamedElement extends PsiNameIdentifierOwner {
-  @Nullable
-  @Override
-  GraphQLIdentifier getNameIdentifier();
+public interface GraphQLNamedElement extends PsiNameIdentifierOwner, GraphQLElement {
+    @Nullable
+    @Override
+    GraphQLIdentifier getNameIdentifier();
 }

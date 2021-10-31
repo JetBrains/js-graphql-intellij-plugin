@@ -17,6 +17,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
@@ -144,11 +145,25 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
         @Override
         public void visitDirective(@NotNull GraphQLDirective directive) {
-            GraphQLIdentifier identifier = directive.getNameIdentifier();
-            if (identifier != null) {
-                applyTextAttributes(identifier, DIRECTIVE);
-                applyTextAttributes(identifier.getPrevSibling(), DIRECTIVE);
+            highlightDirectiveName(directive, directive.getNameIdentifier());
+        }
+
+        @Override
+        public void visitDirectiveDefinition(@NotNull GraphQLDirectiveDefinition directiveDefinition) {
+            highlightDirectiveName(directiveDefinition, directiveDefinition.getNameIdentifier());
+        }
+
+        private void highlightDirectiveName(@NotNull GraphQLElement element, @Nullable GraphQLIdentifier identifier) {
+            if (identifier == null) {
+                return;
             }
+            TextRange textRange = identifier.getTextRange();
+            PsiElement prevSibling = identifier.getPrevSibling();
+            if (PsiUtilCore.getElementType(prevSibling) == GraphQLElementTypes.AT) {
+                TextRange prevTextRange = prevSibling.getTextRange();
+                textRange = textRange.union(prevTextRange);
+            }
+            applyTextAttributes(element, DIRECTIVE, textRange);
         }
 
         @Override
@@ -162,10 +177,15 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
         private void applyTextAttributes(@Nullable PsiElement element, @NotNull TextAttributesKey attributes) {
             if (element == null) return;
+            applyTextAttributes(element, attributes, element.getTextRange());
+        }
+
+        private void applyTextAttributes(@Nullable PsiElement element, @NotNull TextAttributesKey attributes, @NotNull TextRange range) {
+            if (element == null) return;
 
             String message = ApplicationManager.getApplication().isUnitTestMode() ? attributes.getExternalName() : null;
             Annotation annotation =
-                myHolder.createAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY, element.getTextRange(), message);
+                myHolder.createAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY, range, message);
             annotation.setTextAttributes(attributes);
         }
 
