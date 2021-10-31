@@ -1,0 +1,11 @@
+enum <symbolName descr="GRAPHQL_TYPE_NAME">Lang</symbolName> {
+    <symbolName descr="GRAPHQL_CONSTANT">EN</symbolName>
+}
+
+mutation <symbolName descr="GRAPHQL_OPERATION_DEFINITION">M</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">create</symbolName>(
+        <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">bool</symbolName></symbolName>: <symbolName descr="DEFAULT_KEYWORD">false</symbolName>,
+        <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">obj</symbolName></symbolName>: <symbolName descr="DEFAULT_KEYWORD">null</symbolName>,
+        <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">lang</symbolName></symbolName>: <symbolName descr="GRAPHQL_CONSTANT">EN</symbolName>
+    )
+}

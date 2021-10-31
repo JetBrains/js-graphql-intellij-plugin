@@ -1,0 +1,3 @@
+fragment <symbolName descr="GRAPHQL_FRAGMENT_DEFINITION">friendFields</symbolName> on <symbolName descr="GRAPHQL_TYPE_NAME">User</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">id</symbolName>
+}

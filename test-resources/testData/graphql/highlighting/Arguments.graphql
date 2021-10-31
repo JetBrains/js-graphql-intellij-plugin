@@ -1,0 +1,15 @@
+type <symbolName descr="GRAPHQL_TYPE_NAME">Mutation</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">createUser</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">userInput</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">UserInput</symbolName>): <symbolName descr="GRAPHQL_TYPE_NAME">ID</symbolName> <symbolName descr="GRAPHQL_DIRECTIVE">@</symbolName><symbolName descr="GRAPHQL_DIRECTIVE">delegateField</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">name</symbolName></symbolName>: "createAccount", <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">description</symbolName></symbolName>: "Historical reasons")
+}
+
+mutation <symbolName descr="GRAPHQL_OPERATION_DEFINITION">M</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">createUser</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">userInput</symbolName></symbolName>: {
+        <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">name</symbolName></symbolName>: "N"
+        <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">friends</symbolName></symbolName>: [
+            {
+                <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">name</symbolName></symbolName>: "A",
+                <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">friends</symbolName></symbolName>: [{<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">name</symbolName></symbolName>: "B"}]
+            }
+        ]
+    })
+}

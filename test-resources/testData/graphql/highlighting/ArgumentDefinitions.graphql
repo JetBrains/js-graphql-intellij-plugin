@@ -1,0 +1,6 @@
+type <symbolName descr="GRAPHQL_TYPE_NAME">User</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">picture</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">size</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Int</symbolName>, <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">resolution</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>): <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
+    <symbolName descr="GRAPHQL_FIELD_NAME">allPictures</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">filter</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName> = "png"): [<symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>]
+}
+
+directive @delegateField(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">name</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>!) repeatable on OBJECT | INTERFACE

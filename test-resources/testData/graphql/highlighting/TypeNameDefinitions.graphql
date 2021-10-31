@@ -1,0 +1,15 @@
+scalar <symbolName descr="GRAPHQL_TYPE_NAME">Scalar</symbolName>
+
+type <symbolName descr="GRAPHQL_TYPE_NAME">Object</symbolName> {}
+
+interface <symbolName descr="GRAPHQL_TYPE_NAME">Interface</symbolName> {}
+
+union <symbolName descr="GRAPHQL_TYPE_NAME">Union</symbolName> = <symbolName descr="GRAPHQL_TYPE_NAME">Object</symbolName>
+
+enum <symbolName descr="GRAPHQL_TYPE_NAME">Enum</symbolName> {
+    <symbolName descr="GRAPHQL_CONSTANT">A</symbolName>
+}
+
+input <symbolName descr="GRAPHQL_TYPE_NAME">Input</symbolName> {
+    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">field</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
+}

@@ -1,0 +1,5 @@
+directive @delegateField on FIELD_DEFINITION
+
+type <symbolName descr="GRAPHQL_TYPE_NAME">Obj</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">f</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName> <symbolName descr="GRAPHQL_DIRECTIVE">@</symbolName><symbolName descr="GRAPHQL_DIRECTIVE">delegateField</symbolName>
+}

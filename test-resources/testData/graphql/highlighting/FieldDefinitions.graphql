@@ -1,0 +1,16 @@
+type <symbolName descr="GRAPHQL_TYPE_NAME">Object</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">field</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Int</symbolName>
+}
+
+extend type <symbolName descr="GRAPHQL_TYPE_NAME">Obj</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">field1</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
+    <symbolName descr="GRAPHQL_FIELD_NAME">field2</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
+}
+
+interface <symbolName descr="GRAPHQL_TYPE_NAME">Interface</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">field</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Boolean</symbolName>
+}
+
+extend interface <symbolName descr="GRAPHQL_TYPE_NAME">Interface</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">field1</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">ID</symbolName>
+}

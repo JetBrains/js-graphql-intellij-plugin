@@ -1,0 +1,11 @@
+query <symbolName descr="GRAPHQL_OPERATION_DEFINITION">withNestedFragments</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">count</symbolName>
+    <symbolName descr="GRAPHQL_FIELD_NAME">user</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">id</symbolName></symbolName>: 4) {
+        <symbolName descr="GRAPHQL_FIELD_NAME">friends</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">first</symbolName></symbolName>: 10) {
+            <symbolName descr="GRAPHQL_FIELD_NAME">name</symbolName>
+        }
+        <symbolName descr="GRAPHQL_FIELD_NAME">mutualFriends</symbolName>(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">first</symbolName></symbolName>: 10) {
+            <symbolName descr="GRAPHQL_FIELD_NAME">email</symbolName>
+        }
+    }
+}

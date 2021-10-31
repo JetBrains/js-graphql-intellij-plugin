@@ -1,0 +1,11 @@
+query <symbolName descr="GRAPHQL_OPERATION_DEFINITION">Query</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">field</symbolName>
+}
+
+mutation <symbolName descr="GRAPHQL_OPERATION_DEFINITION">Mutate</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">field</symbolName>
+}
+
+subscription <symbolName descr="GRAPHQL_OPERATION_DEFINITION">Subscription</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">field</symbolName>
+}
