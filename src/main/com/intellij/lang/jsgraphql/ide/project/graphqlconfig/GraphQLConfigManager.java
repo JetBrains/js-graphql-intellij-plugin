@@ -700,7 +700,7 @@ public class GraphQLConfigManager implements Disposable {
     }
 
     private void fireConfigurationChanged() {
-        LOG.info("GraphQL configuration changed", LOG.isDebugEnabled() ? new Throwable() : null);
+        LOG.debug("GraphQL configuration changed", LOG.isTraceEnabled() ? new Throwable() : null);
 
         ApplicationManager.getApplication().invokeLater(
             () -> myProject.getMessageBus().syncPublisher(TOPIC).onConfigurationChanged(),

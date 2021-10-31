@@ -66,7 +66,7 @@ public class GraphQLSchemaChangeTracker implements Disposable {
     }
 
     public void schemaChanged() {
-        LOG.info("GraphQL schema cache invalidated", LOG.isDebugEnabled() ? new Throwable() : null);
+        LOG.debug("GraphQL schema cache invalidated", LOG.isTraceEnabled() ? new Throwable() : null);
 
         ApplicationManager.getApplication().invokeLater(() -> {
             myModificationTracker.incModificationCount();
