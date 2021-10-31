@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.highlighting;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfoType;
+import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -17,6 +18,9 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.tree.TreeUtil;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,7 +94,7 @@ public class GraphQLSyntaxAnnotator implements Annotator {
         public void visitInputValueDefinition(@NotNull GraphQLInputValueDefinition element) {
             // first reset the bold font display from keywords such as input/type being used as field name
             GraphQLIdentifier identifier = element.getNameIdentifier();
-            resetAttributes(identifier);
+            resetKeywordAttributes(identifier);
 
             PsiElement parent = element.getParent();
             if (parent instanceof GraphQLArgumentsDefinition) {
@@ -107,7 +111,7 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             GraphQLIdentifier identifier = argument.getNameIdentifier();
 
             // first reset the bold font display from keywords such as input/type being used as argument name
-            resetAttributes(identifier);
+            resetKeywordAttributes(identifier);
 
             // then apply argument font style
             applyTextAttributes(identifier, ARGUMENT);
@@ -150,7 +154,7 @@ public class GraphQLSyntaxAnnotator implements Annotator {
         @Override
         public void visitObjectField(@NotNull GraphQLObjectField objectField) {
             // first reset the bold font display from keywords such as input/type being used as object field name
-            resetAttributes(objectField.getNameIdentifier());
+            resetKeywordAttributes(objectField.getNameIdentifier());
 
             // then apply argument font style
             applyTextAttributes(objectField.getNameIdentifier(), ARGUMENT);
@@ -165,8 +169,15 @@ public class GraphQLSyntaxAnnotator implements Annotator {
             annotation.setTextAttributes(attributes);
         }
 
-        private void resetAttributes(@Nullable PsiElement element) {
-            if (element == null) return;
+        private void resetKeywordAttributes(@Nullable PsiElement element) {
+            if (!(element instanceof GraphQLIdentifier)) return;
+
+            // reset only for keywords used as fields, arguments, etc
+            ASTNode node = element.getNode();
+            if (node == null) return;
+            node = TreeUtil.findFirstLeaf(node);
+            IElementType elementType = PsiUtilCore.getElementType(node);
+            if (!GraphQLExtendedElementTypes.KEYWORDS.contains(elementType)) return;
 
             Annotation annotation =
                 myHolder.createAnnotation(HighlightInfoType.SYMBOL_TYPE_SEVERITY, element.getTextRange(), null);

@@ -1,0 +1,17 @@
+type <symbolName descr="GRAPHQL_TYPE_NAME">User</symbolName> {
+    <symbolName descr="GRAPHQL_FIELD_NAME">picture</symbolName>(
+        <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">enum</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Int</symbolName>,
+        <symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">type</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
+    ): <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
+}
+
+directive @delegateField(<symbolName descr="null"><symbolName descr="GRAPHQL_ARGUMENT">input</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>!) repeatable on OBJECT
+
+input <symbolName descr="GRAPHQL_TYPE_NAME">Point</symbolName> {
+    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">schema</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
+    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">union</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
+}
+
+extend input <symbolName descr="GRAPHQL_TYPE_NAME">Point</symbolName> {
+    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">extend</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
+}

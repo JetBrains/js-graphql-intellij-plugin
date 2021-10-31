@@ -58,6 +58,10 @@ public class GraphQLHighlightingTest extends GraphQLTestCaseBase {
         doTest();
     }
 
+    public void testKeywordsAsIdentifiers() {
+        doTest();
+    }
+
     private void doTest() {
         HighlightTestInfo highlightTestInfo = myFixture.testFile(getTestName(false) + ".graphql");
         highlightTestInfo.checkSymbolNames();

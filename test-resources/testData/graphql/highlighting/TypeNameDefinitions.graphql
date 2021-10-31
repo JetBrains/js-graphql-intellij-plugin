@@ -11,5 +11,5 @@ enum <symbolName descr="GRAPHQL_TYPE_NAME">Enum</symbolName> {
 }
 
 input <symbolName descr="GRAPHQL_TYPE_NAME">Input</symbolName> {
-    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">field</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
+    <symbolName descr="GRAPHQL_FIELD_NAME">field</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">String</symbolName>
 }

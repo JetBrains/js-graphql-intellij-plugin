@@ -1,8 +1,8 @@
 input <symbolName descr="GRAPHQL_TYPE_NAME">Point</symbolName> {
-    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">x</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
-    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">y</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
+    <symbolName descr="GRAPHQL_FIELD_NAME">x</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
+    <symbolName descr="GRAPHQL_FIELD_NAME">y</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
 }
 
 extend input <symbolName descr="GRAPHQL_TYPE_NAME">Point</symbolName> {
-    <symbolName descr="null"><symbolName descr="GRAPHQL_FIELD_NAME">z</symbolName></symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
+    <symbolName descr="GRAPHQL_FIELD_NAME">z</symbolName>: <symbolName descr="GRAPHQL_TYPE_NAME">Float</symbolName>
 }
