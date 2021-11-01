@@ -589,7 +589,7 @@ public class GraphQLConfigManager implements Disposable {
 
         // JSON format
         final Collection<VirtualFile> jsonFiles = ApplicationManager.getApplication().runReadAction(
-            (Computable<Collection<VirtualFile>>) () -> Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, projectScope))
+            (Computable<Collection<VirtualFile>>) () -> Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, true, projectScope))
         );
         if (changedConfigurationFiles != null) {
             for (VirtualFile configurationFile : changedConfigurationFiles) {
@@ -597,7 +597,7 @@ public class GraphQLConfigManager implements Disposable {
                     // skip excluded files
                     continue;
                 }
-                if (configurationFile.getFileType().equals(JsonFileType.INSTANCE)) {
+                if (configurationFile.getName().equals(GRAPHQLCONFIG) || configurationFile.getFileType().equals(JsonFileType.INSTANCE)) {
                     if (configurationFile.isValid()) { // don't process deletions
                         jsonFiles.add(configurationFile);
                     }
@@ -621,8 +621,8 @@ public class GraphQLConfigManager implements Disposable {
         // YAML format
         final Collection<VirtualFile> yamlFiles = ApplicationManager.getApplication().runReadAction(
             (Computable<Collection<VirtualFile>>) () -> {
-                final LinkedHashSet<VirtualFile> files = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, projectScope));
-                files.addAll(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YAML, projectScope));
+                final LinkedHashSet<VirtualFile> files = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, true, projectScope));
+                files.addAll(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YAML, true, projectScope));
                 return files;
             }
         );
