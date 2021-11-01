@@ -31,12 +31,12 @@ public class GraphQLConfigInvalidFileTypeEditorNotificationProvider extends Prov
     public @Nullable EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
                                                                      @NotNull FileEditor fileEditor,
                                                                      @NotNull Project project) {
-        return showNotification(file) ? createPanel(fileEditor) : null;
+        return showNotification(file) ? createPanel() : null;
     }
 
     @NotNull
-    private EditorNotificationPanel createPanel(@NotNull FileEditor fileEditor) {
-        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+    private EditorNotificationPanel createPanel() {
+        EditorNotificationPanel panel = new EditorNotificationPanel();
         panel.setText(GraphQLBundle.message("graphql.notification.config.invalid.file.type"));
         panel.createActionLabel(
             GraphQLBundle.message("graphql.notification.config.invalid.file.type.associate"),
