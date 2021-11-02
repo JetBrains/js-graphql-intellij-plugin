@@ -61,6 +61,14 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
         myState.enableRelayModernFrameworkSupport = enableRelayModernFrameworkSupport;
     }
 
+    public boolean isFederationSupportEnabled() {
+        return myState.enableFederationSupport;
+    }
+
+    public void setFederationSupportEnabled(boolean enableFederationSupport) {
+        myState.enableFederationSupport = enableFederationSupport;
+    }
+
     public boolean isEnableIntrospectionDefaultValues() {
         return myState.enableIntrospectionDefaultValues;
     }
@@ -91,6 +99,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
         public boolean enableIntrospectionDefaultValues = true;
         public boolean openEditorWithIntrospectionResult = true;
         public boolean enableRelayModernFrameworkSupport;
+        public boolean enableFederationSupport = false;
     }
 }
 

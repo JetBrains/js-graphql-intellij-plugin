@@ -87,10 +87,13 @@ public class GraphQLPsiSearchHelper implements Disposable {
             GlobalSearchScope.fileScope(project, myExternalDefinitionsProvider.getBuiltInSchema().getVirtualFile());
         GlobalSearchScope builtInRelaySchemaScope =
             GlobalSearchScope.fileScope(project, myExternalDefinitionsProvider.getRelayModernDirectivesSchema().getVirtualFile());
+        GlobalSearchScope builtInFederationSchemaScope =
+            GlobalSearchScope.fileScope(project, myExternalDefinitionsProvider.getBuiltInFederationSchema().getVirtualFile());
 
         GraphQLSettings settings = GraphQLSettings.getSettings(project);
         myBuiltInSchemaScopes = builtInSchemaScope
             .union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, settings::isRelaySupportEnabled))
+            .union(new ConditionalGlobalSearchScope(builtInFederationSchemaScope, settings::isFederationSupportEnabled))
             .union(defaultProjectFileScope);
 
         final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
@@ -339,6 +342,9 @@ public class GraphQLPsiSearchHelper implements Disposable {
             // spec schema
             myExternalDefinitionsProvider.getBuiltInSchema().accept(builtInFileVisitor);
 
+            // federation spec schema
+            myExternalDefinitionsProvider.getBuiltInFederationSchema().accept(builtInFileVisitor);
+
             // relay schema if enabled
             final PsiFile relayModernDirectivesSchema = myExternalDefinitionsProvider.getRelayModernDirectivesSchema();
             if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
@@ -382,6 +388,10 @@ public class GraphQLPsiSearchHelper implements Disposable {
         final PsiFile relayModernDirectivesSchema = myExternalDefinitionsProvider.getRelayModernDirectivesSchema();
         if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
             processor.process(relayModernDirectivesSchema);
+        }
+        final PsiFile federationSpecSchema = myExternalDefinitionsProvider.getBuiltInFederationSchema();
+        if (schemaScope.contains(federationSpecSchema.getVirtualFile())) {
+            processor.process(federationSpecSchema);
         }
     }
 

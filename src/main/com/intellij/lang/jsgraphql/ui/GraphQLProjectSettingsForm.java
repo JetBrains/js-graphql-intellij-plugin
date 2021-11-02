@@ -27,8 +27,10 @@ public class GraphQLProjectSettingsForm {
     private JPanel introspectionPanel;
     private ExpandableTextField introspectionQueryTextField;
     private JCheckBox enableIntrospectionDefaultValues;
+
     private JPanel frameworksPanel;
     private JCheckBox enableRelay;
+    private JCheckBox enableFederation;
     private JCheckBox openEditorWithIntrospectionResult;
 
     private GraphQLSettings mySettings;
@@ -52,22 +54,27 @@ public class GraphQLProjectSettingsForm {
     void apply() {
         mySettings.setIntrospectionQuery(introspectionQueryTextField.getText());
         mySettings.setRelaySupportEnabled(enableRelay.isSelected());
+        mySettings.setFederationSupportEnabled(enableFederation.isSelected());
         mySettings.setEnableIntrospectionDefaultValues(enableIntrospectionDefaultValues.isSelected());
         mySettings.setOpenEditorWithIntrospectionResult(openEditorWithIntrospectionResult.isSelected());
+
     }
 
     void reset() {
         introspectionQueryTextField.setText(mySettings.getIntrospectionQuery());
         enableIntrospectionDefaultValues.setSelected(mySettings.isEnableIntrospectionDefaultValues());
         enableRelay.setSelected(mySettings.isRelaySupportEnabled());
+        enableFederation.setSelected(mySettings.isFederationSupportEnabled());
         openEditorWithIntrospectionResult.setSelected(mySettings.isOpenEditorWithIntrospectionResult());
     }
 
     boolean isModified() {
         return !Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText()) ||
             mySettings.isRelaySupportEnabled() != enableRelay.isSelected() ||
+            mySettings.isFederationSupportEnabled() != enableFederation.isSelected() ||
             mySettings.isEnableIntrospectionDefaultValues() != enableIntrospectionDefaultValues.isSelected() ||
             mySettings.isOpenEditorWithIntrospectionResult() != openEditorWithIntrospectionResult.isSelected();
+
     }
 
     {
