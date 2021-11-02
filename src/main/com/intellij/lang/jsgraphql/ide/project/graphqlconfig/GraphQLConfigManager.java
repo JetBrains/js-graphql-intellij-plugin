@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -106,6 +107,7 @@ public class GraphQLConfigManager implements Disposable {
     );
 
     public static final String ENDPOINTS_EXTENSION = "endpoints";
+    public static final String SSL_EXTENSION = "sslConfiguration";
 
     public static final String GRAPHQLCONFIG = ".graphqlconfig";
     public static final String GRAPHQLCONFIG_COMMENT = ".graphqlconfig=";
@@ -422,6 +424,18 @@ public class GraphQLConfigManager implements Disposable {
             }
 
             return emptyList;
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Nullable
+    public GraphQLConfigSecurity getSSLConfiguration() {
+        try {
+            readLock.lock();
+            Map<VirtualFile, GraphQLConfigData> configEntries = getService(myProject).getConfigurationsByPath();
+            GraphQLConfigSecurity sslConfig = new ObjectMapper().convertValue(configEntries.get(myProject.getBaseDir()).extensions.get(SSL_EXTENSION), GraphQLConfigSecurity.class);
+            return sslConfig;
         } finally {
             readLock.unlock();
         }
