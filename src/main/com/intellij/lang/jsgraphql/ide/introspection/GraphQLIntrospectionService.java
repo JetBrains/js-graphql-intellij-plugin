@@ -196,9 +196,7 @@ public class GraphQLIntrospectionService implements Disposable {
         builder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
 
         if (PropertiesComponent.getInstance(myProject).isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) {
-            Map<VirtualFile, GraphQLConfigData> configEntries =
-                GraphQLConfigManager.getService(myProject).getConfigurationsByPath();
-            GraphQLConfigSecurity sslConfig = configEntries.get(myProject.getBaseDir()).sslConfiguration;
+            GraphQLConfigSecurity sslConfig = GraphQLConfigManager.getService(myProject).getSSLConfiguration();
             if (sslConfig != null) {
                 if (sslConfig.clientCertificate.path == null || sslConfig.clientCertificateKey.path == null) {
                     throw new RuntimeException("Path needs to be specified for the key and certificate");

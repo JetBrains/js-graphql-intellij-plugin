@@ -23,6 +23,4 @@ public class GraphQLResolvedConfigData {
     public List<String> excludes;
 
     public Map<String, Object> extensions;
-
-    public GraphQLConfigSecurity sslConfiguration;
 }
