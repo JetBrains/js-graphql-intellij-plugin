@@ -343,7 +343,10 @@ public class GraphQLPsiSearchHelper implements Disposable {
             myExternalDefinitionsProvider.getBuiltInSchema().accept(builtInFileVisitor);
 
             // federation spec schema
-            myExternalDefinitionsProvider.getBuiltInFederationSchema().accept(builtInFileVisitor);
+            PsiFile federationSchema = myExternalDefinitionsProvider.getBuiltInFederationSchema();
+            if (schemaScope.contains(federationSchema.getVirtualFile())) {
+                federationSchema.accept(builtInFileVisitor);
+            }
 
             // relay schema if enabled
             final PsiFile relayModernDirectivesSchema = myExternalDefinitionsProvider.getRelayModernDirectivesSchema();
