@@ -42,6 +42,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -538,6 +539,9 @@ public class GraphQLConfigManager implements Disposable {
             // set the runnable that the task uses to the latest refresh info
             buildConfigurationModelCallable.set(() -> {
                 doBuildConfigurationModel(changedConfigurationFiles);
+
+                if (myProject.isDisposed()) return;
+                ProgressManager.checkCanceled();
                 if (onCompleted != null) {
                     onCompleted.run();
                 }
@@ -584,6 +588,8 @@ public class GraphQLConfigManager implements Disposable {
      */
     @VisibleForTesting
     public void doBuildConfigurationModel(@Nullable List<VirtualFile> changedConfigurationFiles) {
+        if (myProject.isDisposed()) return;
+        ProgressManager.checkCanceled();
 
         final Map<VirtualFile, GraphQLConfigData> newConfigPathToConfigurations = Maps.newConcurrentMap();
 
@@ -709,6 +715,9 @@ public class GraphQLConfigManager implements Disposable {
     }
 
     private void introspectEndpoints() {
+        if (myProject.isDisposed()) return;
+        ProgressManager.checkCanceled();
+
         final List<GraphQLResolvedConfigData> configDataList = Lists.newArrayList();
         readLock.lock();
         try {

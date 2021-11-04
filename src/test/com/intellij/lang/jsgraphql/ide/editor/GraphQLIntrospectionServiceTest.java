@@ -39,6 +39,13 @@ public class GraphQLIntrospectionServiceTest extends GraphQLTestCaseBase {
         doTest("schemaWithNullFields.json", "schemaWithNullFields.graphql");
     }
 
+    public void testGithubSchema() {
+        // test only for being successful, file comparison doesn't give a meaningful result for files of this size
+        assertNoThrowable(() -> new GraphQLIntrospectionService(getProject())
+            .printIntrospectionAsGraphQL(Objects.requireNonNull(readSchemaJson("githubSchema.json")))
+        );
+    }
+
     private void doTest(@NotNull String source, @NotNull String expected) {
         myFixture.configureByText(
             "result.graphql",

@@ -52,8 +52,6 @@ public class SchemaUtil {
             roots.addAll(schema.getDirectives());
         }
 
-        roots.add(Introspection.__Schema);
-
         GraphQLTypeCollectingVisitor visitor = new GraphQLTypeCollectingVisitor();
         SchemaTraverser traverser;
         // when collecting all types we never want to follow type references

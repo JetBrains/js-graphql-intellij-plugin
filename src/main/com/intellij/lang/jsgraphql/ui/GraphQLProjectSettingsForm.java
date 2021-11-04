@@ -57,7 +57,6 @@ public class GraphQLProjectSettingsForm {
         mySettings.setFederationSupportEnabled(enableFederation.isSelected());
         mySettings.setEnableIntrospectionDefaultValues(enableIntrospectionDefaultValues.isSelected());
         mySettings.setOpenEditorWithIntrospectionResult(openEditorWithIntrospectionResult.isSelected());
-
     }
 
     void reset() {
@@ -70,11 +69,15 @@ public class GraphQLProjectSettingsForm {
 
     boolean isModified() {
         return !Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText()) ||
-            mySettings.isRelaySupportEnabled() != enableRelay.isSelected() ||
-            mySettings.isFederationSupportEnabled() != enableFederation.isSelected() ||
             mySettings.isEnableIntrospectionDefaultValues() != enableIntrospectionDefaultValues.isSelected() ||
-            mySettings.isOpenEditorWithIntrospectionResult() != openEditorWithIntrospectionResult.isSelected();
+            mySettings.isOpenEditorWithIntrospectionResult() != openEditorWithIntrospectionResult.isSelected() ||
+            shouldUpdateLibraries();
 
+    }
+
+    boolean shouldUpdateLibraries() {
+        return mySettings.isRelaySupportEnabled() != enableRelay.isSelected() ||
+            mySettings.isFederationSupportEnabled() != enableFederation.isSelected();
     }
 
     {
@@ -95,33 +98,51 @@ public class GraphQLProjectSettingsForm {
         rootPanel = new JPanel();
         rootPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
         final Spacer spacer1 = new Spacer();
-        rootPanel.add(spacer1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        rootPanel.add(spacer1, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1,
+            GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         introspectionPanel = new JPanel();
         introspectionPanel.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
-        rootPanel.add(introspectionPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        rootPanel.add(introspectionPanel, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+            GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         introspectionQueryTextField = new ExpandableTextField();
         introspectionQueryTextField.setEnabled(true);
         introspectionQueryTextField.setHorizontalAlignment(2);
-        introspectionQueryTextField.setToolTipText("Use a different introspection query for cases where the GraphQL endpoint is incompatible with the plugin introspection query");
-        introspectionPanel.add(introspectionQueryTextField, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        introspectionQueryTextField.setToolTipText(
+            "Use a different introspection query for cases where the GraphQL endpoint is incompatible with the plugin introspection query");
+        introspectionPanel.add(introspectionQueryTextField,
+            new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label1 = new JLabel();
         label1.setText("Introspection Query (Leave blank for default)");
-        introspectionPanel.add(label1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        introspectionPanel.add(label1,
+            new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED,
+                GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         enableIntrospectionDefaultValues = new JCheckBox();
         enableIntrospectionDefaultValues.setEnabled(true);
         enableIntrospectionDefaultValues.setText("Include argument default values in schema introspection");
-        enableIntrospectionDefaultValues.setToolTipText("Skipping default values improves interoperability with endpoints that don't follow the GraphQL specification for default values. The schema can still be used, but information about the default values will be unavailable.");
-        introspectionPanel.add(enableIntrospectionDefaultValues, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        enableIntrospectionDefaultValues.setToolTipText(
+            "Skipping default values improves interoperability with endpoints that don't follow the GraphQL specification for default values. The schema can still be used, but information about the default values will be unavailable.");
+        introspectionPanel.add(enableIntrospectionDefaultValues,
+            new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                null, 0, false));
         frameworksPanel = new JPanel();
         frameworksPanel.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         rootPanel.add(
-            frameworksPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+            frameworksPanel, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW,
+                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         enableRelay = new JCheckBox();
         enableRelay.setEnabled(true);
         enableRelay.setText("Enable Relay Modern support");
-        enableRelay.setToolTipText("Adds Relay Modern directives to schema discovery and filters  non-spec errors such as fragment arguments");
+        enableRelay.setToolTipText(
+            "Adds Relay Modern directives to schema discovery and filters  non-spec errors such as fragment arguments");
         frameworksPanel.add(
-            enableRelay, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+            enableRelay, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE,
+                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null,
+                null, 0, false));
     }
 
     /**

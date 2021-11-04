@@ -17,6 +17,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElementWeigher;
 import com.intellij.lang.jsgraphql.ide.documentation.GraphQLDocumentationMarkdownRenderer;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLEnumValueDefinition;
@@ -25,9 +26,10 @@ import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLObjectValueImpl;
-import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
+import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
@@ -47,7 +49,6 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.Consumer;
-import com.intellij.util.ObjectUtils;
 import com.intellij.util.ProcessingContext;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.ContainerUtil;
@@ -56,7 +57,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.intellij.lang.jsgraphql.GraphQLConstants.Schema.__DIRECTIVE_LOCATION_ENUM;
 import static com.intellij.patterns.PlatformPatterns.psiComment;
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 
@@ -236,6 +236,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 final String subscriptionName = schema.getSubscriptionType() != null ? schema.getSubscriptionType().getName() : "Subscription";
                 final Set<String> nonOutputTypes = Sets.newLinkedHashSet(Lists.newArrayList(queryName, mutationName, subscriptionName));
                 registry.types().values().forEach(type -> {
+                    if (GraphQLKnownTypes.isIntrospectionType(type.getName())) return;
                     if (!(type instanceof InputObjectTypeDefinition) && !nonOutputTypes.contains(type.getName())) {
                         result.addElement(LookupElementBuilder.create(type.getName()));
                     }
@@ -472,6 +473,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         if (registry != null) {
             registry.scalars().values().forEach(scalar -> result.addElement(LookupElementBuilder.create(scalar.getName())));
             registry.types().values().forEach(type -> {
+                if (GraphQLKnownTypes.isIntrospectionType(type.getName())) return;
                 if (type instanceof EnumTypeDefinition || type instanceof InputObjectTypeDefinition) {
                     result.addElement(LookupElementBuilder.create(type.getName()));
                 }
@@ -507,15 +509,15 @@ public class GraphQLCompletionContributor extends CompletionContributor {
 
                 final Set<String> currentLocations = Sets.newHashSet();
                 directiveLocations.getDirectiveLocationList().forEach(location -> currentLocations.add(location.getText()));
-                final GraphQLFile builtInSchema = ObjectUtils.tryCast(
-                    GraphQLExternalTypeDefinitionsProvider.getInstance(completionElement.getProject()).getBuiltInSchema(), GraphQLFile.class);
+                GraphQLFile builtInSchema = ContainerUtil.getFirstItem(
+                    GraphQLResolveUtil.getLibraryFiles(GraphQLLibraryTypes.SPECIFICATION, completionElement));
                 if (builtInSchema == null) {
                     return;
                 }
 
                 for (GraphQLDefinition definition : ContainerUtil.filter(builtInSchema.getTypeDefinitions(), t -> t instanceof GraphQLEnumTypeDefinition)) {
                     final GraphQLTypeNameDefinition enumTypeName = ((GraphQLEnumTypeDefinition) definition).getTypeNameDefinition();
-                    if (enumTypeName == null || !__DIRECTIVE_LOCATION_ENUM.equals(enumTypeName.getName())) {
+                    if (enumTypeName == null || !GraphQLKnownTypes.INTROSPECTION_DIRECTIVE_LOCATION.equals(enumTypeName.getName())) {
                         continue;
                     }
 
@@ -837,11 +839,15 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 }
 
                 fragmentTypes.forEach(fragmentType -> {
+                    String typeName = fragmentType.first.getName();
+                    if (GraphQLKnownTypes.isIntrospectionType(typeName)) return;
+
                     LookupElementBuilder element = LookupElementBuilder
-                        .create(fragmentType.first.getName())
+                        .create(typeName)
                         .withBoldness(true);
                     if (fragmentType.second != null) {
-                        final String documentation = GraphQLDocumentationMarkdownRenderer.getDescriptionAsPlainText(fragmentType.second.getContent(), true);
+                        final String documentation = GraphQLDocumentationMarkdownRenderer
+                            .getDescriptionAsPlainText(fragmentType.second.getContent(), true);
                         element = element.withTailText(" - " + documentation, true);
                     }
                     result.addElement(element);

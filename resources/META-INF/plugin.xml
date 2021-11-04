@@ -84,11 +84,13 @@
     <projectService
       serviceImplementation="com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLPluginDisposable"/>
-    <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider"/>
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager"/>
 
     <!-- Indexing -->
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex"/>
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLFragmentNameIndex"/>
+
+    <additionalLibraryRootsProvider implementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider"/>
 
     <!-- Startup -->
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.startup.GraphQLStartupActivity"/>
@@ -140,9 +142,6 @@
 
     <!-- Search (find implementations etc.) -->
     <definitionsSearch implementation="com.intellij.lang.jsgraphql.ide.search.GraphQLDefinitionsSearchExecutor"/>
-
-    <!-- Renaming -->
-    <vetoRenameCondition implementation="com.intellij.lang.jsgraphql.ide.rename.GraphQLRenameVetoCondition"/>
 
     <!-- Settings -->
     <projectConfigurable id="settings.jsgraphql" groupId="language" instance="com.intellij.lang.jsgraphql.ui.GraphQLProjectConfigurable"/>

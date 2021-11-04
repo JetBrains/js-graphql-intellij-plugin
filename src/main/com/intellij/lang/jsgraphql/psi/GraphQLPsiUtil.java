@@ -107,7 +107,7 @@ public class GraphQLPsiUtil {
         if (virtualFile != null) {
             return virtualFile.getPath();
         }
-        return psiFile.getName();
+        return psiFile.getName(); // is needed for some manually created in-memory PSI files
     }
 
     public static @NotNull List<PsiComment> getLeadingFileComments(@NotNull PsiFile file) {

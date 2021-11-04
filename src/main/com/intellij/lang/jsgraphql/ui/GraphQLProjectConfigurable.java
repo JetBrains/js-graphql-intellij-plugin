@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ui;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.options.ConfigurationException;
@@ -58,11 +59,18 @@ public class GraphQLProjectConfigurable implements SearchableConfigurable {
         if (myProject.isDefault()) {
             myForm.apply();
         } else {
+            boolean fireLibrariesChanged = myForm.shouldUpdateLibraries();
+
             WriteAction.run(() -> myForm.apply());
-            ApplicationManager.getApplication().invokeLater(() -> {
-                DaemonCodeAnalyzer.getInstance(myProject).restart();
-                EditorNotifications.getInstance(myProject).updateAllNotifications();
-            }, myProject.getDisposed());
+
+            if (fireLibrariesChanged) {
+                GraphQLLibraryManager.getInstance(myProject).notifyLibrariesChanged();
+            } else {
+                ApplicationManager.getApplication().invokeLater(() -> {
+                    DaemonCodeAnalyzer.getInstance(myProject).restart();
+                    EditorNotifications.getInstance(myProject).updateAllNotifications();
+                }, myProject.getDisposed());
+            }
         }
     }
 

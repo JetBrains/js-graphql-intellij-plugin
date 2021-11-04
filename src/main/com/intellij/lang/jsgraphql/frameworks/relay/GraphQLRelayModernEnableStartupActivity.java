@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.frameworks.relay;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -49,7 +50,7 @@ public class GraphQLRelayModernEnableStartupActivity implements StartupActivity 
             }
             try {
                 final GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
-                for (VirtualFile virtualFile : FilenameIndex.getVirtualFilesByName(project, "package.json", scope)) {
+                for (VirtualFile virtualFile : FilenameIndex.getVirtualFilesByName(project, "package.json", true, scope)) {
                     ProgressManager.checkCanceled();
                     if (!virtualFile.isDirectory() && virtualFile.isInLocalFileSystem()) {
                         try (InputStream inputStream = virtualFile.getInputStream()) {
@@ -64,8 +65,7 @@ public class GraphQLRelayModernEnableStartupActivity implements StartupActivity 
                                         settings.setRelaySupportEnabled(true);
                                         ApplicationManager.getApplication().saveSettings();
                                         notification.expire();
-                                        DaemonCodeAnalyzer.getInstance(project).restart();
-                                        EditorNotifications.getInstance(project).updateAllNotifications();
+                                        GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged();
                                     });
                                 enableRelayModern.setImportant(true);
                                 if (isDisplayed.compareAndSet(false, true)) {

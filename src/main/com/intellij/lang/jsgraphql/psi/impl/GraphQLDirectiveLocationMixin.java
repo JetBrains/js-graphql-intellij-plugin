@@ -8,10 +8,11 @@
 package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveLocation;
 import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
-import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
@@ -28,10 +29,12 @@ public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl i
 
     @Override
     public PsiReference getReference() {
+        // TODO: [vepanimas] move to a reference resolver: getReference should only create a reference, not resolve it.
         final Ref<PsiReference> reference = new Ref<>();
         final GraphQLDirectiveLocationMixin psiElement = this;
         final String locationName = psiElement.getText();
-        GraphQLExternalTypeDefinitionsProvider.getInstance(getProject()).getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
+
+        GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, this, new PsiRecursiveElementVisitor() {
             @Override
             public void visitElement(@NotNull PsiElement element) {
                 if (element instanceof GraphQLEnumValue && element.getText().equals(locationName)) {

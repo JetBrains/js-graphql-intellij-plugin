@@ -16,6 +16,7 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.intellij.util.SlowOperations;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -34,7 +35,7 @@ public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
         getPresentation().setIcon(GraphQLIcons.Files.GraphQLSchema);
         final GraphQLFile defaultProjectFile = GraphQLPsiSearchHelper.getInstance(myProject).getDefaultProjectFile();
         final GraphQLSchemaProvider registry = GraphQLSchemaProvider.getInstance(myProject);
-        mySchemaInfo = registry.getSchemaInfo(defaultProjectFile);
+        mySchemaInfo = SlowOperations.allowSlowOperations(() -> registry.getSchemaInfo(defaultProjectFile));
     }
 
     @Override

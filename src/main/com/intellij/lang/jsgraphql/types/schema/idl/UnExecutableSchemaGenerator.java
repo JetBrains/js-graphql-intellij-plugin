@@ -19,6 +19,7 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.ScalarTypeDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 
 import java.util.Map;
@@ -38,6 +39,15 @@ public class UnExecutableSchemaGenerator {
             scalars.forEach((name, v) -> {
                 if (!ScalarInfo.isGraphqlSpecifiedScalar(name)) {
                     wiring.scalar(fakeScalar(name));
+                } else {
+                    // we can provide a PSI based scalar definition from Specification.graphql library,
+                    // so we need to ensure it has a valid coercing assigned for type checking
+                    GraphQLScalarType scalarType = GraphQLScalarType.newScalar()
+                        .name(name)
+                        .description(name)
+                        .coercing(ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_MAP.get(name).getCoercing())
+                        .build();
+                    wiring.scalar(scalarType);
                 }
             });
         });

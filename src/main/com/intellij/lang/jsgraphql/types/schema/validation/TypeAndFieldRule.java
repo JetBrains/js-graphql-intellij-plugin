@@ -205,7 +205,7 @@ public class TypeAndFieldRule implements SchemaValidationRule {
         if (enumValueDefinitionName.length() >= 2 && enumValueDefinitionName.startsWith("__")) {
             SchemaValidationError schemaValidationError = new SchemaValidationError(
                 SchemaValidationErrorType.InvalidCustomizedNameError,
-                String.format("Enum value definition \"%s\" in  \"%s\"  must not begin with \"__\", which is reserved by GraphQL introspection.", enumValueDefinitionName, typeName),
+                String.format("Enum value definition \"%s\" in \"%s\" must not begin with \"__\", which is reserved by GraphQL introspection.", enumValueDefinitionName, typeName),
                 definition
             );
             errorCollector.addError(schemaValidationError);

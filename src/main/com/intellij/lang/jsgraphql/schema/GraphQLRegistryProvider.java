@@ -83,7 +83,7 @@ public class GraphQLRegistryProvider implements Disposable {
     @NotNull
     public GraphQLRegistryInfo getRegistryInfo(@NotNull PsiElement scopedElement) {
         // Get the search scope that limits schema definition for the scoped element
-        GlobalSearchScope schemaScope = graphQLPsiSearchHelper.getSchemaScope(scopedElement);
+        GlobalSearchScope schemaScope = graphQLPsiSearchHelper.getResolveScope(scopedElement);
 
         return scopeToRegistry.computeIfAbsent(schemaScope, s -> {
             long start = System.nanoTime();
@@ -113,9 +113,6 @@ public class GraphQLRegistryProvider implements Disposable {
 
             // Injected GraphQL
             graphQLPsiSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, processor);
-
-            // Built-in that are additions to a default registry which already has the GraphQL spec directives
-            graphQLPsiSearchHelper.processAdditionalBuiltInPsiFiles(schemaScope, processor);
 
             // Types defined using GraphQL Endpoint Language
             VirtualFile virtualFile = GraphQLPsiUtil.getPhysicalVirtualFile(scopedElement.getContainingFile());
@@ -164,7 +161,7 @@ public class GraphQLRegistryProvider implements Disposable {
                     } catch (IOException e) {
                         LOG.warn(e);
                     }
-                    return new CachedValueProvider.Result<>(newIntrospectionFile, psiFile, mySettings.getSchemaSettingsModificationTracker());
+                    return CachedValueProvider.Result.create(newIntrospectionFile, psiFile, mySettings.getModificationTracker());
                 });
 
                 processor.process(introspectionSDL);

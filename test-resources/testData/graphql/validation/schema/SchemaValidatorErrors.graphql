@@ -23,5 +23,5 @@ input InputInvalidFieldName {
 }
 union <error descr="The member type 'ObjectInvalidFieldName' in Union 'UnionInvalidMembers' is not unique. The member types of a Union type must be unique"><error descr="The member types of a Union type must all be Object base types. Member type 'InputInvalidFieldName' in Union 'UnionInvalidMembers' is invalid"><error descr="The member types of a Union type must all be Object base types. Member type 'InterfaceInvalidFieldName' in Union 'UnionInvalidMembers' is invalid">UnionInvalidMembers</error></error></error> = ObjectInvalidFieldName | ObjectInvalidFieldName | InterfaceInvalidFieldName | <error descr="The type 'InputInvalidFieldName' is not an output type, but was used to declare the output type of a field">InputInvalidFieldName</error>
 enum EnumInvalidFieldName {
-    <error descr="Enum value definition \"__A\" in  \"EnumInvalidFieldName\"  must not begin with \"__\", which is reserved by GraphQL introspection">__A</error>
+    <error descr="Enum value definition \"__A\" in \"EnumInvalidFieldName\" must not begin with \"__\", which is reserved by GraphQL introspection">__A</error>
 }

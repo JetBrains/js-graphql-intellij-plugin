@@ -21,7 +21,10 @@ package com.intellij.lang.jsgraphql.types.schema;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.lang.jsgraphql.types.*;
+import com.intellij.lang.jsgraphql.types.DirectivesUtil;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
+import com.intellij.lang.jsgraphql.types.Internal;
+import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.SchemaDefinition;
 import com.intellij.lang.jsgraphql.types.language.SchemaExtensionDefinition;
 import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
@@ -36,7 +39,6 @@ import static com.intellij.lang.jsgraphql.types.Assert.*;
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.*;
 import static com.intellij.lang.jsgraphql.types.schema.GraphqlTypeComparators.byNameAsc;
 import static com.intellij.lang.jsgraphql.types.schema.GraphqlTypeComparators.sortTypes;
-import static java.util.Arrays.asList;
 
 /**
  * The schema represents the combined type system of the graphql engine.  This is how the engine knows
@@ -490,10 +492,7 @@ public class GraphQLSchema {
         private List<SchemaExtensionDefinition> extensionDefinitions;
         private String description;
 
-        // we default these in
-        private Set<GraphQLDirective> additionalDirectives = new LinkedHashSet<>(
-                asList(Directives.IncludeDirective, Directives.SkipDirective)
-        );
+        private Set<GraphQLDirective> additionalDirectives = new LinkedHashSet<>();
         private List<GraphQLDirective> schemaDirectives = new ArrayList<>();
 
         private SchemaUtil schemaUtil = new SchemaUtil();
@@ -664,16 +663,6 @@ public class GraphQLSchema {
         GraphQLSchema buildImpl(boolean afterTransform) {
             assertNotNull(additionalTypes, () -> "additionalTypes can't be null");
             assertNotNull(additionalDirectives, () -> "additionalDirectives can't be null");
-
-            // schemas built via the schema generator have the deprecated directive BUT we want it present for hand built
-            // schemas - its inherently part of the spec!
-            if (additionalDirectives.stream().noneMatch(d -> d.getName().equals(Directives.DeprecatedDirective.getName()))) {
-                additionalDirectives.add(Directives.DeprecatedDirective);
-            }
-
-            if (additionalDirectives.stream().noneMatch(d -> d.getName().equals(Directives.SpecifiedByDirective.getName()))) {
-                additionalDirectives.add(Directives.SpecifiedByDirective);
-            }
 
             // grab the legacy code things from types
             final GraphQLSchema tempSchema = new GraphQLSchema(this, afterTransform);

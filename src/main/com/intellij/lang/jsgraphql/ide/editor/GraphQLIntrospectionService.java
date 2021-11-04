@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.ide.editor;
 
-import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.ide.actions.CreateFileAction;
@@ -19,20 +18,17 @@ import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
+import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.introspection.IntrospectionQuery;
-import com.intellij.lang.jsgraphql.types.language.Description;
 import com.intellij.lang.jsgraphql.types.language.Document;
-import com.intellij.lang.jsgraphql.types.language.Node;
-import com.intellij.lang.jsgraphql.types.language.ScalarTypeDefinition;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaParser;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter;
 import com.intellij.lang.jsgraphql.types.schema.idl.UnExecutableSchemaGenerator;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
-import com.intellij.lang.jsgraphql.types.util.EscapeUtil;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
@@ -54,9 +50,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
@@ -86,14 +84,16 @@ import java.security.GeneralSecurityException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService.setHeadersFromOptions;
 
 public class GraphQLIntrospectionService implements Disposable {
     private static final Logger LOG = Logger.getInstance(GraphQLIntrospectionService.class);
 
-    private static final Set<String> DEFAULT_DIRECTIVES = Sets.newHashSet("deprecated", "skip", "include", "specifiedBy");
     private static final String DISABLE_EMPTY_ERRORS_WARNING_KEY = "graphql.empty.errors.warning.disabled";
     public static final String GRAPHQL_TRUST_ALL_HOSTS = "graphql.trust.all.hosts";
 
@@ -252,9 +252,9 @@ public class GraphQLIntrospectionService implements Disposable {
             .createSchemaDefinition(introspection);
         final SchemaPrinter.Options options = SchemaPrinter.Options
             .defaultOptions()
-            .includeScalarTypes(false)
+            .includeScalarTypes(true)
             .includeSchemaDefinition(true)
-            .includeDirectives(directive -> !DEFAULT_DIRECTIVES.contains(directive.getName()));
+            .includeDirectives(directive -> !GraphQLKnownTypes.DEFAULT_DIRECTIVES.contains(directive.getName()));
 
         GraphQLRegistryInfo registryInfo = new GraphQLRegistryInfo(
             new SchemaParser().buildRegistry(schemaDefinition), Collections.emptyList(), true);
@@ -272,31 +272,7 @@ public class GraphQLIntrospectionService implements Disposable {
             throw new SchemaProblem(errors);
         }
 
-        final StringBuilder sb = new StringBuilder(new SchemaPrinter(options).print(schemaInfo.getSchema()));
-
-        // graphql-java only prints scalars that are used by fields since it visits fields to discover types, so add the scalars here manually
-        final Set<String> knownScalars = Sets.newHashSet();
-        for (Node definition : schemaDefinition.getChildren()) {
-            if (definition instanceof ScalarTypeDefinition) {
-                final ScalarTypeDefinition scalarTypeDefinition = (ScalarTypeDefinition) definition;
-                String scalarName = scalarTypeDefinition.getName();
-                if (knownScalars.add(scalarName)) {
-                    sb.append("\n\n");
-                    final Description description = scalarTypeDefinition.getDescription();
-                    if (description != null) {
-                        if (description.isMultiLine()) {
-                            sb.append("\"\"\"").append(description.getContent()).append("\"\"\"");
-                        } else {
-                            sb.append("\"").append(EscapeUtil.escapeJsonString(description.getContent())).append("\"");
-                        }
-                        sb.append("\n");
-                    }
-                    sb.append("scalar ").append(scalarName);
-                }
-            }
-        }
-
-        return sb.toString();
+        return new SchemaPrinter(options).print(schemaInfo.getSchema());
     }
 
     @SuppressWarnings("unchecked")

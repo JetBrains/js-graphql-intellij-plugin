@@ -16,7 +16,10 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lang.annotation.ProblemGroup;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.ide.validation.GraphQLProblemGroup;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -165,6 +168,11 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
     }
 
     public static boolean isEditorInspectionHighlightingDisabled(@NotNull Project project, @NotNull PsiFile file) {
+        VirtualFile virtualFile = file.getVirtualFile();
+        if (virtualFile != null && GraphQLLibraryManager.getInstance(project).isLibraryRoot(virtualFile)) {
+            return true;
+        }
+
         return HighlightingSettingsPerFile.getInstance(project)
             .getHighlightingSettingForRoot(file) != FileHighlightingSetting.FORCE_HIGHLIGHTING;
     }

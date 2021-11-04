@@ -1,4 +1,4 @@
-package com.intellij.lang.jsgraphql.ide.project.scopes;
+package com.intellij.lang.jsgraphql.ide.search.scope;
 
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.openapi.module.Module;
@@ -10,10 +10,10 @@ import com.intellij.psi.search.DelegatingGlobalSearchScope;
 import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.annotations.NotNull;
 
-public class MetaInfSchemaScope extends DelegatingGlobalSearchScope {
+public class GraphQLMetaInfSchemaSearchScope extends DelegatingGlobalSearchScope {
     private final ProjectFileIndex myIndex;
 
-    public MetaInfSchemaScope(@NotNull Project project) {
+    public GraphQLMetaInfSchemaSearchScope(@NotNull Project project) {
         super(GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.allScope(project), GraphQLFileType.INSTANCE));
         myIndex = ProjectRootManager.getInstance(project).getFileIndex();
     }

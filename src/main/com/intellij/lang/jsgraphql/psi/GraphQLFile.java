@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.util.Collection;
 
-public class GraphQLFile extends PsiFileBase {
+public class GraphQLFile extends PsiFileBase implements GraphQLElement {
     public GraphQLFile(@NotNull FileViewProvider viewProvider) {
         super(viewProvider, GraphQLLanguage.INSTANCE);
     }
@@ -46,12 +46,14 @@ public class GraphQLFile extends PsiFileBase {
 
     @NotNull
     public Collection<GraphQLDefinition> getDefinitions() {
-        return PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLDefinition.class);
+        return CachedValuesManager.getCachedValue(this, () -> CachedValueProvider.Result.create(
+            PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLDefinition.class), this));
     }
 
     @NotNull
-    public Collection<GraphQLDefinition> getTypeDefinitions() {
-        return PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLTypeSystemDefinition.class);
+    public Collection<GraphQLTypeSystemDefinition> getTypeDefinitions() {
+        return CachedValuesManager.getCachedValue(this, () -> CachedValueProvider.Result.create(
+            PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLTypeSystemDefinition.class), this));
     }
 
     public Document getDocument() {

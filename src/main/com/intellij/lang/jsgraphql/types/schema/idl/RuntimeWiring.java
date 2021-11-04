@@ -145,9 +145,11 @@ public class RuntimeWiring {
         private GraphqlTypeComparatorRegistry comparatorRegistry = GraphqlTypeComparatorRegistry.AS_IS_REGISTRY;
 
         private Builder() {
-            ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS.forEach(this::scalar);
+            // We add these scalars explicitly in com.intellij.lang.jsgraphql.types.schema.idl.UnExecutableSchemaGenerator.makeUnExecutableSchema
+            //
+            // ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS.forEach(this::scalar);
             // we give this out by default
-            registeredDirectiveWiring.put(FetchSchemaDirectiveWiring.FETCH, new FetchSchemaDirectiveWiring());
+            // registeredDirectiveWiring.put(FetchSchemaDirectiveWiring.FETCH, new FetchSchemaDirectiveWiring());
         }
 
         /**

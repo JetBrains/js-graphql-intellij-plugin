@@ -18,6 +18,7 @@
 package com.intellij.lang.jsgraphql.types.introspection;
 
 
+import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
@@ -577,7 +578,7 @@ public class Introspection {
     }
 
     public static boolean isIntrospectionTypes(GraphQLNamedType type) {
-        return introspectionTypes.contains(type);
+        return introspectionTypes.contains(type) || GraphQLKnownTypes.isIntrospectionType(type.getName());
     }
 
     /**

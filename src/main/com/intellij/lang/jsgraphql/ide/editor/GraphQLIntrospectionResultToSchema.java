@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementFactory;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -79,21 +78,27 @@ public class GraphQLIntrospectionResultToSchema {
             for (Map<String, Object> type : types) {
                 if (type == null) continue;
                 TypeDefinition<?> typeDefinition = createTypeDefinition(type);
-                if (typeDefinition == null) continue;
                 document.definition(typeDefinition);
+            }
+        }
+
+        List<Map<String, Object>> directives = (List<Map<String, Object>>) schema.get("directives");
+        if (directives != null) {
+            for (Map<String, Object> directive : directives) {
+                if (directive == null) continue;
+                DirectiveDefinition directiveDefinition = createDirectiveDefinition(directive);
+                document.definition(directiveDefinition);
             }
         }
 
         return document.build();
     }
 
-    @Nullable
+    @NotNull
     private TypeDefinition<?> createTypeDefinition(@NotNull Map<String, Object> type) {
         String kind = assertNotNull((String) type.get("kind"),
             () -> String.format("null object kind: %s", type));
-        String name = (String) type.get("name");
 
-        if (name.startsWith("__")) return null;
         switch (kind) {
             case "INTERFACE":
                 return createInterface(type);
@@ -112,12 +117,9 @@ public class GraphQLIntrospectionResultToSchema {
         }
     }
 
-    @Nullable
+    @NotNull
     private static TypeDefinition<?> createScalar(@NotNull Map<String, Object> input) {
         String name = (String) input.get("name");
-        if (ScalarInfo.isGraphqlSpecifiedScalar(name)) {
-            return null;
-        }
         return ScalarTypeDefinition.newScalarTypeDefinition().name(name).description(getDescription(input)).build();
     }
 
@@ -211,7 +213,7 @@ public class GraphQLIntrospectionResultToSchema {
         if (input.containsKey("interfaces")) {
             builder.implementz(
                 ((List<Map<String, Object>>) input.get("interfaces")).stream()
-                    .map(GraphQLIntrospectionResultToSchema::createTypeIndirection)
+                    .map(GraphQLIntrospectionResultToSchema::createTypeReference)
                     .collect(Collectors.toList())
             );
         }
@@ -235,7 +237,7 @@ public class GraphQLIntrospectionResultToSchema {
             FieldDefinition fieldDefinition = FieldDefinition.newFieldDefinition()
                 .name((String) field.get("name"))
                 .description(getDescription(field))
-                .type(createTypeIndirection((Map<String, Object>) field.get("type")))
+                .type(createTypeReference((Map<String, Object>) field.get("type")))
                 .inputValueDefinitions(inputValueDefinitions)
                 .directives(createDeprecatedDirective(field))
                 .build();
@@ -266,7 +268,7 @@ public class GraphQLIntrospectionResultToSchema {
         for (Map<String, Object> arg : args) {
             if (arg == null) continue;
 
-            Type argType = createTypeIndirection((Map<String, Object>) arg.get("type"));
+            Type argType = createTypeReference((Map<String, Object>) arg.get("type"));
             String valueLiteral = (String) arg.get("defaultValue");
             Value defaultValue = valueLiteral != null ? valueFromAst(valueLiteral) : null;
             InputValueDefinition inputValueDefinition = InputValueDefinition.newInputValueDefinition()
@@ -281,7 +283,7 @@ public class GraphQLIntrospectionResultToSchema {
     }
 
     @Nullable
-    private static Type createTypeIndirection(@Nullable Map<String, Object> type) {
+    private static Type createTypeReference(@Nullable Map<String, Object> type) {
         if (type == null) return null;
 
         String kind = (String) type.get("kind");
@@ -294,12 +296,12 @@ public class GraphQLIntrospectionResultToSchema {
             case "SCALAR":
                 return TypeName.newTypeName().name((String) type.get("name")).build();
             case "NON_NULL":
-                Type ofType = createTypeIndirection((Map<String, Object>) type.get("ofType"));
+                Type ofType = createTypeReference((Map<String, Object>) type.get("ofType"));
                 if (ofType == null) return null;
                 return NonNullType.newNonNullType().type(ofType).build();
             case "LIST":
                 return ListType.newListType()
-                    .type(createTypeIndirection((Map<String, Object>) type.get("ofType"))).build();
+                    .type(createTypeReference((Map<String, Object>) type.get("ofType"))).build();
             default:
                 return assertShouldNeverHappen("Unknown kind %s", kind);
         }
@@ -322,6 +324,27 @@ public class GraphQLIntrospectionResultToSchema {
             }
         }
         return null;
+    }
+
+    @NotNull
+    private DirectiveDefinition createDirectiveDefinition(@NotNull Map<String, Object> definition) {
+        List<Map<String, Object>> args = (List<Map<String, Object>>) definition.get("args");
+        List<InputValueDefinition> inputValueDefinitions = createInputValueDefinitions(args);
+
+        return DirectiveDefinition.newDirectiveDefinition()
+            .name(((String) definition.get("name")))
+            .description(getDescription(definition))
+            .directiveLocations(createDirectiveLocations((List<String>) definition.get("locations")))
+            .inputValueDefinitions(inputValueDefinitions)
+            // .repeatable() TODO: [vepanimas] repeatable
+            .build();
+    }
+
+    @NotNull
+    private static List<DirectiveLocation> createDirectiveLocations(@NotNull List<String> locations) {
+        return ContainerUtil.mapNotNull(
+            locations,
+            location -> location != null ? DirectiveLocation.newDirectiveLocation().name(location).build() : null);
     }
 
     @Nullable

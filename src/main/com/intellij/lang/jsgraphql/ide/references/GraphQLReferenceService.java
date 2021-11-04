@@ -9,17 +9,17 @@ package com.intellij.lang.jsgraphql.ide.references;
 
 import com.google.common.collect.Maps;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
+import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyNamedType;
+import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyPropertyType;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectiveImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferenceMixin;
-import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
-import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyNamedType;
-import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyPropertyType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -43,7 +43,6 @@ public class GraphQLReferenceService implements Disposable {
 
     private final Map<String, PsiReference> logicalTypeNameToReference = Maps.newConcurrentMap();
     private final GraphQLPsiSearchHelper myPsiSearchHelper;
-    private final GraphQLExternalTypeDefinitionsProvider myExternalTypeDefinitionsProvider;
 
     /**
      * Sentinel reference for use in concurrent maps which don't allow nulls
@@ -67,7 +66,6 @@ public class GraphQLReferenceService implements Disposable {
 
     public GraphQLReferenceService(@NotNull final Project project) {
         myPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
-        myExternalTypeDefinitionsProvider = GraphQLExternalTypeDefinitionsProvider.getInstance(project);
 
         project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
@@ -219,7 +217,7 @@ public class GraphQLReferenceService implements Disposable {
             final GraphQLPsiSearchHelper graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(element.getProject());
             if (name.startsWith("__")) {
                 // __typename or introspection fields __schema and __type which implicitly extends the query root type
-                myExternalTypeDefinitionsProvider.getBuiltInSchema().accept(new PsiRecursiveElementVisitor() {
+                GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, element, new PsiRecursiveElementVisitor() {
                     @Override
                     public void visitElement(final @NotNull PsiElement schemaElement) {
                         if (schemaElement instanceof GraphQLReferenceMixin && schemaElement.getText().equals(name)) {
@@ -231,8 +229,8 @@ public class GraphQLReferenceService implements Disposable {
                 });
             }
             if (name.startsWith("_")) {
-                // __typename or introspection fields _entities and _service which extends the query root type
-                myExternalTypeDefinitionsProvider.getBuiltInFederationSchema().accept(new PsiRecursiveElementVisitor() {
+                // fields _entities and _service which extends the query root type
+                GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.FEDERATION, element, new PsiRecursiveElementVisitor() {
                     @Override
                     public void visitElement(final @NotNull PsiElement schemaElement) {
                         if (schemaElement instanceof GraphQLReferenceMixin && schemaElement.getText().equals(name)) {

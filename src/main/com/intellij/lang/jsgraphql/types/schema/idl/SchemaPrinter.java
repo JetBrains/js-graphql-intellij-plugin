@@ -799,7 +799,7 @@ public class SchemaPrinter {
                 }
                 if (!isNullOrEmpty(argValue)) {
                     sb.append(arg.getName());
-                    sb.append(" : ");
+                    sb.append(": ");
                     sb.append(argValue);
                     if (i < args.size() - 1) {
                         sb.append(", ");

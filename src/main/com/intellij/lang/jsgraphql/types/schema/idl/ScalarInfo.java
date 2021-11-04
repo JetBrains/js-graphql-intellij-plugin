@@ -38,6 +38,8 @@ public class ScalarInfo {
      */
     public static final List<GraphQLScalarType> GRAPHQL_SPECIFICATION_SCALARS = new ArrayList<>();
 
+    public static final Map<String, GraphQLScalarType> GRAPHQL_SPECIFICATION_SCALARS_MAP = new LinkedHashMap<>();
+
     /**
      * A map of scalar type definitions provided by graphql-java
      */
@@ -49,6 +51,8 @@ public class ScalarInfo {
         GRAPHQL_SPECIFICATION_SCALARS.add(Scalars.GraphQLString);
         GRAPHQL_SPECIFICATION_SCALARS.add(Scalars.GraphQLBoolean);
         GRAPHQL_SPECIFICATION_SCALARS.add(Scalars.GraphQLID);
+
+        GRAPHQL_SPECIFICATION_SCALARS.forEach(scalar -> GRAPHQL_SPECIFICATION_SCALARS_MAP.put(scalar.getName(), scalar));
     }
 
     static {

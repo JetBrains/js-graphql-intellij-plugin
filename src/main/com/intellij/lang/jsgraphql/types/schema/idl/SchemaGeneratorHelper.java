@@ -23,9 +23,9 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveNonRepeatableError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnInputTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnOutputTypeError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveNonRepeatableError;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.ObjectUtils;
@@ -631,21 +631,21 @@ public class SchemaGeneratorHelper {
             scalar = buildCtx.getWiring().getScalars().get(typeDefinition.getName());
         }
 
-        if (!ScalarInfo.isGraphqlSpecifiedScalar(scalar)) {
-            scalar = scalar.transform(builder -> builder
-                    .definition(typeDefinition)
-                    .comparatorRegistry(buildCtx.getComparatorRegistry())
-                    .specifiedByUrl(getSpecifiedByUrl(typeDefinition, extensions))
-                    .withDirectives(buildDirectives(
-                            buildCtx,
-                            typeDefinition.getDirectives(),
-                            directivesOf(extensions),
-                            SCALAR,
-                            buildCtx.getDirectives(),
-                            buildCtx.getComparatorRegistry())
-                    ));
-        }
-        return scalar;
+        return scalar.transform(builder -> builder
+            .name(typeDefinition.getName())
+            .description(ObjectUtils.coalesce(
+                buildDescription(typeDefinition, typeDefinition.getDescription()), typeDefinition.getName()))
+            .definition(typeDefinition)
+            .comparatorRegistry(buildCtx.getComparatorRegistry())
+            .specifiedByUrl(getSpecifiedByUrl(typeDefinition, extensions))
+            .withDirectives(buildDirectives(
+                buildCtx,
+                typeDefinition.getDirectives(),
+                directivesOf(extensions),
+                SCALAR,
+                buildCtx.getDirectives(),
+                buildCtx.getComparatorRegistry())
+            ));
     }
 
     @Nullable String getSpecifiedByUrl(ScalarTypeDefinition scalarTypeDefinition, List<ScalarTypeExtensionDefinition> extensions) {
@@ -657,6 +657,7 @@ public class SchemaGeneratorHelper {
             return null;
         }
         Argument urlArgument = specifiedByDirective.get().getArgument("url");
+        if (urlArgument == null) return null;
         StringValue url = (StringValue) urlArgument.getValue();
         return url.getValue();
     }

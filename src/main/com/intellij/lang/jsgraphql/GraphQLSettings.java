@@ -23,12 +23,14 @@ import org.jetbrains.annotations.Nullable;
 @State(name = "GraphQLSettings", storages = {@Storage("graphql-settings.xml")})
 public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings.GraphQLSettingsState> {
 
-    /**
-     * Tracks only the changes which could affect schema building.
-     */
-    private final SimpleModificationTracker mySchemaSettingsTracker = new SimpleModificationTracker();
+    private final Project myProject;
 
+    private final SimpleModificationTracker myModificationTracker = new SimpleModificationTracker();
     private GraphQLSettingsState myState = new GraphQLSettingsState();
+
+    public GraphQLSettings(@NotNull Project project) {
+        myProject = project;
+    }
 
     public static GraphQLSettings getSettings(Project project) {
         return ServiceManager.getService(project, GraphQLSettings.class);
@@ -43,6 +45,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
     @Override
     public void loadState(@NotNull GraphQLSettings.GraphQLSettingsState state) {
         myState = state;
+        incrementModificationCount();
     }
 
     public String getIntrospectionQuery() {
@@ -51,6 +54,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
 
     public void setIntrospectionQuery(String introspectionQuery) {
         myState.introspectionQuery = introspectionQuery;
+        incrementModificationCount();
     }
 
     public boolean isRelaySupportEnabled() {
@@ -59,6 +63,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
 
     public void setRelaySupportEnabled(boolean enableRelayModernFrameworkSupport) {
         myState.enableRelayModernFrameworkSupport = enableRelayModernFrameworkSupport;
+        incrementModificationCount();
     }
 
     public boolean isFederationSupportEnabled() {
@@ -67,6 +72,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
 
     public void setFederationSupportEnabled(boolean enableFederationSupport) {
         myState.enableFederationSupport = enableFederationSupport;
+        incrementModificationCount();
     }
 
     public boolean isEnableIntrospectionDefaultValues() {
@@ -74,8 +80,8 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
     }
 
     public void setEnableIntrospectionDefaultValues(boolean enableIntrospectionDefaultValues) {
-        mySchemaSettingsTracker.incModificationCount();
         myState.enableIntrospectionDefaultValues = enableIntrospectionDefaultValues;
+        incrementModificationCount();
     }
 
     public boolean isOpenEditorWithIntrospectionResult() {
@@ -84,10 +90,15 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
 
     public void setOpenEditorWithIntrospectionResult(boolean openEditorWithIntrospectionResult) {
         myState.openEditorWithIntrospectionResult = openEditorWithIntrospectionResult;
+        incrementModificationCount();
     }
 
-    public ModificationTracker getSchemaSettingsModificationTracker() {
-        return mySchemaSettingsTracker;
+    public ModificationTracker getModificationTracker() {
+        return myModificationTracker;
+    }
+
+    private void incrementModificationCount() {
+        myModificationTracker.incModificationCount();
     }
 
     /**

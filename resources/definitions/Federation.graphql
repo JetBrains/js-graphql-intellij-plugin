@@ -3,7 +3,6 @@ scalar _Any
 scalar _FieldSet
 
 # a union of all types that use the @key directive
-# noinspection GraphQLEmptyType
 union _Entity
 
 type _Service {

@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 
 /**
@@ -49,7 +50,7 @@ public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
     }
 
     public void testExcludeFilesAndDirectories() {
-        test("/Types3.graphql", "TheOnlyType");
+        test("Types3.graphql", "TheOnlyType");
     }
 
     private void test(@NotNull String initialFile, String @NotNull ... expectedTypes) {
@@ -59,8 +60,14 @@ public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
         assertNotNull(file);
         PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
         assertNotNull(psiFile);
-        TypeDefinitionRegistry registry = GraphQLRegistryProvider.getInstance(getProject()).getRegistryInfo(psiFile).getTypeDefinitionRegistry();
-        assertSameElements(ContainerUtil.map(registry.types().values(), NamedNode::getName), expectedTypes);
+        TypeDefinitionRegistry registry = GraphQLRegistryProvider.getInstance(getProject())
+            .getRegistryInfo(psiFile).getTypeDefinitionRegistry();
+
+        List<String> types = registry.types().values().stream()
+            .map(NamedNode::getName)
+            .filter(type -> !GraphQLKnownTypes.isIntrospectionType(type))
+            .collect(Collectors.toList());
+        assertSameElements(types, expectedTypes);
     }
 
     private void doTestCompletion(String sourceFile, List<String> expectedCompletions, PsiFile @NotNull [] files) {

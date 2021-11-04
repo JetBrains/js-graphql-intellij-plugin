@@ -22,6 +22,9 @@ public class GraphQLIconProvider extends IconProvider {
     public Icon getIcon(@NotNull PsiElement element, int flags) {
 
         if (element instanceof GraphQLElement) {
+            if (element instanceof GraphQLFile) {
+                return GraphQLIcons.FILE;
+            }
 
             if (element instanceof GraphQLSelectionSetOperationDefinition) {
                 return GraphQLIcons.Schema.Query;

@@ -15,16 +15,14 @@ import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex;
-import com.intellij.lang.jsgraphql.ide.project.scopes.ConditionalGlobalSearchScope;
-import com.intellij.lang.jsgraphql.ide.project.scopes.MetaInfSchemaScope;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
+import com.intellij.lang.jsgraphql.ide.search.scope.GraphQLMetaInfSchemaSearchScope;
 import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.schema.GraphQLExternalTypeDefinitionsProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileTypes.FileType;
@@ -45,10 +43,8 @@ import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Enables cross-file searches for PSI references
@@ -56,16 +52,14 @@ import java.util.Set;
 public class GraphQLPsiSearchHelper implements Disposable {
 
     private final Project myProject;
-    private final Map<String, GlobalSearchScope> myFileNameToSchemaScope = Maps.newConcurrentMap();
-    private final GlobalSearchScope myGlobalScope;
-    private final GlobalSearchScope myBuiltInSchemaScopes;
+    private final GlobalSearchScope myDefaultProjectFileScope;
     private final GraphQLConfigManager myConfigManager;
 
+    private final Map<String, GlobalSearchScope> myFileNameToSchemaScope = Maps.newConcurrentMap();
     private final GraphQLFile myDefaultProjectFile;
     private final PsiManager myPsiManager;
     private final @Nullable GraphQLInjectionSearchHelper myInjectionSearchHelper;
     private final InjectedLanguageManager myInjectedLanguageManager;
-    private final GraphQLExternalTypeDefinitionsProvider myExternalDefinitionsProvider;
 
     public static GraphQLPsiSearchHelper getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLPsiSearchHelper.class);
@@ -77,27 +71,11 @@ public class GraphQLPsiSearchHelper implements Disposable {
         myInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
         myInjectedLanguageManager = InjectedLanguageManager.getInstance(myProject);
         myConfigManager = GraphQLConfigManager.getService(myProject);
-        myExternalDefinitionsProvider = GraphQLExternalTypeDefinitionsProvider.getInstance(myProject);
 
-        final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
-        myDefaultProjectFile = (GraphQLFile) psiFileFactory.createFileFromText("Default schema file", GraphQLLanguage.INSTANCE, "");
-
-        GlobalSearchScope defaultProjectFileScope = GlobalSearchScope.fileScope(myDefaultProjectFile);
-        GlobalSearchScope builtInSchemaScope =
-            GlobalSearchScope.fileScope(project, myExternalDefinitionsProvider.getBuiltInSchema().getVirtualFile());
-        GlobalSearchScope builtInRelaySchemaScope =
-            GlobalSearchScope.fileScope(project, myExternalDefinitionsProvider.getRelayModernDirectivesSchema().getVirtualFile());
-        GlobalSearchScope builtInFederationSchemaScope =
-            GlobalSearchScope.fileScope(project, myExternalDefinitionsProvider.getBuiltInFederationSchema().getVirtualFile());
-
-        GraphQLSettings settings = GraphQLSettings.getSettings(project);
-        myBuiltInSchemaScopes = builtInSchemaScope
-            .union(new ConditionalGlobalSearchScope(builtInRelaySchemaScope, settings::isRelaySupportEnabled))
-            .union(new ConditionalGlobalSearchScope(builtInFederationSchemaScope, settings::isFederationSupportEnabled))
-            .union(defaultProjectFileScope);
-
-        final FileType[] searchScopeFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
-        myGlobalScope = createScope(null);
+        // TODO: [vepanimas] CachedValuesManager reports this as a memory leak and throws an error in tests
+        myDefaultProjectFile = (GraphQLFile) PsiFileFactory.getInstance(myProject).createFileFromText("Default schema file",
+            GraphQLLanguage.INSTANCE, "");
+        myDefaultProjectFileScope = GlobalSearchScope.fileScope(myDefaultProjectFile);
 
         project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
@@ -113,16 +91,17 @@ public class GraphQLPsiSearchHelper implements Disposable {
     }
 
     @NotNull
-    private GlobalSearchScope createScope(@Nullable GlobalSearchScope filteredScope) {
+    private GlobalSearchScope createScope(@Nullable GlobalSearchScope configRestrictedScope) {
         GlobalSearchScope scope = GlobalSearchScope.projectScope(myProject);
-        if (filteredScope != null) {
-            scope = scope.intersectWith(filteredScope);
+        if (configRestrictedScope != null) {
+            scope = scope.intersectWith(configRestrictedScope);
         }
 
         // these scopes are used unconditionally, both for global and config filtered scopes
         scope = scope
-            .union(myBuiltInSchemaScopes)
-            .union(new MetaInfSchemaScope(myProject));
+            .union(myDefaultProjectFileScope)
+            .union(new GraphQLMetaInfSchemaSearchScope(myProject))
+            .union(createExternalDefinitionsLibraryScope());
 
         // filter all the resulting scopes by file types, we don't want some child scope to override this
         FileType[] fileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);
@@ -141,31 +120,16 @@ public class GraphQLPsiSearchHelper implements Disposable {
      * Uses custom editable scopes to limit the schema and reference resolution of a GraphQL psi element
      */
     @NotNull
-    public GlobalSearchScope getSchemaScope(@NotNull PsiElement element) {
-        PsiFile containingFile = element.getContainingFile();
-        return myFileNameToSchemaScope.computeIfAbsent(GraphQLPsiUtil.getFileName(containingFile), fileName -> {
-            final VirtualFile virtualFile = GraphQLPsiUtil.getOriginalVirtualFile(containingFile);
-            final NamedScope configScope = myConfigManager.getSchemaScope(virtualFile);
-            if (configScope != null) {
-                return createScope(GlobalSearchScopesCore.filterScope(myProject, configScope));
-            }
+    public GlobalSearchScope getResolveScope(@NotNull PsiElement element) {
+        PsiFile file = element.getContainingFile();
+        return myFileNameToSchemaScope.computeIfAbsent(GraphQLPsiUtil.getFileName(file), fileName -> {
+            final VirtualFile virtualFile = GraphQLPsiUtil.getOriginalVirtualFile(file);
+            final NamedScope configRestrictedScope = myConfigManager.getSchemaScope(virtualFile);
 
-            // default is entire project limited by relevant file types
-            return myGlobalScope;
+            return configRestrictedScope != null
+                ? createScope(GlobalSearchScopesCore.filterScope(myProject, configRestrictedScope))
+                : createScope(null);
         });
-    }
-
-    /**
-     * Provides a search scope that indicates from where usages can occur for the specified element.
-     * The main use case is for injected GraphQL where Idea defaults to the current file only.
-     */
-    @NotNull
-    public GlobalSearchScope getUseScope(@NotNull PsiElement element) {
-        if (element.getContainingFile().getVirtualFile() != null) {
-            return getSchemaScope(element);
-        } else {
-            return myGlobalScope;
-        }
     }
 
     /**
@@ -178,41 +142,43 @@ public class GraphQLPsiSearchHelper implements Disposable {
     public List<GraphQLFragmentDefinition> getKnownFragmentDefinitions(@NotNull PsiElement scopedElement) {
         try {
             final List<GraphQLFragmentDefinition> fragmentDefinitions = Lists.newArrayList();
-            GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
+            GlobalSearchScope schemaScope = getResolveScope(scopedElement);
             VirtualFile originalFile = GraphQLPsiUtil.getOriginalVirtualFile(scopedElement.getContainingFile());
             if (originalFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalFile)) {
                 // include the fragments defined in the currently edited scratch file (scratch files don't appear to be indexed)
-                fragmentDefinitions.addAll(PsiTreeUtil.getChildrenOfTypeAsList(scopedElement.getContainingFile().getOriginalFile(), GraphQLFragmentDefinition.class));
+                fragmentDefinitions.addAll(PsiTreeUtil.getChildrenOfTypeAsList(scopedElement.getContainingFile().getOriginalFile(),
+                    GraphQLFragmentDefinition.class));
             }
 
             final PsiManager psiManager = PsiManager.getInstance(myProject);
 
-            FileBasedIndex.getInstance().processFilesContainingAllKeys(GraphQLFragmentNameIndex.NAME, Collections.singleton(GraphQLFragmentNameIndex.HAS_FRAGMENTS), schemaScope, null, virtualFile -> {
+            FileBasedIndex.getInstance().processFilesContainingAllKeys(GraphQLFragmentNameIndex.NAME,
+                Collections.singleton(GraphQLFragmentNameIndex.HAS_FRAGMENTS), schemaScope, null, virtualFile -> {
 
-                final PsiFile psiFile = psiManager.findFile(virtualFile);
-                if (psiFile != null) {
-                    final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
-                    identifierVisitor.set(new PsiRecursiveElementVisitor() {
-                        @Override
-                        public void visitElement(@NotNull PsiElement element) {
-                            if (element instanceof GraphQLDefinition) {
-                                if (element instanceof GraphQLFragmentDefinition) {
-                                    fragmentDefinitions.add((GraphQLFragmentDefinition) element);
+                    final PsiFile psiFile = psiManager.findFile(virtualFile);
+                    if (psiFile != null) {
+                        final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
+                        identifierVisitor.set(new PsiRecursiveElementVisitor() {
+                            @Override
+                            public void visitElement(@NotNull PsiElement element) {
+                                if (element instanceof GraphQLDefinition) {
+                                    if (element instanceof GraphQLFragmentDefinition) {
+                                        fragmentDefinitions.add((GraphQLFragmentDefinition) element);
+                                    }
+                                    return; // no need to visit deeper than definitions since fragments are top level
+                                } else if (element instanceof PsiLanguageInjectionHost) {
+                                    if (visitLanguageInjectionHost((PsiLanguageInjectionHost) element, identifierVisitor)) {
+                                        return;
+                                    }
                                 }
-                                return; // no need to visit deeper than definitions since fragments are top level
-                            } else if (element instanceof PsiLanguageInjectionHost) {
-                                if (visitLanguageInjectionHost((PsiLanguageInjectionHost) element, identifierVisitor)) {
-                                    return;
-                                }
+                                super.visitElement(element);
                             }
-                            super.visitElement(element);
-                        }
-                    });
-                    psiFile.accept(identifierVisitor.get());
-                }
+                        });
+                        psiFile.accept(identifierVisitor.get());
+                    }
 
-                return true; // process all known fragments
-            });
+                    return true; // process all known fragments
+                });
             return fragmentDefinitions;
         } catch (IndexNotReadyException e) {
             // can't search yet (e.g. during project startup)
@@ -291,7 +257,8 @@ public class GraphQLPsiSearchHelper implements Disposable {
                                 return; // no need to visit other elements
                             }
                         } else if (element instanceof JsonStringLiteral) {
-                            final CachedValue<GraphQLFile> cachedFile = element.getContainingFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
+                            final CachedValue<GraphQLFile> cachedFile = element.getContainingFile()
+                                .getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
                             if (cachedFile != null && cachedFile.hasUpToDateValue()) {
                                 GraphQLFile graphQLFile = cachedFile.getValue();
                                 if (introspectionFiles.add(graphQLFile)) {
@@ -322,9 +289,9 @@ public class GraphQLPsiSearchHelper implements Disposable {
                                         @NotNull String word,
                                         @NotNull Processor<PsiNamedElement> processor) {
         try {
-            final GlobalSearchScope schemaScope = getSchemaScope(scopedElement);
+            GlobalSearchScope searchScope = getResolveScope(scopedElement);
 
-            processElementsWithWordUsingIdentifierIndex(schemaScope, word, processor);
+            processElementsWithWordUsingIdentifierIndex(searchScope, word, processor);
 
             // also include the built-in schemas
             final PsiRecursiveElementVisitor builtInFileVisitor = new PsiRecursiveElementVisitor() {
@@ -338,21 +305,6 @@ public class GraphQLPsiSearchHelper implements Disposable {
                     super.visitElement(element);
                 }
             };
-
-            // spec schema
-            myExternalDefinitionsProvider.getBuiltInSchema().accept(builtInFileVisitor);
-
-            // federation spec schema
-            PsiFile federationSchema = myExternalDefinitionsProvider.getBuiltInFederationSchema();
-            if (schemaScope.contains(federationSchema.getVirtualFile())) {
-                federationSchema.accept(builtInFileVisitor);
-            }
-
-            // relay schema if enabled
-            final PsiFile relayModernDirectivesSchema = myExternalDefinitionsProvider.getRelayModernDirectivesSchema();
-            if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
-                relayModernDirectivesSchema.accept(builtInFileVisitor);
-            }
 
             // finally, look in the current scratch file
             PsiFile containingFile = scopedElement.getContainingFile();
@@ -381,21 +333,13 @@ public class GraphQLPsiSearchHelper implements Disposable {
         }
     }
 
-    /**
-     * Process built-in GraphQL PsiFiles that are not the spec schema
-     *
-     * @param schemaScope the search scope to use for limiting the schema definitions
-     * @param processor   a processor that will be invoked for each injected GraphQL PsiFile
-     */
-    public void processAdditionalBuiltInPsiFiles(@NotNull GlobalSearchScope schemaScope, @NotNull Processor<PsiFile> processor) {
-        final PsiFile relayModernDirectivesSchema = myExternalDefinitionsProvider.getRelayModernDirectivesSchema();
-        if (schemaScope.contains(relayModernDirectivesSchema.getVirtualFile())) {
-            processor.process(relayModernDirectivesSchema);
-        }
-        final PsiFile federationSpecSchema = myExternalDefinitionsProvider.getBuiltInFederationSchema();
-        if (schemaScope.contains(federationSpecSchema.getVirtualFile())) {
-            processor.process(federationSpecSchema);
-        }
+    @NotNull
+    private GlobalSearchScope createExternalDefinitionsLibraryScope() {
+        Collection<VirtualFile> roots = GraphQLLibraryRootsProvider.getLibraries(myProject)
+            .stream()
+            .flatMap(l -> l.getSourceRoots().stream())
+            .collect(Collectors.toSet());
+        return GlobalSearchScope.filesWithLibrariesScope(myProject, roots);
     }
 
     @Override
