@@ -41,18 +41,26 @@ public class GraphQLSchemaBuilderTest extends GraphQLTestCaseBase {
     }
 
     public void testDirectives() {
-        doTest(builder -> builder.includeDirectiveDefinitions(true));
+        doTest(true, builder -> builder.includeDirectiveDefinitions(true));
     }
 
     public void testSchemas() {
         doTest();
     }
 
-    private void doTest() {
-        doTest(null);
+    public void testSpecifiedByAndDeprecatedDirectives() {
+        doTest(false);
     }
 
-    private void doTest(@Nullable UnaryOperator<SchemaPrinter.Options> optionsBuilder) {
+    private void doTest() {
+        doTest(true);
+    }
+
+    private void doTest(boolean withAst) {
+        doTest(withAst, null);
+    }
+
+    private void doTest(boolean withAst, @Nullable UnaryOperator<SchemaPrinter.Options> optionsBuilder) {
         myFixture.configureByFile(getTestName(true) + ".graphql");
         GraphQLSchemaProvider schemaProvider = GraphQLSchemaProvider.getInstance(myFixture.getProject());
         GraphQLSchema schema = schemaProvider.getSchemaInfo(myFixture.getFile()).getSchema();
@@ -60,9 +68,11 @@ public class GraphQLSchemaBuilderTest extends GraphQLTestCaseBase {
         myFixture.configureByText("schema.graphql", new SchemaPrinter(getOptions(optionsBuilder)).print(schema));
         myFixture.checkResultByFile(getTestName(true) + "_schema.graphql");
 
-        getOptions(optionsBuilder).useAstDefinitions(true);
-        myFixture.configureByText("ast.graphql", new SchemaPrinter(getOptions(optionsBuilder).useAstDefinitions(true)).print(schema));
-        myFixture.checkResultByFile(getTestName(true) + "_ast.graphql");
+        if (withAst) {
+            getOptions(optionsBuilder).useAstDefinitions(true);
+            myFixture.configureByText("ast.graphql", new SchemaPrinter(getOptions(optionsBuilder).useAstDefinitions(true)).print(schema));
+            myFixture.checkResultByFile(getTestName(true) + "_ast.graphql");
+        }
     }
 
     @NotNull

@@ -1,0 +1,12 @@
+type Query {
+    id: ID @deprecated(reason: 12)
+    name: String @deprecated(reason: )
+}
+
+scalar A @specifiedBy(url: )
+scalar B @specifiedBy(url: 2)
+
+query {
+    id
+    name
+}

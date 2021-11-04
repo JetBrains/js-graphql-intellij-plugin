@@ -295,18 +295,19 @@ public class SchemaGeneratorHelper {
     String buildDeprecationReason(List<Directive> directives) {
         directives = Optional.ofNullable(directives).orElse(emptyList());
         Optional<Directive> directive = directives.stream().filter(d -> "deprecated".equals(d.getName())).findFirst();
-        if (directive.isPresent()) {
-            Map<String, String> args = directive.get().getArguments().stream().collect(toMap(
-                    Argument::getName, arg -> ((StringValue) arg.getValue()).getValue()
-            ));
-            if (args.isEmpty()) {
-                return NO_LONGER_SUPPORTED; // default value from spec
-            } else {
-                // pre flight checks have ensured its valid
-                return args.get("reason");
-            }
+        if (directive.isEmpty()) {
+            return null;
         }
-        return null;
+        Map<String, String> args = directive.get().getArguments().stream()
+            .filter(arg -> arg.getValue() instanceof StringValue)
+            .collect(toMap(Argument::getName, arg -> ((StringValue) arg.getValue()).getValue()
+        ));
+        if (args.isEmpty()) {
+            return NO_LONGER_SUPPORTED; // default value from spec
+        } else {
+            // pre flight checks have ensured its valid
+            return args.get("reason");
+        }
     }
 
     private @NotNull GraphQLDirective buildDirective(BuildContext buildCtx,
@@ -653,13 +654,14 @@ public class SchemaGeneratorHelper {
         extensions.forEach(extension -> allDirectives.addAll(extension.getDirectives()));
         Optional<Directive> specifiedByDirective = FpKit.findOne(allDirectives,
                 directiveDefinition -> directiveDefinition.getName().equals(Directives.SpecifiedByDirective.getName()));
-        if (!specifiedByDirective.isPresent()) {
+        if (specifiedByDirective.isEmpty()) {
             return null;
         }
         Argument urlArgument = specifiedByDirective.get().getArgument("url");
         if (urlArgument == null) return null;
-        StringValue url = (StringValue) urlArgument.getValue();
-        return url.getValue();
+        Value value = urlArgument.getValue();
+        if (!(value instanceof StringValue)) return null;
+        return ((StringValue) value).getValue();
     }
 
     private TypeResolver getTypeResolverForInterface(BuildContext buildCtx, InterfaceTypeDefinition interfaceType) {
