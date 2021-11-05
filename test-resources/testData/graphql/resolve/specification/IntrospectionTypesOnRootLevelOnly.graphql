@@ -1,0 +1,10 @@
+type Query {}
+
+{
+    __type(name: "User") {
+        name
+        <error descr="Unknown field \"__type\" on object type \"__Type\"">__type</error>(<error descr="Unknown argument \"name\"">name</error>: "User") {
+            __type
+        }
+    }
+}

@@ -1,0 +1,13 @@
+type Query {}
+
+{
+    __ty<caret>pe(name: "User") {
+        name
+        fields {
+            name
+            type {
+                name
+            }
+        }
+    }
+}

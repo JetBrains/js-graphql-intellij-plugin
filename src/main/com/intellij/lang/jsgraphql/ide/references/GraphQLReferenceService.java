@@ -220,7 +220,8 @@ public class GraphQLReferenceService implements Disposable {
                 GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, element, new PsiRecursiveElementVisitor() {
                     @Override
                     public void visitElement(final @NotNull PsiElement schemaElement) {
-                        if (schemaElement instanceof GraphQLReferenceMixin && schemaElement.getText().equals(name)) {
+                        if (schemaElement instanceof GraphQLReferenceMixin &&
+                            Objects.equals(((GraphQLReferenceMixin) schemaElement).getName(), name)) {
                             reference.set(createReference(element, schemaElement));
                             return;
                         }

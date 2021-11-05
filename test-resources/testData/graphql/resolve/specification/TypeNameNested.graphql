@@ -1,0 +1,14 @@
+type Query {
+    viewer: Viewer
+}
+
+type Viewer {
+    login: String
+}
+
+{
+    viewer {
+        __t<caret>ypename
+        login
+    }
+}

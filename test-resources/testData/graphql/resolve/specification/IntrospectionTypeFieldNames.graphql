@@ -1,0 +1,13 @@
+type Query {}
+
+{
+    __type(name: "User") {
+        name
+        fields {
+            na<caret>me
+            type {
+                name
+            }
+        }
+    }
+}

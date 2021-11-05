@@ -1,39 +1,32 @@
 package com.intellij.lang.jsgraphql.resolve;
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
-import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
-import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
+import com.intellij.lang.jsgraphql.GraphQLResolveTestCaseBase;
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumValueDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
-import com.intellij.psi.PsiElement;
 
-public class GraphQLSchemaResolveTest extends GraphQLTestCaseBase {
+public class GraphQLSchemaResolveTest extends GraphQLResolveTestCaseBase {
     @Override
     protected String getBasePath() {
         return "/resolve/schema";
     }
 
     public void testDirectiveObjectArgumentValue() {
-        PsiElement target = doResolveWithOffsetTest(GraphQLIdentifier.class, "owner");
-        assertInstanceOf(target.getParent(), GraphQLEnumValue.class);
+        doResolveWithOffsetTest(GraphQLEnumValueDefinition.class, "owner");
     }
 
     public void testDirectiveObjectArgumentField() {
-        PsiElement target = doResolveWithOffsetTest(GraphQLIdentifier.class, "allow");
-        assertInstanceOf(target.getParent(), GraphQLInputValueDefinition.class);
+        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "allow");
     }
 
     public void testDefaultArgumentObjectValue() {
-        PsiElement target = doResolveWithOffsetTest(GraphQLIdentifier.class, "field");
-        assertInstanceOf(target.getParent(), GraphQLInputValueDefinition.class);
+        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "field");
     }
 
     public void testDefaultArgumentObjectArrayValue() {
-        PsiElement target = doResolveWithOffsetTest(GraphQLIdentifier.class, "field");
-        assertInstanceOf(target.getParent(), GraphQLInputValueDefinition.class);
+        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "field");
     }
 
     public void testDefaultArgumentObjectRecursiveArrayValue() {
-        PsiElement target = doResolveWithOffsetTest(GraphQLIdentifier.class, "order");
-        assertInstanceOf(target.getParent(), GraphQLInputValueDefinition.class);
+        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "order");
     }
 }

@@ -1,0 +1,19 @@
+union SearchResult = Photo | Person
+
+type Person {
+    name: String
+}
+
+type Photo {
+    resolution: Int
+}
+
+type Query {
+    firstSearchResult: Person
+}
+
+{
+    firstSearchResult {
+        __typena<caret>me
+    }
+}

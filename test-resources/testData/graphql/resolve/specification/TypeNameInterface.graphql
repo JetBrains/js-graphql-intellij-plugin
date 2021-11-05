@@ -1,0 +1,25 @@
+type Query {
+    entity: NamedEntity
+}
+
+interface NamedEntity {
+    name: String
+}
+
+type Person implements NamedEntity {
+    name: String
+    age: Int
+}
+
+type Business implements NamedEntity {
+    name: String
+    value: Int
+    employeeCount: Int
+}
+
+{
+    entity {
+        __typen<caret>ame
+        name
+    }
+}

@@ -1,0 +1,3 @@
+type User {
+    id: ID @deprecat<caret>ed(reason: "no reason")
+}

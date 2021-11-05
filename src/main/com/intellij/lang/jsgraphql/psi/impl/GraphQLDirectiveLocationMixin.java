@@ -19,7 +19,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceBase;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl implements GraphQLDirectiveLocation {
 
@@ -29,33 +34,35 @@ public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl i
 
     @Override
     public PsiReference getReference() {
-        // TODO: [vepanimas] move to a reference resolver: getReference should only create a reference, not resolve it.
-        final Ref<PsiReference> reference = new Ref<>();
-        final GraphQLDirectiveLocationMixin psiElement = this;
-        final String locationName = psiElement.getText();
+        return CachedValuesManager.getCachedValue(this, () -> {
+            final Ref<PsiReference> reference = new Ref<>();
+            final GraphQLDirectiveLocationMixin location = this;
+            final String locationName = location.getText();
 
-        GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, this, new PsiRecursiveElementVisitor() {
-            @Override
-            public void visitElement(@NotNull PsiElement element) {
-                if (element instanceof GraphQLEnumValue && element.getText().equals(locationName)) {
-                    final GraphQLIdentifier referencedEnumValue = ((GraphQLEnumValue) element).getNameIdentifier();
-                    reference.set(new PsiReferenceBase<PsiElement>(psiElement, new TextRange(0, psiElement.getTextLength())) {
-                        @Override
-                        public PsiElement resolve() {
-                            return referencedEnumValue;
-                        }
+            // TODO: [vepanimas] move to a reference resolver: getReference should only create a reference, not resolve it.
+            GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, this, new PsiRecursiveElementVisitor() {
+                @Override
+                public void visitElement(@NotNull PsiElement element) {
+                    if (element instanceof GraphQLEnumValue && Objects.equals(((GraphQLEnumValue) element).getName(), locationName)) {
+                        final GraphQLIdentifier referencedEnumIdentifier = ((GraphQLEnumValue) element).getNameIdentifier();
+                        reference.set(new PsiReferenceBase<>(location, new TextRange(0, location.getTextLength())) {
+                            @Override
+                            public PsiElement resolve() {
+                                return referencedEnumIdentifier;
+                            }
 
-                        @NotNull
-                        @Override
-                        public Object @NotNull [] getVariants() {
-                            return PsiReference.EMPTY_ARRAY;
-                        }
-                    });
-                    return; // done visiting
+                            @NotNull
+                            @Override
+                            public Object @NotNull [] getVariants() {
+                                return PsiReference.EMPTY_ARRAY;
+                            }
+                        });
+                        return; // done visiting
+                    }
+                    super.visitElement(element);
                 }
-                super.visitElement(element);
-            }
+            });
+            return CachedValueProvider.Result.createSingleDependency(reference.get(), PsiModificationTracker.MODIFICATION_COUNT);
         });
-        return reference.get();
     }
 }

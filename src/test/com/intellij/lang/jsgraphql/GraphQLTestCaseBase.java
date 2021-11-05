@@ -3,26 +3,24 @@ package com.intellij.lang.jsgraphql;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.*;
-import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
-import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLIdentifierImpl;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.testFramework.VfsTestUtil;
+import com.intellij.psi.PsiNamedElement;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.List;
 
 public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
-    public static final String REF_MARK = "<ref>";
-    public static final String CARET_MARK = "<caret>";
 
     protected static final List<Class<? extends LocalInspectionTool>> ourGeneralInspections = Lists.newArrayList(
         GraphQLUnresolvedReferenceInspection.class
@@ -68,56 +66,37 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
     }
 
     @NotNull
-    protected PsiElement doResolveAsTextTest(@NotNull String expectedText) {
-        PsiReference reference = myFixture.getReferenceAtCaretPosition(getTestName(false) + ".graphql");
-        assertNotNull(reference);
-        PsiElement element = reference.resolve();
-        assertNotNull(element);
-        assertEquals(expectedText, element.getText());
-        return element;
-    }
-
-    protected @NotNull PsiElement doResolveWithOffsetTest(@NotNull Class<? extends PsiElement> expectedClass, @NotNull String expectedText) {
-        String fileName = getTestName(false) + ".graphql";
-        String path = FileUtil.join(getTestDataPath(), fileName);
-        VirtualFile file = VfsTestUtil.findFileByCaseSensitivePath(path);
-        assertNotNull(file);
-
-        String text = readFileAsString(file);
-        String textWithoutCarets = text.replace(CARET_MARK, "");
-        int refOffset = textWithoutCarets.indexOf(REF_MARK);
-        assertTrue(refOffset >= 0);
-
-        PsiFile psiFile = prepareFile(fileName, text);
-        loadConfiguration();
-        PsiElement target = findElementAndResolve(psiFile);
-        assertEquals(target.getTextOffset(), refOffset);
-        assertInstanceOf(target, expectedClass);
-        assertEquals(expectedText, target.getText());
-        return target;
-    }
-
-    private @NotNull PsiFile prepareFile(@NotNull String fileName, @NotNull String text) {
-        text = text.replace(REF_MARK, "");
-        return myFixture.configureByText(fileName, text);
-    }
-
-    private @NotNull PsiElement findElementAndResolve(@NotNull PsiFile psiFile) {
-        PsiElement element = PsiTreeUtil.getParentOfType(psiFile.findElementAt(myFixture.getCaretOffset()), GraphQLIdentifier.class);
-        assertNotNull(element);
-        PsiReference reference = element.getReference();
-        assertNotNull("Reference is null", reference);
-        PsiElement target = reference.resolve();
-        assertNotNull("Resolved reference is null", target);
-
-        return target;
-    }
-
-    private @NotNull String readFileAsString(@NotNull VirtualFile file) {
+    protected String readFileAsString(@NotNull VirtualFile file) {
         try {
             return StringUtil.convertLineSeparators(VfsUtil.loadText(file));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    protected void assertNamedElement(@Nullable PsiElement element,
+                                      @NotNull Class<? extends PsiElement> expectedClass,
+                                      @NotNull String expectedName) {
+        assertInstanceOf(element, expectedClass);
+
+        PsiNamedElement namedElement;
+        if (element instanceof GraphQLTypeNameDefinitionOwner) {
+            namedElement = ((GraphQLTypeNameDefinitionOwner) element).getTypeNameDefinition();
+        } else if (element instanceof GraphQLDirectiveDefinition) {
+            // for some reason elements which are supposed to implement PsiNamedElement don't implement it
+            // GraphQLIdentifier interface also doesn't, so we need this explicit downcast to the GraphQLIdentifierImpl
+            namedElement = ((GraphQLIdentifierImpl) ((GraphQLDirectiveDefinition) element).getNameIdentifier());
+        } else {
+            assertInstanceOf(element, PsiNamedElement.class);
+            namedElement = (PsiNamedElement) element;
+        }
+        assertNotNull(namedElement);
+        assertEquals(expectedName, namedElement.getName());
+    }
+
+    protected void assertContainingDefinition(@Nullable PsiElement element,
+                                              @NotNull Class<? extends PsiElement> expectedClass,
+                                              @NotNull String expectedName) {
+        assertNamedElement(GraphQLResolveUtil.findContainingDefinition(element), expectedClass, expectedName);
     }
 }

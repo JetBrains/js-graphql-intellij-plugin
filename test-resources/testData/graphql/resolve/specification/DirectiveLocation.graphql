@@ -1,0 +1,1 @@
+directive @tableField(name: String) on FIELD | FIELD<caret>_DEFINITION
