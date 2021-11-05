@@ -196,6 +196,8 @@ public class GraphQLConfigVariableAwareEndpoint {
             ".env.local",
             ".env.development.local",
             ".env.development",
+            ".env.dev.local",
+            ".env.dev",
             ".env");
 
         // Look through the supported names and return the first we find

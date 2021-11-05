@@ -2,6 +2,11 @@
 
 # Changelog
 
+## [3.1.0] - 2021-10-31
+
+### Added
+- Load variables from .env files. New supported file names: `.env.dev`,`.env.dev.local`.
+
 ## [3.0.0] - 2021-07-16
 
 ### Added
