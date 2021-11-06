@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLObjectFieldImpl extends GraphQLObjectFieldMixin implements GraphQLObjectField {
 
-  public GraphQLObjectFieldImpl(ASTNode node) {
+  public GraphQLObjectFieldImpl(@NotNull ASTNode node) {
     super(node);
   }
 

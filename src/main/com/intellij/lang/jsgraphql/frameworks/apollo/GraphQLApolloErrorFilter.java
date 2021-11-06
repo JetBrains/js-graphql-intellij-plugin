@@ -11,7 +11,7 @@ import com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLField;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
+import com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.validation.ValidationError;
 import com.intellij.lang.jsgraphql.types.validation.ValidationErrorType;

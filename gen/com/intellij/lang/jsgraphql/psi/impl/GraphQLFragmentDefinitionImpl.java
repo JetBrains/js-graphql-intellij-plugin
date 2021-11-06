@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLFragmentDefinitionImpl extends GraphQLFragmentDefinitionMixin implements GraphQLFragmentDefinition {
 
-  public GraphQLFragmentDefinitionImpl(ASTNode node) {
+  public GraphQLFragmentDefinitionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLTemplateVariableImpl extends GraphQLValueImpl implements GraphQLTemplateVariable {
 
-  public GraphQLTemplateVariableImpl(ASTNode node) {
+  public GraphQLTemplateVariableImpl(@NotNull ASTNode node) {
     super(node);
   }
 

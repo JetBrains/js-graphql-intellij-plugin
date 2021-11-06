@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLTypedOperationDefinitionImpl extends GraphQLTypedOperationDefinitionMixin implements GraphQLTypedOperationDefinition {
 
-  public GraphQLTypedOperationDefinitionImpl(ASTNode node) {
+  public GraphQLTypedOperationDefinitionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

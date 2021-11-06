@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLUnionTypeDefinitionImpl extends GraphQLTypeDefinitionImpl implements GraphQLUnionTypeDefinition {
 
-  public GraphQLUnionTypeDefinitionImpl(ASTNode node) {
+  public GraphQLUnionTypeDefinitionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

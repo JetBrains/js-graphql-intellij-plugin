@@ -24,7 +24,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLEnumValueDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
+import com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLObjectValueImpl;
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;

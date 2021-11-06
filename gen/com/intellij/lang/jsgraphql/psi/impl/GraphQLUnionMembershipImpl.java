@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLUnionMembershipImpl extends GraphQLElementImpl implements GraphQLUnionMembership {
 
-  public GraphQLUnionMembershipImpl(ASTNode node) {
+  public GraphQLUnionMembershipImpl(@NotNull ASTNode node) {
     super(node);
   }
 

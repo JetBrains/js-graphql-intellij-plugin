@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLDirectiveImpl extends GraphQLNamedElementImpl implements GraphQLDirective {
 
-  public GraphQLDirectiveImpl(ASTNode node) {
+  public GraphQLDirectiveImpl(@NotNull ASTNode node) {
     super(node);
   }
 

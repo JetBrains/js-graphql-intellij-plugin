@@ -8,9 +8,6 @@
 package com.intellij.lang.jsgraphql.psi;
 
 import com.intellij.injected.editor.VirtualFileWindow;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiComment;

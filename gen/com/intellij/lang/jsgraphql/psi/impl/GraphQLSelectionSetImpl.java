@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLSelectionSetImpl extends GraphQLElementImpl implements GraphQLSelectionSet {
 
-  public GraphQLSelectionSetImpl(ASTNode node) {
+  public GraphQLSelectionSetImpl(@NotNull ASTNode node) {
     super(node);
   }
 

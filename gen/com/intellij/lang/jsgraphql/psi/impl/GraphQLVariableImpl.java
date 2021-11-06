@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLVariableImpl extends GraphQLVariableMixin implements GraphQLVariable {
 
-  public GraphQLVariableImpl(ASTNode node) {
+  public GraphQLVariableImpl(@NotNull ASTNode node) {
     super(node);
   }
 

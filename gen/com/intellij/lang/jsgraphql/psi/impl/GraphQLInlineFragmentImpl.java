@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLInlineFragmentImpl extends GraphQLInlineFragmentMixin implements GraphQLInlineFragment {
 
-  public GraphQLInlineFragmentImpl(ASTNode node) {
+  public GraphQLInlineFragmentImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLArgumentImpl extends GraphQLArgumentMixin implements GraphQLArgument {
 
-  public GraphQLArgumentImpl(ASTNode node) {
+  public GraphQLArgumentImpl(@NotNull ASTNode node) {
     super(node);
   }
 

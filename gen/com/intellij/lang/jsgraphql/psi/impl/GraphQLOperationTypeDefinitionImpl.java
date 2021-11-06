@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLOperationTypeDefinitionImpl extends GraphQLElementImpl implements GraphQLOperationTypeDefinition {
 
-  public GraphQLOperationTypeDefinitionImpl(ASTNode node) {
+  public GraphQLOperationTypeDefinitionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

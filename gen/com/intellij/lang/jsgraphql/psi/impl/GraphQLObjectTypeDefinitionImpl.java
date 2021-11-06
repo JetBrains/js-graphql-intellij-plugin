@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLObjectTypeDefinitionImpl extends GraphQLTypeDefinitionImpl implements GraphQLObjectTypeDefinition {
 
-  public GraphQLObjectTypeDefinitionImpl(ASTNode node) {
+  public GraphQLObjectTypeDefinitionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

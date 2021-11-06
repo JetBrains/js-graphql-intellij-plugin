@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLTypeNameDefinitionImpl extends GraphQLNamedElementImpl implements GraphQLTypeNameDefinition {
 
-  public GraphQLTypeNameDefinitionImpl(ASTNode node) {
+  public GraphQLTypeNameDefinitionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

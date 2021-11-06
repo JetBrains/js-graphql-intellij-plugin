@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLNullValueImpl extends GraphQLValueImpl implements GraphQLNullValue {
 
-  public GraphQLNullValueImpl(ASTNode node) {
+  public GraphQLNullValueImpl(@NotNull ASTNode node) {
     super(node);
   }
 

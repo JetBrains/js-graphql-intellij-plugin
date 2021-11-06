@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLFloatValueImpl extends GraphQLValueImpl implements GraphQLFloatValue {
 
-  public GraphQLFloatValueImpl(ASTNode node) {
+  public GraphQLFloatValueImpl(@NotNull ASTNode node) {
     super(node);
   }
 

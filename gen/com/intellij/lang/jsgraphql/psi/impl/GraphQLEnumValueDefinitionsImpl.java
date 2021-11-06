@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLEnumValueDefinitionsImpl extends GraphQLElementImpl implements GraphQLEnumValueDefinitions {
 
-  public GraphQLEnumValueDefinitionsImpl(ASTNode node) {
+  public GraphQLEnumValueDefinitionsImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -3,10 +3,6 @@ package com.intellij.lang.jsgraphql.psi;
 
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.psi.PsiNamedElement;
 
 public class GraphQLVisitor extends PsiElementVisitor {
@@ -347,11 +343,11 @@ public class GraphQLVisitor extends PsiElementVisitor {
     visitElement(o);
   }
 
-  public void visitNamedElement(@NotNull GraphQLNamedElement o) {
+  public void visitDirectivesAware(@NotNull GraphQLDirectivesAware o) {
     visitElement(o);
   }
 
-  public void visitDirectivesAware(@NotNull GraphQLDirectivesAware o) {
+  public void visitNamedElement(@NotNull GraphQLNamedElement o) {
     visitElement(o);
   }
 

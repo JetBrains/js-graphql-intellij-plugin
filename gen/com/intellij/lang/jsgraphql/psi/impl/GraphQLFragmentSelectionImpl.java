@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLFragmentSelectionImpl extends GraphQLElementImpl implements GraphQLFragmentSelection {
 
-  public GraphQLFragmentSelectionImpl(ASTNode node) {
+  public GraphQLFragmentSelectionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

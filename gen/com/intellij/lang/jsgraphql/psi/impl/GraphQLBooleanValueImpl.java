@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLBooleanValueImpl extends GraphQLValueImpl implements GraphQLBooleanValue {
 
-  public GraphQLBooleanValueImpl(ASTNode node) {
+  public GraphQLBooleanValueImpl(@NotNull ASTNode node) {
     super(node);
   }
 

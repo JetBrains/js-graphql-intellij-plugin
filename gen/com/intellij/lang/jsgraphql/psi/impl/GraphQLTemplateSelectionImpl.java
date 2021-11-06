@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLTemplateSelectionImpl extends GraphQLElementImpl implements GraphQLTemplateSelection {
 
-  public GraphQLTemplateSelectionImpl(ASTNode node) {
+  public GraphQLTemplateSelectionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLTypeConditionImpl extends GraphQLElementImpl implements GraphQLTypeCondition {
 
-  public GraphQLTypeConditionImpl(ASTNode node) {
+  public GraphQLTypeConditionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

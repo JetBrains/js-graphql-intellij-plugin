@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 
 public class GraphQLSelectionSetOperationDefinitionImpl extends GraphQLSelectionSetOperationDefinitionMixin implements GraphQLSelectionSetOperationDefinition {
 
-  public GraphQLSelectionSetOperationDefinitionImpl(ASTNode node) {
+  public GraphQLSelectionSetOperationDefinitionImpl(@NotNull ASTNode node) {
     super(node);
   }
 

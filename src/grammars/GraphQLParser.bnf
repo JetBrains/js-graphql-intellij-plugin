@@ -24,7 +24,7 @@
   implements("argument|directive|enumValue|field|fieldDefinition|fragmentDefinition|fragmentSpread|inputValueDefinition|objectField|operationDefinition|typeName|typeNameDefinition")="com.intellij.lang.jsgraphql.psi.GraphQLNamedElement"
   mixin(     "argument|directive|enumValue|field|fieldDefinition|fragmentDefinition|fragmentSpread|inputValueDefinition|objectField|operationDefinition|typeName|typeNameDefinition")="com.intellij.lang.jsgraphql.psi.impl.GraphQLNamedElementImpl"
 
-  implements("typeDefinition|(field|inputValue|enumValue|directive|schema)Definition")="com.intellij.lang.jsgraphql.psi.impl.GraphQLDescriptionAware"
+  implements("typeDefinition|(field|inputValue|enumValue|directive|schema)Definition")="com.intellij.lang.jsgraphql.psi.GraphQLDescriptionAware"
 
   tokens = [
 
@@ -206,7 +206,7 @@ typedOperationDefinition ::= operationType identifier? variableDefinitions? dire
   pin=1
   extends=operationDefinition
   methods=[directives="directive" nameIdentifier="identifier"]
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLTypedOperationDefinitionMixin"
 }
 
@@ -216,7 +216,7 @@ variableDefinition ::= variable ':' type defaultValue? directives? {
   pin=1
   recoverWhile=variableDefinition_recover
   methods=[directives="directive"]
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
 }
 
 private variableDefinition_recover ::= !(')' | root_tokens | variableDefinition)
@@ -236,7 +236,7 @@ private selection_recover ::= !('}' | root_tokens | selection)
 
 field ::= alias? identifier arguments? directives? selectionSet? {
   methods=[directives="directive" nameIdentifier="identifier"]
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldMixin"
 }
 
@@ -248,21 +248,21 @@ templateSelection ::= templatePlaceholder
 
 fragmentSpread ::= fragmentName directives? {
   pin=1
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive" nameIdentifier="identifier"]
 }
 
 inlineFragment ::= typeCondition? directives? selectionSet {
   pin=1
   methods=[directives="directive"]
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLInlineFragmentMixin"
 }
 
 fragmentDefinition ::= 'fragment' fragmentName typeCondition directives? selectionSet {
   pin=1
   extends=definition
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive" nameIdentifier="identifier"]
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLFragmentDefinitionMixin"
 }
@@ -286,14 +286,14 @@ typeSystemDefinition ::=
 schemaDefinition ::= description? 'schema' directives? operationTypeDefinitions {
   pin=2
   extends=typeSystemDefinition
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive"]
 }
 
 schemaExtension ::= 'extend' 'schema' directives? operationTypeDefinitions? {
   pin=2
   extends=typeSystemDefinition
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive"]
 }
 
@@ -328,28 +328,28 @@ typeExtension ::=
 scalarTypeDefinition ::= description? 'scalar' typeNameDefinition directives? {
   pin=2
   extends=typeDefinition
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinitionOwner"
   methods=[directives="directive"]
 }
 
 scalarTypeExtensionDefinition ::= 'extend' 'scalar' typeName directives? {
   pin=2
   extends=typeExtension
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameExtensionOwner"
   methods=[directives="directive"]
 }
 
 objectTypeDefinition ::= description? 'type' typeNameDefinition implementsInterfaces? directives? fieldsDefinition? {
   pin=2
   extends=typeDefinition
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinitionOwner"
   methods=[directives="directive"]
 }
 
 objectTypeExtensionDefinition ::= 'extend' 'type' typeName implementsInterfaces? directives? fieldsDefinition? {
   pin=2
   extends=typeExtension
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameExtensionOwner"
   methods=[directives="directive"]
 }
 
@@ -361,7 +361,7 @@ fieldsDefinition ::= '{' fieldDefinition* '}' {pin=1}
 
 fieldDefinition ::= description? identifier argumentsDefinition? ':' type directives? {
   pin=2
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive" nameIdentifier="identifier"]
   recoverWhile=fieldDefinition_recover
 }
@@ -372,7 +372,7 @@ argumentsDefinition ::= '(' inputValueDefinition+ ')' {pin=1}
 
 inputValueDefinition ::= description? identifier ':' type defaultValue? directives? {
   pin=2
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive" nameIdentifier="identifier"]
   recoverWhile=inputValueDefinition_recover
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLInputValueDefinitionMixin"
@@ -383,28 +383,28 @@ private inputValueDefinition_recover ::= !(')' | '}' | inputValueDefinition)
 interfaceTypeDefinition ::= description? 'interface' typeNameDefinition implementsInterfaces? directives? fieldsDefinition? {
   pin=2
   extends=typeDefinition
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinitionOwner"
   methods=[directives="directive"]
 }
 
 interfaceTypeExtensionDefinition ::= 'extend' 'interface' typeName implementsInterfaces? directives? fieldsDefinition? {
   pin=2
   extends=typeExtension
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameExtensionOwner"
   methods=[directives="directive"]
 }
 
 unionTypeDefinition ::= description? 'union' typeNameDefinition directives? unionMembership? {
   pin=2
   extends=typeDefinition
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinitionOwner"
   methods=[directives="directive"]
 }
 
 unionTypeExtensionDefinition ::= 'extend' 'union' typeName directives? unionMembership? {
   pin=2
   extends=typeExtension
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameExtensionOwner"
   methods=[directives="directive"]
 }
 
@@ -417,14 +417,14 @@ private pipeUnionMember ::= '|' typeName {pin=1}
 enumTypeDefinition ::= description? 'enum' typeNameDefinition directives? enumValueDefinitions? {
   pin=2
   extends=typeDefinition
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinitionOwner"
   methods=[directives="directive"]
 }
 
 enumTypeExtensionDefinition ::= 'extend' 'enum' typeName directives? enumValueDefinitions? {
   pin=2
   extends=typeExtension
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameExtensionOwner"
   methods=[directives="directive"]
 }
 
@@ -432,7 +432,7 @@ enumValueDefinitions ::= '{' enumValueDefinition+ '}' {pin=1}
 
 enumValueDefinition ::= description? enumValue directives? {
   pin=2
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive"]
   recoverWhile=enumValueDefinition_recover
 }
@@ -442,14 +442,14 @@ private enumValueDefinition_recover ::= !('}' | enumValueDefinition | root_token
 inputObjectTypeDefinition ::= description? 'input' typeNameDefinition directives? inputObjectValueDefinitions? {
   pin=2
   extends=typeDefinition
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinitionOwner"
   methods=[directives="directive"]
 }
 
 inputObjectTypeExtensionDefinition ::= 'extend' 'input' typeName directives? inputObjectValueDefinitions? {
   pin=2
   extends=typeExtension
-  implements="com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner"
+  implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLTypeNameExtensionOwner"
   methods=[directives="directive"]
 }
 
