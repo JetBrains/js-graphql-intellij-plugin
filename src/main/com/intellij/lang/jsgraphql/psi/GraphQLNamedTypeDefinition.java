@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Implemented by named type system definitions, e.g. object/interface/input/enum/union/scalar definitions
  */
-public interface GraphQLNamedTypeDefinition extends GraphQLElement {
+public interface GraphQLNamedTypeDefinition extends GraphQLTypeDefinition {
 
     @Nullable
     GraphQLTypeNameDefinition getTypeNameDefinition();

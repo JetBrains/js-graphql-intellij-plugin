@@ -7,14 +7,12 @@
  */
 package com.intellij.lang.jsgraphql.psi;
 
-import com.intellij.lang.jsgraphql.psi.GraphQLElement;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Implemented by type system extensions, e.g. 'extend type'/'extend interface'/'extend input'/'extend enum'/øextend union'/'extend scalar'
+ * Implemented by type system extensions, e.g. 'extend type'/'extend interface'/'extend input'/'extend enum'/'extend union'/'extend scalar'
  */
-public interface GraphQLTypeNameExtensionOwner extends GraphQLElement {
+public interface GraphQLNamedTypeExtension extends GraphQLTypeExtension {
 
     @Nullable
     GraphQLTypeName getTypeName();

@@ -71,7 +71,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitEnumTypeExtensionDefinition(@NotNull GraphQLEnumTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitTypeNameExtensionOwner(o);
+    // visitNamedTypeExtension(o);
   }
 
   public void visitEnumValue(@NotNull GraphQLEnumValue o) {
@@ -141,7 +141,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitInputObjectTypeExtensionDefinition(@NotNull GraphQLInputObjectTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitTypeNameExtensionOwner(o);
+    // visitNamedTypeExtension(o);
   }
 
   public void visitInputObjectValueDefinitions(@NotNull GraphQLInputObjectValueDefinitions o) {
@@ -165,7 +165,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitInterfaceTypeExtensionDefinition(@NotNull GraphQLInterfaceTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitTypeNameExtensionOwner(o);
+    // visitNamedTypeExtension(o);
   }
 
   public void visitListType(@NotNull GraphQLListType o) {
@@ -191,7 +191,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitObjectTypeExtensionDefinition(@NotNull GraphQLObjectTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitTypeNameExtensionOwner(o);
+    // visitNamedTypeExtension(o);
   }
 
   public void visitObjectValue(@NotNull GraphQLObjectValue o) {
@@ -226,7 +226,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitScalarTypeExtensionDefinition(@NotNull GraphQLScalarTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitTypeNameExtensionOwner(o);
+    // visitNamedTypeExtension(o);
   }
 
   public void visitSchemaDefinition(@NotNull GraphQLSchemaDefinition o) {
@@ -323,7 +323,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitUnionTypeExtensionDefinition(@NotNull GraphQLUnionTypeExtensionDefinition o) {
     visitTypeExtension(o);
-    // visitTypeNameExtensionOwner(o);
+    // visitNamedTypeExtension(o);
   }
 
   public void visitValue(@NotNull GraphQLValue o) {

@@ -13,7 +13,7 @@ import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameExtensionOwner;
+import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
@@ -279,8 +279,8 @@ public class GraphQLSchemaAnnotator implements Annotator {
                 return typeName.getNameIdentifier();
             }
         }
-        if (element instanceof GraphQLTypeNameExtensionOwner) {
-            GraphQLTypeName typeName = ((GraphQLTypeNameExtensionOwner) element).getTypeName();
+        if (element instanceof GraphQLNamedTypeExtension) {
+            GraphQLTypeName typeName = ((GraphQLNamedTypeExtension) element).getTypeName();
             if (typeName != null) {
                 return typeName.getNameIdentifier();
             }
