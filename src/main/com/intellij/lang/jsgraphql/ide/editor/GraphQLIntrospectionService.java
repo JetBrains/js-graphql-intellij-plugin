@@ -74,6 +74,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
@@ -177,6 +178,8 @@ public class GraphQLIntrospectionService implements Disposable {
     @NotNull
     public CloseableHttpClient createHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
         HttpClientBuilder builder = HttpClients.custom();
+        builder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
+
         if (PropertiesComponent.getInstance(myProject).isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) {
             builder
                 .setSSLContext(new SSLContextBuilder().loadTrustMaterial(null, TrustAllStrategy.INSTANCE).build())
@@ -221,7 +224,11 @@ public class GraphQLIntrospectionService implements Disposable {
     @SuppressWarnings("unchecked")
     @NotNull
     public static Map<String, Object> parseIntrospectionJson(@NotNull String introspectionJson) {
-        return new Gson().fromJson(sanitizeIntrospectionJson(introspectionJson), Map.class);
+        var result = new Gson().fromJson(sanitizeIntrospectionJson(introspectionJson), Map.class);
+        if (result == null) {
+            throw new JsonSyntaxException("Invalid introspection JSON value");
+        }
+        return result;
     }
 
     @NotNull
