@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * PSI Element which has one or more directives, e.g. fields, arguments etc.
  */
-public interface GraphQLDirectivesAware extends PsiElement {
+public interface GraphQLDirectivesAware extends GraphQLElement {
 
     @NotNull
     List<GraphQLDirective> getDirectives();

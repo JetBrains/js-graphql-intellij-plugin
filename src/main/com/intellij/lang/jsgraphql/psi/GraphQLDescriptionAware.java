@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * PSI Element which can have a description, e.g. types and fields in a schema
  */
-public interface GraphQLDescriptionAware extends PsiElement {
+public interface GraphQLDescriptionAware extends GraphQLElement {
 
     @Nullable
     GraphQLDescription getDescription();
