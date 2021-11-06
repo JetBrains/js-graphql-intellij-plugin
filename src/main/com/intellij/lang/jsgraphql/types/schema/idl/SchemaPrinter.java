@@ -17,12 +17,18 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
+import com.intellij.application.options.CodeStyle;
+import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionResultToSchema;
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -50,9 +56,9 @@ public class SchemaPrinter {
     // text with arguments (but only when we auto add this)
     //
     private static final GraphQLDirective DeprecatedDirective4Printing = GraphQLDirective.newDirective()
-            .name("deprecated")
-            .validLocations(FIELD_DEFINITION, ENUM_VALUE)
-            .build();
+        .name("deprecated")
+        .validLocations(FIELD_DEFINITION, ENUM_VALUE)
+        .build();
 
     /**
      * Options to use when printing a schema
@@ -135,8 +141,8 @@ public class SchemaPrinter {
 
         public static Options defaultOptions() {
             return new Options(false, true,
-                    false, true, false, false,
-                    directive -> true, element -> true, DefaultGraphqlTypeComparatorRegistry.defaultComparators());
+                false, true, false, false,
+                directive -> true, element -> true, DefaultGraphqlTypeComparatorRegistry.defaultComparators());
         }
 
         /**
@@ -146,7 +152,9 @@ public class SchemaPrinter {
          * @return options
          */
         public Options includeIntrospectionTypes(boolean flag) {
-            return new Options(flag, this.includeScalars, this.includeSchemaDefinition, this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement, this.comparatorRegistry);
+            return new Options(flag, this.includeScalars, this.includeSchemaDefinition, this.includeDirectiveDefinitions,
+                this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement,
+                this.comparatorRegistry);
         }
 
         /**
@@ -156,7 +164,9 @@ public class SchemaPrinter {
          * @return options
          */
         public Options includeScalarTypes(boolean flag) {
-            return new Options(this.includeIntrospectionTypes, flag, this.includeSchemaDefinition, this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement, this.comparatorRegistry);
+            return new Options(this.includeIntrospectionTypes, flag, this.includeSchemaDefinition, this.includeDirectiveDefinitions,
+                this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement,
+                this.comparatorRegistry);
         }
 
         /**
@@ -169,7 +179,9 @@ public class SchemaPrinter {
          * @return options
          */
         public Options includeSchemaDefinition(boolean flag) {
-            return new Options(this.includeIntrospectionTypes, this.includeScalars, flag, this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement, this.comparatorRegistry);
+            return new Options(this.includeIntrospectionTypes, this.includeScalars, flag, this.includeDirectiveDefinitions,
+                this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement,
+                this.comparatorRegistry);
         }
 
         /**
@@ -184,7 +196,9 @@ public class SchemaPrinter {
          * @return new instance of options
          */
         public Options includeDirectiveDefinitions(boolean flag) {
-            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition, flag, this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement, this.comparatorRegistry);
+            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition, flag,
+                this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement,
+                this.comparatorRegistry);
         }
 
         /**
@@ -195,7 +209,9 @@ public class SchemaPrinter {
          * @return new instance of options
          */
         public Options includeDirectives(boolean flag) {
-            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition, this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, directive -> flag, this.includeSchemaElement, this.comparatorRegistry);
+            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
+                this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, directive -> flag,
+                this.includeSchemaElement, this.comparatorRegistry);
         }
 
         /**
@@ -205,7 +221,9 @@ public class SchemaPrinter {
          * @return new instance of options
          */
         public Options includeDirectives(Predicate<GraphQLDirective> includeDirective) {
-            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition, this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, includeDirective, this.includeSchemaElement, this.comparatorRegistry);
+            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
+                this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, includeDirective,
+                this.includeSchemaElement, this.comparatorRegistry);
         }
 
         /**
@@ -216,7 +234,9 @@ public class SchemaPrinter {
          */
         public Options includeSchemaElement(Predicate<GraphQLSchemaElement> includeSchemaElement) {
             Assert.assertNotNull(includeSchemaElement);
-            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition, this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, includeDirective, includeSchemaElement, this.comparatorRegistry);
+            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
+                this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, includeDirective,
+                includeSchemaElement, this.comparatorRegistry);
         }
 
         /**
@@ -227,7 +247,9 @@ public class SchemaPrinter {
          * @return new instance of options
          */
         public Options useAstDefinitions(boolean flag) {
-            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition, this.includeDirectiveDefinitions, flag, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement, this.comparatorRegistry);
+            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
+                this.includeDirectiveDefinitions, flag, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement,
+                this.comparatorRegistry);
         }
 
         /**
@@ -240,7 +262,9 @@ public class SchemaPrinter {
          * @return new instance of options
          */
         public Options descriptionsAsHashComments(boolean flag) {
-            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition, this.includeDirectiveDefinitions, this.useAstDefinitions, flag, this.includeDirective, this.includeSchemaElement, this.comparatorRegistry);
+            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
+                this.includeDirectiveDefinitions, this.useAstDefinitions, flag, this.includeDirective, this.includeSchemaElement,
+                this.comparatorRegistry);
         }
 
         /**
@@ -252,12 +276,19 @@ public class SchemaPrinter {
          * @return options
          */
         public Options setComparators(GraphqlTypeComparatorRegistry comparatorRegistry) {
-            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition, this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement, comparatorRegistry);
+            return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
+                this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective,
+                this.includeSchemaElement, comparatorRegistry);
         }
     }
 
     private final Map<Class<?>, TypePrinter<?>> printers = new LinkedHashMap<>();
 
+    private static final String DEFAULT_INDENT = "  ";
+
+
+    private final @Nullable Project project;
+    private final @Nullable CommonCodeStyleSettings.IndentOptions indentOptions;
     private final Options options;
 
     public SchemaPrinter() {
@@ -265,7 +296,14 @@ public class SchemaPrinter {
     }
 
     public SchemaPrinter(Options options) {
+        this(null, options);
+    }
+
+    public SchemaPrinter(@Nullable Project project, Options options) {
+        this.project = project;
         this.options = options;
+        this.indentOptions = project != null ? CodeStyle.getSettings(project).getLanguageIndentOptions(GraphQLLanguage.INSTANCE) : null;
+
         printers.put(GraphQLSchema.class, schemaPrinter());
         printers.put(GraphQLObjectType.class, objectPrinter());
         printers.put(GraphQLEnumType.class, enumPrinter());
@@ -273,6 +311,29 @@ public class SchemaPrinter {
         printers.put(GraphQLInterfaceType.class, interfacePrinter());
         printers.put(GraphQLUnionType.class, unionPrinter());
         printers.put(GraphQLInputObjectType.class, inputObjectPrinter());
+    }
+
+    /**
+     * Trivial indentation formatting for type definitions when
+     * a full reformat is not possible for some reason.
+     */
+    @NotNull
+    private String calcIndent(int depth) {
+        if (depth == 0) {
+            return "";
+        }
+        if (indentOptions == null) {
+            return DEFAULT_INDENT.repeat(depth);
+        }
+
+        if (indentOptions.USE_TAB_CHARACTER) {
+            int size = indentOptions.INDENT_SIZE * depth;
+            int tabs = size / indentOptions.TAB_SIZE;
+            int spaces = size % indentOptions.TAB_SIZE;
+            return String.format("%s%s", "\t".repeat(tabs), " ".repeat(spaces));
+        } else {
+            return " ".repeat(indentOptions.INDENT_SIZE * depth);
+        }
     }
 
     /**
@@ -304,9 +365,9 @@ public class SchemaPrinter {
         printer(schema.getClass()).print(out, schema, visibility);
 
         List<GraphQLType> typesAsList = schema.getAllTypesAsList()
-                .stream()
-                .sorted(Comparator.comparing(GraphQLNamedType::getName))
-                .collect(toList());
+            .stream()
+            .sorted(Comparator.comparing(GraphQLNamedType::getName))
+            .collect(toList());
 
         printType(out, typesAsList, GraphQLInterfaceType.class, visibility);
         printType(out, typesAsList, GraphQLUnionType.class, visibility);
@@ -366,29 +427,31 @@ public class SchemaPrinter {
             }
 
             GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                    .parentType(GraphQLEnumType.class)
-                    .elementType(GraphQLEnumValueDefinition.class)
-                    .build();
+                .parentType(GraphQLEnumType.class)
+                .elementType(GraphQLEnumValueDefinition.class)
+                .build();
             Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
+            String indent = calcIndent(1);
             if (shouldPrintAsAst(type.getDefinition())) {
                 printAsAst(out, type.getDefinition(), type.getExtensionDefinitions());
             } else {
                 printComments(out, type, "");
                 out.format("enum %s%s", type.getName(), directivesString(GraphQLEnumType.class, type.getDirectives()));
                 List<GraphQLEnumValueDefinition> values = type.getValues()
-                        .stream()
-                        .sorted(comparator)
-                        .collect(toList());
+                    .stream()
+                    .sorted(comparator)
+                    .collect(toList());
                 if (values.size() > 0) {
                     out.format(" {\n");
                     for (GraphQLEnumValueDefinition enumValueDefinition : values) {
-                        printComments(out, enumValueDefinition, "  ");
+                        printComments(out, enumValueDefinition, indent);
                         List<GraphQLDirective> enumValueDirectives = enumValueDefinition.getDirectives();
                         if (enumValueDefinition.isDeprecated()) {
                             enumValueDirectives = addDeprecatedDirectiveIfNeeded(enumValueDirectives);
                         }
-                        out.format("  %s%s\n", enumValueDefinition.getName(), directivesString(GraphQLEnumValueDefinition.class, enumValueDirectives));
+                        out.format("%s%s%s\n", indent, enumValueDefinition.getName(),
+                            directivesString(GraphQLEnumValueDefinition.class, enumValueDirectives));
                     }
                     out.format("}");
                 }
@@ -397,27 +460,30 @@ public class SchemaPrinter {
         };
     }
 
-    private void printFieldDefinitions(PrintWriter out, Comparator<? super GraphQLSchemaElement> comparator, List<GraphQLFieldDefinition> fieldDefinitions) {
+    private void printFieldDefinitions(PrintWriter out,
+                                       Comparator<? super GraphQLSchemaElement> comparator,
+                                       List<GraphQLFieldDefinition> fieldDefinitions) {
         if (fieldDefinitions.size() == 0) {
             return;
         }
 
+        String indent = calcIndent(1);
         out.format(" {\n");
         fieldDefinitions
-                .stream()
-                .filter(options.getIncludeSchemaElement())
-                .sorted(comparator)
-                .forEach(fd -> {
-                    printComments(out, fd, "  ");
-                    List<GraphQLDirective> fieldDirectives = fd.getDirectives();
-                    if (fd.isDeprecated()) {
-                        fieldDirectives = addDeprecatedDirectiveIfNeeded(fieldDirectives);
-                    }
+            .stream()
+            .filter(options.getIncludeSchemaElement())
+            .sorted(comparator)
+            .forEach(fd -> {
+                printComments(out, fd, indent);
+                List<GraphQLDirective> fieldDirectives = fd.getDirectives();
+                if (fd.isDeprecated()) {
+                    fieldDirectives = addDeprecatedDirectiveIfNeeded(fieldDirectives);
+                }
 
-                    out.format("  %s%s: %s%s\n",
-                            fd.getName(), argsString(GraphQLFieldDefinition.class, fd.getArguments()), typeString(fd.getType()),
-                            directivesString(GraphQLFieldDefinition.class, fieldDirectives));
-                });
+                out.format("%s%s%s: %s%s\n",
+                    indent, fd.getName(), argsString(GraphQLFieldDefinition.class, fd.getArguments()), typeString(fd.getType()),
+                    directivesString(GraphQLFieldDefinition.class, fieldDirectives));
+            });
         out.format("}");
     }
 
@@ -436,25 +502,25 @@ public class SchemaPrinter {
                 } else {
 
                     GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                            .parentType(GraphQLInterfaceType.class)
-                            .elementType(GraphQLOutputType.class)
-                            .build();
+                        .parentType(GraphQLInterfaceType.class)
+                        .elementType(GraphQLOutputType.class)
+                        .build();
                     Comparator<? super GraphQLSchemaElement> implementsComparator = options.comparatorRegistry.getComparator(environment);
 
                     Stream<String> interfaceNames = type.getInterfaces()
-                            .stream()
-                            .sorted(implementsComparator)
-                            .map(GraphQLNamedType::getName);
+                        .stream()
+                        .sorted(implementsComparator)
+                        .map(GraphQLNamedType::getName);
                     out.format("interface %s implements %s%s",
-                            type.getName(),
-                            interfaceNames.collect(joining(" & ")),
-                            directivesString(GraphQLInterfaceType.class, type.getDirectives()));
+                        type.getName(),
+                        interfaceNames.collect(joining(" & ")),
+                        directivesString(GraphQLInterfaceType.class, type.getDirectives()));
                 }
 
                 GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                        .parentType(GraphQLInterfaceType.class)
-                        .elementType(GraphQLFieldDefinition.class)
-                        .build();
+                    .parentType(GraphQLInterfaceType.class)
+                    .elementType(GraphQLFieldDefinition.class)
+                    .build();
                 Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
                 printFieldDefinitions(out, comparator, visibility.getFieldDefinitions(type));
@@ -470,9 +536,9 @@ public class SchemaPrinter {
             }
 
             GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                    .parentType(GraphQLUnionType.class)
-                    .elementType(GraphQLOutputType.class)
-                    .build();
+                .parentType(GraphQLUnionType.class)
+                .elementType(GraphQLOutputType.class)
+                .build();
             Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
             if (shouldPrintAsAst(type.getDefinition())) {
@@ -481,9 +547,9 @@ public class SchemaPrinter {
                 printComments(out, type, "");
                 out.format("union %s%s = ", type.getName(), directivesString(GraphQLUnionType.class, type.getDirectives()));
                 List<GraphQLNamedOutputType> types = type.getTypes()
-                        .stream()
-                        .sorted(comparator)
-                        .collect(toList());
+                    .stream()
+                    .sorted(comparator)
+                    .collect(toList());
                 for (int i = 0; i < types.size(); i++) {
                     GraphQLNamedOutputType objectType = types.get(i);
                     if (i > 0) {
@@ -510,25 +576,25 @@ public class SchemaPrinter {
                 } else {
 
                     GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                            .parentType(GraphQLObjectType.class)
-                            .elementType(GraphQLOutputType.class)
-                            .build();
+                        .parentType(GraphQLObjectType.class)
+                        .elementType(GraphQLOutputType.class)
+                        .build();
                     Comparator<? super GraphQLSchemaElement> implementsComparator = options.comparatorRegistry.getComparator(environment);
 
                     Stream<String> interfaceNames = type.getInterfaces()
-                            .stream()
-                            .sorted(implementsComparator)
-                            .map(GraphQLNamedType::getName);
+                        .stream()
+                        .sorted(implementsComparator)
+                        .map(GraphQLNamedType::getName);
                     out.format("type %s implements %s%s",
-                            type.getName(),
-                            interfaceNames.collect(joining(" & ")),
-                            directivesString(GraphQLObjectType.class, type.getDirectives()));
+                        type.getName(),
+                        interfaceNames.collect(joining(" & ")),
+                        directivesString(GraphQLObjectType.class, type.getDirectives()));
                 }
 
                 GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                        .parentType(GraphQLObjectType.class)
-                        .elementType(GraphQLFieldDefinition.class)
-                        .build();
+                    .parentType(GraphQLObjectType.class)
+                    .elementType(GraphQLFieldDefinition.class)
+                    .build();
                 Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
                 printFieldDefinitions(out, comparator, visibility.getFieldDefinitions(type));
@@ -542,14 +608,16 @@ public class SchemaPrinter {
             if (isIntrospectionType(type)) {
                 return;
             }
+
+            String indent = calcIndent(1);
             if (shouldPrintAsAst(type.getDefinition())) {
                 printAsAst(out, type.getDefinition(), type.getExtensionDefinitions());
             } else {
                 printComments(out, type, "");
                 GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                        .parentType(GraphQLInputObjectType.class)
-                        .elementType(GraphQLInputObjectField.class)
-                        .build();
+                    .parentType(GraphQLInputObjectType.class)
+                    .elementType(GraphQLInputObjectField.class)
+                    .build();
                 Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
                 out.format("input %s%s", type.getName(), directivesString(GraphQLInputObjectType.class, type.getDirectives()));
@@ -557,21 +625,21 @@ public class SchemaPrinter {
                 if (inputObjectFields.size() > 0) {
                     out.format(" {\n");
                     inputObjectFields
-                            .stream()
-                            .filter(options.getIncludeSchemaElement())
-                            .sorted(comparator)
-                            .forEach(fd -> {
-                                printComments(out, fd, "  ");
-                                out.format("  %s: %s",
-                                        fd.getName(), typeString(fd.getType()));
-                                Object defaultValue = fd.getDefaultValue();
-                                if (defaultValue != null) {
-                                    String astValue = printAst(defaultValue, fd.getType());
-                                    out.format(" = %s", astValue);
-                                }
-                                out.format(directivesString(GraphQLInputObjectField.class, fd.getDirectives()));
-                                out.format("\n");
-                            });
+                        .stream()
+                        .filter(options.getIncludeSchemaElement())
+                        .sorted(comparator)
+                        .forEach(fd -> {
+                            printComments(out, fd, indent);
+                            out.format("%s%s: %s",
+                                indent, fd.getName(), typeString(fd.getType()));
+                            Object defaultValue = fd.getDefaultValue();
+                            if (defaultValue != null) {
+                                String astValue = printAst(defaultValue, fd.getType());
+                                out.format(" = %s", astValue);
+                            }
+                            out.format(directivesString(GraphQLInputObjectField.class, fd.getDirectives()));
+                            out.format("\n");
+                        });
                     out.format("}");
                 }
                 out.format("\n\n");
@@ -597,8 +665,7 @@ public class SchemaPrinter {
      * @param definition the AST type definition
      * @param extensions a list of type definition extensions
      */
-    private void printAsAst(PrintWriter out, TypeDefinition<?> definition, List<? extends
-            TypeDefinition<?>> extensions) {
+    private void printAsAst(PrintWriter out, TypeDefinition<?> definition, List<? extends TypeDefinition<?>> extensions) {
         out.printf("%s\n", AstPrinter.printAst(definition));
         if (extensions != null) {
             for (TypeDefinition<?> extension : extensions) {
@@ -635,16 +702,17 @@ public class SchemaPrinter {
                 }
             }
 
+            String indent = calcIndent(1);
             if (needsSchemaPrinted) {
                 out.format("schema %s{\n", directivesString(GraphQLSchemaElement.class, schemaDirectives));
                 if (queryType != null) {
-                    out.format("  query: %s\n", queryType.getName());
+                    out.format("%squery: %s\n", indent, queryType.getName());
                 }
                 if (mutationType != null) {
-                    out.format("  mutation: %s\n", mutationType.getName());
+                    out.format("%smutation: %s\n", indent, mutationType.getName());
                 }
                 if (subscriptionType != null) {
-                    out.format("  subscription: %s\n", subscriptionType.getName());
+                    out.format("%ssubscription: %s\n", indent, subscriptionType.getName());
                 }
                 out.format("}\n\n");
             }
@@ -660,9 +728,9 @@ public class SchemaPrinter {
 
     private List<GraphQLDirective> getSchemaDirectives(GraphQLSchema schema) {
         return schema.getDirectives().stream()
-                .filter(options.getIncludeDirective())
-                .filter(options.getIncludeSchemaElement())
-                .collect(toList());
+            .filter(options.getIncludeDirective())
+            .filter(options.getIncludeSchemaElement())
+            .collect(toList());
     }
 
     String typeString(GraphQLType rawType) {
@@ -675,22 +743,22 @@ public class SchemaPrinter {
 
     String argsString(Class<? extends GraphQLSchemaElement> parent, List<GraphQLArgument> arguments) {
         boolean hasDescriptions = arguments.stream().anyMatch(this::hasDescription);
-        String halfPrefix = hasDescriptions ? "  " : "";
-        String prefix = hasDescriptions ? "    " : "";
+        String indent = hasDescriptions ? calcIndent(1) : "";
+        String nestedIndent = hasDescriptions ? calcIndent(2) : "";
         int count = 0;
         StringBuilder sb = new StringBuilder();
 
         GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                .parentType(parent)
-                .elementType(GraphQLArgument.class)
-                .build();
+            .parentType(parent)
+            .elementType(GraphQLArgument.class)
+            .build();
         Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
         arguments = arguments
-                .stream()
-                .sorted(comparator)
-                .filter(options.getIncludeSchemaElement())
-                .collect(toList());
+            .stream()
+            .sorted(comparator)
+            .filter(options.getIncludeSchemaElement())
+            .collect(toList());
         for (GraphQLArgument argument : arguments) {
             if (count == 0) {
                 sb.append("(");
@@ -700,9 +768,9 @@ public class SchemaPrinter {
             if (hasDescriptions) {
                 sb.append("\n");
             }
-            sb.append(printComments(argument, prefix));
+            sb.append(printComments(argument, nestedIndent));
 
-            sb.append(prefix).append(argument.getName()).append(": ").append(typeString(argument.getType()));
+            sb.append(nestedIndent).append(argument.getName()).append(": ").append(typeString(argument.getType()));
             Object defaultValue = argument.getDefaultValue();
             if (defaultValue != null) {
                 sb.append(" = ");
@@ -710,10 +778,10 @@ public class SchemaPrinter {
             }
 
             argument.getDirectives().stream()
-                    .filter(options.getIncludeSchemaElement())
-                    .map(this::directiveString)
-                    .filter(it -> !it.isEmpty())
-                    .forEach(directiveString -> sb.append(" ").append(directiveString));
+                .filter(options.getIncludeSchemaElement())
+                .map(this::directiveString)
+                .filter(it -> !it.isEmpty())
+                .forEach(directiveString -> sb.append(" ").append(directiveString));
 
             count++;
         }
@@ -721,17 +789,17 @@ public class SchemaPrinter {
             if (hasDescriptions) {
                 sb.append("\n");
             }
-            sb.append(halfPrefix).append(")");
+            sb.append(indent).append(")");
         }
         return sb.toString();
     }
 
     String directivesString(Class<? extends GraphQLSchemaElement> parent, List<GraphQLDirective> directives) {
         directives = directives.stream()
-                // @deprecated is special - we always print it if something is deprecated
-                .filter(directive -> options.getIncludeDirective().test(directive) || isDeprecatedDirective(directive))
-                .filter(options.getIncludeSchemaElement())
-                .collect(toList());
+            // @deprecated is special - we always print it if something is deprecated
+            .filter(directive -> options.getIncludeDirective().test(directive) || isDeprecatedDirective(directive))
+            .filter(options.getIncludeSchemaElement())
+            .collect(toList());
 
         if (directives.isEmpty()) {
             return "";
@@ -742,15 +810,15 @@ public class SchemaPrinter {
         }
 
         GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                .parentType(parent)
-                .elementType(GraphQLDirective.class)
-                .build();
+            .parentType(parent)
+            .elementType(GraphQLDirective.class)
+            .build();
         Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
         directives = directives
-                .stream()
-                .sorted(comparator)
-                .collect(toList());
+            .stream()
+            .sorted(comparator)
+            .collect(toList());
         for (int i = 0; i < directives.size(); i++) {
             GraphQLDirective directive = directives.get(i);
             sb.append(directiveString(directive));
@@ -776,17 +844,17 @@ public class SchemaPrinter {
         sb.append("@").append(directive.getName());
 
         GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                .parentType(GraphQLDirective.class)
-                .elementType(GraphQLArgument.class)
-                .build();
+            .parentType(GraphQLDirective.class)
+            .elementType(GraphQLArgument.class)
+            .build();
         Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
         List<GraphQLArgument> args = directive.getArguments();
         args = args
-                .stream()
-                .filter(arg -> arg.getValue() != null || arg.getDefaultValue() != null)
-                .sorted(comparator)
-                .collect(toList());
+            .stream()
+            .filter(arg -> arg.getValue() != null || arg.getDefaultValue() != null)
+            .sorted(comparator)
+            .collect(toList());
         if (!args.isEmpty()) {
             sb.append("(");
             for (int i = 0; i < args.size(); i++) {
@@ -817,8 +885,8 @@ public class SchemaPrinter {
 
     private boolean hasDeprecatedDirective(List<GraphQLDirective> directives) {
         return directives.stream()
-                .filter(this::isDeprecatedDirective)
-                .count() == 1;
+            .filter(this::isDeprecatedDirective)
+            .count() == 1;
     }
 
     private List<GraphQLDirective> addDeprecatedDirectiveIfNeeded(List<GraphQLDirective> directives) {
@@ -849,17 +917,17 @@ public class SchemaPrinter {
         sb.append("directive @").append(directive.getName());
 
         GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
-                .parentType(GraphQLDirective.class)
-                .elementType(GraphQLArgument.class)
-                .build();
+            .parentType(GraphQLDirective.class)
+            .elementType(GraphQLArgument.class)
+            .build();
         Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
         List<GraphQLArgument> args = directive.getArguments();
         args = args
-                .stream()
-                .filter(options.getIncludeSchemaElement())
-                .sorted(comparator)
-                .collect(toList());
+            .stream()
+            .filter(options.getIncludeSchemaElement())
+            .sorted(comparator)
+            .collect(toList());
 
         sb.append(argsString(GraphQLDirective.class, args));
 
@@ -902,11 +970,11 @@ public class SchemaPrinter {
     }
 
     private void printType(PrintWriter out, List<GraphQLType> typesAsList, Class<?>
-            typeClazz, GraphqlFieldVisibility visibility) {
+        typeClazz, GraphqlFieldVisibility visibility) {
         typesAsList.stream()
-                .filter(type -> typeClazz.isAssignableFrom(type.getClass()))
-                .filter(type -> options.getIncludeSchemaElement().test(type))
-                .forEach(type -> printType(out, type, visibility));
+            .filter(type -> typeClazz.isAssignableFrom(type.getClass()))
+            .filter(type -> options.getIncludeSchemaElement().test(type))
+            .forEach(type -> printType(out, type, visibility));
     }
 
     private void printType(PrintWriter out, GraphQLType type, GraphqlFieldVisibility visibility) {
@@ -966,34 +1034,43 @@ public class SchemaPrinter {
     private String getDescription(Object descriptionHolder) {
         if (descriptionHolder instanceof GraphQLObjectType) {
             GraphQLObjectType type = (GraphQLObjectType) descriptionHolder;
-            return description(type.getDescription(), ofNullable(type.getDefinition()).map(ObjectTypeDefinition::getDescription).orElse(null));
+            return description(type.getDescription(),
+                ofNullable(type.getDefinition()).map(ObjectTypeDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLEnumType) {
             GraphQLEnumType type = (GraphQLEnumType) descriptionHolder;
-            return description(type.getDescription(), ofNullable(type.getDefinition()).map(EnumTypeDefinition::getDescription).orElse(null));
+            return description(type.getDescription(),
+                ofNullable(type.getDefinition()).map(EnumTypeDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLFieldDefinition) {
             GraphQLFieldDefinition type = (GraphQLFieldDefinition) descriptionHolder;
             return description(type.getDescription(), ofNullable(type.getDefinition()).map(FieldDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLEnumValueDefinition) {
             GraphQLEnumValueDefinition type = (GraphQLEnumValueDefinition) descriptionHolder;
-            return description(type.getDescription(), ofNullable(type.getDefinition()).map(EnumValueDefinition::getDescription).orElse(null));
+            return description(type.getDescription(),
+                ofNullable(type.getDefinition()).map(EnumValueDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLUnionType) {
             GraphQLUnionType type = (GraphQLUnionType) descriptionHolder;
-            return description(type.getDescription(), ofNullable(type.getDefinition()).map(UnionTypeDefinition::getDescription).orElse(null));
+            return description(type.getDescription(),
+                ofNullable(type.getDefinition()).map(UnionTypeDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLInputObjectType) {
             GraphQLInputObjectType type = (GraphQLInputObjectType) descriptionHolder;
-            return description(type.getDescription(), ofNullable(type.getDefinition()).map(InputObjectTypeDefinition::getDescription).orElse(null));
+            return description(type.getDescription(),
+                ofNullable(type.getDefinition()).map(InputObjectTypeDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLInputObjectField) {
             GraphQLInputObjectField type = (GraphQLInputObjectField) descriptionHolder;
-            return description(type.getDescription(), ofNullable(type.getDefinition()).map(InputValueDefinition::getDescription).orElse(null));
+            return description(type.getDescription(),
+                ofNullable(type.getDefinition()).map(InputValueDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLInterfaceType) {
             GraphQLInterfaceType type = (GraphQLInterfaceType) descriptionHolder;
-            return description(type.getDescription(), ofNullable(type.getDefinition()).map(InterfaceTypeDefinition::getDescription).orElse(null));
+            return description(type.getDescription(),
+                ofNullable(type.getDefinition()).map(InterfaceTypeDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLScalarType) {
             GraphQLScalarType type = (GraphQLScalarType) descriptionHolder;
-            return description(type.getDescription(), ofNullable(type.getDefinition()).map(ScalarTypeDefinition::getDescription).orElse(null));
+            return description(type.getDescription(),
+                ofNullable(type.getDefinition()).map(ScalarTypeDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLArgument) {
             GraphQLArgument type = (GraphQLArgument) descriptionHolder;
-            return description(type.getDescription(), ofNullable(type.getDefinition()).map(InputValueDefinition::getDescription).orElse(null));
+            return description(type.getDescription(),
+                ofNullable(type.getDefinition()).map(InputValueDefinition::getDescription).orElse(null));
         } else if (descriptionHolder instanceof GraphQLDirective) {
             GraphQLDirective type = (GraphQLDirective) descriptionHolder;
             return description(type.getDescription(), null);

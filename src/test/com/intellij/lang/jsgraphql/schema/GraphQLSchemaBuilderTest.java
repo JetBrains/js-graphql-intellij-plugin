@@ -65,7 +65,7 @@ public class GraphQLSchemaBuilderTest extends GraphQLTestCaseBase {
         GraphQLSchemaProvider schemaProvider = GraphQLSchemaProvider.getInstance(myFixture.getProject());
         GraphQLSchema schema = schemaProvider.getSchemaInfo(myFixture.getFile()).getSchema();
 
-        myFixture.configureByText("schema.graphql", new SchemaPrinter(getOptions(optionsBuilder)).print(schema));
+        myFixture.configureByText("schema.graphql", new SchemaPrinter(getProject(), getOptions(optionsBuilder)).print(schema));
         myFixture.checkResultByFile(getTestName(true) + "_schema.graphql");
 
         if (withAst) {

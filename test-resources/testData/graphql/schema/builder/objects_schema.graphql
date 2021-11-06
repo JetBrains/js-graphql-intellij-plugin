@@ -1,21 +1,21 @@
 interface Named {
-  name: Int
+    name: Int
 }
 
 interface Other {
-  phone: String
+    phone: String
 }
 
 interface WithPhone {
-  phone: String
+    phone: String
 }
 
 type Query
 
 type User implements Named & Other & WithPhone @one @one @three @three @two {
-  address: String
-  id: ID
-  name: Int
-  phone: String
-  zip: String
+    address: String
+    id: ID
+    name: Int
+    phone: String
+    zip: String
 }

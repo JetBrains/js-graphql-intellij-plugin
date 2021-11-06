@@ -1,20 +1,20 @@
 interface Inter implements Named {
-  name: String
+    name: String
 }
 
 interface Named {
-  name: String
+    name: String
 }
 
 interface User implements Named & WithID @four @one @three @three @two {
-  id: ID
-  name: String
-  phone: String
-  zip: String
+    id: ID
+    name: String
+    phone: String
+    zip: String
 }
 
 interface WithID {
-  id: ID
+    id: ID
 }
 
 type Query

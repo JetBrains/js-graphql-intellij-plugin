@@ -1,6 +1,6 @@
 type Query {
-  id: ID @deprecated(reason: "No longer supported")
-  name: String @deprecated(reason: "No longer supported")
+    id: ID @deprecated(reason: "No longer supported")
+    name: String @deprecated(reason: "No longer supported")
 }
 
 "A"

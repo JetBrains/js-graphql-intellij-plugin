@@ -31,5 +31,5 @@ directive @two on INPUT_OBJECT
 type Query
 
 enum Two {
-  VALUE
+    VALUE
 }
