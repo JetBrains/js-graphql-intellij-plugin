@@ -1,0 +1,7 @@
+type Query {}
+
+{
+    _se<caret>rvice {
+        sdl
+    }
+}

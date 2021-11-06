@@ -105,7 +105,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
      * The state class that is persisted as XML
      * NOTE!!!: 1. Class must be static, and 2. Fields must be public for settings serialization to work
      */
-    static class GraphQLSettingsState {
+    public static class GraphQLSettingsState {
         public String introspectionQuery = "";
         public boolean enableIntrospectionDefaultValues = true;
         public boolean openEditorWithIntrospectionResult = true;

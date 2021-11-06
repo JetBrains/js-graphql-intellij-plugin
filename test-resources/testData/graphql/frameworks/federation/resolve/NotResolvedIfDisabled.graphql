@@ -1,0 +1,7 @@
+type Query {}
+
+{
+    <error descr="Unknown field \"_service\" on object type \"Query\"">_service</error> {
+        <error descr="Unknown field \"sdl\": The parent selection or operation does not resolve to a valid schema type">sdl</error>
+    }
+}

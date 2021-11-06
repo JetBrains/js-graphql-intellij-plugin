@@ -8,6 +8,7 @@ import com.intellij.lang.jsgraphql.ide.validation.inspections.*;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLIdentifierImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameDefinitionOwner;
+import com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameExtensionOwner;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -82,6 +83,8 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
         PsiNamedElement namedElement;
         if (element instanceof GraphQLTypeNameDefinitionOwner) {
             namedElement = ((GraphQLTypeNameDefinitionOwner) element).getTypeNameDefinition();
+        } else if (element instanceof GraphQLTypeNameExtensionOwner) {
+            namedElement = ((GraphQLTypeNameExtensionOwner) element).getTypeName();
         } else if (element instanceof GraphQLDirectiveDefinition) {
             // for some reason elements which are supposed to implement PsiNamedElement don't implement it
             // GraphQLIdentifier interface also doesn't, so we need this explicit downcast to the GraphQLIdentifierImpl

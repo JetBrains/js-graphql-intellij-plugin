@@ -1,0 +1,7 @@
+type Query {}
+
+{
+    _service {
+        s<caret>dl
+    }
+}

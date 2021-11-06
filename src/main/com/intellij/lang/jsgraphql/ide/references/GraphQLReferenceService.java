@@ -229,19 +229,6 @@ public class GraphQLReferenceService implements Disposable {
                     }
                 });
             }
-            if (name.startsWith("_")) {
-                // fields _entities and _service which extends the query root type
-                GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.FEDERATION, element, new PsiRecursiveElementVisitor() {
-                    @Override
-                    public void visitElement(final @NotNull PsiElement schemaElement) {
-                        if (schemaElement instanceof GraphQLReferenceMixin && schemaElement.getText().equals(name)) {
-                            reference.set(createReference(element, schemaElement));
-                            return;
-                        }
-                        super.visitElement(schemaElement);
-                    }
-                });
-            }
             final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(field, GraphQLTypeScopeProvider.class);
             if (reference.isNull() && typeScopeProvider != null) {
                 GraphQLType typeScope = typeScopeProvider.getTypeScope();
