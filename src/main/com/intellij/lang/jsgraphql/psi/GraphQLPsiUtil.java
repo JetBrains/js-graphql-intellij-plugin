@@ -28,12 +28,12 @@ public class GraphQLPsiUtil {
 
         if (psiElement != null) {
 
-            final PsiElement typeOwner = PsiTreeUtil.getParentOfType(psiElement, GraphQLTypeNameDefinitionOwner.class, GraphQLTypeNameExtensionOwner.class);
+            final PsiElement typeOwner = PsiTreeUtil.getParentOfType(psiElement, GraphQLNamedTypeDefinition.class, GraphQLTypeNameExtensionOwner.class);
 
             GraphQLIdentifier nameIdentifier = null;
 
-            if (typeOwner instanceof GraphQLTypeNameDefinitionOwner) {
-                final GraphQLTypeNameDefinition typeNameDefinition = ((GraphQLTypeNameDefinitionOwner) typeOwner).getTypeNameDefinition();
+            if (typeOwner instanceof GraphQLNamedTypeDefinition) {
+                final GraphQLTypeNameDefinition typeNameDefinition = ((GraphQLNamedTypeDefinition) typeOwner).getTypeNameDefinition();
                 if (typeNameDefinition != null) {
                     nameIdentifier = typeNameDefinition.getNameIdentifier();
                 }

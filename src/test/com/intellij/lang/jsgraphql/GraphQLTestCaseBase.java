@@ -6,8 +6,8 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManage
 import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.*;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLIdentifierImpl;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinitionOwner;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameExtensionOwner;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -82,8 +82,8 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
         assertInstanceOf(element, expectedClass);
 
         PsiNamedElement namedElement;
-        if (element instanceof GraphQLTypeNameDefinitionOwner) {
-            namedElement = ((GraphQLTypeNameDefinitionOwner) element).getTypeNameDefinition();
+        if (element instanceof GraphQLNamedTypeDefinition) {
+            namedElement = ((GraphQLNamedTypeDefinition) element).getTypeNameDefinition();
         } else if (element instanceof GraphQLTypeNameExtensionOwner) {
             namedElement = ((GraphQLTypeNameExtensionOwner) element).getTypeName();
         } else if (element instanceof GraphQLDirectiveDefinition) {

@@ -66,7 +66,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitEnumTypeDefinition(@NotNull GraphQLEnumTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitTypeNameDefinitionOwner(o);
+    // visitNamedTypeDefinition(o);
   }
 
   public void visitEnumTypeExtensionDefinition(@NotNull GraphQLEnumTypeExtensionDefinition o) {
@@ -136,7 +136,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitInputObjectTypeDefinition(@NotNull GraphQLInputObjectTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitTypeNameDefinitionOwner(o);
+    // visitNamedTypeDefinition(o);
   }
 
   public void visitInputObjectTypeExtensionDefinition(@NotNull GraphQLInputObjectTypeExtensionDefinition o) {
@@ -160,7 +160,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitInterfaceTypeDefinition(@NotNull GraphQLInterfaceTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitTypeNameDefinitionOwner(o);
+    // visitNamedTypeDefinition(o);
   }
 
   public void visitInterfaceTypeExtensionDefinition(@NotNull GraphQLInterfaceTypeExtensionDefinition o) {
@@ -186,7 +186,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitObjectTypeDefinition(@NotNull GraphQLObjectTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitTypeNameDefinitionOwner(o);
+    // visitNamedTypeDefinition(o);
   }
 
   public void visitObjectTypeExtensionDefinition(@NotNull GraphQLObjectTypeExtensionDefinition o) {
@@ -221,7 +221,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitScalarTypeDefinition(@NotNull GraphQLScalarTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitTypeNameDefinitionOwner(o);
+    // visitNamedTypeDefinition(o);
   }
 
   public void visitScalarTypeExtensionDefinition(@NotNull GraphQLScalarTypeExtensionDefinition o) {
@@ -318,7 +318,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
 
   public void visitUnionTypeDefinition(@NotNull GraphQLUnionTypeDefinition o) {
     visitTypeDefinition(o);
-    // visitTypeNameDefinitionOwner(o);
+    // visitNamedTypeDefinition(o);
   }
 
   public void visitUnionTypeExtensionDefinition(@NotNull GraphQLUnionTypeExtensionDefinition o) {
