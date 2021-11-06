@@ -41,7 +41,7 @@ public class GraphQLSchemaErrorsListNode extends CachingSimpleNode {
         }
 
         final List<SimpleNode> children = Lists.newArrayList();
-        for (GraphQLError error : mySchemaInfo.getErrors()) {
+        for (GraphQLError error : mySchemaInfo.getErrors(myProject)) {
             Node<?> node = error.getNode();
             if (getProject() != null &&
                 error.getInspectionClass() != null &&

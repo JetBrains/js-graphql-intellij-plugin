@@ -55,8 +55,9 @@ public class GraphQLSchemaAnnotator implements Annotator {
 
         try {
             GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiElement);
-            if (schemaInfo.hasErrors()) {
-                showSchemaErrors(annotationHolder, schemaInfo, file);
+            List<GraphQLError> schemaErrors = schemaInfo.getErrors(project);
+            if (!schemaErrors.isEmpty()) {
+                showSchemaErrors(annotationHolder, schemaErrors, file);
             } else {
                 showDocumentErrors(annotationHolder, schemaInfo, file);
             }
@@ -134,9 +135,9 @@ public class GraphQLSchemaAnnotator implements Annotator {
     }
 
     private void showSchemaErrors(@NotNull AnnotationHolder annotationHolder,
-                                  @NotNull GraphQLSchemaInfo schemaInfo,
+                                  @NotNull List<GraphQLError> schemaErrors,
                                   @NotNull GraphQLFile file) {
-        for (GraphQLError error : schemaInfo.getErrors()) {
+        for (GraphQLError error : schemaErrors) {
             Collection<? extends PsiElement> elements = getElementsToAnnotate(file, error);
             for (PsiElement element : elements) {
                 createErrorAnnotation(annotationHolder, error, element, error.getMessage());

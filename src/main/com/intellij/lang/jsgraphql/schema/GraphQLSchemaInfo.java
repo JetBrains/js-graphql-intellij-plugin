@@ -8,15 +8,16 @@
 package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
+import com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.lang.jsgraphql.types.schema.validation.InvalidSchemaException;
-import com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidationError;
+import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 
 public class GraphQLSchemaInfo {
@@ -41,11 +42,7 @@ public class GraphQLSchemaInfo {
         return myRegistry;
     }
 
-    public boolean hasErrors() {
-        return !myErrors.isEmpty() || !myRegistry.getErrors().isEmpty() || !mySchema.getErrors().isEmpty();
-    }
-
-    public @NotNull List<GraphQLError> getErrors() {
+    public @NotNull List<GraphQLError> getErrors(@NotNull Project project) {
         final List<GraphQLException> rawErrors = Lists.newArrayList(myErrors);
         rawErrors.addAll(myRegistry.getErrors());
         rawErrors.addAll(mySchema.getErrors());
@@ -62,6 +59,9 @@ public class GraphQLSchemaInfo {
                 errors.add(new GraphQLUnexpectedSchemaError(exception));
             }
         }
-        return errors;
+
+        return ContainerUtil.filter(errors, error ->
+            GraphQLErrorFilter.EP_NAME.extensions().noneMatch(filter -> filter.isGraphQLErrorSuppressed(project, error, null))
+        );
     }
 }

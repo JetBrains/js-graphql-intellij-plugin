@@ -271,8 +271,8 @@ public class GraphQLIntrospectionService implements Disposable {
             registryInfo
         );
 
-        if (schemaInfo.hasErrors()) {
-            List<GraphQLError> errors = schemaInfo.getErrors();
+        List<GraphQLError> errors = schemaInfo.getErrors(myProject);
+        if (!errors.isEmpty()) {
             for (GraphQLError error : errors) {
                 LOG.warn(error.getMessage());
             }

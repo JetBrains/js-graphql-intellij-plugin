@@ -27,6 +27,7 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
         GraphQLUnresolvedReferenceInspection.class
     );
 
+    // fake inspections for graphql-java validation
     protected static final List<Class<? extends LocalInspectionTool>> ourSchemaInspections = Lists.newArrayList(
         GraphQLSchemaValidationInspection.class,
         GraphQLTypeRedefinitionInspection.class,

@@ -1,0 +1,7 @@
+type Query {
+    users(name: String): [ID!]!
+}
+
+query Query {
+    users(<error descr="Argument 'name' is not a valid 'String' - Expected type 'String' but was 'Int'.">name</error>: 123)
+}
