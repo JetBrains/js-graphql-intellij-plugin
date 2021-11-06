@@ -13,7 +13,7 @@ public class GraphQLSchemaBuilderTest extends GraphQLTestCaseBase {
 
     @Override
     protected @NotNull String getBasePath() {
-        return "/schema";
+        return "/schema/builder";
     }
 
     public void testObjects() {

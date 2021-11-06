@@ -16,7 +16,6 @@ import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -30,7 +29,7 @@ import java.util.stream.Collectors;
 public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
     @Override
     protected @NotNull String getBasePath() {
-        return "/graphql-config";
+        return "/schema/config";
     }
 
     public void testCompletionSchemas() {
