@@ -1,0 +1,8 @@
+enum <ref>CheckStatusState {
+    COMPLETED
+    IN_PROGRESS
+}
+
+type Build {
+    status: CheckS<caret>tatusState
+}

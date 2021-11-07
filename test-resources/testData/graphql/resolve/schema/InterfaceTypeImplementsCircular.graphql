@@ -1,0 +1,9 @@
+interface Node implements Named & Node {
+    id: ID!
+    name: String
+}
+
+interface <ref>Named implements Node & Name<caret>d {
+    id: ID!
+    name: String
+}

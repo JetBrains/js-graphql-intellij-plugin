@@ -1,0 +1,4 @@
+input <ref>Example {
+    self: Exa<caret>mple
+    value: String
+}

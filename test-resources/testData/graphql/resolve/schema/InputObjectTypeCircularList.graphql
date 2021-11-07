@@ -1,0 +1,4 @@
+input <ref>Example {
+    self: [Exam<caret>ple!]!
+    value: String
+}

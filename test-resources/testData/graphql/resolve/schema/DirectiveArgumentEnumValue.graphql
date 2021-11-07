@@ -1,0 +1,11 @@
+enum CacheControl {
+    SKIP
+    TEMPORARY
+    <ref>FOREVER
+}
+
+directive @cache(type: CacheControl) on INPUT_FIELD_DEFINITION
+
+input CacheData {
+    text: String @cache(type: F<caret>OREVER)
+}

@@ -1,0 +1,11 @@
+input Payload {
+    name: String
+}
+
+input <ref>Argument {
+    name: String
+}
+
+type Mutation {
+    createSomething(id: ID, arg: A<caret>rgument): ID
+}

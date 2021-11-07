@@ -77,21 +77,8 @@ sourceSets {
 import org.jetbrains.grammarkit.tasks.GenerateLexer
 import org.jetbrains.grammarkit.tasks.GenerateParser
 
-// GraphQL Parser and Lexer
-task generateGraphQLLexer(type: GenerateLexer) {
-    source 'src/grammars/GraphQLLexer.flex'
-    targetDir 'gen/com/intellij/lang/jsgraphql/'
-    targetClass 'GraphQLLexer'
-    purgeOldFiles = true
-}
-
-task generateGraphQLParser(type: GenerateParser) {
-    source 'src/grammars/GraphQLParser.bnf'
-    targetRoot = 'gen/'
-    purgeOldFiles = true
-    pathToParser = 'com/intellij/lang/jsgraphql/GraphQLParser'
-    pathToPsiRoot = 'com/intellij/lang/jsgraphql/psi'
-}
+// GraphQL parser should be generated manually when needed
+// because of some limitations of the gradle-grammar-kit-plugin
 
 // GraphQL Endpoint Parser and Lexer
 task generateGraphQLEndpointLexer(type: GenerateLexer) {
@@ -131,8 +118,6 @@ task generateGraphQLEndpointDocParser(type: GenerateParser) {
 //    dependsOn generateGraphQLEndpointParser
 //    dependsOn generateGraphQLEndpointDocLexer
 //    dependsOn generateGraphQLEndpointDocParser
-//    dependsOn generateGraphQLLexer
-//    dependsOn generateGraphQLParser
 //}
 
 compileJava.options.encoding = 'UTF-8'

@@ -1,0 +1,7 @@
+input <ref>LocationInput {
+    id: ID
+}
+
+input CreateUserInput {
+    location: Location<caret>Input
+}

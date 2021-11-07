@@ -1,0 +1,8 @@
+interface <ref>Node {
+    id: ID!
+}
+
+interface Resource implements N<caret>ode {
+    id: ID!
+    url: String
+}

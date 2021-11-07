@@ -1,0 +1,5 @@
+type Object {
+    id: ID @fi<caret>eld(name: "identifier")
+}
+
+directive @<ref>field(name: String) on FIELD_DEFINITION

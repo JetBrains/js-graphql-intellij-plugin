@@ -1,0 +1,12 @@
+interface Node {
+    id: ID
+}
+
+interface <ref>Entity {
+    tableName: String
+}
+
+type Object implements Node & Ent<caret>ity {
+    id: ID
+    tableName: String
+}

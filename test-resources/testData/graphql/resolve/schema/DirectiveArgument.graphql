@@ -1,0 +1,11 @@
+enum FieldType {
+    TEXT
+    NUMBER
+}
+
+directive @field(name: String, <ref>fieldType: FieldType) on FIELD_DEFINITION
+
+type Model {
+    id: ID
+    name: String @field(name: "modelName", fiel<caret>dType: TEXT)
+}

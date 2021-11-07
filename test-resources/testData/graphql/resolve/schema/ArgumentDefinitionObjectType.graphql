@@ -1,0 +1,10 @@
+type Payload {}
+
+type <ref>Argument {
+    name: String
+}
+
+type Mutation {
+    # though an input type is expected, we still resolve but show an error
+    createSomething(id: ID, arg: A<caret>rgument): ID
+}

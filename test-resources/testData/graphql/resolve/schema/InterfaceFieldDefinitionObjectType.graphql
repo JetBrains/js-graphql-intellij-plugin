@@ -1,0 +1,5 @@
+type <ref>Location {}
+
+interface User {
+    location: Loca<caret>tion
+}

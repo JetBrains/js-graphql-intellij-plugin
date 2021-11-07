@@ -1,0 +1,7 @@
+type Loc {}
+
+type <ref>Location {}
+
+type User {
+    location: Loca<caret>tion
+}

@@ -1,0 +1,4 @@
+type A {}
+type B {}
+
+union <ref>U = A | <caret>U

@@ -1,0 +1,14 @@
+type Person implements Node {
+    id: ID
+}
+type Company implements Node {
+    id: ID
+}
+
+interface <ref>Node {
+    id: ID
+}
+
+type Mutation {
+    createNode: No<caret>de
+}

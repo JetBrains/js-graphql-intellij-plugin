@@ -1,0 +1,5 @@
+type Object @t<caret>able(name: "Objects") {
+    id: ID
+}
+
+directive @<ref>table(name: String) on OBJECT

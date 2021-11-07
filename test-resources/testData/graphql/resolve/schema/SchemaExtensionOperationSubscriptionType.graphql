@@ -1,0 +1,17 @@
+extend schema {
+    query: CustomQuery
+    mutation: CustomMutation
+    subscription: CustomSu<caret>bscription
+}
+
+type CustomQuery {
+    something: ID
+}
+
+type CustomMutation {
+    createSomething: ID
+}
+
+type <ref>CustomSubscription {
+    subscribe: ID
+}

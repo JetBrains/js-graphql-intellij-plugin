@@ -1,0 +1,5 @@
+scalar <ref>Upload
+
+type Mutation {
+    uploadFile(text: String): Upl<caret>oad
+}
