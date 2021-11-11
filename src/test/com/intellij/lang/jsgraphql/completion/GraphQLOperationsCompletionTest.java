@@ -19,14 +19,6 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
         return "/completion/operations";
     }
 
-    // ---- completion ----
-
-    public void testOperation() {
-        LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
-            "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union");
-    }
-
     // -- root field names --
 
     public void testRootField1() {
@@ -46,19 +38,28 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
 
     // -- field arguments --
 
-    public void testRootFieldArg1() {
+    public void testArgumentNameRootQueryField() {
         LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "id");
+        checkEqualsOrdered(lookupElements, "filter", "name", "zipCodes");
+        checkResult(lookupElements, "name");
     }
 
-    public void testNestedFieldArg1() {
+    public void testArgumentNameRootQueryExtensionField() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "from", "to");
+        checkResult(lookupElements, "from");
+    }
+
+    public void testArgumentNameNestedQueryField() {
         LookupElement[] lookupElements = doTestWithSchema();
         checkEqualsOrdered(lookupElements, "another", "height");
+        checkResult(lookupElements, "height");
     }
 
-    public void testNestedFieldArg2() {
+    public void testArgumentValueNestedQueryField() {
         LookupElement[] lookupElements = doTestWithSchema();
         checkEqualsOrdered(lookupElements, "Imperial", "Metric");
+        checkResult(lookupElements, "Metric");
     }
 
     public void testNestedFieldArg3() {

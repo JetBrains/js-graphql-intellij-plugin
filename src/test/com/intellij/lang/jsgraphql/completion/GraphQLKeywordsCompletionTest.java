@@ -34,6 +34,12 @@ public class GraphQLKeywordsCompletionTest extends GraphQLCompletionTestCaseBase
             "schema", "subscription", "type", "union");
     }
 
+    public void testTopLevelKeywordsAfterComment() {
+        LookupElement[] lookupElements = doTest();
+        checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
+            "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union");
+    }
+
     public void testTopLevelBrace() {
         // initially was provided via keyword completion
         doTest();

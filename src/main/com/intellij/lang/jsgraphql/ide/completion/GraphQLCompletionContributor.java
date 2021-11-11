@@ -131,7 +131,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         completeSpreadFragmentName(); // TODO
 
         // completion on argument name in fields and directives
-        completeArgumentName(); // TODO
+        completeArgumentName();
 
         // completion on object value field
         completeObjectValueField(); // TODO
@@ -743,7 +743,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                             @NotNull Set<String> existingArgumentNames) {
                 for (com.intellij.lang.jsgraphql.types.schema.GraphQLArgument graphQLArgument : arguments) {
                     String name = graphQLArgument.getName();
-                    if (name != null && existingArgumentNames.add(name)) {
+                    if (name != null && !existingArgumentNames.contains(name)) {
                         String typeText = GraphQLSchemaUtil.typeString(graphQLArgument.getType());
                         result.addElement(GraphQLCompletionUtil.createArgumentNameLookupElement(name, typeText));
                     }

@@ -3,5 +3,4 @@ fragment NodeFragment on Node {
 }
 
 #comment
-
 <caret>

@@ -1,5 +1,5 @@
 query MyQuery {
     human(id: "") {
-        fieldWithArg(height: <caret>)
+        fieldWithArg(<caret>)
     }
 }

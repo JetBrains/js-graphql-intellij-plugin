@@ -12,6 +12,10 @@ type Query {
     users(name: String, filter: UserFilter, zipCodes: [String!]): [User]
 }
 
+extend type Query {
+    ids(from: ID!, to: ID!): [ID!]!
+}
+
 input UserFilter {
     name: String
     addresses: [String!]
