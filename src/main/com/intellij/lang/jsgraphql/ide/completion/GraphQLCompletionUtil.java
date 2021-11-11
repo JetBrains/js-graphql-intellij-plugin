@@ -13,8 +13,15 @@ public final class GraphQLCompletionUtil {
     @NotNull
     public static LookupElementBuilder createKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword) {
         return LookupElementBuilder.create(keyword.getText())
-            .withBoldness(true)
+            .bold()
             .withInsertHandler(AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP);
+    }
+
+    @NotNull
+    public static LookupElementBuilder createOperationNameKeywordLookupElement(@NotNull String operationName) {
+        return LookupElementBuilder.create(operationName)
+            .bold()
+            .withInsertHandler(AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP);
     }
 
     @NotNull

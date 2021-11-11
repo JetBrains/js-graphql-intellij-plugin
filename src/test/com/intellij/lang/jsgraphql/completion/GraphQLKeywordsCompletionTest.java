@@ -83,4 +83,10 @@ public class GraphQLKeywordsCompletionTest extends GraphQLCompletionTestCaseBase
         LookupElement[] lookupElements = doTest();
         checkEqualsOrdered(lookupElements, "implements");
     }
+
+    public void testSchemaOperationNames() {
+        LookupElement[] lookupElements = doTest();
+        checkEqualsOrdered(lookupElements, "mutation", "subscription");
+        checkResult(lookupElements, "mutation");
+    }
 }

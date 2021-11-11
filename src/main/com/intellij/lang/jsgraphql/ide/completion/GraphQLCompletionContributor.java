@@ -106,6 +106,10 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         SCHEMA,
     };
 
+    private static final GraphQLCompletionKeyword[] OPERATION_NAME_KEYWORDS = {
+        QUERY, MUTATION, SUBSCRIPTION
+    };
+
     public GraphQLCompletionContributor() {
 
         // top level keywords
@@ -168,7 +172,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         completeOperationTypeNamesInSchemaDefinition();
 
         // completion of operation types schema definition
-        completionOfOperationKeywordsInSchemaDefinition(); // TODO
+        completionOfOperationKeywordsInSchemaDefinition();
 
         // completion of variable name referenced as an argument value
         completeVariableName(); // TODO
@@ -183,17 +187,18 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 final PsiElement completionElement = parameters.getPosition();
                 final GraphQLOperationTypeDefinition operationTypeDefinition = PsiTreeUtil.getParentOfType(completionElement,
                     GraphQLOperationTypeDefinition.class);
-                if (operationTypeDefinition != null && operationTypeDefinition.getOperationType() == null) {
-                    final Set<String> keywords = Sets.newLinkedHashSet(Lists.newArrayList("query", "mutation", "subscription"));
-                    for (GraphQLOperationTypeDefinition existingDefinition : PsiTreeUtil.findChildrenOfType(
-                        operationTypeDefinition.getParent(), GraphQLOperationTypeDefinition.class)) {
-                        if (existingDefinition.getOperationType() != null) {
-                            keywords.remove(existingDefinition.getOperationType().getText());
-                        }
-                    }
-                    keywords.forEach(keyword -> result.addElement(LookupElementBuilder.create(keyword).bold().withInsertHandler(
-                        AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP)));
+                if (operationTypeDefinition == null || operationTypeDefinition.getOperationType() != null) {
+                    return;
                 }
+                final Set<String> keywords = ContainerUtil.map2Set(OPERATION_NAME_KEYWORDS, GraphQLCompletionKeyword::getText);
+                Collection<GraphQLOperationTypeDefinition> existingDefinitions =
+                    PsiTreeUtil.findChildrenOfType(operationTypeDefinition.getParent(), GraphQLOperationTypeDefinition.class);
+                for (GraphQLOperationTypeDefinition existingDefinition : existingDefinitions) {
+                    if (existingDefinition.getOperationType() != null) {
+                        keywords.remove(existingDefinition.getOperationType().getText());
+                    }
+                }
+                keywords.forEach(keyword -> result.addElement(GraphQLCompletionUtil.createOperationNameKeywordLookupElement(keyword)));
             }
         };
         extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.NAME).inside(GraphQLOperationTypeDefinition.class), provider);
