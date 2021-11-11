@@ -1,0 +1,7 @@
+type Bar
+
+type Foo implements Bar {
+    foo:
+}
+
+type NewType <caret>

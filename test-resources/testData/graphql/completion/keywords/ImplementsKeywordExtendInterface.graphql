@@ -2,9 +2,11 @@ type KnownType {
     k: String
 }
 
-interface KnownInterface {
+extend interface KnownInterface <caret> {
     i: Boolean
 }
+
+type More {}
 
 enum MyEnum {
     A, B, C
@@ -12,10 +14,8 @@ enum MyEnum {
 
 union MyUnion = KnownType | KnownInterface
 
-input MyInput1 {
-    foo: String
-}
+# comment
 
-input MyCompletionInput {
-    bas: <caret>
+type Foo implements Bar {
+    foo:
 }

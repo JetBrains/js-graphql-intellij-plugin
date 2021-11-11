@@ -1,12 +1,12 @@
-type KnownType <caret> {
+type KnownType {
     k: String
 }
 
-interface KnownInterface {
+interface KnownInterface <caret> {
     i: Boolean
 }
 
-type More
+type More {}
 
 enum MyEnum {
     A, B, C

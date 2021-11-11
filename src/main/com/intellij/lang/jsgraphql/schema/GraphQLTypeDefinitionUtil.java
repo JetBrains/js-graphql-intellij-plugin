@@ -1,10 +1,8 @@
 package com.intellij.lang.jsgraphql.schema;
 
-import com.intellij.lang.jsgraphql.types.language.AstPrinter;
-import com.intellij.lang.jsgraphql.types.language.NamedNode;
-import com.intellij.lang.jsgraphql.types.language.Node;
-import com.intellij.lang.jsgraphql.types.language.Type;
+import com.intellij.lang.jsgraphql.types.language.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,5 +35,35 @@ public final class GraphQLTypeDefinitionUtil {
 
     public static <T extends Node<?>> List<T> toList(@NotNull Map<String, T> target) {
         return new ArrayList<>(target.values());
+    }
+
+    public static boolean isExtension(@Nullable SDLDefinition<?> definition) {
+        return definition instanceof SchemaExtensionDefinition ||
+            definition instanceof InputObjectTypeExtensionDefinition ||
+            definition instanceof ObjectTypeExtensionDefinition ||
+            definition instanceof InterfaceTypeExtensionDefinition ||
+            definition instanceof ScalarTypeExtensionDefinition ||
+            definition instanceof UnionTypeExtensionDefinition ||
+            definition instanceof EnumTypeExtensionDefinition;
+    }
+
+    @Nullable
+    public static Description getTypeDefinitionDescription(@NotNull TypeDefinition<?> typeDefinition) {
+        Description description = null;
+        if (typeDefinition instanceof ObjectTypeDefinition) {
+            description = ((ObjectTypeDefinition) typeDefinition).getDescription();
+        } else if (typeDefinition instanceof InterfaceTypeDefinition) {
+            description = ((InterfaceTypeDefinition) typeDefinition).getDescription();
+        } else if (typeDefinition instanceof EnumTypeDefinition) {
+            description = ((EnumTypeDefinition) typeDefinition).getDescription();
+        } else if (typeDefinition instanceof ScalarTypeDefinition) {
+            description = ((ScalarTypeDefinition) typeDefinition).getDescription();
+        } else if (typeDefinition instanceof InputObjectTypeDefinition) {
+            description = ((InputObjectTypeDefinition) typeDefinition).getDescription();
+        } else if (typeDefinition instanceof UnionTypeDefinition) {
+            description = ((UnionTypeDefinition) typeDefinition).getDescription();
+        }
+        return description;
+
     }
 }

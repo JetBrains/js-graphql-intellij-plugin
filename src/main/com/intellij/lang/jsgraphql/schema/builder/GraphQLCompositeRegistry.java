@@ -1,6 +1,6 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
+import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.lang.jsgraphql.types.language.*;
@@ -113,7 +113,7 @@ public final class GraphQLCompositeRegistry {
     }
 
     public void addExtensionDefinition(@NotNull SDLDefinition<?> definition) {
-        LOG.assertTrue(GraphQLSchemaUtil.isExtension(definition));
+        LOG.assertTrue(GraphQLTypeDefinitionUtil.isExtension(definition));
 
         GraphQLCompositeDefinition<?> builder = getCompositeDefinition(definition);
         if (builder == null) {
@@ -144,7 +144,7 @@ public final class GraphQLCompositeRegistry {
     }
 
     public void addDefinition(@NotNull SDLDefinition<?> definition) {
-        if (GraphQLSchemaUtil.isExtension(definition)) {
+        if (GraphQLTypeDefinitionUtil.isExtension(definition)) {
             addExtensionDefinition(definition);
         } else {
             addTypeDefinition(definition);

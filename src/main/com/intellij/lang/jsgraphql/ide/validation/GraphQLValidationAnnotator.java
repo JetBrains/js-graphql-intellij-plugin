@@ -15,7 +15,7 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.fixes.GraphQLMissingTypeFix;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
@@ -190,7 +190,7 @@ public class GraphQLValidationAnnotator implements Annotator {
 
     private List<String> getArgumentNameSuggestions(PsiElement argument) {
         final GraphQLField field = PsiTreeUtil.getParentOfType(argument, GraphQLField.class);
-        final GraphQLIdentifier fieldDefinitionIdentifier = GraphQLPsiSearchHelper.getResolvedReference(field);
+        final PsiElement fieldDefinitionIdentifier = GraphQLResolveUtil.resolve(field);
         if (fieldDefinitionIdentifier != null) {
             GraphQLFieldDefinition fieldDefinition = PsiTreeUtil.getParentOfType(fieldDefinitionIdentifier, GraphQLFieldDefinition.class);
             if (fieldDefinition != null) {

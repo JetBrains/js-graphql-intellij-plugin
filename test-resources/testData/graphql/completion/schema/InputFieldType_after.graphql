@@ -17,5 +17,5 @@ input MyInput1 {
 }
 
 input MyCompletionInput {
-    bas: <caret>
+    bas: MyCompletionInput<caret>
 }

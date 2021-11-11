@@ -10,4 +10,4 @@ type Obj { }
 
 enum Enum { A }
 
-type More implements <caret>
+type More implements KnownInterface1<caret>

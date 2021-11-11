@@ -1,13 +1,3 @@
-schema {
-    query: CustomQuery
-    mutation: CustomMutation
-    subscription: CustomSubscription
-}
-
-type CustomQuery {}
-type CustomMutation {}
-type CustomSubscription {}
-
 type KnownType {
     k: String
 }
@@ -27,5 +17,5 @@ enum MyEnum {
 union MyUnion = KnownType | AnotherKnownType
 
 type Foo implements Bar {
-    foo: <caret>
+    foo: [<caret>!]!
 }

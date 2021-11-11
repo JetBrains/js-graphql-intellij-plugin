@@ -1,17 +1,11 @@
 package com.intellij.lang.jsgraphql.ide.references;
 
-import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
-import com.intellij.lang.jsgraphql.psi.GraphQLFile;
-import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinition;
+import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.PsiRecursiveElementVisitor;
+import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.CommonProcessors;
 import com.intellij.util.Processor;
@@ -60,15 +54,22 @@ public final class GraphQLResolveUtil {
 
     @Nullable
     public static GraphQLDefinition findContainingDefinition(@Nullable PsiElement element) {
-        return PsiTreeUtil.getParentOfType(element, GraphQLDefinition.class, false);
+        GraphQLDefinition definition = PsiTreeUtil.getParentOfType(element, GraphQLDefinition.class, false);
+        if (definition instanceof GraphQLTemplateDefinition) {
+            return null; // this is unexpected for most cases
+        }
+        return definition;
     }
 
+    /**
+     * TODO: incomplete implementation
+     */
     @Nullable
-    public static PsiElement findDeclaringDefinition(@Nullable PsiElement element) {
-        if (element == null) return null;
+    public static PsiElement findResolvedDefinition(@Nullable PsiElement resolveTarget) {
+        if (resolveTarget == null) return null;
 
         // getParent() is used because now we resolve to GraphQLIdentifier most of the time instead of an actual symbol definition
-        PsiElement definition = element.getParent();
+        PsiElement definition = resolveTarget.getParent();
         if (definition instanceof GraphQLEnumValue) {
             definition = definition.getParent();
         }
@@ -76,5 +77,21 @@ public final class GraphQLResolveUtil {
             definition = definition.getParent();
         }
         return definition;
+    }
+
+    @Nullable
+    public static PsiElement resolve(@Nullable PsiElement element) {
+        if (!(element instanceof GraphQLNamedElement)) {
+            return null;
+        }
+
+        final PsiElement nameIdentifier = ((GraphQLNamedElement) element).getNameIdentifier();
+        if (nameIdentifier != null) {
+            PsiReference reference = nameIdentifier.getReference();
+            if (reference != null) {
+                return reference.resolve();
+            }
+        }
+        return null;
     }
 }

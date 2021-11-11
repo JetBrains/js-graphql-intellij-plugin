@@ -31,6 +31,10 @@ public class GraphQLKnownTypes {
 
     public static final Set<String> DEFAULT_DIRECTIVES = Set.of("deprecated", "skip", "include", "specifiedBy");
 
+    public static final String QUERY_TYPE = "Query";
+    public static final String MUTATION_TYPE = "Mutation";
+    public static final String SUBSCRIPTION_TYPE = "Subscription";
+
     public static boolean isIntrospectionType(@NotNull String name) {
         return INTROSPECTION_TYPES.contains(name);
     }

@@ -1,0 +1,119 @@
+schema  {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {
+    teamMember(id: ID!): TeamMember
+    teamMembers(filter: TeamMemberInputFilter): TeamMembersListResponse!
+
+    organization(id: ID!): Organization
+    organizations(filter: OrganizationInputFilter): OrganizationsListResponse!
+}
+
+type Mutation {
+    createMember(input: TeamMemberInput): ID!
+    createMembers(input: [TeamMemberInput!]!): TeamMembersListResponse!
+
+    createOrganization(input: OrganizationInput): ID!
+    createOrganizations(input: [OrganizationInput!]!): OrganizationsListResponse!
+}
+
+interface Node {
+    id: ID!
+}
+
+interface NamedNode implements Node {
+    id: ID!
+    name: String!
+}
+
+interface Entity {
+    createdAt: DateTime
+    updatedAt: DateTime
+}
+
+type Organization implements Node & NamedNode & Entity {
+    id: ID!
+    name: String!
+    createdAt: DateTime
+    updatedAt: DateTime
+    members: [TeamMember!]!
+}
+
+type OrganizationsListResponse {
+    count: Int
+    items: [Organization!]!
+}
+
+type TeamMember implements Node & NamedNode & Entity {
+    id: ID!
+    name: String!
+    updatedAt: DateTime
+    createdAt: DateTime
+    email: String
+    phone: String
+    role: TeamMemberRole
+    status: TeamMemberStatus
+}
+
+type TeamMembersListResponse {
+    count: Int
+    items: [TeamMember!]!
+}
+
+input OrganizationInput {
+    name: String!
+    members: [TeamMemberInput!]
+}
+
+input OrganizationInputFilter {
+    name: String
+
+    limit: Int
+    sort: SortOrder
+}
+
+input TeamMemberInput {
+    name: String!
+    email: String
+    phone: String
+    role: TeamMemberRole
+    status: TeamMemberStatus
+}
+
+input TeamMemberInputFilter {
+    name: String
+    email: String
+    phone: String
+    role: TeamMemberRole
+    status: TeamMemberStatus
+
+    limit: Int
+    sort: SortOrder
+}
+
+enum SortOrder {
+    ASC
+    DESC
+}
+
+enum TeamMemberRole {
+    DEVELOPER
+    QA
+    MANAGER
+}
+
+enum TeamMemberStatus {
+    ACTIVE
+    DISABLED
+}
+
+scalar Date
+
+scalar DateTime
+
+union Object = Organization | TeamMember
+union ResponseTypes = OrganizationsListResponse | TeamMembersListResponse
+
+extend scalar DateTime <caret>

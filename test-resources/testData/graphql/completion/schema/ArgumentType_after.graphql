@@ -17,7 +17,7 @@ enum MyEnum {
 union MyUnion = KnownType | KnownTypeOther
 
 type MyType {
-    foo(arg: <caret>)
+    foo(arg: MyCompletionInputABC<caret>)
 }
 
 input MyCompletionInputABC {

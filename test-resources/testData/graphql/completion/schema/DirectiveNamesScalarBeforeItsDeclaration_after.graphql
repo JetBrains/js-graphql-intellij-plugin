@@ -1,0 +1,4 @@
+scalar DateTime @optional(<caret>)
+
+directive @required(name: String!) on SCALAR
+directive @optional(name: String!) on SCALAR

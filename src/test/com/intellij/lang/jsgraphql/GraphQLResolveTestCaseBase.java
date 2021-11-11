@@ -31,7 +31,7 @@ public abstract class GraphQLResolveTestCaseBase extends GraphQLTestCaseBase {
         PsiElement element = reference.resolve();
         assertNotNull(element);
         assertEquals(expectedText, element.getText());
-        PsiElement definition = GraphQLResolveUtil.findDeclaringDefinition(element);
+        PsiElement definition = GraphQLResolveUtil.findResolvedDefinition(element);
         assertInstanceOf(definition, expectedClass);
 
         myFixture.checkHighlighting();
@@ -58,7 +58,7 @@ public abstract class GraphQLResolveTestCaseBase extends GraphQLTestCaseBase {
         assertEquals(target.getTextOffset(), refOffset);
         assertEquals(expectedText, target.getText());
 
-        PsiElement definition = GraphQLResolveUtil.findDeclaringDefinition(target);
+        PsiElement definition = GraphQLResolveUtil.findResolvedDefinition(target);
         assertInstanceOf(definition, expectedClass);
 
         myFixture.checkHighlighting();

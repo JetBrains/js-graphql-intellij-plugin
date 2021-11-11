@@ -15,7 +15,7 @@ union MyUnion = KnownType | KnownInterface
 directive @foo(arg: String) on FIELD_DEFINITION
 
 type MyType {
-    foo(arg: String): String @<caret>
+    foo(arg: String): String @foo @deprecated<caret>
 }
 
 input MyCompletionInputABC {

@@ -7,22 +7,12 @@
  */
 package com.intellij.lang.jsgraphql.completion;
 
-import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.lang.jsgraphql.GraphQLCompletionTestCaseBase;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
 
-
-public class GraphQLOperationsCompletionTest extends GraphQLTestCaseBase {
-
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-
-        myFixture.configureByFile("Schema.graphql");
-    }
+public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBase {
 
     @Override
     protected @NotNull String getBasePath() {
@@ -32,138 +22,157 @@ public class GraphQLOperationsCompletionTest extends GraphQLTestCaseBase {
     // ---- completion ----
 
     public void testOperation() {
-        doTestCompletion("directive", "enum", "extend", "fragment", "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union", "{");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
+            "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union");
     }
 
     // -- root field names --
 
     public void testRootField1() {
-        doTestCompletion("human", "node", "nodes", "user", "users");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "human", "node", "nodes", "user", "users");
     }
 
     public void testRootField2() {
-        doTestCompletion("human", "node", "nodes", "user", "users");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "human", "node", "nodes", "user", "users");
     }
 
     public void testRootField3() {
-        doTestCompletion("human", "node", "nodes", "user", "users");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "human", "node", "nodes", "user", "users");
     }
 
     // -- field arguments --
 
     public void testRootFieldArg1() {
-        doTestCompletion("id");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "id");
     }
 
     public void testNestedFieldArg1() {
-        doTestCompletion("another", "height");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "another", "height");
     }
 
     public void testNestedFieldArg2() {
-        doTestCompletion("Imperial", "Metric");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "Imperial", "Metric");
     }
 
     public void testNestedFieldArg3() {
-        doTestCompletion("another");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "another");
     }
 
     // --- extend types --
 
     public void testFieldExtension() {
-        doTestCompletion("enumField", "extended", "fieldWithArg", "fieldWithEnumArg", "fieldWithEnumInListArg", "fieldWithInput", "id", "name", "search", "...", "__typename");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "enumField", "extended", "fieldWithArg", "fieldWithEnumArg", "fieldWithEnumInListArg",
+            "fieldWithInput", "id",
+            "name", "search", "...", "__typename");
     }
 
     public void testDuplicatedTypeField() {
-        doTestCompletion("address", "age", "name", "...", "__typename");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "address", "age", "name", "...", "__typename");
     }
 
     // -- fragments --
 
     public void testFragmentDefinition() {
-        doTestCompletion("Human", "Mutation", "Node", "Query", "SearchResult", "Ship", "User");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "Human", "Mutation", "Node", "Query", "SearchResult", "Ship", "User");
     }
 
     public void testFragmentField() {
-        doTestCompletion("id", "...", "__typename");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "id", "...", "__typename");
     }
 
     public void testFragmentInlineType() {
-        doTestCompletion("Human", "Node", "Ship");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "Human", "Node", "Ship");
     }
 
     public void testFragmentInlineUnionType() {
-        doTestCompletion("Human", "Node", "Ship");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "Human", "Node", "Ship");
     }
 
     public void testFragmentInlineReference() {
-        doTestCompletion("MyHumanFragment", " on");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "MyHumanFragment", " on");
     }
 
     // -- input objects --
 
     public void testInputNestedField1() {
-        doTestCompletion("inputField1", "nestedField");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "inputField1", "nestedField");
     }
 
     public void testInputNestedField2() {
-        doTestCompletion("val");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "val");
     }
 
     // -- enums --
 
     public void testEnumArgument() {
-        doTestCompletion("Value1", "Value2");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "Value1", "Value2");
     }
 
     public void testEnumInListArgument() {
-        doTestCompletion("Value1", "Value2");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "Value1", "Value2");
     }
 
     // -- variables --
 
     public void testVariableUse() {
-        doTestCompletion("$second", "$variable");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$second", "$variable");
     }
 
     public void testVariableUseInList() {
-        doTestCompletion("$second", "$variable");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$second", "$variable");
     }
 
     public void testVariableUseInList2() {
-        doTestCompletion("$second", "$variable");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$second", "$variable");
     }
 
     public void testVariablesWithoutPrefix() {
-        doTestCompletion("$var1", "$var3", "$var5");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$var1", "$var3", "$var5");
     }
 
     public void testVariablesListWithoutPrefix() {
-        doTestCompletion("$var5", "$var6");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$var5", "$var6");
     }
 
     // -- directives --
 
     public void testDirectiveOnField() {
-        doTestCompletion("include", "onField", "skip");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "include", "onField", "skip");
     }
 
     public void testDirectiveOnFieldArg() {
-        doTestCompletion("if");
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "if");
     }
 
     public void testSubscriptionOperationDirectives() {
-        doTestCompletion("SubscriptionDir", "SubscriptionDir1");
-    }
-
-    private void doTestCompletion(String @NotNull ... expectedCompletions) {
-        doTestCompletion(getTestName(false) + ".graphql", Arrays.asList(expectedCompletions));
-    }
-
-    private void doTestCompletion(String sourceFile, List<String> expectedCompletions) {
-        myFixture.configureByFile(sourceFile);
-        myFixture.complete(CompletionType.BASIC, 1);
-        final List<String> completions = myFixture.getLookupElementStrings(); // NOTE!: will be null of only one matching completion
-        assertEquals("Wrong completions", expectedCompletions, completions);
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "SubscriptionDir", "SubscriptionDir1");
     }
 
 }

@@ -6,18 +6,16 @@ interface KnownInterface {
     i: Boolean
 }
 
+extend type KnownType <caret>
+
 enum MyEnum {
     A, B, C
 }
 
 union MyUnion = KnownType | KnownInterface
 
-directive @foo(arg: String) on FIELD_DEFINITION
+# comment
 
-type MyType {
-    foo(arg: String): String @foo @<caret>
-}
-
-input MyCompletionInputABC {
-    bas: Boolean
+type Foo implements Bar {
+    foo:
 }

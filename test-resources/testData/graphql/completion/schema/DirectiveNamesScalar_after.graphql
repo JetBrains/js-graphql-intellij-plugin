@@ -12,10 +12,10 @@ enum MyEnum {
 
 union MyUnion = KnownType | KnownInterface
 
-input MyInput1 {
-    foo: String
-}
+directive @foo(arg: String) on FIELD_DEFINITION
 
-input MyCompletionInput {
-    bas: <caret>
+scalar Sc @specifiedBy(<caret>)
+
+input MyCompletionInputABC {
+    bas: Boolean
 }

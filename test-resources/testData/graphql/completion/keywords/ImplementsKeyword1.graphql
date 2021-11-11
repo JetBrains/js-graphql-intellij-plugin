@@ -6,6 +6,8 @@ interface KnownInterface {
     i: Boolean
 }
 
+type More <caret>
+
 enum MyEnum {
     A, B, C
 }
@@ -13,8 +15,6 @@ enum MyEnum {
 union MyUnion = KnownType | KnownInterface
 
 # comment
-
-<caret>
 
 type Foo implements Bar {
     foo:

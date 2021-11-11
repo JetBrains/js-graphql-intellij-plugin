@@ -1,0 +1,25 @@
+type KnownType {
+    k: String
+}
+
+interface KnownInterface {
+    i: Boolean
+}
+
+enum MyEnum {
+    A, B, C
+}
+
+union MyUnion = KnownType | KnownInterface
+
+directive @foo(arg: String) on INLINE_FRAGMENT | FIELD_DEFINITION
+
+directive @foo1(nonRequired: String, required: String!) on FIELD_DEFINITION | FIELD
+
+type MyType {
+    foo(arg: String): String @foo1(<caret>)
+}
+
+input MyCompletionInputABC {
+    bas: Boolean
+}

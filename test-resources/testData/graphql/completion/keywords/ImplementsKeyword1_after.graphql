@@ -6,7 +6,7 @@ interface KnownInterface {
     i: Boolean
 }
 
-type More <caret>
+type More implements <caret>
 
 enum MyEnum {
     A, B, C

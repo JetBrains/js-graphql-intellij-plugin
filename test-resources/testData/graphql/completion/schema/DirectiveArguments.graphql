@@ -2,10 +2,6 @@ type KnownType {
     k: String
 }
 
-type KnownTypeOther {
-    k: String
-}
-
 interface KnownInterface {
     i: Boolean
 }
@@ -14,10 +10,12 @@ enum MyEnum {
     A, B, C
 }
 
-union MyUnion = KnownType | KnownTypeOther
+union MyUnion = KnownType | KnownInterface
+
+directive @foo(arg: String, id: ID, s: String!) on FIELD_DEFINITION
 
 type MyType {
-    foo(arg: <caret>)
+    foo(arg: String): String @foo(<caret>)
 }
 
 input MyCompletionInputABC {

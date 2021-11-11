@@ -13,6 +13,8 @@ import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Stack;
 
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
@@ -22,7 +24,7 @@ public class GraphQLSchemaUtil {
     /**
      * Provides the IDL string version of a type including handling of types wrapped in non-null/list-types
      */
-    public static String typeString(GraphQLType rawType) {
+    public static String typeString(@NotNull GraphQLType rawType) {
 
         final StringBuilder sb = new StringBuilder();
         final Stack<String> stack = new Stack<>();
@@ -53,26 +55,6 @@ public class GraphQLSchemaUtil {
     }
 
     @Nullable
-    public static Description getTypeDefinitionDescription(@NotNull TypeDefinition<?> typeDefinition) {
-        Description description = null;
-        if (typeDefinition instanceof ObjectTypeDefinition) {
-            description = ((ObjectTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof InterfaceTypeDefinition) {
-            description = ((InterfaceTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof EnumTypeDefinition) {
-            description = ((EnumTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof ScalarTypeDefinition) {
-            description = ((ScalarTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof InputObjectTypeDefinition) {
-            description = ((InputObjectTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof UnionTypeDefinition) {
-            description = ((UnionTypeDefinition) typeDefinition).getDescription();
-        }
-        return description;
-
-    }
-
-    @Nullable
     public static String getTypeDescription(@NotNull GraphQLType graphQLType) {
         String description = null;
         if (graphQLType instanceof GraphQLObjectType) {
@@ -89,16 +71,6 @@ public class GraphQLSchemaUtil {
             description = ((GraphQLUnionType) graphQLType).getDescription();
         }
         return description;
-    }
-
-    public static boolean isExtension(@Nullable SDLDefinition<?> definition) {
-        return definition instanceof SchemaExtensionDefinition ||
-            definition instanceof InputObjectTypeExtensionDefinition ||
-            definition instanceof ObjectTypeExtensionDefinition ||
-            definition instanceof InterfaceTypeExtensionDefinition ||
-            definition instanceof ScalarTypeExtensionDefinition ||
-            definition instanceof UnionTypeExtensionDefinition ||
-            definition instanceof EnumTypeExtensionDefinition;
     }
 
     public static @NotNull String getTypeName(@Nullable GraphQLType type) {
@@ -153,5 +125,24 @@ public class GraphQLSchemaUtil {
             return "Reference";
         }
         return value.getClass().getSimpleName();
+    }
+
+    @NotNull
+    public static Set<String> getSchemaOperationTypeNames(@NotNull GraphQLSchema schema) {
+        HashSet<String> types = new HashSet<>();
+
+        GraphQLObjectType queryType = schema.getQueryType();
+        types.add(queryType != null && queryType.getName() != null
+            ? queryType.getName() : GraphQLKnownTypes.QUERY_TYPE);
+
+        GraphQLObjectType mutationType = schema.getMutationType();
+        types.add(mutationType != null && mutationType.getName() != null
+            ? mutationType.getName() : GraphQLKnownTypes.MUTATION_TYPE);
+
+        GraphQLObjectType subscriptionType = schema.getSubscriptionType();
+        types.add(subscriptionType != null && subscriptionType.getName() != null
+            ? subscriptionType.getName() : GraphQLKnownTypes.SUBSCRIPTION_TYPE);
+
+        return types;
     }
 }

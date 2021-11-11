@@ -204,27 +204,6 @@ public class GraphQLPsiSearchHelper implements Disposable {
     }
 
     /**
-     * Gets a resolved reference or null if no reference or resolved element is found
-     *
-     * @param psiElement the element to get a resolved reference for
-     * @return the resolved reference, or null if non is available
-     */
-    @Nullable
-    public static GraphQLIdentifier getResolvedReference(@Nullable GraphQLNamedElement psiElement) {
-        if (psiElement != null) {
-            final PsiElement nameIdentifier = psiElement.getNameIdentifier();
-            if (nameIdentifier != null) {
-                PsiReference reference = nameIdentifier.getReference();
-                if (reference != null) {
-                    PsiElement resolved = reference.resolve();
-                    return resolved instanceof GraphQLIdentifier ? (GraphQLIdentifier) resolved : null;
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
      * Processes GraphQL identifiers whose name matches the specified word within the given schema scope.
      *
      * @param schemaScope the schema scope which limits the processing

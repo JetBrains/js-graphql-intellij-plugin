@@ -12,10 +12,10 @@ enum MyEnum {
 
 union MyUnion = KnownType | KnownInterface
 
-input MyInput1 {
-    foo: String
-}
+# comment
 
-input MyCompletionInput {
-    bas: <caret>
+<caret>
+
+type Foo implements Bar {
+    foo:
 }

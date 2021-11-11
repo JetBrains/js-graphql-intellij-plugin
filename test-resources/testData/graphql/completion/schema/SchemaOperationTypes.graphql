@@ -1,0 +1,22 @@
+type CustomQuery {}
+
+type CustomMutation {}
+
+type ObjectType {}
+
+input Input {
+    id: ID
+}
+
+enum Enum { A B }
+
+union Union = ObjectType
+
+scalar Scalar
+
+interface Interface {}
+
+schema {
+    query: CustomQuery
+    mutation: <caret>
+}

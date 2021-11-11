@@ -1,7 +1,7 @@
 type KnownType implements KnownInterface & OneMoreInterface {
     k: String
     fieldToImpl1: Boolean
-    <caret>
+    fieldToImpl2(id: ID): Boolean<caret>
 }
 
 interface KnownInterface implements OneMoreInterface {
