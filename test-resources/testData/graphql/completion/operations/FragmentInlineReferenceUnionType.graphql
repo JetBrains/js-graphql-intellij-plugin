@@ -1,0 +1,27 @@
+fragment Fragment1 on Task {
+    id
+}
+
+fragment Fragment2 on Bug {
+    id
+}
+
+fragment Fragment3 on Feature {
+    id
+}
+
+fragment Fragment4 on Node {
+    id
+}
+
+fragment Fragment5 on TeamMember {
+    id
+}
+
+query {
+    issues {
+        items {
+            ...<caret>
+        }
+    }
+}

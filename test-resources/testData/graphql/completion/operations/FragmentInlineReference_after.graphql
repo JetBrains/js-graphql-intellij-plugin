@@ -24,6 +24,6 @@ fragment Fragment6 on NamedNode {
 
 query MyQuery {
     issue(id: "1") {
-        ...<caret>
+        ...Fragment4<caret>
     }
 }

@@ -118,6 +118,14 @@ public class GraphQLSchemaCompletionTest extends GraphQLCompletionTestCaseBase {
         checkResult(lookupElements, "fieldToImpl2(id: ID): Boolean");
     }
 
+    public void testFieldOverrideInterfaceExtension() {
+        LookupElement[] lookupElements = doTest();
+        checkEqualsOrdered(lookupElements, "createdAt: DateTime");
+
+        // TODO: [vepanimas] currently ignores interface extensions
+        // checkEqualsOrdered(lookupElements, "createdAt: DateTime", "updatedAt: DateTime");
+    }
+
     public void testInputFieldType() {
         LookupElement[] lookupElements = doTest();
         checkEqualsOrdered(lookupElements, "Boolean", "Float", "ID", "Int", "MyCompletionInput", "MyEnum", "MyInput1", "String");
@@ -173,7 +181,7 @@ public class GraphQLSchemaCompletionTest extends GraphQLCompletionTestCaseBase {
     }
 
     public void _testDirectiveBooleanArgumentValues() {
-        // TODO: currently not supported by the completion contributor
+        // TODO: [vepanimas] currently not supported by the completion contributor
         LookupElement[] lookupElements = doTest();
         checkEqualsOrdered(lookupElements, "false", "true");
         checkResult(lookupElements, "false");

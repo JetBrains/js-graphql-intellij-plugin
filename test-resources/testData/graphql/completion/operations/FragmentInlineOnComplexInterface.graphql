@@ -1,0 +1,9 @@
+query {
+    nodes {
+        items {
+            ... on Node {
+                ... on <caret>
+            }
+        }
+    }
+}

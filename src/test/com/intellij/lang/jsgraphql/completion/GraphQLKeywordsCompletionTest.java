@@ -95,4 +95,16 @@ public class GraphQLKeywordsCompletionTest extends GraphQLCompletionTestCaseBase
         checkEqualsOrdered(lookupElements, "mutation", "subscription");
         checkResult(lookupElements, "mutation");
     }
+
+    public void testFragmentInlineOnKeyword() {
+        LookupElement[] lookupElements = doTest();
+        checkEqualsOrdered(lookupElements, "on");
+        checkResult(lookupElements, "on");
+    }
+
+    public void testFragmentInlineOnKeywordWithSpace() {
+        LookupElement[] lookupElements = doTest();
+        checkEqualsOrdered(lookupElements, "on");
+        checkResult(lookupElements, "on");
+    }
 }

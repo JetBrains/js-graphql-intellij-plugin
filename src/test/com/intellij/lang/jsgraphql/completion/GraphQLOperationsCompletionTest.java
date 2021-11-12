@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBase {
 
+    private static final String OTHER_SCHEMA = "OtherSchema.graphql";
+
     @Override
     protected @NotNull String getBasePath() {
         return "/completion/operations";
@@ -21,19 +23,62 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
 
     // -- root field names --
 
-    public void testRootField1() {
+    public void testFieldRootQuerySelectionSet() {
         LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "human", "node", "nodes", "user", "users");
+        checkEqualsOrdered(lookupElements, "human", "ids", "node", "nodes", "user", "users", "__typename");
+        checkResult(lookupElements, "user");
     }
 
-    public void testRootField2() {
+    public void testFieldRootNamedQuery() {
         LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "human", "node", "nodes", "user", "users");
+        checkEqualsOrdered(lookupElements, "human", "ids", "node", "nodes", "user", "users", "__typename");
+        checkResult(lookupElements, "__typename");
     }
 
-    public void testRootField3() {
+    public void testFieldRootNamedQueryAnonymous() {
         LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "human", "node", "nodes", "user", "users");
+        checkEqualsOrdered(lookupElements, "human", "ids", "node", "nodes", "user", "users", "__typename");
+        checkResult(lookupElements, "human");
+    }
+
+    public void testFieldTypeExtension() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "enumField", "extended", "fieldWithArg", "fieldWithEnumArg", "fieldWithEnumInListArg",
+            "fieldWithInput", "id", "name", "search", "__typename");
+        checkResult(lookupElements, "fieldWithEnumArg");
+    }
+
+    public void testFieldDuplicatedFields() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "address", "age", "name", "__typename");
+    }
+
+    public void testFieldDeprecated() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkContainsAll(lookupElements, "deprecatedField");
+        checkDeprecated(lookupElements, "deprecatedField", true);
+    }
+
+    public void testFieldTypeText() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkTypeText(lookupElements, "name", "String!");
+        checkTypeText(lookupElements, "search", "[SearchResult]");
+        checkTypeText(lookupElements, "extended", "Boolean");
+    }
+
+    public void testFieldRootMutation() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements,
+            "createIssue", "createIssues", "createMember", "createMembers",
+            "createOrganization", "createOrganizations", "__typename"
+        );
+        checkResult(lookupElements, "createIssue");
+    }
+
+    public void testFieldRootSubscription() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements, "issues", "members", "organizations", "__typename");
+        checkResult(lookupElements, "issues");
     }
 
     // -- field arguments --
@@ -62,50 +107,91 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
         checkResult(lookupElements, "Metric");
     }
 
-    public void testNestedFieldArg3() {
+    public void testArgumentNameNestedQueryFieldSecond() {
         LookupElement[] lookupElements = doTestWithSchema();
         checkEqualsOrdered(lookupElements, "another");
-    }
-
-    // --- extend types --
-
-    public void testFieldExtension() {
-        LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "enumField", "extended", "fieldWithArg", "fieldWithEnumArg", "fieldWithEnumInListArg",
-            "fieldWithInput", "id",
-            "name", "search", "...", "__typename");
-    }
-
-    public void testDuplicatedTypeField() {
-        LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "address", "age", "name", "...", "__typename");
+        checkResult(lookupElements, "another");
     }
 
     // -- fragments --
 
-    public void testFragmentDefinition() {
-        LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "Human", "Mutation", "Node", "Query", "SearchResult", "Ship", "User");
+    public void testFragmentDefinitionTypeCondition() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements,
+            "Assignable", "Bug", "Deletable", "Described", "EmailOwner", "Feature", "Issue", "IssueListResponse", "ListResponse",
+            "Milestone", "NamedNode", "Node", "NodeListResponse", "Organization", "OrganizationListResponse", "Release",
+            "Repository", "RepositoryListResponse", "RootMutation", "RootQuery", "RootSubscription",
+            "Task", "TeamMember", "TeamMemberListResponse", "Timestamped");
+        checkResult(lookupElements, "Organization");
     }
 
-    public void testFragmentField() {
-        LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "id", "...", "__typename");
+    public void testFragmentDefinitionNestedInlineFragmentTypeConditionObject() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements, "NamedNode", "Node", "TeamMember", "Timestamped");
+
+        // TODO: [vepanimas] ignores interfaces from extensions
+        // checkEqualsOrdered(lookupElements, "EmailOwner", "NamedNode", "Node", "TeamMember", "Timestamped");
     }
 
-    public void testFragmentInlineType() {
-        LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "Human", "Node", "Ship");
+    public void testFragmentDefinitionNestedInlineFragmentTypeConditionUnion() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements, "Assignable", "Bug", "Described", "Feature", "Node", "Timestamped");
+
+        // TODO: [vepanimas] ignores enum extensions
+        // checkEqualsOrdered(lookupElements, "Assignable", "Bug", "Described", "Feature", "Node", "Task", "Timestamped");
     }
 
-    public void testFragmentInlineUnionType() {
-        LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "Human", "Node", "Ship");
+    public void testFragmentDefinitionNestedInlineFragmentTypeConditionInterface() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements, "Deletable", "Repository");
+
+        // TODO: [vepanimas] ignores interface extensions
+        // checkEqualsOrdered(lookupElements, "Deletable", "Repository", "Timestamped");
+    }
+
+    public void testFragmentInlineTypeConditionObjectType() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements, "NamedNode", "Node", "TeamMember", "Timestamped");
     }
 
     public void testFragmentInlineReference() {
-        LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "MyHumanFragment", " on");
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements, "Fragment1", "Fragment2", "Fragment3", "Fragment4", "on");
+        checkResult(lookupElements, "Fragment4");
+    }
+
+    public void testFragmentInlineReferenceUnionType() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements, "Fragment1", "Fragment2", "Fragment3", "Fragment4", "on");
+    }
+
+    public void testFragmentField() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements, "createdAt", "email", "id", "name", "phone",
+            "role", "status", "updatedAt", "__typename");
+    }
+
+    public void testFragmentInlineField() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements, "createdAt", "email", "id", "name", "phone",
+            "role", "status", "updatedAt", "__typename");
+    }
+
+    public void testFragmentInlineOnComplexInterface() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        checkEqualsOrdered(lookupElements,
+            "Bug", "Feature", "Milestone", "Node", "Organization", "Release", "Task", "TeamMember");
+
+        // TODO: [vepanimas] these types are expected here, should traverse all reachable types in hierarchy including transitive
+        // checkEqualsOrdered(lookupElements,
+        //     "Assignable", "Bug", "Described", "EmailOwner", "Feature", "Milestone", "NamedNode", "Node",
+        //     "Organization", "Release", "Task", "TeamMember", "Timestamped");
+    }
+
+    public void testFragmentIncompleteNoFields() {
+        LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
+        assertNotNull(lookupElements);
+        assertEmpty(lookupElements);
     }
 
     // -- input objects --

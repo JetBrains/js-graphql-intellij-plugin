@@ -46,7 +46,13 @@ type Ship implements Node {
     range: Float
 }
 
+type UnionExtension {
+    unionAdditionalField: String
+}
+
 union SearchResult = Human | Ship
+
+extend union SearchResult = UnionExtension
 
 extend type Human {
     extended: Boolean

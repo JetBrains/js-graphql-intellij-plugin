@@ -11,10 +11,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.codeInsight.lookup.LookupElementWeigher;
 import com.intellij.lang.jsgraphql.ide.documentation.GraphQLDocumentationMarkdownRenderer;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
@@ -25,7 +23,10 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLObjectValueImpl;
-import com.intellij.lang.jsgraphql.schema.*;
+import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection;
 import com.intellij.lang.jsgraphql.types.language.*;
@@ -34,7 +35,6 @@ import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import com.intellij.lang.jsgraphql.types.validation.rules.VariablesTypesMatcher;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.Ref;
 import com.intellij.patterns.ElementPattern;
 import com.intellij.patterns.PlatformPatterns;
@@ -122,13 +122,13 @@ public class GraphQLCompletionContributor extends CompletionContributor {
         completeTypeNameToExtend();
 
         // field names inside selection sets of operations, fields, fragments
-        completeFieldNames(); // TODO
+        completeFieldNames();
 
         // on <completion of type name>
-        completeFragmentOnTypeName(); // TODO
+        completeFragmentOnTypeName();
 
         // ...<completion of fragment name>
-        completeSpreadFragmentName(); // TODO
+        completeSpreadFragmentName();
 
         // completion on argument name in fields and directives
         completeArgumentName();
@@ -190,15 +190,19 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 if (operationTypeDefinition == null || operationTypeDefinition.getOperationType() != null) {
                     return;
                 }
-                final Set<String> keywords = ContainerUtil.map2Set(OPERATION_NAME_KEYWORDS, GraphQLCompletionKeyword::getText);
+                final Set<String> availableKeywords = ContainerUtil.map2Set(OPERATION_NAME_KEYWORDS, GraphQLCompletionKeyword::getText);
                 Collection<GraphQLOperationTypeDefinition> existingDefinitions =
                     PsiTreeUtil.findChildrenOfType(operationTypeDefinition.getParent(), GraphQLOperationTypeDefinition.class);
                 for (GraphQLOperationTypeDefinition existingDefinition : existingDefinitions) {
                     if (existingDefinition.getOperationType() != null) {
-                        keywords.remove(existingDefinition.getOperationType().getText());
+                        availableKeywords.remove(existingDefinition.getOperationType().getText());
                     }
                 }
-                keywords.forEach(keyword -> result.addElement(GraphQLCompletionUtil.createOperationNameKeywordLookupElement(keyword)));
+                for (GraphQLCompletionKeyword keyword : OPERATION_NAME_KEYWORDS) {
+                    if (availableKeywords.contains(keyword.getText())) {
+                        result.addElement(GraphQLCompletionUtil.createOperationNameKeywordLookupElement(keyword));
+                    }
+                }
             }
         };
         extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.NAME).inside(GraphQLOperationTypeDefinition.class), provider);
@@ -345,7 +349,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
 
                         final String implementedField = interfaceTypeName.getName() + "." + fieldDefinition.getName();
                         result.addElement(
-                            GraphQLCompletionUtil.createFieldOverrideLookupElement(fieldDefinition.getText(), implementedField));
+                            GraphQLCompletionUtil.createImplementFieldLookupElement(fieldDefinition.getText(), implementedField));
                     }
                 });
 
@@ -412,7 +416,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     ((GraphQLInterfaceTypeExtensionDefinition) typeDefinition).getImplementsInterfaces() != null) {
                     return;
                 }
-                result.addElement(GraphQLCompletionUtil.createKeywordLookupElement(IMPLEMENTS));
+                result.addElement(GraphQLCompletionUtil.createContextKeywordLookupElement(IMPLEMENTS));
             }
         };
         final ElementPattern<PsiElement> insideTypeDefElement = PlatformPatterns.or(
@@ -760,46 +764,37 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                           @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
-                final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
+                // the on keyword for inline fragments
+                result.addElement(GraphQLCompletionUtil.createContextKeywordLookupElement(ON, GraphQLCompletionUtil.ON_KEYWORD_HANDLER));
 
+                final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
                 final GraphQLTypeScopeProvider typeScopeProvider =
                     PsiTreeUtil.getParentOfType(completionElement, GraphQLTypeScopeProvider.class);
-
-                if (typeScopeProvider != null) {
-                    GraphQLType typeScope = typeScopeProvider.getTypeScope();
-                    if (typeScope != null) {
-                        // unwrap non-nulls, lists etc. since we want the raw type to match with the fragment type conditions
-                        typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
-
-                        // fragment must be compatible with the type in scope
-                        final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(
-                                completionElement.getProject())
-                            .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
-
-                        final List<GraphQLFragmentDefinition> knownFragmentDefinitions = GraphQLPsiSearchHelper.getInstance(
-                            completionElement.getProject()).getKnownFragmentDefinitions(parameters.getOriginalFile());
-                        for (GraphQLFragmentDefinition fragmentDefinition : knownFragmentDefinitions) {
-                            final String name = fragmentDefinition.getName();
-                            if (name != null) {
-                                // suggest compatible fragments based on type type conditions
-                                if (isFragmentApplicableInTypeScope(typeDefinitionRegistry, fragmentDefinition, typeScope)) {
-                                    result.addElement(LookupElementBuilder.create(name));
-                                }
-                            }
-                        }
-
-                    }
-
+                if (typeScopeProvider == null) {
+                    return;
                 }
+                GraphQLType typeScope = typeScopeProvider.getTypeScope();
+                if (typeScope == null) {
+                    return;
+                }
+                // unwrap non-nulls, lists etc. since we want the raw type to match with the fragment type conditions
+                typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
 
-                // the on keyword for inline fragments
-                final PsiElement beforeCompletion = PsiTreeUtil.prevLeaf(parameters.getPosition());
-                final boolean addSpaceBefore = beforeCompletion != null && beforeCompletion.getNode().getElementType() == GraphQLElementTypes.SPREAD;
-                final String onCompletion = addSpaceBefore ? " on" : "on";
+                // fragment must be compatible with the type in scope
+                final TypeDefinitionRegistry typeDefinitionRegistry = GraphQLSchemaProvider.getInstance(completionElement.getProject())
+                    .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
 
-                result.addElement(LookupElementBuilder.create(onCompletion).withPresentableText("on").withBoldness(true).withInsertHandler(
-                    AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP));
-
+                final List<GraphQLFragmentDefinition> knownFragmentDefinitions = GraphQLPsiSearchHelper
+                    .getInstance(completionElement.getProject()).getKnownFragmentDefinitions(parameters.getOriginalFile());
+                for (GraphQLFragmentDefinition fragmentDefinition : knownFragmentDefinitions) {
+                    final String name = fragmentDefinition.getName();
+                    if (name != null) {
+                        // suggest compatible fragments based on type conditions
+                        if (GraphQLSchemaUtil.isFragmentApplicableInTypeScope(typeDefinitionRegistry, fragmentDefinition, typeScope)) {
+                            result.addElement(GraphQLCompletionUtil.createTypeNameLookupElement(name));
+                        }
+                    }
+                }
             }
         };
         extend(CompletionType.BASIC, psiElement().afterLeaf(psiElement(GraphQLElementTypes.SPREAD)), provider);
@@ -826,23 +821,25 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 final TypeDefinitionRegistry typeDefinitionRegistry = schemaProvider
                     .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
 
-                final List<Pair<TypeDefinition, Description>> fragmentTypes = Lists.newArrayList();
+                Set<TypeDefinition> fragmentTypes = new HashSet<>();
 
                 if (fragmentDefinition) {
                     // completion in a top-level fragment definition, so add all known types, interfaces, unions
                     typeDefinitionRegistry.types().forEach((key, value) -> {
-                        final boolean canFragment = value instanceof ObjectTypeDefinition || value instanceof UnionTypeDefinition || value instanceof InterfaceTypeDefinition;
-                        if (canFragment) {
-                            fragmentTypes.add(Pair.create(value, GraphQLTypeDefinitionUtil.getTypeDefinitionDescription(value)));
+                        final boolean isTypeCondition = value instanceof ObjectTypeDefinition ||
+                            value instanceof UnionTypeDefinition ||
+                            value instanceof InterfaceTypeDefinition;
+                        if (isTypeCondition) {
+                            fragmentTypes.add(value);
                         }
                     });
                 } else {
-
                     // inline fragment, so get type scope
                     GraphQLTypeScopeProvider typeScopeProvider =
                         PsiTreeUtil.getParentOfType(completionElement, GraphQLTypeScopeProvider.class);
 
-                    if (typeScopeProvider instanceof GraphQLInlineFragment && ((GraphQLInlineFragment) typeScopeProvider).getTypeCondition() == typeCondition) {
+                    if (typeScopeProvider instanceof GraphQLInlineFragment &&
+                        ((GraphQLInlineFragment) typeScopeProvider).getTypeCondition() == typeCondition) {
                         // if the type condition belongs to the type scope provider, we want the parent scope since that
                         // is the real source of what we can fragment on
                         typeScopeProvider = PsiTreeUtil.getParentOfType(typeScopeProvider, GraphQLTypeScopeProvider.class);
@@ -857,25 +854,21 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                             final Ref<Consumer<TypeDefinition<?>>> addTypesRecursive = new Ref<>();
                             final Consumer<TypeDefinition<?>> addTypes = (typeToFragmentOn) -> {
                                 if (typeToFragmentOn instanceof ObjectTypeDefinition) {
-                                    fragmentTypes.add(
-                                        Pair.create(typeToFragmentOn, GraphQLTypeDefinitionUtil.getTypeDefinitionDescription(typeToFragmentOn)));
+                                    fragmentTypes.add(typeToFragmentOn);
                                     final List<Type> anImplements = ((ObjectTypeDefinition) typeToFragmentOn).getImplements();
                                     if (anImplements != null) {
                                         anImplements.forEach(type -> {
                                             final TypeDefinition typeDefinition = typeDefinitionRegistry.getType(type).orElse(null);
                                             if (typeDefinition instanceof InterfaceTypeDefinition) {
-                                                fragmentTypes.add(Pair.create(typeDefinition,
-                                                    GraphQLTypeDefinitionUtil.getTypeDefinitionDescription(typeDefinition)));
+                                                fragmentTypes.add(typeDefinition);
                                             }
                                         });
                                     }
                                 } else if (typeToFragmentOn instanceof InterfaceTypeDefinition) {
-                                    fragmentTypes.add(
-                                        Pair.create(typeToFragmentOn, GraphQLTypeDefinitionUtil.getTypeDefinitionDescription(typeToFragmentOn)));
-                                    final List<ObjectTypeDefinition> implementationsOf = typeDefinitionRegistry.getImplementationsOf(
-                                        (InterfaceTypeDefinition) typeToFragmentOn);
-                                    implementationsOf.forEach(
-                                        impl -> fragmentTypes.add(Pair.create(impl, GraphQLTypeDefinitionUtil.getTypeDefinitionDescription(impl))));
+                                    fragmentTypes.add(typeToFragmentOn);
+                                    final List<ObjectTypeDefinition> implementationsOf = typeDefinitionRegistry
+                                        .getImplementationsOf((InterfaceTypeDefinition) typeToFragmentOn);
+                                    fragmentTypes.addAll(implementationsOf);
                                 } else if (typeToFragmentOn instanceof UnionTypeDefinition) {
                                     final List<Type> memberTypes = ((UnionTypeDefinition) typeToFragmentOn).getMemberTypes();
                                     if (memberTypes != null) {
@@ -888,22 +881,13 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                             addTypes.consume(fragmentType);
                         }
                     }
-
                 }
 
                 fragmentTypes.forEach(fragmentType -> {
-                    String typeName = fragmentType.first.getName();
+                    String typeName = fragmentType.getName();
                     if (isIgnoredType(typeName)) return;
 
-                    LookupElementBuilder element = LookupElementBuilder
-                        .create(typeName)
-                        .withBoldness(true);
-                    if (fragmentType.second != null) {
-                        final String documentation = GraphQLDocumentationMarkdownRenderer
-                            .getDescriptionAsPlainText(fragmentType.second.getContent(), true);
-                        element = element.withTailText(" - " + documentation, true);
-                    }
-                    result.addElement(element);
+                    result.addElement(GraphQLCompletionUtil.createTypeNameLookupElement(typeName));
                 });
 
             }
@@ -918,16 +902,13 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                           @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
 
-                // move "__*" fields to bottom
-                final CompletionResultSet orderedResult = updateResult(parameters, result);
-
                 final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
 
                 GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(completionElement, GraphQLTypeScopeProvider.class);
 
                 // check for incomplete field name, in which case we want the parent element as type scope to find this field name
                 GraphQLField completionField = null;
-                if (completionElement.getNode().getElementType() == GraphQLElementTypes.NAME) {
+                if (PsiUtilCore.getElementType(completionElement) == GraphQLElementTypes.NAME) {
                     completionField = PsiTreeUtil.getParentOfType(completionElement, GraphQLField.class);
                 }
                 if (typeScopeProvider == completionField) {
@@ -935,59 +916,38 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     typeScopeProvider = PsiTreeUtil.getParentOfType(typeScopeProvider, GraphQLTypeScopeProvider.class);
                 }
 
-                if (typeScopeProvider != null) {
-
-                    PsiElement textBeforeCompletion = PsiTreeUtil.prevLeaf(completionElement);
-                    boolean isSpread = textBeforeCompletion != null && textBeforeCompletion.getText().startsWith(".");
-
-                    if (!isSpread) {
-                        GraphQLType typeScope = typeScopeProvider.getTypeScope();
-                        if (typeScope != null) {
-                            // we need the raw type to get the fields
-                            typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
-                        }
-                        if (typeScope instanceof GraphQLFieldsContainer) {
-                            ((GraphQLFieldsContainer) typeScope).getFieldDefinitions().forEach(field -> {
-                                LookupElementBuilder element = LookupElementBuilder
-                                    .create(field.getName())
-                                    .withBoldness(true)
-                                    .withTypeText(GraphQLSchemaUtil.typeString(field.getType()));
-                                if (field.getDescription() != null) {
-                                    final String fieldDocumentation = GraphQLDocumentationMarkdownRenderer.getDescriptionAsPlainText(
-                                        field.getDescription(), true);
-                                    element = element.withTailText(" - " + fieldDocumentation, true);
-                                }
-                                if (field.isDeprecated()) {
-                                    element = element.strikeout();
-                                    if (field.getDeprecationReason() != null) {
-                                        final String deprecationReason = GraphQLDocumentationMarkdownRenderer.getDescriptionAsPlainText(
-                                            field.getDeprecationReason(), true);
-                                        element = element.withTailText(" - Deprecated: " + deprecationReason, true);
-                                    }
-                                }
-                                for (com.intellij.lang.jsgraphql.types.schema.GraphQLArgument fieldArgument : field.getArguments()) {
-                                    if (fieldArgument.getType() instanceof GraphQLNonNull) {
-                                        // on of the field arguments are required, so add the '()' for arguments
-                                        element = element.withInsertHandler((ctx, item) -> {
-                                            ParenthesesInsertHandler.WITH_PARAMETERS.handleInsert(ctx, item);
-                                            AutoPopupController.getInstance(ctx.getProject()).autoPopupMemberLookup(ctx.getEditor(), null);
-                                        });
-                                        break;
-                                    }
-                                }
-                                orderedResult.addElement(element);
-                            });
-                        }
-                        if (!(typeScopeProvider instanceof GraphQLOperationDefinition)) {
-                            // show the '...' except when top level selection in an operation
-                            orderedResult.addElement(LookupElementBuilder.create("...").withInsertHandler(
-                                (ctx, item) -> AutoPopupController.getInstance(ctx.getProject()).autoPopupMemberLookup(ctx.getEditor(),
-                                    null)));
-                            // and add the built-in __typename option
-                            orderedResult.addElement(LookupElementBuilder.create("__typename"));
-                        }
-                    }
+                if (typeScopeProvider == null) {
+                    return;
                 }
+
+                PsiElement prevLeaf = PsiTreeUtil.prevLeaf(completionElement);
+                boolean isSpread = prevLeaf != null && prevLeaf.textContains('.');
+                if (isSpread) {
+                    return;
+                }
+
+                GraphQLType typeScope = typeScopeProvider.getTypeScope();
+                if (typeScope != null) {
+                    // we need the raw type to get the fields
+                    typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
+                }
+                if (typeScope instanceof GraphQLFieldsContainer) {
+                    ((GraphQLFieldsContainer) typeScope).getFieldDefinitions().forEach(field -> {
+                        String name = field.getName();
+                        if (name == null) {
+                            return;
+                        }
+                        String typeText = GraphQLSchemaUtil.typeString(field.getType());
+                        boolean hasRequiredArgs = GraphQLSchemaUtil.hasRequiredArgs(field);
+                        result.addElement(GraphQLCompletionUtil.createFieldNameLookupElement(
+                            name, typeText, field.isDeprecated(), hasRequiredArgs));
+                    });
+                }
+
+                // and add the built-in __typename option
+                result.addElement(
+                    GraphQLCompletionUtil.createFieldNameLookupElement(
+                        GraphQLKnownTypes.INTROSPECTION_TYPENAME_FIELD, null, false, false));
             }
         };
         extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.NAME).withSuperParent(2, GraphQLField.class), provider);
@@ -1054,7 +1014,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                                           @NotNull ProcessingContext context,
                                           @NotNull CompletionResultSet result) {
                 for (GraphQLCompletionKeyword keyword : EXTEND_KEYWORDS) {
-                    result.addElement(GraphQLCompletionUtil.createKeywordLookupElement(keyword));
+                    result.addElement(GraphQLCompletionUtil.createContextKeywordLookupElement(keyword));
                 }
             }
         };
@@ -1245,129 +1205,12 @@ public class GraphQLCompletionContributor extends CompletionContributor {
     }
 
 
-    /**
-     * Gets whether the specified fragment candidate is valid to spread inside the specified required type scope
-     *
-     * @param typeDefinitionRegistry registry with available schema types, used to resolve union members and interface implementations
-     * @param fragmentCandidate      the fragment to check for being able to validly spread under the required type scope
-     * @param requiredTypeScope      the type scope in which the fragment is a candidate to spread
-     * @return true if the fragment candidate is valid to be spread inside the type scope
-     */
-    private boolean isFragmentApplicableInTypeScope(TypeDefinitionRegistry typeDefinitionRegistry,
-                                                    GraphQLFragmentDefinition fragmentCandidate,
-                                                    GraphQLType requiredTypeScope) {
-
-        // unwrap non-nullable and list types
-        requiredTypeScope = GraphQLSchemaUtil.getUnmodifiedType(requiredTypeScope);
-
-        final GraphQLTypeCondition typeCondition = fragmentCandidate.getTypeCondition();
-        if (typeCondition == null || typeCondition.getTypeName() == null) {
-            return false;
-        }
-
-        final String fragmentTypeName = Optional.ofNullable(typeCondition.getTypeName().getName()).orElse("");
-        if (fragmentTypeName.equals(GraphQLSchemaUtil.getTypeName(requiredTypeScope))) {
-            // direct match, e.g. User scope, fragment on User
-            return true;
-        }
-
-        // check whether compatible based on interfaces and unions
-        return isCompatibleFragment(typeDefinitionRegistry, requiredTypeScope, fragmentTypeName);
-
-    }
-
-    /**
-     * Gets whether a fragment type condition name is compatible with the required type scope
-     *
-     * @param typeDefinitionRegistry registry with available schema types, used to resolve union members and interface implementations
-     * @param rawRequiredTypeScope   the type scope in which the fragment is a candidate to spread
-     * @param fragmentTypeName       the name of the type that a candidate fragment applies to
-     * @return true if the candidate type condtion name is compatible inside the required type scope
-     */
-    private boolean isCompatibleFragment(TypeDefinitionRegistry typeDefinitionRegistry,
-                                         GraphQLType rawRequiredTypeScope,
-                                         String fragmentTypeName) {
-
-        // unwrap non-nullable and list types
-        GraphQLUnmodifiedType requiredTypeScope = GraphQLSchemaUtil.getUnmodifiedType(rawRequiredTypeScope);
-
-        if (requiredTypeScope instanceof GraphQLInterfaceType) {
-            // also include fragments on types implementing the interface scope
-            final TypeDefinition typeScopeDefinition = typeDefinitionRegistry.types().get(requiredTypeScope.getName());
-            if (typeScopeDefinition != null) {
-                final List<ObjectTypeDefinition> implementations = typeDefinitionRegistry.getImplementationsOf(
-                    (InterfaceTypeDefinition) typeScopeDefinition);
-                for (ObjectTypeDefinition implementation : implementations) {
-                    if (implementation.getName().equals(fragmentTypeName)) {
-                        return true;
-                    }
-                }
-            }
-        } else if (requiredTypeScope instanceof GraphQLObjectType) {
-            // include fragments on the interfaces implemented by the object type
-            for (GraphQLNamedOutputType graphQLOutputType : ((GraphQLObjectType) requiredTypeScope).getInterfaces()) {
-                if (graphQLOutputType.getName().equals(fragmentTypeName)) {
-                    return true;
-                }
-            }
-        } else if (requiredTypeScope instanceof GraphQLUnionType) {
-            for (GraphQLNamedOutputType graphQLOutputType : ((GraphQLUnionType) requiredTypeScope).getTypes()) {
-                // check each type in the union for compatibility
-                if (graphQLOutputType.getName().equals(fragmentTypeName) ||
-                    isCompatibleFragment(typeDefinitionRegistry, graphQLOutputType, fragmentTypeName)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     private static boolean isIgnoredType(@NotNull TypeDefinition type) {
         return isIgnoredType(type.getName());
     }
 
     private static boolean isIgnoredType(@NotNull String type) {
         return GraphQLKnownTypes.isIntrospectionType(type);
-    }
-
-    @NotNull
-    private CompletionResultSet updateResult(CompletionParameters params, @NotNull CompletionResultSet result) {
-        CompletionResultSet completionResultSet = result;
-        CompletionSorter completionSorter =
-            CompletionSorter.defaultSorter(params, completionResultSet.getPrefixMatcher())
-                .weighBefore("priority", new LookupElementWeigher("GraphQLWeight") {
-                    @NotNull
-                    @Override
-                    public Comparable weigh(@NotNull LookupElement element) {
-                        return new LookupElementComparator(element);
-                    }
-                });
-        completionResultSet = completionResultSet.withRelevanceSorter(completionSorter);
-        return completionResultSet;
-    }
-
-    /**
-     * Moves the built-in '__' types to the bottom of the completion list by sorting them with a '|' prefix that has a higher char code value
-     */
-    private static class LookupElementComparator implements Comparable<LookupElementComparator> {
-
-        private final LookupElement lookupElement;
-
-        public LookupElementComparator(LookupElement lookupElement) {
-            this.lookupElement = lookupElement;
-        }
-
-        @Override
-        public int compareTo(LookupElementComparator other) {
-            return getSortText(lookupElement).compareTo(getSortText(other.lookupElement));
-        }
-
-        private String getSortText(LookupElement element) {
-            if (element.getLookupString().startsWith("__") || element.getLookupString().startsWith("...")) {
-                return "|" + element.getLookupString();
-            }
-            return element.getLookupString();
-        }
     }
 
 }

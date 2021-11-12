@@ -16,6 +16,8 @@ public class GraphQLKnownTypes {
     public static final String INTROSPECTION_DIRECTIVE = "__Directive";
     public static final String INTROSPECTION_DIRECTIVE_LOCATION = "__DirectiveLocation";
 
+    public static final String INTROSPECTION_TYPENAME_FIELD = "__typename";
+
     public static final Set<String> INTROSPECTION_TYPES = Set.of(
         INTROSPECTION_QUERY_INTROSPECTION_META,
         INTROSPECTION_TYPE_NAME_META,

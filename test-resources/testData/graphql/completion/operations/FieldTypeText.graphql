@@ -1,0 +1,5 @@
+query {
+    human(id: "1") {
+        <caret>
+    }
+}

@@ -1,0 +1,268 @@
+schema  {
+    query: RootQuery
+    mutation: RootMutation
+    subscription: RootSubscription
+}
+
+type RootQuery {
+    node(id: ID!): Node
+    nodes(before: ID, after: ID, count: Int, skip: Int): NodeListResponse!
+
+    teamMember(id: ID!): TeamMember
+    teamMembers(filter: TeamMemberFilterInput): TeamMemberListResponse!
+
+    organization(id: ID!): Organization
+    organizations(filter: OrganizationFilterInput): OrganizationListResponse!
+
+    repositories: RepositoryListResponse!
+}
+
+extend type RootQuery {
+    issue(id: ID!): Issue
+    issues(filter: IssueFilterInput): IssueListResponse!
+}
+
+type RootMutation {
+    createMember(input: TeamMemberInput!): ID!
+    createMembers(input: [TeamMemberInput!]!): TeamMemberListResponse!
+
+    createOrganization(input: OrganizationInput!): ID!
+    createOrganizations(input: [OrganizationInput!]!): OrganizationListResponse!
+}
+
+extend type RootMutation {
+    createIssue(input: IssueInput!): ID!
+    createIssues(input: [IssueInput!]!): IssueListResponse!
+}
+
+type RootSubscription {
+    members(filter: TeamMemberFilterInput): TeamMemberListResponse!
+    organizations(filter: OrganizationFilterInput): OrganizationListResponse!
+}
+
+extend type RootSubscription {
+    issues(filter: IssueFilterInput): IssueListResponse!
+}
+
+interface Node {
+    id: ID!
+}
+
+interface NamedNode implements Node {
+    id: ID!
+}
+
+extend interface NamedNode {
+    name: String!
+}
+
+interface Timestamped {
+    createdAt: DateTime
+}
+
+extend interface Timestamped {
+    updatedAt: DateTime
+}
+
+interface Deletable {
+    viewerCanDelete: Boolean!
+}
+
+extend interface Deletable implements Timestamped {
+    createdAt: DateTime
+    updatedAt: DateTime
+}
+
+interface Described {
+    description: String
+}
+
+interface ListResponse {
+    count: Int
+}
+
+interface Assignable {
+    assignees(after: String, before: String, first: Int, last: Int): TeamMemberListResponse!
+}
+
+type Organization implements Node & NamedNode & Timestamped @tableName(name: "organization") {
+    id: ID! @columnName(name: "organization_id")
+    name: String! @columnName(name: "organization_name")
+    createdAt: DateTime
+    updatedAt: DateTime
+    members(filter: TeamMemberFilterInput): TeamMemberListResponse!
+}
+
+type OrganizationListResponse implements ListResponse {
+    count: Int
+    items: [Organization!]!
+}
+
+input OrganizationFilterInput {
+    name: String
+    limit: Int
+    sort: SortOrder
+}
+
+input OrganizationInput {
+    name: String!
+    members: [TeamMemberInput!]!
+}
+
+interface EmailOwner {
+    email: String
+}
+
+type TeamMember implements Node & NamedNode & Timestamped @tableName(name: "team_member") {
+    id: ID! @columnName(name: "member_id")
+    name: String! @columnName(name: "member_name")
+    updatedAt: DateTime
+    createdAt: DateTime
+    phone: String
+    role: TeamMemberRole
+    status: TeamMemberStatus
+}
+
+extend type TeamMember implements EmailOwner {
+    email: String
+}
+
+type TeamMemberListResponse implements ListResponse {
+    count: Int
+    items: [TeamMember!]!
+}
+
+input TeamMemberInput {
+    name: String!
+    email: String
+    phone: String
+    role: TeamMemberRole
+    status: TeamMemberStatus
+}
+
+input TeamMemberFilterInput {
+    name: String
+    email: String
+    phone: String
+    role: TeamMemberRole
+    status: TeamMemberStatus
+    limit: Int
+    sort: SortOrder
+}
+
+union Issue = Bug | Feature
+
+extend union Issue = | Task
+
+type IssueListResponse implements ListResponse {
+    count: Int
+    items: [Issue!]!
+}
+
+input IssueFilterInput {
+    issueType: IssueType
+    createdAt: DateTime
+    updatedAt: DateTime
+    limit: Int
+    sort: SortOrder
+}
+
+input IssueInput {
+    issueType: IssueType!
+    description: String!
+}
+
+type Bug implements Node & Described & Timestamped & Assignable @tableName(name: "bug") {
+    id: ID! @columnName(name: "bug_id")
+    description: String!
+    createdAt: DateTime
+    updatedAt: DateTime
+    assignees(after: String, before: String, first: Int, last: Int): TeamMemberListResponse!
+    issueType: IssueType!
+    reportedAt: Release
+    attachments: [File!]!
+    relatedIssues(filter: IssueFilterInput): IssueListResponse!
+}
+
+type Feature implements Node & Described & Timestamped & Assignable @tableName(name: "feature") {
+    id: ID! @columnName(name: "feature_id")
+    description: String!
+    createdAt: DateTime
+    updatedAt: DateTime
+    assignees(after: String, before: String, first: Int, last: Int): TeamMemberListResponse!
+    issueType: IssueType!
+    milestone: Milestone
+    children(filter: IssueFilterInput): IssueListResponse!
+}
+
+type Task implements Node & Described & Timestamped & Assignable @tableName(name: "task") {
+    id: ID! @columnName(name: "task_id")
+    description: String!
+    createdAt: DateTime
+    updatedAt: DateTime
+    assignees(after: String, before: String, first: Int, last: Int): TeamMemberListResponse!
+    issueType: IssueType!
+    parent: Issue
+}
+
+type Release implements Node @tableName(name: "release") {
+    id: ID! @columnName(name: "release_id")
+    date: DateTime
+    releaseNotes: String
+    issues(filter: IssueFilterInput): IssueListResponse!
+}
+
+type Milestone implements Node & NamedNode @tableName(name: "milestone") {
+    id: ID! @columnName(name: "milestone_id")
+    name: String!
+}
+
+type NodeListResponse implements ListResponse {
+    count: Int
+    items: [Node!]!
+}
+
+type Repository implements Deletable & Timestamped {
+    viewerCanDelete: Boolean!
+    createdAt: DateTime
+    updatedAt: DateTime
+}
+
+type RepositoryListResponse implements ListResponse {
+    count: Int
+    nodes: [Repository!]!
+}
+
+enum SortOrder {
+    ASC
+    DESC
+}
+
+enum TeamMemberRole {
+    DEVELOPER
+    QA
+    MANAGER
+}
+
+enum TeamMemberStatus {
+    ACTIVE
+    DISABLED
+}
+
+enum IssueType {
+    BUG
+    FEATURE
+    TASK
+}
+
+scalar Any
+
+scalar File
+
+scalar Date @specifiedBy(url: "https://spec.graphql.org/")
+
+scalar DateTime @specifiedBy(url: "https://spec.graphql.org/")
+
+directive @tableName(name: String!) on OBJECT
+
+directive @columnName(name: String!) on FIELD_DEFINITION

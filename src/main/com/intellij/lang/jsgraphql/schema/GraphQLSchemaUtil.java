@@ -7,15 +7,16 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeCondition;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
 
@@ -24,7 +25,11 @@ public class GraphQLSchemaUtil {
     /**
      * Provides the IDL string version of a type including handling of types wrapped in non-null/list-types
      */
-    public static String typeString(@NotNull GraphQLType rawType) {
+    @NotNull
+    public static String typeString(@Nullable GraphQLType rawType) {
+        if (rawType == null) {
+            return "";
+        }
 
         final StringBuilder sb = new StringBuilder();
         final Stack<String> stack = new Stack<>();
@@ -144,5 +149,97 @@ public class GraphQLSchemaUtil {
             ? subscriptionType.getName() : GraphQLKnownTypes.SUBSCRIPTION_TYPE);
 
         return types;
+    }
+
+    public static boolean hasRequiredArgs(@Nullable GraphQLFieldDefinition field) {
+        if (field == null) {
+            return false;
+        }
+
+        boolean hasRequiredArgs = false;
+        for (GraphQLArgument fieldArgument : field.getArguments()) {
+            if (fieldArgument.getType() instanceof GraphQLNonNull) {
+                hasRequiredArgs = true;
+                break;
+            }
+        }
+        return hasRequiredArgs;
+    }
+
+    /**
+     * Gets whether the specified fragment candidate is valid to spread inside the specified required type scope
+     *
+     * @param typeDefinitionRegistry registry with available schema types, used to resolve union members and interface implementations
+     * @param fragmentCandidate      the fragment to check for being able to validly spread under the required type scope
+     * @param requiredTypeScope      the type scope in which the fragment is a candidate to spread
+     * @return true if the fragment candidate is valid to be spread inside the type scope
+     */
+    public static boolean isFragmentApplicableInTypeScope(@NotNull TypeDefinitionRegistry typeDefinitionRegistry,
+                                                          @NotNull GraphQLFragmentDefinition fragmentCandidate,
+                                                          @NotNull GraphQLType requiredTypeScope) {
+
+        // unwrap non-nullable and list types
+        requiredTypeScope = getUnmodifiedType(requiredTypeScope);
+
+        final GraphQLTypeCondition typeCondition = fragmentCandidate.getTypeCondition();
+        if (typeCondition == null || typeCondition.getTypeName() == null) {
+            return false;
+        }
+
+        final String fragmentTypeName = Optional.ofNullable(typeCondition.getTypeName().getName()).orElse("");
+        if (fragmentTypeName.equals(getTypeName(requiredTypeScope))) {
+            // direct match, e.g. User scope, fragment on User
+            return true;
+        }
+
+        // check whether compatible based on interfaces and unions
+        return isCompatibleFragment(typeDefinitionRegistry, requiredTypeScope, fragmentTypeName);
+
+    }
+
+    /**
+     * Gets whether a fragment type condition name is compatible with the required type scope
+     *
+     * @param typeDefinitionRegistry registry with available schema types, used to resolve union members and interface implementations
+     * @param rawRequiredTypeScope   the type scope in which the fragment is a candidate to spread
+     * @param fragmentTypeName       the name of the type that a candidate fragment applies to
+     * @return true if the candidate type condtion name is compatible inside the required type scope
+     */
+    private static boolean isCompatibleFragment(TypeDefinitionRegistry typeDefinitionRegistry,
+                                                GraphQLType rawRequiredTypeScope,
+                                                String fragmentTypeName) {
+
+        // unwrap non-nullable and list types
+        GraphQLUnmodifiedType requiredTypeScope = getUnmodifiedType(rawRequiredTypeScope);
+
+        if (requiredTypeScope instanceof GraphQLInterfaceType) {
+            // also include fragments on types implementing the interface scope
+            final TypeDefinition typeScopeDefinition = typeDefinitionRegistry.types().get(requiredTypeScope.getName());
+            if (typeScopeDefinition != null) {
+                final List<ObjectTypeDefinition> implementations = typeDefinitionRegistry.getImplementationsOf(
+                    (InterfaceTypeDefinition) typeScopeDefinition);
+                for (ObjectTypeDefinition implementation : implementations) {
+                    if (implementation.getName().equals(fragmentTypeName)) {
+                        return true;
+                    }
+                }
+            }
+        } else if (requiredTypeScope instanceof GraphQLObjectType) {
+            // include fragments on the interfaces implemented by the object type
+            for (GraphQLNamedOutputType graphQLOutputType : ((GraphQLObjectType) requiredTypeScope).getInterfaces()) {
+                if (graphQLOutputType.getName().equals(fragmentTypeName)) {
+                    return true;
+                }
+            }
+        } else if (requiredTypeScope instanceof GraphQLUnionType) {
+            for (GraphQLNamedOutputType graphQLOutputType : ((GraphQLUnionType) requiredTypeScope).getTypes()) {
+                // check each type in the union for compatibility
+                if (graphQLOutputType.getName().equals(fragmentTypeName) ||
+                    isCompatibleFragment(typeDefinitionRegistry, graphQLOutputType, fragmentTypeName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

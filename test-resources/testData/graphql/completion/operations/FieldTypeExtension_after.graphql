@@ -1,5 +1,5 @@
 query MyQuery {
     human(id: "") {
-        <caret>
+        fieldWithEnumArg<caret>
     }
 }

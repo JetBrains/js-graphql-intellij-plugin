@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql;
 
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.testFramework.fixtures.TestLookupElementPresentation;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,12 +29,39 @@ public abstract class GraphQLCompletionTestCaseBase extends GraphQLTestCaseBase 
         return doTest();
     }
 
-    protected static void checkEqualsOrdered(LookupElement @Nullable [] items, String... variants) {
+    protected static void checkEqualsOrdered(LookupElement @Nullable [] items, String @NotNull ... variants) {
         assertNotNull(items);
         assertOrderedEquals(ContainerUtil.map(items, LookupElement::getLookupString), variants);
     }
 
-    private static void checkContainsAll(LookupElement @Nullable [] items, String... variants) {
+    protected static void checkTypeText(LookupElement @Nullable [] items, @NotNull String lookupString, @NotNull String expectedTypeText) {
+        LookupElement lookupElement = findLookupElement(items, lookupString);
+        checkTypeText(lookupElement, expectedTypeText);
+    }
+
+    protected static void checkTypeText(@NotNull LookupElement lookupElement, @NotNull String expectedTypeText) {
+        assertEquals(expectedTypeText, TestLookupElementPresentation.renderReal(lookupElement).getTypeText());
+    }
+
+    protected static void checkTailText(LookupElement @Nullable [] items, @NotNull String lookupString, @NotNull String expectedTailText) {
+        LookupElement lookupElement = findLookupElement(items, lookupString);
+        checkTailText(lookupElement, expectedTailText);
+    }
+
+    protected static void checkTailText(@NotNull LookupElement lookupElement, @NotNull String expectedTailText) {
+        assertEquals(expectedTailText, TestLookupElementPresentation.renderReal(lookupElement).getTailText());
+    }
+
+    protected static void checkDeprecated(LookupElement @Nullable [] items, @NotNull String lookupString, boolean isDeprecated) {
+        LookupElement lookupElement = findLookupElement(items, lookupString);
+        checkDeprecated(lookupElement, isDeprecated);
+    }
+
+    protected static void checkDeprecated(@NotNull LookupElement lookupElement, boolean isDeprecated) {
+        assertEquals(isDeprecated, TestLookupElementPresentation.renderReal(lookupElement).isStrikeout());
+    }
+
+    protected static void checkContainsAll(LookupElement @Nullable [] items, String... variants) {
         assertNotNull(items);
         List<String> variantsToCheck = new ArrayList<>(Arrays.asList(variants));
         variantsToCheck.removeAll(ContainerUtil.map(items, LookupElement::getLookupString));
@@ -42,7 +70,7 @@ public abstract class GraphQLCompletionTestCaseBase extends GraphQLTestCaseBase 
         }
     }
 
-    public static void checkDoesNotContain(LookupElement @Nullable [] items, String... variants) {
+    protected static void checkDoesNotContain(LookupElement @Nullable [] items, String... variants) {
         if (items == null) {
             return;
         }
@@ -60,14 +88,19 @@ public abstract class GraphQLCompletionTestCaseBase extends GraphQLTestCaseBase 
     }
 
     protected void checkResult(LookupElement @Nullable [] items, String lookupString) {
-        assertNotNull(items);
         String sourceFile = getTestName(false);
 
-        LookupElement lookupElement = ContainerUtil.find(items, i -> i.getLookupString().equals(lookupString));
-        assertNotNull("Missing lookup element: " + lookupString, lookupElement);
+        LookupElement lookupElement = findLookupElement(items, lookupString);
 
         myFixture.getLookup().setCurrentItem(lookupElement);
         myFixture.type('\n');
         myFixture.checkResultByFile(sourceFile + "_after.graphql");
+    }
+
+    protected static @NotNull LookupElement findLookupElement(LookupElement @Nullable [] items, @NotNull String lookupString) {
+        assertNotNull(items);
+        LookupElement lookupElement = ContainerUtil.find(items, i -> i.getLookupString().equals(lookupString));
+        assertNotNull("Missing lookup element: " + lookupString, lookupElement);
+        return lookupElement;
     }
 }

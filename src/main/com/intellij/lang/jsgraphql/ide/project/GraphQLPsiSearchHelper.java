@@ -135,18 +135,18 @@ public class GraphQLPsiSearchHelper implements Disposable {
     /**
      * Finds all fragment definitions inside the scope of the specified element
      *
-     * @param scopedElement the starting point for finding known fragment definitions
+     * @param context the starting point for finding known fragment definitions
      * @return a list of known fragment definitions, or an empty list if the index is not yet ready
      */
     @NotNull
-    public List<GraphQLFragmentDefinition> getKnownFragmentDefinitions(@NotNull PsiElement scopedElement) {
+    public List<GraphQLFragmentDefinition> getKnownFragmentDefinitions(@NotNull PsiElement context) {
         try {
             final List<GraphQLFragmentDefinition> fragmentDefinitions = Lists.newArrayList();
-            GlobalSearchScope schemaScope = getResolveScope(scopedElement);
-            VirtualFile originalFile = GraphQLPsiUtil.getOriginalVirtualFile(scopedElement.getContainingFile());
+            GlobalSearchScope schemaScope = getResolveScope(context);
+            VirtualFile originalFile = GraphQLPsiUtil.getOriginalVirtualFile(context.getContainingFile());
             if (originalFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalFile)) {
                 // include the fragments defined in the currently edited scratch file (scratch files don't appear to be indexed)
-                fragmentDefinitions.addAll(PsiTreeUtil.getChildrenOfTypeAsList(scopedElement.getContainingFile().getOriginalFile(),
+                fragmentDefinitions.addAll(PsiTreeUtil.getChildrenOfTypeAsList(context.getContainingFile().getOriginalFile(),
                     GraphQLFragmentDefinition.class));
             }
 

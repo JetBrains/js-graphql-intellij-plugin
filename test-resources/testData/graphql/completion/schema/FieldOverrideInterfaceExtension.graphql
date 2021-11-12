@@ -1,0 +1,21 @@
+interface Timestamped {
+    createdAt: DateTime
+}
+
+extend interface Timestamped {
+    updatedAt: DateTime
+}
+
+interface Deletable {
+    viewerCanDelete: Boolean!
+}
+
+extend interface Deletable implements Timestamped {
+    createdAt: DateTime
+    updatedAt: DateTime
+}
+
+type Repository implements Deletable & Timestamped {
+    viewerCanDelete: Boolean!
+    <caret>
+}
