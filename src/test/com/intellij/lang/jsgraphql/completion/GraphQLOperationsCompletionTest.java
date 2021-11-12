@@ -14,7 +14,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBase {
 
-    private static final String OTHER_SCHEMA = "OtherSchema.graphql";
+    private static final String OTHER_SCHEMA = "SchemaOther.graphql";
+    private static final String BRACES_INSERTION_SCHEMA = "SchemaBracesInsertion.graphql";
 
     @Override
     protected @NotNull String getBasePath() {
@@ -79,6 +80,51 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
         LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
         checkEqualsOrdered(lookupElements, "issues", "members", "organizations", "__typename");
         checkResult(lookupElements, "issues");
+    }
+
+    public void testFieldBracesInsertionObject() {
+        LookupElement[] lookupElements = doTestWithSchema(BRACES_INSERTION_SCHEMA);
+        checkResult(lookupElements, "user");
+    }
+
+    public void testFieldBracesInsertionObjectWithArguments() {
+        LookupElement[] lookupElements = doTestWithSchema(BRACES_INSERTION_SCHEMA);
+        checkResult(lookupElements, "userWithArgs");
+    }
+
+    public void testFieldBracesInsertionObjectWithRequiredArguments() {
+        LookupElement[] lookupElements = doTestWithSchema(BRACES_INSERTION_SCHEMA);
+        checkResult(lookupElements, "userWithRequiredArgs");
+    }
+
+    public void testFieldBracesInsertionObjectNonNull() {
+        LookupElement[] lookupElements = doTestWithSchema(BRACES_INSERTION_SCHEMA);
+        checkResult(lookupElements, "userNonNull");
+    }
+
+    public void testFieldBracesInsertionUnionList() {
+        LookupElement[] lookupElements = doTestWithSchema(BRACES_INSERTION_SCHEMA);
+        checkResult(lookupElements, "unionList");
+    }
+
+    public void testFieldBracesInsertionInterface() {
+        LookupElement[] lookupElements = doTestWithSchema(BRACES_INSERTION_SCHEMA);
+        checkResult(lookupElements, "interface");
+    }
+
+    public void testFieldBracesInsertionScalar() {
+        LookupElement[] lookupElements = doTestWithSchema(BRACES_INSERTION_SCHEMA);
+        checkResult(lookupElements, "scalar");
+    }
+
+    public void testFieldBracesInsertionDoNotAddIfExists() {
+        LookupElement[] lookupElements = doTestWithSchema(BRACES_INSERTION_SCHEMA);
+        checkResult(lookupElements, "user");
+    }
+
+    public void testFieldBracesInsertionDoNotAddIfExistsOnNewLine() {
+        LookupElement[] lookupElements = doTestWithSchema(BRACES_INSERTION_SCHEMA);
+        checkResult(lookupElements, "user");
     }
 
     // -- field arguments --

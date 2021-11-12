@@ -1,0 +1,8 @@
+query {
+    nested {
+        user<caret>
+        {
+
+        }
+    }
+}

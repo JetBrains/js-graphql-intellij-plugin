@@ -1,0 +1,5 @@
+query {
+    nested {
+        userWithRequiredArgs(<caret>)
+    }
+}

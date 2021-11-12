@@ -7,8 +7,13 @@ import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.codeInsight.template.Template;
+import com.intellij.codeInsight.template.TemplateManager;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.text.CharArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +57,21 @@ public final class GraphQLCompletionUtil {
         }
 
         AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP.handleInsert(context, item);
+    };
+
+    public static final InsertHandler<LookupElement> ADD_BRACES_HANDLER = (context, item) -> {
+        Project project = context.getProject();
+        Editor editor = context.getEditor();
+        int offset = editor.getCaretModel().getOffset();
+        CharSequence chars = editor.getDocument().getCharsSequence();
+        int nextChar = CharArrayUtil.shiftForward(chars, offset, " \t\n");
+
+        if (!StringUtil.isChar(chars, nextChar, '{')) {
+            Template template = TemplateManager.getInstance(project)
+                .createTemplate("graphql_insert_handler_template", "graphql", " {\n$END$\n}");
+            template.setToReformat(true);
+            TemplateManager.getInstance(project).startTemplate(editor, template);
+        }
     };
 
     private GraphQLCompletionUtil() {
@@ -154,7 +174,7 @@ public final class GraphQLCompletionUtil {
     public static LookupElement createFieldNameLookupElement(@NotNull String name,
                                                              @Nullable String typeText,
                                                              boolean isDeprecated,
-                                                             boolean hasRequiredArgs) {
+                                                             @Nullable InsertHandler<LookupElement> insertHandler) {
         int priority = FIELD_PRIORITY;
         if (name.startsWith("__")) {
             priority = FIELD_SYSTEM_PRIORITY;
@@ -164,11 +184,9 @@ public final class GraphQLCompletionUtil {
 
         LookupElementBuilder element = LookupElementBuilder.create(name)
             .withStrikeoutness(isDeprecated)
-            .withTypeText(typeText);
+            .withTypeText(typeText)
+            .withInsertHandler(insertHandler);
 
-        if (hasRequiredArgs) {
-            element = element.withInsertHandler(ARGUMENTS_LIST_HANDLER);
-        }
         return PrioritizedLookupElement.withPriority(element, priority);
     }
 

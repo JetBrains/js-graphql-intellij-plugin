@@ -1,0 +1,27 @@
+type Query {
+    nested: Nested
+}
+
+type Nested {
+    user: User
+    userWithArgs(id: ID): User
+    userWithRequiredArgs(id: ID!): User
+    userNonNull: User!
+    userList: [User]
+    userListNonNull: [User!]!
+    interface: Interface
+    union: Union
+    unionList: [Union!]!
+    scalar: String
+    scalarList: [String]
+}
+
+type User {
+    id: ID
+}
+
+interface Interface {
+    id: ID
+}
+
+union Union = User

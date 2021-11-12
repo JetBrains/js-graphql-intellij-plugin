@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.completion;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
@@ -929,16 +930,36 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                             return;
                         }
                         String typeText = GraphQLSchemaUtil.typeString(field.getType());
-                        boolean hasRequiredArgs = GraphQLSchemaUtil.hasRequiredArgs(field);
+                        InsertHandler<LookupElement> insertHandler = getInsertHandler(field);
                         result.addElement(GraphQLCompletionUtil.createFieldNameLookupElement(
-                            name, typeText, field.isDeprecated(), hasRequiredArgs));
+                            name, typeText, field.isDeprecated(), insertHandler));
                     });
                 }
 
                 // and add the built-in __typename option
                 result.addElement(
                     GraphQLCompletionUtil.createFieldNameLookupElement(
-                        GraphQLKnownTypes.INTROSPECTION_TYPENAME_FIELD, null, false, false));
+                        GraphQLKnownTypes.INTROSPECTION_TYPENAME_FIELD, null, false, null));
+            }
+
+
+            private @Nullable InsertHandler<LookupElement> getInsertHandler(
+                @NotNull com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition field) {
+                if (GraphQLSchemaUtil.hasRequiredArgs(field)) {
+                    return GraphQLCompletionUtil.ARGUMENTS_LIST_HANDLER;
+                }
+
+                if (!field.getArguments().isEmpty()) {
+                    return null;
+                }
+
+                GraphQLUnmodifiedType type = GraphQLSchemaUtil.getUnmodifiedType(field.getType());
+                if (type instanceof GraphQLFieldsContainer || type instanceof GraphQLUnionType) {
+                    return GraphQLCompletionUtil.ADD_BRACES_HANDLER;
+                }
+
+                return null;
+
             }
         };
         extend(CompletionType.BASIC, psiElement(GraphQLElementTypes.NAME).withSuperParent(2, GraphQLField.class), provider);
