@@ -10,7 +10,6 @@ package com.intellij.lang.jsgraphql.ide.completion;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
@@ -223,7 +222,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                 registry.types().values().forEach(type -> {
                     if (isIgnoredType(type)) return;
                     if (type instanceof ObjectTypeDefinition && !currentTypeNames.contains(type.getName())) {
-                        result.addElement(LookupElementBuilder.create(type.getName()));
+                        result.addElement(GraphQLCompletionUtil.createTypeNameLookupElement(type.getName()));
                     }
                 });
             }
@@ -520,11 +519,12 @@ public class GraphQLCompletionContributor extends CompletionContributor {
 
     private void addInputTypeCompletions(@NotNull CompletionResultSet result, TypeDefinitionRegistry registry) {
         if (registry != null) {
-            registry.scalars().values().forEach(scalar -> result.addElement(LookupElementBuilder.create(scalar.getName())));
+            registry.scalars().values().forEach(
+                scalar -> result.addElement(GraphQLCompletionUtil.createTypeNameLookupElement(scalar.getName())));
             registry.types().values().forEach(type -> {
                 if (isIgnoredType(type)) return;
                 if (type instanceof EnumTypeDefinition || type instanceof InputObjectTypeDefinition) {
-                    result.addElement(LookupElementBuilder.create(type.getName()));
+                    result.addElement(GraphQLCompletionUtil.createTypeNameLookupElement(type.getName()));
                 }
             });
         }
