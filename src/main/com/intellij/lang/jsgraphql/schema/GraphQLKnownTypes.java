@@ -37,6 +37,12 @@ public class GraphQLKnownTypes {
     public static final String MUTATION_TYPE = "Mutation";
     public static final String SUBSCRIPTION_TYPE = "Subscription";
 
+    public static final String ID_TYPE = "ID";
+    public static final String BOOLEAN_TYPE = "Boolean";
+    public static final String STRING_TYPE = "String";
+    public static final String INT_TYPE = "Int";
+    public static final String FLOAT_TYPE = "Float";
+
     public static boolean isIntrospectionType(@NotNull String name) {
         return INTROSPECTION_TYPES.contains(name);
     }

@@ -18,7 +18,9 @@ public enum GraphQLCompletionKeyword {
     EXTEND("extend"),
     IMPLEMENTS("implements"),
     ON("on"),
-    REPEATABLE("repeatable");
+    REPEATABLE("repeatable"),
+    TRUE("true"),
+    FALSE("false");
 
     @NotNull
     private final String myText;

@@ -113,6 +113,12 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
         checkResult(lookupElements, "another");
     }
 
+    public void testArgumentBooleanValue() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "false", "true");
+        checkResult(lookupElements, "false");
+    }
+
     // -- fragments --
 
     public void testFragmentDefinitionTypeCondition() {
@@ -182,7 +188,7 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
         checkEqualsOrdered(lookupElements,
             "Bug", "Feature", "Milestone", "Node", "Organization", "Release", "Task", "TeamMember");
 
-        // TODO: [vepanimas] these types are expected here, should traverse all reachable types in hierarchy including transitive
+        // TODO: [vepanimas] these types are expected here, should traverse all reachable types in hierarchy
         // checkEqualsOrdered(lookupElements,
         //     "Assignable", "Bug", "Described", "EmailOwner", "Feature", "Milestone", "NamedNode", "Node",
         //     "Organization", "Release", "Task", "TeamMember", "Timestamped");
@@ -192,6 +198,11 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
         LookupElement[] lookupElements = doTestWithSchema(OTHER_SCHEMA);
         assertNotNull(lookupElements);
         assertEmpty(lookupElements);
+    }
+
+    public void testFragmentInlineWithoutTypeCondition() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "address", "age", "name", "__typename");
     }
 
     // -- input objects --
@@ -216,13 +227,89 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
     public void testEnumInListArgument() {
         LookupElement[] lookupElements = doTestWithSchema();
         checkEqualsOrdered(lookupElements, "Value1", "Value2");
+        checkResult(lookupElements, "Value2");
     }
 
     // -- variables --
 
-    public void testVariableUse() {
+    public void testVariableNonNullTypeForNonNullArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$id");
+    }
+
+    public void testVariableNonNullTypeForNullableArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$name");
+    }
+
+    public void testVariableNullableTypeForNonNullArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEmpty(lookupElements);
+    }
+
+    public void testVariableEnumType() {
         LookupElement[] lookupElements = doTestWithSchema();
         checkEqualsOrdered(lookupElements, "$second", "$variable");
+        checkTypeText(lookupElements, "$second", "MyEnum!");
+        checkTypeText(lookupElements, "$variable", "MyEnum");
+    }
+
+    public void testVariableListTypeForNonNullArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEmpty(lookupElements);
+    }
+
+    public void testVariableListTypeForNullableListNullableArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$four", "$one", "$three", "$two");
+    }
+
+    public void testVariableInListTypeForNullableListNullableArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$enum", "$enum1", "$four", "$one", "$three", "$two");
+
+        // TODO: [vepanimas] should match only inner types
+        // checkEqualsOrdered(lookupElements, "$enum", "$enum1");
+    }
+
+    public void testVariableListTypeForNonNullListNullableArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$four", "$two");
+    }
+
+    public void testVariableInListTypeForNonNullListNullableArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$four", "$string1", "$two");
+
+        // TODO: [vepanimas] should match only inner types
+        // checkEqualsOrdered(lookupElements, "$string1");
+    }
+
+    public void testVariableListTypeForNullableListNonNullArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$four", "$three");
+    }
+
+    public void testVariableInListTypeForNullableListNonNullArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$four", "$id", "$id1", "$three");
+
+        // TODO: [vepanimas] should match only inner types
+        // checkEqualsOrdered(lookupElements, "$id", "$id1");
+    }
+
+    public void testVariableListTypeForNonNullListNonNullArg() {
+        doTestWithSchema();
+        checkResult();
+    }
+
+    public void testVariableInListTypeForNonNullListNonNullArg() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements, "$four", "$id1");
+
+        // TODO: [vepanimas] should match only inner types - only `$id1` in that case
+        // doTestWithSchema();
+        // checkResult();
     }
 
     public void testVariableUseInList() {
@@ -230,19 +317,22 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
         checkEqualsOrdered(lookupElements, "$second", "$variable");
     }
 
-    public void testVariableUseInList2() {
-        LookupElement[] lookupElements = doTestWithSchema();
-        checkEqualsOrdered(lookupElements, "$second", "$variable");
-    }
-
-    public void testVariablesWithoutPrefix() {
+    public void testVariableWithoutPrefix() {
         LookupElement[] lookupElements = doTestWithSchema();
         checkEqualsOrdered(lookupElements, "$var1", "$var3", "$var5");
     }
 
-    public void testVariablesListWithoutPrefix() {
+    public void testVariableListTypeWithoutPrefix() {
         LookupElement[] lookupElements = doTestWithSchema();
         checkEqualsOrdered(lookupElements, "$var5", "$var6");
+    }
+
+    public void testVariableDefinitionType() {
+        LookupElement[] lookupElements = doTestWithSchema();
+        checkEqualsOrdered(lookupElements,
+            "Boolean", "Float", "ID", "Int", "MyEnum", "MyInput",
+            "MyNestedInput", "OtherObject", "String", "Units", "UserFilter");
+        checkResult(lookupElements, "UserFilter");
     }
 
     // -- directives --

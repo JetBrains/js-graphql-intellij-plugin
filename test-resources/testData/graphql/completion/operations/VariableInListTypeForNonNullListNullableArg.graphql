@@ -1,0 +1,5 @@
+query MyQuery($one: [String], $two: [String!], $three: [String]!,
+    $four: [String!]!, $string: String, $string1: String!) {
+
+    users(zipCodes: [<caret>])
+}

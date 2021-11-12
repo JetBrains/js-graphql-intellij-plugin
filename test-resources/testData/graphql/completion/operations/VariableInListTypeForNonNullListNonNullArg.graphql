@@ -1,0 +1,9 @@
+extend type Query {
+    allNodes(ids: [ID!]!): [Node]
+}
+
+query MyQuery($one: [ID], $two: [ID!], $three: [ID]!,
+    $four: [ID!]!, $id: ID, $id1: ID!) {
+
+    allNodes(ids: [$<caret>])
+}

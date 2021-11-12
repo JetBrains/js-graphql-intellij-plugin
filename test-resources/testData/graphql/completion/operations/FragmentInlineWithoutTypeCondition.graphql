@@ -1,0 +1,13 @@
+query MyQuery {
+    users(filter: {name: "name"}) {
+        address
+        ... {
+            address
+            name
+            ... {
+                name
+                <caret>
+            }
+        }
+    }
+}

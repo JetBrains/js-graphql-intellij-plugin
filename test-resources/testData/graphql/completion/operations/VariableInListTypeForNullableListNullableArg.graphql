@@ -1,0 +1,5 @@
+query Three($one: [MyEnum]!, $two: [MyEnum], $three: [MyEnum!], $four: [MyEnum!]!, $enum: MyEnum, $enum1: MyEnum!) {
+    human(id: "") {
+        fieldWithEnumInListArg(enumInListArg: [$<caret>])
+    }
+}

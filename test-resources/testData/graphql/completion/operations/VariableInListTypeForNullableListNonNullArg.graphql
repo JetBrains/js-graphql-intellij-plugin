@@ -1,0 +1,5 @@
+query MyQuery($one: [ID], $two: [ID!], $three: [ID]!,
+    $four: [ID!]!, $id: ID, $id1: ID!) {
+
+    nodes(ids: [<caret>])
+}

@@ -23,13 +23,15 @@ public final class GraphQLCompletionUtil {
     public static final int FIELD_AUX_PRIORITY = FIELD_PRIORITY - 1; // _service from Federation
     public static final int FIELD_SYSTEM_PRIORITY = FIELD_PRIORITY - 2; // __typename
 
-    public static final int IMPLEMENT_FIELD = FIELD_PRIORITY + 5;
+    public static final int IMPLEMENT_FIELD_PRIORITY = FIELD_PRIORITY + 5;
 
     public static final int TYPE_NAME_PRIORITY = FIELD_PRIORITY;
     public static final int TYPE_NAME_AUX_PRIORITY = TYPE_NAME_PRIORITY - 1; // starts with _
     public static final int TYPE_NAME_SYSTEM_PRIORITY = TYPE_NAME_PRIORITY - 2; // introspection types
 
     public static final int ARGUMENT_NAME_PRIORITY = FIELD_PRIORITY;
+
+    public static final int VARIABLE_PRIORITY = CONTEXT_SYMBOL_PRIORITY;
 
     public static final InsertHandler<LookupElement> ARGUMENTS_LIST_HANDLER = (context, item) -> {
         ParenthesesInsertHandler.WITH_PARAMETERS.handleInsert(context, item);
@@ -67,7 +69,7 @@ public final class GraphQLCompletionUtil {
 
     @NotNull
     public static LookupElement createContextKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword,
-                                                                  @NotNull InsertHandler<LookupElement> insertHandler) {
+                                                                  @Nullable InsertHandler<LookupElement> insertHandler) {
         return createKeywordLookupElement(keyword.getText(), CONTEXT_KEYWORD_PRIORITY, insertHandler);
     }
 
@@ -80,25 +82,25 @@ public final class GraphQLCompletionUtil {
     private static LookupElement createKeywordLookupElement(@NotNull String text,
                                                             int priority,
                                                             @Nullable InsertHandler<LookupElement> insertHandler) {
-        LookupElementBuilder element = LookupElementBuilder.create(text).bold();
-        if (insertHandler != null) {
-            element = element.withInsertHandler(insertHandler);
-        }
+        LookupElementBuilder element = LookupElementBuilder.create(text).bold().withInsertHandler(insertHandler);
         return PrioritizedLookupElement.withPriority(element, priority);
     }
 
     @NotNull
+    public static LookupElement createVariableLookupElement(@NotNull String name, @Nullable String typeText) {
+        LookupElementBuilder element = LookupElementBuilder.create(name).withTypeText(typeText);
+        return PrioritizedLookupElement.withPriority(element, VARIABLE_PRIORITY);
+    }
+
+    @NotNull
     public static LookupElement createTypeNameLookupElement(@NotNull String name) {
-        return createTypeNameLookupElement(name, null);
+        return createTypeNameLookupElement(name, null, null);
     }
 
     @NotNull
-    public static LookupElement createExtendTypeNameLookupElement(@NotNull String name) {
-        return createTypeNameLookupElement(name, AddSpaceInsertHandler.INSTANCE);
-    }
-
-    @NotNull
-    private static LookupElement createTypeNameLookupElement(@NotNull String name, @Nullable InsertHandler<LookupElement> handler) {
+    public static LookupElement createTypeNameLookupElement(@NotNull String name,
+                                                            @Nullable String typeText,
+                                                            @Nullable InsertHandler<LookupElement> handler) {
         int priority = TYPE_NAME_PRIORITY;
         if (name.startsWith("__")) {
             priority = TYPE_NAME_SYSTEM_PRIORITY;
@@ -106,11 +108,9 @@ public final class GraphQLCompletionUtil {
             priority = TYPE_NAME_AUX_PRIORITY;
         }
 
-        LookupElementBuilder element = LookupElementBuilder.create(name);
-        if (handler != null) {
-            element = element.withInsertHandler(handler);
-        }
-
+        LookupElementBuilder element = LookupElementBuilder.create(name)
+            .withTypeText(typeText)
+            .withInsertHandler(handler);
         return PrioritizedLookupElement.withPriority(element, priority);
     }
 
@@ -123,10 +123,10 @@ public final class GraphQLCompletionUtil {
     }
 
     @NotNull
-    public static LookupElement createImplementFieldLookupElement(@NotNull String signature, @NotNull String typeText) {
+    public static LookupElement createImplementFieldLookupElement(@NotNull String signature, @Nullable String typeText) {
         return PrioritizedLookupElement.withPriority(
             LookupElementBuilder.create(signature).withTypeText(typeText, true),
-            IMPLEMENT_FIELD
+            IMPLEMENT_FIELD_PRIORITY
         );
     }
 
@@ -141,7 +141,7 @@ public final class GraphQLCompletionUtil {
     }
 
     @NotNull
-    public static LookupElement createArgumentNameLookupElement(@NotNull String name, @NotNull String typeText) {
+    public static LookupElement createArgumentNameLookupElement(@NotNull String name, @Nullable String typeText) {
         return PrioritizedLookupElement.withPriority(
             LookupElementBuilder.create(name)
                 .withTypeText(typeText)
@@ -163,14 +163,20 @@ public final class GraphQLCompletionUtil {
         }
 
         LookupElementBuilder element = LookupElementBuilder.create(name)
-            .withStrikeoutness(isDeprecated);
+            .withStrikeoutness(isDeprecated)
+            .withTypeText(typeText);
 
-        if (typeText != null) {
-            element = element.withTypeText(typeText);
-        }
         if (hasRequiredArgs) {
             element = element.withInsertHandler(ARGUMENTS_LIST_HANDLER);
         }
         return PrioritizedLookupElement.withPriority(element, priority);
+    }
+
+    @NotNull
+    public static LookupElement createObjectValueFieldNameLookupElement(@NotNull String name, @Nullable String typeText) {
+        LookupElementBuilder element = LookupElementBuilder.create(name)
+            .withInsertHandler(AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP)
+            .withTypeText(typeText);
+        return PrioritizedLookupElement.withPriority(element, FIELD_PRIORITY);
     }
 }

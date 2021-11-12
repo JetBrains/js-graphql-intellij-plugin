@@ -1,0 +1,7 @@
+extend type Query {
+    boolField(b: Boolean): Boolean
+}
+
+query {
+    boolField(b: <caret>)
+}

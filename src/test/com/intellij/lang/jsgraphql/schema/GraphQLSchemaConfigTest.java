@@ -44,8 +44,8 @@ public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
         );
         loadConfiguration();
 
-        doTestCompletion("completionSchemas/schema-one/query-one.graphql", Lists.newArrayList("fieldOne"), files);
-        doTestCompletion("completionSchemas/schema-two/query-two.graphql", Lists.newArrayList("fieldTwo"), files);
+        doTestCompletion("completionSchemas/schema-one/query-one.graphql", Lists.newArrayList("fieldOne", "__typename"), files);
+        doTestCompletion("completionSchemas/schema-two/query-two.graphql", Lists.newArrayList("fieldTwo", "__typename"), files);
     }
 
     public void testExcludeFilesAndDirectories() {

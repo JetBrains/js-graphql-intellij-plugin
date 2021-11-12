@@ -46,24 +46,4 @@ public final class GraphQLTypeDefinitionUtil {
             definition instanceof UnionTypeExtensionDefinition ||
             definition instanceof EnumTypeExtensionDefinition;
     }
-
-    @Nullable
-    public static Description getTypeDefinitionDescription(@NotNull TypeDefinition<?> typeDefinition) {
-        Description description = null;
-        if (typeDefinition instanceof ObjectTypeDefinition) {
-            description = ((ObjectTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof InterfaceTypeDefinition) {
-            description = ((InterfaceTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof EnumTypeDefinition) {
-            description = ((EnumTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof ScalarTypeDefinition) {
-            description = ((ScalarTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof InputObjectTypeDefinition) {
-            description = ((InputObjectTypeDefinition) typeDefinition).getDescription();
-        } else if (typeDefinition instanceof UnionTypeDefinition) {
-            description = ((UnionTypeDefinition) typeDefinition).getDescription();
-        }
-        return description;
-
-    }
 }

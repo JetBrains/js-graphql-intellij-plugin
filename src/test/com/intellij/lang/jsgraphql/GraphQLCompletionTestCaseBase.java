@@ -82,6 +82,11 @@ public abstract class GraphQLCompletionTestCaseBase extends GraphQLTestCaseBase 
         }
     }
 
+    protected static void checkEmpty(LookupElement @Nullable [] items) {
+        assertNotNull(items);
+        assertEmpty(items);
+    }
+
     protected void checkResult() {
         String sourceFile = getTestName(false);
         myFixture.checkResultByFile(sourceFile + "_after.graphql");

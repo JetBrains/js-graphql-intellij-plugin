@@ -1,0 +1,5 @@
+{
+    human(id: "") {
+        fieldWithEnumInListArg(enumInListArg: [Value2<caret>])
+    }
+}

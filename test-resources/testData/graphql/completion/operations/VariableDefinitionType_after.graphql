@@ -1,0 +1,1 @@
+query MyQuery($var: UserFilter<caret>)
