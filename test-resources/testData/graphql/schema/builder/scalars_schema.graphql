@@ -1,4 +1,7 @@
 type Query
 
-"S"
+"""
+My custom
+scalar.
+"""
 scalar S @four @one @three @two

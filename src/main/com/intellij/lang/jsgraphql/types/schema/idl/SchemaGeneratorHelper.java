@@ -634,8 +634,7 @@ public class SchemaGeneratorHelper {
 
         return scalar.transform(builder -> builder
             .name(typeDefinition.getName())
-            .description(ObjectUtils.coalesce(
-                buildDescription(typeDefinition, typeDefinition.getDescription()), typeDefinition.getName()))
+            .description(buildDescription(typeDefinition, typeDefinition.getDescription()))
             .definition(typeDefinition)
             .comparatorRegistry(buildCtx.getComparatorRegistry())
             .specifiedByUrl(getSpecifiedByUrl(typeDefinition, extensions))

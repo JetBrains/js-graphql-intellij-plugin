@@ -3,8 +3,6 @@ type Query {
     name: String @deprecated(reason: "No longer supported")
 }
 
-"A"
 scalar A @specifiedBy
 
-"B"
 scalar B @specifiedBy

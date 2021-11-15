@@ -1,3 +1,7 @@
 type Query {}
 
+"""
+My custom
+scalar.
+"""
 scalar S @one @two
