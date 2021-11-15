@@ -142,6 +142,7 @@ identifier ::=
   'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on'
   {
     mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLReferenceMixin"
+    implements="com.intellij.lang.jsgraphql.psi.GraphQLReferenceElement"
   }
 
 private templatePlaceholder ::= DOLLAR BRACE_L TEMPLATE_CHAR* BRACE_R

@@ -62,7 +62,11 @@ public final class GraphQLResolveUtil {
     }
 
     /**
-     * TODO: incomplete implementation
+     * This method is only a temporary workaround for current PSI implementation for symbol declarations.
+     * By platform guidelines a symbol which defines a new name should implement PsiNamedElement interface.
+     * But now when we resolve a reference most of the time we get a GraphQLIdentifier as a result,
+     * but the real declaration we need is a node somewhere up in the PSI tree
+     * like GraphQLObjectTypeDefinition, GraphQLFieldDefinition, etc.
      */
     @Nullable
     public static PsiElement findResolvedDefinition(@Nullable PsiElement resolveTarget) {

@@ -123,7 +123,7 @@ public class GraphQLVisitor extends PsiElementVisitor {
   }
 
   public void visitIdentifier(@NotNull GraphQLIdentifier o) {
-    visitElement(o);
+    visitReferenceElement(o);
   }
 
   public void visitImplementsInterfaces(@NotNull GraphQLImplementsInterfaces o) {
@@ -348,6 +348,10 @@ public class GraphQLVisitor extends PsiElementVisitor {
   }
 
   public void visitNamedElement(@NotNull GraphQLNamedElement o) {
+    visitElement(o);
+  }
+
+  public void visitReferenceElement(@NotNull GraphQLReferenceElement o) {
     visitElement(o);
   }
 

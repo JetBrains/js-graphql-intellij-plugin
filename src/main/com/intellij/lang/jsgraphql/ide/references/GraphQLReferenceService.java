@@ -220,8 +220,11 @@ public class GraphQLReferenceService implements Disposable {
                 GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, element, new PsiRecursiveElementVisitor() {
                     @Override
                     public void visitElement(final @NotNull PsiElement schemaElement) {
-                        if (schemaElement instanceof GraphQLReferenceMixin &&
-                            Objects.equals(((GraphQLReferenceMixin) schemaElement).getName(), name)) {
+                        // TODO: [vepanimas] rework to use com.intellij.psi.PsiElement.processDeclarations or something similar,
+                        //  now it traverses the whole tree including comments, punctuation, arguments and so on,
+                        //  but we actually expect only field declarations in two predefined object types
+                        if (schemaElement instanceof GraphQLReferenceElement &&
+                            Objects.equals(((GraphQLReferenceElement) schemaElement).getReferenceName(), name)) {
                             reference.set(createReference(element, schemaElement));
                             return;
                         }
@@ -296,7 +299,7 @@ public class GraphQLReferenceService implements Disposable {
 
     @NotNull
     private PsiReferenceBase<GraphQLReferenceMixin> createReference(GraphQLReferenceMixin fromElement, PsiElement resolvedElement) {
-        return new PsiReferenceBase<GraphQLReferenceMixin>(fromElement, TextRange.from(0, fromElement.getTextLength())) {
+        return new PsiReferenceBase<>(fromElement, TextRange.from(0, fromElement.getTextLength())) {
             @Override
             public PsiElement resolve() {
                 return resolvedElement;
@@ -421,7 +424,8 @@ public class GraphQLReferenceService implements Disposable {
     }
 
     private PsiReference resolveDirective(GraphQLReferenceMixin element) {
-        return resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLDirectiveDefinition);
+        return resolveUsingIndex(element, psiNamedElement ->
+            psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLDirectiveDefinition);
     }
 
 

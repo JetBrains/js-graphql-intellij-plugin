@@ -1,0 +1,27 @@
+input UserInput {
+    id: ID
+    name: String = "anonymous"
+    email: String
+    <ref>address: UserAddress = {city: "City", street: "Street", zip: "000"}
+}
+
+input UserAddress {
+    street: String!
+    zip: String!
+    city: String!
+}
+
+type Mutation {
+    createUser(input: UserInput): ID!
+}
+
+mutation {
+    createUser(input: {
+        id: "asdab4"
+        name: "John"
+        <caret>address: {
+            zip: "ZIP",
+            street: "STREET"
+        }
+    })
+}

@@ -1,0 +1,12 @@
+schema {
+    subscription: CustomSubscription
+}
+
+type CustomSubscription {
+    emails(filter: String): [ID!]!
+    <ref>users(filter: String): [ID!]!
+}
+
+subscription {
+    u<caret>sers
+}

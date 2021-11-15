@@ -7,10 +7,11 @@
  */
 package com.intellij.lang.jsgraphql.ide.references;
 
-import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferenceMixin;
+import com.intellij.lang.jsgraphql.psi.GraphQLReferenceElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.usages.impl.rules.UsageType;
 import com.intellij.usages.impl.rules.UsageTypeProvider;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -20,8 +21,8 @@ public class GraphQLUsageTypeProvider implements UsageTypeProvider {
 
     @Nullable
     @Override
-    public UsageType getUsageType(PsiElement element) {
-        if (element instanceof GraphQLReferenceMixin) {
+    public UsageType getUsageType(@NotNull PsiElement element) {
+        if (element instanceof GraphQLReferenceElement) {
             return UsageType.READ;
         }
         return null;

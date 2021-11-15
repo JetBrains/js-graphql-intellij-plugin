@@ -1,0 +1,20 @@
+type Query {
+    users: [User]
+}
+
+type User {
+    name: String
+    friends(before: ID, after: ID, limit: Int): [User]
+}
+
+query {
+    users {
+        friends(limit: 10, before: "asd3f3323r") @<caret>someDir(first: "asdasd", second: "sfgdhrth") {
+            friends(limit: 100, after: "seaf34t34t") {
+                name
+            }
+        }
+    }
+}
+
+directive @<ref>someDir(first: ID, second: String) on FIELD

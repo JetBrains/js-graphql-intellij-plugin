@@ -1,0 +1,40 @@
+type Query {
+    entities: [Entity!]!
+}
+
+interface Entity {
+    <ref>id: ID
+}
+
+extend interface Entity {
+    createdAt: String
+}
+
+type User implements Entity {
+    id: ID
+    name: String
+}
+
+type Repository implements Entity {
+    id: ID
+    language: String
+}
+
+fragment fragment1 on Entity {
+    id
+    createdAt
+}
+
+fragment fragment2 on User {
+    id
+    name
+}
+
+query {
+    entities {
+        ... {
+            i<caret>d
+            createdAt
+        }
+    }
+}

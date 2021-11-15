@@ -1,0 +1,8 @@
+type Subscription {
+    emails(filter: String): [ID!]!
+    <ref>users(filter: String): [ID!]!
+}
+
+subscription {
+    u<caret>sers
+}

@@ -1,0 +1,8 @@
+type Mutation {
+    createEmail(text: String): ID
+    <ref>createUser(name: String): ID
+}
+
+mutation {
+    <caret>createUser(name: "abc")
+}

@@ -1,0 +1,32 @@
+interface Entity {
+    id: ID
+}
+
+extend interface Entity {
+    createdAt: String
+}
+
+type User implements Entity {
+    id: ID
+    name: String
+}
+
+extend type User {
+    <ref>email: String
+}
+
+type Repository implements Entity {
+    id: ID
+    language: String
+}
+
+fragment fragment1 on Entity {
+    id
+    createdAt
+}
+
+fragment fragment2 on User {
+    id
+    name
+    <caret>email
+}

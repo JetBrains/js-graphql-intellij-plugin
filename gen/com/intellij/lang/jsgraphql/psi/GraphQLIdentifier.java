@@ -5,6 +5,6 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GraphQLIdentifier extends GraphQLElement {
+public interface GraphQLIdentifier extends GraphQLReferenceElement {
 
 }

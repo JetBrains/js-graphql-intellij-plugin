@@ -1,0 +1,8 @@
+type Query {
+    id: ID
+    <ref>name: String
+}
+
+query {
+    n<caret>ame
+}

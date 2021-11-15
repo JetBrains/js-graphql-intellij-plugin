@@ -7,6 +7,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.VfsTestUtil;
@@ -21,16 +22,18 @@ public abstract class GraphQLResolveTestCaseBase extends GraphQLTestCaseBase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+
+        // all resolve tests should also check highlighting to ensure that the rest references are also resolved
         myFixture.enableInspections(List.of(GraphQLUnresolvedReferenceInspection.class));
     }
 
     @NotNull
-    protected PsiElement doResolveAsTextTest(@NotNull Class<? extends PsiElement> expectedClass, @NotNull String expectedText) {
+    protected PsiElement doResolveAsTextTest(@NotNull Class<? extends PsiElement> expectedClass, @NotNull String expectedName) {
         PsiReference reference = myFixture.getReferenceAtCaretPosition(getTestName(false) + ".graphql");
         assertNotNull(reference);
         PsiElement element = reference.resolve();
-        assertNotNull(element);
-        assertEquals(expectedText, element.getText());
+        assertInstanceOf(element, PsiNamedElement.class);
+        assertEquals(expectedName, ((PsiNamedElement) element).getName());
         PsiElement definition = GraphQLResolveUtil.findResolvedDefinition(element);
         assertInstanceOf(definition, expectedClass);
 
@@ -41,7 +44,7 @@ public abstract class GraphQLResolveTestCaseBase extends GraphQLTestCaseBase {
 
     @NotNull
     protected PsiElement doResolveWithOffsetTest(@NotNull Class<? extends PsiElement> expectedClass,
-                                                 @NotNull String expectedText) {
+                                                 @NotNull String expectedName) {
         String fileName = getTestName(false) + ".graphql";
         String path = FileUtil.join(getTestDataPath(), fileName);
         VirtualFile file = VfsTestUtil.findFileByCaseSensitivePath(path);
@@ -56,7 +59,8 @@ public abstract class GraphQLResolveTestCaseBase extends GraphQLTestCaseBase {
         loadConfiguration();
         PsiElement target = findElementAndResolve(psiFile);
         assertEquals(target.getTextOffset(), refOffset);
-        assertEquals(expectedText, target.getText());
+        assertInstanceOf(target, PsiNamedElement.class);
+        assertEquals(expectedName, ((PsiNamedElement) target).getName());
 
         PsiElement definition = GraphQLResolveUtil.findResolvedDefinition(target);
         assertInstanceOf(definition, expectedClass);

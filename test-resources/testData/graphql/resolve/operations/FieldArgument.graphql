@@ -1,0 +1,18 @@
+type Query {
+    users: [User]
+}
+
+type User {
+    name: String
+    friends(before: ID, <ref>after: ID, limit: Int): [User]
+}
+
+query {
+    users {
+        friends(limit: 10, before: "asd3f3323r") {
+            friends(limit: 100, a<caret>fter: "seaf34t34t") {
+                name
+            }
+        }
+    }
+}

@@ -14,6 +14,7 @@ import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
+import com.intellij.lang.jsgraphql.psi.GraphQLReferenceElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.SearchScope;
@@ -21,7 +22,7 @@ import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl {
+public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl implements GraphQLReferenceElement {
 
     public GraphQLReferenceMixin(@NotNull ASTNode node) {
         super(node);
@@ -34,6 +35,12 @@ public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl {
             return (GraphQLIdentifier) this;
         }
         return null;
+    }
+
+    @Override
+    public @Nullable String getReferenceName() {
+        // TODO: [vepanimas] a temporary solution, identifiers and referencing elements shouldn't implement PsiNamedElement
+        return getName();
     }
 
     @Override
@@ -56,8 +63,13 @@ public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl {
     @Override
     public boolean isEquivalentTo(PsiElement another) {
         boolean equivalentTo = super.isEquivalentTo(another);
-        if (!equivalentTo && another instanceof GraphQLReferenceMixin && getParent() instanceof GraphQLFieldDefinition) {
+        if (!equivalentTo && another instanceof GraphQLReferenceElement && getParent() instanceof GraphQLFieldDefinition) {
             // field may be an implementation from an interface
+
+            // TODO: [vepanimas] resolve() call is not expected here.
+            //  Also a field definition shouldn't have a reference to an interface field,
+            //  because it means that this field should become unresolved, when you remove an interface field,
+            //  but it doesn't work that way, it's an independent declaration on its own.
             PsiReference reference = getReference();
             if (reference != null) {
                 equivalentTo = reference.resolve() == another;

@@ -1,0 +1,15 @@
+{
+    node(id: "1", <error descr="Unknown argument \"unknownArg\"">unknownArg</error>: 1) {
+        id
+        <error descr="Unknown field \"nestedUnknown\" on interface type \"Node\"">nestedUnknown</error>
+        ... on Issue {
+            createdAt
+            <error descr="Unknown field \"spreadUnknown\" on object type \"Issue\"">spreadUnknown</error>
+        }
+        ...<error descr="Unknown fragment spread \"unknownFragment\"">unknownFragment</error>
+        ... on <error descr="Unknown type \"UnknownType\"">UnknownType</error> {
+            <error descr="Unknown field \"nestedUnknown\": The parent selection or operation does not resolve to a valid schema type">nestedUnknown</error>
+        }
+    }
+    <error descr="Unknown field \"unknownField\" on object type \"Query\"">unknownField</error>
+}

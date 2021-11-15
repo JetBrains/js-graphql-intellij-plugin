@@ -272,11 +272,10 @@ public class GraphQLPsiSearchHelper implements Disposable {
 
             processElementsWithWordUsingIdentifierIndex(searchScope, word, processor);
 
-            // also include the built-in schemas
-            final PsiRecursiveElementVisitor builtInFileVisitor = new PsiRecursiveElementVisitor() {
+            final PsiRecursiveElementVisitor visitor = new PsiRecursiveElementVisitor() {
                 @Override
                 public void visitElement(@NotNull PsiElement element) {
-                    if (element instanceof PsiNamedElement && word.equals(element.getText())) {
+                    if (element instanceof PsiNamedElement && word.equals(((PsiNamedElement) element).getName())) {
                         if (!processor.process((PsiNamedElement) element)) {
                             return; // done processing
                         }
@@ -289,7 +288,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
             PsiFile containingFile = scopedElement.getContainingFile();
             VirtualFile originalVirtualFile = GraphQLPsiUtil.getOriginalVirtualFile(containingFile);
             if (originalVirtualFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalVirtualFile)) {
-                containingFile.accept(builtInFileVisitor);
+                containingFile.accept(visitor);
             }
 
         } catch (IndexNotReadyException e) {

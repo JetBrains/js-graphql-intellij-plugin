@@ -1,0 +1,12 @@
+schema {
+    query: CustomQuery
+}
+
+type CustomQuery {
+    id: ID
+    <ref>name: String
+}
+
+query {
+    n<caret>ame
+}
