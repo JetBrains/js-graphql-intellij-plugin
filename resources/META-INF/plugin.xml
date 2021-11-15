@@ -132,6 +132,8 @@
     <typedHandler implementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLTypedHandlerDelegate"/>
 
     <!-- Completion -->
+    <lookup.charFilter implementation="com.intellij.lang.jsgraphql.ide.completion.GraphQLCharFilter"/>
+
     <completion.contributor language="GraphQL"
                             implementationClass="com.intellij.lang.jsgraphql.ide.completion.GraphQLCompletionContributor"/>
 
