@@ -5,4 +5,9 @@
       <option name="FOREGROUND" value="555555"/>
     </value>
   </option>
+  <option name="GRAPHQL_BANG">
+    <value>
+      <option name="FOREGROUND" value="CC7832"/>
+    </value>
+  </option>
 </list>
