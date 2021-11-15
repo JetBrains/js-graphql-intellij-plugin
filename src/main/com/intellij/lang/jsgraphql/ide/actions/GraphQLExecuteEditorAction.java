@@ -19,6 +19,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GraphQLExecuteEditorAction extends AnAction {
 
@@ -27,54 +29,59 @@ public class GraphQLExecuteEditorAction extends AnAction {
     }
 
     @Override
-    public void update(AnActionEvent e) {
+    public void update(@NotNull AnActionEvent e) {
         final Editor editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE);
-        if(editor != null) {
+        if (editor != null) {
             final GraphQLEndpointsModel endpointsModel = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL);
-            if(endpointsModel == null || endpointsModel.getSelectedItem() == null) {
+            if (endpointsModel == null || endpointsModel.getSelectedItem() == null) {
                 e.getPresentation().setEnabled(false);
                 return;
             }
-            final Boolean querying = Boolean.TRUE.equals(editor.getUserData(GraphQLUIProjectService.GRAPH_QL_EDITOR_QUERYING));
+            boolean querying = Boolean.TRUE.equals(editor.getUserData(GraphQLUIProjectService.GRAPH_QL_EDITOR_QUERYING));
             e.getPresentation().setEnabled(!querying);
         }
     }
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
+    public void actionPerformed(@NotNull AnActionEvent e) {
         VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
         final Project project = e.getData(CommonDataKeys.PROJECT);
-        if(isQueryableFile(project, virtualFile)) {
-            Editor editor = e.getData(CommonDataKeys.EDITOR);
-            if(project != null && editor instanceof EditorEx) {
-                final Boolean querying = Boolean.TRUE.equals(editor.getUserData(GraphQLUIProjectService.GRAPH_QL_EDITOR_QUERYING));
-                if(querying) {
-                    // already doing a query
-                    return;
-                }
-                final Editor queryEditor = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_QUERY_EDITOR);
-                if(queryEditor != null) {
-                    // this action comes from the variables editor, so we need to resolve the query editor which contains the GraphQL
-                    editor = queryEditor;
-                    virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(((EditorEx)editor).getDataContext());
-                }
-                GraphQLUIProjectService.getService(project).executeGraphQL(editor, virtualFile);
-            }
+        if (project == null) {
+            return;
         }
+        if (!isQueryableFile(project, virtualFile)) {
+            return;
+        }
+        Editor editor = e.getData(CommonDataKeys.EDITOR);
+        if (!(editor instanceof EditorEx)) {
+            return;
+        }
+
+        boolean querying = Boolean.TRUE.equals(editor.getUserData(GraphQLUIProjectService.GRAPH_QL_EDITOR_QUERYING));
+        if (querying) {
+            // already doing a query
+            return;
+        }
+        Editor queryEditor = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_QUERY_EDITOR);
+        if (queryEditor != null) {
+            // this action comes from the variables editor, so we need to resolve the query editor which contains the GraphQL
+            editor = queryEditor;
+            virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(((EditorEx) editor).getDataContext());
+        }
+        GraphQLUIProjectService.getService(project).executeGraphQL(editor, virtualFile);
     }
 
-    private boolean isQueryableFile(Project project, VirtualFile virtualFile) {
-        if(virtualFile != null) {
-            if(virtualFile.getFileType() == GraphQLFileType.INSTANCE) {
-                return true;
-            }
-            if(GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
-                return true;
-            }
-            if(virtualFile.getFileType() == JsonFileType.INSTANCE && Boolean.TRUE.equals(virtualFile.getUserData(GraphQLUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE))) {
-                return true;
-            }
+    private boolean isQueryableFile(@NotNull Project project, @Nullable VirtualFile virtualFile) {
+        if (virtualFile == null) {
+            return false;
         }
-        return false;
+        if (virtualFile.getFileType() == GraphQLFileType.INSTANCE) {
+            return true;
+        }
+        if (GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
+            return true;
+        }
+        return virtualFile.getFileType() == JsonFileType.INSTANCE && Boolean.TRUE.equals(
+            virtualFile.getUserData(GraphQLUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE));
     }
 }
