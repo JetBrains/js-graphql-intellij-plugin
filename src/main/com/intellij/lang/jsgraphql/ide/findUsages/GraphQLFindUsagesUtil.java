@@ -5,13 +5,12 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.references;
+package com.intellij.lang.jsgraphql.ide.findUsages;
 
 import com.google.common.collect.Sets;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.fileTypes.FileType;
 
 import java.util.Set;

@@ -5,11 +5,11 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.indexing;
+package com.intellij.lang.jsgraphql.ide.indexing;
 
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
-import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
+import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.openapi.fileTypes.FileType;

@@ -12,7 +12,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.treeView.IndexComparator;
-import com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAction;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeTracker;
 import com.intellij.openapi.Disposable;

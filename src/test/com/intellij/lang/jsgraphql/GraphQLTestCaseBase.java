@@ -3,7 +3,7 @@ package com.intellij.lang.jsgraphql;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.*;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition;

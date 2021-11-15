@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.schema;
 import com.google.common.collect.Lists;
 import com.intellij.json.psi.JsonFile;
 import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFile;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;

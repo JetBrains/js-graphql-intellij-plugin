@@ -1,6 +1,7 @@
 package com.intellij.lang.jsgraphql.ide.editor;
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

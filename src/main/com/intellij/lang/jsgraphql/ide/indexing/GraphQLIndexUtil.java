@@ -1,4 +1,4 @@
-package com.intellij.lang.jsgraphql.ide.project.indexing;
+package com.intellij.lang.jsgraphql.ide.indexing;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.json.JsonFileType;

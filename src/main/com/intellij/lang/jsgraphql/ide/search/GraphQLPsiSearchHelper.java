@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project;
+package com.intellij.lang.jsgraphql.ide.search;
 
 
 import com.google.common.collect.Lists;
@@ -15,10 +15,11 @@ import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLFragmentNameIndex;
-import com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex;
-import com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil;
+import com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex;
+import com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex;
+import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.ide.search.scope.GraphQLMetaInfSchemaSearchScope;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;

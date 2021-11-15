@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.ide.search;
 
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressManager;

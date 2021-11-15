@@ -15,7 +15,7 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.fixes.GraphQLMissingTypeFix;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;

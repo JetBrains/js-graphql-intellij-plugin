@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project;
+package com.intellij.lang.jsgraphql.ide.injection;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;

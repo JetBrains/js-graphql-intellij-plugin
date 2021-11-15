@@ -11,7 +11,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;

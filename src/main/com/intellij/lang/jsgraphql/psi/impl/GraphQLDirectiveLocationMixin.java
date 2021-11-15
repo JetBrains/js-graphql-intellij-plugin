@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveLocation;
 import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;

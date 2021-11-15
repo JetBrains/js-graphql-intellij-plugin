@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.schema;
 
 
-import com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.openapi.util.text.StringUtil;

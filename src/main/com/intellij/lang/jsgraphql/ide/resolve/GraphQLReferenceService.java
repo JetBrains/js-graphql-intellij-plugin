@@ -5,14 +5,14 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.references;
+package com.intellij.lang.jsgraphql.ide.resolve;
 
 import com.google.common.collect.Maps;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyNamedType;
 import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyPropertyType;
 import com.intellij.lang.jsgraphql.endpoint.psi.*;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectiveImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldImpl;

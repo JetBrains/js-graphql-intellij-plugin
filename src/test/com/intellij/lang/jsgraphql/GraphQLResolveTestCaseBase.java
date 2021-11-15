@@ -1,6 +1,6 @@
 package com.intellij.lang.jsgraphql;
 
-import com.intellij.lang.jsgraphql.ide.references.GraphQLResolveUtil;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.openapi.util.io.FileUtil;

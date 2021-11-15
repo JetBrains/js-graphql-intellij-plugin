@@ -11,7 +11,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.types.language.AstPrinter;
 import com.intellij.psi.PsiFile;

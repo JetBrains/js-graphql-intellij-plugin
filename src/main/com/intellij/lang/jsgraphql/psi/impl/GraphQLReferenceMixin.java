@@ -9,8 +9,8 @@ package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.injection.InjectedLanguageManager;
-import com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLReferenceService;
+import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;

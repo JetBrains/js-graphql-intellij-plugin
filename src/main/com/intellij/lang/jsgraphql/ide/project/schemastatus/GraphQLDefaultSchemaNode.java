@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;

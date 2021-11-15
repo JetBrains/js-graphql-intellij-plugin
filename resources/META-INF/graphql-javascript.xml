@@ -10,11 +10,11 @@
     <!-- Language Injection -->
     <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLTemplateFragmentLanguageInjector"
                        order="first"/>
-    <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.project.GraphQLInjectionSearchHelper"
-                        serviceImplementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLJavaScriptInjectionSearchHelper"/>
+    <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper"
+                        serviceImplementation="com.intellij.lang.jsgraphql.ide.indexing.javascript.GraphQLJavaScriptInjectionSearchHelper"/>
 
     <!-- Indexing -->
-    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.javascript.GraphQLInjectionIndex"/>
+    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.javascript.GraphQLInjectionIndex"/>
   </extensions>
 
   <extensions defaultExtensionNs="JavaScript">
@@ -24,7 +24,7 @@
 
   <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">
     <findUsagesFileTypeContributor
-      implementation="com.intellij.lang.jsgraphql.ide.references.javascript.JavaScriptGraphQLFindUsagesFileTypeContributor"/>
+      implementation="com.intellij.lang.jsgraphql.ide.findUsages.javascript.GraphQLJavaScriptFindUsagesFileTypeContributor"/>
   </extensions>
 
 </idea-plugin>

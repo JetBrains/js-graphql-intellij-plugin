@@ -20,7 +20,7 @@ import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
-import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;

@@ -19,7 +19,7 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.application.options.CodeStyle;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionResultToSchema;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionResultToSchema;
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.*;

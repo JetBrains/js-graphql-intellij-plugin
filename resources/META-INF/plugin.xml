@@ -37,14 +37,14 @@
 
   <extensionPoints>
     <extensionPoint name="findUsagesFileTypeContributor" dynamic="true"
-                    interface="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesFileTypeContributor"/>
+                    interface="com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesFileTypeContributor"/>
     <extensionPoint name="errorFilter" dynamic="true"
                     interface="com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
 
-    <applicationService serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesUtil"/>
+    <applicationService serviceImplementation="com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil"/>
 
     <!-- Color scheme -->
     <additionalTextAttributes scheme="Default" file="colorSchemes/GraphQLLanguageDefault.xml"/>
@@ -74,13 +74,13 @@
                     serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLSchemaProviderImpl"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLRegistryProvider"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeTracker"/>
-    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLPsiSearchHelper"/>
-    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.references.GraphQLReferenceService"/>
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper"/>
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.resolve.GraphQLReferenceService"/>
     <projectService
       serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager"/>
-    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService"/>
+    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService"/>
     <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher"
                     serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl"/>
     <projectService
@@ -89,8 +89,8 @@
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager"/>
 
     <!-- Indexing -->
-    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLIdentifierIndex"/>
-    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.project.indexing.GraphQLFragmentNameIndex"/>
+    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex"/>
+    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex"/>
 
     <additionalLibraryRootsProvider implementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider"/>
 
@@ -137,10 +137,10 @@
 
     <!-- Find usages and renaming refactors -->
     <lang.findUsagesProvider language="GraphQL"
-                             implementationClass="com.intellij.lang.jsgraphql.ide.references.GraphQLFindUsagesProvider"/>
-    <usageTypeProvider implementation="com.intellij.lang.jsgraphql.ide.references.GraphQLUsageTypeProvider"/>
+                             implementationClass="com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesProvider"/>
+    <usageTypeProvider implementation="com.intellij.lang.jsgraphql.ide.findUsages.GraphQLUsageTypeProvider"/>
     <lang.elementManipulator forClass="com.intellij.lang.jsgraphql.psi.impl.GraphQLIdentifierImpl"
-                             implementationClass="com.intellij.lang.jsgraphql.ide.references.GraphQLIdentifierManipulator"/>
+                             implementationClass="com.intellij.lang.jsgraphql.ide.resolve.GraphQLIdentifierManipulator"/>
 
     <!-- Search (find implementations etc.) -->
     <definitionsSearch implementation="com.intellij.lang.jsgraphql.ide.search.GraphQLDefinitionsSearchExecutor"/>
@@ -154,15 +154,15 @@
 
     <!-- Introspection -->
     <codeInsight.lineMarkerProvider
-      implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionJsonToSDLLineMarkerProvider"
+      implementationClass="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionJsonToSDLLineMarkerProvider"
       language="JSON"/>
     <codeInsight.lineMarkerProvider
-      implementationClass="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectEndpointUrlLineMarkerProvider"
+      implementationClass="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectEndpointUrlLineMarkerProvider"
       language="JSON"/>
     <projectViewNestingRulesProvider
       implementation="com.intellij.lang.jsgraphql.ide.project.GraphQLIntrospectionProjectViewNestingRulesProvider"/>
     <editorTabTitleProvider
-      implementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionEditorTabTitleProvider"/>
+      implementation="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionEditorTabTitleProvider"/>
 
     <!-- Tool window -->
     <toolWindow id="GraphQL" factoryClass="com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow"
@@ -279,8 +279,8 @@
       <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X 10.5+"/>
     </action>
 
-    <action class="com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAction"
-            id="com.intellij.lang.jsgraphql.ide.editor.GraphQLRerunLatestIntrospectionAction"/>
+    <action class="com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction"
+            id="com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction"/>
 
   </actions>
 

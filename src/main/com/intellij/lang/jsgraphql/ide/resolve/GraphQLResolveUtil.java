@@ -1,4 +1,4 @@
-package com.intellij.lang.jsgraphql.ide.references;
+package com.intellij.lang.jsgraphql.ide.resolve;
 
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary;

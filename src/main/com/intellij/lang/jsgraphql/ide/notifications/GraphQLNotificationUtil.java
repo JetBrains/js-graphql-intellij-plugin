@@ -3,7 +3,7 @@ package com.intellij.lang.jsgraphql.ide.notifications;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
-import com.intellij.lang.jsgraphql.ide.editor.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
