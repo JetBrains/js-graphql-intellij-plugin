@@ -27,6 +27,7 @@ import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigurationListener;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigSecurity;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
@@ -358,7 +359,9 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     private void runQuery(Editor editor, VirtualFile virtualFile, GraphQLQueryContext context, String url, HttpPost request) {
         GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
         try {
-            try (final CloseableHttpClient httpClient = introspectionService.createHttpClient()) {
+            VirtualFile configFile = GraphQLConfigManager.getService(myProject).getClosestConfigFile(virtualFile).getParent();
+            GraphQLConfigSecurity sslConfig = introspectionService.getSecurityConfig(configFile);
+            try (final CloseableHttpClient httpClient = introspectionService.createHttpClient(sslConfig)) {
                 editor.putUserData(GRAPH_QL_EDITOR_QUERYING, true);
 
                 String responseJson;

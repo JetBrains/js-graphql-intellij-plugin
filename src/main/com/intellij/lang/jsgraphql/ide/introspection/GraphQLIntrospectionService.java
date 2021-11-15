@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.introspection;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.intellij.ide.actions.CreateFileAction;
@@ -101,9 +102,10 @@ public class GraphQLIntrospectionService implements Disposable {
     private static final String DISABLE_EMPTY_ERRORS_WARNING_KEY = "graphql.empty.errors.warning.disabled";
     public static final String GRAPHQL_TRUST_ALL_HOSTS = "graphql.trust.all.hosts";
 
+    public static final String SSL_EXTENSION = "sslConfiguration";
+
     private GraphQLIntrospectionTask latestIntrospection = null;
     private final Project myProject;
-    private Project myProject1;
 
     public static GraphQLIntrospectionService getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLIntrospectionService.class);
@@ -190,14 +192,46 @@ public class GraphQLIntrospectionService implements Disposable {
         return request;
     }
 
+    public GraphQLConfigSecurity getSecurityConfig(@NotNull VirtualFile file) {
+
+        GraphQLConfigData config  = GraphQLConfigManager.getService(myProject).getConfigurationsByPath().get(file);
+        Map<String, Object> sslExtension = (Map<String, Object>) config.extensions.get(SSL_EXTENSION);
+        if (sslExtension != null && ! sslExtension.isEmpty()) {
+            GraphQLConfigSecurity sslConfig = new GraphQLConfigSecurity();
+            Map<String, Object> clientCertificate = (Map<String, Object>) sslExtension.get("clientCertificate");
+            if (clientCertificate != null && ! clientCertificate.isEmpty()) {
+                sslConfig.clientCertificate = new GraphQLConfigCertificate();
+                String path = (String) clientCertificate.get("path");
+                sslConfig.clientCertificate.path = path;
+                String format = (String) clientCertificate.get("format");
+                if (format != null && ! format.equals("PEM")) {
+                    throw new RuntimeException("Unsupported certificate format, only PEM is currently supported");
+                }
+                sslConfig.clientCertificate.format = GraphQLConfigCertificate.Encoding.PEM;
+            }
+            Map<String, Object> clientCertificateKey = (Map<String, Object>) sslExtension.get("clientCertificateKey");
+            if (clientCertificateKey != null && ! clientCertificateKey.isEmpty()) {
+                sslConfig.clientCertificateKey = new GraphQLConfigCertificate();
+                String path = (String) clientCertificateKey.get("path");
+                sslConfig.clientCertificateKey.path = path;
+                String format = (String) clientCertificateKey.get("format");
+                if (format != null && ! format.equals("PEM")) {
+                    throw new RuntimeException("Unsupported certificate format, only PEM is currently supported");
+                }
+                sslConfig.clientCertificateKey.format = GraphQLConfigCertificate.Encoding.PEM;
+            }
+            return sslConfig;
+        }
+        return null;
+    }
+
     @NotNull
-    public CloseableHttpClient createHttpClient() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException, CertificateException {
+    public CloseableHttpClient createHttpClient(GraphQLConfigSecurity sslConfig) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException, CertificateException {
         HttpClientBuilder builder = HttpClients.custom();
         builder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
 
         if (PropertiesComponent.getInstance(myProject).isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) {
-            GraphQLConfigSecurity sslConfig = GraphQLConfigManager.getService(myProject).getSSLConfiguration();
-            if (sslConfig != null) {
+            if (sslConfig != null && sslConfig.clientCertificate != null && sslConfig.clientCertificateKey != null) {
                 if (sslConfig.clientCertificate.path == null || sslConfig.clientCertificateKey.path == null) {
                     throw new RuntimeException("Path needs to be specified for the key and certificate");
                 }
@@ -502,8 +536,8 @@ public class GraphQLIntrospectionService implements Disposable {
         public void run(@NotNull ProgressIndicator indicator) {
             indicator.setIndeterminate(true);
             String responseJson;
-
-            try (final CloseableHttpClient httpClient = createHttpClient();
+            GraphQLConfigSecurity sslConfig = getSecurityConfig(introspectionSourceFile.getParent());
+            try (final CloseableHttpClient httpClient = createHttpClient(sslConfig);
                  final CloseableHttpResponse response = httpClient.execute(request)) {
                 responseJson = ObjectUtils.coalesce(EntityUtils.toString(response.getEntity()), "");
             } catch (IOException | GeneralSecurityException e) {

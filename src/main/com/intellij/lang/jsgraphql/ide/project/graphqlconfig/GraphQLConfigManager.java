@@ -429,18 +429,6 @@ public class GraphQLConfigManager implements Disposable {
         }
     }
 
-    @Nullable
-    public GraphQLConfigSecurity getSSLConfiguration() {
-        try {
-            readLock.lock();
-            Map<VirtualFile, GraphQLConfigData> configEntries = getService(myProject).getConfigurationsByPath();
-            GraphQLConfigSecurity sslConfig = new ObjectMapper().convertValue(configEntries.get(myProject.getBaseDir()).extensions.get(SSL_EXTENSION), GraphQLConfigSecurity.class);
-            return sslConfig;
-        } finally {
-            readLock.unlock();
-        }
-    }
-
     void initialize() {
         final MessageBusConnection connection = myProject.getMessageBus().connect(this);
         connection.subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
