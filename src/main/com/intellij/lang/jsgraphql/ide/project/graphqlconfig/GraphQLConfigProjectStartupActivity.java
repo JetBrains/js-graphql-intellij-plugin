@@ -16,6 +16,5 @@ public class GraphQLConfigProjectStartupActivity implements StartupActivity {
     @Override
     public void runActivity(@NotNull Project project) {
         GraphQLConfigManager.getService(project).initialize();
-        GraphQLConfigMigrationHelper.checkGraphQLConfigJsonMigrations(project);
     }
 }
