@@ -226,7 +226,7 @@ public class GraphQLIntrospectionService implements Disposable {
     }
 
     @NotNull
-    public CloseableHttpClient createHttpClient(GraphQLConfigSecurity sslConfig) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException, CertificateException {
+    public CloseableHttpClient createHttpClient(@Nullable GraphQLConfigSecurity sslConfig) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException, CertificateException {
         HttpClientBuilder builder = HttpClients.custom();
         builder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
 
