@@ -67,7 +67,6 @@ public class JSGraphQLEndpointCodeInsightTest extends BasePlatformTestCase {
 
 	public void testFormatter() {
 		myFixture.configureByFiles("FormatterTestData.graphqle");
-		CodeStyle.getSettings(getProject()).KEEP_BLANK_LINES_IN_CODE = 2;
 		WriteCommandAction.runWriteCommandAction(getProject(), () -> {
             CodeStyleManager.getInstance(getProject()).reformat(myFixture.getFile());
         });

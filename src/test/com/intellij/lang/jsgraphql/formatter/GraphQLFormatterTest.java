@@ -7,31 +7,27 @@
  */
 package com.intellij.lang.jsgraphql.formatter;
 
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import org.junit.internal.runners.JUnit38ClassRunner;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnit38ClassRunner.class) // TODO: drop the annotation when issue with Gradle test scanning go away
-public class GraphQLFormatterTest extends BasePlatformTestCase {
+public class GraphQLFormatterTest extends GraphQLTestCaseBase {
 
     @Override
-    protected String getTestDataPath() {
-        return "test-resources/testData/graphql";
+    protected String getBasePath() {
+        return "/formatter";
     }
 
     public void testFormatter() {
-        myFixture.configureByFiles("FormatterTestData.graphql");
-        CodeStyleSettingsManager.getSettings(getProject()).KEEP_BLANK_LINES_IN_CODE = 2;
-        new WriteCommandAction.Simple(getProject()) {
-            @Override
-            protected void run() throws Throwable {
-                CodeStyleManager.getInstance(getProject()).reformat(myFixture.getFile());
-            }
-        }.execute();
-        myFixture.checkResultByFile("FormatterExpectedResult.graphql");
+        doTest();
+    }
+
+    private void doTest() {
+        myFixture.configureByFiles(getTestName(false) + ".graphql");
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+            CodeStyleManager.getInstance(getProject()).reformat(myFixture.getFile());
+        });
+        myFixture.checkResultByFile(getTestName(false) + "_after.graphql");
     }
 
 }
