@@ -14,7 +14,10 @@ import com.google.common.io.Resources;
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.testFramework.LexerTestCase;
+import org.junit.internal.runners.JUnit38ClassRunner;
+import org.junit.runner.RunWith;
 
+@RunWith(JUnit38ClassRunner.class) // TODO: drop the annotation when issue with Gradle test scanning go away
 public class JSGraphQEndpointLexerTest extends LexerTestCase {
 
 	@Override

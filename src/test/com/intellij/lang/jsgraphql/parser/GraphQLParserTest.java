@@ -9,7 +9,10 @@ package com.intellij.lang.jsgraphql.parser;
 
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.testFramework.ParsingTestCase;
+import org.junit.internal.runners.JUnit38ClassRunner;
+import org.junit.runner.RunWith;
 
+@RunWith(JUnit38ClassRunner.class) // TODO: drop the annotation when issue with Gradle test scanning go away
 public class GraphQLParserTest extends ParsingTestCase {
 
     public GraphQLParserTest() {
