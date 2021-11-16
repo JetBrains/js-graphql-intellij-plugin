@@ -15,14 +15,17 @@ import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex;
-import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.search.scope.GraphQLMetaInfSchemaSearchScope;
-import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
+import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
@@ -37,7 +40,6 @@ import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.GlobalSearchScopesCore;
 import com.intellij.psi.search.scope.packageSet.NamedScope;
-import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
@@ -237,14 +239,10 @@ public class GraphQLPsiSearchHelper implements Disposable {
                                 return; // no need to visit other elements
                             }
                         } else if (element instanceof JsonStringLiteral) {
-                            final CachedValue<GraphQLFile> cachedFile = element.getContainingFile()
-                                .getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
-                            if (cachedFile != null && cachedFile.hasUpToDateValue()) {
-                                GraphQLFile graphQLFile = cachedFile.getValue();
-                                if (introspectionFiles.add(graphQLFile)) {
-                                    // index the associated introspection SDL from a JSON introspection result file
-                                    graphQLFile.accept(identifierVisitor.get());
-                                }
+                            GraphQLFile introspectionSDL = GraphQLIntrospectionFilesManager.getOrCreateIntrospectionSDL(virtualFile, psiFile);
+                            if (introspectionFiles.add(introspectionSDL)) {
+                                // index the associated introspection SDL from a JSON introspection result file
+                                introspectionSDL.accept(identifierVisitor.get());
                             }
                             return; // no need to visit deeper
                         } else if (element instanceof PsiLanguageInjectionHost) {

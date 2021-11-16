@@ -10,13 +10,10 @@ package com.intellij.lang.jsgraphql.schema;
 import com.google.common.collect.Maps;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
-import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.lang.jsgraphql.types.InvalidSyntaxError;
@@ -31,35 +28,28 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.FileTypeIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.util.TimeoutUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.*;
 
 public class GraphQLRegistryProvider implements Disposable {
 
     private static final Logger LOG = Logger.getInstance(GraphQLRegistryProvider.class);
 
     private final GraphQLPsiSearchHelper graphQLPsiSearchHelper;
-    private final Project project;
+    private final Project myProject;
     private final GlobalSearchScope graphQLFilesScope;
     private final GlobalSearchScope jsonIntrospectionScope;
     private final PsiManager psiManager;
     private final JSGraphQLEndpointNamedTypeRegistry graphQLEndpointNamedTypeRegistry;
     private final GraphQLConfigManager graphQLConfigManager;
-    private final GraphQLSettings mySettings;
 
     private final Map<GlobalSearchScope, GraphQLRegistryInfo> scopeToRegistry = Maps.newConcurrentMap();
 
@@ -68,7 +58,7 @@ public class GraphQLRegistryProvider implements Disposable {
     }
 
     public GraphQLRegistryProvider(Project project) {
-        this.project = project;
+        myProject = project;
         graphQLFilesScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.allScope(project), GraphQLFileType.INSTANCE);
         jsonIntrospectionScope = GlobalSearchScope
             .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), JsonFileType.INSTANCE);
@@ -76,7 +66,6 @@ public class GraphQLRegistryProvider implements Disposable {
         graphQLEndpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(project);
         graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
         graphQLConfigManager = GraphQLConfigManager.getService(project);
-        mySettings = GraphQLSettings.getSettings(project);
 
         project.getMessageBus().connect(this).subscribe(GraphQLSchemaChangeTracker.TOPIC, scopeToRegistry::clear);
     }
@@ -140,9 +129,9 @@ public class GraphQLRegistryProvider implements Disposable {
 
     }
 
-    private boolean processJsonFile(GraphQLSchemaDocumentProcessor processor,
-                                    VirtualFile file,
-                                    List<GraphQLException> errors) {
+    private boolean processJsonFile(@NotNull GraphQLSchemaDocumentProcessor processor,
+                                    @NotNull VirtualFile file,
+                                    @NotNull List<GraphQLException> errors) {
         // only JSON files that are directly referenced as "schemaPath" from the .graphqlconfig will be
         // considered within scope, so we can just go ahead and try to turn the JSON into GraphQL
         final PsiFile psiFile = psiManager.findFile(file);
@@ -151,28 +140,7 @@ public class GraphQLRegistryProvider implements Disposable {
         }
 
         try {
-            synchronized (GRAPHQL_INTROSPECTION_JSON_TO_SDL) {
-                GraphQLFile introspectionSDL = CachedValuesManager.getCachedValue(psiFile, GRAPHQL_INTROSPECTION_JSON_TO_SDL, () -> {
-                    final String introspectionJsonAsGraphQL =
-                        GraphQLIntrospectionService.getInstance(project).printIntrospectionAsGraphQL(psiFile.getText());
-                    final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(project);
-                    final String fileName = file.getPath();
-                    final GraphQLFile newIntrospectionFile =
-                        (GraphQLFile) psiFileFactory.createFileFromText(fileName, GraphQLLanguage.INSTANCE, introspectionJsonAsGraphQL);
-                    newIntrospectionFile.putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
-                    newIntrospectionFile.putUserData(GRAPHQL_INTROSPECTION_SDL_TO_JSON, psiFile);
-                    newIntrospectionFile.getVirtualFile().putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
-                    newIntrospectionFile.getVirtualFile().putUserData(GRAPHQL_INTROSPECTION_SDL_TO_JSON, psiFile);
-                    try {
-                        newIntrospectionFile.getVirtualFile().setWritable(false);
-                    } catch (IOException e) {
-                        LOG.warn(e);
-                    }
-                    return CachedValueProvider.Result.create(newIntrospectionFile, psiFile, mySettings.getModificationTracker());
-                });
-
-                processor.process(introspectionSDL);
-            }
+            processor.process(GraphQLIntrospectionFilesManager.getOrCreateIntrospectionSDL(file, psiFile));
         } catch (ProcessCanceledException e) {
             throw e;
         } catch (SchemaProblem e) {
