@@ -14,8 +14,8 @@ import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
-import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.types.GraphQLException;
@@ -70,7 +70,8 @@ public class GraphQLRegistryProvider implements Disposable {
     public GraphQLRegistryProvider(Project project) {
         this.project = project;
         graphQLFilesScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.allScope(project), GraphQLFileType.INSTANCE);
-        jsonIntrospectionScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), JsonFileType.INSTANCE);
+        jsonIntrospectionScope = GlobalSearchScope
+            .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), JsonFileType.INSTANCE);
         psiManager = PsiManager.getInstance(project);
         graphQLEndpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(project);
         graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
@@ -127,7 +128,13 @@ public class GraphQLRegistryProvider implements Disposable {
             }
 
             TypeDefinitionRegistry registry = processor.getCompositeRegistry().buildTypeDefinitionRegistry();
-            LOG.info(String.format("Registry build completed in %d ms", TimeoutUtil.getDurationMillis(start)));
+
+            if (LOG.isDebugEnabled()) {
+                long durationMillis = TimeoutUtil.getDurationMillis(start);
+                VirtualFile file = GraphQLPsiUtil.getPhysicalVirtualFile(scopedElement.getContainingFile());
+                String requester = file != null ? file.getPath() : "<unknown>";
+                LOG.debug(String.format("Registry build completed in %d ms, requester: %s", durationMillis, requester));
+            }
             return new GraphQLRegistryInfo(registry, errors, processor.isProcessed());
         });
 
@@ -171,7 +178,8 @@ public class GraphQLRegistryProvider implements Disposable {
         } catch (SchemaProblem e) {
             errors.add(e);
         } catch (Exception e) {
-            final List<SourceLocation> sourceLocation = Collections.singletonList(new SourceLocation(1, 1, GraphQLPsiUtil.getFileName(psiFile)));
+            final List<SourceLocation> sourceLocation = Collections.singletonList(
+                new SourceLocation(1, 1, GraphQLPsiUtil.getFileName(psiFile)));
             errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, e.getMessage()))));
         }
         return true;

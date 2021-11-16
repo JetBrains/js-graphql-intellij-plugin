@@ -66,7 +66,11 @@ public class GraphQLSchemaProviderImpl implements GraphQLSchemaProvider, Disposa
                 Collection<SchemaValidationError> validationErrors = new SchemaValidator().validateSchema(schema);
                 List<GraphQLException> errors = validationErrors.isEmpty()
                     ? Collections.emptyList() : Collections.singletonList(new InvalidSchemaException(validationErrors));
-                LOG.info(String.format("Schema build completed in %d ms", TimeoutUtil.getDurationMillis(start)));
+
+                if (LOG.isDebugEnabled()) {
+                    long durationMillis = TimeoutUtil.getDurationMillis(start);
+                    LOG.debug(String.format("Schema build completed in %d ms, requester: %s", durationMillis, containingFileName));
+                }
                 return new GraphQLSchemaInfo(schema, errors, registryWithErrors);
             } catch (ProcessCanceledException e) {
                 throw e;
