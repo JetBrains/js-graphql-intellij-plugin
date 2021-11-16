@@ -3,6 +3,8 @@ package com.intellij.lang.jsgraphql.schema.library;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class GraphQLLibraryDescriptor {
 
     private final String myIdentifier;
@@ -23,6 +25,19 @@ public class GraphQLLibraryDescriptor {
 
     public boolean isEnabled(@NotNull Project project) {
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GraphQLLibraryDescriptor that = (GraphQLLibraryDescriptor) o;
+        return Objects.equals(myIdentifier, that.myIdentifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(myIdentifier);
     }
 
     @Override

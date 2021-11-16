@@ -62,6 +62,7 @@ public final class GraphQLLibraryManager {
         return myLibraries.computeIfAbsent(libraryDescriptor, __ -> {
             VirtualFile root = resolveLibraryRoot(libraryDescriptor);
             if (root == null) {
+                LOG.warn("Unresolved library root: " + libraryDescriptor);
                 return null;
             }
             return new GraphQLLibrary(libraryDescriptor, root);
@@ -79,8 +80,12 @@ public final class GraphQLLibraryManager {
     }
 
     @Nullable
-    private VirtualFile resolveLibraryRoot(@NotNull GraphQLLibraryDescriptor definition) {
-        String resourceName = ourDefinitionResourcePaths.get(definition);
+    private VirtualFile resolveLibraryRoot(@NotNull GraphQLLibraryDescriptor descriptor) {
+        String resourceName = ourDefinitionResourcePaths.get(descriptor);
+        if (resourceName == null) {
+            LOG.error("No resource files found for library: " + descriptor);
+            return null;
+        }
         URL resource = getClass().getClassLoader().getResource(DEFINITIONS_RESOURCE_DIR + resourceName);
         if (resource == null) {
             LOG.error("Resource not found: " + resourceName);

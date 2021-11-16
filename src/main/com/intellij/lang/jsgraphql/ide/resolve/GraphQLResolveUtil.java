@@ -4,6 +4,7 @@ import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -18,6 +19,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 public final class GraphQLResolveUtil {
+
+    private static final Logger LOG = Logger.getInstance(GraphQLResolveUtil.class);
+
     private GraphQLResolveUtil() {
     }
 
@@ -25,14 +29,20 @@ public final class GraphQLResolveUtil {
                                              @NotNull PsiElement context,
                                              @NotNull Processor<? super GraphQLFile> processor) {
         GraphQLLibrary library = GraphQLLibraryRootsProvider.findLibrary(context.getProject(), libraryDescriptor);
-        if (library == null) return;
+        if (library == null) {
+            LOG.warn("Library is not found: " + libraryDescriptor);
+            return;
+        }
 
         PsiManager psiManager = context.getManager();
         for (VirtualFile root : library.getSourceRoots()) {
             PsiFile file = psiManager.findFile(root);
-            if (file instanceof GraphQLFile && file.isValid()) {
-                if (!processor.process(((GraphQLFile) file))) return;
+            if (!(file instanceof GraphQLFile) || !file.isValid()) {
+                LOG.warn("Library file is invalid: " + root.getPath());
+                continue;
             }
+
+            if (!processor.process(((GraphQLFile) file))) return;
         }
     }
 
