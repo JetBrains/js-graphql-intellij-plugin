@@ -15,6 +15,7 @@ import com.intellij.lang.jsgraphql.schema.GraphQLPsiToLanguage;
 import com.intellij.lang.jsgraphql.types.language.Document;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
+import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -42,6 +43,19 @@ public class GraphQLFile extends PsiFileBase implements GraphQLElement {
     @Override
     public Icon getIcon(int flags) {
         return super.getIcon(flags);
+    }
+
+    public void accept(@NotNull GraphQLVisitor visitor) {
+        visitor.visitGraphQLFile(this);
+    }
+
+    @Override
+    public void accept(@NotNull PsiElementVisitor visitor) {
+        if (visitor instanceof GraphQLVisitor) {
+            accept((GraphQLVisitor) visitor);
+        } else {
+            super.accept(visitor);
+        }
     }
 
     @NotNull

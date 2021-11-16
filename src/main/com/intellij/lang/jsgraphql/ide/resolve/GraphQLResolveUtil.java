@@ -5,7 +5,10 @@ import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.CommonProcessors;
 import com.intellij.util.Processor;
@@ -31,17 +34,6 @@ public final class GraphQLResolveUtil {
                 if (!processor.process(((GraphQLFile) file))) return;
             }
         }
-    }
-
-    /**
-     * Prefer {@link GraphQLResolveUtil#processFilesInLibrary(GraphQLLibraryDescriptor, PsiElement, Processor)} instead.
-     *
-     * @param visitor recursive visitor is used for historical reasons
-     */
-    public static void processFilesInLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor,
-                                             @NotNull PsiElement context,
-                                             @NotNull PsiRecursiveElementVisitor visitor) {
-        processFilesInLibrary(libraryDescriptor, context, CommonProcessors.processAll(file -> file.accept(visitor)));
     }
 
     @NotNull

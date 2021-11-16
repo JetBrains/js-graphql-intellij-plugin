@@ -26,7 +26,10 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.impl.AnyPsiChangeListener;
 import com.intellij.psi.impl.PsiManagerImpl;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -217,19 +220,23 @@ public class GraphQLReferenceService implements Disposable {
             final GraphQLPsiSearchHelper graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(element.getProject());
             if (name.startsWith("__")) {
                 // __typename or introspection fields __schema and __type which implicitly extends the query root type
-                GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, element, new PsiRecursiveElementVisitor() {
-                    @Override
-                    public void visitElement(final @NotNull PsiElement schemaElement) {
-                        // TODO: [vepanimas] rework to use com.intellij.psi.PsiElement.processDeclarations or something similar,
-                        //  now it traverses the whole tree including comments, punctuation, arguments and so on,
-                        //  but we actually expect only field declarations in two predefined object types
-                        if (schemaElement instanceof GraphQLReferenceElement &&
-                            Objects.equals(((GraphQLReferenceElement) schemaElement).getReferenceName(), name)) {
-                            reference.set(createReference(element, schemaElement));
-                            return;
+                GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, element, file -> {
+                    file.accept(new GraphQLRecursiveVisitor() {
+                        @Override
+                        public void visitElement(@NotNull GraphQLElement schemaElement) {
+                            // TODO: [vepanimas] rework to use com.intellij.psi.PsiElement.processDeclarations or something similar,
+                            //  now it traverses the whole tree including comments, punctuation, arguments and so on,
+                            //  but we actually expect only field declarations in two predefined object types
+                            if (schemaElement instanceof GraphQLReferenceElement &&
+                                Objects.equals(((GraphQLReferenceElement) schemaElement).getReferenceName(), name)) {
+                                reference.set(createReference(element, schemaElement));
+                                stopWalking();
+                                return;
+                            }
+                            super.visitElement(schemaElement);
                         }
-                        super.visitElement(schemaElement);
-                    }
+                    });
+                    return reference.isNull();
                 });
             }
             final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(field, GraphQLTypeScopeProvider.class);

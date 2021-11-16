@@ -12,11 +12,11 @@ import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveLocation;
 import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
+import com.intellij.lang.jsgraphql.psi.GraphQLRecursiveVisitor;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.util.CachedValueProvider;
@@ -40,29 +40,34 @@ public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl i
             final String locationName = location.getText();
 
             // TODO: [vepanimas] move to a reference resolver: getReference should only create a reference, not resolve it.
-            GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, this, new PsiRecursiveElementVisitor() {
-                @Override
-                public void visitElement(@NotNull PsiElement element) {
-                    if (element instanceof GraphQLEnumValue && Objects.equals(((GraphQLEnumValue) element).getName(), locationName)) {
-                        final GraphQLIdentifier referencedEnumIdentifier = ((GraphQLEnumValue) element).getNameIdentifier();
-                        reference.set(new PsiReferenceBase<>(location, new TextRange(0, location.getTextLength())) {
-                            @Override
-                            public PsiElement resolve() {
-                                return referencedEnumIdentifier;
-                            }
+            GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, this, file -> {
+                file.accept(new GraphQLRecursiveVisitor() {
+                    @Override
+                    public void visitEnumValue(@NotNull GraphQLEnumValue element) {
+                        if (Objects.equals(element.getName(), locationName)) {
+                            final GraphQLIdentifier referencedEnumIdentifier = element.getNameIdentifier();
+                            reference.set(new PsiReferenceBase<>(location, new TextRange(0, location.getTextLength())) {
+                                @Override
+                                public PsiElement resolve() {
+                                    return referencedEnumIdentifier;
+                                }
 
-                            @NotNull
-                            @Override
-                            public Object @NotNull [] getVariants() {
-                                return PsiReference.EMPTY_ARRAY;
-                            }
-                        });
-                        return; // done visiting
+                                @NotNull
+                                @Override
+                                public Object @NotNull [] getVariants() {
+                                    return PsiReference.EMPTY_ARRAY;
+                                }
+                            });
+                            stopWalking();
+                            return;
+                        }
+                        super.visitEnumValue(element);
                     }
-                    super.visitElement(element);
-                }
+                });
+                return reference.isNull();
             });
-            return CachedValueProvider.Result.createSingleDependency(reference.get(), PsiModificationTracker.MODIFICATION_COUNT);
+
+            return CachedValueProvider.Result.create(reference.get(), PsiModificationTracker.MODIFICATION_COUNT);
         });
     }
 }

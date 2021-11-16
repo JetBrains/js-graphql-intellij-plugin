@@ -8,6 +8,7 @@
 {
   generate=[names="long" tokenAccessors="no"]
   parserClass="com.intellij.lang.jsgraphql.GraphQLParser"
+  psiVisitorName="VisitorBase"
 
   implements="com.intellij.lang.jsgraphql.psi.GraphQLElement"
   extends="com.intellij.lang.jsgraphql.psi.impl.GraphQLElementImpl"

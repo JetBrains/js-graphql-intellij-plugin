@@ -16,13 +16,13 @@ public class GraphQLSelectionImpl extends GraphQLElementImpl implements GraphQLS
     super(node);
   }
 
-  public void accept(@NotNull GraphQLVisitor visitor) {
+  public void accept(@NotNull GraphQLVisitorBase visitor) {
     visitor.visitSelection(this);
   }
 
   @Override
   public void accept(@NotNull PsiElementVisitor visitor) {
-    if (visitor instanceof GraphQLVisitor) accept((GraphQLVisitor)visitor);
+    if (visitor instanceof GraphQLVisitorBase) accept((GraphQLVisitorBase)visitor);
     else super.accept(visitor);
   }
 

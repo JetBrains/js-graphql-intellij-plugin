@@ -5,7 +5,7 @@ import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiNamedElement;
 
-public class GraphQLVisitor extends PsiElementVisitor {
+public class GraphQLVisitorBase extends PsiElementVisitor {
 
   public void visitAlias(@NotNull GraphQLAlias o) {
     visitElement(o);
