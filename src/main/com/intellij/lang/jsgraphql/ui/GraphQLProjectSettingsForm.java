@@ -32,6 +32,7 @@ public class GraphQLProjectSettingsForm {
     private JCheckBox enableRelay;
     private JCheckBox enableFederation;
     private JCheckBox openEditorWithIntrospectionResult;
+    private JCheckBox enableIntrospectionRepeatableDirectives;
 
     private GraphQLSettings mySettings;
 
@@ -53,29 +54,36 @@ public class GraphQLProjectSettingsForm {
 
     void apply() {
         mySettings.setIntrospectionQuery(introspectionQueryTextField.getText());
+        mySettings.setEnableIntrospectionDefaultValues(enableIntrospectionDefaultValues.isSelected());
+        mySettings.setEnableIntrospectionRepeatableDirectives(enableIntrospectionRepeatableDirectives.isSelected());
+        mySettings.setOpenEditorWithIntrospectionResult(openEditorWithIntrospectionResult.isSelected());
+
         mySettings.setRelaySupportEnabled(enableRelay.isSelected());
         mySettings.setFederationSupportEnabled(enableFederation.isSelected());
-        mySettings.setEnableIntrospectionDefaultValues(enableIntrospectionDefaultValues.isSelected());
-        mySettings.setOpenEditorWithIntrospectionResult(openEditorWithIntrospectionResult.isSelected());
     }
 
     void reset() {
         introspectionQueryTextField.setText(mySettings.getIntrospectionQuery());
         enableIntrospectionDefaultValues.setSelected(mySettings.isEnableIntrospectionDefaultValues());
+        enableIntrospectionRepeatableDirectives.setSelected(mySettings.isEnableIntrospectionRepeatableDirectives());
+        openEditorWithIntrospectionResult.setSelected(mySettings.isOpenEditorWithIntrospectionResult());
+
         enableRelay.setSelected(mySettings.isRelaySupportEnabled());
         enableFederation.setSelected(mySettings.isFederationSupportEnabled());
-        openEditorWithIntrospectionResult.setSelected(mySettings.isOpenEditorWithIntrospectionResult());
     }
 
     boolean isModified() {
-        return !Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText()) ||
-            mySettings.isEnableIntrospectionDefaultValues() != enableIntrospectionDefaultValues.isSelected() ||
-            mySettings.isOpenEditorWithIntrospectionResult() != openEditorWithIntrospectionResult.isSelected() ||
-            shouldUpdateLibraries();
-
+        return introspectionSettingsChanged() || librarySettingsChanged();
     }
 
-    boolean shouldUpdateLibraries() {
+    boolean introspectionSettingsChanged() {
+        return !Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText()) ||
+            mySettings.isEnableIntrospectionDefaultValues() != enableIntrospectionDefaultValues.isSelected() ||
+            mySettings.isEnableIntrospectionRepeatableDirectives() != enableIntrospectionRepeatableDirectives.isSelected() ||
+            mySettings.isOpenEditorWithIntrospectionResult() != openEditorWithIntrospectionResult.isSelected();
+    }
+
+    boolean librarySettingsChanged() {
         return mySettings.isRelaySupportEnabled() != enableRelay.isSelected() ||
             mySettings.isFederationSupportEnabled() != enableFederation.isSelected();
     }

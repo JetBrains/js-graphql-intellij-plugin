@@ -45,8 +45,18 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
     @Override
     public void loadState(@NotNull GraphQLSettings.GraphQLSettingsState state) {
         myState = state;
-        incrementModificationCount();
+        settingsChanged();
     }
+
+    public ModificationTracker getModificationTracker() {
+        return myModificationTracker;
+    }
+
+    private void settingsChanged() {
+        myModificationTracker.incModificationCount();
+    }
+
+    /* Introspection */
 
     public String getIntrospectionQuery() {
         return myState.introspectionQuery;
@@ -54,25 +64,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
 
     public void setIntrospectionQuery(String introspectionQuery) {
         myState.introspectionQuery = introspectionQuery;
-        incrementModificationCount();
-    }
-
-    public boolean isRelaySupportEnabled() {
-        return myState.enableRelayModernFrameworkSupport;
-    }
-
-    public void setRelaySupportEnabled(boolean enableRelayModernFrameworkSupport) {
-        myState.enableRelayModernFrameworkSupport = enableRelayModernFrameworkSupport;
-        incrementModificationCount();
-    }
-
-    public boolean isFederationSupportEnabled() {
-        return myState.enableFederationSupport;
-    }
-
-    public void setFederationSupportEnabled(boolean enableFederationSupport) {
-        myState.enableFederationSupport = enableFederationSupport;
-        incrementModificationCount();
+        settingsChanged();
     }
 
     public boolean isEnableIntrospectionDefaultValues() {
@@ -81,7 +73,16 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
 
     public void setEnableIntrospectionDefaultValues(boolean enableIntrospectionDefaultValues) {
         myState.enableIntrospectionDefaultValues = enableIntrospectionDefaultValues;
-        incrementModificationCount();
+        settingsChanged();
+    }
+
+    public boolean isEnableIntrospectionRepeatableDirectives() {
+        return myState.enableIntrospectionRepeatableDirectives;
+    }
+
+    public void setEnableIntrospectionRepeatableDirectives(boolean enableIntrospectionRepeatableDirectives) {
+        myState.enableIntrospectionRepeatableDirectives = enableIntrospectionRepeatableDirectives;
+        settingsChanged();
     }
 
     public boolean isOpenEditorWithIntrospectionResult() {
@@ -90,15 +91,27 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
 
     public void setOpenEditorWithIntrospectionResult(boolean openEditorWithIntrospectionResult) {
         myState.openEditorWithIntrospectionResult = openEditorWithIntrospectionResult;
-        incrementModificationCount();
+        settingsChanged();
     }
 
-    public ModificationTracker getModificationTracker() {
-        return myModificationTracker;
+    /* Frameworks */
+
+    public boolean isRelaySupportEnabled() {
+        return myState.enableRelayModernFrameworkSupport;
     }
 
-    private void incrementModificationCount() {
-        myModificationTracker.incModificationCount();
+    public void setRelaySupportEnabled(boolean enableRelayModernFrameworkSupport) {
+        myState.enableRelayModernFrameworkSupport = enableRelayModernFrameworkSupport;
+        settingsChanged();
+    }
+
+    public boolean isFederationSupportEnabled() {
+        return myState.enableFederationSupport;
+    }
+
+    public void setFederationSupportEnabled(boolean enableFederationSupport) {
+        myState.enableFederationSupport = enableFederationSupport;
+        settingsChanged();
     }
 
     /**
@@ -108,7 +121,9 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
     public static class GraphQLSettingsState {
         public String introspectionQuery = "";
         public boolean enableIntrospectionDefaultValues = true;
+        public boolean enableIntrospectionRepeatableDirectives = false;
         public boolean openEditorWithIntrospectionResult = true;
+
         public boolean enableRelayModernFrameworkSupport;
         public boolean enableFederationSupport = false;
     }

@@ -336,8 +336,13 @@ public class GraphQLIntrospectionResultToSchema {
             .description(getDescription(definition))
             .directiveLocations(createDirectiveLocations((List<String>) definition.get("locations")))
             .inputValueDefinitions(inputValueDefinitions)
-            // .repeatable() TODO: [vepanimas] repeatable
+            .repeatable(isRepeatable(definition))
             .build();
+    }
+
+    private boolean isRepeatable(@NotNull Map<String, Object> definition) {
+        Object isRepeatable = definition.get("isRepeatable");
+        return isRepeatable instanceof Boolean && (boolean) isRepeatable;
     }
 
     @NotNull

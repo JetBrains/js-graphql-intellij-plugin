@@ -23,7 +23,6 @@ import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
-import com.intellij.lang.jsgraphql.types.introspection.IntrospectionQuery;
 import com.intellij.lang.jsgraphql.types.language.Document;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaParser;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter;
@@ -148,13 +147,7 @@ public class GraphQLIntrospectionService implements Disposable {
 
         try {
             final GraphQLSettings graphQLSettings = GraphQLSettings.getSettings(myProject);
-            String query = graphQLSettings.getIntrospectionQuery();
-            if (StringUtils.isBlank(query)) {
-                query = IntrospectionQuery.INTROSPECTION_QUERY;
-            }
-            if (!graphQLSettings.isEnableIntrospectionDefaultValues()) {
-                query = query.replace("defaultValue", "");
-            }
+            String query = buildIntrospectionQuery(graphQLSettings);
 
             final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
             HttpPost request = createRequest(endpoint, url, requestJson);
@@ -163,6 +156,23 @@ public class GraphQLIntrospectionService implements Disposable {
         } catch (IllegalStateException | IllegalArgumentException e) {
             GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.ERROR, retry);
         }
+    }
+
+    @NotNull
+    private String buildIntrospectionQuery(@NotNull GraphQLSettings settings) {
+        String query = settings.getIntrospectionQuery();
+        if (!StringUtil.isEmptyOrSpaces(query)) {
+            return query;
+        }
+
+        query = GraphQLIntrospectionQuery.INTROSPECTION_QUERY;
+        if (!settings.isEnableIntrospectionRepeatableDirectives()) {
+            query = query.replace("isRepeatable", "");
+        }
+        if (!settings.isEnableIntrospectionDefaultValues()) {
+            query = query.replace("defaultValue", "");
+        }
+        return query;
     }
 
     @NotNull

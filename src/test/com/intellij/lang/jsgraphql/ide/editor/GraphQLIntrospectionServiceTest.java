@@ -40,6 +40,10 @@ public class GraphQLIntrospectionServiceTest extends GraphQLTestCaseBase {
         doTest("schemaWithNullFields.json", "schemaWithNullFields.graphql");
     }
 
+    public void testPrintIntrospectionRepeatableDirectives() {
+        doTest("schemaWithRepeatableDirectives.json", "schemaWithRepeatableDirectives.graphql");
+    }
+
     public void testGithubSchema() {
         // test only for being successful, file comparison doesn't give a meaningful result for files of this size
         assertNoThrowable(() -> new GraphQLIntrospectionService(getProject())
