@@ -11,6 +11,7 @@ package com.intellij.lang.jsgraphql.ide.search;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
@@ -26,13 +27,20 @@ import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeTracker;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.registry.Registry;
+import com.intellij.openapi.util.registry.RegistryValue;
+import com.intellij.openapi.util.registry.RegistryValueListener;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.AnyPsiChangeListener;
@@ -54,6 +62,8 @@ import java.util.stream.Collectors;
  */
 public class GraphQLPsiSearchHelper implements Disposable {
 
+    private static final String GRAPHQL_SEARCH_SCOPE_LIBRARIES_KEY = "graphql.search.scope.libraries";
+
     private final Project myProject;
     private final GlobalSearchScope myDefaultProjectFileScope;
     private final GraphQLConfigManager myConfigManager;
@@ -63,6 +73,8 @@ public class GraphQLPsiSearchHelper implements Disposable {
     private final PsiManager myPsiManager;
     private final @Nullable GraphQLInjectionSearchHelper myInjectionSearchHelper;
     private final InjectedLanguageManager myInjectedLanguageManager;
+    // enabled by default, can be disabled using the registry key in case of any problems on the user's side
+    private volatile boolean myShouldSearchInLibraries;
 
     public static GraphQLPsiSearchHelper getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, GraphQLPsiSearchHelper.class);
@@ -79,6 +91,20 @@ public class GraphQLPsiSearchHelper implements Disposable {
         myDefaultProjectFile = (GraphQLFile) PsiFileFactory.getInstance(myProject).createFileFromText("Default schema file",
             GraphQLLanguage.INSTANCE, "");
         myDefaultProjectFileScope = GlobalSearchScope.fileScope(myDefaultProjectFile);
+
+        myShouldSearchInLibraries = Registry.is(GRAPHQL_SEARCH_SCOPE_LIBRARIES_KEY);
+        Registry.get(GRAPHQL_SEARCH_SCOPE_LIBRARIES_KEY).addListener(new RegistryValueListener() {
+            @Override
+            public void afterValueChanged(@NotNull RegistryValue value) {
+                Application app = ApplicationManager.getApplication();
+                app.invokeLater(() -> app.runWriteAction(() -> {
+                    myShouldSearchInLibraries = value.asBoolean();
+                    PsiManager.getInstance(myProject).dropPsiCaches();
+                    DaemonCodeAnalyzer.getInstance(myProject).restart();
+                    GraphQLSchemaChangeTracker.getInstance(myProject).schemaChanged();
+                }), ModalityState.NON_MODAL, myProject.getDisposed());
+            }
+        }, this);
 
         project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
             @Override
@@ -103,8 +129,11 @@ public class GraphQLPsiSearchHelper implements Disposable {
         // these scopes are used unconditionally, both for global and config filtered scopes
         scope = scope
             .union(myDefaultProjectFileScope)
-            .union(new GraphQLMetaInfSchemaSearchScope(myProject))
             .union(createExternalDefinitionsLibraryScope());
+
+        if (myShouldSearchInLibraries) {
+            scope = scope.union(new GraphQLMetaInfSchemaSearchScope(myProject));
+        }
 
         // filter all the resulting scopes by file types, we don't want some child scope to override this
         FileType[] fileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes().toArray(FileType.EMPTY_ARRAY);

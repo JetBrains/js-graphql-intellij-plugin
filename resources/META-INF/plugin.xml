@@ -202,6 +202,10 @@
 
     <errorHandler implementation="com.intellij.lang.jsgraphql.GraphQLGithubErrorReporter"/>
 
+    <!-- Keys -->
+    <registryKey key="graphql.search.scope.libraries" defaultValue="true"
+                 description="Whether to search for schema definitions in libraries"/>
+
     <!-- Inspections -->
     <localInspection language="GraphQL" key="graphql.inspection.display.name.unresolved.reference"
                      enabledByDefault="true"
