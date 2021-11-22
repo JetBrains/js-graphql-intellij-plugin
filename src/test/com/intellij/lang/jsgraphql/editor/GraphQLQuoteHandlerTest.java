@@ -1,4 +1,4 @@
-package com.intellij.lang.jsgraphql.ide.editor;
+package com.intellij.lang.jsgraphql.editor;
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 
