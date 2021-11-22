@@ -2,10 +2,28 @@
 
 # Changelog
 
-## [3.1.0] - 2021-10-31
+## [3.1.0] - 2021-11-23
 
 ### Added
-- Load variables from .env files. New supported file names: `.env.dev`,`.env.dev.local`.
+
+- More filenames are supported for .env files: `.env.dev`,`.env.dev.local`.
+- Spell-checking for string literals.
+- GitHub error reporter for plugin exceptions. Additional logging has also been implemented, so feel free to report an error!
+- Type definitions for the Apollo Federation. Can be enabled in the settings.
+- Type definitions discovery in JAR libraries for the Netflix's DGS framework (https://netflix.github.io/dgs/).
+- A new option that prevents opening the editor with the result after an introspection request.
+- Colors for the built-in Monokai editor scheme.
+- Schema directives introspection. Support for the "repeatable" directives is disabled by default and can be enabled in the settings.
+- Automatic insertion of curly braces for fields without arguments in code completion.
+
+### Fixed
+
+- Fixed introspection schemas in JSON format. Previously, when the schema had the JSON format, all fields could be marked as unresolved.
+- Fixed .graphqlconfig file type association which led to a lack of highlighting and missing line markers.
+
+### Changed
+
+- Minor improvements in the formatting of introspection results.
 
 ## [3.0.0] - 2021-07-16
 
@@ -24,10 +42,12 @@
 - Enabled ESLint support for GraphQL.
 
 ### Changed
+
 - Improved completion for variables in queries.
 - Improved readability of error messages.
 
 ### Fixed
+
 - Emojis in the end-of-line comments.
 - Fixed resolve for directive arguments.
 - Fixed resolve for default object argument fields.
@@ -36,28 +56,34 @@
 ## [2.9.1] - 2021-03-02
 
 ### Fixed
+
 - SSL certificate check could be disabled (#435)
 
 ## [2.9.0] - 2021-02-24
 
 ### Added
+
 - GZip response handling (#427)
 
 ### Fixed
+
 - Startup exception caused by Relay detection (#431)
 - Search for configuration through the whole project root hierarchy (#423)
 
 ## [2.8.0] - 2021-02-16
 
 ### Added
+
 - Loading env variables from .env file (#426)
 
 ### Fixed
+
 - Executing a single selected query (#418)
 
 ## [2.7.1] - 2021-01-15
 
 ### Fixed
+
 - Compatibility with 2021.1
 - Possible cause of the broken auto-complete
 - Fixed semantic highlighting when errors are in the same range (#383)
@@ -65,10 +91,12 @@
 ## [2.7.0] - 2020-11-25
 
 ### Fixed
+
 - Compatibility with 2020.3
 - Exception when using default parameter values (#412)
 
 ### Added
+
 - @required, @inline and @preloadable directives for Relay
 - Support for .gql file types
 
