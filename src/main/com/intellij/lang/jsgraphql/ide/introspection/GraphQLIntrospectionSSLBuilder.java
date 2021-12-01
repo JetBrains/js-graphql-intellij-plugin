@@ -1,4 +1,4 @@
-package com.intellij.lang.jsgraphql.ide.editor;
+package com.intellij.lang.jsgraphql.ide.introspection;
 
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigCertificate;
 import org.jetbrains.annotations.NotNull;
@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.*;
@@ -22,7 +21,8 @@ import java.util.Collection;
 
 public class GraphQLIntrospectionSSLBuilder {
     @NotNull
-    public static KeyStore makeKeyStore(final Path certPath, final Path keyPath, final GraphQLConfigCertificate.Encoding format) throws UnsupportedEncodingException {
+    public static KeyStore makeKeyStore(final Path certPath, final Path keyPath, final GraphQLConfigCertificate.Encoding format)
+        throws UnsupportedEncodingException {
         CertificateFactory certificateFactory;
         try {
             certificateFactory = CertificateFactory.getInstance("X509");
@@ -33,7 +33,7 @@ public class GraphQLIntrospectionSSLBuilder {
         java.security.cert.Certificate[] certChain;
         try (InputStream inputStream = Files.newInputStream(certPath)) {
             Collection<? extends Certificate> certCollection = certificateFactory.generateCertificates(inputStream);
-            certChain = certCollection.toArray(new java.security.cert.Certificate[certCollection.size()]);
+            certChain = certCollection.toArray(new Certificate[0]);
         } catch (CertificateException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -59,7 +59,7 @@ public class GraphQLIntrospectionSSLBuilder {
     @Nullable
     private static PrivateKey generatePEMPrivateKey(final Path keyPath) throws IOException {
 
-        String key = new String(Files.readAllBytes(keyPath), Charset.defaultCharset());
+        String key = Files.readString(keyPath, Charset.defaultCharset());
         String privateKeyPEM = key
             .replace("-----BEGIN PRIVATE KEY-----", "")
             .replaceAll(System.lineSeparator(), "")
