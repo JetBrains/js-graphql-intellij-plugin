@@ -10,7 +10,7 @@
 - Spell-checking for string literals.
 - GitHub error reporter for plugin exceptions. Additional logging has also been implemented, so feel free to report an error!
 - Type definitions for the Apollo Federation. Can be enabled in the settings.
-- Type definitions discovery in JAR libraries for the Netflix's DGS framework (https://netflix.github.io/dgs/).
+- Type definitions discovery in JAR libraries for the Netflix's <a href="https://netflix.github.io/dgs/">DGS</a> framework.
 - A new option that prevents opening the editor with the result after an introspection request.
 - Colors for the built-in Monokai editor scheme.
 - Schema directives introspection. Support for the "repeatable" directives is disabled by default and can be enabled in the settings.

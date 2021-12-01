@@ -1,6 +1,6 @@
 ![](docs/js-graphql-logo.png)
 
-# JS GraphQL IntelliJ Plugin
+# GraphQL IntelliJ Plugin
 
 GraphQL language support for WebStorm, IntelliJ IDEA and other IDEs based on the IntelliJ Platform.
 
@@ -16,6 +16,7 @@ GraphQL language support for WebStorm, IntelliJ IDEA and other IDEs based on the
 - 'Find Usages' and 'Go to Declaration' for schema types, fields, and fragments
 - 'Structure view' to navigate GraphQL files
 - Load variables from .env files. Supported file names: `.env.local`,`.env.development.local`,`.env.development`,`.env.dev.local`,`.env.dev`,`.env`
+- Built-in Relay and Apollo Federation type definitions
 
 ## Documentation
 
@@ -23,7 +24,7 @@ The main documentation site is available at https://jimkyndemeyer.github.io/js-g
 
 ## Which IDEs are compatible with the plugin?
 
-The plugin is compatible with version 2019.3+ (193.7288 or later) of all IDEs based on the IntelliJ Platform, including but not limited to WebStorm, IntelliJ IDEA, Android Studio, RubyMine, PhpStorm, and PyCharm.
+The plugin is compatible with version 2020.3+ of all IDEs based on the IntelliJ Platform, including but not limited to WebStorm, IntelliJ IDEA, Android Studio, RubyMine, PhpStorm, and PyCharm.
 
 ## Where can I get the plugin?
 

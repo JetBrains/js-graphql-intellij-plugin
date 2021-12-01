@@ -44,12 +44,10 @@ intellij {
         untilBuild = pluginUntilBuild
 
         changeNotes = """
-            <p><b>New in $pluginVersion</b></p>
-            <p>
+            <h2>New in $pluginVersion</h2>
             ${changelog.get(pluginVersion.toString()).toHTML()}
-            </p>
             <br />
-            <p>See the <a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/CHANGELOG.md">CHANGELOG</a> for more details and history.</p>
+            See the <a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/CHANGELOG.md">CHANGELOG</a> for more details and history.
         """.stripIndent()
     }
 }

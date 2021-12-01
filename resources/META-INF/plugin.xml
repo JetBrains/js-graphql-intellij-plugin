@@ -9,11 +9,11 @@
 -->
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <id>com.intellij.lang.jsgraphql</id>
-  <name>JS GraphQL</name>
+  <name>GraphQL</name>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
 
   <description><![CDATA[
-      <p>GraphQL language support including tagged template literals in JavaScript and TypeScript.</p>
+      <p>GraphQL language support including tagged template literals in JavaScript and TypeScript. Formerly known as <b>JS GraphQL</b>.</p>
       <br/>
       <p>Feature highlights:</p>
       <ul>
