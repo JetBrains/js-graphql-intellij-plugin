@@ -2,6 +2,17 @@
 
 # Changelog
 
+## [3.1.1] - 2021-12-08
+
+### Fixed
+
+- java.lang.Throwable: Read access is allowed from inside read-action (or EDT) only.
+
+### Changed
+
+- Replaced GitHub error reporter with Sentry.
+- To download or update the plugin, an IDE reload is now required.
+
 ## [3.1.0] - 2021-11-23
 
 ### Added
