@@ -7,7 +7,7 @@
  *  LICENSE file in the root directory of this source tree.
  */
 -->
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" require-restart="true">
   <id>com.intellij.lang.jsgraphql</id>
   <name>GraphQL</name>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
