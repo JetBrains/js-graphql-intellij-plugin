@@ -25,6 +25,7 @@ dependencies {
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.21'
     implementation 'fr.opensagres.js:minimatch.java:1.1.0'
     implementation 'io.github.cdimascio:dotenv-kotlin:6.2.2'
+    implementation 'io.sentry:sentry:5.4.3'
 
     implementation 'com.graphql-java:java-dataloader:2.2.3'
     implementation 'org.reactivestreams:reactive-streams:1.0.2'

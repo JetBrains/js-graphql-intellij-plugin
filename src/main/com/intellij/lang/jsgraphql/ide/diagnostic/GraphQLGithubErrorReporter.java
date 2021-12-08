@@ -1,8 +1,9 @@
-package com.intellij.lang.jsgraphql;
+package com.intellij.lang.jsgraphql.ide.diagnostic;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.diagnostic.ErrorReportSubmitter;
 import com.intellij.openapi.diagnostic.IdeaLoggingEvent;

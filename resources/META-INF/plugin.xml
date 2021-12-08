@@ -200,7 +200,7 @@
     <highlightErrorFilter
       implementation="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLVariablesHighlightErrorFilter"/>
 
-    <errorHandler implementation="com.intellij.lang.jsgraphql.GraphQLGithubErrorReporter"/>
+    <errorHandler implementation="com.intellij.lang.jsgraphql.ide.diagnostic.GraphQLSentryErrorReporter"/>
 
     <!-- Keys -->
     <registryKey key="graphql.search.scope.libraries" defaultValue="true"
