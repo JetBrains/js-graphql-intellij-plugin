@@ -26,6 +26,24 @@ public class GraphQLSentryErrorReporter extends ErrorReportSubmitter {
     }
 
     @Override
+    public @Nullable String getPrivacyNoticeText() {
+        return "By clicking on the '" + getReportActionText() + "' button you agree that " +
+            "the following will be sent along with the error message: " +
+            "IDE version, " +
+            "IDE name, " +
+            "OS version, " +
+            "plugin version, " +
+            "date when the event occurred, " +
+            "error log and other data that the IDE passes to the error handler.<br>" +
+            "This data will only be used for debugging and bug fixing.<br>" +
+            "<br>" +
+            "<b>Attention!</b> Carefully study the transmitted data. Do not " +
+            "click the report button if the error log or other data contains " +
+            "personal information or other information that you do not want " +
+            "to share.";
+    }
+
+    @Override
     public boolean submit(IdeaLoggingEvent @NotNull [] events,
                           @Nullable String additionalInfo,
                           @NotNull Component parentComponent,
