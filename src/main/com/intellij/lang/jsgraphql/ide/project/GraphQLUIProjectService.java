@@ -20,9 +20,9 @@ import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigurationListener;
@@ -170,9 +170,12 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
             if (myProject.isDisposed()) return;
             final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
             final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
-            List<VirtualFile> files = Arrays.stream(fileEditorManager.getOpenFiles())
-                .filter(f -> GraphQLFileType.isGraphQLFile(myProject, f))
-                .collect(Collectors.toList());
+            List<VirtualFile> files = ReadAction.compute(
+                () -> Arrays.stream(fileEditorManager.getOpenFiles())
+                    .filter(f -> GraphQLFileType.isGraphQLFile(myProject, f))
+                    .collect(Collectors.toList())
+            );
+            if (myProject.isDisposed()) return;
 
             for (VirtualFile file : files) {
                 List<GraphQLConfigEndpoint> endpoints =
