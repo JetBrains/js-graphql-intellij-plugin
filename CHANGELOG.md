@@ -2,6 +2,12 @@
 
 # Changelog
 
+## [3.1.2] - 2021-12-09
+
+### Fixed
+
+- java.lang.NullPointerException at com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService.getSecurityConfig().
+
 ## [3.1.1] - 2021-12-08
 
 ### Fixed

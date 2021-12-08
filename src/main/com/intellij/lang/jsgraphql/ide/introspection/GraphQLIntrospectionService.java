@@ -195,7 +195,11 @@ public class GraphQLIntrospectionService implements Disposable {
             return null;
         }
 
-        Map<String, Object> sslExtension = (Map<String, Object>) config.extensions.get(GraphQLConfigManager.SSL_EXTENSION);
+        Map<String, Object> extensions = config.extensions;
+        if (extensions == null) {
+            return null;
+        }
+        Map<String, Object> sslExtension = (Map<String, Object>) extensions.get(GraphQLConfigManager.SSL_EXTENSION);
         if (sslExtension != null && !sslExtension.isEmpty()) {
             GraphQLConfigSecurity sslConfig = new GraphQLConfigSecurity();
             Map<String, Object> clientCertificate = (Map<String, Object>) sslExtension.get("clientCertificate");
