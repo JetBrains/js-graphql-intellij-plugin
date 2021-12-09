@@ -349,10 +349,21 @@ public class GraphQLIntrospectionService implements Disposable {
             for (GraphQLError error : errors) {
                 LOG.warn(error.getMessage());
             }
-            throw new SchemaProblem(errors);
         }
 
-        return new SchemaPrinter(myProject, options).print(schemaInfo.getSchema());
+        try {
+            return new SchemaPrinter(myProject, options).print(schemaInfo.getSchema());
+        }
+        catch (ProcessCanceledException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            if (!errors.isEmpty()) {
+                throw new SchemaProblem(errors);
+            } else {
+                throw e;
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
