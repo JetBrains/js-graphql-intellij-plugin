@@ -39,15 +39,16 @@ public class GraphQLIntrospectionResultToSchema {
         assertTrue(introspectionResult.get("__schema") != null, () -> "__schema expected");
         Map<String, Object> schema = (Map<String, Object>) introspectionResult.get("__schema");
 
+        SchemaDefinition.Builder schemaDefinition = SchemaDefinition.newSchemaDefinition();
 
         Map<String, Object> queryType = (Map<String, Object>) schema.get("queryType");
-        assertNotNull(queryType, () -> "queryType expected");
-        TypeName query = TypeName.newTypeName().name((String) queryType.get("name")).build();
-        boolean nonDefaultQueryName = !"Query".equals(query.getName());
-
-        SchemaDefinition.Builder schemaDefinition = SchemaDefinition.newSchemaDefinition();
-        schemaDefinition.operationTypeDefinition(
-            OperationTypeDefinition.newOperationTypeDefinition().name("query").typeName(query).build());
+        boolean nonDefaultQueryName = false;
+        if (queryType != null) {
+            TypeName query = TypeName.newTypeName().name((String) queryType.get("name")).build();
+            nonDefaultQueryName = !"Query".equals(query.getName());
+            schemaDefinition.operationTypeDefinition(
+                OperationTypeDefinition.newOperationTypeDefinition().name("query").typeName(query).build());
+        }
 
         Map<String, Object> mutationType = (Map<String, Object>) schema.get("mutationType");
         boolean nonDefaultMutationName = false;

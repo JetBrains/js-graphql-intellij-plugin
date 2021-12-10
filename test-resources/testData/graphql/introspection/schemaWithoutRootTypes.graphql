@@ -1,0 +1,21 @@
+schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+}
+
+type Mutation {
+    createUser: User
+}
+
+type Query {
+    user: User
+}
+
+type Subscription {
+    users: [User]
+}
+
+type User {
+    name: String
+}

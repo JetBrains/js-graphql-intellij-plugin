@@ -55,6 +55,14 @@ public class GraphQLIntrospectionServiceTest extends GraphQLTestCaseBase {
         doTest("schemaWithUndefinedDirectives.json", "schemaWithUndefinedDirectives.graphql");
     }
 
+    public void testPrintIntrospectionWithoutRootTypes() {
+        doTest("schemaWithoutRootTypes.json", "schemaWithoutRootTypes.graphql");
+    }
+
+    public void testPrintIntrospectionWithCustomRootTypes() {
+        doTest("schemaWithCustomRootTypes.json", "schemaWithCustomRootTypes.graphql");
+    }
+
     private void doTest(@NotNull String source, @NotNull String expected) {
         myFixture.configureByText(
             "result.graphql",
