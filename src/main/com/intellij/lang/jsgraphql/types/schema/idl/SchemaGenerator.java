@@ -88,6 +88,8 @@ public class SchemaGenerator {
         TypeDefinitionRegistry typeRegistryCopy = new TypeDefinitionRegistry();
         typeRegistryCopy.merge(typeRegistry);
 
+        schemaGeneratorHelper.addDirectivesIncludedByDefault(typeRegistryCopy);
+
         List<GraphQLError> errors = typeChecker.checkTypeRegistry(typeRegistryCopy, wiring);
 
         Map<String, OperationTypeDefinition> operationTypeDefinitions = SchemaExtensionsChecker.gatherOperationDefs(typeRegistry);
