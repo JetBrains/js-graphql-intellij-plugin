@@ -4,6 +4,7 @@ import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -28,12 +29,19 @@ public final class GraphQLIntrospectionFilesManager {
             Project project = psiFile.getProject();
             GraphQLSettings settings = GraphQLSettings.getSettings(project);
 
-            final String introspectionJsonAsGraphQL =
-                GraphQLIntrospectionService.getInstance(project).printIntrospectionAsGraphQL(psiFile.getText());
+            String introspection = "";
+            try {
+                introspection = GraphQLIntrospectionService.getInstance(project).printIntrospectionAsGraphQL(psiFile.getText());
+            } catch (ProcessCanceledException e) {
+                throw e;
+            } catch (Exception e) {
+                LOG.warn(e);
+            }
+
             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(project);
             final String fileName = file.getPath();
             final GraphQLFile newIntrospectionFile =
-                (GraphQLFile) psiFileFactory.createFileFromText(fileName, GraphQLLanguage.INSTANCE, introspectionJsonAsGraphQL);
+                (GraphQLFile) psiFileFactory.createFileFromText(fileName, GraphQLLanguage.INSTANCE, introspection);
             newIntrospectionFile.putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
             newIntrospectionFile.putUserData(GRAPHQL_INTROSPECTION_SDL_TO_JSON, psiFile);
             newIntrospectionFile.getVirtualFile().putUserData(IS_GRAPHQL_INTROSPECTION_SDL, true);
