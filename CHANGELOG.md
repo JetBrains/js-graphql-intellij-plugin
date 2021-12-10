@@ -8,6 +8,8 @@
 
 - java.lang.NullPointerException at com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService.getSecurityConfig().
 - java.lang.Throwable: Read access is allowed from inside read-action at GraphQLUIProjectService.runQuery().
+- Exception: SchemaProblem{errors=['onOperation' tried to use an undeclared directive 'deprecated'}.
+- Exception: com.intellij.lang.jsgraphql.types.AssertException: queryType expected.
 
 ## [3.1.1] - 2021-12-08
 
