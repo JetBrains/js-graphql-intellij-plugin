@@ -2,6 +2,12 @@
 
 # Changelog
 
+## [3.1.3] - 2022-01-31
+
+### Fixed
+
+- Compatibility with EAP 2022.1.
+
 ## [3.1.2] - 2021-12-09
 
 ### Fixed

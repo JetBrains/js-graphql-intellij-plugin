@@ -1,6 +1,6 @@
 plugins {
-    id 'org.jetbrains.grammarkit' version '2021.1.3'
-    id 'org.jetbrains.intellij' version '1.3.0'
+    id 'org.jetbrains.grammarkit' version '2021.2.1'
+    id 'org.jetbrains.intellij' version '1.3.1'
     id 'com.github.ManifestClasspath' version '0.1.0-RELEASE'
     id 'org.jetbrains.changelog' version '1.3.1'
 }
@@ -54,7 +54,7 @@ intellij {
 }
 
 runPluginVerifier {
-    ideVersions = ['IU-2020.3.1', 'IU-2021.1', 'IU-2021.2', 'IU-2021.3']
+    ideVersions = ['IU-2020.3.1', 'IU-2021.1', 'IU-2021.2', 'IU-2021.3', 'IU-2022.1']
 }
 
 runIde {
@@ -71,47 +71,47 @@ sourceSets {
 
 }
 
-// import is optional to make task creation easier
-
-import org.jetbrains.grammarkit.tasks.GenerateLexer
-import org.jetbrains.grammarkit.tasks.GenerateParser
-
-// GraphQL parser should be generated manually when needed
-// because of some limitations of the gradle-grammar-kit-plugin
-
-// GraphQL Endpoint Parser and Lexer
-task generateGraphQLEndpointLexer(type: GenerateLexer) {
-    source 'src/grammars/JSGraphQLEndpointLexer.flex'
-    targetDir 'gen/com/intellij/lang/jsgraphql/endpoint/lexer/'
-    targetClass 'JSGraphQLEndpointLexer'
-    purgeOldFiles = true
-}
-
-task generateGraphQLEndpointParser(type: GenerateParser) {
-    source 'src/grammars/JSGraphQLEndpointParser.bnf'
-    targetRoot = 'gen/'
-    purgeOldFiles = true
-    pathToParser = 'com/intellij/lang/jsgraphql/endpoint/parser/JSGraphQLEndpointParser'
-    pathToPsiRoot = 'com/intellij/lang/jsgraphql/endpoint/psi'
-}
-
-
-// GraphQL Endpoint Doc Parser and Lexer
-task generateGraphQLEndpointDocLexer(type: GenerateLexer) {
-    source 'src/grammars/JSGraphQLEndpointDocLexer.flex'
-    targetDir 'gen/com/intellij/lang/jsgraphql/endpoint/doc/lexer/'
-    targetClass 'JSGraphQLEndpointDocLexer'
-    purgeOldFiles = true
-}
-
-task generateGraphQLEndpointDocParser(type: GenerateParser) {
-    source 'src/grammars/JSGraphQLEndpointDocParser.bnf'
-    targetRoot = 'gen/'
-    purgeOldFiles = true
-    pathToParser = 'com/intellij/lang/jsgraphql/endpoint/doc/JSGraphQLEndpointDocParser'
-    pathToPsiRoot = 'com/intellij/lang/jsgraphql/endpoint/doc/psi'
-}
-
+//// import is optional to make task creation easier
+//
+//import org.jetbrains.grammarkit.tasks.GenerateLexer
+//import org.jetbrains.grammarkit.tasks.GenerateParser
+//
+//// GraphQL parser should be generated manually when needed
+//// because of some limitations of the gradle-grammar-kit-plugin
+//
+//// GraphQL Endpoint Parser and Lexer
+//task generateGraphQLEndpointLexer(type: GenerateLexer) {
+//    source 'src/grammars/JSGraphQLEndpointLexer.flex'
+//    targetDir 'gen/com/intellij/lang/jsgraphql/endpoint/lexer/'
+//    targetClass 'JSGraphQLEndpointLexer'
+//    purgeOldFiles = true
+//}
+//
+//task generateGraphQLEndpointParser(type: GenerateParser) {
+//    source 'src/grammars/JSGraphQLEndpointParser.bnf'
+//    targetRoot = 'gen/'
+//    purgeOldFiles = true
+//    pathToParser = 'com/intellij/lang/jsgraphql/endpoint/parser/JSGraphQLEndpointParser'
+//    pathToPsiRoot = 'com/intellij/lang/jsgraphql/endpoint/psi'
+//}
+//
+//
+//// GraphQL Endpoint Doc Parser and Lexer
+//task generateGraphQLEndpointDocLexer(type: GenerateLexer) {
+//    source 'src/grammars/JSGraphQLEndpointDocLexer.flex'
+//    targetDir 'gen/com/intellij/lang/jsgraphql/endpoint/doc/lexer/'
+//    targetClass 'JSGraphQLEndpointDocLexer'
+//    purgeOldFiles = true
+//}
+//
+//task generateGraphQLEndpointDocParser(type: GenerateParser) {
+//    source 'src/grammars/JSGraphQLEndpointDocParser.bnf'
+//    targetRoot = 'gen/'
+//    purgeOldFiles = true
+//    pathToParser = 'com/intellij/lang/jsgraphql/endpoint/doc/JSGraphQLEndpointDocParser'
+//    pathToPsiRoot = 'com/intellij/lang/jsgraphql/endpoint/doc/psi'
+//}
+//
 //compileJava {
 //    dependsOn generateGraphQLEndpointLexer
 //    dependsOn generateGraphQLEndpointParser
