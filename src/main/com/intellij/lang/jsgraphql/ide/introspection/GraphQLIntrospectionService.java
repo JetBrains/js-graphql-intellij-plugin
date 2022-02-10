@@ -147,7 +147,7 @@ public class GraphQLIntrospectionService implements Disposable {
             final GraphQLSettings graphQLSettings = GraphQLSettings.getSettings(myProject);
             String query = buildIntrospectionQuery(graphQLSettings);
 
-            final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
+            final String requestJson = "{\"operationName\": \"IntrospectionQuery\", \"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
             HttpPost request = createRequest(endpoint, url, requestJson);
             Task.Backgroundable task = new IntrospectionQueryTask(request, schemaPath, introspectionSourceFile, retry, graphQLSettings, endpoint, url);
             ProgressManager.getInstance().run(task);

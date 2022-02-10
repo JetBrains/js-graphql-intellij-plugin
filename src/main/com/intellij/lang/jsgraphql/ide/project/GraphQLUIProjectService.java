@@ -80,6 +80,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, GraphQLConfigurationListener {
@@ -311,7 +313,17 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                 final GraphQLQueryContext context = GraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
 
                 Map<String, Object> requestData = new HashMap<>();
-                requestData.put("query", context.query);
+                Pattern pattern = Pattern.compile("(query|mutation|subscription) (.*) ", Pattern.CASE_INSENSITIVE);
+                Pattern pattern2 = Pattern.compile("(query|mutation|subscription)", Pattern.CASE_INSENSITIVE);
+                Matcher matcher = pattern.matcher(context.query);
+                Matcher matcher2 = pattern2.matcher(context.query);
+                if (matcher.find()) {
+                    requestData.put("operationName", matcher.group(2));
+                    requestData.put("query", context.query);
+                } else if (matcher2.find()) {
+                    requestData.put("operationName", "anonymous");
+                    requestData.put("query", matcher2.group(1) + " anonymous" + context.query.split("(query|mutation|subscription)")[1]);
+                }
                 try {
                     requestData.put("variables", getQueryVariables(editor));
                 } catch (JsonSyntaxException jse) {
