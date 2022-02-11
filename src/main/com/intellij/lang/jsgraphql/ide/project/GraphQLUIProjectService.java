@@ -17,6 +17,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
+import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
@@ -305,24 +306,20 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     }
 
     public void executeGraphQL(Editor editor, VirtualFile virtualFile) {
+        final GraphQLSettings graphQLSettings = GraphQLSettings.getSettings(myProject);
         final GraphQLEndpointsModel endpointsModel = editor.getUserData(GRAPH_QL_ENDPOINTS_MODEL);
         if (endpointsModel != null) {
             final GraphQLConfigEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
             if (selectedEndpoint != null && selectedEndpoint.url != null) {
-                final GraphQLConfigVariableAwareEndpoint endpoint = new GraphQLConfigVariableAwareEndpoint(selectedEndpoint, myProject, virtualFile);
+                final GraphQLConfigVariableAwareEndpoint endpoint = new GraphQLConfigVariableAwareEndpoint(selectedEndpoint, myProject,
+                    virtualFile);
                 final GraphQLQueryContext context = GraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
 
                 Map<String, Object> requestData = new HashMap<>();
-                Pattern pattern = Pattern.compile("(query|mutation|subscription) (.*) ", Pattern.CASE_INSENSITIVE);
-                Pattern pattern2 = Pattern.compile("(query|mutation|subscription)", Pattern.CASE_INSENSITIVE);
-                Matcher matcher = pattern.matcher(context.query);
-                Matcher matcher2 = pattern2.matcher(context.query);
-                if (matcher.find()) {
-                    requestData.put("operationName", matcher.group(2));
+                if (graphQLSettings.isOperationNameEnabled()) {
+                    handleOperationName(graphQLSettings, context, requestData);
+                } else {
                     requestData.put("query", context.query);
-                } else if (matcher2.find()) {
-                    requestData.put("operationName", "anonymous");
-                    requestData.put("query", matcher2.group(1) + " anonymous" + context.query.split("(query|mutation|subscription)")[1]);
                 }
                 try {
                     requestData.put("variables", getQueryVariables(editor));
@@ -333,7 +330,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                         errorEditor.getContentComponent().grabFocus();
                         final VirtualFile errorFile = FileDocumentManager.getInstance().getFile(errorEditor.getDocument());
                         if (errorFile != null) {
-                            final List<CodeSmellInfo> errors = CodeSmellDetector.getInstance(myProject).findCodeSmells(Collections.singletonList(errorFile));
+                            final List<CodeSmellInfo> errors = CodeSmellDetector.getInstance(myProject).findCodeSmells(
+                                Collections.singletonList(errorFile));
                             for (CodeSmellInfo error : errors) {
                                 errorMessage = error.getDescription();
                                 errorEditor.getCaretModel().moveToOffset(error.getTextRange().getStartOffset());
@@ -371,6 +369,22 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         }
     }
 
+    private void handleOperationName(GraphQLSettings graphQLSettings, GraphQLQueryContext context, Map<String, Object> requestData) {
+        String operationName = graphQLSettings.getOperationName().isEmpty() ? "operationName" : graphQLSettings.getOperationName();
+        Pattern pattern = Pattern.compile("(query|mutation|subscription) (.*) ", Pattern.CASE_INSENSITIVE);
+        Pattern pattern2 = Pattern.compile("(query|mutation|subscription)", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(context.query);
+        Matcher matcher2 = pattern2.matcher(context.query);
+        if (matcher.find()) {
+            requestData.put(operationName, matcher.group(2));
+            requestData.put("query", context.query);
+        } else if (matcher2.find()) {
+            requestData.put(operationName, "anonymous");
+            requestData.put("query",
+                matcher2.group(1) + " anonymous" + context.query.split("(query|mutation|subscription)")[1]);
+        }
+    }
+
     private void runQuery(Editor editor, VirtualFile virtualFile, GraphQLQueryContext context, String url, HttpPost request) {
         GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
         try {
@@ -390,7 +404,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                     sw.stop();
                 }
 
-                final boolean reformatJson = contentType != null && contentType.getValue() != null && contentType.getValue().startsWith("application/json");
+                final boolean reformatJson = contentType != null && contentType.getValue() != null && contentType.getValue().startsWith(
+                    "application/json");
                 final Integer errorCount = getErrorCount(responseJson);
                 ApplicationManager.getApplication().invokeLater(() -> {
                     TextEditor queryResultEditor = GraphQLToolWindow.getQueryResultEditor(myProject);

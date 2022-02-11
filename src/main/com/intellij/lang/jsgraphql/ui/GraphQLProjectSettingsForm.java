@@ -33,6 +33,9 @@ public class GraphQLProjectSettingsForm {
     private JCheckBox enableFederation;
     private JCheckBox openEditorWithIntrospectionResult;
     private JCheckBox enableIntrospectionRepeatableDirectives;
+    private JTextField operationNameTextField;
+    private JLabel operationNameLabel;
+    private JCheckBox enableOperationName;
 
     private GraphQLSettings mySettings;
 
@@ -60,16 +63,20 @@ public class GraphQLProjectSettingsForm {
 
         mySettings.setRelaySupportEnabled(enableRelay.isSelected());
         mySettings.setFederationSupportEnabled(enableFederation.isSelected());
+        mySettings.setOperationNameEnabled(enableOperationName.isSelected());
+        mySettings.setOperationName(operationNameTextField.getText());
     }
 
     void reset() {
         introspectionQueryTextField.setText(mySettings.getIntrospectionQuery());
+        operationNameTextField.setText(mySettings.getOperationName());
         enableIntrospectionDefaultValues.setSelected(mySettings.isEnableIntrospectionDefaultValues());
         enableIntrospectionRepeatableDirectives.setSelected(mySettings.isEnableIntrospectionRepeatableDirectives());
         openEditorWithIntrospectionResult.setSelected(mySettings.isOpenEditorWithIntrospectionResult());
 
         enableRelay.setSelected(mySettings.isRelaySupportEnabled());
         enableFederation.setSelected(mySettings.isFederationSupportEnabled());
+        enableOperationName.setSelected(mySettings.isOperationNameEnabled());
     }
 
     boolean isModified() {
@@ -78,9 +85,11 @@ public class GraphQLProjectSettingsForm {
 
     boolean introspectionSettingsChanged() {
         return !Objects.equals(mySettings.getIntrospectionQuery(), introspectionQueryTextField.getText()) ||
+            !Objects.equals(mySettings.getOperationName(), operationNameTextField.getText()) ||
             mySettings.isEnableIntrospectionDefaultValues() != enableIntrospectionDefaultValues.isSelected() ||
             mySettings.isEnableIntrospectionRepeatableDirectives() != enableIntrospectionRepeatableDirectives.isSelected() ||
-            mySettings.isOpenEditorWithIntrospectionResult() != openEditorWithIntrospectionResult.isSelected();
+            mySettings.isOpenEditorWithIntrospectionResult() != openEditorWithIntrospectionResult.isSelected() ||
+            mySettings.isOperationNameEnabled() != openEditorWithIntrospectionResult.isSelected();
     }
 
     boolean librarySettingsChanged() {
