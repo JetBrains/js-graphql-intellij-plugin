@@ -146,9 +146,17 @@ public class GraphQLIntrospectionService implements Disposable {
         try {
             final GraphQLSettings graphQLSettings = GraphQLSettings.getSettings(myProject);
             String query = buildIntrospectionQuery(graphQLSettings);
-
-            final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
-            HttpPost request = createRequest(endpoint, url, requestJson);
+            HttpPost request;
+            if (graphQLSettings.isOperationNameEnabled()) {
+                String operationName = graphQLSettings.getOperationName().isEmpty() ? "operationName" : graphQLSettings.getOperationName();
+                final String requestJson = "{" + "\"" + operationName + "\"" + ": \"IntrospectionQuery\", \"query\":\"" + StringEscapeUtils.escapeJavaScript(
+                    query) + "\"}";
+                request = createRequest(endpoint, url, requestJson);
+            } else {
+                final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(
+                    query) + "\"}";
+                request = createRequest(endpoint, url, requestJson);
+            }
             Task.Backgroundable task = new IntrospectionQueryTask(request, schemaPath, introspectionSourceFile, retry, graphQLSettings, endpoint, url);
             ProgressManager.getInstance().run(task);
         } catch (IllegalStateException | IllegalArgumentException e) {

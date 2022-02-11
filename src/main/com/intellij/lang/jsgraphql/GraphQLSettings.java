@@ -62,8 +62,17 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
         return myState.introspectionQuery;
     }
 
+    public String getOperationName() {
+        return myState.operationName;
+    }
+
     public void setIntrospectionQuery(String introspectionQuery) {
         myState.introspectionQuery = introspectionQuery;
+        settingsChanged();
+    }
+
+    public void setOperationName(String operationName) {
+        myState.operationName = operationName;
         settingsChanged();
     }
 
@@ -114,18 +123,29 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
         settingsChanged();
     }
 
+    public boolean isOperationNameEnabled() {
+        return myState.enableOperationName;
+    }
+
+    public void setOperationNameEnabled(boolean enableOperationName) {
+        myState.enableOperationName = enableOperationName;
+        settingsChanged();
+    }
+
     /**
      * The state class that is persisted as XML
      * NOTE!!!: 1. Class must be static, and 2. Fields must be public for settings serialization to work
      */
     public static class GraphQLSettingsState {
         public String introspectionQuery = "";
+        public String operationName = "";
         public boolean enableIntrospectionDefaultValues = true;
         public boolean enableIntrospectionRepeatableDirectives = false;
         public boolean openEditorWithIntrospectionResult = true;
 
         public boolean enableRelayModernFrameworkSupport;
         public boolean enableFederationSupport = false;
+        public boolean enableOperationName = false;
     }
 }
 
