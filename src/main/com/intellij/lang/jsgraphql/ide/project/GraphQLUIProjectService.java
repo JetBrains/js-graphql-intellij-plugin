@@ -371,7 +371,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
     private void handleOperationName(GraphQLSettings graphQLSettings, GraphQLQueryContext context, Map<String, Object> requestData) {
         String operationName = graphQLSettings.getOperationName().isEmpty() ? "operationName" : graphQLSettings.getOperationName();
-        Pattern pattern = Pattern.compile("(query|mutation|subscription) (.*) ", Pattern.CASE_INSENSITIVE);
+        Pattern pattern = Pattern.compile("(query|mutation|subscription)\\s(\\w+)", Pattern.CASE_INSENSITIVE);
         Pattern pattern2 = Pattern.compile("(query|mutation|subscription)", Pattern.CASE_INSENSITIVE);
         Matcher matcher = pattern.matcher(context.query);
         Matcher matcher2 = pattern2.matcher(context.query);
