@@ -89,7 +89,7 @@ public class GraphQLProjectSettingsForm {
             mySettings.isEnableIntrospectionDefaultValues() != enableIntrospectionDefaultValues.isSelected() ||
             mySettings.isEnableIntrospectionRepeatableDirectives() != enableIntrospectionRepeatableDirectives.isSelected() ||
             mySettings.isOpenEditorWithIntrospectionResult() != openEditorWithIntrospectionResult.isSelected() ||
-            mySettings.isOperationNameEnabled() != openEditorWithIntrospectionResult.isSelected();
+            mySettings.isOperationNameEnabled() != enableOperationName.isSelected();
     }
 
     boolean librarySettingsChanged() {
