@@ -144,3 +144,9 @@ directive @prependNode(
     edgeTypeName: String!
 ) on FIELD
 
+"""
+A directive added to queries which tells Relay to generate types that cover
+the optimisticResponse parameter to commitMutation.
+"""
+directive @raw_response_type on QUERY | MUTATION | SUBSCRIPTION
+
