@@ -10,8 +10,6 @@ to provide a URL for specifying the behavior of custom scalar definitions.
 """
 directive @specifiedBy(url: String!) on SCALAR
 
-directive @one on SCALAR
-
 """
 The @deprecated directive is used within the type system definition language to indicate deprecated portions of a
 GraphQL service's schema, such as deprecated fields on a type or deprecated enum values.
@@ -19,6 +17,8 @@ GraphQL service's schema, such as deprecated fields on a type or deprecated enum
 Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).
 """
 directive @deprecated(reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE
+
+directive @one on SCALAR
 
 """
 The @skip directive may be provided for fields, fragment spreads, and inline fragments,
