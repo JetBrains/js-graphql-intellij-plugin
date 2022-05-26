@@ -1,5 +1,2 @@
 rootProject.name = 'js-graphql-intellij-plugin'
 
-//include ':com.graphql-java:graphql-java'
-//project(':com.graphql-java:graphql-java').projectDir = new File(settingsDir, '../../graphql-java')
-
