@@ -5,9 +5,8 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.psi;
+package com.intellij.lang.jsgraphql.psi
 
-import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElement
 
-public interface GraphQLElement extends PsiElement {
-}
+interface GraphQLElement : PsiElement

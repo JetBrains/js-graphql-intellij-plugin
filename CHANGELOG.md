@@ -2,6 +2,16 @@
 
 # Changelog
 
+## [3.1.4] - 2022-05-30
+
+### Added
+
+- Missing Relay type definitions.
+
+### Fixed
+
+- Compatibility with EAP 2022.2.
+
 ## [3.1.3] - 2022-01-31
 
 ### Fixed
