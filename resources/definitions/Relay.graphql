@@ -15,11 +15,24 @@ directive @argumentDefinitions on FRAGMENT_DEFINITION
 """
 directive @arguments on FRAGMENT_SPREAD
 
-
 """
 When using the Pagination Container, Relay expects connection fields to be annotated with a @connection directive.
 """
-directive @connection(key: String!, filters: [String]) on FIELD
+directive @connection(
+    key: String!
+    filters: [String]
+    handler: String
+) on FIELD
+
+directive @stream_connection(
+    key: String!
+    filters: [String]
+    handler: String
+    label: String
+    initial_count: Int!
+    if: Boolean = true
+    use_customized_batch: Boolean = false
+) on FIELD
 
 directive @relay(
     """
@@ -39,6 +52,8 @@ directive @relay(
 
 directive @inline on FRAGMENT_DEFINITION
 
+directive @no_inline(raw_response_type: Boolean) on FRAGMENT_DEFINITION
+
 directive @match on FIELD
 
 directive @module(
@@ -47,6 +62,7 @@ directive @module(
 
 directive @refetchable(
     queryName: String!
+    directives: [String!]
 ) on FRAGMENT_DEFINITION
 
 directive @defer(
@@ -71,7 +87,6 @@ enum RequiredFieldAction {
 directive @required(
     action: RequiredFieldAction!
 ) on FIELD
-
 
 """
 Works on GraphQL fields that return an ID or [ID]. Will delete the record with the given ID in the Relay Store.
@@ -150,3 +165,22 @@ the optimisticResponse parameter to commitMutation.
 """
 directive @raw_response_type on QUERY | MUTATION | SUBSCRIPTION
 
+directive @relay_test_operation on QUERY | MUTATION | SUBSCRIPTION
+
+directive @relay_client_component on FRAGMENT_SPREAD
+
+directive @relay_resolver(
+    fragment_name: String!
+    import_path: String!
+    live: Boolean
+) on FIELD_DEFINITION
+
+directive @waterfall on FIELD
+
+directive @updatable on QUERY | FRAGMENT_DEFINITION
+
+directive @assignable on FRAGMENT_DEFINITION
+
+directive @alias(as: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+directive @static on ARGUMENT_DEFINITION
