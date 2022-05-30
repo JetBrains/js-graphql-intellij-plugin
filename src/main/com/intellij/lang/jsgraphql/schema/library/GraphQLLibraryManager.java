@@ -1,11 +1,11 @@
 package com.intellij.lang.jsgraphql.schema.library;
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.SyntheticLibrary;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public final class GraphQLLibraryManager {
@@ -39,6 +40,7 @@ public final class GraphQLLibraryManager {
 
     private final Project myProject;
     private final Map<GraphQLLibraryDescriptor, GraphQLLibrary> myLibraries = new ConcurrentHashMap<>();
+    private final AtomicBoolean myUpdateIsRequested = new AtomicBoolean();
 
     private final NotNullLazyValue<Set<VirtualFile>> myKnownLibraryRoots = NotNullLazyValue.atomicLazy(() ->
         ourDefinitionResourcePaths
@@ -100,15 +102,21 @@ public final class GraphQLLibraryManager {
     }
 
     public void notifyLibrariesChanged() {
-        LOG.info("GraphQL libraries changed");
+        if (myUpdateIsRequested.compareAndSet(false, true)) {
+            DumbService.getInstance(myProject).smartInvokeLater(() -> {
+                try {
+                    WriteAction.run(() -> {
+                        LOG.info("GraphQL libraries changed");
 
-        Application app = ApplicationManager.getApplication();
-        app.invokeLater(() -> app.runWriteAction(() -> {
-                PsiManager.getInstance(myProject).dropPsiCaches();
-                ProjectRootManagerEx.getInstanceEx(myProject).makeRootsChange(EmptyRunnable.getInstance(), false, true);
-                DaemonCodeAnalyzer.getInstance(myProject).restart();
-                EditorNotifications.getInstance(myProject).updateAllNotifications();
-            }
-        ), ModalityState.NON_MODAL, myProject.getDisposed());
+                        PsiManager.getInstance(myProject).dropPsiCaches();
+                        ProjectRootManagerEx.getInstanceEx(myProject).makeRootsChange(EmptyRunnable.getInstance(), false, true);
+                        DaemonCodeAnalyzer.getInstance(myProject).restart();
+                        EditorNotifications.getInstance(myProject).updateAllNotifications();
+                    });
+                } finally {
+                    myUpdateIsRequested.set(false);
+                }
+            }, ModalityState.NON_MODAL);
+        }
     }
 }

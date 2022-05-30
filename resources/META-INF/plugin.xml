@@ -148,7 +148,7 @@
     <definitionsSearch implementation="com.intellij.lang.jsgraphql.ide.search.GraphQLDefinitionsSearchExecutor"/>
 
     <!-- Settings -->
-    <projectConfigurable id="settings.jsgraphql" groupId="language" instance="com.intellij.lang.jsgraphql.ui.GraphQLProjectConfigurable"/>
+    <projectConfigurable id="settings.jsgraphql" groupId="language" instance="com.intellij.lang.jsgraphql.ui.GraphQLSettingsConfigurable"/>
 
     <!-- Editor notifications -->
     <editorNotificationProvider
