@@ -2,15 +2,17 @@
 
 # Changelog
 
-## [3.1.4] - 2022-05-30
+## [3.1.4] - 2022-06-02
 
 ### Added
 
 - Missing Relay type definitions.
+- Apollo Kotlin type definitions.
 
 ### Fixed
 
 - Compatibility with EAP 2022.2.
+- Unresolved built-in GraphQL definitions after plugin reinstall.
 
 ## [3.1.3] - 2022-01-31
 
