@@ -9,8 +9,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class GraphQLLibraryRootsProvider extends AdditionalLibraryRootsProvider {
 
@@ -39,10 +37,6 @@ public class GraphQLLibraryRootsProvider extends AdditionalLibraryRootsProvider 
     @NotNull
     @Override
     public Collection<VirtualFile> getRootsToWatch(@NotNull Project project) {
-        Set<VirtualFile> roots = new HashSet<>();
-        for (SyntheticLibrary library : GraphQLLibraryManager.getInstance(project).getAllLibraries()) {
-            roots.addAll(library.getSourceRoots());
-        }
-        return roots;
+        return GraphQLLibraryManager.getInstance(project).getLibraryRoots();
     }
 }
