@@ -40,7 +40,8 @@ public final class GraphQLLibraryManager {
     private static final Map<GraphQLLibraryDescriptor, String> ourDefinitionResourcePaths = Map.of(
         GraphQLLibraryTypes.SPECIFICATION, "Specification.graphql",
         GraphQLLibraryTypes.RELAY, "Relay.graphql",
-        GraphQLLibraryTypes.FEDERATION, "Federation.graphql"
+        GraphQLLibraryTypes.FEDERATION, "Federation.graphql",
+        GraphQLLibraryTypes.APOLLO_KOTLIN, "ApolloKotlin.graphql"
     );
 
     private final Project myProject;

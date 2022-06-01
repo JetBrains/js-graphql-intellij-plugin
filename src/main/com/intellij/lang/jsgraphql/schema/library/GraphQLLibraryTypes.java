@@ -37,6 +37,18 @@ public final class GraphQLLibraryTypes {
         }
     };
 
+    public static GraphQLLibraryDescriptor APOLLO_KOTLIN = new GraphQLLibraryDescriptor("APOLLO_KOTLIN") {
+        @Override
+        public boolean isEnabled(@NotNull Project project) {
+            return GraphQLSettings.getSettings(project).isApolloKotlinSupportEnabled();
+        }
+
+        @Override
+        public @NotNull String getPresentableText() {
+            return GraphQLBundle.message("graphql.library.apollokotlin");
+        }
+    };
+
     private GraphQLLibraryTypes() {
     }
 }

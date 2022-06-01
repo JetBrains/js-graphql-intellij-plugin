@@ -114,6 +114,15 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
         settingsChanged();
     }
 
+    public boolean isApolloKotlinSupportEnabled() {
+        return myState.enableApolloKotlinSupport;
+    }
+
+    public void setApolloKotlinSupportEnabled(boolean enableApolloKotlinSupport) {
+        myState.enableApolloKotlinSupport = enableApolloKotlinSupport;
+        settingsChanged();
+    }
+
     /**
      * The state class that is persisted as XML
      * NOTE!!!: 1. Class must be static, and 2. Fields must be public for settings serialization to work
@@ -126,6 +135,7 @@ public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings
 
         public boolean enableRelayModernFrameworkSupport;
         public boolean enableFederationSupport = false;
+        public boolean enableApolloKotlinSupport = false;
     }
 }
 

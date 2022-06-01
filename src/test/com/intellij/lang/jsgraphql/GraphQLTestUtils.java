@@ -56,6 +56,8 @@ public final class GraphQLTestUtils {
                 settings.setRelaySupportEnabled(true);
             } else if (libraryDescriptor == GraphQLLibraryTypes.FEDERATION) {
                 settings.setFederationSupportEnabled(true);
+            } else if (libraryDescriptor == GraphQLLibraryTypes.APOLLO_KOTLIN) {
+                settings.setApolloKotlinSupportEnabled(true);
             } else {
                 throw new IllegalArgumentException("Unexpected library: " + libraryDescriptor);
             }

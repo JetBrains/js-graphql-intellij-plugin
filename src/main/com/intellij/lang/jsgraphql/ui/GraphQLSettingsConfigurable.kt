@@ -89,6 +89,13 @@ class GraphQLSettingsConfigurable(private val project: Project) :
                         settings::setFederationSupportEnabled
                     ).updateLibraries()
                 }
+                row {
+                    checkBox(
+                        message("graphql.library.apollokotlin"),
+                        settings::isApolloKotlinSupportEnabled,
+                        settings::setApolloKotlinSupportEnabled
+                    ).updateLibraries()
+                }
             }
         }
     }
