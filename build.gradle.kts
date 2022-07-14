@@ -10,7 +10,7 @@ plugins {
     java
     kotlin("jvm") version "1.6.21"
 
-    id("org.jetbrains.intellij") version "1.6.0"
+    id("org.jetbrains.intellij") version "1.7.0"
     id("org.jetbrains.grammarkit") version "2021.2.2"
     id("com.github.ManifestClasspath") version "0.1.0-RELEASE"
     id("org.jetbrains.changelog") version "1.3.1"
@@ -60,9 +60,9 @@ kotlin {
 }
 
 dependencies {
-    implementation("commons-io:commons-io:2.6")
+    implementation("commons-io:commons-io:2.7")
     implementation("com.atlassian.commonmark:commonmark:0.12.1")
-    implementation(group = "org.yaml", name = "snakeyaml", version = "1.21")
+    implementation(group = "org.yaml", name = "snakeyaml", version = "1.26")
     implementation("fr.opensagres.js:minimatch.java:1.1.0")
     implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
     implementation("io.sentry:sentry:5.4.3")
@@ -70,7 +70,7 @@ dependencies {
     implementation("com.graphql-java:java-dataloader:2.2.3")
     implementation("org.reactivestreams:reactive-streams:1.0.2")
 
-    testImplementation(group = "junit", name = "junit", version = "4.12")
+    testImplementation(group = "junit", name = "junit", version = "4.13.1")
 }
 
 tasks {
