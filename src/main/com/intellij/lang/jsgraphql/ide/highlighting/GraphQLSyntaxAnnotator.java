@@ -98,12 +98,16 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
         @Override
         public void visitField(@NotNull GraphQLField field) {
-            applyTextAttributes(field.getNameIdentifier(), FIELD_NAME);
+            GraphQLIdentifier nameIdentifier = field.getNameIdentifier();
+            resetKeywordAttributes(nameIdentifier);
+            applyTextAttributes(nameIdentifier, FIELD_NAME);
         }
 
         @Override
         public void visitFieldDefinition(@NotNull GraphQLFieldDefinition fieldDefinition) {
-            applyTextAttributes(fieldDefinition.getNameIdentifier(), FIELD_NAME);
+            GraphQLIdentifier nameIdentifier = fieldDefinition.getNameIdentifier();
+            resetKeywordAttributes(nameIdentifier);
+            applyTextAttributes(nameIdentifier, FIELD_NAME);
         }
 
         @Override
@@ -193,11 +197,12 @@ public class GraphQLSyntaxAnnotator implements Annotator {
 
         @Override
         public void visitObjectField(@NotNull GraphQLObjectField objectField) {
-            // first reset the bold font display from keywords such as input/type being used as object field name
-            resetKeywordAttributes(objectField.getNameIdentifier());
+            GraphQLIdentifier nameIdentifier = objectField.getNameIdentifier();
 
+            // first reset the bold font display from keywords such as input/type being used as object field name
+            resetKeywordAttributes(nameIdentifier);
             // then apply argument font style
-            applyTextAttributes(objectField.getNameIdentifier(), OBJECT_FIELD);
+            applyTextAttributes(nameIdentifier, OBJECT_FIELD);
         }
 
         private void applyTextAttributes(@Nullable PsiElement element, @NotNull TextAttributesKey attributes) {
