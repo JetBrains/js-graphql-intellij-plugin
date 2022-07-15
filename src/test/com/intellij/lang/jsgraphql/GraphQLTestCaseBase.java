@@ -17,13 +17,10 @@ import com.intellij.psi.PsiNamedElement;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.internal.runners.JUnit38ClassRunner;
-import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
 
-@RunWith(JUnit38ClassRunner.class) // TODO: drop the annotation when issue with Gradle test scanning go away
 public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
 
     protected static final List<Class<? extends LocalInspectionTool>> ourGeneralInspections = Lists.newArrayList(

@@ -8,18 +8,14 @@
 package com.intellij.lang.jsgraphql.endpoint;
 
 import com.google.common.collect.Lists;
-import com.intellij.application.options.CodeStyle;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import org.junit.internal.runners.JUnit38ClassRunner;
-import org.junit.runner.RunWith;
 
 import java.util.List;
 
-@RunWith(JUnit38ClassRunner.class) // TODO: drop the annotation when issue with Gradle test scanning go away
 public class JSGraphQLEndpointCodeInsightTest extends BasePlatformTestCase {
 
 	@Override

@@ -7,14 +7,10 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.doc.parser;
 
-import org.junit.Test;
-
 import com.intellij.lang.jsgraphql.endpoint.doc.JSGraphQLEndpointDocParserDefinition;
 import com.intellij.testFramework.ParsingTestCase;
-import org.junit.internal.runners.JUnit38ClassRunner;
-import org.junit.runner.RunWith;
+import org.junit.Test;
 
-@RunWith(JUnit38ClassRunner.class) // TODO: drop the annotation when issue with Gradle test scanning go away
 public class JSGraphQLEndpointDocParserTest extends ParsingTestCase {
 
 	public JSGraphQLEndpointDocParserTest() {

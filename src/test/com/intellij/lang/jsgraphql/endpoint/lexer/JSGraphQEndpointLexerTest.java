@@ -7,17 +7,14 @@
  */
 package com.intellij.lang.jsgraphql.endpoint.lexer;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-
 import com.google.common.io.Resources;
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.lexer.Lexer;
 import com.intellij.testFramework.LexerTestCase;
-import org.junit.internal.runners.JUnit38ClassRunner;
-import org.junit.runner.RunWith;
 
-@RunWith(JUnit38ClassRunner.class) // TODO: drop the annotation when issue with Gradle test scanning go away
+import java.io.IOException;
+import java.nio.charset.Charset;
+
 public class JSGraphQEndpointLexerTest extends LexerTestCase {
 
 	@Override
