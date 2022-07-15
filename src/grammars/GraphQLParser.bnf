@@ -140,7 +140,7 @@ private argument_recover ::= !(')' | argument)
 
 identifier ::=
   NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' |
-  'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on'
+  'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on' | 'repeatable'
   {
     mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLReferenceMixin"
     implements="com.intellij.lang.jsgraphql.psi.GraphQLReferenceElement"

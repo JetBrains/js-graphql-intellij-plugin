@@ -1,0 +1,4 @@
+type Foo {
+    type: Boolean
+    repeatable: Boolean
+}

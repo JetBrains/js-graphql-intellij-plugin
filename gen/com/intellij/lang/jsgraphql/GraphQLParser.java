@@ -898,7 +898,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // NAME | 'fragment' | 'query' | 'mutation' | 'subscription' | 'schema' | 'scalar' | 'type' |
-  //   'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on'
+  //   'interface' | 'implements' | 'enum' | 'union' | 'input' | 'extend' | 'directive' | 'on' | 'repeatable'
   public static boolean identifier(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "identifier")) return false;
     boolean result;
@@ -919,6 +919,7 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
     if (!result) result = consumeToken(builder, EXTEND_KEYWORD);
     if (!result) result = consumeToken(builder, DIRECTIVE_KEYWORD);
     if (!result) result = consumeToken(builder, ON_KEYWORD);
+    if (!result) result = consumeToken(builder, REPEATABLE_KEYWORD);
     exit_section_(builder, level, marker, result, false, null);
     return result;
   }
