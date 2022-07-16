@@ -17,14 +17,17 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
+import com.intellij.util.EnvironmentUtil;
 import com.intellij.util.ui.FormBuilder;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.swing.*;
 import java.util.Arrays;
@@ -39,6 +42,7 @@ import java.util.regex.Pattern;
  */
 public class GraphQLConfigVariableAwareEndpoint {
 
+    @VisibleForTesting
     Function<String, String> GET_ENV_VAR = System::getProperty;
 
     private final static Pattern ENV_PATTERN = Pattern.compile("\\$\\{(?<var>[^}]*)}");
@@ -92,7 +96,7 @@ public class GraphQLConfigVariableAwareEndpoint {
 
         Matcher matcher = ENV_PATTERN.matcher(rawValue);
 
-        StringBuffer sb = new StringBuffer(rawValue.length());
+        StringBuilder sb = new StringBuilder(rawValue.length());
         while (matcher.find()) {
             String var = matcher.group(1);
             String[] parts = var.split(":");
@@ -117,16 +121,17 @@ public class GraphQLConfigVariableAwareEndpoint {
                 continue;
             }
 
-            // Try to load the variable from the system
+            // Try to load the variable from the jvm parameters
             String varValue = GET_ENV_VAR.apply(varName);
-
             // If the variable wasn't found in the system try to see if the user has a .env file with the variable
-            if (varValue == null || varValue.trim().isEmpty()) {
+            if (StringUtil.isEmptyOrSpaces(varValue)) {
                 varValue = tryToGetVariableFromDotEnvFile(varName);
             }
-
+            if (StringUtil.isEmptyOrSpaces(varValue)) {
+                varValue = EnvironmentUtil.getValue(varName);
+            }
             // If it still wasn't found present the user with a dialog to enter the variable
-            if (varValue == null || varValue.trim().isEmpty()) {
+            if (StringUtil.isEmptyOrSpaces(varValue)) {
                 final VariableDialog dialog = new VariableDialog(project, varName);
                 if (dialog.showAndGet()) {
                     varValue = dialog.getValue();

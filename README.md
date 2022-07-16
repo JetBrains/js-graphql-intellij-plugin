@@ -15,7 +15,7 @@ GraphQL language support for WebStorm, IntelliJ IDEA and other IDEs based on the
 - Syntax highlighting, code-formatting, folding, commenter, and brace-matching
 - 'Find Usages' and 'Go to Declaration' for schema types, fields, and fragments
 - 'Structure view' to navigate GraphQL files
-- Load variables from .env files. Supported file names: `.env.local`,`.env.development.local`,`.env.development`,`.env.dev.local`,`.env.dev`,`.env`
+- Load variables from shell or .env files. Supported file names: `.env.local`,`.env.development.local`,`.env.development`,`.env.dev.local`,`.env.dev`,`.env`
 - Built-in Relay and Apollo Federation type definitions
 
 ## Documentation
