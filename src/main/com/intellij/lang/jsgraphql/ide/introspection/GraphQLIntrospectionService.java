@@ -60,26 +60,26 @@ import com.intellij.util.ExceptionUtil;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.concurrency.annotations.RequiresWriteLock;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.net.IdeHttpClientHelpers;
+import com.intellij.util.net.ssl.CertificateManager;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.TrustAllStrategy;
+import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.impl.client.*;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.net.ssl.HostnameVerifier;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.util.Collection;
@@ -227,38 +227,37 @@ public class GraphQLIntrospectionService implements Disposable {
         return null;
     }
 
-    @NotNull
-    public CloseableHttpClient createHttpClient(@Nullable GraphQLConfigSecurity sslConfig) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException, CertificateException {
-        HttpClientBuilder builder = HttpClients.custom();
-        builder.setRedirectStrategy(LaxRedirectStrategy.INSTANCE);
-
-        if (PropertiesComponent.getInstance(myProject).isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) {
-            if (sslConfig != null && sslConfig.clientCertificate != null && sslConfig.clientCertificateKey != null) {
-                if (sslConfig.clientCertificate.path == null || sslConfig.clientCertificateKey.path == null) {
-                    throw new RuntimeException("Path needs to be specified for the key and certificate");
-                }
-                Path certPath = Paths.get(sslConfig.clientCertificate.path);
-                Path keyPath = Paths.get(sslConfig.clientCertificateKey.path);
-                GraphQLConfigCertificate.Encoding keyFormat = sslConfig.clientCertificateKey.format;
-
-                KeyStore store = GraphQLIntrospectionSSLBuilder.makeKeyStore(certPath, keyPath, keyFormat);
-                builder
-                    .setSSLContext(
-                        new SSLContextBuilder()
-                            .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
-                            .loadKeyMaterial(store, null)
-                            .build())
-                    .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
-            } else {
-                builder
-                    .setSSLContext(
-                        new SSLContextBuilder()
-                            .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
-                            .build())
-                    .setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
-            }
-        }
+    public @NotNull CloseableHttpClient createHttpClient(@NotNull String url, @Nullable GraphQLConfigSecurity sslConfig)
+        throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException,
+        CertificateException {
+        HttpClientBuilder builder = HttpClients.custom()
+            .setDefaultRequestConfig(createRequestConfig(url))
+            .setSSLContext(CertificateManager.getInstance().getSslContext())
+            .setDefaultCredentialsProvider(createCredentialsProvider(url))
+            .setRedirectStrategy(LaxRedirectStrategy.INSTANCE)
+            .setSSLHostnameVerifier(createHostnameVerifier());
+        GraphQLIntrospectionSSLBuilder.loadCustomSSLConfiguration(sslConfig, builder);
         return builder.build();
+    }
+
+    private @NotNull RequestConfig createRequestConfig(@NotNull String url) {
+        RequestConfig.Builder builder = RequestConfig.custom()
+            .setConnectTimeout(3000)
+            .setSocketTimeout(5000);
+        IdeHttpClientHelpers.ApacheHttpClient4.setProxyForUrlIfEnabled(builder, url);
+        return builder.build();
+    }
+
+    private @NotNull CredentialsProvider createCredentialsProvider(@NotNull String url) {
+        CredentialsProvider provider = new BasicCredentialsProvider();
+        IdeHttpClientHelpers.ApacheHttpClient4.setProxyCredentialsForUrlIfEnabled(provider, url);
+        return provider;
+    }
+
+    private @NotNull HostnameVerifier createHostnameVerifier() {
+        return PropertiesComponent.getInstance(myProject).isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)
+            ? NoopHostnameVerifier.INSTANCE
+            : new DefaultHostnameVerifier(PublicSuffixMatcherLoader.getDefault());
     }
 
     @Nullable
@@ -550,7 +549,7 @@ public class GraphQLIntrospectionService implements Disposable {
             indicator.setIndeterminate(true);
             String responseJson;
             GraphQLConfigSecurity sslConfig = getSecurityConfig(introspectionSourceFile);
-            try (final CloseableHttpClient httpClient = createHttpClient(sslConfig);
+            try (final CloseableHttpClient httpClient = createHttpClient(url, sslConfig);
                  final CloseableHttpResponse response = httpClient.execute(request)) {
                 responseJson = ObjectUtils.coalesce(EntityUtils.toString(response.getEntity()), "");
             } catch (IOException | GeneralSecurityException e) {

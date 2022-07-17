@@ -364,7 +364,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         try {
             VirtualFile configFile = ReadAction.compute(() -> GraphQLConfigManager.getService(myProject).getClosestConfigFile(virtualFile));
             GraphQLConfigSecurity sslConfig = introspectionService.getSecurityConfig(configFile);
-            try (final CloseableHttpClient httpClient = introspectionService.createHttpClient(sslConfig)) {
+            try (final CloseableHttpClient httpClient = introspectionService.createHttpClient(url, sslConfig)) {
                 editor.putUserData(GRAPH_QL_EDITOR_QUERYING, true);
 
                 String responseJson;

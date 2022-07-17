@@ -1,6 +1,10 @@
 package com.intellij.lang.jsgraphql.ide.introspection;
 
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigCertificate;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigSecurity;
+import org.apache.http.conn.ssl.TrustAllStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.ssl.SSLContextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,6 +14,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -19,7 +24,11 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.Collection;
 
-public class GraphQLIntrospectionSSLBuilder {
+public final class GraphQLIntrospectionSSLBuilder {
+
+    private GraphQLIntrospectionSSLBuilder() {
+    }
+
     @NotNull
     public static KeyStore makeKeyStore(final Path certPath, final Path keyPath, final GraphQLConfigCertificate.Encoding format)
         throws UnsupportedEncodingException {
@@ -90,5 +99,26 @@ public class GraphQLIntrospectionSSLBuilder {
         }
 
         return privateKey;
+    }
+
+    public static void loadCustomSSLConfiguration(@Nullable GraphQLConfigSecurity sslConfig, @NotNull HttpClientBuilder builder)
+        throws UnsupportedEncodingException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException,
+        UnrecoverableKeyException {
+        if (sslConfig != null && sslConfig.clientCertificate != null && sslConfig.clientCertificateKey != null) {
+            if (sslConfig.clientCertificate.path == null || sslConfig.clientCertificateKey.path == null) {
+                throw new RuntimeException("Path needs to be specified for the key and certificate");
+            }
+            Path certPath = Paths.get(sslConfig.clientCertificate.path);
+            Path keyPath = Paths.get(sslConfig.clientCertificateKey.path);
+            GraphQLConfigCertificate.Encoding keyFormat = sslConfig.clientCertificateKey.format;
+
+            KeyStore store = makeKeyStore(certPath, keyPath, keyFormat);
+            builder.setSSLContext(
+                new SSLContextBuilder()
+                    .loadTrustMaterial(null, TrustAllStrategy.INSTANCE)
+                    .loadKeyMaterial(store, null)
+                    .build()
+            );
+        }
     }
 }
