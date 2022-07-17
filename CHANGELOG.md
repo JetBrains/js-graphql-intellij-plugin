@@ -2,6 +2,19 @@
 
 # Changelog
 
+## [3.2.0] - 2022-07-19
+
+### Added
+
+- Support for built-in HTTP proxy settings.
+- Reading global environment variables in GraphQL config files.
+
+### Fixed
+
+- Highlighting for keywords used as field names.
+- Parsing a `repeatable` keyword as an identifier.
+- Compatibility with 2022.3.
+
 ## [3.1.4] - 2022-06-02
 
 ### Added
