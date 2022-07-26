@@ -2,6 +2,12 @@
 
 # Changelog
 
+## [3.2.1] - 2022-07-26
+
+### Fixed
+
+- Increased a default request timeout.
+
 ## [3.2.0] - 2022-07-19
 
 ### Added
