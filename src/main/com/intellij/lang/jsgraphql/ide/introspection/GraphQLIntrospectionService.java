@@ -47,6 +47,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
@@ -242,8 +243,8 @@ public class GraphQLIntrospectionService implements Disposable {
 
     private @NotNull RequestConfig createRequestConfig(@NotNull String url) {
         RequestConfig.Builder builder = RequestConfig.custom()
-            .setConnectTimeout(3000)
-            .setSocketTimeout(5000);
+            .setConnectTimeout(Registry.intValue("graphql.request.connect.timeout", 5000))
+            .setSocketTimeout(Registry.intValue("graphql.request.timeout", 15000));
         IdeHttpClientHelpers.ApacheHttpClient4.setProxyForUrlIfEnabled(builder, url);
         return builder.build();
     }

@@ -205,6 +205,8 @@
     <!-- Keys -->
     <registryKey key="graphql.search.scope.libraries" defaultValue="true"
                  description="Whether to search for schema definitions in libraries"/>
+    <registryKey key="graphql.request.timeout" defaultValue="15000" description="GraphQL request timeout"/>
+    <registryKey key="graphql.request.connect.timeout" defaultValue="5000" description="GraphQL request connection timeout"/>
 
     <!-- Inspections -->
     <localInspection language="GraphQL" key="graphql.inspection.display.name.unresolved.reference"
