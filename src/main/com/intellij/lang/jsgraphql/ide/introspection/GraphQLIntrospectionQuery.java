@@ -39,7 +39,7 @@ public interface GraphQLIntrospectionQuery {
         "      isDeprecated\n" +
         "      deprecationReason\n" +
         "    }\n" +
-        "    inputFields {\n" +
+        "    inputFields {\n" + // (includeDeprecated: true)
         "      ...InputValue\n" +
         "    }\n" +
         "    interfaces {\n" +
@@ -61,6 +61,8 @@ public interface GraphQLIntrospectionQuery {
         "    description\n" +
         "    type { ...TypeRef }\n" +
         "    defaultValue\n" +
+        // "    isDeprecated\n" +
+        // "    deprecationReason\n" +
         "  }\n" +
         "\n" +
         //

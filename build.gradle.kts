@@ -8,9 +8,9 @@ val platformType = prop("platformType")
 plugins {
     idea
     java
-    kotlin("jvm") version "1.6.21"
+    kotlin("jvm") version "1.7.10"
 
-    id("org.jetbrains.intellij") version "1.7.0"
+    id("org.jetbrains.intellij") version "1.8.0"
     id("org.jetbrains.grammarkit") version "2021.2.2"
     id("com.github.ManifestClasspath") version "0.1.0-RELEASE"
     id("org.jetbrains.changelog") version "1.3.1"

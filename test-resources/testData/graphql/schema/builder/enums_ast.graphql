@@ -3,7 +3,7 @@ type Query {}
 enum User @one @two {
   PHONE
   NAME
-  ADDRESS
+  ADDRESS @deprecated
 }
 
 extend enum User @one @three {

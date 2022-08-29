@@ -3,7 +3,7 @@ enum User @one {
 }
 
 enum User @two {
-    PHONE ADDRESS
+    PHONE ADDRESS @deprecated
 }
 
 extend enum User @one @three {

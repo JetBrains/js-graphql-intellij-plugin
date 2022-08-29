@@ -53,11 +53,11 @@ directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 
 """
 The @deprecated directive is used within the type system definition language to indicate deprecated portions of a
-GraphQL service's schema, such as deprecated fields on a type or deprecated enum values.
+GraphQL service's schema, such as deprecated fields, enum values, arguments or input fields.
 
 Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).
 """
-directive @deprecated(reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE
+directive @deprecated(reason: String = "No longer supported") on FIELD_DEFINITION | ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION | ENUM_VALUE
 
 """
 The @specifiedBy directive is used within the type system definition language
@@ -77,6 +77,7 @@ type __TypeNameMeta {
 }
 
 type __Schema {
+    description: String
     types: [__Type!]!
     queryType: __Type!
     mutationType: __Type
@@ -102,19 +103,19 @@ type __Type {
     enumValues(includeDeprecated: Boolean = false): [__EnumValue!]
 
     "INPUT_OBJECT only"
-    inputFields: [__InputValue!]
+    inputFields(includeDeprecated: Boolean = false): [__InputValue!]
 
     "NON_NULL and LIST only"
     ofType: __Type
 
-    "May be non-null for SCALAR only, must be null for the others"
-    specifiedBy: String
+    "May be non-null for custom SCALAR, otherwise null"
+    specifiedByURL: String
 }
 
 type __Field {
     name: String!
     description: String
-    args: [__InputValue!]!
+    args(includeDeprecated: Boolean = false): [__InputValue!]!
     type: __Type!
     isDeprecated: Boolean!
     deprecationReason: String
@@ -125,6 +126,8 @@ type __InputValue {
     description: String
     type: __Type!
     defaultValue: String
+    isDeprecated: Boolean!
+    deprecationReason: String
 }
 
 type __EnumValue {
@@ -148,29 +151,29 @@ enum __TypeKind {
 type __Directive {
     name: String!
     description: String
-    isRepeatable: Boolean!
     locations: [__DirectiveLocation!]!
-    args: [__InputValue!]!
+    args(includeDeprecated: Boolean = false): [__InputValue!]!
+    isRepeatable: Boolean!
 }
 
 enum __DirectiveLocation {
-    QUERY,
-    MUTATION,
-    SUBSCRIPTION,
-    FIELD,
-    FRAGMENT_DEFINITION,
-    FRAGMENT_SPREAD,
-    INLINE_FRAGMENT,
-    SCHEMA,
-    SCALAR,
-    OBJECT,
-    FIELD_DEFINITION,
-    ARGUMENT_DEFINITION,
-    INTERFACE,
-    UNION,
-    ENUM,
-    ENUM_VALUE,
-    INPUT_OBJECT,
-    INPUT_FIELD_DEFINITION,
+    QUERY
+    MUTATION
+    SUBSCRIPTION
+    FIELD
+    FRAGMENT_DEFINITION
+    FRAGMENT_SPREAD
+    INLINE_FRAGMENT
     VARIABLE_DEFINITION
+    SCHEMA
+    SCALAR
+    OBJECT
+    FIELD_DEFINITION
+    ARGUMENT_DEFINITION
+    INTERFACE
+    UNION
+    ENUM
+    ENUM_VALUE
+    INPUT_OBJECT
+    INPUT_FIELD_DEFINITION
 }

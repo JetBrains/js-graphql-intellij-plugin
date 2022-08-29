@@ -1,7 +1,7 @@
 type Query
 
 enum User @four @one @one @three @three @two {
-    ADDRESS
+    ADDRESS @deprecated(reason: "No longer supported")
     AGE
     NAME
     PHONE

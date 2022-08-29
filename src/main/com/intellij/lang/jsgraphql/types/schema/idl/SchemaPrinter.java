@@ -38,8 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.Directives.DeprecatedDirective;
-import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.ENUM_VALUE;
-import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.FIELD_DEFINITION;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.*;
 import static com.intellij.lang.jsgraphql.types.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
 import static com.intellij.lang.jsgraphql.types.util.EscapeUtil.escapeJsonString;
 import static java.util.Optional.ofNullable;
@@ -57,7 +56,7 @@ public class SchemaPrinter {
     //
     private static final GraphQLDirective DeprecatedDirective4Printing = GraphQLDirective.newDirective()
         .name("deprecated")
-        .validLocations(FIELD_DEFINITION, ENUM_VALUE)
+        .validLocations(FIELD_DEFINITION, ENUM_VALUE, ARGUMENT_DEFINITION, INPUT_FIELD_DEFINITION)
         .build();
 
     /**

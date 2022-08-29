@@ -58,6 +58,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
 
     private final String name;
     private final String description;
+    private final String deprecationReason;
     private final GraphQLInputType originalType;
     private final Object value;
     private final Object defaultValue;
@@ -109,14 +110,15 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
      */
     @Deprecated
     public GraphQLArgument(String name, String description, GraphQLInputType type, Object defaultValue, InputValueDefinition definition) {
-        this(name, description, type, defaultValue, null, definition, Collections.emptyList());
+        this(name, description, type, defaultValue, null, definition, Collections.emptyList(), null);
     }
 
-    private GraphQLArgument(String name, String description, GraphQLInputType type, Object defaultValue, Object value, InputValueDefinition definition, List<GraphQLDirective> directives) {
+    private GraphQLArgument(String name, String description, GraphQLInputType type, Object defaultValue, Object value, InputValueDefinition definition, List<GraphQLDirective> directives, String deprecationReason) {
         assertValidName(name);
         assertNotNull(type, () -> "type can't be null");
         this.name = name;
         this.description = description;
+        this.deprecationReason = deprecationReason;
         this.originalType = type;
         this.defaultValue = defaultValue;
         this.value = value;
@@ -165,6 +167,14 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
 
     public String getDescription() {
         return description;
+    }
+
+    public String getDeprecationReason() {
+        return deprecationReason;
+    }
+
+    public boolean isDeprecated() {
+        return deprecationReason != null;
     }
 
     public InputValueDefinition getDefinition() {
@@ -274,6 +284,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
         private GraphQLInputType type;
         private Object defaultValue = DEFAULT_VALUE_SENTINEL;
         private Object value;
+        private String deprecationReason;
         private InputValueDefinition definition;
         private final List<GraphQLDirective> directives = new ArrayList<>();
 
@@ -286,6 +297,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
             this.value = existing.getValue();
             this.defaultValue = existing.defaultValue;
             this.description = existing.getDescription();
+            this.deprecationReason = existing.getDeprecationReason();
             this.definition = existing.getDefinition();
             DirectivesUtil.enforceAddAll(this.directives, existing.getDirectives());
         }
@@ -313,6 +325,10 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
             return this;
         }
 
+        public Builder deprecate(String deprecationReason) {
+            this.deprecationReason = deprecationReason;
+            return this;
+        }
 
         public Builder type(GraphQLInputType type) {
             this.type = type;
@@ -374,7 +390,8 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
                     defaultValue,
                     value,
                     definition,
-                    sort(directives, GraphQLArgument.class, GraphQLDirective.class)
+                    sort(directives, GraphQLArgument.class, GraphQLDirective.class),
+                    deprecationReason
             );
         }
     }

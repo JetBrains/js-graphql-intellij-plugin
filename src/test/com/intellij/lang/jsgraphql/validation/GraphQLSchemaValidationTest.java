@@ -91,4 +91,8 @@ public class GraphQLSchemaValidationTest extends GraphQLTestCaseBase {
         doHighlightingTest();
     }
 
+    public void testDeprecatedMembers() {
+        doHighlightingTest();
+    }
+
 }

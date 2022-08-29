@@ -7,7 +7,7 @@ input User @one @two {
 }
 
 extend input User @one {
-  address: String
+  address: String @deprecated
   phone: String
 }
 

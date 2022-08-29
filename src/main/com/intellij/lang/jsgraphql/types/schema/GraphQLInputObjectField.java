@@ -47,6 +47,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
 
     private final String name;
     private final String description;
+    private final String deprecationReason;
     private final GraphQLInputType originalType;
     private final Object defaultValue;
     private final InputValueDefinition definition;
@@ -80,7 +81,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
     @Internal
     @Deprecated
     public GraphQLInputObjectField(String name, String description, GraphQLInputType type, Object defaultValue) {
-        this(name, description, type, defaultValue, emptyList(), null);
+        this(name, description, type, defaultValue, emptyList(), null, null);
     }
 
     /**
@@ -96,6 +97,10 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
     @Internal
     @Deprecated
     public GraphQLInputObjectField(String name, String description, GraphQLInputType type, Object defaultValue, List<GraphQLDirective> directives, InputValueDefinition definition) {
+        this(name, description, type, defaultValue, directives, definition, null);
+    }
+
+    private GraphQLInputObjectField(String name, String description, GraphQLInputType type, Object defaultValue, List<GraphQLDirective> directives, InputValueDefinition definition, String deprecationReason) {
         assertValidName(name);
         assertNotNull(type, () -> "type can't be null");
         assertNotNull(directives, () -> "directives cannot be null");
@@ -104,6 +109,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
         this.originalType = type;
         this.defaultValue = defaultValue;
         this.description = description;
+        this.deprecationReason = deprecationReason;
         this.directives = new DirectivesUtil.DirectivesHolder(directives);
         this.definition = definition;
     }
@@ -127,6 +133,14 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
 
     public String getDescription() {
         return description;
+    }
+
+    public String getDeprecationReason() {
+        return deprecationReason;
+    }
+
+    public boolean isDeprecated() {
+        return deprecationReason != null;
     }
 
     public InputValueDefinition getDefinition() {
@@ -244,6 +258,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
     @PublicApi
     public static class Builder extends GraphqlTypeBuilder {
         private Object defaultValue;
+        private String deprecationReason;
         private GraphQLInputType type;
         private InputValueDefinition definition;
         private final List<GraphQLDirective> directives = new ArrayList<>();
@@ -257,6 +272,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
             this.defaultValue = existing.getDefaultValue();
             this.type = existing.originalType;
             this.definition = existing.getDefinition();
+            this.deprecationReason = existing.getDeprecationReason();
             DirectivesUtil.enforceAddAll(this.directives,existing.getDirectives());
         }
 
@@ -280,6 +296,11 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
 
         public Builder definition(InputValueDefinition definition) {
             this.definition = definition;
+            return this;
+        }
+
+        public Builder deprecate(String deprecationReason) {
+            this.deprecationReason = deprecationReason;
             return this;
         }
 
@@ -341,7 +362,8 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
                     type,
                     defaultValue,
                     sort(directives, GraphQLInputObjectField.class, GraphQLDirective.class),
-                    definition);
+                    definition,
+                    deprecationReason);
         }
     }
 }

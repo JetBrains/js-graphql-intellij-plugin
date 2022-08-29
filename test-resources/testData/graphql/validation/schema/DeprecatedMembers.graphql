@@ -1,0 +1,16 @@
+input MyData {
+    name: String
+    surname: String
+    familyName: String @deprecated
+    city: String
+}
+
+type MyDataResponse {
+    name: String @deprecated
+    city(distance: Float @deprecated): String
+}
+
+enum Lang {
+    EN
+    FR @deprecated
+}

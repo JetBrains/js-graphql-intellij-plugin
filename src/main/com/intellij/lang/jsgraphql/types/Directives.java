@@ -52,6 +52,8 @@ public class Directives {
                 .name(DEPRECATED)
                 .directiveLocation(newDirectiveLocation().name(FIELD_DEFINITION.name()).build())
                 .directiveLocation(newDirectiveLocation().name(ENUM_VALUE.name()).build())
+                .directiveLocation(newDirectiveLocation().name(ARGUMENT_DEFINITION.name()).build())
+                .directiveLocation(newDirectiveLocation().name(INPUT_FIELD_DEFINITION.name()).build())
                 .description(createDescription("Marks the field or enum value as deprecated"))
                 .inputValueDefinition(
                         newInputValueDefinition()
@@ -103,13 +105,13 @@ public class Directives {
      */
     public static final GraphQLDirective DeprecatedDirective = GraphQLDirective.newDirective()
             .name(DEPRECATED)
-            .description("Marks the field or enum value as deprecated")
+            .description("Marks the field, argument, input field or enum value as deprecated")
             .argument(newArgument()
                     .name("reason")
                     .type(GraphQLString)
                     .defaultValue(NO_LONGER_SUPPORTED)
                     .description("The reason for the deprecation"))
-            .validLocations(FIELD_DEFINITION, ENUM_VALUE)
+            .validLocations(FIELD_DEFINITION, ENUM_VALUE, ARGUMENT_DEFINITION, INPUT_FIELD_DEFINITION)
             .definition(DEPRECATED_DIRECTIVE_DEFINITION)
             .build();
 

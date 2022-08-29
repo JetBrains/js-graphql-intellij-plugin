@@ -6,11 +6,11 @@ type User implements Named @one {
 
 type User implements Named @two {
     name: Int
-    phone: String
+    phone(prefix: String @deprecated): String
 }
 
 extend type User implements Named & WithPhone @one {
-    address: String
+    address: String @deprecated
     phone: String
 }
 

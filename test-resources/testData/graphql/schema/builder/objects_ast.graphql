@@ -15,11 +15,11 @@ type Query {}
 type User implements Named @one @two {
   name: Int
   id: ID
-  phone: String
+  phone(prefix: String @deprecated): String
 }
 
 extend type User implements Named & WithPhone @one {
-  address: String
+  address: String @deprecated
   phone: String
 }
 

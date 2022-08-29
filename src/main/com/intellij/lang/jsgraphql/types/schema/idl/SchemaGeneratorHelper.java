@@ -38,11 +38,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static com.intellij.lang.jsgraphql.types.Directives.*;
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.mapNotNull;
 import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.*;
-import static com.intellij.lang.jsgraphql.types.language.DirectiveLocation.newDirectiveLocation;
-import static com.intellij.lang.jsgraphql.types.language.NonNullType.newNonNullType;
-import static com.intellij.lang.jsgraphql.types.language.TypeName.newTypeName;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLEnumValueDefinition.newEnumValueDefinition;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeReference.typeRef;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
@@ -155,38 +153,6 @@ public class SchemaGeneratorHelper {
         public void addError(@NotNull GraphQLError error) {
             myErrors.add(error);
         }
-    }
-
-    static final String NO_LONGER_SUPPORTED = "No longer supported";
-    static final DirectiveDefinition DEPRECATED_DIRECTIVE_DEFINITION;
-    static final DirectiveDefinition SPECIFIED_BY_DIRECTIVE_DEFINITION;
-
-    static {
-        DEPRECATED_DIRECTIVE_DEFINITION = DirectiveDefinition.newDirectiveDefinition()
-                .name(Directives.DeprecatedDirective.getName())
-                .directiveLocation(newDirectiveLocation().name(FIELD_DEFINITION.name()).build())
-                .directiveLocation(newDirectiveLocation().name(ENUM_VALUE.name()).build())
-                .description(createDescription("Marks the field or enum value as deprecated"))
-                .inputValueDefinition(
-                        InputValueDefinition.newInputValueDefinition()
-                                .name("reason")
-                                .description(createDescription("The reason for the deprecation"))
-                                .type(newTypeName().name("String").build())
-                                .defaultValue(StringValue.newStringValue().value(NO_LONGER_SUPPORTED).build())
-                                .build())
-                .build();
-
-        SPECIFIED_BY_DIRECTIVE_DEFINITION = DirectiveDefinition.newDirectiveDefinition()
-                .name(Directives.SpecifiedByDirective.getName())
-                .directiveLocation(newDirectiveLocation().name(SCALAR.name()).build())
-                .description(createDescription("Exposes a URL that specifies the behaviour of this scalar."))
-                .inputValueDefinition(
-                        InputValueDefinition.newInputValueDefinition()
-                                .name("url")
-                                .description(createDescription("The URL that specifies the behaviour of this scalar."))
-                                .type(newNonNullType(newTypeName().name("String").build()).build())
-                                .build())
-                .build();
     }
 
     private static Description createDescription(String s) {
@@ -524,6 +490,7 @@ public class SchemaGeneratorHelper {
         fieldBuilder.definition(fieldDef);
         fieldBuilder.name(fieldDef.getName());
         fieldBuilder.description(buildDescription(fieldDef, fieldDef.getDescription()));
+        fieldBuilder.deprecate(buildDeprecationReason(fieldDef.getDirectives()));
         fieldBuilder.comparatorRegistry(buildCtx.getComparatorRegistry());
 
         // currently the spec doesnt allow deprecations on InputValueDefinitions but it should!
@@ -652,7 +619,7 @@ public class SchemaGeneratorHelper {
         List<Directive> allDirectives = new ArrayList<>(scalarTypeDefinition.getDirectives());
         extensions.forEach(extension -> allDirectives.addAll(extension.getDirectives()));
         Optional<Directive> specifiedByDirective = FpKit.findOne(allDirectives,
-                directiveDefinition -> directiveDefinition.getName().equals(Directives.SpecifiedByDirective.getName()));
+                directiveDefinition -> directiveDefinition.getName().equals(SpecifiedByDirective.getName()));
         if (specifiedByDirective.isEmpty()) {
             return null;
         }
@@ -1052,6 +1019,7 @@ public class SchemaGeneratorHelper {
         builder.definition(valueDefinition);
         builder.name(valueDefinition.getName());
         builder.description(buildDescription(valueDefinition, valueDefinition.getDescription()));
+        builder.deprecate(buildDeprecationReason(valueDefinition.getDirectives()));
         builder.comparatorRegistry(buildCtx.getComparatorRegistry());
 
         GraphQLInputType inputType = buildInputType(buildCtx, valueDefinition.getType()).orElse(null);

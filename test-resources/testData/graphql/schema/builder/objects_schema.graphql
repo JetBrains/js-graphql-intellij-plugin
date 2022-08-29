@@ -13,9 +13,9 @@ interface WithPhone {
 type Query
 
 type User implements Named & Other & WithPhone @one @one @three @three @two {
-    address: String
+    address: String @deprecated(reason: "No longer supported")
     id: ID
     name: Int
-    phone: String
+    phone(prefix: String @deprecated(reason: "No longer supported")): String
     zip: String
 }
