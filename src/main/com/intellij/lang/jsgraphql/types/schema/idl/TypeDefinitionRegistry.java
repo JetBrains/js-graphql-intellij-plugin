@@ -40,10 +40,6 @@ import static com.intellij.lang.jsgraphql.types.schema.idl.SchemaExtensionsCheck
 import static com.intellij.lang.jsgraphql.types.schema.idl.SchemaExtensionsChecker.gatherOperationDefs;
 import static java.util.Optional.ofNullable;
 
-/**
- * A {@link TypeDefinitionRegistry} contains the set of type definitions that come from compiling
- * a graphql schema definition file via {@link SchemaParser#parse(String)}
- */
 @SuppressWarnings({"rawtypes", "UnusedReturnValue"})
 @PublicApi
 public class TypeDefinitionRegistry {
@@ -383,6 +379,22 @@ public class TypeDefinitionRegistry {
     }
 
     /**
+     * Returns true if the specified type exists in the registry and is an object type or interface
+     *
+     * @param type the type to check
+     *
+     * @return true if its an object type or interface
+     */
+    public boolean isObjectTypeOrInterface(Type type) {
+        Optional<TypeDefinition> typeDefinition = getType(type);
+        if (typeDefinition.isPresent()) {
+            TypeDefinition definition = typeDefinition.get();
+            return definition instanceof ObjectTypeDefinition || definition instanceof InterfaceTypeDefinition;
+        }
+        return false;
+    }
+
+    /**
      * Returns true if the specified type exists in the registry and is an object type
      *
      * @param type the type to check
@@ -473,23 +485,22 @@ public class TypeDefinitionRegistry {
     }
 
     /**
-     * Returns true of the abstract type is in implemented by the object or interface type
+     * Returns true of the abstract type is in implemented by the object type or interface
      *
-     * @param abstractType       the abstract type to check (interface or union)
-     * @param possibleObjectType the object type to check
-     * @return true if the object type implements the abstract type
+     * @param abstractType the abstract type to check (interface or union)
+     * @param possibleType the object type or interface to check
+     *
+     * @return true if the object type or interface implements the abstract type
      */
-    public boolean isPossibleType(Type abstractType, Type possibleObjectType) {
+    public boolean isPossibleType(Type abstractType, Type possibleType) {
         if (!isInterfaceOrUnion(abstractType)) {
             return false;
         }
-        if (!isObjectType(possibleObjectType)) {
+        if (!isObjectTypeOrInterface(possibleType)) {
             return false;
         }
-        ObjectTypeDefinition targetObjectTypeDef = getType(possibleObjectType, ObjectTypeDefinition.class).orElse(null);
-        TypeDefinition abstractTypeDef = getType(abstractType).orElse(null);
-        if (targetObjectTypeDef == null || abstractTypeDef == null) return false;
-
+        TypeDefinition targetObjectTypeDef = getType(possibleType).get();
+        TypeDefinition abstractTypeDef = getType(abstractType).get();
         if (abstractTypeDef instanceof UnionTypeDefinition) {
             List<Type> memberTypes = ((UnionTypeDefinition) abstractTypeDef).getMemberTypes();
             for (Type memberType : memberTypes) {
@@ -503,9 +514,9 @@ public class TypeDefinitionRegistry {
             return false;
         } else {
             InterfaceTypeDefinition iFace = (InterfaceTypeDefinition) abstractTypeDef;
-            List<ImplementingTypeDefinition> objectTypeDefinitions = getAllImplementationsOf(iFace);
-            return objectTypeDefinitions.stream()
-                .anyMatch(od -> Objects.equals(od.getName(), targetObjectTypeDef.getName()));
+            List<ImplementingTypeDefinition> implementingTypeDefinitions = getAllImplementationsOf(iFace);
+            return implementingTypeDefinitions.stream()
+                    .anyMatch(od -> Objects.equals(od.getName(), targetObjectTypeDef.getName()));
         }
     }
 
@@ -553,8 +564,8 @@ public class TypeDefinitionRegistry {
         // If superType type is an abstract type, maybeSubType type may be a currently
         // possible object type.
         if (isInterfaceOrUnion(superType) &&
-            isObjectType(maybeSubType) &&
-            isPossibleType(superType, maybeSubType)) {
+                isObjectTypeOrInterface(maybeSubType) &&
+                isPossibleType(superType, maybeSubType)) {
             return true;
         }
 

@@ -1,0 +1,15 @@
+interface Edge {
+    node: Node!
+}
+
+interface Node {
+    id: ID!
+}
+
+interface StricterNode implements Node {
+    id: ID!
+}
+
+type Implementor implements Edge {
+    node: StricterNode!
+}
