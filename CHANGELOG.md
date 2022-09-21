@@ -2,6 +2,14 @@
 
 # Changelog
 
+## [3.3.0] - 2022-09-22
+
+### Fixed
+
+- Deprecation of input values and arguments ([#507](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/507)).
+- Renamed `specifiedBy` to `specifiedByURL` ([#554](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/554)).
+- Fixed interface implementation inspection for overridden fields with more specific types ([#563](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/563)).
+
 ## [3.2.1] - 2022-07-26
 
 ### Fixed
