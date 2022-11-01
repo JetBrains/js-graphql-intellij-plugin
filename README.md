@@ -16,7 +16,7 @@ On the `Marketplace` tab simply search for `graphql` and select the `GraphQL` su
 This developer guide covers how to setup your project to get the most out of the GraphQL language tooling in this plugin.
 
 The main features of the plugin are:
-- Full language support for GraphQL Specification including the Type System Definition Language (SDL)
+- Full language support for GraphQL Specification including the Schema Definition Language (SDL)
 - Schema-aware completion, error highlighting, code-formatting, folding, commenter, and brace-matching and documentation
   ![completion](docs/assets/completion.png)
 
