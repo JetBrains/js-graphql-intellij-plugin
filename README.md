@@ -11,6 +11,7 @@ The plugin works out of the box with popular GraphQL clients such as [Apollo Gra
 The plugin is published to the [JetBrains Plugin Repository](https://plugins.jetbrains.com/plugin/8097-js-graphql).
 You can install it directly from your IDE via the `File | Settings/Preferences | Plugins` screen.
 On the `Marketplace` tab simply search for `graphql` and select the `GraphQL` suggestion:
+
 ![marketplace](docs/assets/marketplace.png)
 ## Developer guide
 This developer guide covers how to setup your project to get the most out of the GraphQL language tooling in this plugin.
@@ -18,6 +19,7 @@ This developer guide covers how to setup your project to get the most out of the
 The main features of the plugin are:
 - Full language support for GraphQL Specification including the Schema Definition Language (SDL)
 - Schema-aware completion, error highlighting, code-formatting, folding, commenter, and brace-matching and documentation
+
   ![completion](docs/assets/completion.png)
 
   ![docs](docs/assets/docs.png)
@@ -25,12 +27,15 @@ The main features of the plugin are:
 - Support for [multi-schema projects](#setting-up-multi-schema-projects-using-graphql-config) using configurable project scopes or graphql-config files Schema discovery is configured using [graphql-config v2](https://github.com/kamilkisiela/graphql-config/tree/legacy) files, including support for multi-schema projects
 - Built-in support for [Relay](https://facebook.github.io/relay/) and [Apollo](https://www.apollographql.com/) projects: `graphql` and `gql` tagged template literals in JavaScript and TypeScript are automatically recognized as GraphQL
 - Execute queries using variables against configurable endpoints, including support for custom headers and environment variables
+
   ![run](docs/assets/run.png)
 - `Find Usages` and `Go to Declaration` for schema types, fields, and fragments
+
   ![usages](docs/assets/usages.png)
 - `Structure view` to navigate GraphQL files
 - Load variables from shell or `.env` files. Supported file names: `.env.local`,`.env.development.local`,`.env.development`,`.env.dev.local`,`.env.dev`,`.env`
 - Built-in Relay and Apollo Federation type definitions (You need to enable it in settings)
+
   ![federation](docs/assets/federation.png)
 
 The most important aspect of using the plugin is to configure how schema types are discovered. If the schema types are not discovered correctly, language features such as completion and error highlighting will be based on the wrong type information.
@@ -101,12 +106,14 @@ See https://github.com/kamilkisiela/graphql-config/tree/legacy#specifying-endpoi
 
 The following example is from graphql-config-examples/remote-schema-introspection
 It demonstrates how to use the endpoints configured in `.graphqlconfig` to fetch an existing remote schema.
+
 ![config](docs/assets/config.png)
 With `introspect: true` the plugin asks at project startup whether to update the local schema using the configured endpoint.
 
 The update works by sending an introspection query to the endpoint, and then writing the result to the configured schemaPath.
 
 Introspection queries can also be executed by double-clicking endpoints in the schemas tree view:
+
 ![introspect](docs/assets/introspect-double-click.png)
 Notes and comments:
 - If you're both developing the server schema and consuming it in a client, e.g. via component queries, you'll get the best tooling by having your schema expressed using GraphQL Schema Definition Language directly in your project. With that setup the plugin immediately discovers your schema, and you don't have to perform an introspection after server schema changes.
