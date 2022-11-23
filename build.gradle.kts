@@ -10,10 +10,10 @@ plugins {
     java
     kotlin("jvm") version "1.7.10"
 
-    id("org.jetbrains.intellij") version "1.8.0"
+    id("org.jetbrains.intellij") version "1.11.0"
     id("org.jetbrains.grammarkit") version "2021.2.2"
     id("com.github.ManifestClasspath") version "0.1.0-RELEASE"
-    id("org.jetbrains.changelog") version "1.3.1"
+    id("org.jetbrains.changelog") version "2.0.0"
 }
 
 group = pluginGroup
@@ -24,14 +24,14 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 intellij {
     version.set(platformVersion)
     type.set(platformType)
-    plugins.set(listOf("JavaScriptLanguage", "CSS", "IntelliLang", "java"))
+    plugins.set(listOf("JavaScript", "com.intellij.css", "org.intellij.intelliLang", "java"))
     ideaDependencyCachePath.set(project.buildDir.absolutePath)
 }
 
@@ -94,7 +94,7 @@ tasks {
     }
 
     runPluginVerifier {
-        ideVersions.set(listOf("IU-2021.2", "IU-2021.3", "IU-2022.1", "IU-2022.2"))
+        ideVersions.set(listOf("IU-2022.2", "IU-2022.3"))
     }
 
     compileJava {
@@ -103,9 +103,9 @@ tasks {
 
     compileKotlin {
         kotlinOptions {
-            jvmTarget = "11"
-            languageVersion = "1.5"
-            apiVersion = "1.5"
+            jvmTarget = "17"
+            languageVersion = "1.7"
+            apiVersion = "1.7"
             freeCompilerArgs = listOf("-Xjvm-default=all")
         }
     }

@@ -2,6 +2,13 @@
 
 # Changelog
 
+## [3.3.1] - 2022-11-23
+
+### Fixed
+
+- Compatibility with 2023.1.
+
+
 ## [3.3.0] - 2022-09-22
 
 ### Fixed
