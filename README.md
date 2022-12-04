@@ -143,7 +143,9 @@ If you're both developing the server schema and consuming it in a client, e.g. v
 your schema expressed using GraphQL Schema Definition Language directly in your project. With this setup, the plugin immediately discovers 
 your schema and you don't have to perform an introspection after the server schema changes.
 
-Tip: The re-run introspection action can be bound to a keyboard shortcut for convenience.
+Tip: The re-run introspection action can be bound to a keyboard shortcut for convenience and if you do make sure to uncheck this option as it stops openning the introspection result file in the IDE (after pressing the shorcut):
+![image](https://user-images.githubusercontent.com/27680142/205514919-b6095ff4-6f5e-448c-877a-51bc73e3a5de.png)
+
 
 ## Injections
 
