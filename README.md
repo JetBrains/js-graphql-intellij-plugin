@@ -144,7 +144,7 @@ your schema expressed using GraphQL Schema Definition Language directly in your 
 your schema and you don't have to perform an introspection after the server schema changes.
 
 Tip: The re-run introspection action can be bound to a keyboard shortcut for convenience and if you do make sure to uncheck this option as it stops opening the introspection result file in the IDE (after pressing the shortcut):
-![image](https://user-images.githubusercontent.com/27680142/205514919-b6095ff4-6f5e-448c-877a-51bc73e3a5de.png)
+![image](docs/assets/open-window-with-introspection-result.png)
 
 
 ## Injections
