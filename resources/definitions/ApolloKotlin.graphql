@@ -85,3 +85,12 @@ on OBJECT
     | UNION
     | SCALAR
     | INPUT_OBJECT
+
+
+# @defer is not ratified yet in the GraphQL spec, but supported as an experimental feature in Apollo Kotlin
+# Taken from https://github.com/apollographql/apollo-kotlin/blob/05f2a3295517fb7a64c2259c38b453a37f3c4d19/libraries/apollo-ast/src/main/resources/builtins.graphqls#L136
+
+directive @defer(
+  label: String
+  if: Boolean! = true
+) on FRAGMENT_SPREAD | INLINE_FRAGMENT
