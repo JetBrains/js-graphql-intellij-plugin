@@ -12,6 +12,7 @@ import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.notification.Notification;
@@ -107,7 +108,7 @@ public class GraphQLEditConfigAction extends AnAction {
             configDirectoryCandidates = Collections.singletonList(ProjectUtil.guessProjectDir(project));
         } else {
             CommonProcessors.CollectProcessor<VirtualFile> directoriesProcessor = new CommonProcessors.CollectProcessor<>();
-            GraphQLConfigManager.processDirectoriesUpToContentRoot(project, virtualFile, directoriesProcessor);
+            GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, virtualFile, directoriesProcessor);
             configDirectoryCandidates = directoriesProcessor.getResults();
         }
         return configDirectoryCandidates;
