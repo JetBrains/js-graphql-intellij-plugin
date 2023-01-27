@@ -27,6 +27,7 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
@@ -49,7 +50,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
-import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
@@ -65,7 +65,6 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.util.Processor;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
@@ -214,7 +213,7 @@ public class GraphQLConfigManager implements Disposable {
         if (initialDirectory == null) return null;
 
         Ref<VirtualFile> result = Ref.create();
-        processDirectoriesUpToContentRoot(myProject, initialDirectory, dir -> {
+        GraphQLResolveUtil.processDirectoriesUpToContentRoot(myProject, initialDirectory, dir -> {
             for (String fileName : GRAPHQLCONFIG_FILE_NAMES) {
                 VirtualFile configFile = dir.findChild(fileName);
                 if (configFile != null) {
@@ -225,34 +224,6 @@ public class GraphQLConfigManager implements Disposable {
             return true;
         });
         return result.get();
-    }
-
-    public static void processDirectoriesUpToContentRoot(@NotNull Project project,
-                                                         @NotNull VirtualFile fileOrDir,
-                                                         @NotNull Processor<? super VirtualFile> directoryProcessor) {
-        if (project.isDisposed()) {
-            return;
-        }
-        ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
-        VirtualFile dir = fileOrDir.isDirectory() ? fileOrDir : fileOrDir.getParent();
-        if (dir == null) {
-            return;
-        }
-        VirtualFile contentRoot = fileIndex.getContentRootForFile(dir, false);
-        while (dir != null && contentRoot != null) {
-            if (!directoryProcessor.process(dir)) {
-                return;
-            }
-            if (dir.equals(contentRoot)) {
-                dir = dir.getParent();
-                if (dir == null) {
-                    return;
-                }
-                contentRoot = fileIndex.getContentRootForFile(dir, false);
-            } else {
-                dir = dir.getParent();
-            }
-        }
     }
 
     public void createAndOpenConfigFile(@NotNull VirtualFile configBaseDir, Boolean openEditor) {
@@ -790,7 +761,7 @@ public class GraphQLConfigManager implements Disposable {
 
                 // locate the nearest config file, see https://github.com/kamilkisiela/graphql-config/tree/legacy/src/findGraphQLConfigFile.ts
                 Ref<GraphQLNamedScope> scopeRef = Ref.create(NONE);
-                processDirectoriesUpToContentRoot(myProject, configBaseDir, dir -> {
+                GraphQLResolveUtil.processDirectoriesUpToContentRoot(myProject, configBaseDir, dir -> {
                     GraphQLConfigData configData = configFilesToConfigurations.get(dir);
                     if (configData == null) {
                         return true;
