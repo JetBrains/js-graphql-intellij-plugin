@@ -10,7 +10,6 @@ package com.intellij.lang.jsgraphql.schema;
 import com.google.common.collect.Maps;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
@@ -48,7 +47,6 @@ public class GraphQLRegistryProvider implements Disposable {
     private final GlobalSearchScope graphQLFilesScope;
     private final GlobalSearchScope jsonIntrospectionScope;
     private final PsiManager psiManager;
-    private final JSGraphQLEndpointNamedTypeRegistry graphQLEndpointNamedTypeRegistry;
     private final GraphQLConfigManager graphQLConfigManager;
 
     private final Map<GlobalSearchScope, GraphQLRegistryInfo> scopeToRegistry = Maps.newConcurrentMap();
@@ -63,7 +61,6 @@ public class GraphQLRegistryProvider implements Disposable {
         jsonIntrospectionScope = GlobalSearchScope
             .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), JsonFileType.INSTANCE);
         psiManager = PsiManager.getInstance(project);
-        graphQLEndpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(project);
         graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
         graphQLConfigManager = GraphQLConfigManager.getService(project);
 
@@ -103,18 +100,6 @@ public class GraphQLRegistryProvider implements Disposable {
 
             // Injected GraphQL
             graphQLPsiSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, processor);
-
-            // Types defined using GraphQL Endpoint Language
-            VirtualFile virtualFile = GraphQLPsiUtil.getPhysicalVirtualFile(scopedElement.getContainingFile());
-            if (virtualFile != null && graphQLConfigManager.getEndpointLanguageConfiguration(virtualFile, null) != null) {
-                final GraphQLRegistryInfo endpointTypesAsRegistry = graphQLEndpointNamedTypeRegistry.getTypesAsRegistry(scopedElement);
-                try {
-                    processor.getCompositeRegistry().merge(endpointTypesAsRegistry.getTypeDefinitionRegistry());
-                    errors.addAll(endpointTypesAsRegistry.getErrors());
-                } catch (GraphQLException e) {
-                    errors.add(e);
-                }
-            }
 
             TypeDefinitionRegistry registry = processor.getCompositeRegistry().buildTypeDefinitionRegistry();
 

@@ -9,22 +9,19 @@ package com.intellij.lang.jsgraphql.ide.documentation;
 
 import com.intellij.lang.documentation.DocumentationProviderEx;
 import com.intellij.lang.jsgraphql.GraphQLConstants;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointDocumentationAware;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLType;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumValueDefinition;
 import com.intellij.lang.jsgraphql.types.schema.*;
-import org.apache.commons.lang.StringEscapeUtils;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiManager;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,7 +57,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     }
 
     private boolean isDocumentationSupported(PsiElement element) {
-        return element.getContainingFile() instanceof GraphQLFile || element.getContainingFile() instanceof JSGraphQLEndpointFile;
+        return element.getContainingFile() instanceof GraphQLFile;
     }
 
     @Nullable
@@ -98,14 +95,6 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
             return null;
 
-        } else if (element instanceof JSGraphQLEndpointDocumentationAware) {
-            final JSGraphQLEndpointDocumentationAware documentationAware = (JSGraphQLEndpointDocumentationAware) element;
-            final String documentation = documentationAware.getDocumentation(fullDocumentation);
-            String doc = DEFINITION_START + documentationAware.getDeclaration() + DEFINITION_END;
-            if (documentation != null) {
-                doc += CONTENT_START + StringEscapeUtils.escapeHtml(documentation) + CONTENT_END;
-            }
-            return doc;
         }
 
         return null;
@@ -171,7 +160,8 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
         final String inputValueName = parent.getName();
         if (inputValueName != null) {
 
-            final PsiElement definition = PsiTreeUtil.getParentOfType(parent, GraphQLFieldDefinition.class, GraphQLDirectiveDefinition.class, GraphQLInputObjectTypeDefinition.class, GraphQLInputObjectTypeExtensionDefinition.class);
+            final PsiElement definition = PsiTreeUtil.getParentOfType(parent, GraphQLFieldDefinition.class,
+                GraphQLDirectiveDefinition.class, GraphQLInputObjectTypeDefinition.class, GraphQLInputObjectTypeExtensionDefinition.class);
             if (definition instanceof GraphQLFieldDefinition) {
 
                 final String typeName = GraphQLPsiUtil.getTypeName(parent, null);
@@ -220,7 +210,8 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                             GraphQLInputType type = inputObjectField.getType();
                             final StringBuilder result = new StringBuilder().append(DEFINITION_START);
                             result.append(GraphQLSchemaUtil.getTypeName(schemaType)).append(".");
-                            result.append(inputValueName).append(type != null ? ": " : "").append(type != null ? GraphQLSchemaUtil.getTypeName(type) : "");
+                            result.append(inputValueName).append(type != null ? ": " : "").append(
+                                type != null ? GraphQLSchemaUtil.getTypeName(type) : "");
                             result.append(DEFINITION_END);
 
                             final String description = inputObjectField.getDescription();
@@ -239,7 +230,8 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     private String getArgumentDocumentation(String inputValueName, GraphQLArgument argument) {
         final StringBuilder html = new StringBuilder().append(DEFINITION_START);
         GraphQLInputType argumentType = argument.getType();
-        html.append(inputValueName).append(argumentType != null ? ": " : " ").append(argumentType != null ? GraphQLSchemaUtil.getTypeName(argumentType) : "");
+        html.append(inputValueName).append(argumentType != null ? ": " : " ").append(
+            argumentType != null ? GraphQLSchemaUtil.getTypeName(argumentType) : "");
         html.append(DEFINITION_END);
         appendDescription(html, GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(argument.getDescription()));
         return html.toString();
@@ -272,7 +264,8 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                 if (fieldDefinitions != null) {
                     for (com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
                         if (fieldName.equals(fieldDefinition.getName())) {
-                            appendDescription(html, GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(fieldDefinition.getDescription()));
+                            appendDescription(html,
+                                GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(fieldDefinition.getDescription()));
                             break;
                         }
                     }

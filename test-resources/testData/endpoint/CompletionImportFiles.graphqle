@@ -1,5 +1,0 @@
-import "<caret>"
-
-type Foo {
-    bar: Bas
-}
