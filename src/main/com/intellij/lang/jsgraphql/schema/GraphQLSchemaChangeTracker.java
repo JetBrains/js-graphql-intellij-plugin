@@ -9,7 +9,6 @@ package com.intellij.lang.jsgraphql.schema;
 
 import com.google.common.collect.Lists;
 import com.intellij.json.psi.JsonFile;
-import com.intellij.lang.jsgraphql.endpoint.psi.JSGraphQLEndpointFile;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
@@ -98,10 +97,6 @@ public class GraphQLSchemaChangeTracker implements Disposable {
                 if (affectsGraphQLSchema(event)) {
                     schemaChanged();
                 }
-            }
-            if (event.getFile() instanceof JSGraphQLEndpointFile) {
-                // always consider the schema changed when editing an endpoint file
-                schemaChanged();
             }
             if (event.getParent() instanceof PsiLanguageInjectionHost) {
                 GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();

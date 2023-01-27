@@ -19,14 +19,11 @@ import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.endpoint.JSGraphQLEndpointFileType;
-import com.intellij.lang.jsgraphql.endpoint.ide.configuration.JSGraphQLEndpointSchemaConfiguration;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
-import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
@@ -108,8 +105,6 @@ public class GraphQLConfigManager implements Disposable {
 
     public static final String GRAPHQLCONFIG = ".graphqlconfig";
     public static final String GRAPHQLCONFIG_COMMENT = ".graphqlconfig=";
-    public static final String ENDPOINT_LANGUAGE_EXTENSION = "endpoint-language";
-
     private static final String GRAPHQLCONFIG_YML = ".graphqlconfig.yml";
     private static final String GRAPHQLCONFIG_YAML = ".graphqlconfig.yaml";
 
@@ -133,7 +128,6 @@ public class GraphQLConfigManager implements Disposable {
     private final Map<GraphQLResolvedConfigData, GraphQLFile> configDataToEntryFiles = Maps.newConcurrentMap();
     private final Map<GraphQLResolvedConfigData, GraphQLConfigPackageSet> configDataToPackageSet = Maps.newConcurrentMap();
     private final Map<String, GraphQLNamedScope> virtualFilePathToScopes = Maps.newConcurrentMap();
-    private final Map<GraphQLNamedScope, JSGraphQLEndpointSchemaConfiguration> scopeToSchemaEndpointLanguageConfiguration = Maps.newConcurrentMap();
 
     private final ReadWriteLock cacheLock = new ReentrantReadWriteLock(true);
     private final Lock writeLock = cacheLock.writeLock();
@@ -255,7 +249,8 @@ public class GraphQLConfigManager implements Disposable {
                 Notifications.Bus.notify(new Notification(
                     GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
                     "Unable to create " + GRAPHQLCONFIG,
-                    String.format("Unable to create file '%s' in directory '%s': %s", GRAPHQLCONFIG, configBaseDir.getPath(), e.getMessage()),
+                    String.format("Unable to create file '%s' in directory '%s': %s", GRAPHQLCONFIG, configBaseDir.getPath(),
+                        e.getMessage()),
                     NotificationType.ERROR)
                 );
             }
@@ -291,46 +286,6 @@ public class GraphQLConfigManager implements Disposable {
                     (Computable<GraphQLFile>) () -> (GraphQLFile) psiFileFactory
                         .createFileFromText("graphql-config:" + UUID.randomUUID().toString(), GraphQLLanguage.INSTANCE, ""));
             });
-        } finally {
-            readLock.unlock();
-        }
-    }
-
-    @Nullable
-    public JSGraphQLEndpointSchemaConfiguration getEndpointLanguageConfiguration(@NotNull VirtualFile virtualFile,
-                                                                                 @Nullable Ref<VirtualFile> configBasedir) {
-        if (virtualFile.getFileType() != GraphQLFileType.INSTANCE && virtualFile.getFileType() != JSGraphQLEndpointFileType.INSTANCE && !GraphQLFileType.isGraphQLScratchFile(myProject, virtualFile)) {
-            if (!GraphQLFindUsagesUtil.getService().getIncludedFileTypes().contains(virtualFile.getFileType())) {
-                return null;
-            }
-        }
-        try {
-            readLock.lock();
-            GraphQLNamedScope schemaScope = getSchemaScope(virtualFile);
-            if (schemaScope != null) {
-                JSGraphQLEndpointSchemaConfiguration configuration = scopeToSchemaEndpointLanguageConfiguration.computeIfAbsent(schemaScope, scope -> {
-                    if (schemaScope.getConfigData() != null) {
-                        final Map<String, Object> extensions = schemaScope.getConfigData().extensions;
-                        if (extensions != null && extensions.containsKey(ENDPOINT_LANGUAGE_EXTENSION)) {
-                            try {
-                                final Gson gson = new Gson();
-                                return gson.fromJson(gson.toJsonTree(extensions.get(ENDPOINT_LANGUAGE_EXTENSION)), JSGraphQLEndpointSchemaConfiguration.class);
-                            } catch (JsonSyntaxException je) {
-                                LOG.warn("Invalid JSON in config file", je);
-                            }
-                        }
-                    }
-                    // using sentinel value to avoid re-computing values which happens on nulls
-                    return JSGraphQLEndpointSchemaConfiguration.NONE;
-                });
-                if (configuration != JSGraphQLEndpointSchemaConfiguration.NONE) {
-                    if (configBasedir != null) {
-                        configBasedir.set(schemaScope.getConfigBaseDir());
-                    }
-                    return configuration;
-                }
-            }
-            return null;
         } finally {
             readLock.unlock();
         }
@@ -447,9 +402,11 @@ public class GraphQLConfigManager implements Disposable {
                                 // renames
                                 final VFilePropertyChangeEvent propertyChangeEvent = (VFilePropertyChangeEvent) event;
                                 if (VirtualFile.PROP_NAME.equals(propertyChangeEvent.getPropertyName())) {
-                                    if (propertyChangeEvent.getNewValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(propertyChangeEvent.getNewValue())) {
+                                    if (propertyChangeEvent.getNewValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(
+                                        propertyChangeEvent.getNewValue())) {
                                         configurationsChanged = true;
-                                    } else if (propertyChangeEvent.getOldValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(propertyChangeEvent.getOldValue())) {
+                                    } else if (propertyChangeEvent.getOldValue() instanceof String && GRAPHQLCONFIG_FILE_NAMES_SET.contains(
+                                        propertyChangeEvent.getOldValue())) {
                                         configurationsChanged = true;
                                     }
                                 }
@@ -567,7 +524,8 @@ public class GraphQLConfigManager implements Disposable {
 
         // JSON format
         final Collection<VirtualFile> jsonFiles = ApplicationManager.getApplication().runReadAction(
-            (Computable<Collection<VirtualFile>>) () -> Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, true, projectScope))
+            (Computable<Collection<VirtualFile>>) () -> Sets.newLinkedHashSet(
+                FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG, true, projectScope))
         );
         if (changedConfigurationFiles != null) {
             for (VirtualFile configurationFile : changedConfigurationFiles) {
@@ -599,7 +557,8 @@ public class GraphQLConfigManager implements Disposable {
         // YAML format
         final Collection<VirtualFile> yamlFiles = ApplicationManager.getApplication().runReadAction(
             (Computable<Collection<VirtualFile>>) () -> {
-                final LinkedHashSet<VirtualFile> files = Sets.newLinkedHashSet(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, true, projectScope));
+                final LinkedHashSet<VirtualFile> files = Sets.newLinkedHashSet(
+                    FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YML, true, projectScope));
                 files.addAll(FilenameIndex.getVirtualFilesByName(myProject, GRAPHQLCONFIG_YAML, true, projectScope));
                 return files;
             }
@@ -667,7 +626,6 @@ public class GraphQLConfigManager implements Disposable {
             this.virtualFilePathToScopes.clear();
             this.configDataToEntryFiles.clear();
             this.configDataToPackageSet.clear();
-            this.scopeToSchemaEndpointLanguageConfiguration.clear();
             // finally mark as initialized
             initialized = true;
         } finally {
@@ -717,10 +675,12 @@ public class GraphQLConfigManager implements Disposable {
                             NotificationType.INFORMATION
                         ).setImportant(true);
 
-                        introspect.addAction(new NotificationAction(GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.action", endpoint.url)) {
+                        introspect.addAction(new NotificationAction(
+                            GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.action", endpoint.url)) {
                             @Override
                             public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                                GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
+                                GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(
+                                    myProject, endpoint);
                             }
                         });
                         String schemaFilePath = endpoint.configPackageSet.getSchemaFilePath();
@@ -776,10 +736,11 @@ public class GraphQLConfigManager implements Disposable {
                                 continue;
                             }
                             final GraphQLResolvedConfigData projectConfigData = entry.getValue();
-                            final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(projectConfigData, dataKey -> {
-                                final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
-                                return new GraphQLConfigPackageSet(dir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
-                            });
+                            final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(projectConfigData,
+                                dataKey -> {
+                                    final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
+                                    return new GraphQLConfigPackageSet(dir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
+                                });
                             if (packageSet.includesVirtualFile(virtualFileWithPath)) {
                                 scopeRef.set(new GraphQLNamedScope("graphql-config:" + dir.getPath() + ":" + entry.getKey(), packageSet));
                                 return false;

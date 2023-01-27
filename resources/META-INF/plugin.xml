@@ -31,8 +31,6 @@
   <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
   <depends optional="true" config-file="graphql-intellilang.xml">org.intellij.intelliLang</depends>
 
-  <xi:include href="/META-INF/graphql-endpoint.xml" xpointer="xpointer(/idea-plugin/*)"/>
-
   <resource-bundle>messages.GraphQLMessages</resource-bundle>
 
   <extensionPoints>

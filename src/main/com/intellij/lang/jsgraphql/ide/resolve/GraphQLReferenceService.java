@@ -8,10 +8,6 @@
 package com.intellij.lang.jsgraphql.ide.resolve;
 
 import com.google.common.collect.Maps;
-import com.intellij.lang.jsgraphql.endpoint.ide.project.JSGraphQLEndpointNamedTypeRegistry;
-import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyNamedType;
-import com.intellij.lang.jsgraphql.endpoint.ide.type.JSGraphQLLegacyPropertyType;
-import com.intellij.lang.jsgraphql.endpoint.psi.*;
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectiveImpl;
@@ -189,16 +185,6 @@ public class GraphQLReferenceService implements Disposable {
                                     }
                                 }
                             }
-                        } else if (resolvedPsiReference.getParent() instanceof JSGraphQLEndpointFieldDefinition) {
-                            // Endpoint language
-                            final JSGraphQLEndpointArgumentsDefinition argumentsDefinition = ((JSGraphQLEndpointFieldDefinition) resolvedPsiReference.getParent()).getArgumentsDefinition();
-                            if (argumentsDefinition != null && argumentsDefinition.getInputValueDefinitions() != null) {
-                                for (JSGraphQLEndpointInputValueDefinition argumentDefinition : argumentsDefinition.getInputValueDefinitions().getInputValueDefinitionList()) {
-                                    if (Objects.equals(element.getName(), argumentDefinition.getInputValueDefinitionIdentifier().getIdentifier().getText())) {
-                                        return createReference(element, argumentDefinition.getInputValueDefinitionIdentifier());
-                                    }
-                                }
-                            }
                         }
                     }
 
@@ -272,32 +258,6 @@ public class GraphQLReferenceService implements Disposable {
                         }
                         return true;
                     });
-                    if (reference.isNull()) {
-                        // Endpoint language
-                        final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                        final JSGraphQLLegacyNamedType namedType = endpointNamedTypeRegistry.getNamedType(GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName(), field);
-                        if (namedType != null) {
-                            JSGraphQLLegacyPropertyType property = namedType.properties.get(name);
-                            if (property != null) {
-                                reference.set(createReference(element, property.propertyElement));
-                            } else if (namedType.definitionElement instanceof JSGraphQLEndpointObjectTypeDefinition) {
-                                // field is potentially auto-implemented, so look in the interfaces types
-                                final JSGraphQLEndpointImplementsInterfaces implementsInterfaces = ((JSGraphQLEndpointObjectTypeDefinition) namedType.definitionElement).getImplementsInterfaces();
-                                if (implementsInterfaces != null) {
-                                    for (JSGraphQLEndpointNamedType implementedType : implementsInterfaces.getNamedTypeList()) {
-                                        final JSGraphQLLegacyNamedType interfaceType = endpointNamedTypeRegistry.getNamedType(implementedType.getName(), field);
-                                        if (interfaceType != null) {
-                                            property = interfaceType.properties.get(name);
-                                            if (property != null) {
-                                                reference.set(createReference(element, property.propertyElement));
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -328,14 +288,6 @@ public class GraphQLReferenceService implements Disposable {
         PsiReference psiReference = logicalTypeNameToReference.get(logicalTypeName);
         if (psiReference == null) {
             psiReference = resolveUsingIndex(element, psiNamedElement -> psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLTypeNameDefinition);
-            if (psiReference == null) {
-                // fallback to resolving to Endpoint language elements
-                final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                final JSGraphQLLegacyNamedType namedType = endpointNamedTypeRegistry.getNamedType(element.getName(), element);
-                if (namedType != null) {
-                    psiReference = createReference(element, namedType.nameElement);
-                }
-            }
             // use sentinel to avoid nulls
             logicalTypeNameToReference.putIfAbsent(logicalTypeName, psiReference != null ? psiReference : NULL_REFERENCE);
         }
@@ -368,17 +320,6 @@ public class GraphQLReferenceService implements Disposable {
                         }
                         return false;
                     });
-                    if (!resolved.get()) {
-                        // Endpoint language
-                        final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                        final JSGraphQLLegacyNamedType namedType = endpointNamedTypeRegistry.getNamedType(namedTypeScope, element);
-                        if (namedType != null) {
-                            final JSGraphQLLegacyPropertyType property = namedType.properties.get(field.getName());
-                            if (property != null) {
-                                return createReference(element, property.propertyElement);
-                            }
-                        }
-                    }
                     return reference;
                 }
             }
@@ -407,22 +348,6 @@ public class GraphQLReferenceService implements Disposable {
                         }
                         return false;
                     });
-                    if (!resolved.get()) {
-                        // Endpoint Language
-                        final JSGraphQLEndpointNamedTypeRegistry endpointNamedTypeRegistry = JSGraphQLEndpointNamedTypeRegistry.getService(element.getProject());
-                        final JSGraphQLLegacyNamedType namedType = endpointNamedTypeRegistry.getNamedType(namedTypeScope, element);
-                        if (namedType != null && namedType.definitionElement instanceof JSGraphQLEndpointEnumTypeDefinition) {
-                            final JSGraphQLEndpointEnumValueDefinitionSet enumValueDefinitionSet = ((JSGraphQLEndpointEnumTypeDefinition) namedType.definitionElement).getEnumValueDefinitionSet();
-                            if (enumValueDefinitionSet != null) {
-                                for (JSGraphQLEndpointEnumValueDefinition enumValueDefinition : enumValueDefinitionSet.getEnumValueDefinitionList()) {
-                                    if (enumValueDefinition.getIdentifier().getText().equals(element.getName())) {
-                                        return createReference(element, enumValueDefinition);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
                     return reference;
                 }
             }
