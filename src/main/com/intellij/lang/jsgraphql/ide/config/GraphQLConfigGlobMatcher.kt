@@ -5,26 +5,31 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
+package com.intellij.lang.jsgraphql.ide.config
 
-import com.google.common.collect.Maps;
-import com.intellij.openapi.util.Pair;
-import minimatch.Minimatch;
-import minimatch.Options;
-
-import java.util.Map;
+import com.google.common.collect.Maps
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
+import minimatch.Minimatch
+import minimatch.Options
 
 /**
  * Matcher which uses nashorn-minimatch to achieve same glob semantics as graphql-config.
  */
-public class GraphQLConfigGlobMatcherImpl implements GraphQLConfigGlobMatcher {
-
-    private final static Map<Pair<String, String>, Boolean> matches = Maps.newConcurrentMap();
-    private final static Options OPTIONS = new Options().setMatchBase(true);
-
-    @Override
-    public boolean matches(String filePath, String glob) {
-        return matches.computeIfAbsent(Pair.create(filePath, glob), args -> Minimatch.minimatch(args.first, args.second, OPTIONS));
+@Service
+class GraphQLConfigGlobMatcher {
+    companion object {
+        @JvmStatic
+        fun getInstance(project: Project) = project.service<GraphQLConfigGlobMatcher>()
     }
 
+    private val matches: MutableMap<Pair<String, String>, Boolean> = Maps.newConcurrentMap()
+    private val options = Options().setMatchBase(true)
+
+    fun matches(path: String, glob: String): Boolean {
+        return matches.computeIfAbsent(path to glob) { (path, glob) ->
+            Minimatch.minimatch(path, glob, options)
+        }
+    }
 }
