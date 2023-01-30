@@ -79,8 +79,6 @@
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService"/>
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcher"
-                    serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigGlobMatcherImpl"/>
     <projectService
       serviceImplementation="com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLPluginDisposable"/>

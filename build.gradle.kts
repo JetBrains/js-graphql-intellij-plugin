@@ -63,7 +63,7 @@ kotlin {
 dependencies {
     implementation("commons-io:commons-io:2.7")
     implementation("com.atlassian.commonmark:commonmark:0.12.1")
-    implementation(group = "org.yaml", name = "snakeyaml", version = "1.26")
+    implementation(group = "org.yaml", name = "snakeyaml", version = "1.33")
     implementation("fr.opensagres.js:minimatch.java:1.1.0")
     implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
     implementation("io.sentry:sentry:5.4.3")

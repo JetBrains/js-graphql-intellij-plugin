@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
 import com.google.common.collect.Maps;
 import com.intellij.ide.scratch.ScratchUtil;
 import com.intellij.json.JsonFileType;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigGlobMatcher;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;

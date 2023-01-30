@@ -5,35 +5,30 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.startup;
+package com.intellij.lang.jsgraphql.ide.startup
 
-import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeTracker;
-import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.startup.StartupActivity;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigChangeTracker
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
+import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener
+import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeTracker
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.ProjectPostStartupActivity
 
 /**
  * Starts up the UI Service during project startup
  */
-public class GraphQLStartupActivity implements StartupActivity, DumbAware {
+class GraphQLStartupActivity : ProjectPostStartupActivity {
+    override suspend fun execute(project: Project) {
+        // init mandatory services
+        GraphQLSchemaChangeTracker.getInstance(project)
+        GraphQLConfigChangeTracker.getInstance(project)
+        GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
 
-    @Override
-    public void runActivity(@NotNull Project project) {
-
-        // startup schema change listener
-        GraphQLSchemaChangeTracker.getInstance(project);
-
-        if (ApplicationManager.getApplication().isUnitTestMode()) {
-            // don't create the UI when unit testing
-            return;
+        if (!ApplicationManager.getApplication().isUnitTestMode) {
+            GraphQLUIProjectService.getService(project)
+            GraphQLQueryContextCaretListener.getInstance(project).listen()
         }
-        // startup the UI service
-        GraphQLUIProjectService.getService(project);
-
-        GraphQLQueryContextCaretListener.getInstance(project).listen();
     }
 }

@@ -19,6 +19,7 @@ import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigGlobMatcher;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
@@ -120,7 +121,7 @@ public class GraphQLConfigManager implements Disposable {
 
     private final Project myProject;
     private final GlobalSearchScope projectScope;
-    private final GraphQLConfigGlobMatcher graphQLConfigGlobMatcher;
+    private final GraphQLConfigGlobMatcher configGlobMatcher;
 
     private volatile boolean initialized = false;
 
@@ -138,7 +139,7 @@ public class GraphQLConfigManager implements Disposable {
     public GraphQLConfigManager(Project myProject) {
         this.myProject = myProject;
         this.projectScope = GlobalSearchScope.projectScope(myProject);
-        this.graphQLConfigGlobMatcher = ServiceManager.getService(myProject, GraphQLConfigGlobMatcher.class);
+        this.configGlobMatcher = GraphQLConfigGlobMatcher.getInstance(myProject);
     }
 
     public static GraphQLConfigManager getService(@NotNull Project project) {
@@ -739,7 +740,7 @@ public class GraphQLConfigManager implements Disposable {
                             final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(projectConfigData,
                                 dataKey -> {
                                     final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
-                                    return new GraphQLConfigPackageSet(dir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
+                                    return new GraphQLConfigPackageSet(dir, configEntryFile, dataKey, configGlobMatcher);
                                 });
                             if (packageSet.includesVirtualFile(virtualFileWithPath)) {
                                 scopeRef.set(new GraphQLNamedScope("graphql-config:" + dir.getPath() + ":" + entry.getKey(), packageSet));
@@ -751,7 +752,7 @@ public class GraphQLConfigManager implements Disposable {
                     // then top level config
                     final GraphQLConfigPackageSet packageSet = configDataToPackageSet.computeIfAbsent(configData, dataKey -> {
                         final GraphQLFile configEntryFile = getConfigurationEntryFile(dataKey);
-                        return new GraphQLConfigPackageSet(dir, configEntryFile, dataKey, graphQLConfigGlobMatcher);
+                        return new GraphQLConfigPackageSet(dir, configEntryFile, dataKey, configGlobMatcher);
                     });
                     if (packageSet.includesVirtualFile(virtualFileWithPath)) {
                         scopeRef.set(new GraphQLNamedScope("graphql-config:" + dir.getPath(), packageSet));
