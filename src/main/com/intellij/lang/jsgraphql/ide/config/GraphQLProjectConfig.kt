@@ -23,25 +23,25 @@ class GraphQLProjectConfig(
     val file: VirtualFile,
     val name: String,
     private val rawConfig: GraphQLRawProjectConfig,
-    private val rootConfig: GraphQLRawProjectConfig?
+    private val parentConfig: GraphQLRawProjectConfig?,
 ) {
     companion object {
         private val MATCHES_CACHE_KEY =
             Key.create<CachedValue<ConcurrentMap<GraphQLProjectConfig, Boolean>>>("graphql.project.config.matches")
     }
 
-    val schema: List<GraphQLSchemaPointer> = rawConfig.schema ?: rootConfig?.schema ?: emptyList()
+    val schema: List<GraphQLSchemaPointer> = rawConfig.schema ?: parentConfig?.schema ?: emptyList()
 
-    val documents: List<String> = rawConfig.documents ?: rootConfig?.documents ?: emptyList()
+    val documents: List<String> = rawConfig.documents ?: parentConfig?.documents ?: emptyList()
 
     val extensions: Map<String, Any?> = buildMap {
-        rootConfig?.extensions?.let { putAll(it) }
+        parentConfig?.extensions?.let { putAll(it) }
         rawConfig.extensions?.let { putAll(it) }
     }
 
-    val include: List<String> = rawConfig.include ?: rootConfig?.include ?: emptyList()
+    val include: List<String> = rawConfig.include ?: parentConfig?.include ?: emptyList()
 
-    val exclude: List<String> = rawConfig.exclude ?: rootConfig?.exclude ?: emptyList()
+    val exclude: List<String> = rawConfig.exclude ?: parentConfig?.exclude ?: emptyList()
 
     fun match(context: PsiFile): Boolean {
         val cache = getMatchesCache(context)
@@ -113,7 +113,7 @@ class GraphQLProjectConfig(
         if (file != other.file) return false
         if (name != other.name) return false
         if (rawConfig != other.rawConfig) return false
-        if (rootConfig != other.rootConfig) return false
+        if (parentConfig != other.parentConfig) return false
 
         return true
     }
@@ -123,7 +123,7 @@ class GraphQLProjectConfig(
         result = 31 * result + file.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + rawConfig.hashCode()
-        result = 31 * result + (rootConfig?.hashCode() ?: 0)
+        result = 31 * result + (parentConfig?.hashCode() ?: 0)
         return result
     }
 }

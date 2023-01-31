@@ -2,8 +2,13 @@ package com.intellij.lang.jsgraphql.ide.config
 
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 
 private const val DEFAULT_PROJECT = "default"
 
@@ -12,6 +17,10 @@ class GraphQLConfig(
     val file: VirtualFile,
     private val rawConfig: GraphQLRawConfig,
 ) {
+    companion object {
+        private val MATCHING_PROJECT_KEY =
+            Key.create<CachedValue<GraphQLProjectConfig?>>("graphql.file.matching.project")
+    }
 
     private val projects: Map<String, GraphQLProjectConfig> = initProjects()
 
@@ -38,6 +47,24 @@ class GraphQLConfig(
     }
 
     fun findProjectForFile(context: PsiFile): GraphQLProjectConfig? {
+        val projectConfig = CachedValuesManager.getCachedValue(context, MATCHING_PROJECT_KEY) {
+            CachedValueProvider.Result.create(
+                findProjectForFileImpl(context),
+                context,
+                GraphQLConfigProvider.getInstance(project),
+                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+            )
+        }
+
+        // a file should have only one matching config therefore
+        // a cached value could be stored in the psi and shared between different configs,
+        // so we need to check if the result is from this exact config
+        return projectConfig?.takeIf {
+            findProject(it.name) == projectConfig
+        }
+    }
+
+    private fun findProjectForFileImpl(context: PsiFile): GraphQLProjectConfig? {
         for (config in projects.values) {
             if (config.match(context)) {
                 return config
