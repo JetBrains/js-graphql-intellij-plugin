@@ -39,7 +39,7 @@ class GraphQLConfig(
 
     fun findProjectForFile(context: PsiFile): GraphQLProjectConfig? {
         for (config in projects.values) {
-            if (config.matches(context)) {
+            if (config.match(context)) {
                 return config
             }
         }
