@@ -16,6 +16,7 @@ import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootEvent
 import com.intellij.openapi.roots.ModuleRootListener
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.findVirtualFile
@@ -56,8 +57,9 @@ class GraphQLConfigChangeTracker(private val project: Project) : Disposable {
 
         connection.subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
             override fun after(events: List<VFileEvent>) {
+                val fileIndex = ProjectFileIndex.getInstance(project)
                 var configurationsChanged = false
-                val watchedConfigDirectories = configProvider.getAllConfigs()
+                val watchedDirs = configProvider.getAllConfigs()
                     .asSequence()
                     .mapNotNull { it.file.parent }
                     .filter { it.isValid && it.isDirectory }
@@ -67,8 +69,10 @@ class GraphQLConfigChangeTracker(private val project: Project) : Disposable {
                     if (configurationsChanged) break
 
                     val file = event.file ?: continue
+                    if (!fileIndex.isInProject(file)) continue
+
                     if (file.isDirectory) {
-                        if (file in watchedConfigDirectories ||
+                        if (file in watchedDirs ||
                             event is VFileCreateEvent && configProvider.findConfigFileInDirectory(file) != null
                         ) {
                             configurationsChanged = true

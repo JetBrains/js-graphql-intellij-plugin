@@ -2,9 +2,21 @@ package com.intellij.lang.jsgraphql.ide.config
 
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLSchemaPointer
+import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiUtilCore
+import com.intellij.util.containers.ContainerUtil
+import java.io.File
+import java.util.concurrent.ConcurrentMap
 
 class GraphQLProjectConfig(
     private val project: Project,
@@ -13,6 +25,11 @@ class GraphQLProjectConfig(
     private val rawConfig: GraphQLRawProjectConfig,
     private val rootConfig: GraphQLRawProjectConfig?
 ) {
+    companion object {
+        private val MATCHES_CACHE_KEY =
+            Key.create<CachedValue<ConcurrentMap<GraphQLProjectConfig, Boolean>>>("graphql.project.config.matches")
+    }
+
     val schema: List<GraphQLSchemaPointer> = rawConfig.schema ?: rootConfig?.schema ?: emptyList()
 
     val documents: List<String> = rawConfig.documents ?: rootConfig?.documents ?: emptyList()
@@ -26,8 +43,64 @@ class GraphQLProjectConfig(
 
     val exclude: List<String> = rawConfig.exclude ?: rootConfig?.exclude ?: emptyList()
 
-    fun matches(context: PsiFile): Boolean {
-        TODO()
+    fun match(context: PsiFile): Boolean {
+        val cache = getMatchesCache(context)
+        val cachedMatch = cache[this]
+        if (cachedMatch != null) {
+            return cachedMatch
+        }
+
+        val result = matchImpl(context)
+        return cache.putIfAbsent(this, result) ?: result
+    }
+
+    private fun matchImpl(context: PsiFile): Boolean {
+        // TODO: cover more cases for light files, injections and scratches
+        val virtualFile = PsiUtilCore.getVirtualFile(context) ?: return false
+
+        val isSchemaOrDocument = sequenceOf(schema, documents).any { match(virtualFile, it) }
+        if (isSchemaOrDocument) {
+            return true;
+        }
+
+        val isExcluded = if (exclude.isNotEmpty()) match(virtualFile, exclude) else false
+        if (isExcluded) {
+            return false;
+        }
+
+        return if (include.isNotEmpty()) match(virtualFile, include) else false
+    }
+
+    private fun match(candidate: VirtualFile, pointer: Any?): Boolean {
+        return when (pointer) {
+            is List<*> -> pointer.any { match(candidate, it) }
+
+            is String -> {
+                val path = VfsUtil.findRelativePath(file, candidate, File.separatorChar)
+                    ?.let { FileUtil.toCanonicalPath(it) } ?: return false
+                val glob = FileUtil.toCanonicalPath(pointer)
+                GraphQLConfigGlobMatcher.getInstance(project).matches(path, glob)
+            }
+
+            is GraphQLSchemaPointer -> if (pointer.isRemote) {
+                false
+            } else {
+                match(candidate, pointer.pathOrUrl)
+            }
+
+            else -> false
+        }
+    }
+
+    private fun getMatchesCache(file: PsiFile): ConcurrentMap<GraphQLProjectConfig, Boolean> {
+        return CachedValuesManager.getCachedValue(file, MATCHES_CACHE_KEY) {
+            CachedValueProvider.Result.create(
+                ContainerUtil.createConcurrentWeakMap(),
+                file,
+                GraphQLConfigProvider.getInstance(project),
+                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+            )
+        }
     }
 
     override fun equals(other: Any?): Boolean {
@@ -53,5 +126,4 @@ class GraphQLProjectConfig(
         result = 31 * result + (rootConfig?.hashCode() ?: 0)
         return result
     }
-
 }

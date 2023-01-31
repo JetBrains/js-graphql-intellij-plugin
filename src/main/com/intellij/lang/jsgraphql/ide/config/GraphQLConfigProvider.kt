@@ -14,6 +14,8 @@ import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
@@ -52,6 +54,7 @@ val MODERN_CONFIG_NAMES: Set<String> = linkedSetOf(
     ".graphqlrc.yml",
     ".graphqlrc.yaml",
 //    ".graphqlrc.toml",
+//    "package.json",
 )
 
 val CONFIG_NAMES: Set<String> = LinkedHashSet<String>().apply {
@@ -62,7 +65,7 @@ val CONFIG_NAMES: Set<String> = LinkedHashSet<String>().apply {
 private const val CONFIG_RELOAD_TIMEOUT = 3000
 
 @Service
-class GraphQLConfigProvider(private val project: Project) : Disposable {
+class GraphQLConfigProvider(private val project: Project) : Disposable, ModificationTracker {
     companion object {
         private val LOG = logger<GraphQLConfigProvider>()
 
@@ -74,6 +77,13 @@ class GraphQLConfigProvider(private val project: Project) : Disposable {
     }
 
     private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+
+    /**
+     * Use this service as a dependency for tracking content changes in configuration files.
+     * Computations resolving config locations usually
+     * should additionally depend on [com.intellij.openapi.vfs.VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS].
+     */
+    private val modificationTracker = SimpleModificationTracker()
 
     private val configData: MutableMap<VirtualFile, ConfigEntry> = ConcurrentHashMap()
 
@@ -145,10 +155,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable {
         val files = configFiles.value
         saveModifiedDocuments(files)
 
-        configData.keys.removeIf { !it.isValid }
-
         val loader = GraphQLConfigLoader.getInstance(project)
-        var hasChanged = false
+        var hasChanged = configData.keys.removeIf { !it.isValid }
+
         for (file in files) {
             ProgressManager.checkCanceled()
             if (!file.isValid) {
@@ -182,6 +191,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable {
 
     private fun notifyConfigurationChanged() {
         invokeLater(ModalityState.NON_MODAL) {
+            modificationTracker.incModificationCount()
             PsiManager.getInstance(project).dropPsiCaches()
             DaemonCodeAnalyzer.getInstance(project).restart()
         }
@@ -219,6 +229,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable {
         val config: GraphQLConfig? = null,
         val timeStamp: Long = -1,
     )
+
+    override fun getModificationCount(): Long = modificationTracker.modificationCount
 
     override fun dispose() {
     }
