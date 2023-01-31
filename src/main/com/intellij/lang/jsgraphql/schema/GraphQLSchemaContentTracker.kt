@@ -5,82 +5,69 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.schema;
+package com.intellij.lang.jsgraphql.schema
 
-import com.google.common.collect.Lists;
-import com.intellij.json.psi.JsonFile;
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.psi.GraphQLFile;
-import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.util.SimpleModificationTracker;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
-import com.intellij.psi.impl.PsiTreeChangeEventImpl;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.messages.Topic;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.json.psi.JsonFile
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper
+import com.intellij.lang.jsgraphql.psi.GraphQLFile
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.psi.PsiLanguageInjectionHost
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiTreeChangeAdapter
+import com.intellij.psi.PsiTreeChangeEvent
+import com.intellij.psi.impl.PsiTreeChangeEventImpl
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.util.Alarm
 
-import java.util.List;
 
 /**
- * Tracks PSI changes that can affect declared GraphQL schemas
+ * Tracks PSI changes that can affect declared GraphQL schemas.
+ * For configuration changes use [com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider].
  */
-public class GraphQLSchemaChangeTracker implements Disposable {
+@Service
+class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, ModificationTracker {
 
-    private static final Logger LOG = Logger.getInstance(GraphQLSchemaChangeTracker.class);
+    companion object {
+        private val LOG = logger<GraphQLSchemaContentTracker>()
 
-    @Topic.ProjectLevel
-    public final static Topic<GraphQLSchemaChangeListener> TOPIC = new Topic<>(
-        "GraphQL Schema Change Events",
-        GraphQLSchemaChangeListener.class,
-        Topic.BroadcastDirection.NONE
-    );
 
-    public static GraphQLSchemaChangeTracker getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, GraphQLSchemaChangeTracker.class);
+        private const val EVENT_PUBLISH_TIMEOUT = 300
+
+        @JvmStatic
+        fun getInstance(project: Project) = project.service<GraphQLSchemaContentTracker>()
     }
 
-    private final Project myProject;
-    private final SimpleModificationTracker myModificationTracker = new SimpleModificationTracker();
+    private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
+    private val myModificationTracker = SimpleModificationTracker()
 
-    public GraphQLSchemaChangeTracker(Project project) {
-        myProject = project;
-
-        PsiManager.getInstance(myProject).addPsiTreeChangeListener(new GraphQLSchemaPsiChangeListener(), this);
-
-        // also consider the schema changed when the underlying schema configuration files change
-        MessageBusConnection connection = myProject.getMessageBus().connect(this);
-        connection.subscribe(GraphQLConfigManager.TOPIC, this::schemaChanged);
+    init {
+        PsiManager.getInstance(myProject).addPsiTreeChangeListener(PsiChangeListener(), this)
     }
 
-    public void schemaChanged() {
-        LOG.debug("GraphQL schema cache invalidated", LOG.isTraceEnabled() ? new Throwable() : null);
+    fun schemaChanged() {
+        LOG.debug("GraphQL schema cache invalidated", if (LOG.isTraceEnabled) Throwable() else null)
 
-        ApplicationManager.getApplication().invokeLater(() -> {
-            myModificationTracker.incModificationCount();
-            myProject.getMessageBus().syncPublisher(GraphQLSchemaChangeTracker.TOPIC).onSchemaChanged();
-        }, ModalityState.NON_MODAL, myProject.getDisposed());
+        alarm.cancelAllRequests()
+        alarm.addRequest({
+            myModificationTracker.incModificationCount()
+            myProject.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
+        }, EVENT_PUBLISH_TIMEOUT)
     }
 
-    @NotNull
-    public ModificationTracker getSchemaModificationTracker() {
-        return myModificationTracker;
+    override fun getModificationCount(): Long {
+        return myModificationTracker.modificationCount
     }
 
-    @Override
-    public void dispose() {
-    }
+    override fun dispose() {}
 
     /**
      * always consider the schema changed when editing an endpoint file
@@ -88,71 +75,68 @@ public class GraphQLSchemaChangeTracker implements Disposable {
      * ignore the generic event which fires for all other cases above
      * if it's not the generic case, children have been replaced, e.g. using the commenter
      */
-    private class GraphQLSchemaPsiChangeListener extends PsiTreeChangeAdapter {
-        private void checkForSchemaChange(@NotNull PsiTreeChangeEvent event) {
-            if (myProject.isDisposed()) {
-                return;
+    private inner class PsiChangeListener : PsiTreeChangeAdapter() {
+        private fun checkForSchemaChange(event: PsiTreeChangeEvent) {
+            if (myProject.isDisposed) {
+                return
             }
-            if (event.getFile() instanceof GraphQLFile) {
+
+            if (event.file is GraphQLFile) {
                 if (affectsGraphQLSchema(event)) {
-                    schemaChanged();
+                    schemaChanged()
                 }
             }
-            if (event.getParent() instanceof PsiLanguageInjectionHost) {
-                GraphQLInjectionSearchHelper graphQLInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
-                if (graphQLInjectionSearchHelper != null && graphQLInjectionSearchHelper.isGraphQLLanguageInjectionTarget(event.getParent())) {
+
+            if (event.parent is PsiLanguageInjectionHost) {
+                val injectionHelper = GraphQLInjectionSearchHelper.getInstance()
+                if (injectionHelper != null && injectionHelper.isGraphQLLanguageInjectionTarget(event.parent)) {
                     // change in injection target
-                    schemaChanged();
+                    schemaChanged()
                 }
             }
-            if (event.getFile() instanceof JsonFile) {
-                boolean introspectionJsonUpdated = false;
-                if (event.getFile().getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL) != null) {
-                    introspectionJsonUpdated = true;
+
+            if (event.file is JsonFile) {
+                var introspectionJsonUpdated = false
+                if (event.file?.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL) != null) {
+                    introspectionJsonUpdated = true
                 } else {
-                    final VirtualFile virtualFile = event.getFile().getVirtualFile();
-                    if (virtualFile != null && Boolean.TRUE.equals(virtualFile.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON))) {
-                        introspectionJsonUpdated = true;
+                    val virtualFile = event.file?.virtualFile
+                    if (virtualFile?.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON) == true) {
+                        introspectionJsonUpdated = true
                     }
                 }
                 if (introspectionJsonUpdated) {
-                    schemaChanged();
+                    schemaChanged()
                 }
             }
         }
 
-        @Override
-        public void propertyChanged(@NotNull PsiTreeChangeEvent event) {
-            checkForSchemaChange(event);
+        override fun propertyChanged(event: PsiTreeChangeEvent) {
+            checkForSchemaChange(event)
         }
 
-        @Override
-        public void childAdded(@NotNull PsiTreeChangeEvent event) {
-            checkForSchemaChange(event);
+        override fun childAdded(event: PsiTreeChangeEvent) {
+            checkForSchemaChange(event)
         }
 
-        @Override
-        public void childRemoved(@NotNull PsiTreeChangeEvent event) {
-            checkForSchemaChange(event);
+        override fun childRemoved(event: PsiTreeChangeEvent) {
+            checkForSchemaChange(event)
         }
 
-        @Override
-        public void childMoved(@NotNull PsiTreeChangeEvent event) {
-            checkForSchemaChange(event);
+        override fun childMoved(event: PsiTreeChangeEvent) {
+            checkForSchemaChange(event)
         }
 
-        @Override
-        public void childReplaced(@NotNull PsiTreeChangeEvent event) {
-            checkForSchemaChange(event);
+        override fun childReplaced(event: PsiTreeChangeEvent) {
+            checkForSchemaChange(event)
         }
 
-        @Override
-        public void childrenChanged(@NotNull PsiTreeChangeEvent event) {
-            if (event instanceof PsiTreeChangeEventImpl) {
-                if (!((PsiTreeChangeEventImpl) event).isGenericChange()) {
+        override fun childrenChanged(event: PsiTreeChangeEvent) {
+            if (event is PsiTreeChangeEventImpl) {
+                if (!event.isGenericChange) {
                     // ignore the generic event which fires for all other cases above
                     // if it's not the generic case, children have been replaced, e.g. using the commenter
-                    checkForSchemaChange(event);
+                    checkForSchemaChange(event)
                 }
             }
         }
@@ -163,28 +147,30 @@ public class GraphQLSchemaChangeTracker implements Disposable {
          * @param event the event that occurred
          * @return true if the change can affect the declared schema
          */
-        private boolean affectsGraphQLSchema(@NotNull PsiTreeChangeEvent event) {
-            if (PsiTreeChangeEvent.PROP_FILE_NAME.equals(event.getPropertyName()) ||
-                PsiTreeChangeEvent.PROP_DIRECTORY_NAME.equals(event.getPropertyName())) {
+        private fun affectsGraphQLSchema(event: PsiTreeChangeEvent): Boolean {
+            if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName || PsiTreeChangeEvent.PROP_DIRECTORY_NAME == event.propertyName) {
                 // renamed and moves are likely to affect schema blobs etc.
-                return true;
+                return true
             }
-            final List<PsiElement> elements = Lists.newArrayList(
-                event.getParent(), event.getChild(), event.getNewChild(), event.getOldChild());
-            for (PsiElement element : elements) {
+            val elements = sequenceOf(event.parent, event.child, event.newChild, event.oldChild)
+            for (element in elements) {
                 if (element == null) {
-                    continue;
+                    continue
                 }
-                if (PsiTreeUtil.findFirstParent(element,
-                    parent -> parent instanceof GraphQLOperationDefinition ||
-                        parent instanceof GraphQLFragmentDefinition ||
-                        parent instanceof GraphQLTemplateDefinition) != null) {
+
+                val containingDeclaration = PsiTreeUtil.findFirstParent(element) {
+                    it is GraphQLOperationDefinition ||
+                        it is GraphQLFragmentDefinition ||
+                        it is GraphQLTemplateDefinition
+                }
+
+                if (containingDeclaration != null) {
                     // edits inside query, mutation, subscription, fragment etc. don't affect the schema
-                    return false;
+                    return false
                 }
             }
             // fallback to assume the schema can be affected by the edit
-            return true;
+            return true
         }
     }
 }

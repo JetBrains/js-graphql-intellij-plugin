@@ -12,9 +12,12 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.treeView.IndexComparator;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeTracker;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentChangeListener;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
@@ -28,6 +31,7 @@ import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.profile.ProfileChangeAdapter;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
@@ -57,14 +61,14 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
 
     private final Project myProject;
     private final MessageBusConnection myConnection;
-    private final GraphQLSchemaChangeTracker mySchemaChangeTracker;
+    private final ModificationTracker mySchemaModificationTracker;
     private SimpleTree myTree;
 
     public GraphQLSchemasPanel(@NotNull Project project) {
         myProject = project;
 
         myConnection = project.getMessageBus().connect(this);
-        mySchemaChangeTracker = GraphQLSchemaChangeTracker.getInstance(myProject);
+        mySchemaModificationTracker = GraphQLSchemaUtil.getSchemaModificationTracker(project);
 
         setLayout(new BorderLayout());
         add(createToolPanel(), BorderLayout.WEST);
@@ -128,7 +132,7 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
         final Runnable treeUpdater = () -> {
             final TreeUpdate updateToPerform = shouldUpdateTree.getAndSet(TreeUpdate.NONE);
             if (updateToPerform != TreeUpdate.NONE) {
-                final long startVersion = mySchemaChangeTracker.getSchemaModificationTracker().getModificationCount();
+                final long startVersion = mySchemaModificationTracker.getModificationCount();
                 myBuilder.cancelUpdate().doWhenProcessed(() -> {
                     application.executeOnPooledThread(() -> {
                         // run the schema discovery on a pooled to prevent blocking of the UI thread by asking the nodes for heir child nodes
@@ -145,7 +149,7 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
                                         node.getChildren();
                                     }
                                 }
-                                final long endVersion = mySchemaChangeTracker.getSchemaModificationTracker().getModificationCount();
+                                final long endVersion = mySchemaModificationTracker.getModificationCount();
                                 if (isInitialized.compareAndSet(false, true) || startVersion == endVersion) {
                                     // initial update or we're still on the same version
                                     // otherwise a new update is pending so don't need to call the updateFromRoot in this thread
@@ -166,8 +170,9 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
         Disposer.register(this, () -> IdeEventQueue.getInstance().removeIdleListener(treeUpdater));
 
         // update tree on schema or config changes
-        myConnection.subscribe(GraphQLSchemaChangeTracker.TOPIC, () -> shouldUpdateTree.compareAndSet(TreeUpdate.NONE, TreeUpdate.UPDATE));
-        myConnection.subscribe(GraphQLConfigManager.TOPIC, () -> shouldUpdateTree.set(TreeUpdate.REBUILD));
+        myConnection.subscribe(GraphQLSchemaContentChangeListener.TOPIC,
+            (GraphQLSchemaContentChangeListener) () -> shouldUpdateTree.compareAndSet(TreeUpdate.NONE, TreeUpdate.UPDATE));
+        myConnection.subscribe(GraphQLConfigListener.TOPIC, (GraphQLConfigListener) () -> shouldUpdateTree.set(TreeUpdate.REBUILD));
 
 
         // update tree in response to indexing changes
@@ -250,7 +255,11 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
             leftActionGroup.add(reRunAction);
         }
 
-        leftActionGroup.add(new AnAction("Edit Selected Schema Configuration", "Opens the .graphqlconfig file for the selected schema", AllIcons.General.Settings) {
+        leftActionGroup.add(new AnAction(
+            "Edit Selected Schema Configuration",
+            "Opens the .graphqlconfig file for the selected schema",
+            AllIcons.General.Settings
+        ) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 GraphQLConfigSchemaNode selectedSchemaNode = getSelectedSchemaNode();
@@ -275,13 +284,14 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
                 return null;
             }
         });
-        leftActionGroup.add(new AnAction("Restart Schema Discovery", "Performs GraphQL schema discovery across the project", AllIcons.Actions.Refresh) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                GraphQLSchemaChangeTracker.getInstance(myProject).schemaChanged();
-                GraphQLConfigManager.getService(myProject).buildConfigurationModel(null, null);
-            }
-        });
+        leftActionGroup.add(
+            new AnAction("Restart Schema Discovery", "Performs GraphQL schema discovery across the project", AllIcons.Actions.Refresh) {
+                @Override
+                public void actionPerformed(@NotNull AnActionEvent e) {
+                    GraphQLSchemaContentTracker.getInstance(myProject).schemaChanged();
+                    GraphQLConfigManager.getService(myProject).buildConfigurationModel(null, null);
+                }
+            });
         leftActionGroup.add(new AnAction("Help", "Open the GraphQL plugin documentation", AllIcons.Actions.Help) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {

@@ -5,18 +5,21 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.graphqlconfig;
+package com.intellij.lang.jsgraphql.ide.config
 
-/**
- * Events relating to GraphQL configuration (graphql-config .graphqlconfig files)
- */
-public interface GraphQLConfigurationListener {
+import com.intellij.util.messages.Topic
 
-    /**
-     * One or more changes occurred in the .graphqlconfig files
-     *
-     * @see GraphQLConfigManager
-     */
-    void onConfigurationChanged();
 
+interface GraphQLConfigListener {
+    companion object {
+        @JvmField
+        @Topic.ProjectLevel
+        val TOPIC = Topic(
+            "GraphQL Configuration File Change Events",
+            GraphQLConfigListener::class.java,
+            Topic.BroadcastDirection.NONE
+        )
+    }
+
+    fun onConfigurationChanged()
 }

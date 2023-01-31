@@ -1,44 +1,37 @@
-package com.intellij.lang.jsgraphql.ide.search.scope;
+package com.intellij.lang.jsgraphql.ide.search.scope
 
-import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectFileIndex;
-import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.search.DelegatingGlobalSearchScope;
-import com.intellij.psi.search.GlobalSearchScope;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.lang.jsgraphql.GraphQLFileType
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.DelegatingGlobalSearchScope
 
-public class GraphQLMetaInfSchemaSearchScope extends DelegatingGlobalSearchScope {
-    private final ProjectFileIndex myIndex;
+private const val META_INF_DIR = "META-INF/schema"
 
-    public GraphQLMetaInfSchemaSearchScope(@NotNull Project project) {
-        super(GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.allScope(project), GraphQLFileType.INSTANCE));
-        myIndex = ProjectRootManager.getInstance(project).getFileIndex();
-    }
+class GraphQLMetaInfSchemaSearchScope(project: Project) :
+    DelegatingGlobalSearchScope(getScopeRestrictedByFileTypes(allScope(project), GraphQLFileType.INSTANCE)) {
 
-    @Override
-    public boolean contains(@NotNull VirtualFile file) {
+    private val myIndex: ProjectFileIndex = ProjectRootManager.getInstance(project).fileIndex
+
+    override fun contains(file: VirtualFile): Boolean {
         return super.contains(file)
             && myIndex.isInLibrary(file)
             && myIndex.isInLibraryClasses(file)
-            && file.getParent() != null
-            && file.getParent().getPath().endsWith("META-INF/schema");
+            && file.parent != null
+            && file.parent.path.endsWith(META_INF_DIR)
     }
 
-    @Override
-    public boolean isSearchInModuleContent(@NotNull Module aModule) {
-        return false;
+    override fun isSearchInModuleContent(aModule: Module): Boolean {
+        return false
     }
 
-    @Override
-    public boolean isSearchInLibraries() {
-        return true;
+    override fun isSearchInLibraries(): Boolean {
+        return true
     }
 
-    @Override
-    public String toString() {
-        return "META-INF/schema files in Libraries in (" + myBaseScope + ")";
+    override fun toString(): String {
+        return "META-INF/schema files in Libraries in ($myBaseScope)"
     }
 }

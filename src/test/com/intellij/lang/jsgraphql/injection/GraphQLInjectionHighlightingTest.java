@@ -52,7 +52,8 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
         myFixture.checkHighlighting();
         final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
         assertEquals("Expected just one error", 1, highlighting.size());
-        assertEquals("Unknown fragment name should be the error", "OnlyTheUnknownFragmentShouldBeHighlightedAsError", highlighting.get(0).getText());
+        assertEquals("Unknown fragment name should be the error", "OnlyTheUnknownFragmentShouldBeHighlightedAsError",
+            highlighting.get(0).getText());
     }
 
     public void testErrorAnnotatorSourceLines1() {
@@ -114,7 +115,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
 
         List<PsiFile> psiFiles = new ArrayList<>();
         GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLPsiFiles(
-            myFixture.getFile(), GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
+            GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
         assertSize(1, psiFiles);
 
         PsiFile injectedFile = psiFiles.get(0);
@@ -128,7 +129,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
 
         List<PsiFile> psiFiles = new ArrayList<>();
         GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLPsiFiles(
-            myFixture.getFile(), GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
+            GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
         assertEmpty(psiFiles);
     }
 

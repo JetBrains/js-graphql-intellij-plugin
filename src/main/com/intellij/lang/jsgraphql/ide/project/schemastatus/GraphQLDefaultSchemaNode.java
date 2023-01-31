@@ -9,10 +9,8 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
-import com.intellij.lang.jsgraphql.psi.GraphQLFile;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -33,9 +31,7 @@ public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
         myName = "Default project-wide schema";
         getPresentation().setLocationString(project.getPresentableUrl());
         getPresentation().setIcon(GraphQLIcons.Files.GraphQLSchema);
-        final GraphQLFile defaultProjectFile = GraphQLPsiSearchHelper.getInstance(myProject).getDefaultProjectFile();
-        final GraphQLSchemaProvider registry = GraphQLSchemaProvider.getInstance(myProject);
-        mySchemaInfo = SlowOperations.allowSlowOperations(() -> registry.getSchemaInfo(defaultProjectFile));
+        mySchemaInfo = SlowOperations.allowSlowOperations(() -> GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(null));
     }
 
     @Override

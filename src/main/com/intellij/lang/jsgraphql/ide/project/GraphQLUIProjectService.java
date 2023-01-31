@@ -25,7 +25,7 @@ import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHig
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigurationListener;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigSecurity;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
@@ -82,7 +82,7 @@ import java.util.List;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, GraphQLConfigurationListener {
+public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, GraphQLConfigListener {
 
     public static final String GRAPH_QL_VARIABLES_JSON = "GraphQL.variables.json";
 
@@ -127,7 +127,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         }
 
         // listen for configuration changes
-        messageBusConnection.subscribe(GraphQLConfigManager.TOPIC, this);
+        messageBusConnection.subscribe(GraphQLConfigListener.TOPIC, this);
 
         // and notify to configure the schema
         project.putUserData(GraphQLParserDefinition.JSGRAPHQL_ACTIVATED, true);

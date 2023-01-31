@@ -7,11 +7,11 @@
  */
 package com.intellij.lang.jsgraphql.ide.startup
 
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigChangeTracker
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigWatcher
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener
 import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeTracker
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectPostStartupActivity
@@ -22,8 +22,8 @@ import com.intellij.openapi.startup.ProjectPostStartupActivity
 class GraphQLStartupActivity : ProjectPostStartupActivity {
     override suspend fun execute(project: Project) {
         // init mandatory services
-        GraphQLSchemaChangeTracker.getInstance(project)
-        GraphQLConfigChangeTracker.getInstance(project)
+        GraphQLSchemaContentTracker.getInstance(project)
+        GraphQLConfigWatcher.getInstance(project)
         GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
 
         if (!ApplicationManager.getApplication().isUnitTestMode) {

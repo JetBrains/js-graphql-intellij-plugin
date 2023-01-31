@@ -5,141 +5,136 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.schema;
+package com.intellij.lang.jsgraphql.schema
 
-import com.google.common.collect.Maps;
-import com.intellij.json.JsonFileType;
-import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
-import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
-import com.intellij.lang.jsgraphql.types.GraphQLException;
-import com.intellij.lang.jsgraphql.types.InvalidSyntaxError;
-import com.intellij.lang.jsgraphql.types.language.SourceLocation;
-import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.search.FileTypeIndex;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.TimeoutUtil;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.json.JsonFileType
+import com.intellij.lang.jsgraphql.GraphQLFileType
+import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager
+import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
+import com.intellij.lang.jsgraphql.ide.search.GraphQLScopeProvider
+import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil
+import com.intellij.lang.jsgraphql.types.GraphQLException
+import com.intellij.lang.jsgraphql.types.InvalidSyntaxError
+import com.intellij.lang.jsgraphql.types.language.SourceLocation
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
+import com.intellij.psi.search.FileTypeIndex
+import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.TimeoutUtil
+import com.intellij.util.containers.ContainerUtil
+import java.util.concurrent.ConcurrentMap
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+@Service
+class GraphQLRegistryProvider(project: Project) {
 
-public class GraphQLRegistryProvider implements Disposable {
+    companion object {
+        private val LOG = logger<GraphQLRegistryProvider>()
 
-    private static final Logger LOG = Logger.getInstance(GraphQLRegistryProvider.class);
-
-    private final GraphQLPsiSearchHelper graphQLPsiSearchHelper;
-    private final Project myProject;
-    private final GlobalSearchScope graphQLFilesScope;
-    private final GlobalSearchScope jsonIntrospectionScope;
-    private final PsiManager psiManager;
-    private final GraphQLConfigManager graphQLConfigManager;
-
-    private final Map<GlobalSearchScope, GraphQLRegistryInfo> scopeToRegistry = Maps.newConcurrentMap();
-
-    public static GraphQLRegistryProvider getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, GraphQLRegistryProvider.class);
+        @JvmStatic
+        fun getInstance(project: Project) = project.service<GraphQLRegistryProvider>()
     }
 
-    public GraphQLRegistryProvider(Project project) {
-        myProject = project;
-        graphQLFilesScope = GlobalSearchScope.getScopeRestrictedByFileTypes(GlobalSearchScope.allScope(project), GraphQLFileType.INSTANCE);
-        jsonIntrospectionScope = GlobalSearchScope
-            .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), JsonFileType.INSTANCE);
-        psiManager = PsiManager.getInstance(project);
-        graphQLPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
-        graphQLConfigManager = GraphQLConfigManager.getService(project);
+    private val psiManager = PsiManager.getInstance(project)
+    private val configManager = GraphQLConfigManager.getService(project)
+    private val scopeProvider = GraphQLScopeProvider.getInstance(project)
+    private val psiSearchHelper = GraphQLPsiSearchHelper.getInstance(project)
 
-        project.getMessageBus().connect(this).subscribe(GraphQLSchemaChangeTracker.TOPIC, scopeToRegistry::clear);
-    }
+    private val graphQLFilesScope = GlobalSearchScope.getScopeRestrictedByFileTypes(
+        GlobalSearchScope.allScope(project),
+        GraphQLFileType.INSTANCE,
+    )
+    private val jsonIntrospectionScope = GlobalSearchScope
+        .getScopeRestrictedByFileTypes(GlobalSearchScope.projectScope(project), JsonFileType.INSTANCE)
 
-    @NotNull
-    public GraphQLRegistryInfo getRegistryInfo(@NotNull PsiElement scopedElement) {
-        // Get the search scope that limits schema definition for the scoped element
-        GlobalSearchScope schemaScope = graphQLPsiSearchHelper.getResolveScope(scopedElement);
+    private val scopeToRegistryCache: CachedValue<ConcurrentMap<GlobalSearchScope, GraphQLRegistryInfo>> =
+        CachedValuesManager.getManager(project).createCachedValue {
+            CachedValueProvider.Result.create(
+                ContainerUtil.createConcurrentSoftMap(),
+                GraphQLSchemaUtil.getSchemaDependencies(project),
+            )
+        }
 
-        return scopeToRegistry.computeIfAbsent(schemaScope, s -> {
-            long start = System.nanoTime();
+    /**
+     * @param context pass null for a global scope
+     * @return registry for provided scope
+     */
+    fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
+        val schemaScope = scopeProvider.getResolveScope(context)
 
-            List<GraphQLException> errors = new ArrayList<>();
-            GraphQLSchemaDocumentProcessor processor = new GraphQLSchemaDocumentProcessor();
+        return scopeToRegistryCache.value.computeIfAbsent(schemaScope) {
+            val start = System.nanoTime()
+            val errors: MutableList<GraphQLException> = mutableListOf()
+            val processor = GraphQLSchemaDocumentProcessor()
 
             // GraphQL files
-            FileTypeIndex.processFiles(GraphQLFileType.INSTANCE, file -> {
-                PsiFile psiFile = psiManager.findFile(file);
+            FileTypeIndex.processFiles(GraphQLFileType.INSTANCE, {
+                val psiFile = psiManager.findFile(it)
                 if (psiFile != null) {
-                    processor.process(psiFile);
+                    processor.process(psiFile)
                 }
-                return true;
-            }, graphQLFilesScope.intersectWith(schemaScope));
+                true
+            }, graphQLFilesScope.intersectWith(schemaScope))
 
             // JSON GraphQL introspection result files
-            if (!graphQLConfigManager.getConfigurationsByPath().isEmpty()) {
+            if (configManager.configurationsByPath.isNotEmpty()) {
                 // need one or more configurations to be able to point "schemaPath" to relevant JSON files
                 // otherwise all JSON files would be in scope
                 FileTypeIndex.processFiles(
                     JsonFileType.INSTANCE,
-                    file -> processJsonFile(processor, file, errors),
+                    { processJsonFile(processor, it, errors) },
                     jsonIntrospectionScope.intersectWith(schemaScope)
-                );
+                )
             }
 
             // Injected GraphQL
-            graphQLPsiSearchHelper.processInjectedGraphQLPsiFiles(scopedElement, schemaScope, processor);
+            psiSearchHelper.processInjectedGraphQLPsiFiles(schemaScope, processor)
 
-            TypeDefinitionRegistry registry = processor.getCompositeRegistry().buildTypeDefinitionRegistry();
+            val registry = processor.compositeRegistry.buildTypeDefinitionRegistry()
 
-            if (LOG.isDebugEnabled()) {
-                long durationMillis = TimeoutUtil.getDurationMillis(start);
-                VirtualFile file = GraphQLPsiUtil.getPhysicalVirtualFile(scopedElement.getContainingFile());
-                String requester = file != null ? file.getPath() : "<unknown>";
-                LOG.debug(String.format("Registry build completed in %d ms, requester: %s", durationMillis, requester));
+            if (LOG.isDebugEnabled) {
+                val durationMillis = TimeoutUtil.getDurationMillis(start)
+                val file = context?.containingFile?.let { getPhysicalVirtualFile(it) }
+                val requester = file?.path ?: schemaScope.toString()
+                LOG.debug(String.format("Registry build completed in %d ms, requester: %s", durationMillis, requester))
             }
-            return new GraphQLRegistryInfo(registry, errors, processor.isProcessed());
-        });
 
+            GraphQLRegistryInfo(registry, errors, processor.isProcessed)
+        }
     }
 
-    private boolean processJsonFile(@NotNull GraphQLSchemaDocumentProcessor processor,
-                                    @NotNull VirtualFile file,
-                                    @NotNull List<GraphQLException> errors) {
+    private fun processJsonFile(
+        processor: GraphQLSchemaDocumentProcessor,
+        file: VirtualFile,
+        errors: MutableList<GraphQLException>
+    ): Boolean {
         // only JSON files that are directly referenced as "schemaPath" from the .graphqlconfig will be
         // considered within scope, so we can just go ahead and try to turn the JSON into GraphQL
-        final PsiFile psiFile = psiManager.findFile(file);
-        if (psiFile == null) {
-            return true;
-        }
-
+        val psiFile = psiManager.findFile(file) ?: return true
         try {
-            processor.process(GraphQLIntrospectionFilesManager.getOrCreateIntrospectionSDL(file, psiFile));
-        } catch (ProcessCanceledException e) {
-            throw e;
-        } catch (SchemaProblem e) {
-            errors.add(e);
-        } catch (Exception e) {
-            final List<SourceLocation> sourceLocation = Collections.singletonList(
-                new SourceLocation(1, 1, GraphQLPsiUtil.getFileName(psiFile)));
-            errors.add(new SchemaProblem(Collections.singletonList(new InvalidSyntaxError(sourceLocation, e.getMessage()))));
+            processor.process(GraphQLIntrospectionFilesManager.getOrCreateIntrospectionSDL(file, psiFile))
+        } catch (e: ProcessCanceledException) {
+            throw e
+        } catch (e: SchemaProblem) {
+            errors.add(e)
+        } catch (e: Exception) {
+            val sourceLocation = listOf(
+                SourceLocation(1, 1, GraphQLPsiUtil.getFileName(psiFile))
+            )
+            errors.add(SchemaProblem(listOf(InvalidSyntaxError(sourceLocation, e.message))))
         }
-        return true;
+        return true
     }
-
-    @Override
-    public void dispose() {
-    }
-
 }
+

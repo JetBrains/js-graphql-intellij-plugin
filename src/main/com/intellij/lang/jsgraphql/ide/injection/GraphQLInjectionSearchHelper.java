@@ -8,11 +8,13 @@
 package com.intellij.lang.jsgraphql.ide.injection;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.Processor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GraphQLInjectionSearchHelper {
@@ -29,11 +31,13 @@ public interface GraphQLInjectionSearchHelper {
     /**
      * Process injected GraphQL PsiFiles
      *
-     * @param scopedElement the starting point of the enumeration settings the scopedElement of the processing
+     * @param project       a project
      * @param schemaScope   the search scope to use for limiting the schema definitions
      * @param consumer      a consumer that will be invoked for each injected GraphQL PsiFile
      */
-    void processInjectedGraphQLPsiFiles(PsiElement scopedElement, GlobalSearchScope schemaScope, Processor<PsiFile> consumer);
+    void processInjectedGraphQLPsiFiles(@NotNull Project project,
+                                        @NotNull GlobalSearchScope schemaScope,
+                                        @NotNull Processor<PsiFile> consumer);
 
     /**
      * Inline-replaces the use of escaped string quotes which delimit GraphQL injections, e.g. an escaped backtick '\`'

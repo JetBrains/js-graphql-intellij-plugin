@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLReferenceService;
-import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper;
+import com.intellij.lang.jsgraphql.ide.search.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
@@ -55,7 +55,7 @@ public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl impl
         final GraphQLFile psiFile = ObjectUtils.tryCast(getContainingFile(), GraphQLFile.class);
         if (psiFile != null && InjectedLanguageManager.getInstance(getProject()).isInjectedFragment(psiFile)) {
             // this PSI element is part of injected GraphQL, so we have to expand the use scope which defaults to the current file only
-            useScope = useScope.union(GraphQLPsiSearchHelper.getInstance(getProject()).getResolveScope(this));
+            useScope = useScope.union(GraphQLScopeProvider.getInstance(getProject()).getResolveScope(this));
         }
         return useScope;
     }
