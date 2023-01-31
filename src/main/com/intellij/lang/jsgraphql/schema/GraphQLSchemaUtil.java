@@ -7,12 +7,16 @@
  */
 package com.intellij.lang.jsgraphql.schema;
 
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeCondition;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -241,5 +245,19 @@ public class GraphQLSchemaUtil {
             }
         }
         return false;
+    }
+
+    public static Collection<? extends ModificationTracker> getSchemaDependencies(@NotNull Project project) {
+        return Arrays.asList(
+            GraphQLSchemaContentTracker.getInstance(project),
+            GraphQLConfigProvider.getInstance(project),
+            VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
+        );
+    }
+
+    public static ModificationTracker getSchemaModificationTracker(@NotNull Project project) {
+        return () -> GraphQLSchemaContentTracker.getInstance(project).getModificationCount() +
+            GraphQLConfigProvider.getInstance(project).getModificationCount() +
+            VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS.getModificationCount();
     }
 }

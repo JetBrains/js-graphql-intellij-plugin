@@ -33,10 +33,10 @@ import java.util.concurrent.ConcurrentHashMap
 private const val SAVE_DOCUMENTS_TIMEOUT = 3000
 
 @Service
-class GraphQLConfigChangeTracker(private val project: Project) : Disposable {
+class GraphQLConfigWatcher(private val project: Project) : Disposable {
 
     companion object {
-        fun getInstance(project: Project) = project.service<GraphQLConfigChangeTracker>()
+        fun getInstance(project: Project) = project.service<GraphQLConfigWatcher>()
     }
 
     private val configProvider = GraphQLConfigProvider.getInstance(project)

@@ -99,6 +99,10 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return findConfigFile(context)?.let { getConfigForFile(it) }
     }
 
+    fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? {
+        return resolveConfig(context)?.matchProject(context)
+    }
+
     fun getConfigForFile(configFile: VirtualFile): GraphQLConfig? {
         return configData[configFile]?.config
     }
@@ -106,6 +110,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     fun getAllConfigs(): List<GraphQLConfig> {
         return configData.mapNotNull { it.value.config }
     }
+
+    val hasAnyConfigFiles
+        get() = configData.isNotEmpty()
 
     private fun findConfigFile(context: PsiFile): VirtualFile? {
         return CachedValuesManager.getCachedValue(context, CONFIG_FILE_KEY) {
@@ -194,6 +201,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             modificationTracker.incModificationCount()
             PsiManager.getInstance(project).dropPsiCaches()
             DaemonCodeAnalyzer.getInstance(project).restart()
+
+            project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()
         }
     }
 

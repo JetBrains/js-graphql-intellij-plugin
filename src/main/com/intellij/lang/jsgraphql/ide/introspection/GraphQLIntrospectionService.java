@@ -16,6 +16,7 @@ import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
@@ -107,7 +108,7 @@ public class GraphQLIntrospectionService implements Disposable {
         myProject = project;
 
         MessageBusConnection connection = project.getMessageBus().connect(this);
-        connection.subscribe(GraphQLConfigManager.TOPIC, () -> latestIntrospection = null);
+        connection.subscribe(GraphQLConfigListener.TOPIC, () -> latestIntrospection = null);
     }
 
     public void performIntrospectionQueryAndUpdateSchemaPathFile(Project project, GraphQLConfigEndpoint endpoint) {

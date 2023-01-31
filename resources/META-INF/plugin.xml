@@ -68,10 +68,6 @@
     <iconProvider implementation="com.intellij.lang.jsgraphql.icons.GraphQLIconProvider"/>
 
     <!-- Project services -->
-    <projectService serviceInterface="com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider"
-                    serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLSchemaProviderImpl"/>
-    <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLRegistryProvider"/>
-    <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.GraphQLSchemaChangeTracker"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.resolve.GraphQLReferenceService"/>
     <projectService
@@ -199,8 +195,6 @@
     <errorHandler implementation="com.intellij.lang.jsgraphql.ide.diagnostic.GraphQLSentryErrorReporter"/>
 
     <!-- Keys -->
-    <registryKey key="graphql.search.scope.libraries" defaultValue="true"
-                 description="Whether to search for schema definitions in libraries"/>
     <registryKey key="graphql.request.timeout" defaultValue="15000" description="GraphQL request timeout"/>
     <registryKey key="graphql.request.connect.timeout" defaultValue="5000" description="GraphQL request connection timeout"/>
 

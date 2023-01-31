@@ -19,6 +19,7 @@ import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
@@ -64,7 +65,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.messages.Topic;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -93,13 +93,6 @@ import static com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys.GRAPHQL_SCRAT
 public class GraphQLConfigManager implements Disposable {
 
     private final static Logger LOG = Logger.getInstance(GraphQLConfigManager.class);
-
-    @Topic.ProjectLevel
-    public final static Topic<GraphQLConfigurationListener> TOPIC = new Topic<>(
-        "GraphQL Configuration File Change Events",
-        GraphQLConfigurationListener.class,
-        Topic.BroadcastDirection.NONE
-    );
 
     public static final String ENDPOINTS_EXTENSION = "endpoints";
     public static final String SSL_EXTENSION = "sslConfiguration";
@@ -640,7 +633,7 @@ public class GraphQLConfigManager implements Disposable {
         LOG.debug("GraphQL configuration changed", LOG.isTraceEnabled() ? new Throwable() : null);
 
         ApplicationManager.getApplication().invokeLater(
-            () -> myProject.getMessageBus().syncPublisher(TOPIC).onConfigurationChanged(),
+            () -> myProject.getMessageBus().syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged(),
             ModalityState.NON_MODAL, myProject.getDisposed()
         );
     }

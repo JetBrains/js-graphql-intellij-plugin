@@ -5,15 +5,27 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.schema;
+package com.intellij.lang.jsgraphql.schema
+
+import com.intellij.util.messages.Topic
 
 /**
  * Events relating to GraphQL schemas
  */
-public interface GraphQLSchemaChangeListener {
+interface GraphQLSchemaContentChangeListener {
+
+    companion object {
+        @JvmField
+        @Topic.ProjectLevel
+        val TOPIC = Topic(
+            "GraphQL Schema Content Change Events",
+            GraphQLSchemaContentChangeListener::class.java,
+            Topic.BroadcastDirection.NONE
+        )
+    }
 
     /**
      * One or more GraphQL schema changes are likely based on changed to the PSI trees
      */
-    void onSchemaChanged();
+    fun onSchemaChanged()
 }

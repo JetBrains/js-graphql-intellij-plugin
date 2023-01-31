@@ -1,4 +1,5 @@
-@file:JvmName("GraphQLConfigUtils")
+@file:JvmName("GraphQLConfigUtil")
+
 package com.intellij.lang.jsgraphql.ide.config
 
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil
