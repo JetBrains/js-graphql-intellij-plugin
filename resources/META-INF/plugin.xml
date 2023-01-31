@@ -40,6 +40,8 @@
                     interface="com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesFileTypeContributor"/>
     <extensionPoint name="errorFilter" dynamic="true"
                     interface="com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter"/>
+    <extensionPoint name="configContributor" dynamic="true"
+                    interface="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.provider.GraphQLConfigContributor"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">

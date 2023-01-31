@@ -27,6 +27,7 @@ import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
+import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.provider.GraphQLConfigContributor;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
@@ -659,6 +660,13 @@ public class GraphQLConfigManager implements Disposable {
                     createParseErrorNotification(yamlFile, e);
                 }
             });
+        }
+
+        // Plugin contributed config files
+        final GraphQLConfigContributor[] configContributors = GraphQLConfigContributor.EP_NAME.getExtensions();
+        for (GraphQLConfigContributor configContributor : configContributors) {
+            Map<VirtualFile, GraphQLConfigData> configDataByPath = configContributor.getGraphQLConfigurationsByPath(myProject);
+            configDataByPath.forEach(newConfigPathToConfigurations::putIfAbsent);
         }
 
         // apply defaults to projects as spec'ed in https://github.com/kamilkisiela/graphql-config/tree/legacyspecification.md#default-configuration-properties
