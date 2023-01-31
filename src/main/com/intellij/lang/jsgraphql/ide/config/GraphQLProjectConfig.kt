@@ -4,19 +4,17 @@ import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
-import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiUtilCore
-import com.intellij.util.containers.ContainerUtil
 import java.io.File
-import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 class GraphQLProjectConfig(
     private val project: Project,
@@ -25,10 +23,6 @@ class GraphQLProjectConfig(
     private val rawConfig: GraphQLRawProjectConfig,
     private val parentConfig: GraphQLRawProjectConfig?,
 ) {
-    companion object {
-        private val MATCHES_CACHE_KEY =
-            Key.create<CachedValue<ConcurrentMap<GraphQLProjectConfig, Boolean>>>("graphql.project.config.matches")
-    }
 
     val schema: List<GraphQLSchemaPointer> = rawConfig.schema ?: parentConfig?.schema ?: emptyList()
 
@@ -43,21 +37,29 @@ class GraphQLProjectConfig(
 
     val exclude: List<String> = rawConfig.exclude ?: parentConfig?.exclude ?: emptyList()
 
-    fun match(context: PsiFile): Boolean {
-        val cache = getMatchesCache(context)
-        val cachedMatch = cache[this]
-        if (cachedMatch != null) {
-            return cachedMatch
+    private val matchingCache =
+        CachedValuesManager.getManager(project).createCachedValue {
+            CachedValueProvider.Result.create(
+                MatchingFilesCache(),
+                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+            )
         }
 
-        val result = matchImpl(context)
-        return cache.putIfAbsent(this, result) ?: result
+    fun match(context: PsiFile): Boolean {
+        return getPhysicalVirtualFile(context)?.let { match(it) } ?: false
     }
 
-    private fun matchImpl(context: PsiFile): Boolean {
-        // TODO: cover more cases for light files, injections and scratches
-        val virtualFile = PsiUtilCore.getVirtualFile(context) ?: return false
+    fun match(virtualFile: VirtualFile): Boolean {
+        val cache = matchingCache.value
+        val status = cache.getMatchResult(virtualFile)
+        if (status != MatchResult.UNKNOWN) {
+            return status == MatchResult.MATCHING
+        }
 
+        return matchImpl(virtualFile).also { cache.cacheResult(virtualFile, it) }
+    }
+
+    private fun matchImpl(virtualFile: VirtualFile): Boolean {
         val isSchemaOrDocument = sequenceOf(schema, documents).any { match(virtualFile, it) }
         if (isSchemaOrDocument) {
             return true;
@@ -92,17 +94,6 @@ class GraphQLProjectConfig(
         }
     }
 
-    private fun getMatchesCache(file: PsiFile): ConcurrentMap<GraphQLProjectConfig, Boolean> {
-        return CachedValuesManager.getCachedValue(file, MATCHES_CACHE_KEY) {
-            CachedValueProvider.Result.create(
-                ContainerUtil.createConcurrentWeakMap(),
-                file,
-                GraphQLConfigProvider.getInstance(project),
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-            )
-        }
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -125,5 +116,41 @@ class GraphQLProjectConfig(
         result = 31 * result + rawConfig.hashCode()
         result = 31 * result + (parentConfig?.hashCode() ?: 0)
         return result
+    }
+
+    private class MatchingFilesCache {
+        private val matchingFiles = VfsUtil.createCompactVirtualFileSet() // lock
+        private val excludedFiles = VfsUtil.createCompactVirtualFileSet() // lock
+        private val lock = ReentrantReadWriteLock()
+
+        fun getMatchResult(virtualFile: VirtualFile): MatchResult {
+            return lock.read {
+                if (matchingFiles.contains(virtualFile)) {
+                    MatchResult.MATCHING
+                } else if (excludedFiles.contains(virtualFile)) {
+                    MatchResult.EXCLUDED
+                } else {
+                    MatchResult.UNKNOWN
+                }
+            }
+        }
+
+        fun cacheResult(virtualFile: VirtualFile, isMatching: Boolean) {
+            lock.write {
+                if (!matchingFiles.contains(virtualFile) && !excludedFiles.contains(virtualFile)) {
+                    if (isMatching) {
+                        matchingFiles.add(virtualFile)
+                    } else {
+                        excludedFiles.add(virtualFile)
+                    }
+                }
+            }
+        }
+    }
+
+    private enum class MatchResult {
+        UNKNOWN,
+        MATCHING,
+        EXCLUDED,
     }
 }
