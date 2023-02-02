@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.ide.highlighting;
 
 import com.intellij.codeInsight.highlighting.HighlightErrorFilter;
 import com.intellij.json.psi.JsonFile;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
+import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;

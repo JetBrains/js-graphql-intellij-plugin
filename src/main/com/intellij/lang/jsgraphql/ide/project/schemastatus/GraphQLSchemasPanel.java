@@ -32,6 +32,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.ProfileChangeAdapter;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
@@ -263,8 +264,11 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 GraphQLConfigSchemaNode selectedSchemaNode = getSelectedSchemaNode();
-                if (selectedSchemaNode != null && selectedSchemaNode.getConfigFile() != null) {
-                    FileEditorManager.getInstance(myProject).openFile(selectedSchemaNode.getConfigFile(), true);
+                if (selectedSchemaNode != null) {
+                    VirtualFile configFile = selectedSchemaNode.getConfigFile();
+                    if (configFile != null) {
+                        FileEditorManager.getInstance(myProject).openFile(configFile, true);
+                    }
                 }
             }
 

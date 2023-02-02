@@ -1,5 +1,7 @@
-package com.intellij.lang.jsgraphql.ide.config
+package com.intellij.lang.jsgraphql.ide.config.model
 
+import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
+import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -12,13 +14,16 @@ import com.intellij.util.containers.ContainerUtil
 import java.util.*
 import java.util.concurrent.ConcurrentMap
 
-private const val DEFAULT_PROJECT = "default"
 
 class GraphQLConfig(
     private val project: Project,
-    val file: VirtualFile,
+    val dir: VirtualFile,
+    val file: VirtualFile?,
     private val rawConfig: GraphQLRawConfig,
 ) {
+    companion object {
+        const val DEFAULT_PROJECT = "default"
+    }
 
     private val projects: Map<String, GraphQLProjectConfig> = initProjects()
 
@@ -34,16 +39,12 @@ class GraphQLConfig(
         return if (rawConfig.projects.isEmpty()) {
             mapOf(
                 DEFAULT_PROJECT to GraphQLProjectConfig(
-                    project,
-                    file,
-                    DEFAULT_PROJECT,
-                    rawConfig.root,
-                    null
+                    project, dir, file, DEFAULT_PROJECT, rawConfig.root, null
                 )
             )
         } else {
             rawConfig.projects.mapValues { (name, config) ->
-                GraphQLProjectConfig(project, file, name, config, rawConfig.root)
+                GraphQLProjectConfig(project, dir, file, name, config, rawConfig.root)
             }
         }
     }
@@ -51,6 +52,21 @@ class GraphQLConfig(
     fun findProject(name: String? = null): GraphQLProjectConfig? {
         return if (name == null) getDefault() else projects[name]
     }
+
+    fun getProjects(): Map<String, GraphQLProjectConfig> {
+        return LinkedHashMap(projects)
+    }
+
+    fun getDefault(): GraphQLProjectConfig? {
+        return projects[DEFAULT_PROJECT]
+    }
+
+    fun hasOnlyDefaultProject(): Boolean {
+        return projects.size == 1 && getDefault() != null;
+    }
+
+    val isLegacy: Boolean
+        get() = isLegacyConfig(file)
 
     fun matchProject(context: PsiFile): GraphQLProjectConfig? {
         return getPhysicalVirtualFile(context)?.let { matchProject(it) }
@@ -83,14 +99,6 @@ class GraphQLConfig(
         return null
     }
 
-    fun getDefault(): GraphQLProjectConfig? {
-        return projects[DEFAULT_PROJECT]
-    }
-
-    fun isLegacy(): Boolean {
-        return isLegacyConfig(file)
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -113,6 +121,4 @@ class GraphQLConfig(
 
 }
 
-fun isLegacyConfig(file: VirtualFile): Boolean {
-    return file.name.lowercase() in LEGACY_CONFIG_NAMES
-}
+

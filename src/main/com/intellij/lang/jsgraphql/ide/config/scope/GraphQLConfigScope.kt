@@ -1,6 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.config.scope
 
-import com.intellij.lang.jsgraphql.ide.config.GraphQLProjectConfig
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.DelegatingGlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScope

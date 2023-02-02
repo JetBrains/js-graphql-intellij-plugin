@@ -9,11 +9,10 @@ package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.GraphQLFileType
-import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
-import com.intellij.lang.jsgraphql.ide.search.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil
 import com.intellij.lang.jsgraphql.types.GraphQLException
 import com.intellij.lang.jsgraphql.types.InvalidSyntaxError
@@ -32,7 +31,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.TimeoutUtil
 import com.intellij.util.containers.ContainerUtil
 import java.util.concurrent.ConcurrentMap
 
@@ -71,10 +69,11 @@ class GraphQLRegistryProvider(project: Project) {
      * @return registry for provided scope
      */
     fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
-        val schemaScope = scopeProvider.getResolveScope(context)
+        return getRegistryInfo(scopeProvider.getResolveScope(context))
+    }
 
+    fun getRegistryInfo(schemaScope: GlobalSearchScope): GraphQLRegistryInfo {
         return scopeToRegistryCache.value.computeIfAbsent(schemaScope) {
-            val start = System.nanoTime()
             val errors: MutableList<GraphQLException> = mutableListOf()
             val processor = GraphQLSchemaDocumentProcessor()
 
@@ -102,14 +101,6 @@ class GraphQLRegistryProvider(project: Project) {
             psiSearchHelper.processInjectedGraphQLPsiFiles(schemaScope, processor)
 
             val registry = processor.compositeRegistry.buildTypeDefinitionRegistry()
-
-            if (LOG.isDebugEnabled) {
-                val durationMillis = TimeoutUtil.getDurationMillis(start)
-                val file = context?.containingFile?.let { getPhysicalVirtualFile(it) }
-                val requester = file?.path ?: schemaScope.toString()
-                LOG.debug(String.format("Registry build completed in %d ms, requester: %s", durationMillis, requester))
-            }
-
             GraphQLRegistryInfo(registry, errors, processor.isProcessed)
         }
     }

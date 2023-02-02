@@ -71,7 +71,7 @@
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.resolve.GraphQLReferenceService"/>
     <projectService
-      serviceImplementation="com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService"/>
+      serviceImplementation="com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService"/>

@@ -7,23 +7,23 @@
  */
 package com.intellij.lang.jsgraphql.ide.introspection;
 
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
 
 /**
  * Represents an executable introspection query against a GraphQL endpoint
  */
 public class GraphQLIntrospectionTask {
 
-    private final GraphQLConfigVariableAwareEndpoint endpoint;
+    private final GraphQLConfigEndpoint endpoint;
     private final Runnable runnable;
 
-    public GraphQLIntrospectionTask(GraphQLConfigVariableAwareEndpoint endpoint, Runnable runnable) {
+    public GraphQLIntrospectionTask(GraphQLConfigEndpoint endpoint, Runnable runnable) {
 
         this.endpoint = endpoint;
         this.runnable = runnable;
     }
 
-    public GraphQLConfigVariableAwareEndpoint getEndpoint() {
+    public GraphQLConfigEndpoint getEndpoint() {
         return endpoint;
     }
 

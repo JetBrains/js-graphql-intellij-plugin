@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.ide.startup
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigWatcher
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener
-import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService
+import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project

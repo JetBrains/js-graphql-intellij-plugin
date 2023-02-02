@@ -21,21 +21,18 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher;
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.ServiceManager;
@@ -52,7 +49,6 @@ import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.newvfs.BulkFileListener;
@@ -290,9 +286,9 @@ public class GraphQLConfigManager implements Disposable {
      */
     @SuppressWarnings("unchecked")
     @NotNull
-    public List<GraphQLConfigEndpoint> getEndpoints(@NotNull VirtualFile virtualFile) {
+    public List<GraphQLRawEndpoint> getEndpoints(@NotNull VirtualFile virtualFile) {
         // NOTE: modifiable list since it powers the endpoint UI and must support item operations
-        List<GraphQLConfigEndpoint> emptyList = new ArrayList<>(1);
+        List<GraphQLRawEndpoint> emptyList = new ArrayList<>(1);
 
         if (myProject.isDisposed() || !GraphQLFileType.isGraphQLFile(myProject, virtualFile)) {
             return emptyList;
@@ -317,22 +313,22 @@ public class GraphQLConfigManager implements Disposable {
             final Object endpointsValue = extensions.get(ENDPOINTS_EXTENSION);
 
             if (endpointsValue instanceof Map) {
-                final List<GraphQLConfigEndpoint> result = Lists.newArrayList();
+                final List<GraphQLRawEndpoint> result = Lists.newArrayList();
                 ((Map<String, Object>) endpointsValue).forEach((key, value) -> {
                     if (value instanceof String) {
-                        result.add(new GraphQLConfigEndpoint(packageSet, key, (String) value));
+                        result.add(new GraphQLRawEndpoint(key, (String) value, false, Collections.emptyMap()));
                     } else if (value instanceof Map) {
                         final Map<String, Object> endpointAsMap = (Map<String, Object>) value;
                         final Object url = endpointAsMap.get("url");
                         if (url instanceof String) {
-                            GraphQLConfigEndpoint endpoint = new GraphQLConfigEndpoint(packageSet, key, (String) url);
+                            GraphQLRawEndpoint endpoint = new GraphQLRawEndpoint(key, (String) url, false, Collections.emptyMap());
                             Object headers = endpointAsMap.get("headers");
                             if (headers instanceof Map) {
-                                endpoint.headers = (Map<String, Object>) headers;
+                                endpoint.setHeaders((Map<String, Object>) headers);
                             }
                             Boolean introspect = (Boolean) endpointAsMap.get("introspect");
                             if (introspect != null) {
-                                endpoint.introspect = introspect;
+                                endpoint.setIntrospect(introspect);
                             }
                             result.add(endpoint);
                         }
@@ -639,65 +635,66 @@ public class GraphQLConfigManager implements Disposable {
     }
 
     private void introspectEndpoints() {
-        if (myProject.isDisposed()) return;
-        ProgressManager.checkCanceled();
-
-        final List<GraphQLResolvedConfigData> configDataList = Lists.newArrayList();
-        readLock.lock();
-        try {
-            for (GraphQLConfigData configData : configFilesToConfigurations.values()) {
-                configDataList.add(configData);
-                if (configData.projects != null) {
-                    configDataList.addAll(configData.projects.values());
-                }
-            }
-        } finally {
-            readLock.unlock();
-        }
-        configDataList.forEach(configData -> {
-            final GraphQLFile entryFile = getConfigurationEntryFile(configData);
-            final List<GraphQLConfigEndpoint> endpoints = getEndpoints(entryFile.getVirtualFile());
-            for (GraphQLConfigEndpoint endpoint : endpoints) {
-                if (Boolean.TRUE.equals(endpoint.introspect)) {
-                    // endpoint should be automatically introspected
-                    final String schemaPath = endpoint.configPackageSet.getConfigData().schemaPath;
-                    if (schemaPath != null && !schemaPath.trim().isEmpty()) {
-                        final Notification introspect = new Notification(
-                            GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
-                            GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.title"),
-                            GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.body", endpoint.name),
-                            NotificationType.INFORMATION
-                        ).setImportant(true);
-
-                        introspect.addAction(new NotificationAction(
-                            GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.action", endpoint.url)) {
-                            @Override
-                            public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                                GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(
-                                    myProject, endpoint);
-                            }
-                        });
-                        String schemaFilePath = endpoint.configPackageSet.getSchemaFilePath();
-                        if (schemaFilePath != null) {
-                            final VirtualFile schemaFile = LocalFileSystem.getInstance().findFileByPath(schemaFilePath);
-                            if (schemaFile != null) {
-                                introspect.addAction(new NotificationAction("Open schema file") {
-                                    @Override
-                                    public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                                        if (schemaFile.isValid()) {
-                                            FileEditorManager.getInstance(myProject).openFile(schemaFile, true);
-                                        } else {
-                                            notification.expire();
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                        Notifications.Bus.notify(introspect);
-                    }
-                }
-            }
-        });
+        // TODO: remove and replace with a proper implementation
+        // if (myProject.isDisposed()) return;
+        // ProgressManager.checkCanceled();
+        //
+        // final List<GraphQLResolvedConfigData> configDataList = Lists.newArrayList();
+        // readLock.lock();
+        // try {
+        //     for (GraphQLConfigData configData : configFilesToConfigurations.values()) {
+        //         configDataList.add(configData);
+        //         if (configData.projects != null) {
+        //             configDataList.addAll(configData.projects.values());
+        //         }
+        //     }
+        // } finally {
+        //     readLock.unlock();
+        // }
+        // configDataList.forEach(configData -> {
+        //     final GraphQLFile entryFile = getConfigurationEntryFile(configData);
+        //     final List<GraphQLConfigEndpoint> endpoints = getEndpoints(entryFile.getVirtualFile());
+        //     for (GraphQLConfigEndpoint endpoint : endpoints) {
+        //         if (Boolean.TRUE.equals(endpoint.getIntrospect())) {
+        //             // endpoint should be automatically introspected
+        //             final String schemaPath = endpoint.configPackageSet.getConfigData().schemaPath;
+        //             if (schemaPath != null && !schemaPath.trim().isEmpty()) {
+        //                 final Notification introspect = new Notification(
+        //                     GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+        //                     GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.title"),
+        //                     GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.body", endpoint.name),
+        //                     NotificationType.INFORMATION
+        //                 ).setImportant(true);
+        //
+        //                 introspect.addAction(new NotificationAction(
+        //                     GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.action", endpoint.url)) {
+        //                     @Override
+        //                     public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+        //                         GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQueryAndUpdateSchemaPathFile(
+        //                             myProject, endpoint);
+        //                     }
+        //                 });
+        //                 String schemaFilePath = endpoint.configPackageSet.getSchemaFilePath();
+        //                 if (schemaFilePath != null) {
+        //                     final VirtualFile schemaFile = LocalFileSystem.getInstance().findFileByPath(schemaFilePath);
+        //                     if (schemaFile != null) {
+        //                         introspect.addAction(new NotificationAction("Open schema file") {
+        //                             @Override
+        //                             public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+        //                                 if (schemaFile.isValid()) {
+        //                                     FileEditorManager.getInstance(myProject).openFile(schemaFile, true);
+        //                                 } else {
+        //                                     notification.expire();
+        //                                 }
+        //                             }
+        //                         });
+        //                     }
+        //                 }
+        //                 Notifications.Bus.notify(introspect);
+        //             }
+        //         }
+        //     }
+        // });
     }
 
     @Nullable

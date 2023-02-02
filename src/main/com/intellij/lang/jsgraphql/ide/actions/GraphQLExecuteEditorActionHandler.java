@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.actions;
 
-import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
+import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Caret;

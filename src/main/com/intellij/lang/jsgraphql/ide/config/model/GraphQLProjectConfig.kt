@@ -1,5 +1,7 @@
-package com.intellij.lang.jsgraphql.ide.config
+package com.intellij.lang.jsgraphql.ide.config.model
 
+import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
+import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
@@ -20,7 +22,8 @@ import kotlin.concurrent.write
 
 class GraphQLProjectConfig(
     private val project: Project,
-    val file: VirtualFile,
+    val dir: VirtualFile,
+    val file: VirtualFile?,
     val name: String,
     private val rawConfig: GraphQLRawProjectConfig,
     private val parentConfig: GraphQLRawProjectConfig?,
@@ -40,6 +43,12 @@ class GraphQLProjectConfig(
     val exclude: List<String> = rawConfig.exclude ?: parentConfig?.exclude ?: emptyList()
 
     val scope = GraphQLConfigScope(GlobalSearchScope.projectScope(project), this)
+
+    private val endpointsLazy: Lazy<List<GraphQLConfigEndpoint>> = lazy { buildEndpoints() }
+
+    val endpoints = endpointsLazy.value
+
+    val isDefault = name == GraphQLConfig.DEFAULT_PROJECT
 
     private val matchingCache =
         CachedValuesManager.getManager(project).createCachedValue {
@@ -82,7 +91,7 @@ class GraphQLProjectConfig(
             is List<*> -> pointer.any { match(candidate, it) }
 
             is String -> {
-                val path = VfsUtil.findRelativePath(file, candidate, File.separatorChar)
+                val path = VfsUtil.findRelativePath(dir, candidate, File.separatorChar)
                     ?.let { FileUtil.toCanonicalPath(it) } ?: return false
                 val glob = FileUtil.toCanonicalPath(pointer)
                 GraphQLConfigGlobMatcher.getInstance(project).matches(path, glob)
@@ -98,6 +107,13 @@ class GraphQLProjectConfig(
         }
     }
 
+    val isLegacy
+        get() = isLegacyConfig(file)
+
+    private fun buildEndpoints(): List<GraphQLConfigEndpoint> {
+        TODO("Not yet implemented")
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -105,6 +121,7 @@ class GraphQLProjectConfig(
         other as GraphQLProjectConfig
 
         if (project != other.project) return false
+        if (dir != other.dir) return false
         if (file != other.file) return false
         if (name != other.name) return false
         if (rawConfig != other.rawConfig) return false
@@ -115,7 +132,8 @@ class GraphQLProjectConfig(
 
     override fun hashCode(): Int {
         var result = project.hashCode()
-        result = 31 * result + file.hashCode()
+        result = 31 * result + dir.hashCode()
+        result = 31 * result + (file?.hashCode() ?: 0)
         result = 31 * result + name.hashCode()
         result = 31 * result + rawConfig.hashCode()
         result = 31 * result + (parentConfig?.hashCode() ?: 0)
