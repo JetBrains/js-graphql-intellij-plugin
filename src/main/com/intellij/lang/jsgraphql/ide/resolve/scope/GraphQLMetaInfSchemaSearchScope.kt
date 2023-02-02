@@ -1,4 +1,4 @@
-package com.intellij.lang.jsgraphql.ide.search.scope
+package com.intellij.lang.jsgraphql.ide.resolve.scope
 
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.openapi.module.Module

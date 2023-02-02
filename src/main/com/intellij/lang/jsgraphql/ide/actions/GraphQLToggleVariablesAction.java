@@ -8,8 +8,8 @@
 package com.intellij.lang.jsgraphql.ide.actions;
 
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
+import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.ToggleAction;
@@ -31,13 +31,9 @@ public class GraphQLToggleVariablesAction extends ToggleAction {
     @Override
     public void update(@NotNull AnActionEvent e) {
         final Editor editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE);
-        if(editor != null) {
+        if (editor != null) {
             final GraphQLEndpointsModel endpointsModel = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL);
-            if (endpointsModel == null || endpointsModel.getSelectedItem() == null) {
-                e.getPresentation().setEnabled(false);
-            } else {
-                e.getPresentation().setEnabled(true);
-            }
+            e.getPresentation().setEnabled(endpointsModel != null && endpointsModel.getSelectedItem() != null);
         }
     }
 
@@ -57,7 +53,7 @@ public class GraphQLToggleVariablesAction extends ToggleAction {
         if (variablesEditor != null) {
 
             final Editor queryEditor = variablesEditor.getUserData(GraphQLUIProjectService.GRAPH_QL_QUERY_EDITOR);
-            if(queryEditor == null) {
+            if (queryEditor == null) {
                 // not linked to a query editor
                 return;
             }

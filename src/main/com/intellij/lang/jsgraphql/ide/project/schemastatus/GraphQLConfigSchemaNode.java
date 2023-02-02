@@ -10,21 +10,20 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
-import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLNamedScope;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigData;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLResolvedConfigData;
-import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -35,89 +34,76 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 /**
- * Tree node that represents the a graphql-config schema
+ * Tree node that represents a graphql-config schema
  */
 public class GraphQLConfigSchemaNode extends CachingSimpleNode {
 
-    private final GraphQLSchemaInfo mySchemaInfo;
-    private final GraphQLConfigManager configManager;
-    private final GraphQLResolvedConfigData configData;
-    private final VirtualFile configBaseDir;
-    private final VirtualFile configFile;
+    private final GraphQLConfig myConfig;
+    private final @Nullable GraphQLProjectConfig myProjectConfig;
+    private final @Nullable GraphQLSchemaInfo mySchemaInfo;
+    private final @Nullable List<GraphQLConfigEndpoint> myEndpoints;
+    private final boolean myPerformSchemaDiscovery;
+    private final boolean myIsProjectLevelNode;
 
-    @Nullable
-    private final List<GraphQLConfigEndpoint> endpoints;
-    private final GraphQLFile configurationEntryFile;
-
-    private Map<String, GraphQLResolvedConfigData> projectsConfigData;
-    private boolean performSchemaDiscovery = true;
-
-    protected GraphQLConfigSchemaNode(Project project,
-                                      SimpleNode parent,
-                                      GraphQLConfigManager configManager,
-                                      GraphQLResolvedConfigData configData,
-                                      VirtualFile configBaseDir) {
+    protected GraphQLConfigSchemaNode(@NotNull Project project,
+                                      @NotNull SimpleNode parent,
+                                      @NotNull GraphQLConfig config,
+                                      @Nullable GraphQLProjectConfig projectConfig) {
         super(project, parent);
-        this.configManager = configManager;
-        this.configData = configData;
-        this.configBaseDir = configBaseDir;
-        this.configFile = configManager.getClosestConfigFile(configBaseDir);
-        if (configData.name != null && !configData.name.isEmpty()) {
-            myName = configData.name;
-        } else {
-            // use the last part of the folder as name
-            myName = StringUtils.substringAfterLast(configBaseDir.getPath(), "/");
-        }
+        myConfig = config;
+        // use the last part of the folder as name
+        myName = StringUtils.substringAfterLast(config.getDir().getPath(), "/");
+        myIsProjectLevelNode = projectConfig != null;
 
         getPresentation().setIcon(GraphQLIcons.Files.GraphQLSchema);
+        getPresentation().setLocationString(config.getDir().getPresentableUrl());
 
-        if (configData instanceof GraphQLConfigData) {
-            getPresentation().setLocationString(configBaseDir.getPresentableUrl());
-            projectsConfigData = ((GraphQLConfigData) configData).projects;
-            // this node is only considered a "real" schema that should be discovered if the config file doesn't use projects
-            // if the config uses projects we can't do discovery at the root level as that's likely to consider multiple distinct schemas
-            // as one with resulting re-declaration errors during validation
-            performSchemaDiscovery = projectsConfigData == null || projectsConfigData.isEmpty();
+        GraphQLProjectConfig defaultProjectConfig = null;
+        if (!myIsProjectLevelNode && config.hasOnlyDefaultProject()) {
+            defaultProjectConfig = config.getDefault();
         }
 
-        if (performSchemaDiscovery) {
-            final GraphQLSchemaProvider registry = GraphQLSchemaProvider.getInstance(myProject);
-            configurationEntryFile = configManager.getConfigurationEntryFile(configData);
-            endpoints = GraphQLFileType.isGraphQLFile(project, configurationEntryFile.getVirtualFile())
-                ? configManager.getEndpoints(configurationEntryFile.getVirtualFile()) : null;
-            mySchemaInfo = SlowOperations.allowSlowOperations(() -> registry.getSchemaInfo(configurationEntryFile));
+        // this node is only considered a "real" schema that should be discovered if the config file doesn't use projects
+        // if the config uses projects we can't do discovery at the root level as that's likely to consider multiple distinct schemas
+        // as one with resulting re-declaration errors during validation
+        myPerformSchemaDiscovery = myIsProjectLevelNode || defaultProjectConfig != null;
+
+        if (myPerformSchemaDiscovery) {
+            myProjectConfig = projectConfig != null ? projectConfig : defaultProjectConfig;
+            myEndpoints = myProjectConfig.getEndpoints();
+            mySchemaInfo = SlowOperations.allowSlowOperations(() -> ReadAction.compute(() -> {
+                GlobalSearchScope scope = GraphQLScopeProvider.getInstance(project).getResolveScope(myProjectConfig);
+                return scope != null ? GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope) : null;
+            }));
         } else {
+            myEndpoints = null;
             mySchemaInfo = null;
-            endpoints = null;
-            configurationEntryFile = null;
+            myProjectConfig = null;
         }
     }
 
     /**
      * Gets whether this node contains a schema that includes the specified file
      */
-    public boolean representsFile(VirtualFile virtualFile) {
+    public boolean representsFile(@Nullable VirtualFile virtualFile) {
         if (virtualFile != null) {
-            if (virtualFile.equals(configFile)) {
+            if (virtualFile.equals(getConfigFile())) {
                 return true;
             }
-            if (performSchemaDiscovery) {
-                final GraphQLNamedScope schemaScope = configManager.getSchemaScope(configurationEntryFile.getVirtualFile());
-                if (schemaScope != null) {
-                    if (schemaScope.getPackageSet().includesVirtualFile(virtualFile)) {
-                        return true;
-                    }
+            if (myPerformSchemaDiscovery) {
+                GlobalSearchScope scope = GraphQLScopeProvider.getInstance(myProject).getResolveScope(myProjectConfig);
+                if (scope != null) {
+                    return scope.contains(virtualFile);
                 }
             }
         }
         return false;
     }
 
-    public VirtualFile getConfigFile() {
-        return configFile;
+    public @Nullable VirtualFile getConfigFile() {
+        return myProjectConfig != null ? myProjectConfig.getFile() : null;
     }
 
     @Override
@@ -130,31 +116,30 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     @Override
     public SimpleNode[] buildChildren() {
         final List<SimpleNode> children = Lists.newArrayList();
-        if (performSchemaDiscovery) {
+        if (myPerformSchemaDiscovery && mySchemaInfo != null) {
             children.add(new GraphQLSchemaContentNode(this, mySchemaInfo));
             if (mySchemaInfo.getRegistryInfo().isProcessedGraphQL()) {
                 children.add(new GraphQLSchemaErrorsListNode(this, mySchemaInfo));
             }
         }
-        if (projectsConfigData != null && !projectsConfigData.isEmpty()) {
+        if (!myIsProjectLevelNode && !myConfig.hasOnlyDefaultProject()) {
             children.add(new GraphQLConfigProjectsNode(this));
         }
-        if (endpoints != null) {
-            final String projectKey = this.configData instanceof GraphQLConfigData ? null : this.configData.name;
-            children.add(new GraphQLSchemaEndpointsListNode(this, projectKey, endpoints));
+        if (myProjectConfig != null && myEndpoints != null) {
+            final String projectKey = myProjectConfig.getName();
+            children.add(new GraphQLSchemaEndpointsListNode(this, projectKey, myEndpoints));
         }
         return children.toArray(SimpleNode.NO_CHILDREN);
     }
 
     @Override
     public boolean isAutoExpandNode() {
-        return representsCurrentFile() || !performSchemaDiscovery;
+        return representsCurrentFile() || !myPerformSchemaDiscovery;
     }
 
-    @NotNull
     @Override
-    public Object[] getEqualityObjects() {
-        return new Object[]{configData, mySchemaInfo};
+    public Object @NotNull [] getEqualityObjects() {
+        return new Object[]{myConfig, mySchemaInfo};
     }
 
     private boolean representsCurrentFile() {
@@ -170,7 +155,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
 
         private final GraphQLConfigSchemaNode parent;
 
-        public GraphQLConfigProjectsNode(GraphQLConfigSchemaNode parent) {
+        public GraphQLConfigProjectsNode(@NotNull GraphQLConfigSchemaNode parent) {
             super(parent.myProject, parent);
             this.parent = parent;
             myName = "Projects";
@@ -179,11 +164,12 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
 
         @Override
         public SimpleNode[] buildChildren() {
-            if (parent.projectsConfigData != null) {
+            GraphQLConfig config = parent.myConfig;
+            if (config != null) {
                 try {
-                    return parent.projectsConfigData.values().stream().map(config -> {
-                        return new GraphQLConfigSchemaNode(myProject, this, parent.configManager, config, parent.configBaseDir);
-                    }).toArray(SimpleNode[]::new);
+                    return config.getProjects().values().stream()
+                        .map(projectConfig -> new GraphQLConfigSchemaNode(myProject, this, config, projectConfig))
+                        .toArray(SimpleNode[]::new);
                 } catch (IndexNotReadyException ignored) {
                     // entered "dumb" mode, so just return no children as the tree view will be rebuilt as empty shortly (GraphQLSchemasRootNode)
                 }

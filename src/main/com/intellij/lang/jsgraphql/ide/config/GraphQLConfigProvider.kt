@@ -2,6 +2,8 @@ package com.intellij.lang.jsgraphql.ide.config
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigLoader
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
@@ -29,38 +31,8 @@ import com.intellij.psi.util.PsiUtil
 import com.intellij.util.Alarm
 import com.intellij.util.CommonProcessors
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.util.concurrent.ConcurrentHashMap
-
-val LEGACY_CONFIG_NAMES: Set<String> = linkedSetOf(
-    ".graphqlconfig",
-    ".graphqlconfig.json",
-    ".graphqlconfig.yaml",
-    ".graphqlconfig.yml",
-)
-
-val MODERN_CONFIG_NAMES: Set<String> = linkedSetOf(
-//    "graphql.config.ts",
-//    "graphql.config.js",
-//    "graphql.config.cjs",
-    "graphql.config.json",
-    "graphql.config.yaml",
-    "graphql.config.yml",
-//    "graphql.config.toml",
-    ".graphqlrc",
-//    ".graphqlrc.ts",
-//    ".graphqlrc.js",
-//    ".graphqlrc.cjs",
-    ".graphqlrc.json",
-    ".graphqlrc.yml",
-    ".graphqlrc.yaml",
-//    ".graphqlrc.toml",
-//    "package.json",
-)
-
-val CONFIG_NAMES: Set<String> = LinkedHashSet<String>().apply {
-    addAll(MODERN_CONFIG_NAMES)
-    addAll(LEGACY_CONFIG_NAMES)
-}
 
 private const val CONFIG_RELOAD_TIMEOUT = 3000
 
@@ -95,15 +67,23 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         )
     }
 
-    fun resolveConfig(context: PsiFile): GraphQLConfig? {
-        return findConfigFile(context)?.let { getConfigForFile(it) }
-    }
+    @RequiresReadLock
+    fun resolveConfig(context: PsiFile): GraphQLConfig? =
+        findConfigFile(context)?.let { getConfig(it) }
 
-    fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? {
-        return resolveConfig(context)?.matchProject(context)
-    }
+    @RequiresReadLock
+    fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? =
+        resolveConfig(context)?.matchProject(context)
 
-    fun getConfigForFile(configFile: VirtualFile): GraphQLConfig? {
+    @RequiresReadLock
+    fun resolveConfig(file: VirtualFile): GraphQLConfig? =
+        PsiManager.getInstance(project).findFile(file)?.let { resolveConfig(it) }
+
+    @RequiresReadLock
+    fun resolveProjectConfig(virtualFile: VirtualFile): GraphQLProjectConfig? =
+        PsiManager.getInstance(project).findFile(virtualFile)?.let { resolveProjectConfig(it) }
+
+    fun getConfig(configFile: VirtualFile?): GraphQLConfig? {
         return configData[configFile]?.config
     }
 
@@ -114,7 +94,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     val hasAnyConfigFiles
         get() = configData.isNotEmpty()
 
-    private fun findConfigFile(context: PsiFile): VirtualFile? {
+    @RequiresReadLock
+    fun findConfigFile(context: PsiFile): VirtualFile? {
         return CachedValuesManager.getCachedValue(context, CONFIG_FILE_KEY) {
             val configFile = findConfigFileInParents(context)
             CachedValueProvider.Result.create(configFile, context, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
@@ -137,6 +118,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return result
     }
 
+    @RequiresReadLock
     fun findConfigFileInDirectory(dir: VirtualFile): VirtualFile? {
         if (!dir.isDirectory) return null
 
@@ -167,9 +149,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
         for (file in files) {
             ProgressManager.checkCanceled()
-            if (!file.isValid) {
+            val dir = file.parent.takeIf { it.isValid && it.isDirectory }
+            if (!file.isValid || dir == null) {
                 continue
             }
+
             val timeStamp = file.timeStamp
             val cached = configData[file]
             if (cached?.timeStamp == timeStamp) {
@@ -180,7 +164,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             val entry = if (rawConfig == null) {
                 ConfigEntry(null, timeStamp)
             } else {
-                ConfigEntry(GraphQLConfig(project, file, rawConfig), timeStamp)
+                ConfigEntry(GraphQLConfig(project, dir, file, rawConfig), timeStamp)
             }
 
             hasChanged = true

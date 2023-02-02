@@ -4,6 +4,7 @@ import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
@@ -16,7 +17,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ObjectUtils;
-import com.intellij.lang.jsgraphql.types.GraphQLException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,12 +37,13 @@ public class GraphQLNotificationUtil {
         );
 
         if (introspectionSourceFile != null) {
-            notification.addAction(new NotificationAction(introspectionSourceFile.getName()) {
-                @Override
-                public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                    FileEditorManager.getInstance(project).openFile(introspectionSourceFile, true);
-                }
-            });
+            notification.addAction(
+                new NotificationAction(GraphQLBundle.message("graphql.notification.open.file", introspectionSourceFile.getName())) {
+                    @Override
+                    public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+                        FileEditorManager.getInstance(project).openFile(introspectionSourceFile, true);
+                    }
+                });
         }
 
         Notifications.Bus.notify(notification);
@@ -87,7 +88,8 @@ public class GraphQLNotificationUtil {
                                                                @NotNull Runnable retry) {
         if (!(e instanceof GraphQLException)) return;
 
-        notification.setContent(GraphQLBundle.message("graphql.notification.introspection.spec.error.body", GraphQLNotificationUtil.formatExceptionMessage(e)));
+        notification.setContent(
+            GraphQLBundle.message("graphql.notification.introspection.spec.error.body", GraphQLNotificationUtil.formatExceptionMessage(e)));
         addRetryWithoutDefaultValuesAction(notification, settings, retry);
     }
 
@@ -96,7 +98,8 @@ public class GraphQLNotificationUtil {
                                                            @NotNull Runnable retry) {
         if (settings.isEnableIntrospectionDefaultValues()) {
             // suggest retrying without the default values as they're a common cause of spec compliance issues
-            NotificationAction retryWithoutDefaultValues = new NotificationAction(GraphQLBundle.message("graphql.notification.retry.without.defaults")) {
+            NotificationAction retryWithoutDefaultValues = new NotificationAction(
+                GraphQLBundle.message("graphql.notification.retry.without.defaults")) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                     settings.setEnableIntrospectionDefaultValues(false);

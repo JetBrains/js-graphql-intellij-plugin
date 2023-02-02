@@ -9,9 +9,11 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.util.SlowOperations;
@@ -26,12 +28,15 @@ public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
 
     private final GraphQLSchemaInfo mySchemaInfo;
 
-    protected GraphQLDefaultSchemaNode(Project project, GraphQLSchemasRootNode graphQLSchemasRootNode) {
-        super(project, graphQLSchemasRootNode);
+    protected GraphQLDefaultSchemaNode(@NotNull Project project, @NotNull GraphQLSchemasRootNode parent) {
+        super(project, parent);
         myName = "Default project-wide schema";
         getPresentation().setLocationString(project.getPresentableUrl());
         getPresentation().setIcon(GraphQLIcons.Files.GraphQLSchema);
-        mySchemaInfo = SlowOperations.allowSlowOperations(() -> GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(null));
+        mySchemaInfo = SlowOperations.allowSlowOperations(() -> {
+            GlobalSearchScope globalScope = GraphQLScopeProvider.getInstance(project).getGlobalScope();
+            return GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(globalScope);
+        });
     }
 
     @Override

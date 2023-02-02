@@ -17,6 +17,7 @@ import com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;

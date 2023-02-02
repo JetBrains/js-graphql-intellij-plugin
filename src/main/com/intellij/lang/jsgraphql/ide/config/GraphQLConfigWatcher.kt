@@ -61,7 +61,7 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
                 var configurationsChanged = false
                 val watchedDirs = configProvider.getAllConfigs()
                     .asSequence()
-                    .mapNotNull { it.file.parent }
+                    .map { it.dir }
                     .filter { it.isValid && it.isDirectory }
                     .toSet()
 

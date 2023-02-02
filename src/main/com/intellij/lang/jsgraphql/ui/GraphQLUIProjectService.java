@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project;
+package com.intellij.lang.jsgraphql.ui;
 
 import com.google.gson.*;
 import com.intellij.codeInsight.CodeSmellInfo;
@@ -20,15 +20,16 @@ import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigSecurity;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigVariableAwareEndpoint;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
 import com.intellij.notification.NotificationType;
@@ -169,7 +170,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         myUpdateUIAlarm.addRequest(() -> {
             if (myProject.isDisposed()) return;
             final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
-            final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(myProject);
+            final GraphQLConfigProvider configProvider = GraphQLConfigProvider.getInstance(myProject);
             List<VirtualFile> files = ReadAction.compute(
                 () -> Arrays.stream(fileEditorManager.getOpenFiles())
                     .filter(f -> GraphQLFileType.isGraphQLFile(myProject, f))
@@ -178,8 +179,10 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
             if (myProject.isDisposed()) return;
 
             for (VirtualFile file : files) {
-                List<GraphQLConfigEndpoint> endpoints =
-                    ReadAction.compute(() -> graphQLConfigManager.getEndpoints(file));
+                List<GraphQLConfigEndpoint> endpoints = ReadAction.compute(() -> {
+                    GraphQLProjectConfig config = configProvider.resolveProjectConfig(file);
+                    return config != null ? config.getEndpoints() : Collections.emptyList();
+                });
 
                 ApplicationManager.getApplication().invokeLater(() -> ReadAction.run(() -> {
                     for (FileEditor editor : fileEditorManager.getEditors(file)) {
@@ -200,7 +203,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     // -- editor header component --
 
     private void insertEditorHeaderComponentIfApplicable(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        if (file.getFileType() == GraphQLFileType.INSTANCE || GraphQLFileType.isGraphQLScratchFile(source.getProject(), file)) {
+        if (GraphQLFileType.isGraphQLFile(myProject, file)) {
             UIUtil.invokeLaterIfNeeded(() -> { // ensure components are created on the swing thread
                 FileEditor fileEditor = source.getSelectedEditor(file);
                 if (fileEditor instanceof TextEditor) {
@@ -208,7 +211,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                     if (editor.getHeaderComponent() instanceof GraphQLEditorHeaderComponent) {
                         return;
                     }
-                    final JComponent headerComponent = createEditorHeaderComponent(fileEditor, editor, file);
+                    final JComponent headerComponent = createEditorHeaderComponent(editor, file);
                     editor.setHeaderComponent(headerComponent);
                     if (editor instanceof EditorEx) {
                         ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
@@ -221,7 +224,9 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     private static class GraphQLEditorHeaderComponent extends EditorHeaderComponent {
     }
 
-    private JComponent createEditorHeaderComponent(FileEditor fileEditor, Editor editor, VirtualFile file) {
+    private JComponent createEditorHeaderComponent(@NotNull Editor editor, @NotNull VirtualFile file) {
+        GraphQLProjectConfig config = ReadAction.compute(() -> GraphQLConfigProvider.getInstance(myProject).resolveProjectConfig(file));
+        List<GraphQLConfigEndpoint> endpoints = config != null ? config.getEndpoints() : Collections.emptyList();
 
         final GraphQLEditorHeaderComponent headerComponent = new GraphQLEditorHeaderComponent();
 
@@ -240,9 +245,9 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         final JComponent queryToolbar = createToolbar(queryActions, headerComponent);
 
         // configured endpoints combo box
-        final List<GraphQLConfigEndpoint> endpoints = GraphQLConfigManager.getService(myProject).getEndpoints(file);
+
         final GraphQLEndpointsModel endpointsModel = new GraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
-        final ComboBox endpointComboBox = new ComboBox(endpointsModel);
+        final ComboBox<?> endpointComboBox = new ComboBox(endpointsModel);
         endpointComboBox.setToolTipText("GraphQL endpoint");
         editor.putUserData(GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
         final JPanel endpointComboBoxPanel = new JPanel(new BorderLayout());
@@ -304,59 +309,62 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
     public void executeGraphQL(Editor editor, VirtualFile virtualFile) {
         final GraphQLEndpointsModel endpointsModel = editor.getUserData(GRAPH_QL_ENDPOINTS_MODEL);
-        if (endpointsModel != null) {
-            final GraphQLConfigEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
-            if (selectedEndpoint != null && selectedEndpoint.url != null) {
-                final GraphQLConfigVariableAwareEndpoint endpoint = new GraphQLConfigVariableAwareEndpoint(selectedEndpoint, myProject, virtualFile);
-                final GraphQLQueryContext context = GraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
-
-                Map<String, Object> requestData = new HashMap<>();
-                requestData.put("query", context.query);
-                try {
-                    requestData.put("variables", getQueryVariables(editor));
-                } catch (JsonSyntaxException jse) {
-                    Editor errorEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
-                    String errorMessage = jse.getMessage();
-                    if (errorEditor != null) {
-                        errorEditor.getContentComponent().grabFocus();
-                        final VirtualFile errorFile = FileDocumentManager.getInstance().getFile(errorEditor.getDocument());
-                        if (errorFile != null) {
-                            final List<CodeSmellInfo> errors = CodeSmellDetector.getInstance(myProject).findCodeSmells(Collections.singletonList(errorFile));
-                            for (CodeSmellInfo error : errors) {
-                                errorMessage = error.getDescription();
-                                errorEditor.getCaretModel().moveToOffset(error.getTextRange().getStartOffset());
-                                break;
-                            }
-                        }
-                    } else {
-                        errorEditor = editor;
-                    }
-                    final HintManagerImpl hintManager = HintManagerImpl.getInstanceImpl();
-                    final JComponent label = HintUtil.createErrorLabel("Failed to parse variables as JSON:\n" + errorMessage);
-                    final LightweightHint lightweightHint = new LightweightHint(label);
-                    final Point hintPosition = hintManager.getHintPosition(lightweightHint, errorEditor, HintManager.UNDER);
-                    hintManager.showEditorHint(lightweightHint, editor, hintPosition, 0, 10000, false, HintManager.UNDER);
-                    return;
-                }
-                String requestJson = createQueryJsonSerializer().toJson(requestData);
-                final String url = endpoint.getUrl();
-                try {
-                    final HttpPost request = GraphQLIntrospectionService.createRequest(endpoint, url, requestJson);
-                    //noinspection DialogTitleCapitalization
-                    final Task.Backgroundable task = new Task.Backgroundable(myProject, "Executing GraphQL", false) {
-                        @Override
-                        public void run(@NotNull ProgressIndicator indicator) {
-                            indicator.setIndeterminate(true);
-                            runQuery(editor, virtualFile, context, url, request);
-                        }
-                    };
-                    ProgressManager.getInstance().run(task);
-                } catch (IllegalStateException | IllegalArgumentException e) {
-                    GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.ERROR, null);
-                }
-
-            }
+        if (endpointsModel == null) {
+            return;
         }
+        final GraphQLConfigEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
+        if (selectedEndpoint == null || selectedEndpoint.getUrl() == null) {
+            return;
+        }
+
+        final GraphQLQueryContext context = GraphQLQueryContextHighlightVisitor.getQueryContextBufferAndHighlightUnused(editor);
+
+        Map<String, Object> requestData = new HashMap<>();
+        requestData.put("query", context.query);
+        try {
+            requestData.put("variables", getQueryVariables(editor));
+        } catch (JsonSyntaxException jse) {
+            Editor errorEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
+            String errorMessage = jse.getMessage();
+            if (errorEditor != null) {
+                errorEditor.getContentComponent().grabFocus();
+                final VirtualFile errorFile = FileDocumentManager.getInstance().getFile(errorEditor.getDocument());
+                if (errorFile != null) {
+                    final List<CodeSmellInfo> errors = CodeSmellDetector.getInstance(myProject).findCodeSmells(
+                        Collections.singletonList(errorFile));
+                    for (CodeSmellInfo error : errors) {
+                        errorMessage = error.getDescription();
+                        errorEditor.getCaretModel().moveToOffset(error.getTextRange().getStartOffset());
+                        break;
+                    }
+                }
+            } else {
+                errorEditor = editor;
+            }
+            final HintManagerImpl hintManager = HintManagerImpl.getInstanceImpl();
+            final JComponent label = HintUtil.createErrorLabel("Failed to parse variables as JSON:\n" + errorMessage);
+            final LightweightHint lightweightHint = new LightweightHint(label);
+            final Point hintPosition = hintManager.getHintPosition(lightweightHint, errorEditor, HintManager.UNDER);
+            hintManager.showEditorHint(lightweightHint, editor, hintPosition, 0, 10000, false, HintManager.UNDER);
+            return;
+        }
+        String requestJson = createQueryJsonSerializer().toJson(requestData);
+        final String url = selectedEndpoint.getUrl();
+        try {
+            final HttpPost request = GraphQLIntrospectionService.createRequest(selectedEndpoint, url, requestJson);
+            //noinspection DialogTitleCapitalization
+            final Task.Backgroundable task = new Task.Backgroundable(myProject, "Executing GraphQL", false) {
+                @Override
+                public void run(@NotNull ProgressIndicator indicator) {
+                    indicator.setIndeterminate(true);
+                    runQuery(editor, virtualFile, context, url, request);
+                }
+            };
+            ProgressManager.getInstance().run(task);
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.ERROR, null);
+        }
+
     }
 
     private void runQuery(Editor editor, VirtualFile virtualFile, GraphQLQueryContext context, String url, HttpPost request) {
@@ -378,7 +386,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                     sw.stop();
                 }
 
-                final boolean reformatJson = contentType != null && contentType.getValue() != null && contentType.getValue().startsWith("application/json");
+                final boolean reformatJson = contentType != null && contentType.getValue() != null &&
+                    contentType.getValue().startsWith("application/json");
                 final Integer errorCount = getErrorCount(responseJson);
                 ApplicationManager.getApplication().invokeLater(() -> {
                     TextEditor queryResultEditor = GraphQLToolWindow.getQueryResultEditor(myProject);
@@ -515,12 +524,13 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         return String.format("%.1f %sb", bytes / Math.pow(1000, exp), pre);
     }
 
-    public static void setHeadersFromOptions(GraphQLConfigVariableAwareEndpoint endpoint, HttpRequest request) {
+    public static void setHeadersFromOptions(GraphQLConfigEndpoint endpoint, HttpRequest request) {
         final Map<String, Object> headers = endpoint.getHeaders();
-        if (headers != null) {
-            for (Map.Entry<String, Object> entry : headers.entrySet()) {
-                request.setHeader(entry.getKey(), String.valueOf(entry.getValue()));
-            }
+        for (Map.Entry<String, Object> entry : headers.entrySet()) {
+            Object value = entry.getValue();
+            if (value == null) continue;
+
+            request.setHeader(entry.getKey(), String.valueOf(value));
         }
     }
 

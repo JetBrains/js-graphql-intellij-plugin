@@ -26,7 +26,7 @@ public class GraphQLSchemaErrorsListNode extends CachingSimpleNode {
 
     private final GraphQLSchemaInfo mySchemaInfo;
 
-    public GraphQLSchemaErrorsListNode(SimpleNode parent, GraphQLSchemaInfo schemaInfo) {
+    public GraphQLSchemaErrorsListNode(@NotNull SimpleNode parent, @NotNull GraphQLSchemaInfo schemaInfo) {
         super(parent);
         mySchemaInfo = schemaInfo;
         myName = "Schema errors";

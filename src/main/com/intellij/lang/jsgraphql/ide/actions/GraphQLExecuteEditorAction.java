@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.ide.actions;
 import com.intellij.icons.AllIcons;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.project.GraphQLUIProjectService;
+import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
