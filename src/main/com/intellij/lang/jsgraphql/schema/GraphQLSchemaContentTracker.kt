@@ -14,6 +14,8 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -56,11 +58,17 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
     fun schemaChanged() {
         LOG.debug("GraphQL schema cache invalidated", if (LOG.isTraceEnabled) Throwable() else null)
 
-        alarm.cancelAllRequests()
-        alarm.addRequest({
-            myModificationTracker.incModificationCount()
-            myProject.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
-        }, EVENT_PUBLISH_TIMEOUT)
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+            invokeLater { notifySchemaContentChanged() }
+        } else {
+            alarm.cancelAllRequests()
+            alarm.addRequest(::notifySchemaContentChanged, EVENT_PUBLISH_TIMEOUT)
+        }
+    }
+
+    private fun notifySchemaContentChanged() {
+        myModificationTracker.incModificationCount()
+        myProject.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
     }
 
     override fun getModificationCount(): Long {

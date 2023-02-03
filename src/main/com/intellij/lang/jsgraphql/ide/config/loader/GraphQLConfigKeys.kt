@@ -14,4 +14,6 @@ object GraphQLConfigKeys {
     const val LEGACY_EXTENSIONS = EXTENSIONS
 
     const val SCHEMA_HEADERS = "headers"
+
+    const val EXTENSION_ENDPOINTS = "endpoints"
 }

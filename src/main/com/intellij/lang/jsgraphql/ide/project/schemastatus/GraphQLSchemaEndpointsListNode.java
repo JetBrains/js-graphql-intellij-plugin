@@ -35,7 +35,7 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Optional;
 
-import static com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager.GRAPHQLCONFIG_COMMENT;
+import static com.intellij.lang.jsgraphql.ide.config.GraphQLConfigConstants.GRAPHQLCONFIG_COMMENT;
 import static com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL;
 
 /**
@@ -103,8 +103,8 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
                                     .performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
                             } else if (createScratch.equals(selectedValue)) {
                                 final String configBaseDir = endpoint.getDir().getPresentableUrl();
-                                final String text = "# " + GRAPHQLCONFIG_COMMENT + configBaseDir + "!" + Optional.ofNullable(
-                                    projectKey).orElse("") + "\n\nquery ScratchQuery {\n\n}";
+                                final String text = "# " + GRAPHQLCONFIG_COMMENT + configBaseDir + "!" +
+                                    Optional.ofNullable(projectKey).orElse("") + "\n\nquery ScratchQuery {\n\n}";
                                 final VirtualFile scratchFile = ScratchRootType.getInstance().createScratchFile(myProject,
                                     "scratch.graphql", GraphQLLanguage.INSTANCE, text);
                                 if (scratchFile != null) {

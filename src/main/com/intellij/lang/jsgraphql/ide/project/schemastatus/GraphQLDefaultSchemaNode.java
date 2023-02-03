@@ -12,6 +12,7 @@ import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
@@ -22,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * Tree node that represents the default project schema when no .graphqlconfig files exist
+ * Tree node that represents the default project schema when no config files exist
  */
 public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
 
@@ -33,10 +34,10 @@ public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
         myName = "Default project-wide schema";
         getPresentation().setLocationString(project.getPresentableUrl());
         getPresentation().setIcon(GraphQLIcons.Files.GraphQLSchema);
-        mySchemaInfo = SlowOperations.allowSlowOperations(() -> {
+        mySchemaInfo = SlowOperations.allowSlowOperations(() -> ReadAction.compute(() -> {
             GlobalSearchScope globalScope = GraphQLScopeProvider.getInstance(project).getGlobalScope();
             return GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(globalScope);
-        });
+        }));
     }
 
     @Override

@@ -28,7 +28,7 @@ data class GraphQLRawProjectConfig(
 
 data class GraphQLSchemaPointer(
     val pathOrUrl: String,
-    val headers: Map<String, String> = emptyMap()
+    val headers: Map<String, Any?> = emptyMap()
 ) {
     val isRemote: Boolean = URLUtil.canContainUrl(pathOrUrl)
 }
@@ -37,5 +37,5 @@ data class GraphQLRawEndpoint(
     var name: String? = null,
     var url: String? = null,
     var introspect: Boolean = false,
-    var headers: Map<String, Any> = emptyMap()
+    var headers: Map<String, Any?> = emptyMap()
 )

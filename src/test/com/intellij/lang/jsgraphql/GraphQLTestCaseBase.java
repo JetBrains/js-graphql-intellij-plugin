@@ -2,18 +2,20 @@ package com.intellij.lang.jsgraphql;
 
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalInspectionTool;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.*;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLIdentifierImpl;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,9 +50,10 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
         return GraphQLTestUtils.getTestDataPath(getBasePath());
     }
 
-    protected void loadConfiguration() {
-        // use the synchronous method of building the configuration for the unit test
-        GraphQLConfigManager.getService(getProject()).doBuildConfigurationModel(null);
+    protected void reloadConfiguration() {
+        ApplicationManager.getApplication().assertIsDispatchThread();
+        GraphQLConfigProvider.getInstance(getProject()).scheduleConfigurationReload();
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     }
 
     protected void doHighlightingTest() {

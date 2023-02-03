@@ -12,11 +12,11 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.treeView.IndexComparator;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentChangeListener;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -243,7 +243,7 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
                 final TreeDirectoryChooserDialog dialog = new TreeDirectoryChooserDialog(myProject, "Select GraphQL Schema Base Directory");
                 if (dialog.showAndGet()) {
                     if (dialog.getSelectedDirectory() != null) {
-                        final GraphQLConfigManager configManager = GraphQLConfigManager.getService(myProject);
+                        final GraphQLConfigFactory configManager = GraphQLConfigFactory.getInstance(myProject);
                         configManager.createAndOpenConfigFile(dialog.getSelectedDirectory(), true);
                         ApplicationManager.getApplication().saveAll();
                     }
@@ -258,7 +258,7 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
 
         leftActionGroup.add(new AnAction(
             "Edit Selected Schema Configuration",
-            "Opens the .graphqlconfig file for the selected schema",
+            "Opens the GraphQL config file for the selected schema",
             AllIcons.General.Settings
         ) {
             @Override
@@ -292,14 +292,13 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
             new AnAction("Restart Schema Discovery", "Performs GraphQL schema discovery across the project", AllIcons.Actions.Refresh) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e) {
-                    GraphQLSchemaContentTracker.getInstance(myProject).schemaChanged();
-                    GraphQLConfigManager.getService(myProject).buildConfigurationModel(null, null);
+                    GraphQLConfigProvider.getInstance(myProject).invalidate();
                 }
             });
         leftActionGroup.add(new AnAction("Help", "Open the GraphQL plugin documentation", AllIcons.Actions.Help) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                BrowserUtil.browse("https://github.com/jimkyndemeyer/js-graphql-intellij-plugin");
+                BrowserUtil.browse("https://github.com/JetBrains/js-graphql-intellij-plugin");
             }
         });
 

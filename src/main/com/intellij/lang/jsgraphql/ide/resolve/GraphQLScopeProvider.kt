@@ -87,7 +87,7 @@ class GraphQLScopeProvider(private val project: Project) {
             val configProvider = GraphQLConfigProvider.getInstance(project)
             val projectConfig = configProvider.resolveProjectConfig(file)
             val scope = getResolveScope(projectConfig)
-                ?: globalScope.takeUnless { configProvider.hasAnyConfigFiles }
+                ?: globalScope.takeUnless { configProvider.hasConfigurationFiles }
                 ?: GlobalSearchScope.fileScope(file)
 
             CachedValueProvider.Result.create(

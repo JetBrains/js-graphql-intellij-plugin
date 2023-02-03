@@ -75,7 +75,7 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
                         throw e;
                     } catch (Exception e) {
                         Notification notification = new Notification(
-                            GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                            GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
                             GraphQLBundle.message("graphql.notification.introspection.error.title"),
                             GraphQLNotificationUtil.formatExceptionMessage(e),
                             NotificationType.ERROR

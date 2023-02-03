@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.frameworks.relay;
 
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
@@ -24,7 +23,6 @@ import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.ui.EditorNotifications;
 import com.intellij.util.concurrency.NonUrgentExecutor;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +55,7 @@ public class GraphQLRelayModernEnableStartupActivity implements StartupActivity 
                             final String packageJson = IOUtils.toString(inputStream, virtualFile.getCharset());
                             if (packageJson.contains("\"react-relay\"") || packageJson.contains("\"relay-compiler\"")) {
                                 final Notification enableRelayModern = new Notification(
-                                    GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                                    GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
                                     "Relay Modern project detected",
                                     "<a href=\"enable\">Enable Relay Modern</a> GraphQL tooling",
                                     NotificationType.INFORMATION,

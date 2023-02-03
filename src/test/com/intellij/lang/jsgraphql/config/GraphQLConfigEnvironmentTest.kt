@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model
+package com.intellij.lang.jsgraphql.config
 
 import com.google.gson.Gson
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase

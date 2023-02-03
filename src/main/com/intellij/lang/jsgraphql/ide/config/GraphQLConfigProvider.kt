@@ -69,7 +69,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     @RequiresReadLock
     fun resolveConfig(context: PsiFile): GraphQLConfig? =
-        findConfigFile(context)?.let { getConfig(it) }
+        findClosestConfigFile(context)?.let { getConfig(it) }
 
     @RequiresReadLock
     fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? =
@@ -91,14 +91,14 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return configData.mapNotNull { it.value.config }
     }
 
-    val hasAnyConfigFiles
+    val hasConfigurationFiles
         get() = configData.isNotEmpty()
 
     @RequiresReadLock
-    fun findConfigFile(context: PsiFile): VirtualFile? {
+    fun findClosestConfigFile(context: PsiFile): VirtualFile? {
         return CachedValuesManager.getCachedValue(context, CONFIG_FILE_KEY) {
             val configFile = findConfigFileInParents(context)
-            CachedValueProvider.Result.create(configFile, context, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
+            CachedValueProvider.Result.create(configFile, context, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
         }
     }
 
@@ -125,13 +125,24 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return CachedValuesManager.getManager(project).getCachedValue(dir, CONFIG_FILE_IN_DIRECTORY_KEY, {
             val candidates = dir.children.filter { it.name in CONFIG_NAMES }.associateBy { it.name }
             val configFile = CONFIG_NAMES.find { it in candidates }?.let { candidates[it] }
-            CachedValueProvider.Result.create(configFile, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
+            CachedValueProvider.Result.create(configFile, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
         }, false)
+    }
+
+    @JvmOverloads
+    fun invalidate(configFile: VirtualFile? = null) {
+        if (configFile != null) {
+            configData.remove(configFile)
+        } else {
+            configData.clear()
+        }
+
+        scheduleConfigurationReload()
     }
 
     fun scheduleConfigurationReload() {
         if (ApplicationManager.getApplication().isUnitTestMode) {
-            reload()
+            invokeLater { reload() }
         } else {
             alarm.cancelAllRequests()
             alarm.addRequest({

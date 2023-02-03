@@ -2,7 +2,8 @@ package com.intellij.lang.jsgraphql.ide.actions;
 
 import com.intellij.ide.IdeView;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigConstants;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -15,7 +16,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 public class GraphQLCreateConfigFileAction extends AnAction {
 
     public GraphQLCreateConfigFileAction() {
-        super("GraphQL Configuration File", "Creates a new GraphQL Configuration file (.graphqlconfig)", GraphQLIcons.Logos.GraphQL);
+        super("GraphQL Configuration File", "Creates a new GraphQL configuration file", GraphQLIcons.Logos.GraphQL);
     }
 
     @Override
@@ -23,7 +24,7 @@ public class GraphQLCreateConfigFileAction extends AnAction {
         if (e.getProject() != null) {
             final VirtualFile virtualFile = getActionDirectory(e);
             if (virtualFile != null) {
-                GraphQLConfigManager.getService(e.getProject()).createAndOpenConfigFile(virtualFile, true);
+                GraphQLConfigFactory.getInstance(e.getProject()).createAndOpenConfigFile(virtualFile, true);
                 ApplicationManager.getApplication().saveAll();
             }
         }
@@ -42,7 +43,7 @@ public class GraphQLCreateConfigFileAction extends AnAction {
                 if (module != null) {
                     final VirtualFile actionDirectory = getActionDirectory(e);
                     if (actionDirectory != null) {
-                        isAvailable = actionDirectory.findChild(GraphQLConfigManager.GRAPHQLCONFIG) == null;
+                        isAvailable = actionDirectory.findChild(GraphQLConfigConstants.GRAPHQLCONFIG) == null;
                     }
                 }
             }

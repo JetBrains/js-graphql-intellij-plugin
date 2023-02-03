@@ -2,6 +2,8 @@ package com.intellij.lang.jsgraphql.ide.config.model
 
 import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
+import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigKeys
+import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
@@ -15,6 +17,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.util.asSafely
 import java.io.File
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -110,8 +113,49 @@ class GraphQLProjectConfig(
     val isLegacy
         get() = isLegacyConfig(file)
 
+    @Suppress("UNCHECKED_CAST")
     private fun buildEndpoints(): List<GraphQLConfigEndpoint> {
-        TODO("Not yet implemented")
+        val endpointsMap =
+            extensions[GraphQLConfigKeys.EXTENSION_ENDPOINTS] as? Map<String, Any?> ?: return emptyList()
+
+        return endpointsMap.mapNotNull { (endpointName: String, value: Any?) ->
+            when (value) {
+                is String -> {
+                    GraphQLRawEndpoint(
+                        endpointName,
+                        value as String?,
+                        false,
+                        emptyMap(),
+                    )
+                }
+
+                is Map<*, *> -> {
+                    val endpointObject = value as Map<String, Any?>
+                    val url = endpointObject["url"]
+                    if (url is String) {
+                        GraphQLRawEndpoint(
+                            endpointName,
+                            url,
+                            endpointObject["introspect"] as Boolean? ?: false,
+                            endpointObject["headers"].asSafely<Map<String, Any?>>() ?: emptyMap()
+                        )
+                    } else {
+                        null
+                    }
+                }
+
+                else -> null
+            }
+        }.map {
+            GraphQLConfigEndpoint(
+                project,
+                it,
+                dir,
+                GraphQLConfigPointer(file, name),
+                isLegacy,
+                false
+            )
+        }
     }
 
     override fun equals(other: Any?): Boolean {

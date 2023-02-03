@@ -56,7 +56,7 @@ public abstract class GraphQLResolveTestCaseBase extends GraphQLTestCaseBase {
         assertTrue(refOffset >= 0);
 
         PsiFile psiFile = prepareFile(fileName, text);
-        loadConfiguration();
+        reloadConfiguration();
         PsiElement target = findElementAndResolve(psiFile);
         assertEquals(target.getTextOffset(), refOffset);
         assertInstanceOf(target, PsiNamedElement.class);
