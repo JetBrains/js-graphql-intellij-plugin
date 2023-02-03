@@ -32,8 +32,9 @@ class GraphQLConfigEndpoint(
     val headers: Map<String, Any?>
         get() = expandVariables(project, data.headers, dir, isLegacy, isUIContext)
 
-    val file: VirtualFile?
-        get() = configPointer?.file
+    val file: VirtualFile? = configPointer?.file
+
+    val introspect = data.introspect
 
     fun copyWithUIContext(newContext: Boolean): GraphQLConfigEndpoint =
         if (newContext == isUIContext) this else GraphQLConfigEndpoint(project, data, dir, configPointer, isLegacy, newContext)
