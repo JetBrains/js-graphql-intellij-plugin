@@ -10,8 +10,10 @@ package com.intellij.lang.jsgraphql.ide.actions;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigUtil;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
@@ -28,6 +30,7 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.ui.CollectionComboBoxModel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
@@ -45,7 +48,7 @@ import java.util.stream.Collectors;
 
 public class GraphQLEditConfigAction extends AnAction {
 
-    private static final String SETTINGS_TOOLTIP = "Edit .graphqlconfig file (GraphQL project structure and endpoints)";
+    private static final String SETTINGS_TOOLTIP = "Edit GraphQL configuration file";
 
     public GraphQLEditConfigAction() {
         super(SETTINGS_TOOLTIP, SETTINGS_TOOLTIP, AllIcons.General.Settings);
@@ -63,39 +66,48 @@ public class GraphQLEditConfigAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         final Project project = e.getData(CommonDataKeys.PROJECT);
+        PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
+        if (psiFile == null) {
+            return;
+        }
         final VirtualFile virtualFile = GraphQLPsiUtil.getPhysicalVirtualFile(e.getData(CommonDataKeys.VIRTUAL_FILE));
         if (project == null || virtualFile == null) {
             return;
         }
 
-        final GraphQLConfigManager configManager = GraphQLConfigManager.getService(project);
-        final VirtualFile configFile = configManager.getClosestConfigFile(virtualFile);
+        final GraphQLConfigProvider provider = GraphQLConfigProvider.getInstance(project);
+        final VirtualFile configFile = provider.findClosestConfigFile(psiFile);
         if (configFile != null) {
             final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
             fileEditorManager.openFile(configFile, true, true);
         } else {
             // no config associated, ask to create one
-            String message = "Searched current and parent directories.<br><a href=\"create\">Create .graphqlconfig file</a>";
+            String message = "Searched current and parent directories.<br><a href=\"create\">Create GraphQL configuration file</a>";
             Notifications.Bus.notify(new Notification(
-                GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
-                "No .graphqlconfig file found",
+                GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
+                "No GraphQL configuration file found",
                 message,
                 NotificationType.INFORMATION,
-                (notification, event) -> createConfig(project, virtualFile, configManager, notification)
+                (notification, event) -> createConfig(project, psiFile, notification)
             ), project);
         }
     }
 
-    private void createConfig(Project project, VirtualFile virtualFile, GraphQLConfigManager configManager, Notification notification) {
+    private void createConfig(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Notification notification) {
+        VirtualFile virtualFile = GraphQLConfigUtil.getPhysicalVirtualFile(psiFile);
+        if (virtualFile == null) {
+            return;
+        }
         Collection<VirtualFile> configDirectoryCandidates = getParentDirsUpToContentRoots(project, virtualFile);
+        GraphQLConfigFactory configFactory = GraphQLConfigFactory.getInstance(project);
 
         if (configDirectoryCandidates.size() == 1) {
-            configManager.createAndOpenConfigFile(ContainerUtil.getFirstItem(configDirectoryCandidates), true);
+            configFactory.createAndOpenConfigFile(ContainerUtil.getFirstItem(configDirectoryCandidates), true);
             notification.expire();
         } else {
             final GraphQLConfigDirectoryDialog dialog = new GraphQLConfigDirectoryDialog(project, configDirectoryCandidates);
             if (dialog.showAndGet() && dialog.getSelectedDirectory() != null) {
-                configManager.createAndOpenConfigFile(dialog.getSelectedDirectory(), true);
+                configFactory.createAndOpenConfigFile(dialog.getSelectedDirectory(), true);
                 notification.expire();
             }
         }

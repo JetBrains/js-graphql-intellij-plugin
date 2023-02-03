@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.ide.introspection;
 
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigCertificate;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigSecurity;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigCertificate;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigSecurity;
 import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContextBuilder;
@@ -104,13 +104,13 @@ public final class GraphQLIntrospectionSSLBuilder {
     public static void loadCustomSSLConfiguration(@Nullable GraphQLConfigSecurity sslConfig, @NotNull HttpClientBuilder builder)
         throws UnsupportedEncodingException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException,
         UnrecoverableKeyException {
-        if (sslConfig != null && sslConfig.clientCertificate != null && sslConfig.clientCertificateKey != null) {
-            if (sslConfig.clientCertificate.path == null || sslConfig.clientCertificateKey.path == null) {
+        if (sslConfig != null && sslConfig.getClientCertificate() != null && sslConfig.getClientCertificateKey() != null) {
+            if (sslConfig.getClientCertificate().getPath() == null || sslConfig.getClientCertificateKey().getPath() == null) {
                 throw new RuntimeException("Path needs to be specified for the key and certificate");
             }
-            Path certPath = Paths.get(sslConfig.clientCertificate.path);
-            Path keyPath = Paths.get(sslConfig.clientCertificateKey.path);
-            GraphQLConfigCertificate.Encoding keyFormat = sslConfig.clientCertificateKey.format;
+            Path certPath = Paths.get(sslConfig.getClientCertificate().getPath());
+            Path keyPath = Paths.get(sslConfig.getClientCertificateKey().getPath());
+            GraphQLConfigCertificate.Encoding keyFormat = sslConfig.getClientCertificateKey().getFormat();
 
             KeyStore store = makeKeyStore(certPath, keyPath, keyFormat);
             builder.setSSLContext(

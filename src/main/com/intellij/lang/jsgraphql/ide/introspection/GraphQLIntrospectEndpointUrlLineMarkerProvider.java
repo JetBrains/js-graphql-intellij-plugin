@@ -209,7 +209,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
 
         } catch (Exception e) {
             Notifications.Bus.notify(new Notification(
-                GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
                 GraphQLBundle.message("graphql.notification.configuration.error"),
                 e.getMessage(),
                 NotificationType.ERROR

@@ -324,7 +324,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
                         // query error callback
                         // add a hint to use caret position instead
                         final Notification notification = new Notification(
-                            GraphQLNotificationUtil.NOTIFICATION_GROUP_ID,
+                            GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
                             "Limit the GraphQL that is sent to the server?",
                             QUERY_CONTEXT_HINT_MESSAGE,
                             NotificationType.INFORMATION

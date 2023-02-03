@@ -22,14 +22,14 @@ import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigSecurity;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.model.GraphQLConfigSecurity;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
 import com.intellij.notification.NotificationType;
@@ -39,6 +39,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
@@ -84,6 +85,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, GraphQLConfigListener {
+
+    private static final Logger LOG = Logger.getInstance(GraphQLUIProjectService.class);
 
     public static final String GRAPH_QL_VARIABLES_JSON = "GraphQL.variables.json";
 
@@ -362,6 +365,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
             };
             ProgressManager.getInstance().run(task);
         } catch (IllegalStateException | IllegalArgumentException e) {
+            LOG.warn(e);
             GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.ERROR, null);
         }
 
@@ -370,8 +374,10 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     private void runQuery(Editor editor, VirtualFile virtualFile, GraphQLQueryContext context, String url, HttpPost request) {
         GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
         try {
-            VirtualFile configFile = ReadAction.compute(() -> GraphQLConfigManager.getService(myProject).getClosestConfigFile(virtualFile));
-            GraphQLConfigSecurity sslConfig = introspectionService.getSecurityConfig(configFile);
+            GraphQLConfigSecurity sslConfig = ReadAction.compute(() -> {
+                GraphQLConfig config = GraphQLConfigProvider.getInstance(myProject).resolveConfig(virtualFile);
+                return config != null ? GraphQLConfigSecurity.getSecurityConfig(config.getDefault()) : null;
+            });
             try (final CloseableHttpClient httpClient = introspectionService.createHttpClient(url, sslConfig)) {
                 editor.putUserData(GRAPH_QL_EDITOR_QUERYING, true);
 
@@ -439,6 +445,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                 editor.putUserData(GRAPH_QL_EDITOR_QUERYING, null);
             }
         } catch (IOException | GeneralSecurityException e) {
+            LOG.warn(e);
             GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.WARNING, null);
         }
     }

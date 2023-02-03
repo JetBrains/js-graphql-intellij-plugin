@@ -73,8 +73,6 @@
     <projectService
       serviceImplementation="com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLSettings"/>
-    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager"/>
-    <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService"/>
     <projectService
       serviceImplementation="com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLPluginDisposable"/>
@@ -88,8 +86,6 @@
 
     <!-- Startup -->
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.startup.GraphQLStartupActivity"/>
-    <postStartupActivity
-      implementation="com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigProjectStartupActivity"/>
     <postStartupActivity
       implementation="com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayModernEnableStartupActivity"/>
 

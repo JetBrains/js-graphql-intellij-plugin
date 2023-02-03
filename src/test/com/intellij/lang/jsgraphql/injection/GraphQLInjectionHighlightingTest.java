@@ -38,7 +38,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
             "lines-2/.graphqlconfig"
         );
 
-        loadConfiguration();
+        reloadConfiguration();
     }
 
     @Override

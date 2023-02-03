@@ -10,7 +10,6 @@ package com.intellij.lang.jsgraphql.schema;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
 import com.intellij.lang.jsgraphql.types.language.NamedNode;
 import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -19,7 +18,6 @@ import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 
@@ -42,7 +40,7 @@ public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
             "completionSchemas/schema-one/query-one.graphql",
             "completionSchemas/schema-two/query-two.graphql"
         );
-        loadConfiguration();
+        reloadConfiguration();
 
         doTestCompletion("completionSchemas/schema-one/query-one.graphql", Lists.newArrayList("fieldOne", "__typename"), files);
         doTestCompletion("completionSchemas/schema-two/query-two.graphql", Lists.newArrayList("fieldTwo", "__typename"), files);
@@ -54,7 +52,7 @@ public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
 
     private void test(@NotNull String initialFile, String @NotNull ... expectedTypes) {
         VirtualFile directory = myFixture.copyDirectoryToProject(getTestName(true), "/");
-        loadConfiguration();
+        reloadConfiguration();
         VirtualFile file = directory.findFileByRelativePath(initialFile);
         assertNotNull(file);
         PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
@@ -76,14 +74,8 @@ public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
                 break;
             }
         }
-        final Lock readLock = GraphQLConfigManager.getService(getProject()).getReadLock();
-        try {
-            readLock.lock();
-            myFixture.complete(CompletionType.BASIC, 1);
-            final List<String> completions = myFixture.getLookupElementStrings();
-            assertEquals("Wrong completions", expectedCompletions, completions);
-        } finally {
-            readLock.unlock();
-        }
+        myFixture.complete(CompletionType.BASIC, 1);
+        final List<String> completions = myFixture.getLookupElementStrings();
+        assertEquals("Wrong completions", expectedCompletions, completions);
     }
 }

@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.ide.config
 import com.intellij.ProjectTopics
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -36,6 +37,7 @@ private const val SAVE_DOCUMENTS_TIMEOUT = 3000
 class GraphQLConfigWatcher(private val project: Project) : Disposable {
 
     companion object {
+        @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigWatcher>()
     }
 
@@ -113,10 +115,14 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
     }
 
     private fun scheduleDocumentSave() {
-        if (documentsSaveAlarm.isEmpty) {
-            documentsSaveAlarm.addRequest({
-                BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::saveDocuments)
-            }, SAVE_DOCUMENTS_TIMEOUT)
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+            invokeLater { saveDocuments() }
+        } else {
+            if (documentsSaveAlarm.isEmpty) {
+                documentsSaveAlarm.addRequest({
+                    BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::saveDocuments)
+                }, SAVE_DOCUMENTS_TIMEOUT)
+            }
         }
     }
 

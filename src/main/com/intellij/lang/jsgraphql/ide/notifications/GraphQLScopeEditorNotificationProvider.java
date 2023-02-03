@@ -12,7 +12,8 @@ import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
 import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -73,13 +74,13 @@ public class GraphQLScopeEditorNotificationProvider extends Provider<EditorNotif
         if (!isGraphQLRelatedFile(file) || DumbService.getInstance(project).isDumb()) {
             return false;
         }
-        final GraphQLConfigManager graphQLConfigManager = GraphQLConfigManager.getService(project);
-        if (!graphQLConfigManager.isInitialized()) {
+        GraphQLConfigProvider configProvider = GraphQLConfigProvider.getInstance(project);
+        if (configProvider.getModificationCount() == 0) {
             return false;
         }
+
+        final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (file.getFileType() != GraphQLFileType.INSTANCE) {
-            // for injected files, must contain graphql before the warning is shown
-            final PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
             final Ref<Boolean> hasGraphQL = new Ref<>(false);
             if (psiFile != null) {
                 final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(project);
@@ -105,10 +106,10 @@ public class GraphQLScopeEditorNotificationProvider extends Provider<EditorNotif
                 return false;
             }
         }
-        if (GlobalSearchScope.projectScope(project).accept(file)) {
-            if (graphQLConfigManager.getClosestConfigFile(file) != null) {
-                // has config, but is not included
-                return graphQLConfigManager.getClosestIncludingConfigFile(file) == null;
+        if (GlobalSearchScope.projectScope(project).accept(file) && psiFile != null) {
+            GraphQLConfig config = configProvider.resolveConfig(psiFile);
+            if (config != null) {
+                return config.matchProject(psiFile) != null;
             }
         }
         return false;

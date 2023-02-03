@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.ide.config.loader
 
 import com.google.gson.Gson
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
+import com.intellij.lang.jsgraphql.ide.notifications.showParseErrorNotification
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -130,7 +131,7 @@ class GraphQLConfigLoader(private val project: Project) {
                 else -> if (isLegacyConfig(file)) return readJson(file) else return readYml(file)
             }
         } catch (t: Throwable) {
-            // TODO: notification?
+            showParseErrorNotification(project, file, t)
             LOG.warn(t)
             return null
         }

@@ -9,8 +9,8 @@ package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.GraphQLFileType
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager
-import com.intellij.lang.jsgraphql.ide.project.graphqlconfig.GraphQLConfigManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil
@@ -45,7 +45,7 @@ class GraphQLRegistryProvider(project: Project) {
     }
 
     private val psiManager = PsiManager.getInstance(project)
-    private val configManager = GraphQLConfigManager.getService(project)
+    private val configProvider = GraphQLConfigProvider.getInstance(project)
     private val scopeProvider = GraphQLScopeProvider.getInstance(project)
     private val psiSearchHelper = GraphQLPsiSearchHelper.getInstance(project)
 
@@ -87,7 +87,7 @@ class GraphQLRegistryProvider(project: Project) {
             }, graphQLFilesScope.intersectWith(schemaScope))
 
             // JSON GraphQL introspection result files
-            if (configManager.configurationsByPath.isNotEmpty()) {
+            if (configProvider.hasConfigurationFiles) {
                 // need one or more configurations to be able to point "schemaPath" to relevant JSON files
                 // otherwise all JSON files would be in scope
                 FileTypeIndex.processFiles(
@@ -110,7 +110,7 @@ class GraphQLRegistryProvider(project: Project) {
         file: VirtualFile,
         errors: MutableList<GraphQLException>
     ): Boolean {
-        // only JSON files that are directly referenced as "schemaPath" from the .graphqlconfig will be
+        // only JSON files that are directly referenced as "schemaPath" from the configuration will be
         // considered within scope, so we can just go ahead and try to turn the JSON into GraphQL
         val psiFile = psiManager.findFile(file) ?: return true
         try {
