@@ -20,14 +20,6 @@ import java.util.concurrent.ConcurrentMap
 import java.util.function.Function
 import javax.swing.JComponent
 
-val ENV_FILENAMES = linkedSetOf(
-    ".env.local",
-    ".env.development.local",
-    ".env.development",
-    ".env.dev.local",
-    ".env.dev",
-    ".env"
-)
 
 @Service
 class GraphQLConfigEnvironment(private val project: Project) {
@@ -38,6 +30,15 @@ class GraphQLConfigEnvironment(private val project: Project) {
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigEnvironment>()
+
+        private val FILENAMES = linkedSetOf(
+            ".env.local",
+            ".env.development.local",
+            ".env.development",
+            ".env.dev.local",
+            ".env.dev",
+            ".env"
+        )
     }
 
     private val explicitVariables: ConcurrentMap<String, String> = ConcurrentHashMap()
@@ -106,7 +107,7 @@ class GraphQLConfigEnvironment(private val project: Project) {
     private fun findEnvFileInDirectory(dir: VirtualFile): String? {
         if (!dir.isDirectory) return null
 
-        for (candidate in ENV_FILENAMES) {
+        for (candidate in FILENAMES) {
             val file = dir.findChild(candidate)
             if (file != null && file.exists()) {
                 return candidate
