@@ -16,7 +16,7 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
@@ -166,8 +166,8 @@ public class GraphQLPsiSearchHelper implements Disposable {
                             }
                         } else if (element instanceof JsonStringLiteral) {
                             GraphQLFile introspectionSDL =
-                                GraphQLIntrospectionFilesManager.getOrCreateIntrospectionSDL(virtualFile, psiFile);
-                            if (introspectionFiles.add(introspectionSDL)) {
+                                GraphQLFileMappingManager.getInstance(myProject).getOrCreateIntrospectionSDL(virtualFile);
+                            if (introspectionSDL != null && introspectionFiles.add(introspectionSDL)) {
                                 // index the associated introspection SDL from a JSON introspection result file
                                 introspectionSDL.accept(identifierVisitor.get());
                             }
@@ -225,8 +225,8 @@ public class GraphQLPsiSearchHelper implements Disposable {
     /**
      * Process injected GraphQL PsiFiles
      *
-     * @param schemaScope   the search scope to use for limiting the schema definitions
-     * @param processor     a processor that will be invoked for each injected GraphQL PsiFile
+     * @param schemaScope the search scope to use for limiting the schema definitions
+     * @param processor   a processor that will be invoked for each injected GraphQL PsiFile
      */
     public void processInjectedGraphQLPsiFiles(@NotNull GlobalSearchScope schemaScope, @NotNull Processor<PsiFile> processor) {
         if (myInjectionSearchHelper != null) {

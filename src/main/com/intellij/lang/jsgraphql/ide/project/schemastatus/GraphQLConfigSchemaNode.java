@@ -74,7 +74,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
             myProjectConfig = projectConfig != null ? projectConfig : defaultProjectConfig;
             myEndpoints = myProjectConfig.getEndpoints();
             mySchemaInfo = SlowOperations.allowSlowOperations(() -> ReadAction.compute(() -> {
-                GlobalSearchScope scope = GraphQLScopeProvider.getInstance(project).getResolveScope(myProjectConfig);
+                GlobalSearchScope scope = GraphQLScopeProvider.getInstance(project).getConfigResolveScope(myProjectConfig);
                 return scope != null ? GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope) : null;
             }));
         } else {
@@ -93,7 +93,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
                 return true;
             }
             if (myPerformSchemaDiscovery) {
-                GlobalSearchScope scope = GraphQLScopeProvider.getInstance(myProject).getResolveScope(myProjectConfig);
+                GlobalSearchScope scope = GraphQLScopeProvider.getInstance(myProject).getConfigResolveScope(myProjectConfig);
                 if (scope != null) {
                     return scope.contains(virtualFile);
                 }

@@ -5,48 +5,37 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.schemastatus;
+package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
-import com.intellij.json.psi.JsonFile;
-import com.intellij.lang.jsgraphql.psi.GraphQLFile;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
-import com.intellij.lang.jsgraphql.types.language.SourceLocation;
-import com.intellij.openapi.fileEditor.OpenFileDescriptor;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.StandardFileSystems;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.NavigatablePsiElement;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.util.CachedValue;
+import com.intellij.json.psi.JsonFile
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager
+import com.intellij.lang.jsgraphql.types.language.SourceLocation
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.StandardFileSystems
+import com.intellij.psi.NavigatablePsiElement
+import com.intellij.psi.PsiManager
 
-public final class GraphQLTreeNodeNavigationUtil {
-
-    public static void openSourceLocation(Project myProject, SourceLocation location, boolean resolveSDLFromJSON) {
-        if (location.isPsiBased()) {
-            PsiElement element = location.getElement();
-            if (element instanceof NavigatablePsiElement && element.isValid()) {
-                ((NavigatablePsiElement) element).navigate(true);
-                return;
+object GraphQLTreeNodeNavigationUtil {
+    @JvmStatic
+    fun openSourceLocation(myProject: Project, location: SourceLocation, followGeneratedFile: Boolean) {
+        if (location.isPsiBased) {
+            val element = location.element
+            if (element is NavigatablePsiElement && element.isValid()) {
+                element.navigate(true)
+                return
             }
         }
 
-        VirtualFile sourceFile = StandardFileSystems.local().findFileByPath(location.getSourceName());
-        if (sourceFile != null) {
-            PsiFile file = PsiManager.getInstance(myProject).findFile(sourceFile);
-            if (file == null) {
-                return;
+        var sourceFile = StandardFileSystems.local().findFileByPath(location.sourceName) ?: return
+        val file = PsiManager.getInstance(myProject).findFile(sourceFile) ?: return
+        if (file is JsonFile && followGeneratedFile) {
+            val cachedFile = GraphQLFileMappingManager.getInstance(myProject).getCachedIntrospectionSDL(file)
+            if (cachedFile != null) {
+                // open the SDL file and not the JSON introspection file it was based on
+                sourceFile = cachedFile.virtualFile
             }
-            if (file instanceof JsonFile && resolveSDLFromJSON) {
-                CachedValue<GraphQLFile> cachedFile = file.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL);
-                if (cachedFile != null && cachedFile.hasUpToDateValue()) {
-                    // open the SDL file and not the JSON introspection file it was based on
-                    file = cachedFile.getValue();
-                    sourceFile = file.getVirtualFile();
-                }
-            }
-            new OpenFileDescriptor(myProject, sourceFile, location.getLine() - 1, location.getColumn() - 1).navigate(true);
         }
+        OpenFileDescriptor(myProject, sourceFile, location.line - 1, location.column - 1).navigate(true)
     }
 }

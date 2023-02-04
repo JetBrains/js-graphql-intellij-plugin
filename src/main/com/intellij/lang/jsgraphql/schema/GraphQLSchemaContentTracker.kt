@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.json.psi.JsonFile
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition
@@ -104,15 +105,7 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
             }
 
             if (event.file is JsonFile) {
-                var introspectionJsonUpdated = false
-                if (event.file?.getUserData(GraphQLSchemaKeys.GRAPHQL_INTROSPECTION_JSON_TO_SDL) != null) {
-                    introspectionJsonUpdated = true
-                } else {
-                    val virtualFile = event.file?.virtualFile
-                    if (virtualFile?.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON) == true) {
-                        introspectionJsonUpdated = true
-                    }
-                }
+                val introspectionJsonUpdated = GraphQLFileMappingManager.getInstance(myProject).isSourceForGeneratedFile(event.file)
                 if (introspectionJsonUpdated) {
                     schemaChanged()
                 }

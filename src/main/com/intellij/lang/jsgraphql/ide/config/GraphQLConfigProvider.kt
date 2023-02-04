@@ -32,7 +32,9 @@ import com.intellij.util.Alarm
 import com.intellij.util.CommonProcessors
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 
 private const val CONFIG_RELOAD_TIMEOUT = 3000
 
@@ -42,7 +44,6 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         private val LOG = logger<GraphQLConfigProvider>()
 
         private val CONFIG_FILE_KEY = Key.create<CachedValue<VirtualFile?>>("graphql.config.file")
-        private val CONFIG_FILE_IN_DIRECTORY_KEY = Key.create<CachedValue<VirtualFile?>>("graphql.config.file.inside.dir")
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigProvider>()
@@ -66,6 +67,15 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             ProjectRootManager.getInstance(project)
         )
     }
+
+    private val configFileInDirectory: CachedValue<ConcurrentMap<VirtualFile, Optional<VirtualFile>>> =
+        CachedValuesManager.getManager(project).createCachedValue {
+            CachedValueProvider.Result.create(
+                ConcurrentHashMap(),
+                this,
+                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
+            )
+        }
 
     @RequiresReadLock
     fun resolveConfig(context: PsiFile): GraphQLConfig? =
@@ -122,11 +132,14 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     fun findConfigFileInDirectory(dir: VirtualFile): VirtualFile? {
         if (!dir.isDirectory) return null
 
-        return CachedValuesManager.getManager(project).getCachedValue(dir, CONFIG_FILE_IN_DIRECTORY_KEY, {
-            val candidates = dir.children.filter { it.name in CONFIG_NAMES }.associateBy { it.name }
-            val configFile = CONFIG_NAMES.find { it in candidates }?.let { candidates[it] }
-            CachedValueProvider.Result.create(configFile, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
-        }, false)
+        val cache = configFileInDirectory.value
+        val prev = cache[dir]
+        if (prev != null) {
+            return prev.orElse(null)
+        }
+        val candidates = dir.children.filter { it.name in CONFIG_NAMES }.associateBy { it.name }
+        val result = CONFIG_NAMES.find { it in candidates }?.let { candidates[it] }.let { Optional.ofNullable(it) }
+        return (cache.putIfAbsent(dir, result) ?: result).orElse(null)
     }
 
     @JvmOverloads

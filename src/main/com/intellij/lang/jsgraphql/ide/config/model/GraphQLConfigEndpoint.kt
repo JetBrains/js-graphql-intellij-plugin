@@ -44,6 +44,19 @@ class GraphQLConfigEndpoint(
         val config = provider.getConfig(configPointer?.file)
         return config?.findProject(configPointer?.projectName) ?: config?.getDefault()
     }
+
+    override fun toString(): String {
+        val endpointName = name
+        val endpointUrl = url
+
+        return if (endpointUrl == null) {
+            endpointName
+        } else if (endpointName == endpointUrl) {
+            endpointUrl
+        } else {
+            "$name - $url"
+        }
+    }
 }
 
 /**
