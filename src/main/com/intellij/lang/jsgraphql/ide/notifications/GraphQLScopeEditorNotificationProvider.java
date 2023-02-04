@@ -109,7 +109,7 @@ public class GraphQLScopeEditorNotificationProvider extends Provider<EditorNotif
         if (GlobalSearchScope.projectScope(project).accept(file) && psiFile != null) {
             GraphQLConfig config = configProvider.resolveConfig(psiFile);
             if (config != null) {
-                return config.matchProject(psiFile) != null;
+                return config.matchProject(psiFile) == null;
             }
         }
         return false;

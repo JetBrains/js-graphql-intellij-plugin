@@ -26,7 +26,6 @@ import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.language.Document;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaParser;
@@ -103,14 +102,14 @@ import static com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationU
 import static com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService.setHeadersFromOptions;
 
 @Service
-public class GraphQLIntrospectionService implements Disposable {
+public final class GraphQLIntrospectionService implements Disposable {
     private static final Logger LOG = Logger.getInstance(GraphQLIntrospectionService.class);
 
     private static final String DISABLE_EMPTY_ERRORS_WARNING_KEY = "graphql.empty.errors.warning.disabled";
     public static final String GRAPHQL_TRUST_ALL_HOSTS = "graphql.trust.all.hosts";
 
     private GraphQLIntrospectionTask latestIntrospection = null;
-    private AtomicBoolean myIntrospected = new AtomicBoolean();
+    private final AtomicBoolean myIntrospected = new AtomicBoolean();
     private final Project myProject;
 
     public static GraphQLIntrospectionService getInstance(@NotNull Project project) {
@@ -422,12 +421,12 @@ public class GraphQLIntrospectionService implements Disposable {
 
     void createOrUpdateIntrospectionOutputFile(@NotNull String schemaText,
                                                @NotNull IntrospectionOutputFormat format,
-                                               @NotNull VirtualFile introspectionSourceFile,
+                                               @NotNull VirtualFile configFile,
                                                @NotNull String outputFileName) {
         final String header;
         switch (format) {
             case SDL:
-                header = "# This file was generated based on \"" + introspectionSourceFile.getName() + "\". Do not edit manually.\n\n";
+                header = "# This file was generated based on \"" + configFile.getName() + "\". Do not edit manually.\n\n";
                 break;
             case JSON:
                 header = "";
@@ -439,7 +438,7 @@ public class GraphQLIntrospectionService implements Disposable {
         WriteCommandAction.runWriteCommandAction(myProject, () -> {
             try {
                 VirtualFile outputFile =
-                    createOrUpdateSchemaFile(introspectionSourceFile, FileUtil.toSystemIndependentName(outputFileName));
+                    createOrUpdateSchemaFile(configFile, FileUtil.toSystemIndependentName(outputFileName));
                 com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(outputFile);
                 if (document == null) {
                     throw new IllegalStateException("Document not found");
@@ -460,7 +459,7 @@ public class GraphQLIntrospectionService implements Disposable {
                     GRAPHQL_NOTIFICATION_GROUP_ID,
                     GraphQLBundle.message("graphql.notification.error.title"),
                     GraphQLBundle.message("graphql.notification.unable.to.create.file",
-                        outputFileName, introspectionSourceFile.getParent().getPath(), GraphQLNotificationUtil.formatExceptionMessage(e)),
+                        outputFileName, configFile.getParent().getPath(), GraphQLNotificationUtil.formatExceptionMessage(e)),
                     NotificationType.ERROR
                 ));
             } catch (Exception e) {
@@ -500,15 +499,14 @@ public class GraphQLIntrospectionService implements Disposable {
 
     @RequiresWriteLock
     @NotNull
-    private VirtualFile createOrUpdateSchemaFile(@NotNull VirtualFile introspectionSourceFile,
+    private VirtualFile createOrUpdateSchemaFile(@NotNull VirtualFile configFile,
                                                  @NotNull String relativeOutputFileName) throws IOException {
-        VirtualFile outputFile = introspectionSourceFile.getParent().findFileByRelativePath(relativeOutputFileName);
+        VirtualFile outputFile = configFile.getParent().findFileByRelativePath(relativeOutputFileName);
         if (outputFile == null) {
-            PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(introspectionSourceFile.getParent());
+            PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(configFile.getParent());
             CreateFileAction.MkDirs dirs = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
-            outputFile = dirs.directory.getVirtualFile().createChildData(introspectionSourceFile, dirs.newName);
+            outputFile = dirs.directory.getVirtualFile().createChildData(configFile, dirs.newName);
         }
-        outputFile.putUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_JSON, true);
         return outputFile;
     }
 

@@ -79,16 +79,16 @@ class GraphQLScopeProvider(private val project: Project) {
     @RequiresReadLock
     fun getResolveScope(element: PsiElement?): GlobalSearchScope {
         if (element == null) {
-            return globalScope
+            return GlobalSearchScope.EMPTY_SCOPE
         }
 
         val file = element.containingFile
         return CachedValuesManager.getCachedValue(file, RESOLVE_SCOPE_KEY) {
             val configProvider = GraphQLConfigProvider.getInstance(project)
             val projectConfig = configProvider.resolveProjectConfig(file)
-            val scope = getResolveScope(projectConfig)
+            val scope = getConfigResolveScope(projectConfig)
                 ?: globalScope.takeUnless { configProvider.hasConfigurationFiles }
-                ?: GlobalSearchScope.fileScope(file)
+                ?: createScope(project, GlobalSearchScope.fileScope(file))
 
             CachedValueProvider.Result.create(
                 scope,
@@ -100,7 +100,7 @@ class GraphQLScopeProvider(private val project: Project) {
     }
 
     @RequiresReadLock
-    fun getResolveScope(config: GraphQLProjectConfig?): GlobalSearchScope? {
+    fun getConfigResolveScope(config: GraphQLProjectConfig?): GlobalSearchScope? {
         if (config == null) {
             return null
         }

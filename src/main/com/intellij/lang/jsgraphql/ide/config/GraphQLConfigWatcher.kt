@@ -20,7 +20,6 @@ import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.vfs.findVirtualFile
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
@@ -105,9 +104,9 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
         val eventMulticaster = EditorFactory.getInstance().eventMulticaster
         eventMulticaster.addDocumentListener(object : DocumentListener {
             override fun documentChanged(event: DocumentEvent) {
-                val file = event.document.findVirtualFile()
-                if (file != null && file !is LightVirtualFile && file.name in CONFIG_NAMES) {
-                    documentsToSave.add(WatchedConfigFile(file, event.document))
+                val virtualFile = FileDocumentManager.getInstance().getFile(event.document)
+                if (virtualFile != null && virtualFile !is LightVirtualFile && virtualFile.name in CONFIG_NAMES) {
+                    documentsToSave.add(WatchedConfigFile(virtualFile, event.document))
                     scheduleDocumentSave()
                 }
             }

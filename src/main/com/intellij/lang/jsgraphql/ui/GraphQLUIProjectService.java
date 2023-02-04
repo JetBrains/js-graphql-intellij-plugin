@@ -32,6 +32,7 @@ import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
@@ -206,22 +207,27 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     // -- editor header component --
 
     private void insertEditorHeaderComponentIfApplicable(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-        if (GraphQLFileType.isGraphQLFile(myProject, file)) {
-            UIUtil.invokeLaterIfNeeded(() -> { // ensure components are created on the swing thread
-                FileEditor fileEditor = source.getSelectedEditor(file);
-                if (fileEditor instanceof TextEditor) {
-                    final Editor editor = ((TextEditor) fileEditor).getEditor();
-                    if (editor.getHeaderComponent() instanceof GraphQLEditorHeaderComponent) {
-                        return;
-                    }
-                    final JComponent headerComponent = createEditorHeaderComponent(editor, file);
-                    editor.setHeaderComponent(headerComponent);
-                    if (editor instanceof EditorEx) {
-                        ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
-                    }
-                }
-            });
+        if (!GraphQLFileType.isGraphQLFile(myProject, file)) {
+            return;
         }
+        if (ReadAction.compute(() -> GraphQLLibraryManager.getInstance(myProject).isLibraryRoot(file))) {
+            return;
+        }
+
+        UIUtil.invokeLaterIfNeeded(() -> { // ensure components are created on the swing thread
+            FileEditor fileEditor = source.getSelectedEditor(file);
+            if (fileEditor instanceof TextEditor) {
+                final Editor editor = ((TextEditor) fileEditor).getEditor();
+                if (editor.getHeaderComponent() instanceof GraphQLEditorHeaderComponent) {
+                    return;
+                }
+                final JComponent headerComponent = createEditorHeaderComponent(editor, file);
+                editor.setHeaderComponent(headerComponent);
+                if (editor instanceof EditorEx) {
+                    ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
+                }
+            }
+        });
     }
 
     private static class GraphQLEditorHeaderComponent extends EditorHeaderComponent {

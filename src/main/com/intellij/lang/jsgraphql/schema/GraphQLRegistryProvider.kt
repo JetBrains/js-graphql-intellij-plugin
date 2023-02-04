@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.schema
 import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionFilesManager
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil
@@ -47,6 +47,7 @@ class GraphQLRegistryProvider(project: Project) {
     private val psiManager = PsiManager.getInstance(project)
     private val configProvider = GraphQLConfigProvider.getInstance(project)
     private val scopeProvider = GraphQLScopeProvider.getInstance(project)
+    private val fileMappingManager = GraphQLFileMappingManager.getInstance(project)
     private val psiSearchHelper = GraphQLPsiSearchHelper.getInstance(project)
 
     private val graphQLFilesScope = GlobalSearchScope.getScopeRestrictedByFileTypes(
@@ -114,7 +115,7 @@ class GraphQLRegistryProvider(project: Project) {
         // considered within scope, so we can just go ahead and try to turn the JSON into GraphQL
         val psiFile = psiManager.findFile(file) ?: return true
         try {
-            processor.process(GraphQLIntrospectionFilesManager.getOrCreateIntrospectionSDL(file, psiFile))
+            processor.process(fileMappingManager.getOrCreateIntrospectionSDL(file))
         } catch (e: ProcessCanceledException) {
             throw e
         } catch (e: SchemaProblem) {

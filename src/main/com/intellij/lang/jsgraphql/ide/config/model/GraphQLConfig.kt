@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.ide.config.model
 import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
+import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -11,7 +12,6 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.containers.ContainerUtil
-import java.util.*
 import java.util.concurrent.ConcurrentMap
 
 
@@ -27,7 +27,14 @@ class GraphQLConfig(
 
     private val projects: Map<String, GraphQLProjectConfig> = initProjects()
 
-    private val fileToProjectCache: CachedValue<ConcurrentMap<VirtualFile, Optional<GraphQLProjectConfig>>> =
+    /**
+     * NULL config to store as weak referenced value in [fileToProjectCache]. Shouldn't be exposed to the outside of the class.
+     */
+    private val nullConfig = GraphQLProjectConfig(
+        project, dir, null, "NULL", GraphQLRawProjectConfig.EMPTY, null
+    )
+
+    private val fileToProjectCache: CachedValue<ConcurrentMap<VirtualFile, GraphQLProjectConfig>> =
         CachedValuesManager.getManager(project).createCachedValue {
             CachedValueProvider.Result.create(
                 ContainerUtil.createConcurrentWeakValueMap(),
@@ -76,11 +83,11 @@ class GraphQLConfig(
         val cache = fileToProjectCache.value
         val cachedResult = cache[virtualFile]
         if (cachedResult != null) {
-            return cachedResult.orElse(null)
+            return cachedResult.takeIf { it !== nullConfig }
         }
 
-        val result = Optional.ofNullable(findProjectForFile(virtualFile))
-        return (cache.putIfAbsent(virtualFile, result) ?: result).orElse(null)
+        val result = findProjectForFile(virtualFile) ?: nullConfig
+        return (cache.putIfAbsent(virtualFile, result) ?: result).takeIf { it !== nullConfig }
     }
 
     private fun findProjectForFile(virtualFile: VirtualFile): GraphQLProjectConfig? {

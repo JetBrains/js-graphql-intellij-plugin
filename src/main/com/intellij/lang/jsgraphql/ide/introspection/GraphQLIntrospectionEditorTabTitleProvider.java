@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.ide.introspection;
 
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.openapi.fileEditor.impl.EditorTabTitleProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -19,8 +18,7 @@ public class GraphQLIntrospectionEditorTabTitleProvider implements EditorTabTitl
     @Nullable
     @Override
     public String getEditorTabTitle(@NotNull Project project, @NotNull VirtualFile file) {
-        Boolean isIntrospectionSDL = file.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_SDL);
-        if (Boolean.TRUE.equals(isIntrospectionSDL)) {
+        if (GraphQLFileMappingManager.getInstance(project).isGeneratedFile(file)) {
             return "GraphQL Schema (" + StringUtils.substringAfterLast(file.getName(), "/") + ")";
         }
         return null;

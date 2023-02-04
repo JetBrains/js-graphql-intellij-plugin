@@ -16,7 +16,6 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigUtil;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaKeys;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -52,15 +51,6 @@ public class GraphQLEditConfigAction extends AnAction {
 
     public GraphQLEditConfigAction() {
         super(SETTINGS_TOOLTIP, SETTINGS_TOOLTIP, AllIcons.General.Settings);
-    }
-
-    @Override
-    public void update(@NotNull AnActionEvent e) {
-        super.update(e);
-        final VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
-        boolean isEnabled = virtualFile == null
-            || !Boolean.TRUE.equals(virtualFile.getUserData(GraphQLSchemaKeys.IS_GRAPHQL_INTROSPECTION_SDL));
-        e.getPresentation().setEnabled(isEnabled);
     }
 
     @Override
