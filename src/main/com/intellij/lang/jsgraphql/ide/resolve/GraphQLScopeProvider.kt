@@ -30,10 +30,7 @@ class GraphQLScopeProvider(private val project: Project) {
 
         @JvmStatic
         fun createScope(project: Project, customScope: GlobalSearchScope?): GlobalSearchScope {
-            var scope = GlobalSearchScope.projectScope(project)
-            if (customScope != null) {
-                scope = scope.intersectWith(customScope)
-            }
+            var scope = customScope ?: GlobalSearchScope.projectScope(project)
 
             // these scopes are used unconditionally, both for global and config filtered scopes
             scope = scope
