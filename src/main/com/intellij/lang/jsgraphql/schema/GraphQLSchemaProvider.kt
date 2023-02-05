@@ -37,9 +37,11 @@ class GraphQLSchemaProvider(project: Project) {
         fun getInstance(project: Project) = project.service<GraphQLSchemaProvider>()
 
         private val LOG = logger<GraphQLSchemaProvider>()
+    }
 
-        private val EMPTY_SCHEMA = GraphQLSchema.newSchema()
-            .query(GraphQLObjectType.newObject().name("Query").build()).build()
+    // can throw PCE, so we need to postpone initialization not to break the plugin class loading
+    private val emptySchema = lazy {
+        GraphQLSchema.newSchema().query(GraphQLObjectType.newObject().name("Query").build()).build()
     }
 
     private val registryProvider = GraphQLRegistryProvider.getInstance(project)
@@ -78,7 +80,7 @@ class GraphQLSchemaProvider(project: Project) {
                 LOG.error("Schema build error: ", e) // should never happen
 
                 GraphQLSchemaInfo(
-                    EMPTY_SCHEMA,
+                    emptySchema.value,
                     Lists.newArrayList(if (e is GraphQLException) e else GraphQLException(e)),
                     registryWithErrors
                 )

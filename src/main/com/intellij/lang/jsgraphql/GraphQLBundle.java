@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
+import java.util.function.Supplier;
+
 public class GraphQLBundle extends AbstractBundle {
     @NonNls
     public static final String PATH = "messages.GraphQLMessages";
@@ -19,5 +21,12 @@ public class GraphQLBundle extends AbstractBundle {
     @NotNull
     public static @Nls String message(@NotNull @PropertyKey(resourceBundle = PATH) String key, Object @NotNull ... params) {
         return INSTANCE.getMessage(key, params);
+    }
+
+    public static @NotNull Supplier<@Nls String> messagePointer(
+        @NotNull @PropertyKey(resourceBundle = PATH) String key,
+        Object @NotNull ... params
+    ) {
+        return INSTANCE.getLazyMessage(key, params);
     }
 }

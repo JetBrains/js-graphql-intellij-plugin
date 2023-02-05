@@ -5,155 +5,135 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.actions;
+package com.intellij.lang.jsgraphql.ide.actions
 
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.DefaultPsiElementCellRenderer;
-import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigUtil;
-import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
-import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
-import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectUtil;
-import com.intellij.openapi.ui.ComboBox;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.impl.file.PsiDirectoryFactory;
-import com.intellij.ui.CollectionComboBoxModel;
-import com.intellij.ui.components.panels.NonOpaquePanel;
-import com.intellij.util.CommonProcessors;
-import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.icons.AllIcons
+import com.intellij.ide.util.DefaultPsiElementCellRenderer
+import com.intellij.lang.jsgraphql.GraphQLBundle
+import com.intellij.lang.jsgraphql.GraphQLFileType
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
+import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
+import com.intellij.lang.jsgraphql.ide.notifications.GRAPHQL_NOTIFICATION_GROUP_ID
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationAction
+import com.intellij.notification.NotificationType
+import com.intellij.notification.Notifications
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDirectory
+import com.intellij.psi.PsiFile
+import com.intellij.psi.impl.file.PsiDirectoryFactory
+import com.intellij.ui.CollectionComboBoxModel
+import com.intellij.ui.components.panels.NonOpaquePanel
+import com.intellij.util.CommonProcessors
+import java.awt.BorderLayout
+import javax.swing.JComponent
 
-import javax.swing.*;
-import java.awt.*;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-public class GraphQLEditConfigAction extends AnAction {
-
-    private static final String SETTINGS_TOOLTIP = "Edit GraphQL configuration file";
-
-    public GraphQLEditConfigAction() {
-        super(SETTINGS_TOOLTIP, SETTINGS_TOOLTIP, AllIcons.General.Settings);
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-        final Project project = e.getData(CommonDataKeys.PROJECT);
-        PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
-        if (psiFile == null) {
-            return;
-        }
-        final VirtualFile virtualFile = GraphQLPsiUtil.getPhysicalVirtualFile(e.getData(CommonDataKeys.VIRTUAL_FILE));
+class GraphQLOpenConfigAction : AnAction(
+    GraphQLBundle.messagePointer("graphql.action.open.config.file.title"),
+    AllIcons.General.Settings
+) {
+    override fun actionPerformed(e: AnActionEvent) {
+        val project = e.getData(CommonDataKeys.PROJECT)
+        val psiFile = e.getData(CommonDataKeys.PSI_FILE) ?: return
+        val virtualFile = getPhysicalVirtualFile(psiFile)
         if (project == null || virtualFile == null) {
-            return;
+            return
         }
-
-        final GraphQLConfigProvider provider = GraphQLConfigProvider.getInstance(project);
-        final VirtualFile configFile = provider.findClosestConfigFile(psiFile);
+        val provider = GraphQLConfigProvider.getInstance(project)
+        val configFile = provider.findClosestConfigFile(psiFile)
         if (configFile != null) {
-            final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-            fileEditorManager.openFile(configFile, true, true);
+            val fileEditorManager = FileEditorManager.getInstance(project)
+            fileEditorManager.openFile(configFile, true, true)
         } else {
             // no config associated, ask to create one
-            String message = "Searched current and parent directories.<br><a href=\"create\">Create GraphQL configuration file</a>";
-            Notifications.Bus.notify(new Notification(
-                GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
-                "No GraphQL configuration file found",
-                message,
-                NotificationType.INFORMATION,
-                (notification, event) -> createConfig(project, psiFile, notification)
-            ), project);
+            val notification = Notification(
+                GRAPHQL_NOTIFICATION_GROUP_ID,
+                GraphQLBundle.message("graphql.notification.config.not.found.title"),
+                GraphQLBundle.message("graphql.notification.config.not.found.body"),
+                NotificationType.INFORMATION
+            )
+            notification.addAction(
+                NotificationAction.createSimpleExpiring(GraphQLBundle.message("graphql.notification.config.not.found.create.action")) {
+                    createConfig(project, psiFile)
+                }
+            )
+            Notifications.Bus.notify(notification, project)
         }
     }
 
-    private void createConfig(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Notification notification) {
-        VirtualFile virtualFile = GraphQLConfigUtil.getPhysicalVirtualFile(psiFile);
-        if (virtualFile == null) {
-            return;
-        }
-        Collection<VirtualFile> configDirectoryCandidates = getParentDirsUpToContentRoots(project, virtualFile);
-        GraphQLConfigFactory configFactory = GraphQLConfigFactory.getInstance(project);
-
-        if (configDirectoryCandidates.size() == 1) {
-            configFactory.createAndOpenConfigFile(ContainerUtil.getFirstItem(configDirectoryCandidates), true);
-            notification.expire();
+    private fun createConfig(project: Project, psiFile: PsiFile) {
+        val virtualFile = getPhysicalVirtualFile(psiFile) ?: return
+        val configDirectoryCandidates = getParentDirsUpToContentRoots(project, virtualFile)
+        val configFactory = GraphQLConfigFactory.getInstance(project)
+        if (configDirectoryCandidates.size == 1) {
+            configFactory.createAndOpenConfigFile(configDirectoryCandidates.first(), true)
         } else {
-            final GraphQLConfigDirectoryDialog dialog = new GraphQLConfigDirectoryDialog(project, configDirectoryCandidates);
-            if (dialog.showAndGet() && dialog.getSelectedDirectory() != null) {
-                configFactory.createAndOpenConfigFile(dialog.getSelectedDirectory(), true);
-                notification.expire();
+            val dialog = GraphQLConfigDirectoryDialog(project, configDirectoryCandidates)
+            if (dialog.showAndGet()) {
+                dialog.selectedDirectory?.let { configFactory.createAndOpenConfigFile(it, true) }
             }
         }
     }
 
-    @NotNull
-    private static Collection<VirtualFile> getParentDirsUpToContentRoots(@NotNull Project project, @NotNull VirtualFile virtualFile) {
-        Collection<VirtualFile> configDirectoryCandidates;
-        if (GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
-            configDirectoryCandidates = Collections.singletonList(ProjectUtil.guessProjectDir(project));
-        } else {
-            CommonProcessors.CollectProcessor<VirtualFile> directoriesProcessor = new CommonProcessors.CollectProcessor<>();
-            GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, virtualFile, directoriesProcessor);
-            configDirectoryCandidates = directoriesProcessor.getResults();
-        }
-        return configDirectoryCandidates;
-    }
+    internal class GraphQLConfigDirectoryDialog(project: Project, candidates: Collection<VirtualFile>) :
+        DialogWrapper(project) {
 
-    static class GraphQLConfigDirectoryDialog extends DialogWrapper {
+        private val psiDirectoryFactory = PsiDirectoryFactory.getInstance(project)
 
-        private final List<PsiDirectory> configDirectoryCandidates;
-        private ComboBox<PsiDirectory> comboBox;
+        private val configDirectoryCandidates: List<PsiDirectory> = candidates.map { psiDirectoryFactory.createDirectory(it) }
 
-        GraphQLConfigDirectoryDialog(@NotNull Project project, Collection<VirtualFile> configDirectoryCandidates) {
-            super(project);
-            final PsiDirectoryFactory factory = PsiDirectoryFactory.getInstance(project);
-            this.configDirectoryCandidates = configDirectoryCandidates.stream().map(factory::createDirectory).collect(Collectors.toList());
-            setTitle("Select GraphQL Configuration Folder");
-            init();
-            comboBox.requestFocus();
-        }
-
-        @Nullable
-        @Override
-        public JComponent getPreferredFocusedComponent() {
-            return comboBox;
-        }
-
-        @Nullable
-        @Override
-        protected JComponent createCenterPanel() {
-            comboBox = new ComboBox<>(new CollectionComboBoxModel<>(configDirectoryCandidates));
-            comboBox.setRenderer(new DefaultPsiElementCellRenderer());
-            comboBox.setMinimumAndPreferredWidth(450);
-            if (comboBox.getItemCount() > 0) {
-                comboBox.setSelectedIndex(0);
+        private val comboBox = ComboBox(CollectionComboBoxModel(configDirectoryCandidates)).apply {
+            renderer = DefaultPsiElementCellRenderer()
+            setMinimumAndPreferredWidth(450)
+            if (itemCount > 0) {
+                selectedIndex = 0
             }
-            final NonOpaquePanel panel = new NonOpaquePanel();
-            panel.add(comboBox, BorderLayout.NORTH);
-            return panel;
         }
 
-        VirtualFile getSelectedDirectory() {
-            final PsiDirectory selectedItem = (PsiDirectory) comboBox.getSelectedItem();
-            return selectedItem != null ? selectedItem.getVirtualFile() : null;
+        init {
+            title = "Select GraphQL Configuration Folder"
+            init()
+            comboBox.requestFocus()
         }
+
+        override fun getPreferredFocusedComponent(): JComponent? {
+            return comboBox
+        }
+
+        override fun createCenterPanel(): JComponent? {
+            val panel = NonOpaquePanel()
+            panel.add(comboBox, BorderLayout.NORTH)
+            return panel
+        }
+
+        val selectedDirectory: VirtualFile?
+            get() {
+                val selectedItem = comboBox.selectedItem as? PsiDirectory
+                return selectedItem?.virtualFile
+            }
     }
 
+    private fun getParentDirsUpToContentRoots(
+        project: Project,
+        virtualFile: VirtualFile
+    ): Collection<VirtualFile> {
+        return if (GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
+            project.guessProjectDir()?.let { listOf(it) } ?: emptyList()
+        } else {
+            val directoriesProcessor =
+                CommonProcessors.CollectProcessor<VirtualFile>()
+            GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, virtualFile, directoriesProcessor)
+            directoriesProcessor.results
+        }
+    }
 }

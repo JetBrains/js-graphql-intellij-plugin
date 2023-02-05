@@ -11,7 +11,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
-fun getPhysicalVirtualFile(file: PsiFile): VirtualFile? {
+fun getPhysicalVirtualFile(file: PsiFile?): VirtualFile? {
     return GraphQLPsiUtil.getPhysicalVirtualFile(file)
 }
 
