@@ -4,8 +4,6 @@ package com.intellij.lang.jsgraphql.ide.config
 
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironmentParser
-import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLSchemaPointer
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -43,22 +41,4 @@ fun expandVariables(project: Project, raw: String, dir: VirtualFile, isLegacy: B
     return GraphQLConfigEnvironmentParser.getInstance(project).interpolate(raw, isLegacy) {
         environment.getVariable(it, dir, isUIContext)
     }.trim()
-}
-
-private val invalidPathCharsRegex = Regex("[{}$*,]")
-
-fun schemaPointerToFilePath(
-    project: Project,
-    pointer: GraphQLSchemaPointer,
-    config: GraphQLProjectConfig,
-    isUIContext: Boolean,
-): String? {
-    if (pointer.isRemote) {
-        return null
-    }
-    var path = pointer.pathOrUrl
-    if (GraphQLConfigEnvironmentParser.getInstance(project).containsVariables(path, config.isLegacy)) {
-        path = expandVariables(project, path, config.dir, config.isLegacy, isUIContext)
-    }
-    return path.takeUnless { it.contains(invalidPathCharsRegex) }
 }

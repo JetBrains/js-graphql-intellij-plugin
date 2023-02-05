@@ -15,11 +15,11 @@ import com.intellij.util.containers.ContainerUtil
 import java.util.concurrent.ConcurrentMap
 
 
-class GraphQLConfig(
+data class GraphQLConfig(
     private val project: Project,
     val dir: VirtualFile,
     val file: VirtualFile?,
-    private val rawConfig: GraphQLRawConfig,
+    private val data: GraphQLRawConfig,
 ) {
     companion object {
         const val DEFAULT_PROJECT = "default"
@@ -43,15 +43,17 @@ class GraphQLConfig(
         }
 
     private fun initProjects(): Map<String, GraphQLProjectConfig> {
-        return if (rawConfig.projects.isEmpty()) {
+        val root = GraphQLRawProjectConfig(data.schema, data.documents, data.extensions, data.include, data.exclude)
+
+        return if (data.projects.isEmpty()) {
             mapOf(
                 DEFAULT_PROJECT to GraphQLProjectConfig(
-                    project, dir, file, DEFAULT_PROJECT, rawConfig.root, null
+                    project, dir, file, DEFAULT_PROJECT, root, null
                 )
             )
         } else {
-            rawConfig.projects.mapValues { (name, config) ->
-                GraphQLProjectConfig(project, dir, file, name, config, rawConfig.root)
+            data.projects.mapValues { (name, config) ->
+                GraphQLProjectConfig(project, dir, file, name, config, root)
             }
         }
     }
@@ -69,7 +71,7 @@ class GraphQLConfig(
     }
 
     fun hasOnlyDefaultProject(): Boolean {
-        return projects.size == 1 && getDefault() != null;
+        return projects.size == 1 && getDefault() != null
     }
 
     val isLegacy: Boolean
@@ -104,26 +106,6 @@ class GraphQLConfig(
         }
 
         return null
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as GraphQLConfig
-
-        if (project != other.project) return false
-        if (file != other.file) return false
-        if (rawConfig != other.rawConfig) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = project.hashCode()
-        result = 31 * result + file.hashCode()
-        result = 31 * result + rawConfig.hashCode()
-        return result
     }
 
 }

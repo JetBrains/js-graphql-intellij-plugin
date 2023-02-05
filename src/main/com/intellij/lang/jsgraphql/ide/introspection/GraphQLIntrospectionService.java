@@ -15,13 +15,7 @@ import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigUtil;
-import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironmentParser;
-import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLSchemaPointer;
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigSecurity;
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
+import com.intellij.lang.jsgraphql.ide.config.model.*;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
@@ -142,7 +136,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         }
 
         String schemaPath = projectConfig.getSchema().stream()
-            .map((pointer) -> GraphQLConfigUtil.schemaPointerToFilePath(project, pointer, projectConfig, endpoint.isUIContext()))
+            .map((pointer) -> pointer.withUIContext(endpoint.isUIContext()).getFilePath())
             .filter(Objects::nonNull)
             .findFirst().orElse(null);
 
@@ -521,15 +515,15 @@ public final class GraphQLIntrospectionService implements Disposable {
                     .toList();
 
                 for (var config : configList) {
-                    GraphQLSchemaPointer schemaPointer = ContainerUtil.getOnlyItem(config.getSchema());
-
-                    if (schemaPointer == null ||
-                        schemaPointer.isRemote() ||
-                        GraphQLConfigEnvironmentParser.getInstance(myProject)
-                            .containsVariables(schemaPointer.getPathOrUrl(), config.isLegacy())) {
+                    GraphQLSchemaPointer schemaPointer = ContainerUtil.getFirstItem(config.getSchema());
+                    if (schemaPointer == null) {
                         continue;
                     }
-                    var schemaPath = schemaPointer.getPathOrUrl();
+
+                    var schemaPath = schemaPointer.getFilePath();
+                    if (schemaPath == null) {
+                        continue;
+                    }
 
                     List<GraphQLConfigEndpoint> endpoints = config.getEndpoints();
                     for (GraphQLConfigEndpoint endpoint : endpoints) {

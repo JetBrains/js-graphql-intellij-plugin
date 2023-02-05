@@ -5,7 +5,6 @@ import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigKeys
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
-import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
 import com.intellij.openapi.project.Project
@@ -23,7 +22,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-class GraphQLProjectConfig(
+data class GraphQLProjectConfig(
     private val project: Project,
     val dir: VirtualFile,
     val file: VirtualFile?,
@@ -32,7 +31,9 @@ class GraphQLProjectConfig(
     private val parentConfig: GraphQLRawProjectConfig?,
 ) {
 
-    val schema: List<GraphQLSchemaPointer> = rawConfig.schema ?: parentConfig?.schema ?: emptyList()
+    val schema: List<GraphQLSchemaPointer> = (rawConfig.schema ?: parentConfig?.schema ?: emptyList()).map {
+        GraphQLSchemaPointer(project, dir, it, isLegacy, false)
+    }
 
     val documents: List<String> = rawConfig.documents ?: parentConfig?.documents ?: emptyList()
 
@@ -156,32 +157,6 @@ class GraphQLProjectConfig(
                 false
             )
         }
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as GraphQLProjectConfig
-
-        if (project != other.project) return false
-        if (dir != other.dir) return false
-        if (file != other.file) return false
-        if (name != other.name) return false
-        if (rawConfig != other.rawConfig) return false
-        if (parentConfig != other.parentConfig) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = project.hashCode()
-        result = 31 * result + dir.hashCode()
-        result = 31 * result + (file?.hashCode() ?: 0)
-        result = 31 * result + name.hashCode()
-        result = 31 * result + rawConfig.hashCode()
-        result = 31 * result + (parentConfig?.hashCode() ?: 0)
-        return result
     }
 
     private class MatchingFilesCache {

@@ -53,7 +53,7 @@ class GraphQLConfigLoader {
     private fun parseProjectConfig(data: Map<*, *>, isLegacy: Boolean): GraphQLRawProjectConfig {
         if (isLegacy) return parseLegacyProjectConfig(data)
 
-        val schema: List<GraphQLSchemaPointer>? = parseSchemas(data[GraphQLConfigKeys.SCHEMA])
+        val schema: List<GraphQLRawSchemaPointer>? = parseSchemas(data[GraphQLConfigKeys.SCHEMA])
         val documents: List<String>? = parseListOrItem(data[GraphQLConfigKeys.DOCUMENTS])
         val extensions: Map<String, Any?>? = parseExtensions(data[GraphQLConfigKeys.EXTENSIONS])
         val include: List<String>? = parseListOrItem(data[GraphQLConfigKeys.INCLUDE])
@@ -62,13 +62,13 @@ class GraphQLConfigLoader {
         return GraphQLRawProjectConfig(schema, documents, extensions, include, exclude)
     }
 
-    private fun parseSchemas(data: Any?): List<GraphQLSchemaPointer>? {
+    private fun parseSchemas(data: Any?): List<GraphQLRawSchemaPointer>? {
         return when (data) {
-            is String -> listOf(GraphQLSchemaPointer(data))
+            is String -> listOf(GraphQLRawSchemaPointer(data))
 
             is List<*> -> data.mapNotNull { value ->
                 when (value) {
-                    is String -> GraphQLSchemaPointer(value)
+                    is String -> GraphQLRawSchemaPointer(value)
                     is Map<*, *> -> parseRemoteSchema(value)
                     else -> null
                 }
@@ -78,7 +78,7 @@ class GraphQLConfigLoader {
         }
     }
 
-    private fun parseRemoteSchema(data: Map<*, *>): GraphQLSchemaPointer? {
+    private fun parseRemoteSchema(data: Map<*, *>): GraphQLRawSchemaPointer? {
         val (key, params) = data.entries.firstOrNull() ?: return null
         val url = key as? String ?: return null
         val headers = params
@@ -97,7 +97,7 @@ class GraphQLConfigLoader {
             ?.toMap()
             ?: emptyMap()
 
-        return GraphQLSchemaPointer(url, headers)
+        return GraphQLRawSchemaPointer(url, headers)
     }
 
     private fun parseExtensions(data: Any?): Map<String, Any?>? {
@@ -120,7 +120,7 @@ class GraphQLConfigLoader {
     }
 
     private fun parseLegacyProjectConfig(data: Map<*, *>): GraphQLRawProjectConfig {
-        val schemaPath: List<GraphQLSchemaPointer>? = parseSchemas(data[GraphQLConfigKeys.LEGACY_SCHEMA_PATH])
+        val schemaPath: List<GraphQLRawSchemaPointer>? = parseSchemas(data[GraphQLConfigKeys.LEGACY_SCHEMA_PATH])
         val includes: List<String>? = parseListOrItem(data[GraphQLConfigKeys.LEGACY_INCLUDES])
         val excludes: List<String>? = parseListOrItem(data[GraphQLConfigKeys.LEGACY_EXCLUDES])
         val extensions: Map<String, Any?>? = parseExtensions(data[GraphQLConfigKeys.LEGACY_EXTENSIONS])

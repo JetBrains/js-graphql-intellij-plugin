@@ -4,6 +4,7 @@ import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
+import com.intellij.lang.jsgraphql.withCustomEnv
 import junit.framework.TestCase
 
 class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
@@ -13,6 +14,16 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     fun testSkipEmptyFiles() {
         val config = doTestResolveProjectConfig("some/nested/dir/nested.graphql")
         TestCase.assertEquals("graphql.config.yml", config.file?.name)
+    }
+
+    fun testSchemaInEnvVariable() {
+        val filename = "dir/schema.graphql"
+
+        withCustomEnv(mapOf("SCHEMA_PATH" to filename)) {
+            val config = doTestResolveProjectConfig(filename)
+            TestCase.assertEquals("graphql.config.yml", config.file?.name)
+            TestCase.assertEquals(filename, config.schema.first().filePath)
+        }
     }
 
     private fun doTestResolveConfig(filePath: String): GraphQLConfig {
@@ -25,7 +36,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         return config!!
     }
 
-    fun doTestResolveProjectConfig(filePath: String): GraphQLProjectConfig {
+    private fun doTestResolveProjectConfig(filePath: String): GraphQLProjectConfig {
         val config = doTestResolveConfig(filePath)
         val psiFile = myFixture.file
         TestCase.assertNotNull(psiFile)

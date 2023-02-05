@@ -13,7 +13,7 @@ import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-class GraphQLConfigEndpoint(
+data class GraphQLConfigEndpoint(
     private val project: Project,
     private val data: GraphQLRawEndpoint,
     val dir: VirtualFile,
@@ -36,13 +36,14 @@ class GraphQLConfigEndpoint(
 
     val introspect = data.introspect
 
-    fun copyWithUIContext(newContext: Boolean): GraphQLConfigEndpoint =
-        if (newContext == isUIContext) this else GraphQLConfigEndpoint(project, data, dir, configPointer, isLegacy, newContext)
-
     fun findConfig(): GraphQLProjectConfig? {
         val provider = GraphQLConfigProvider.getInstance(project)
         val config = provider.getConfig(configPointer?.file)
         return config?.findProject(configPointer?.projectName) ?: config?.getDefault()
+    }
+
+    fun withUIContext(newIsUIContext: Boolean): GraphQLConfigEndpoint {
+        return copy(isUIContext = newIsUIContext)
     }
 
     override fun toString(): String {
