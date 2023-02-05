@@ -32,7 +32,7 @@ java {
 intellij {
     version.set(platformVersion)
     type.set(platformType)
-    plugins.set(listOf("JavaScript", "com.intellij.css", "org.intellij.intelliLang", "java"))
+    plugins.set(listOf("JavaScript", "com.intellij.css", "org.intellij.intelliLang", "java", "org.jetbrains.plugins.yaml"))
     ideaDependencyCachePath.set(project.buildDir.absolutePath)
 }
 

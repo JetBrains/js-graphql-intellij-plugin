@@ -12,12 +12,14 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
+import com.intellij.psi.codeStyle.CodeStyleManager
 import org.apache.commons.io.IOUtils
 import java.io.IOException
 import java.io.OutputStream
@@ -27,7 +29,7 @@ import java.util.function.Consumer
 class GraphQLConfigFactory(private val project: Project) {
 
     companion object {
-        private const val PREFERRED_CONFIG = GRAPHQLCONFIG
+        const val PREFERRED_CONFIG = GRAPHQL_CONFIG_YML
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigFactory>()
@@ -48,13 +50,16 @@ class GraphQLConfigFactory(private val project: Project) {
         }
     ) {
         invokeLater {
-            runWriteAction {
+            WriteCommandAction.runWriteCommandAction(project) {
                 try {
                     val configFile = configBaseDir.createChildData(this, PREFERRED_CONFIG)
                     configFile.getOutputStream(this).use { stream -> outputStreamConsumer.accept(stream) }
+                    val psiFile = PsiManager.getInstance(project).findFile(configFile)
+                    if (psiFile != null) {
+                        CodeStyleManager.getInstance(project).reformat(psiFile)
+                    }
                     if (openEditor) {
                         FileEditorManager.getInstance(project).openFile(configFile, true, true)
-
                     }
                 } catch (e: IOException) {
                     Notifications.Bus.notify(

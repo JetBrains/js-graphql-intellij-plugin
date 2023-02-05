@@ -10,7 +10,7 @@ import org.junit.Assert;
 import java.io.IOException;
 import java.util.Objects;
 
-public class GraphQLIntrospectionServiceTest extends GraphQLTestCaseBase {
+public class GraphQLIntrospectionPrinterTest extends GraphQLTestCaseBase {
 
     @Override
     protected @NotNull String getBasePath() {

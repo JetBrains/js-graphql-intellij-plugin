@@ -35,6 +35,7 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val CONFIG_RELOAD_TIMEOUT = 3000
 
@@ -50,6 +51,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+
+    // need to trigger invalidation of dependent caches regardless of whether any changes are detected or not
+    private val pendingInvalidation = AtomicBoolean(false)
 
     /**
      * Use this service as a dependency for tracking content changes in configuration files.
@@ -119,8 +123,13 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         GraphQLResolveUtil.processDirectoriesUpToContentRoot(file.project, initial) { dir ->
             val configFile = findConfigFileInDirectory(dir)
             if (configFile != null) {
-                result = configFile
-                false
+                val configEntry = configData[configFile]
+                if (configEntry != null && configEntry.status == GraphQLConfigLoader.Status.EMPTY) {
+                    true
+                } else {
+                    result = configFile
+                    false
+                }
             } else {
                 true
             }
@@ -150,6 +159,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             configData.clear()
         }
 
+        pendingInvalidation.set(true)
         scheduleConfigurationReload()
     }
 
@@ -169,6 +179,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         saveModifiedDocuments(discoveredConfigFiles)
 
         val loader = GraphQLConfigLoader.getInstance(project)
+        val explicitInvalidate = pendingInvalidation.getAndSet(false)
         var hasChanged = configData.keys.removeIf { !it.isValid || it !in discoveredConfigFiles }
 
         for (file in discoveredConfigFiles) {
@@ -184,11 +195,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
                 continue
             }
 
-            val rawConfig = loader.load(file)
-            val entry = if (rawConfig == null) {
-                ConfigEntry(null, timeStamp)
+            val result = loader.load(file)
+            val entry = if (result.data == null) {
+                ConfigEntry(null, timeStamp, result.status)
             } else {
-                ConfigEntry(GraphQLConfig(project, dir, file, rawConfig), timeStamp)
+                ConfigEntry(GraphQLConfig(project, dir, file, result.data), timeStamp, result.status)
             }
 
             hasChanged = true
@@ -199,7 +210,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             }
         }
 
-        if (hasChanged) {
+        if (hasChanged || explicitInvalidate) {
             notifyConfigurationChanged()
         }
     }
@@ -245,6 +256,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     private data class ConfigEntry(
         val config: GraphQLConfig? = null,
         val timeStamp: Long = -1,
+        val status: GraphQLConfigLoader.Status,
     )
 
     override fun getModificationCount(): Long = modificationTracker.modificationCount

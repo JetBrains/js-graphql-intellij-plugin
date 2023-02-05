@@ -69,7 +69,6 @@ public class GraphQLSchemaBuilderTest extends GraphQLTestCaseBase {
         myFixture.checkResultByFile(getTestName(true) + "_schema.graphql");
 
         if (withAst) {
-            getOptions(optionsBuilder).useAstDefinitions(true);
             myFixture.configureByText("ast.graphql", new SchemaPrinter(getOptions(optionsBuilder).useAstDefinitions(true)).print(schema));
             myFixture.checkResultByFile(getTestName(true) + "_ast.graphql");
         }

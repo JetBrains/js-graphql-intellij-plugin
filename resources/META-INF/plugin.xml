@@ -7,7 +7,7 @@
  *  LICENSE file in the root directory of this source tree.
  */
 -->
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" require-restart="true">
+<idea-plugin require-restart="true">
   <id>com.intellij.lang.jsgraphql</id>
   <name>GraphQL</name>
   <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
@@ -30,6 +30,7 @@
   <depends>com.intellij.modules.lang</depends>
   <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
   <depends optional="true" config-file="graphql-intellilang.xml">org.intellij.intelliLang</depends>
+  <depends optional="true" config-file="graphql-yaml.xml">org.jetbrains.plugins.yaml</depends>
 
   <resource-bundle>messages.GraphQLMessages</resource-bundle>
 
@@ -52,8 +53,10 @@
     <!-- Language registration -->
     <fileType name="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLFileType" fieldName="INSTANCE"
               language="GraphQL" extensions="graphql;graphqls;gql"/>
-    <fileType name="GraphQL Config" implementationClass="com.intellij.lang.jsgraphql.GraphQLConfigFileType" fieldName="INSTANCE"
-              extensions="graphqlconfig"/>
+    <fileType name="JSON" extensions="graphqlconfig;graphqlrc"/>
+    <lang.substitutor language="JSON"
+                      implementationClass="com.intellij.lang.jsgraphql.ide.config.fileType.GraphQLConfigLanguageSubstitutor"/>
+
     <lang.parserDefinition language="GraphQL"
                            implementationClass="com.intellij.lang.jsgraphql.GraphQLParserDefinition"/>
     <lang.fileViewProviderFactory language="GraphQL"

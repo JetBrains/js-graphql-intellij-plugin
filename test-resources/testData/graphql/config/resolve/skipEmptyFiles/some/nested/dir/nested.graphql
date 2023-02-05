@@ -1,0 +1,4 @@
+type Nested {
+    id: ID
+    name: String
+}

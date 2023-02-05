@@ -1,0 +1,8 @@
+schema: schema.graphql
+extensions:
+    endpoints:
+        Default GraphQL Endpoint:
+            url: http://localhost:8080/graphql
+            headers:
+                Authorization: ${TOKEN}
+            introspect: false
