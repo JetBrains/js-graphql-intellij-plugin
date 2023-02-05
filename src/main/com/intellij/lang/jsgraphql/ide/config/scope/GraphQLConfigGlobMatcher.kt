@@ -28,6 +28,10 @@ class GraphQLConfigGlobMatcher {
     private val options = Options().setMatchBase(true).setDot(true)
 
     fun matches(path: String, glob: String): Boolean {
+        if (glob.isBlank()) {
+            return false
+        }
+
         return matches.computeIfAbsent(path to glob) { (path, glob) ->
             Minimatch.minimatch(path, glob, options)
         }
