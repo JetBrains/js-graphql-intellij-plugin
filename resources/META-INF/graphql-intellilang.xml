@@ -1,5 +1,6 @@
 <idea-plugin>
-    <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.injection.GraphQLCommentBasedInjectionHelper" serviceImplementation="com.intellij.lang.jsgraphql.ide.injection.GraphQLCommentBasedInjectionHelperImpl" />
-    </extensions>
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.injection.GraphQLCommentBasedInjectionHelper"
+                        serviceImplementation="com.intellij.lang.jsgraphql.ide.injection.GraphQLCommentBasedInjectionHelperImpl"/>
+  </extensions>
 </idea-plugin>

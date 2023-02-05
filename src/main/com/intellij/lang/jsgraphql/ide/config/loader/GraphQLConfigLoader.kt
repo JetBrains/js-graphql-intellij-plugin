@@ -2,7 +2,6 @@ package com.intellij.lang.jsgraphql.ide.config.loader
 
 import com.google.gson.Gson
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
-import com.intellij.lang.jsgraphql.ide.notifications.showParseErrorNotification
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -14,7 +13,7 @@ import com.intellij.util.asSafely
 import org.yaml.snakeyaml.Yaml
 
 @Service
-class GraphQLConfigLoader(private val project: Project) {
+class GraphQLConfigLoader {
 
     companion object {
         private val LOG = logger<GraphQLConfigLoader>()
@@ -23,8 +22,14 @@ class GraphQLConfigLoader(private val project: Project) {
         fun getInstance(project: Project) = project.service<GraphQLConfigLoader>()
     }
 
-    fun load(file: VirtualFile): GraphQLRawConfig? {
-        val raw = readData(file) ?: return null
+    fun load(file: VirtualFile): Result {
+        val raw = try {
+            readData(file)
+        } catch (e: Throwable) {
+            LOG.info("Unable to parse config: ${file.path}", e)
+            return Result(null, Status.ERROR)
+        } ?: return Result(null, Status.EMPTY)
+
         val isLegacy = isLegacyConfig(file)
         val root = parseProjectConfig(raw, isLegacy)
         val projects = raw[GraphQLConfigKeys.PROJECTS]
@@ -42,7 +47,7 @@ class GraphQLConfigLoader(private val project: Project) {
             ?.toMap()
             ?: emptyMap()
 
-        return GraphQLRawConfig(root, projects)
+        return Result(GraphQLRawConfig(root, projects), Status.SUCCESS)
     }
 
     private fun parseProjectConfig(data: Map<*, *>, isLegacy: Boolean): GraphQLRawProjectConfig {
@@ -124,26 +129,45 @@ class GraphQLConfigLoader(private val project: Project) {
     }
 
     private fun readData(file: VirtualFile): Map<*, *>? {
-        return try {
-            when (file.extension) {
-                "json" -> readJson(file)
-                "yaml", "yml" -> readYml(file)
-                else -> if (isLegacyConfig(file)) return readJson(file) else return readYml(file)
-            }
-        } catch (t: Throwable) {
-            showParseErrorNotification(project, file, t)
-            LOG.warn(t)
-            return null
+        return when (file.extension) {
+            "json" -> readJson(file)
+            "yaml", "yml" -> readYml(file)
+            else -> if (isLegacyConfig(file)) return readJson(file) else return readContentDependent(file)
+        }
+    }
+
+    private fun readContentDependent(file: VirtualFile): Map<*, *>? {
+        val text = loadText(file) ?: return null
+        val firstChar = text.getOrNull(0)
+        return if (firstChar == '[' || firstChar == '{' || firstChar == '/') {
+            readJson(text)
+        } else {
+            readYml(text)
         }
     }
 
     private fun readJson(file: VirtualFile): Map<*, *>? {
-        val text = runReadAction { VfsUtil.loadText(file) }
-        return Gson().fromJson(text, Map::class.java)
+        val text = loadText(file) ?: return null
+        return readJson(text)
     }
 
+    private fun readJson(text: String): Map<*, *>? = Gson().fromJson(text, Map::class.java)
+
     private fun readYml(file: VirtualFile): Map<*, *>? {
-        val text = runReadAction { VfsUtil.loadText(file) }
-        return Yaml().load(text) as? Map<*, *>
+        val text = loadText(file) ?: return null
+        return readYml(text)
+    }
+
+    private fun readYml(text: String) = Yaml().load(text) as? Map<*, *>
+
+    private fun loadText(file: VirtualFile): String? =
+        runReadAction { VfsUtil.loadText(file) }.takeIf { it.isNotBlank() }
+
+    data class Result(val data: GraphQLRawConfig?, val status: Status)
+
+    enum class Status {
+        SUCCESS,
+        ERROR,
+        EMPTY,
     }
 }

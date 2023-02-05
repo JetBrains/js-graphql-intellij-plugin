@@ -19,7 +19,7 @@
 
   <extensions defaultExtensionNs="JavaScript">
     <JsonSchema.ProviderFactory
-      implementation="com.intellij.lang.jsgraphql.ide.config.schema.GraphQLConfigJsonSchemaProvider"/>
+      implementation="com.intellij.lang.jsgraphql.ide.config.schema.GraphQLLegacyConfigJsonSchemaProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">

@@ -17,14 +17,14 @@ import com.jetbrains.jsonSchema.extension.JsonSchemaProviderFactory
 /**
  * Register the .graphqlconfig JSON schema
  */
-class GraphQLConfigJsonSchemaProvider : JsonSchemaProviderFactory {
+class GraphQLLegacyConfigJsonSchemaProvider : JsonSchemaProviderFactory {
     override fun getProviders(project: Project): List<JsonSchemaFileProvider> {
         return listOf<JsonSchemaFileProvider>(
             EmbeddedJsonSchemaFileProvider(
                 "graphql-config-schema.json",
                 GraphQLBundle.message("graphql.config.schema.name"),
                 null,
-                GraphQLConfigJsonSchemaProvider::class.java,
+                GraphQLLegacyConfigJsonSchemaProvider::class.java,
                 "/schemas/",
                 GRAPHQLCONFIG
             )

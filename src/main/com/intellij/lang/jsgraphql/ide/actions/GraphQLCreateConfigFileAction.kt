@@ -1,66 +1,57 @@
-package com.intellij.lang.jsgraphql.ide.actions;
+package com.intellij.lang.jsgraphql.ide.actions
 
-import com.intellij.ide.IdeView;
-import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigConstants;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.lang.jsgraphql.GraphQLBundle
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.vfs.VirtualFile
 
-public class GraphQLCreateConfigFileAction extends AnAction {
-
-    public GraphQLCreateConfigFileAction() {
-        super("GraphQL Configuration File", "Creates a new GraphQL configuration file", GraphQLIcons.Logos.GraphQL);
-    }
-
-    @Override
-    public void actionPerformed(AnActionEvent e) {
-        if (e.getProject() != null) {
-            final VirtualFile virtualFile = getActionDirectory(e);
+class GraphQLCreateConfigFileAction : AnAction(
+    GraphQLBundle.message("graphql.action.create.config.file.title"),
+    GraphQLBundle.message("graphql.action.create.config.file.desc"),
+    GraphQLIcons.Logos.GraphQL
+) {
+    override fun actionPerformed(e: AnActionEvent) {
+        val project = e.project
+        if (project != null) {
+            val virtualFile = getActionDirectory(e)
             if (virtualFile != null) {
-                GraphQLConfigFactory.getInstance(e.getProject()).createAndOpenConfigFile(virtualFile, true);
-                ApplicationManager.getApplication().saveAll();
+                GraphQLConfigFactory.getInstance(project).createAndOpenConfigFile(virtualFile, true)
+                ApplicationManager.getApplication().saveAll()
             }
         }
     }
 
-    @Override
-    public void update(AnActionEvent e) {
-
-        boolean isAvailable = false;
-
-        if (e.getProject() != null) {
-            final DataContext dataContext = e.getDataContext();
-            final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
-            if (view != null && view.getDirectories().length > 0) {
-                final Module module = LangDataKeys.MODULE.getData(dataContext);
+    override fun update(e: AnActionEvent) {
+        var isAvailable = false
+        if (e.project != null) {
+            val dataContext = e.dataContext
+            val view = LangDataKeys.IDE_VIEW.getData(dataContext)
+            if (view != null && view.directories.isNotEmpty()) {
+                val module = LangDataKeys.MODULE.getData(dataContext)
                 if (module != null) {
-                    final VirtualFile actionDirectory = getActionDirectory(e);
+                    val actionDirectory = getActionDirectory(e)
                     if (actionDirectory != null) {
-                        isAvailable = actionDirectory.findChild(GraphQLConfigConstants.GRAPHQLCONFIG) == null;
+                        isAvailable = actionDirectory.findChild(GraphQLConfigFactory.PREFERRED_CONFIG) == null
                     }
                 }
             }
         }
-
-        final Presentation presentation = e.getPresentation();
-        presentation.setVisible(isAvailable);
-        presentation.setEnabled(isAvailable);
+        val presentation = e.presentation
+        presentation.isVisible = isAvailable
+        presentation.isEnabled = isAvailable
     }
 
-    private VirtualFile getActionDirectory(AnActionEvent e) {
-        VirtualFile virtualFile = e.getDataContext().getData(LangDataKeys.VIRTUAL_FILE);
+    private fun getActionDirectory(e: AnActionEvent): VirtualFile? {
+        var virtualFile = e.dataContext.getData(LangDataKeys.VIRTUAL_FILE)
         if (virtualFile != null) {
-            if (!virtualFile.isDirectory()) {
-                virtualFile = virtualFile.getParent();
+            if (!virtualFile.isDirectory) {
+                virtualFile = virtualFile.parent
             }
         }
-        return virtualFile;
+        return virtualFile
     }
 }

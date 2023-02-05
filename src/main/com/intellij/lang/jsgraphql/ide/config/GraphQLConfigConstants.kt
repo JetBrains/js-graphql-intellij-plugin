@@ -16,15 +16,18 @@ val LEGACY_CONFIG_NAMES: Set<String> = linkedSetOf(
     GRAPHQLCONFIG_YAML,
 )
 
+const val GRAPHQL_CONFIG_YML = "graphql.config.yml"
+const val GRAPHQL_RC = ".graphqlrc"
+
 val MODERN_CONFIG_NAMES: Set<String> = linkedSetOf(
 //    "graphql.config.ts",
 //    "graphql.config.js",
 //    "graphql.config.cjs",
     "graphql.config.json",
     "graphql.config.yaml",
-    "graphql.config.yml",
+    GRAPHQL_CONFIG_YML,
 //    "graphql.config.toml",
-    ".graphqlrc",
+    GRAPHQL_RC,
 //    ".graphqlrc.ts",
 //    ".graphqlrc.js",
 //    ".graphqlrc.cjs",
