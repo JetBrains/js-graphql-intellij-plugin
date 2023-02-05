@@ -101,11 +101,7 @@ data class GraphQLProjectConfig(
                 GraphQLConfigGlobMatcher.getInstance(project).matches(path, glob)
             }
 
-            is GraphQLSchemaPointer -> if (pointer.isRemote) {
-                false
-            } else {
-                match(candidate, pointer.pathOrUrl)
-            }
+            is GraphQLSchemaPointer -> match(candidate, pointer.filePath)
 
             else -> false
         }

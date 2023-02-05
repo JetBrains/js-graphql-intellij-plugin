@@ -5,11 +5,19 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.withCustomEnv
+import com.intellij.psi.PsiManager
 import junit.framework.TestCase
+import org.jetbrains.yaml.YAMLFileType
 
 class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
 
     override fun getBasePath(): String = "/config/resolve"
+
+    fun testConfigRC() {
+        val config = doTestResolveProjectConfig("dir/schema.graphql")
+        TestCase.assertEquals(".graphqlrc", config.file?.name)
+        TestCase.assertEquals(YAMLFileType.YML, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
+    }
 
     fun testSkipEmptyFiles() {
         val config = doTestResolveProjectConfig("some/nested/dir/nested.graphql")
