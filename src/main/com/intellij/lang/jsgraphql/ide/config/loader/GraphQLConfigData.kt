@@ -1,12 +1,21 @@
 package com.intellij.lang.jsgraphql.ide.config.loader
 
-import com.intellij.util.io.URLUtil
-
 
 data class GraphQLRawConfig(
-    val root: GraphQLRawProjectConfig = GraphQLRawProjectConfig.EMPTY,
+    val schema: List<GraphQLRawSchemaPointer>? = null,
+    val documents: List<String>? = null,
+    val extensions: Map<String, Any?>? = null,
+    val include: List<String>? = null,
+    val exclude: List<String>? = null,
     val projects: Map<String, GraphQLRawProjectConfig> = emptyMap(),
 ) {
+    constructor(
+        root: GraphQLRawProjectConfig = GraphQLRawProjectConfig.EMPTY,
+        projects: Map<String, GraphQLRawProjectConfig> = emptyMap()
+    ) : this(
+        root.schema, root.documents, root.extensions, root.include, root.exclude, projects
+    )
+
     companion object {
         @JvmField
         val EMPTY = GraphQLRawConfig()
@@ -14,7 +23,7 @@ data class GraphQLRawConfig(
 }
 
 data class GraphQLRawProjectConfig(
-    val schema: List<GraphQLSchemaPointer>? = null,
+    val schema: List<GraphQLRawSchemaPointer>? = null,
     val documents: List<String>? = null,
     val extensions: Map<String, Any?>? = null,
     val include: List<String>? = null,
@@ -26,12 +35,10 @@ data class GraphQLRawProjectConfig(
     }
 }
 
-data class GraphQLSchemaPointer(
+data class GraphQLRawSchemaPointer(
     val pathOrUrl: String,
-    val headers: Map<String, Any?> = emptyMap()
-) {
-    val isRemote: Boolean = URLUtil.canContainUrl(pathOrUrl)
-}
+    val headers: Map<String, Any?> = emptyMap(),
+)
 
 data class GraphQLRawEndpoint(
     var name: String? = null,

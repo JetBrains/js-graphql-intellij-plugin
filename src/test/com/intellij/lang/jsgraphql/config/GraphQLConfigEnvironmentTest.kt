@@ -13,6 +13,7 @@ import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
 import com.intellij.lang.jsgraphql.ide.config.expandVariables
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
+import com.intellij.lang.jsgraphql.withCustomEnv
 import com.intellij.openapi.project.guessProjectDir
 import org.junit.Assert
 import java.util.function.Function
@@ -20,7 +21,7 @@ import java.util.function.Function
 class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
 
     fun testExpandedVariablesLegacy() {
-        withCustomEnv {
+        withCustomEnv(emptyMap()) {
             val data = GraphQLRawEndpoint("remoteUrl", "http://localhost/")
             val endpoint = GraphQLConfigEndpoint(
                 myFixture.project, data, project.guessProjectDir()!!, null, isLegacy = true, isUIContext = false
@@ -59,7 +60,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
     }
 
     fun testInterpolation() {
-        withCustomEnv {
+        withCustomEnv(emptyMap()) {
             val env = mapOf(
                 "HOME" to "/usr/bin",
                 "PATH" to """C:\Users\my-path"""
@@ -117,15 +118,6 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
                 """${"$"}{env:HOME}_${"$"}{env:PATH}""",
                 true,
             )
-        }
-    }
-
-    private fun withCustomEnv(runnable: Runnable) {
-        val before = GraphQLConfigEnvironment.getEnvVariable
-        try {
-            runnable.run()
-        } finally {
-            GraphQLConfigEnvironment.getEnvVariable = before
         }
     }
 }
