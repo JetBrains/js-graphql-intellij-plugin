@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.config
 
+import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
@@ -13,10 +14,16 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
 
     override fun getBasePath(): String = "/config/resolve"
 
-    fun testConfigRC() {
+    fun testConfigRc() {
         val config = doTestResolveProjectConfig("dir/schema.graphql")
         TestCase.assertEquals(".graphqlrc", config.file?.name)
         TestCase.assertEquals(YAMLFileType.YML, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
+    }
+
+    fun testConfigRcAsJson() {
+        val config = doTestResolveProjectConfig("dir/schema.graphql")
+        TestCase.assertEquals(".graphqlrc", config.file?.name)
+        TestCase.assertEquals(JsonFileType.INSTANCE, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
     }
 
     fun testSkipEmptyFiles() {
