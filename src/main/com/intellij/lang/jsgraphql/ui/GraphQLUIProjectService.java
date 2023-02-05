@@ -17,8 +17,8 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
-import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
+import com.intellij.lang.jsgraphql.ide.actions.GraphQLOpenConfigAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
@@ -89,7 +89,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
     private static final Logger LOG = Logger.getInstance(GraphQLUIProjectService.class);
 
-    public static final String GRAPH_QL_VARIABLES_JSON = "GraphQL.variables.json";
+    public static final String GRAPH_QL_VARIABLES_JSON = "graphql.variables.json";
 
     /**
      * Indicates that this virtual file backs a GraphQL variables editor
@@ -106,9 +106,9 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
      */
     public static final Key<Editor> GRAPH_QL_QUERY_EDITOR = Key.create(GRAPH_QL_VARIABLES_JSON + ".query.editor");
 
-    public final static Key<GraphQLEndpointsModel> GRAPH_QL_ENDPOINTS_MODEL = Key.create("JSGraphQLEndpointsModel");
+    public final static Key<GraphQLEndpointsModel> GRAPH_QL_ENDPOINTS_MODEL = Key.create("graphql.endpoints.model");
 
-    public final static Key<Boolean> GRAPH_QL_EDITOR_QUERYING = Key.create("JSGraphQLEditorQuerying");
+    public final static Key<Boolean> GRAPH_QL_EDITOR_QUERYING = Key.create("graphql.editor.querying");
 
     private static final int UPDATE_MS = 500;
     private final Alarm myUpdateUIAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
@@ -160,6 +160,12 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     @Override
     public void onConfigurationChanged() {
         reloadEndpoints();
+
+        ApplicationManager.getApplication().invokeLater(
+            () -> EditorNotifications.getInstance(myProject).updateAllNotifications(),
+            ModalityState.defaultModalityState(),
+            myProject.getDisposed()
+        );
     }
 
     // ---- implementation ----
@@ -241,7 +247,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
         // variables & settings actions
         final DefaultActionGroup settingsActions = new DefaultActionGroup();
-        settingsActions.add(new GraphQLEditConfigAction());
+        settingsActions.add(new GraphQLOpenConfigAction());
         settingsActions.add(new GraphQLToggleVariablesAction());
 
         final JComponent settingsToolbar = createToolbar(settingsActions, headerComponent);

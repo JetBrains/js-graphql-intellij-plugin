@@ -11,7 +11,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.actions.GraphQLEditConfigAction;
+import com.intellij.lang.jsgraphql.ide.actions.GraphQLOpenConfigAction;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
 import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
@@ -54,8 +54,8 @@ public class GraphQLScopeEditorNotificationProvider extends Provider<EditorNotif
     private EditorNotificationPanel createPanel() {
         EditorNotificationPanel panel = new EditorNotificationPanel();
         panel.setText(GraphQLBundle.message("graphql.notification.file.out.of.scope"));
-        panel.createActionLabel(GraphQLBundle.message("graphql.notification.file.out.of.scope.edit"), () -> {
-            final GraphQLEditConfigAction action = new GraphQLEditConfigAction();
+        panel.createActionLabel(GraphQLBundle.message("graphql.action.open.config.file.link"), () -> {
+            final GraphQLOpenConfigAction action = new GraphQLOpenConfigAction();
             final AnActionEvent actionEvent = AnActionEvent.createFromDataContext(
                 "GraphQLConfigEditorNotification",
                 null,

@@ -60,7 +60,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     private val configData: MutableMap<VirtualFile, ConfigEntry> = ConcurrentHashMap()
 
-    private val configFiles: CachedValue<Collection<VirtualFile>> = CachedValuesManager.getManager(project).createCachedValue {
+    private val configFiles: CachedValue<Set<VirtualFile>> = CachedValuesManager.getManager(project).createCachedValue {
         CachedValueProvider.Result.create(
             queryAllConfigFiles(),
             VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
@@ -165,13 +165,13 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     private fun reload() {
-        val files = configFiles.value
-        saveModifiedDocuments(files)
+        val discoveredConfigFiles = configFiles.value
+        saveModifiedDocuments(discoveredConfigFiles)
 
         val loader = GraphQLConfigLoader.getInstance(project)
-        var hasChanged = configData.keys.removeIf { !it.isValid }
+        var hasChanged = configData.keys.removeIf { !it.isValid || it !in discoveredConfigFiles }
 
-        for (file in files) {
+        for (file in discoveredConfigFiles) {
             ProgressManager.checkCanceled()
             val dir = file.parent.takeIf { it.isValid && it.isDirectory }
             if (!file.isValid || dir == null) {
@@ -232,11 +232,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
      * Cached inside of [configFiles], do not use directly.
      */
     @RequiresBackgroundThread
-    private fun queryAllConfigFiles(): Collection<VirtualFile> =
-        ReadAction.nonBlocking<Collection<VirtualFile>> {
+    private fun queryAllConfigFiles(): Set<VirtualFile> =
+        ReadAction.nonBlocking<Set<VirtualFile>> {
             val processor = CommonProcessors.CollectUniquesProcessor<VirtualFile>()
             FilenameIndex.processFilesByNames(CONFIG_NAMES, true, GlobalSearchScope.projectScope(project), null, processor)
-            processor.results
+            processor.results.toSet()
         }
             .inSmartMode(project)
             .expireWith(this)
