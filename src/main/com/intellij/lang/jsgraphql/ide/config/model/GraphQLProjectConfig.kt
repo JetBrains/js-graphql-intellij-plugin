@@ -101,7 +101,7 @@ data class GraphQLProjectConfig(
                 GraphQLConfigGlobMatcher.getInstance(project).matches(path, glob)
             }
 
-            is GraphQLSchemaPointer -> match(candidate, pointer.filePath)
+            is GraphQLSchemaPointer -> match(candidate, pointer.globPath)
 
             else -> false
         }

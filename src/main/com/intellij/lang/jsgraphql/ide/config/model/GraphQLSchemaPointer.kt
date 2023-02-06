@@ -35,6 +35,9 @@ data class GraphQLSchemaPointer(
     val filePath: String?
         get() = pathOrUrl.takeUnless { URLUtil.canContainUrl(it) || it.contains(invalidPathCharsRegex) }
 
+    val globPath: String?
+        get() = pathOrUrl.takeUnless { URLUtil.canContainUrl(it) || it.contains('$') }
+
     fun withUIContext(newIsUIContext: Boolean): GraphQLSchemaPointer {
         return copy(isUIContext = newIsUIContext)
     }
