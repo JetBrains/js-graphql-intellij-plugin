@@ -4,3 +4,4 @@ schema:
   - any/**
   - patterns/query{1,3}.graphql
 exclude: excluded.graphql
+include: included.*
