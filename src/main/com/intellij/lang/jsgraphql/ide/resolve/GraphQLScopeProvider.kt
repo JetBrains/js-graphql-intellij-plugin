@@ -1,7 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.resolve
 
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLMetaInfSchemaSearchScope
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider
@@ -16,8 +15,6 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.concurrency.annotations.RequiresReadLock
-import com.intellij.util.containers.ContainerUtil
-import java.util.concurrent.ConcurrentMap
 
 @Service
 class GraphQLScopeProvider(private val project: Project) {
@@ -61,15 +58,6 @@ class GraphQLScopeProvider(private val project: Project) {
             )
         }
 
-    private val scopeByConfigCache: CachedValue<ConcurrentMap<GraphQLProjectConfig, GlobalSearchScope>> =
-        CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(
-                ContainerUtil.createConcurrentWeakMap(),
-                GraphQLConfigProvider.getInstance(project),
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-            )
-        }
-
     val globalScope: GlobalSearchScope
         get() = globalScopeCache.value
 
@@ -83,7 +71,7 @@ class GraphQLScopeProvider(private val project: Project) {
         return CachedValuesManager.getCachedValue(file, RESOLVE_SCOPE_KEY) {
             val configProvider = GraphQLConfigProvider.getInstance(project)
             val projectConfig = configProvider.resolveProjectConfig(file)
-            val scope = getConfigResolveScope(projectConfig)
+            val scope = projectConfig?.scope
                 ?: globalScope.takeUnless { configProvider.hasConfigurationFiles }
                 ?: createScope(project, GlobalSearchScope.fileScope(file))
 
@@ -94,21 +82,5 @@ class GraphQLScopeProvider(private val project: Project) {
                 VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
             )
         }
-    }
-
-    @RequiresReadLock
-    fun getConfigResolveScope(config: GraphQLProjectConfig?): GlobalSearchScope? {
-        if (config == null) {
-            return null
-        }
-
-        val cache = scopeByConfigCache.value
-        val prev = cache[config]
-        if (prev != null) {
-            return prev
-        }
-
-        val scope = createScope(project, config.scope)
-        return cache.putIfAbsent(config, scope) ?: scope
     }
 }

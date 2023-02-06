@@ -7,15 +7,14 @@ import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
 import com.intellij.lang.jsgraphql.ide.config.parseMap
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
+import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigSchemaScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLFileMatcherCache
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
 
 data class GraphQLProjectConfig(
     private val project: Project,
@@ -43,7 +42,13 @@ data class GraphQLProjectConfig(
 
     val exclude: List<String> = ownConfig.exclude ?: defaultConfig?.exclude ?: emptyList()
 
-    val scope = GraphQLConfigScope(project, GlobalSearchScope.projectScope(project), this)
+    val scope = GraphQLScopeProvider.createScope(
+        project, GraphQLConfigScope(project, GlobalSearchScope.projectScope(project), this)
+    )
+
+    val schemaScope = GraphQLScopeProvider.createScope(
+        project, GraphQLConfigSchemaScope(project, GlobalSearchScope.projectScope(project), this)
+    )
 
     private val endpointsLazy: Lazy<List<GraphQLConfigEndpoint>> = lazy { buildEndpoints() }
 
@@ -51,50 +56,59 @@ data class GraphQLProjectConfig(
 
     val isDefault = name == GraphQLConfig.DEFAULT_PROJECT
 
-    private val matchingCache =
-        CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(
-                GraphQLFileMatcherCache(),
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-            )
-        }
+    private val matchingCache = GraphQLFileMatcherCache.newInstance(project)
 
-    fun match(context: PsiFile): Boolean {
-        return getPhysicalVirtualFile(context)?.let { match(it) } ?: false
+    private val matchingSchemaCache = GraphQLFileMatcherCache.newInstance(project)
+
+    fun matches(context: PsiFile): Boolean {
+        return getPhysicalVirtualFile(context)?.let { matches(it) } ?: false
     }
 
-    fun match(virtualFile: VirtualFile): Boolean {
-        val cache = matchingCache.value
-        val status = cache.getMatchResult(virtualFile)
-        if (status != GraphQLFileMatcherCache.Match.UNKNOWN) {
-            return status == GraphQLFileMatcherCache.Match.MATCHING
-        }
-
-        return cache.cacheResult(virtualFile, matchImpl(virtualFile)) == GraphQLFileMatcherCache.Match.MATCHING
+    fun matches(virtualFile: VirtualFile): Boolean {
+        return matchingCache.value.match(virtualFile, ::matchesImpl)
     }
 
-    private fun matchImpl(virtualFile: VirtualFile): Boolean {
-        val isSchemaOrDocument = sequenceOf(schema, documents).any { match(virtualFile, it) }
+    private fun matchesImpl(virtualFile: VirtualFile): Boolean {
+        val isSchemaOrDocument = sequenceOf(schema, documents).any { matchPattern(virtualFile, it) }
         if (isSchemaOrDocument) {
             return true
         }
 
-        val isExcluded = if (exclude.isNotEmpty()) match(virtualFile, exclude) else false
+        return isIncluded(virtualFile)
+    }
+
+    fun matchesSchema(context: PsiFile): Boolean {
+        return getPhysicalVirtualFile(context)?.let { matchesSchema(it) } ?: false
+    }
+
+    fun matchesSchema(virtualFile: VirtualFile): Boolean {
+        return matchingSchemaCache.value.match(virtualFile, ::matchesSchemaImpl)
+    }
+
+    private fun matchesSchemaImpl(virtualFile: VirtualFile): Boolean {
+        val isSchema = schema.any { matchPattern(virtualFile, it) }
+        if (isSchema) {
+            return true
+        }
+
+        // in the legacy .graphqlconfig multiple schema files were provided via `includes`
+        return if (isLegacy) isIncluded(virtualFile) else false
+    }
+
+    private fun isIncluded(virtualFile: VirtualFile): Boolean {
+        val isExcluded = if (exclude.isNotEmpty()) matchPattern(virtualFile, exclude) else false
         if (isExcluded) {
             return false
         }
 
-        return if (include.isNotEmpty()) match(virtualFile, include) else false
+        return if (include.isNotEmpty()) matchPattern(virtualFile, include) else false
     }
 
-    private fun match(candidate: VirtualFile, pointer: Any?): Boolean {
+    private fun matchPattern(candidate: VirtualFile, pointer: Any?): Boolean {
         return when (pointer) {
-            is List<*> -> pointer.any { match(candidate, it) }
-
+            is List<*> -> pointer.any { matchPattern(candidate, it) }
             is String -> GraphQLConfigGlobMatcher.getInstance(project).matches(candidate, pointer, dir)
-
-            is GraphQLSchemaPointer -> match(candidate, pointer.globPath)
-
+            is GraphQLSchemaPointer -> matchPattern(candidate, pointer.globPath)
             else -> false
         }
     }

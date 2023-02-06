@@ -3,5 +3,8 @@ schema:
   - dir1/**/*.graphql
   - any/**
   - patterns/query{1,3}.graphql
+documents:
+  - docs/docum???.graphql
+  - docs/dir/*
 exclude: excluded.graphql
 include: included.*

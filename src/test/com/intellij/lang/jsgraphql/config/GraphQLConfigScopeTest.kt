@@ -3,7 +3,6 @@ package com.intellij.lang.jsgraphql.config
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
-import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -14,7 +13,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     override fun getBasePath(): String = "/config/scope"
 
     fun testRootProject() {
-        val expected = setOf(
+        val expectedSchemas = setOf(
             "schema.graphql",
             "dir1/nested/other.graphql",
             "dir1/nested/other1.graphql",
@@ -22,13 +21,32 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
             "any/nested/dir/file2.ts",
             "patterns/query1.graphql",
             "patterns/query3.graphql",
-            "included.graphql",
-            "included.js",
         )
 
-        val config = loadConfig("graphql.config.yml")
-        val scope = GraphQLScopeProvider.getInstance(project).getConfigResolveScope(config.getDefault())!!
-        compareFiles(scope, expected)
+        val expectedDocuments = setOf(
+            "included.graphql",
+            "included.js",
+            "docs/document.graphql",
+            "docs/dir/document123.graphql",
+            "docs/dir/document345.graphql",
+        )
+
+        doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
+    }
+
+    private fun doScopeTest(
+        configPath: String,
+        expectedSchemas: Set<String>,
+        expectedDocuments: Set<String>,
+        projectName: String? = null
+    ) {
+        val config = loadConfig(configPath)
+        val projectConfig =
+            projectName
+                ?.let { checkNotNull(config.findProject(projectName)) }
+                ?: checkNotNull(config.getDefault())
+        compareFiles(projectConfig.schemaScope, expectedSchemas)
+        compareFiles(projectConfig.scope, expectedSchemas + expectedDocuments)
     }
 
     private fun compareFiles(

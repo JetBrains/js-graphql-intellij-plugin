@@ -14,7 +14,6 @@ import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
-import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.openapi.application.ReadAction;
@@ -74,8 +73,8 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
             myProjectConfig = projectConfig != null ? projectConfig : defaultProjectConfig;
             myEndpoints = myProjectConfig.getEndpoints();
             mySchemaInfo = SlowOperations.allowSlowOperations(() -> ReadAction.compute(() -> {
-                GlobalSearchScope scope = GraphQLScopeProvider.getInstance(project).getConfigResolveScope(myProjectConfig);
-                return scope != null ? GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope) : null;
+                GlobalSearchScope scope = myProjectConfig.getScope();
+                return GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope);
             }));
         } else {
             myEndpoints = null;
@@ -93,7 +92,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
                 return true;
             }
             if (myPerformSchemaDiscovery) {
-                GlobalSearchScope scope = GraphQLScopeProvider.getInstance(myProject).getConfigResolveScope(myProjectConfig);
+                GlobalSearchScope scope = myProjectConfig != null ? myProjectConfig.getScope() : null;
                 if (scope != null) {
                     return scope.contains(virtualFile);
                 }
@@ -168,8 +167,8 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
             if (config != null) {
                 try {
                     return config.getProjects().values().stream()
-                        .map(projectConfig -> new GraphQLConfigSchemaNode(myProject, this, config, projectConfig))
-                        .toArray(SimpleNode[]::new);
+                            .map(projectConfig -> new GraphQLConfigSchemaNode(myProject, this, config, projectConfig))
+                            .toArray(SimpleNode[]::new);
                 } catch (IndexNotReadyException ignored) {
                     // entered "dumb" mode, so just return no children as the tree view will be rebuilt as empty shortly (GraphQLSchemasRootNode)
                 }
