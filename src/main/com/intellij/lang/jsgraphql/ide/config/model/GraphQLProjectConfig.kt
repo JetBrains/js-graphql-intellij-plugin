@@ -5,6 +5,7 @@ import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigKeys
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
+import com.intellij.lang.jsgraphql.ide.config.parseMap
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
 import com.intellij.openapi.project.Project
@@ -16,7 +17,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.asSafely
 import java.io.File
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -79,12 +79,12 @@ data class GraphQLProjectConfig(
     private fun matchImpl(virtualFile: VirtualFile): Boolean {
         val isSchemaOrDocument = sequenceOf(schema, documents).any { match(virtualFile, it) }
         if (isSchemaOrDocument) {
-            return true;
+            return true
         }
 
         val isExcluded = if (exclude.isNotEmpty()) match(virtualFile, exclude) else false
         if (isExcluded) {
-            return false;
+            return false
         }
 
         return if (include.isNotEmpty()) match(virtualFile, include) else false
@@ -110,12 +110,13 @@ data class GraphQLProjectConfig(
     val isLegacy
         get() = isLegacyConfig(file)
 
-    @Suppress("UNCHECKED_CAST")
     private fun buildEndpoints(): List<GraphQLConfigEndpoint> {
         val endpointsMap =
-            extensions[GraphQLConfigKeys.EXTENSION_ENDPOINTS] as? Map<String, Any?> ?: return emptyList()
+            extensions[GraphQLConfigKeys.EXTENSION_ENDPOINTS] as? Map<*, *> ?: return emptyList()
 
-        return endpointsMap.mapNotNull { (endpointName: String, value: Any?) ->
+        return endpointsMap.mapNotNull { (key: Any?, value: Any?) ->
+            val endpointName = key as? String ?: return@mapNotNull null
+
             when (value) {
                 is String -> {
                     GraphQLRawEndpoint(
@@ -127,14 +128,13 @@ data class GraphQLProjectConfig(
                 }
 
                 is Map<*, *> -> {
-                    val endpointObject = value as Map<String, Any?>
-                    val url = endpointObject["url"]
+                    val url = value["url"]
                     if (url is String) {
                         GraphQLRawEndpoint(
                             endpointName,
                             url,
-                            endpointObject["introspect"] as Boolean? ?: false,
-                            endpointObject["headers"].asSafely<Map<String, Any?>>() ?: emptyMap()
+                            value["introspect"] as Boolean? ?: false,
+                            parseMap(value["headers"]) ?: emptyMap()
                         )
                     } else {
                         null

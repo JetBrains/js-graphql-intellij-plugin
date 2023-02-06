@@ -1,6 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
-import com.intellij.util.asSafely
+import com.intellij.lang.jsgraphql.ide.config.parseMap
 
 
 data class GraphQLConfigSecurity(
@@ -18,7 +18,6 @@ data class GraphQLConfigSecurity(
 
         private const val UNSUPPORTED_CERT_ERROR = "Unsupported certificate format, only PEM is currently supported"
 
-        @Suppress("UNCHECKED_CAST")
         @JvmStatic
         fun getSecurityConfig(config: GraphQLProjectConfig?): GraphQLConfigSecurity? {
             if (config == null) {
@@ -27,16 +26,16 @@ data class GraphQLConfigSecurity(
 
             val extensions = config.extensions
             val sslExtension =
-                extensions[EXTENSION_SSL].asSafely<Map<String, Any?>>()?.takeIf { it.isNotEmpty() } ?: return null
+                parseMap(extensions[EXTENSION_SSL])?.takeIf { it.isNotEmpty() } ?: return null
 
             val sslConfig = GraphQLConfigSecurity()
 
-            val clientCertificate = sslExtension[CLIENT_CERTIFICATE] as Map<String, Any?>?
+            val clientCertificate = parseMap(sslExtension[CLIENT_CERTIFICATE])
             if (!clientCertificate.isNullOrEmpty()) {
                 sslConfig.clientCertificate = readCertificate(clientCertificate)
             }
 
-            val clientCertificateKey = sslExtension[CLIENT_CERTIFICATE_KEY] as Map<String, Any?>?
+            val clientCertificateKey = parseMap(sslExtension[CLIENT_CERTIFICATE_KEY])
             if (!clientCertificateKey.isNullOrEmpty()) {
                 sslConfig.clientCertificateKey = readCertificate(clientCertificateKey)
             }

@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.ide.config.loader
 
 import com.google.gson.Gson
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
+import com.intellij.lang.jsgraphql.ide.config.parseMap
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -55,7 +56,7 @@ class GraphQLConfigLoader {
 
         val schema: List<GraphQLRawSchemaPointer>? = parseSchemas(data[GraphQLConfigKeys.SCHEMA])
         val documents: List<String>? = parseListOrItem(data[GraphQLConfigKeys.DOCUMENTS])
-        val extensions: Map<String, Any?>? = parseExtensions(data[GraphQLConfigKeys.EXTENSIONS])
+        val extensions: Map<String, Any?>? = parseMap(data[GraphQLConfigKeys.EXTENSIONS])
         val include: List<String>? = parseListOrItem(data[GraphQLConfigKeys.INCLUDE])
         val exclude: List<String>? = parseListOrItem(data[GraphQLConfigKeys.EXCLUDE])
 
@@ -100,17 +101,6 @@ class GraphQLConfigLoader {
         return GraphQLRawSchemaPointer(url, headers)
     }
 
-    private fun parseExtensions(data: Any?): Map<String, Any?>? {
-        if (data is Map<*, *>) {
-            return data.mapNotNull { (key, value) ->
-                val name = key as? String ?: return@mapNotNull null
-                name to value
-            }.toMap()
-        }
-
-        return null
-    }
-
     private inline fun <reified T> parseListOrItem(data: Any?): List<T>? {
         return when (data) {
             is T -> listOf(data)
@@ -123,7 +113,7 @@ class GraphQLConfigLoader {
         val schemaPath: List<GraphQLRawSchemaPointer>? = parseSchemas(data[GraphQLConfigKeys.LEGACY_SCHEMA_PATH])
         val includes: List<String>? = parseListOrItem(data[GraphQLConfigKeys.LEGACY_INCLUDES])
         val excludes: List<String>? = parseListOrItem(data[GraphQLConfigKeys.LEGACY_EXCLUDES])
-        val extensions: Map<String, Any?>? = parseExtensions(data[GraphQLConfigKeys.LEGACY_EXTENSIONS])
+        val extensions: Map<String, Any?>? = parseMap(data[GraphQLConfigKeys.LEGACY_EXTENSIONS])
 
         return GraphQLRawProjectConfig(schemaPath, emptyList(), extensions, includes, excludes)
     }
