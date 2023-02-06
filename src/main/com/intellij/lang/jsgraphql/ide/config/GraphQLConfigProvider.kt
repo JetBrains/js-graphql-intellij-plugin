@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicBoolean
 
-private const val CONFIG_RELOAD_TIMEOUT = 3000
+private const val CONFIG_RELOAD_TIMEOUT = 2000
 
 @Service
 class GraphQLConfigProvider(private val project: Project) : Disposable, ModificationTracker {
