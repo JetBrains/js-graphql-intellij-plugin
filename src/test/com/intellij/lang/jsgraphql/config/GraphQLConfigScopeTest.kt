@@ -22,6 +22,8 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
             "any/nested/dir/file2.ts",
             "patterns/query1.graphql",
             "patterns/query3.graphql",
+            "included.graphql",
+            "included.js",
         )
 
         val config = loadConfig("graphql.config.yml")
