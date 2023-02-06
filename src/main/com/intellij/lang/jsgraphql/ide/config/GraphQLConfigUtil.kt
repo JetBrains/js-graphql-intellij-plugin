@@ -8,6 +8,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import com.intellij.util.asSafely
 
 fun getPhysicalVirtualFile(file: PsiFile?): VirtualFile? {
     return GraphQLPsiUtil.getPhysicalVirtualFile(file)
@@ -31,7 +32,7 @@ fun expandVariables(
     map.mapValues { (_, value) ->
         when (value) {
             is String -> expandVariables(project, value, dir, isLegacy, isUIContext)
-            is Map<*, *> -> expandVariables(project, value as Map<String, Any?>, dir, isLegacy, isUIContext)
+            is Map<*, *> -> expandVariables(project, parseMap(value) ?: emptyMap(), dir, isLegacy, isUIContext)
             else -> value
         }
     }
@@ -42,3 +43,9 @@ fun expandVariables(project: Project, raw: String, dir: VirtualFile, isLegacy: B
         environment.getVariable(it, dir, isUIContext)
     }.trim()
 }
+
+fun parseMap(value: Any?): Map<String, Any?>? =
+    value.asSafely<Map<*, *>>()?.mapNotNull {
+        val key = it.key as? String ?: return@mapNotNull null
+        key to it.value
+    }?.toMap()

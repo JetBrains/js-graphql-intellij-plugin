@@ -27,7 +27,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiUtil
 import com.intellij.util.Alarm
 import com.intellij.util.CommonProcessors
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
@@ -81,6 +80,15 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             )
         }
 
+    private val closestConfigFile: CachedValue<ConcurrentMap<VirtualFile, Optional<VirtualFile>>> =
+        CachedValuesManager.getManager(project).createCachedValue {
+            CachedValueProvider.Result.create(
+                ConcurrentHashMap(),
+                this,
+                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
+            )
+        }
+
     @RequiresReadLock
     fun resolveConfig(context: PsiFile): GraphQLConfig? =
         findClosestConfigFile(context)?.let { getConfig(it) }
@@ -111,30 +119,41 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     @RequiresReadLock
     fun findClosestConfigFile(context: PsiFile): VirtualFile? {
         return CachedValuesManager.getCachedValue(context, CONFIG_FILE_KEY) {
-            val configFile = findConfigFileInParents(context)
+            // TODO: here should be implemented PsiFile dependent config file search logic, e.g. reading a graphqlconfig comment
+
+            val virtualFile = getPhysicalVirtualFile(context)
+            val configFile = findConfigFileInParents(virtualFile)
             CachedValueProvider.Result.create(configFile, context, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
         }
     }
 
-    private fun findConfigFileInParents(file: PsiFile): VirtualFile? {
-        // TODO: better starting point including light files, injections and scratches
-        val initial = PsiUtil.getVirtualFile(file) ?: return null
-        var result: VirtualFile? = null
-        GraphQLResolveUtil.processDirectoriesUpToContentRoot(file.project, initial) { dir ->
+    private fun findConfigFileInParents(file: VirtualFile?): VirtualFile? {
+        if (file == null) return null
+
+        val cache = closestConfigFile.value
+        val prev = cache[file]
+        if (prev != null) {
+            return prev.orElse(null)
+        }
+
+        var found: VirtualFile? = null
+        GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, file) { dir ->
             val configFile = findConfigFileInDirectory(dir)
             if (configFile != null) {
                 val configEntry = configData[configFile]
                 if (configEntry != null && configEntry.status == GraphQLConfigLoader.Status.EMPTY) {
                     true
                 } else {
-                    result = configFile
+                    found = configFile
                     false
                 }
             } else {
                 true
             }
         }
-        return result
+
+        val result = Optional.ofNullable(found)
+        return (cache.putIfAbsent(file, result) ?: result).orElse(null)
     }
 
     @RequiresReadLock
@@ -246,7 +265,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     private fun queryAllConfigFiles(): Set<VirtualFile> =
         ReadAction.nonBlocking<Set<VirtualFile>> {
             val processor = CommonProcessors.CollectUniquesProcessor<VirtualFile>()
-            FilenameIndex.processFilesByNames(CONFIG_NAMES, true, GlobalSearchScope.projectScope(project), null, processor)
+            FilenameIndex.processFilesByNames(
+                CONFIG_NAMES, true, GlobalSearchScope.projectScope(project), null, processor
+            )
             processor.results.toSet()
         }
             .inSmartMode(project)
