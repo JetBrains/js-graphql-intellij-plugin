@@ -5,42 +5,43 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.actions;
+package com.intellij.lang.jsgraphql.ide.actions
 
-import com.intellij.ide.actions.CreateFileFromTemplateAction;
-import com.intellij.ide.actions.CreateFileFromTemplateDialog;
-import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiDirectory;
+import com.intellij.ide.actions.CreateFileFromTemplateAction
+import com.intellij.ide.actions.CreateFileFromTemplateDialog
+import com.intellij.lang.jsgraphql.GraphQLBundle
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiDirectory
 
-public class GraphQLNewFileAction extends CreateFileFromTemplateAction implements DumbAware {
+class GraphQLNewFileAction : CreateFileFromTemplateAction(
+    GraphQLBundle.message("graphql.action.create.file.from.template.title"),
+    GraphQLBundle.message("graphql.action.create.file.from.template.desc"),
+    GraphQLIcons.Files.GraphQL
+), DumbAware {
 
-    public GraphQLNewFileAction() {
-        super("GraphQL File", "Creates a new GraphQL file", GraphQLIcons.Files.GraphQL);
-    }
-
-    @Override
-    protected boolean isAvailable(DataContext dataContext) {
+    override fun isAvailable(dataContext: DataContext): Boolean {
         if (!super.isAvailable(dataContext)) {
-            return false;
+            return false
         }
-        final Module module = LangDataKeys.MODULE.getData(dataContext);
-        return module != null;
+        val module = LangDataKeys.MODULE.getData(dataContext)
+        return module != null
     }
 
-    @Override
-    protected String getActionName(PsiDirectory directory, String newName, String templateName) {
-        return "Create GraphQL file " + newName;
+    override fun getActionName(directory: PsiDirectory, newName: String, templateName: String): String {
+        return GraphQLBundle.message("graphql.action.create.file.from.template.name", newName)
     }
 
-    @Override
-    protected void buildDialog(Project project, PsiDirectory directory, CreateFileFromTemplateDialog.Builder builder) {
+    override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder) {
         builder
-                .setTitle("New GraphQL File")
-                .addKind("GraphQL File", GraphQLIcons.Files.GraphQL, "GraphQL File");
+            .setTitle(GraphQLBundle.message("graphql.action.create.file.from.template.dialog.title"))
+            .addKind(
+                GraphQLBundle.message("graphql.action.create.file.from.template.dialog.kind"),
+                GraphQLIcons.Files.GraphQL,
+                "GraphQL File"
+            )
     }
 }
