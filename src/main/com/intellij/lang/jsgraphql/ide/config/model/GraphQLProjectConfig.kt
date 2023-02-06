@@ -24,29 +24,31 @@ import kotlin.concurrent.write
 
 data class GraphQLProjectConfig(
     private val project: Project,
-    val dir: VirtualFile,
-    val file: VirtualFile?,
     val name: String,
-    private val rawConfig: GraphQLRawProjectConfig,
-    private val parentConfig: GraphQLRawProjectConfig?,
+    private val ownConfig: GraphQLRawProjectConfig,
+    private val defaultConfig: GraphQLRawProjectConfig?,
+    val parent: GraphQLConfig,
 ) {
+    val dir = parent.dir
 
-    val schema: List<GraphQLSchemaPointer> = (rawConfig.schema ?: parentConfig?.schema ?: emptyList()).map {
+    val file = parent.file
+
+    val schema: List<GraphQLSchemaPointer> = (ownConfig.schema ?: defaultConfig?.schema ?: emptyList()).map {
         GraphQLSchemaPointer(project, dir, it, isLegacy, false)
     }
 
-    val documents: List<String> = rawConfig.documents ?: parentConfig?.documents ?: emptyList()
+    val documents: List<String> = ownConfig.documents ?: defaultConfig?.documents ?: emptyList()
 
     val extensions: Map<String, Any?> = buildMap {
-        parentConfig?.extensions?.let { putAll(it) }
-        rawConfig.extensions?.let { putAll(it) }
+        defaultConfig?.extensions?.let { putAll(it) }
+        ownConfig.extensions?.let { putAll(it) }
     }
 
-    val include: List<String> = rawConfig.include ?: parentConfig?.include ?: emptyList()
+    val include: List<String> = ownConfig.include ?: defaultConfig?.include ?: emptyList()
 
-    val exclude: List<String> = rawConfig.exclude ?: parentConfig?.exclude ?: emptyList()
+    val exclude: List<String> = ownConfig.exclude ?: defaultConfig?.exclude ?: emptyList()
 
-    val scope = GraphQLConfigScope(GlobalSearchScope.projectScope(project), this)
+    val scope = GraphQLConfigScope(project, GlobalSearchScope.projectScope(project), this)
 
     private val endpointsLazy: Lazy<List<GraphQLConfigEndpoint>> = lazy { buildEndpoints() }
 

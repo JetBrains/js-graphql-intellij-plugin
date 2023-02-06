@@ -123,7 +123,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         });
     }
 
-    public void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull Project project, @NotNull GraphQLConfigEndpoint endpoint) {
+    public void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint) {
         GraphQLProjectConfig projectConfig = endpoint.findConfig();
         VirtualFile configFile = projectConfig != null ? projectConfig.getFile() : null;
         if (projectConfig == null || configFile == null) {
@@ -548,7 +548,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                             @Override
                             public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                                 GraphQLIntrospectionService.getInstance(myProject)
-                                    .performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
+                                    .performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
                             }
                         });
 

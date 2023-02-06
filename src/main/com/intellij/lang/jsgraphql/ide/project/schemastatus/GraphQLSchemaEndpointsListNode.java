@@ -100,7 +100,7 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
                         return doFinalStep(() -> {
                             if (introspect.equals(selectedValue)) {
                                 GraphQLIntrospectionService.getInstance(myProject)
-                                    .performIntrospectionQueryAndUpdateSchemaPathFile(myProject, endpoint);
+                                    .performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
                             } else if (createScratch.equals(selectedValue)) {
                                 final String configBaseDir = endpoint.getDir().getPresentableUrl();
                                 final String text = "# " + GRAPHQLCONFIG_COMMENT + configBaseDir + "!" +

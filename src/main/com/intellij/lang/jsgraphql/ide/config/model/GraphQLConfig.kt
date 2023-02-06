@@ -30,9 +30,7 @@ data class GraphQLConfig(
     /**
      * NULL config to store as weak referenced value in [fileToProjectCache]. Shouldn't be exposed to the outside of the class.
      */
-    private val nullConfig = GraphQLProjectConfig(
-        project, dir, null, "NULL", GraphQLRawProjectConfig.EMPTY, null
-    )
+    private val nullConfig = GraphQLProjectConfig(project, "NULL", GraphQLRawProjectConfig.EMPTY, null, this)
 
     private val fileToProjectCache: CachedValue<ConcurrentMap<VirtualFile, GraphQLProjectConfig>> =
         CachedValuesManager.getManager(project).createCachedValue {
@@ -46,14 +44,10 @@ data class GraphQLConfig(
         val root = GraphQLRawProjectConfig(data.schema, data.documents, data.extensions, data.include, data.exclude)
 
         return if (data.projects.isEmpty()) {
-            mapOf(
-                DEFAULT_PROJECT to GraphQLProjectConfig(
-                    project, dir, file, DEFAULT_PROJECT, root, null
-                )
-            )
+            mapOf(DEFAULT_PROJECT to GraphQLProjectConfig(project, DEFAULT_PROJECT, root, null, this))
         } else {
             data.projects.mapValues { (name, config) ->
-                GraphQLProjectConfig(project, dir, file, name, config, root)
+                GraphQLProjectConfig(project, name, config, root, this)
             }
         }
     }
