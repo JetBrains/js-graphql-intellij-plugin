@@ -15,19 +15,19 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     override fun getBasePath(): String = "/config/resolve"
 
     fun testConfigRc() {
-        val config = doTestResolveProjectConfig("dir/schema.graphql")
+        val config = resolveProjectConfig("dir/schema.graphql")
         TestCase.assertEquals(".graphqlrc", config.file?.name)
         TestCase.assertEquals(YAMLFileType.YML, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
     }
 
     fun testConfigRcAsJson() {
-        val config = doTestResolveProjectConfig("dir/schema.graphql")
+        val config = resolveProjectConfig("dir/schema.graphql")
         TestCase.assertEquals(".graphqlrc", config.file?.name)
         TestCase.assertEquals(JsonFileType.INSTANCE, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
     }
 
     fun testSkipEmptyFiles() {
-        val config = doTestResolveProjectConfig("some/nested/dir/nested.graphql")
+        val config = resolveProjectConfig("some/nested/dir/nested.graphql")
         TestCase.assertEquals("graphql.config.yml", config.file?.name)
     }
 
@@ -35,15 +35,27 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         val filename = "dir/schema.graphql"
 
         withCustomEnv(mapOf("SCHEMA_PATH" to filename)) {
-            val config = doTestResolveProjectConfig(filename)
+            val config = resolveProjectConfig(filename)
             TestCase.assertEquals("graphql.config.yml", config.file?.name)
             TestCase.assertEquals(filename, config.schema.first().filePath)
         }
     }
 
-    private fun doTestResolveConfig(filePath: String): GraphQLConfig {
+    fun testGlobAsPath() {
+        copyProject()
+        val config = GraphQLConfigProvider.getInstance(project).getAllConfigs().first()
+        val pointer = config.getDefault()?.schema?.first()!!
+        TestCase.assertEquals("src/**/*.graphql", pointer.globPath)
+        TestCase.assertEquals(null, pointer.filePath)
+    }
+
+    private fun copyProject() {
         myFixture.copyDirectoryToProject(getTestName(true), "/")
         reloadConfiguration()
+    }
+
+    private fun resolveConfig(filePath: String): GraphQLConfig {
+        copyProject()
         val context = myFixture.configureFromTempProjectFile(filePath)
         TestCase.assertNotNull(context)
         val config = GraphQLConfigProvider.getInstance(project).resolveConfig(context)
@@ -51,8 +63,8 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         return config!!
     }
 
-    private fun doTestResolveProjectConfig(filePath: String): GraphQLProjectConfig {
-        val config = doTestResolveConfig(filePath)
+    private fun resolveProjectConfig(filePath: String): GraphQLProjectConfig {
+        val config = resolveConfig(filePath)
         val psiFile = myFixture.file
         TestCase.assertNotNull(psiFile)
         val projectConfig = config.match(psiFile!!)

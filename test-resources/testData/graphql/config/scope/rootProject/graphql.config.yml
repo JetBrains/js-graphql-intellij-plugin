@@ -1,0 +1,6 @@
+schema:
+  - schema.graphql
+  - dir1/**/*.graphql
+  - any/**
+  - patterns/query{1,3}.graphql
+exclude: excluded.graphql

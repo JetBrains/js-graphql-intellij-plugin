@@ -10,15 +10,12 @@ import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLFileMatcherCache
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import java.io.File
 
 data class GraphQLProjectConfig(
     private val project: Project,
@@ -94,12 +91,7 @@ data class GraphQLProjectConfig(
         return when (pointer) {
             is List<*> -> pointer.any { match(candidate, it) }
 
-            is String -> {
-                val path = VfsUtil.findRelativePath(dir, candidate, File.separatorChar)
-                    ?.let { FileUtil.toCanonicalPath(it) } ?: return false
-                val glob = FileUtil.toCanonicalPath(pointer)
-                GraphQLConfigGlobMatcher.getInstance(project).matches(path, glob)
-            }
+            is String -> GraphQLConfigGlobMatcher.getInstance(project).matches(candidate, pointer, dir)
 
             is GraphQLSchemaPointer -> match(candidate, pointer.globPath)
 
