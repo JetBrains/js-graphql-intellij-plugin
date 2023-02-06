@@ -55,7 +55,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         val config = doTestResolveConfig(filePath)
         val psiFile = myFixture.file
         TestCase.assertNotNull(psiFile)
-        val projectConfig = config.matchProject(psiFile!!)
+        val projectConfig = config.match(psiFile!!)
         TestCase.assertNotNull(projectConfig)
         return projectConfig!!
     }

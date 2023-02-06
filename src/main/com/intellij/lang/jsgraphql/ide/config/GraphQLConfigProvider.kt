@@ -95,7 +95,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     @RequiresReadLock
     fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? =
-        resolveConfig(context)?.matchProject(context)
+        resolveConfig(context)?.match(context)
 
     @RequiresReadLock
     fun resolveConfig(file: VirtualFile): GraphQLConfig? =

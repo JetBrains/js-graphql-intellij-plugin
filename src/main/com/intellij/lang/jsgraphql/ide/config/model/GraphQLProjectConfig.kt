@@ -8,6 +8,7 @@ import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
 import com.intellij.lang.jsgraphql.ide.config.parseMap
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
+import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLFileMatcherCache
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -18,9 +19,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import java.io.File
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 data class GraphQLProjectConfig(
     private val project: Project,
@@ -59,7 +57,7 @@ data class GraphQLProjectConfig(
     private val matchingCache =
         CachedValuesManager.getManager(project).createCachedValue {
             CachedValueProvider.Result.create(
-                MatchingFilesCache(),
+                GraphQLFileMatcherCache(),
                 VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
             )
         }
@@ -71,11 +69,11 @@ data class GraphQLProjectConfig(
     fun match(virtualFile: VirtualFile): Boolean {
         val cache = matchingCache.value
         val status = cache.getMatchResult(virtualFile)
-        if (status != MatchResult.UNKNOWN) {
-            return status == MatchResult.MATCHING
+        if (status != GraphQLFileMatcherCache.Match.UNKNOWN) {
+            return status == GraphQLFileMatcherCache.Match.MATCHING
         }
 
-        return matchImpl(virtualFile).also { cache.cacheResult(virtualFile, it) }
+        return cache.cacheResult(virtualFile, matchImpl(virtualFile)) == GraphQLFileMatcherCache.Match.MATCHING
     }
 
     private fun matchImpl(virtualFile: VirtualFile): Boolean {
@@ -155,41 +153,5 @@ data class GraphQLProjectConfig(
                 false
             )
         }
-    }
-
-    private class MatchingFilesCache {
-        private val matchingFiles = VfsUtil.createCompactVirtualFileSet() // lock
-        private val excludedFiles = VfsUtil.createCompactVirtualFileSet() // lock
-        private val lock = ReentrantReadWriteLock()
-
-        fun getMatchResult(virtualFile: VirtualFile): MatchResult {
-            return lock.read {
-                if (matchingFiles.contains(virtualFile)) {
-                    MatchResult.MATCHING
-                } else if (excludedFiles.contains(virtualFile)) {
-                    MatchResult.EXCLUDED
-                } else {
-                    MatchResult.UNKNOWN
-                }
-            }
-        }
-
-        fun cacheResult(virtualFile: VirtualFile, isMatching: Boolean) {
-            lock.write {
-                if (!matchingFiles.contains(virtualFile) && !excludedFiles.contains(virtualFile)) {
-                    if (isMatching) {
-                        matchingFiles.add(virtualFile)
-                    } else {
-                        excludedFiles.add(virtualFile)
-                    }
-                }
-            }
-        }
-    }
-
-    private enum class MatchResult {
-        UNKNOWN,
-        MATCHING,
-        EXCLUDED,
     }
 }
