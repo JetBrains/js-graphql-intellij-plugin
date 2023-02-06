@@ -12,7 +12,7 @@ import com.intellij.openapi.vfs.VirtualFile
 class GraphQLCreateConfigFileAction : AnAction(
     GraphQLBundle.message("graphql.action.create.config.file.title"),
     GraphQLBundle.message("graphql.action.create.config.file.desc"),
-    GraphQLIcons.Logos.GraphQL
+    GraphQLIcons.Files.GraphQLConfig
 ) {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project

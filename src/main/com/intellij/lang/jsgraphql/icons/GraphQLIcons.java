@@ -13,17 +13,18 @@ import javax.swing.*;
 
 public class GraphQLIcons {
 
-    public static final Icon FILE = GraphQLIcons.load("/icons/graphqlFile.svg");
+    public static final Icon FILE = GraphQLIcons.load("/icons/graphql.svg");
 
     public static class Logos {
-        public static final Icon GraphQL = GraphQLIcons.load("/icons/graphql.svg");
+        public static final Icon GraphQL = FILE;
         public static final Icon Relay = GraphQLIcons.load("/icons/relay.svg");
         public static final Icon Apollo = GraphQLIcons.load("/icons/apollo.svg");
         public static final Icon Lokka = GraphQLIcons.load("/icons/lokka.svg");
     }
 
     public static class Files {
-        public static final Icon GraphQL = GraphQLIcons.load("/icons/graphqlFile.svg");
+        public static final Icon GraphQL = FILE;
+        public static final Icon GraphQLConfig = GraphQLIcons.load("/icons/graphqlConfig.svg");
         public static final Icon GraphQLSchema = GraphQLIcons.load("/icons/graphqlSchema.svg");
     }
 
