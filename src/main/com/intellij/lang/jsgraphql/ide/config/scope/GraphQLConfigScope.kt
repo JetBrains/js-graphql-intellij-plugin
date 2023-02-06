@@ -4,8 +4,12 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.search.DelegatingGlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 
 class GraphQLConfigScope(
     project: Project,
@@ -14,12 +18,30 @@ class GraphQLConfigScope(
 ) : DelegatingGlobalSearchScope(baseScope, config) {
 
     private val configProvider = GraphQLConfigProvider.getInstance(project)
+    private val matchingFiles = CachedValuesManager.getManager(project).createCachedValue {
+        CachedValueProvider.Result.create(
+            GraphQLFileMatcherCache(),
+            PsiModificationTracker.MODIFICATION_COUNT,
+            VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+        )
+    }
 
     override fun contains(file: VirtualFile): Boolean {
+        if (!super.contains(file)) {
+            return false
+        }
+
+        val cache = matchingFiles.value
+        val prev = cache.getMatchResult(file)
+        if (prev != GraphQLFileMatcherCache.Match.UNKNOWN) {
+            return prev == GraphQLFileMatcherCache.Match.MATCHING
+        }
+
         // The matching logic considers both glob patterns and specific corner cases,
         // such as utilizing the first project with empty `include` and `exclude` arrays
         // in the absence of an exact match.
-        return super.contains(file) && configProvider.resolveProjectConfig(file) === config
+        val isMatching = configProvider.resolveProjectConfig(file) == config
+        return cache.cacheResult(file, isMatching) == GraphQLFileMatcherCache.Match.MATCHING
     }
 
 }

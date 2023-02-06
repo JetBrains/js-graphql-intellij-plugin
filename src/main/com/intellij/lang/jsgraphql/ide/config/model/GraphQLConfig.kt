@@ -71,11 +71,11 @@ data class GraphQLConfig(
     val isLegacy: Boolean
         get() = isLegacyConfig(file)
 
-    fun matchProject(context: PsiFile): GraphQLProjectConfig? {
-        return getPhysicalVirtualFile(context)?.let { matchProject(it) }
+    fun match(context: PsiFile): GraphQLProjectConfig? {
+        return getPhysicalVirtualFile(context)?.let { match(it) }
     }
 
-    fun matchProject(virtualFile: VirtualFile): GraphQLProjectConfig? {
+    fun match(virtualFile: VirtualFile): GraphQLProjectConfig? {
         val cache = fileToProjectCache.value
         val cachedResult = cache[virtualFile]
         if (cachedResult != null) {
