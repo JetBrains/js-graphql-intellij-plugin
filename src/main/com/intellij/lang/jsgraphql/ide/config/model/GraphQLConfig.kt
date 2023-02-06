@@ -88,7 +88,7 @@ data class GraphQLConfig(
 
     private fun findProjectForFile(virtualFile: VirtualFile): GraphQLProjectConfig? {
         for (config in projects.values) {
-            if (config.match(virtualFile)) {
+            if (config.matches(virtualFile)) {
                 return config
             }
         }

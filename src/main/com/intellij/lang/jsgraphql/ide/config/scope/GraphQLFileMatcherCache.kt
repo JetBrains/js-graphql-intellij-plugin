@@ -1,7 +1,12 @@
 package com.intellij.lang.jsgraphql.ide.config.scope
 
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -11,6 +16,17 @@ import kotlin.concurrent.write
  * due to the potential for a large number of files in a project.
  */
 class GraphQLFileMatcherCache {
+    companion object {
+        fun newInstance(project: Project, vararg dependencies: Any): CachedValue<GraphQLFileMatcherCache> =
+            CachedValuesManager.getManager(project).createCachedValue {
+                CachedValueProvider.Result.create(
+                    GraphQLFileMatcherCache(),
+                    VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+                    *dependencies
+                )
+            }
+    }
+
     private val matchingFiles = VfsUtil.createCompactVirtualFileSet() // lock
     private val excludedFiles = VfsUtil.createCompactVirtualFileSet() // lock
     private val lock = ReentrantReadWriteLock()
@@ -42,6 +58,15 @@ class GraphQLFileMatcherCache {
                 Match.EXCLUDED
             }
         }
+    }
+
+    fun match(virtualFile: VirtualFile, matcher: (VirtualFile) -> Boolean): Boolean {
+        val status = getMatchResult(virtualFile)
+        if (status != Match.UNKNOWN) {
+            return status == Match.MATCHING
+        }
+
+        return cacheResult(virtualFile, matcher(virtualFile)) == Match.MATCHING
     }
 
     enum class Match {
