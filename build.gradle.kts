@@ -4,6 +4,7 @@ val pluginSinceBuild = prop("pluginSinceBuild")
 val pluginUntilBuild = prop("pluginUntilBuild")
 val platformVersion = prop("platformVersion")
 val platformType = prop("platformType")
+val platformIdeVersions = prop("platformIdeVersions")
 
 plugins {
     idea
@@ -94,7 +95,7 @@ tasks {
     }
 
     runPluginVerifier {
-        ideVersions.set(listOf("IU-2022.2", "IU-2022.3"))
+        ideVersions.set(platformIdeVersions.split(',').map { it.trim() })
     }
 
     compileJava {
