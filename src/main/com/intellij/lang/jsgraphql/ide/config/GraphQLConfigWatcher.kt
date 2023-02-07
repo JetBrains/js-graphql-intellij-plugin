@@ -70,7 +70,7 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
                     if (configurationsChanged) break
 
                     val file = event.file ?: continue
-                    if (!fileIndex.isInProject(file)) continue
+                    if (!fileIndex.isInContent(file)) continue
 
                     if (file.isDirectory) {
                         if (file in watchedDirs ||
