@@ -1,6 +1,7 @@
 package com.intellij.lang.jsgraphql.ide.config.loader
 
 import com.google.gson.Gson
+import com.intellij.lang.jsgraphql.asSafely
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.parseMap
 import com.intellij.openapi.application.runReadAction
@@ -10,7 +11,6 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.asSafely
 import org.yaml.snakeyaml.Yaml
 
 @Service

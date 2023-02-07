@@ -2,13 +2,13 @@
 
 package com.intellij.lang.jsgraphql.ide.config
 
+import com.intellij.lang.jsgraphql.asSafely
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironmentParser
 import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import com.intellij.util.asSafely
 
 fun getPhysicalVirtualFile(file: PsiFile?): VirtualFile? {
     return GraphQLPsiUtil.getPhysicalVirtualFile(file)
