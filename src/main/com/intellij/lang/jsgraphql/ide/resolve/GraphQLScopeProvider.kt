@@ -20,7 +20,10 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 class GraphQLScopeProvider(private val project: Project) {
 
     companion object {
-        private val RESOLVE_SCOPE_KEY = Key.create<CachedValue<GlobalSearchScope>>("graphql.resolve.scope")
+        private val RESOLVE_SCOPE_KEY =
+            Key.create<CachedValue<GlobalSearchScope>>("graphql.resolve.scope")
+        private val SCHEMA_SCOPE_KEY =
+            Key.create<CachedValue<GlobalSearchScope>>("graphql.schema.scope")
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLScopeProvider>()
@@ -63,15 +66,27 @@ class GraphQLScopeProvider(private val project: Project) {
 
     @RequiresReadLock
     fun getResolveScope(element: PsiElement?): GlobalSearchScope {
+        return getOrCreateScope(element, RESOLVE_SCOPE_KEY)
+    }
+
+    @RequiresReadLock
+    fun getSchemaScope(element: PsiElement?): GlobalSearchScope {
+        return getOrCreateScope(element, SCHEMA_SCOPE_KEY)
+    }
+
+    private fun getOrCreateScope(
+        element: PsiElement?,
+        key: Key<CachedValue<GlobalSearchScope>>
+    ): GlobalSearchScope {
         if (element == null) {
             return GlobalSearchScope.EMPTY_SCOPE
         }
 
         val file = element.containingFile
-        return CachedValuesManager.getCachedValue(file, RESOLVE_SCOPE_KEY) {
+        return CachedValuesManager.getCachedValue(file, key) {
             val configProvider = GraphQLConfigProvider.getInstance(project)
             val projectConfig = configProvider.resolveProjectConfig(file)
-            val scope = projectConfig?.scope
+            val scope = if (key == SCHEMA_SCOPE_KEY) projectConfig?.schemaScope else projectConfig?.scope
                 ?: globalScope.takeUnless { configProvider.hasConfigurationFiles }
                 ?: createScope(project, GlobalSearchScope.fileScope(file))
 
