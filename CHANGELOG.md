@@ -2,11 +2,13 @@
 
 # Changelog
 
-## [3.3.1] - 2022-11-23
+## [3.4.0] - 2022-02-07
 
 ### Fixed
 
 - Compatibility with 2023.1.
+- Updated Federation 2 schema.
+- Updated Apollo Kotlin schema.
 
 
 ## [3.3.0] - 2022-09-22
