@@ -1,0 +1,7 @@
+type Types1 {
+    id: String
+}
+
+fragment Fragment1 on Types1 {
+    id
+}

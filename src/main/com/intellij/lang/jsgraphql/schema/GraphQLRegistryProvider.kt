@@ -70,7 +70,7 @@ class GraphQLRegistryProvider(project: Project) {
      * @return registry for provided scope
      */
     fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
-        return getRegistryInfo(scopeProvider.getResolveScope(context))
+        return getRegistryInfo(scopeProvider.getResolveScope(context, true))
     }
 
     fun getRegistryInfo(schemaScope: GlobalSearchScope): GraphQLRegistryInfo {

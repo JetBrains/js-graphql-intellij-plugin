@@ -5,77 +5,98 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.schema;
+package com.intellij.lang.jsgraphql.schema
 
-import com.google.common.collect.Lists;
-import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
-import com.intellij.lang.jsgraphql.types.language.NamedNode;
-import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
+import com.intellij.lang.jsgraphql.schema.GraphQLRegistryProvider.Companion.getInstance
+import junit.framework.TestCase
 
 /**
  * Verifies that two schemas can be separated using graphql-config
  */
-public class GraphQLSchemaConfigTest extends GraphQLTestCaseBase {
-    @Override
-    protected @NotNull String getBasePath() {
-        return "/schema/config";
+class GraphQLSchemaConfigTest : GraphQLTestCaseBase() {
+    override fun getBasePath() = "/schema/config"
+
+    override fun setUp() {
+        super.setUp()
+
+        myFixture.copyDirectoryToProject(getTestName(true), "")
+        reloadConfiguration()
     }
 
-    public void testCompletionSchemas() {
-        PsiFile[] files = myFixture.configureByFiles(
-            "completionSchemas/schema-one/.graphqlconfig",
-            "completionSchemas/schema-one/schema-one.graphql",
-            "completionSchemas/schema-two/.graphqlconfig",
-            "completionSchemas/schema-two/schema-two.graphql",
-            "completionSchemas/schema-two/schema-excluded-two.graphql",
-            "completionSchemas/schema-one/query-one.graphql",
-            "completionSchemas/schema-two/query-two.graphql"
-        );
-        reloadConfiguration();
+    fun testMultipleSchemasLegacy() {
+        // an explicit test for empty schema config
+        doTest(
+            "schema-one/query-one.graphql",
+            listOf("fieldOne", "__typename"),
+            listOf("FragOne1", "FragOne2"),
+            listOf("Query", "SchemaOneType", "SchemaOneAdditional"),
+        )
 
-        doTestCompletion("completionSchemas/schema-one/query-one.graphql", Lists.newArrayList("fieldOne", "__typename"), files);
-        doTestCompletion("completionSchemas/schema-two/query-two.graphql", Lists.newArrayList("fieldTwo", "__typename"), files);
+        // explicit includes and excludes
+        doTest(
+            "schema-two/query-two.graphql",
+            listOf("fieldTwo", "__typename"),
+            listOf("FragTwoIncluded"),
+            listOf("Query", "TwoIncludedType", "TwoAdditionalType")
+        )
+
+        // only `schemaPath` includes all documents implicitly
+        doTest(
+            "schema-three/query1.graphql",
+            listOf("one", "two", "__typename"),
+            listOf("ThreeOneFragment", "ThreeTwoFragment", "ThreeImplicitlyIncludedFragment"),
+            listOf("Query", "Three1", "Three2")
+        )
+
+        // existing `includes` enables "strict" mode, so only matching types and documents are used
+        doTest(
+            "schema-four/query.graphql",
+            listOf("four", "additional", "__typename"),
+            listOf("FourFragment", "FourFragment1"),
+            listOf("Query", "FourType", "FourType1")
+        )
     }
 
-    public void testExcludeFilesAndDirectories() {
-        test("Types3.graphql", "TheOnlyType");
+    fun testExcludeLegacy() {
+        val fileName = "Types3.graphql"
+        doTestTypeDefinitions(fileName, listOf("TheOnlyType"))
+        doTestFragmentDefinitions(fileName, listOf("TheOnlyFragment"))
     }
 
-    private void test(@NotNull String initialFile, String @NotNull ... expectedTypes) {
-        VirtualFile directory = myFixture.copyDirectoryToProject(getTestName(true), "/");
-        reloadConfiguration();
-        VirtualFile file = directory.findFileByRelativePath(initialFile);
-        assertNotNull(file);
-        PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-        assertNotNull(psiFile);
-        TypeDefinitionRegistry registry = GraphQLRegistryProvider.getInstance(getProject())
-            .getRegistryInfo(psiFile).getTypeDefinitionRegistry();
-
-        List<String> types = registry.types().values().stream()
-            .map(NamedNode::getName)
-            .filter(type -> !GraphQLKnownTypes.isIntrospectionType(type))
-            .collect(Collectors.toList());
-        assertSameElements(types, expectedTypes);
+    private fun doTest(
+        fileName: String,
+        expectedCompletions: List<String>,
+        expectedFragments: List<String>,
+        expectedTypes: List<String>,
+    ) {
+        doTestCompletion(fileName, expectedCompletions)
+        doTestFragmentDefinitions(fileName, expectedFragments)
+        doTestTypeDefinitions(fileName, expectedTypes)
     }
 
-    private void doTestCompletion(String sourceFile, List<String> expectedCompletions, PsiFile @NotNull [] files) {
-        for (PsiFile file : files) {
-            if (file.getVirtualFile().getPath().endsWith(sourceFile)) {
-                myFixture.configureFromExistingVirtualFile(file.getVirtualFile());
-                break;
-            }
-        }
-        myFixture.complete(CompletionType.BASIC, 1);
-        final List<String> completions = myFixture.getLookupElementStrings();
-        assertEquals("Wrong completions", expectedCompletions, completions);
+    private fun doTestCompletion(fileName: String, expectedCompletions: List<String>) {
+        myFixture.configureFromTempProjectFile(fileName)
+        myFixture.complete(CompletionType.BASIC, 1)
+        val completions = myFixture.lookupElementStrings ?: emptyList()
+        assertSameElements(completions, expectedCompletions)
+    }
+
+    private fun doTestFragmentDefinitions(fileName: String, expectedFragments: List<String>) {
+        val file = myFixture.configureFromTempProjectFile(fileName)!!
+        val fragments = GraphQLPsiSearchHelper.getInstance(project).getKnownFragmentDefinitions(file).map { it.name }
+        assertSameElements(fragments, expectedFragments)
+    }
+
+    private fun doTestTypeDefinitions(fileName: String, expectedTypes: List<String>) {
+        val psiFile = myFixture.configureFromTempProjectFile(fileName)
+        TestCase.assertNotNull(psiFile)
+        val registry = getInstance(project).getRegistryInfo(psiFile).typeDefinitionRegistry
+        val types = registry.types().values
+            .map { it.name }
+            .filter { !GraphQLKnownTypes.isIntrospectionType(it) }
+        assertSameElements(types, expectedTypes)
     }
 }

@@ -1,0 +1,7 @@
+fragment ThreeOneFragment on Three1 {
+    id
+}
+
+{
+    <caret>
+}

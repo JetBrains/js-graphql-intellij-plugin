@@ -1,0 +1,8 @@
+type TheOnlyType {
+    id: ID
+}
+
+fragment TheOnlyFragment on TheOnlyType {
+    id
+}
+

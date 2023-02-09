@@ -57,7 +57,7 @@ class GraphQLSchemaProvider(project: Project) {
 
     @RequiresReadLock
     fun getSchemaInfo(context: PsiElement?): GraphQLSchemaInfo {
-        return getSchemaInfo(scopeProvider.getResolveScope(context))
+        return getSchemaInfo(scopeProvider.getResolveScope(context, true))
     }
 
     @RequiresReadLock

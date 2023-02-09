@@ -1,0 +1,12 @@
+type ThreeIgnored {
+    id: ID
+}
+
+extend type Query {
+    threeIgnored: ThreeIgnored
+}
+
+# it's included despite types from this files are ignored
+fragment ThreeImplicitlyIncludedFragment on Three2 {
+    id
+}

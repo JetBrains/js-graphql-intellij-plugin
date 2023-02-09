@@ -10,10 +10,13 @@ trim_trailing_whitespace = true
 insert_final_newline = true
 max_line_length = 140
 
+[*.{yaml,yml}]
+indent_size = 2
+
 [*.md]
 trim_trailing_whitespace = false
 
-[{*.bnf, *.flex}]
+[{*.bnf,*.flex}]
 indent_size = 2
 
 [*.xml]

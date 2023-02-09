@@ -91,8 +91,11 @@ data class GraphQLProjectConfig(
             return true
         }
 
-        // in the legacy .graphqlconfig multiple schema files were provided via `includes`
-        return if (isLegacy) isIncluded(virtualFile) else false
+        // TODO: should we include SDL definitions included via `include` property or load just operations and fragments?
+        //// in the legacy .graphqlconfig multiple schema files were provided via `includes`
+        //return if (isLegacy) isIncluded(virtualFile) else false
+
+        return isIncluded(virtualFile)
     }
 
     private fun isIncluded(virtualFile: VirtualFile): Boolean {

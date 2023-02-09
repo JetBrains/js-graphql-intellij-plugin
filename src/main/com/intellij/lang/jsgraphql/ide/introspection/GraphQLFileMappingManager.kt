@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.ide.introspection
 
 import com.intellij.lang.jsgraphql.GraphQLLanguage
 import com.intellij.lang.jsgraphql.GraphQLSettings
+import com.intellij.lang.jsgraphql.ide.config.CONFIG_NAMES
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
@@ -59,6 +60,8 @@ class GraphQLFileMappingManager(private val project: Project) {
          * Set on a scratch Virtual File to indicate which project it's been associated with
          */
         private val GRAPHQL_SCRATCH_PROJECT_KEY = Key.create<String>("graphql.scratch.project.key")
+
+        private val IGNORED_INTROSPECTION_FILES = setOf(*CONFIG_NAMES.toTypedArray(), "package.json")
     }
 
     fun getCachedIntrospectionSDL(psiFile: PsiFile): GraphQLFile? {
@@ -67,6 +70,8 @@ class GraphQLFileMappingManager(private val project: Project) {
     }
 
     fun getOrCreateIntrospectionSDL(file: VirtualFile): GraphQLFile? {
+        if (file.name in IGNORED_INTROSPECTION_FILES) return null
+
         val psiFile = runReadAction { PsiManager.getInstance(project).findFile(file) } ?: return null
 
         return CachedValuesManager.getCachedValue(psiFile, GRAPHQL_SOURCE_TO_SDL) {

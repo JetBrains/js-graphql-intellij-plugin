@@ -1,0 +1,7 @@
+type Types3 {
+    id: String
+}
+
+fragment Fragment3 on Types3 {
+    id
+}

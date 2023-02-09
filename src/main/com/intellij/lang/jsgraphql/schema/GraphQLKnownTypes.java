@@ -1,6 +1,6 @@
 package com.intellij.lang.jsgraphql.schema;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -43,7 +43,7 @@ public class GraphQLKnownTypes {
     public static final String INT_TYPE = "Int";
     public static final String FLOAT_TYPE = "Float";
 
-    public static boolean isIntrospectionType(@NotNull String name) {
+    public static boolean isIntrospectionType(@Nullable String name) {
         return INTROSPECTION_TYPES.contains(name);
     }
 }

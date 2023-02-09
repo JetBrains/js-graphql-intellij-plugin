@@ -1,0 +1,7 @@
+type Query {
+    excludedTwo: String
+}
+
+type TwoExcludedType {
+    id: ID
+}

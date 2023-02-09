@@ -9,20 +9,27 @@ package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.injection.InjectedLanguageManager;
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLCachingReference;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLReferenceService;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.lang.jsgraphql.psi.GraphQLReferenceElement;
+import com.intellij.openapi.util.Key;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiModificationTracker;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl implements GraphQLReferenceElement {
+    private static final Key<CachedValue<PsiReference>> REFERENCE_KEY = Key.create("graphql.reference");
 
     public GraphQLReferenceMixin(@NotNull ASTNode node) {
         super(node);
@@ -45,7 +52,10 @@ public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl impl
 
     @Override
     public PsiReference getReference() {
-        return GraphQLReferenceService.getService(getProject()).resolveReference(this);
+        return CachedValuesManager.getCachedValue(this, REFERENCE_KEY, () -> CachedValueProvider.Result.create(
+            new GraphQLCachingReference(this, GraphQLReferenceService.getService(getProject())::resolveReference),
+            PsiModificationTracker.MODIFICATION_COUNT
+        ));
     }
 
     @NotNull
@@ -55,7 +65,7 @@ public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl impl
         final GraphQLFile psiFile = ObjectUtils.tryCast(getContainingFile(), GraphQLFile.class);
         if (psiFile != null && InjectedLanguageManager.getInstance(getProject()).isInjectedFragment(psiFile)) {
             // this PSI element is part of injected GraphQL, so we have to expand the use scope which defaults to the current file only
-            useScope = useScope.union(GraphQLScopeProvider.getInstance(getProject()).getResolveScope(this));
+            useScope = useScope.union(GraphQLScopeProvider.getInstance(getProject()).getResolveScope(this, false));
         }
         return useScope;
     }

@@ -6,5 +6,9 @@ schema:
 documents:
   - docs/docum???.graphql
   - docs/dir/*
-exclude: excluded.graphql
+  - notReallyExcludedDocument.graphql
 include: included.*
+exclude:
+  - included.jsx
+  - excluded.graphql
+  - notReallyExcludedDocument.graphql # included in `documents`, so should be available despite exclusion

@@ -7,11 +7,11 @@ data class GraphQLRawConfig(
     val extensions: Map<String, Any?>? = null,
     val include: List<String>? = null,
     val exclude: List<String>? = null,
-    val projects: Map<String, GraphQLRawProjectConfig> = emptyMap(),
+    val projects: Map<String, GraphQLRawProjectConfig>? = null,
 ) {
     constructor(
         root: GraphQLRawProjectConfig = GraphQLRawProjectConfig.EMPTY,
-        projects: Map<String, GraphQLRawProjectConfig> = emptyMap()
+        projects: Map<String, GraphQLRawProjectConfig>? = null
     ) : this(
         root.schema, root.documents, root.extensions, root.include, root.exclude, projects
     )

@@ -1,0 +1,11 @@
+type Query {
+    fieldTwo: String
+}
+
+fragment FragTwoIncluded on Query {
+    fieldTwo
+}
+
+type TwoIncludedType {
+    id: ID
+}

@@ -46,7 +46,6 @@ class GraphQLConfigLoader {
                 }
             }
             ?.toMap()
-            ?: emptyMap()
 
         return Result(GraphQLRawConfig(root, projects), Status.SUCCESS)
     }

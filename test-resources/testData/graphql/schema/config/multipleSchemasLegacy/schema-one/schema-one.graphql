@@ -1,0 +1,12 @@
+type Query {
+    fieldOne: String
+}
+
+
+fragment FragOne1 on Query {
+    fieldOne
+}
+
+type SchemaOneType {
+    id: SchemaOneAdditional
+}

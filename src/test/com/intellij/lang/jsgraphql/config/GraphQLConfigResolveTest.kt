@@ -50,7 +50,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     }
 
     private fun copyProject() {
-        myFixture.copyDirectoryToProject(getTestName(true), "/")
+        myFixture.copyDirectoryToProject(getTestName(true), "")
         reloadConfiguration()
     }
 

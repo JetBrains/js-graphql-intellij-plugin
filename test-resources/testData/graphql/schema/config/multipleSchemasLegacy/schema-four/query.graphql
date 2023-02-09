@@ -1,0 +1,15 @@
+fragment FourFragment1 on FourType {
+    name
+}
+
+type FourType1 {
+    id: ID
+}
+
+extend type Query {
+    additional: Int
+}
+
+query {
+    <caret>
+}
