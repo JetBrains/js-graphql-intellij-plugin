@@ -29,7 +29,7 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.ContainerUtil
 import java.util.concurrent.ConcurrentMap
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLSchemaProvider(project: Project) {
 
     companion object {

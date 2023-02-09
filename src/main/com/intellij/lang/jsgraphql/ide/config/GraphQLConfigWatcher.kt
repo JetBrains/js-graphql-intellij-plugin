@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 private const val SAVE_DOCUMENTS_TIMEOUT = 3000
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLConfigWatcher(private val project: Project) : Disposable {
 
     companion object {

@@ -95,7 +95,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID;
 import static com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService.setHeadersFromOptions;
 
-@Service
+@Service(Service.Level.PROJECT)
 public final class GraphQLIntrospectionService implements Disposable {
     private static final Logger LOG = Logger.getInstance(GraphQLIntrospectionService.class);
 
@@ -110,7 +110,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         return ServiceManager.getService(project, GraphQLIntrospectionService.class);
     }
 
-    public GraphQLIntrospectionService(Project project) {
+    public GraphQLIntrospectionService(@NotNull Project project) {
         myProject = project;
 
         MessageBusConnection connection = project.getMessageBus().connect(this);

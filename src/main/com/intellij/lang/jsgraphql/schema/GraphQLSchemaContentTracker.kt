@@ -36,7 +36,7 @@ import com.intellij.util.Alarm
  * Tracks PSI changes that can affect declared GraphQL schemas.
  * For configuration changes use [com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider].
  */
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, ModificationTracker {
 
     companion object {

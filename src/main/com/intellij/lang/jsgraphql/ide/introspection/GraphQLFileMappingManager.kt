@@ -21,7 +21,7 @@ import com.intellij.psi.util.CachedValuesManager
 import java.io.IOException
 import java.lang.ref.WeakReference
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLFileMappingManager(private val project: Project) {
     companion object {
         private val LOG = logger<GraphQLFileMappingManager>()
