@@ -25,7 +25,7 @@ import java.io.IOException
 import java.io.OutputStream
 import java.util.function.Consumer
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLConfigFactory(private val project: Project) {
 
     companion object {

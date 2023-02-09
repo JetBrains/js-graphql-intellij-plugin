@@ -34,7 +34,7 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.containers.ContainerUtil
 import java.util.concurrent.ConcurrentMap
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLRegistryProvider(project: Project) {
 
     companion object {

@@ -18,7 +18,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLScopeProvider(private val project: Project) {
 
     companion object {

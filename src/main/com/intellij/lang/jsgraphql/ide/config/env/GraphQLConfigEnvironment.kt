@@ -21,7 +21,7 @@ import java.util.function.Function
 import javax.swing.JComponent
 
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLConfigEnvironment(private val project: Project) {
     companion object {
         @JvmField

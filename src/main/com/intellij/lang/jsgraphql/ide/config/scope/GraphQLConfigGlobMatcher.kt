@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Matcher which uses nashorn-minimatch to achieve same glob semantics as graphql-config.
  */
-@Service
-class GraphQLConfigGlobMatcher {
+@Service(Service.Level.PROJECT)
+class GraphQLConfigGlobMatcher(private val project: Project) {
     companion object {
         private val LOG = logger<GraphQLConfigGlobMatcher>()
 

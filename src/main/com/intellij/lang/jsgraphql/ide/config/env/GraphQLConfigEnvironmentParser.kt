@@ -9,7 +9,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import java.util.concurrent.ConcurrentHashMap
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLConfigEnvironmentParser(private val project: Project) {
     companion object {
         @JvmStatic

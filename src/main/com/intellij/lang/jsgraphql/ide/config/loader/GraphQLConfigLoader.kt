@@ -13,8 +13,8 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.yaml.snakeyaml.Yaml
 
-@Service
-class GraphQLConfigLoader {
+@Service(Service.Level.PROJECT)
+class GraphQLConfigLoader(private val project: Project) {
 
     companion object {
         private val LOG = logger<GraphQLConfigLoader>()

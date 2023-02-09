@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 private const val CONFIG_RELOAD_TIMEOUT = 2000
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLConfigProvider(private val project: Project) : Disposable, ModificationTracker {
     companion object {
         private val LOG = logger<GraphQLConfigProvider>()
