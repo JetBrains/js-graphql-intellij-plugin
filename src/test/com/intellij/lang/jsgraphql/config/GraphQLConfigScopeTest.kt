@@ -21,14 +21,15 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
             "any/nested/dir/file2.ts",
             "patterns/query1.graphql",
             "patterns/query3.graphql",
+            "included.graphql",
+            "included.ts"
         )
 
         val expectedDocuments = setOf(
-            "included.graphql",
-            "included.js",
             "docs/document.graphql",
             "docs/dir/document123.graphql",
             "docs/dir/document345.graphql",
+            "notReallyExcludedDocument.graphql",
         )
 
         doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
@@ -63,7 +64,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     }
 
     private fun copyProject() {
-        myFixture.copyDirectoryToProject(getTestName(true), "/")
+        myFixture.copyDirectoryToProject(getTestName(true), "")
         reloadConfiguration()
     }
 

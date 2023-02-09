@@ -1,0 +1,13 @@
+# all ignored completely
+
+fragment FourFragmentIgnored on FourType {
+    name
+}
+
+type FourTypeIgnored {
+    id: ID
+}
+
+extend type Query {
+    ignored: Int
+}

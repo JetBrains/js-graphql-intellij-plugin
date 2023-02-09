@@ -33,7 +33,7 @@ public class GraphQLDefinitionsSearchExecutor implements QueryExecutor<PsiElemen
         if (sourceElement instanceof GraphQLIdentifier && sourceElement.getParent() instanceof GraphQLTypeNameDefinition) {
             final GraphQLInterfaceTypeDefinition interfaceTypeDefinition = PsiTreeUtil.getParentOfType(sourceElement, GraphQLInterfaceTypeDefinition.class);
             if (interfaceTypeDefinition != null) {
-                GraphQLPsiSearchHelper.getInstance(sourceElement.getProject()).processElementsWithWord(sourceElement, sourceElement.getText(), namedElement -> {
+                GraphQLPsiSearchHelper.getInstance(sourceElement.getProject()).processNamedElements(sourceElement, sourceElement.getText(), namedElement -> {
                     ProgressManager.checkCanceled();
                     if (namedElement instanceof GraphQLIdentifier && PsiTreeUtil.getParentOfType(namedElement, GraphQLImplementsInterfaces.class) != null) {
                         final GraphQLTypeSystemDefinition typeSystemDefinition = PsiTreeUtil.getParentOfType(namedElement, GraphQLObjectTypeDefinition.class, GraphQLObjectTypeExtensionDefinition.class);

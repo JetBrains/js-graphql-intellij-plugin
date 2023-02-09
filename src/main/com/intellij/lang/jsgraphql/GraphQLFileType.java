@@ -66,6 +66,7 @@ public class GraphQLFileType extends LanguageFileType {
                     return true;
                 }
             } catch (ProcessCanceledException e) {
+                // TODO: rethrow
                 // can be thrown from psiManager.findFile
             }
         }

@@ -1,0 +1,3 @@
+{
+    "includes": ["one.graphql", "query.graphql"]
+}

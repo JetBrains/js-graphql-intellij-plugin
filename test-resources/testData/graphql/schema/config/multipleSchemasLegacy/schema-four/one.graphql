@@ -1,0 +1,12 @@
+type FourType {
+    id: ID
+    name: String
+}
+
+type Query {
+    four: FourType
+}
+
+fragment FourFragment on FourType {
+    name
+}

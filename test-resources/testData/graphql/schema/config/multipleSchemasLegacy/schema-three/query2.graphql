@@ -1,0 +1,3 @@
+fragment ThreeTwoFragment on Three2 {
+    id
+}

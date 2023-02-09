@@ -1,9 +1,11 @@
 {
     "name": "Untitled GraphQL Schema",
     "schemaPath": "schema.graphql",
+    "includes": [
+        "Types{1,2,3}.graphql"
+    ],
     "excludes": [
         "./Types1.graphql",
-        "./Types2.graphql",
-        "./dir"
+        "Types2.graphql"
     ]
 }

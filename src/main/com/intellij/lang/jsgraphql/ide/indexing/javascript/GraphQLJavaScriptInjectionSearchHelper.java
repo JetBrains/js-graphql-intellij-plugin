@@ -34,13 +34,12 @@ public class GraphQLJavaScriptInjectionSearchHelper implements GraphQLInjectionS
     /**
      * Uses the {@link GraphQLInjectionIndex} to process injected GraphQL PsiFiles
      *
-     * @param scopedElement the starting point of the enumeration settings the scopedElement of the processing
      * @param schemaScope   the search scope to use for limiting the schema definitions
      * @param processor     a processor that will be invoked for each injected GraphQL PsiFile
      */
     public void processInjectedGraphQLPsiFiles(@NotNull Project project,
                                                @NotNull GlobalSearchScope schemaScope,
-                                               @NotNull Processor<PsiFile> processor) {
+                                               @NotNull Processor<? super PsiFile> processor) {
         try {
             final PsiManager psiManager = PsiManager.getInstance(project);
             final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(project);

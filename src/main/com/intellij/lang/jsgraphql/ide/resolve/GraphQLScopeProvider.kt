@@ -3,6 +3,8 @@ package com.intellij.lang.jsgraphql.ide.resolve
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLMetaInfSchemaSearchScope
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread
+import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -20,10 +22,10 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 class GraphQLScopeProvider(private val project: Project) {
 
     companion object {
-        private val RESOLVE_SCOPE_KEY =
-            Key.create<CachedValue<GlobalSearchScope>>("graphql.resolve.scope")
-        private val SCHEMA_SCOPE_KEY =
-            Key.create<CachedValue<GlobalSearchScope>>("graphql.schema.scope")
+        private val NON_STRICT_SCOPE_KEY =
+            Key.create<CachedValue<GlobalSearchScope>>("graphql.non.strict.scope")
+        private val STRICT_SCOPE_KEY =
+            Key.create<CachedValue<GlobalSearchScope>>("graphql.strict.scope")
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLScopeProvider>()
@@ -50,6 +52,11 @@ class GraphQLScopeProvider(private val project: Project) {
 
             return GlobalSearchScope.filesWithLibrariesScope(project, roots)
         }
+
+        fun isResolvedInNonStrictScope(element: PsiElement?): Boolean {
+            val context = if (element is GraphQLIdentifier) element.parent else element
+            return context is GraphQLFragmentSpread
+        }
     }
 
     private val globalScopeCache: CachedValue<GlobalSearchScope> =
@@ -66,27 +73,30 @@ class GraphQLScopeProvider(private val project: Project) {
 
     @RequiresReadLock
     fun getResolveScope(element: PsiElement?): GlobalSearchScope {
-        return getOrCreateScope(element, RESOLVE_SCOPE_KEY)
+        return getResolveScope(element, isResolvedInNonStrictScope(element))
     }
 
     @RequiresReadLock
-    fun getSchemaScope(element: PsiElement?): GlobalSearchScope {
-        return getOrCreateScope(element, SCHEMA_SCOPE_KEY)
-    }
-
-    private fun getOrCreateScope(
-        element: PsiElement?,
-        key: Key<CachedValue<GlobalSearchScope>>
-    ): GlobalSearchScope {
+    fun getResolveScope(element: PsiElement?, isStrict: Boolean): GlobalSearchScope {
         if (element == null) {
             return GlobalSearchScope.EMPTY_SCOPE
         }
 
+        return if (isStrict)
+            getOrCreateScope(element, STRICT_SCOPE_KEY)
+        else
+            getOrCreateScope(element, NON_STRICT_SCOPE_KEY)
+    }
+
+    private fun getOrCreateScope(
+        element: PsiElement,
+        key: Key<CachedValue<GlobalSearchScope>>
+    ): GlobalSearchScope {
         val file = element.containingFile
         return CachedValuesManager.getCachedValue(file, key) {
             val configProvider = GraphQLConfigProvider.getInstance(project)
             val projectConfig = configProvider.resolveProjectConfig(file)
-            val scope = if (key == SCHEMA_SCOPE_KEY) projectConfig?.schemaScope else projectConfig?.scope
+            val scope: GlobalSearchScope = projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
                 ?: globalScope.takeUnless { configProvider.hasConfigurationFiles }
                 ?: createScope(project, GlobalSearchScope.fileScope(file))
 

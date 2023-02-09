@@ -37,7 +37,7 @@ public interface GraphQLInjectionSearchHelper {
      */
     void processInjectedGraphQLPsiFiles(@NotNull Project project,
                                         @NotNull GlobalSearchScope schemaScope,
-                                        @NotNull Processor<PsiFile> consumer);
+                                        @NotNull Processor<? super PsiFile> consumer);
 
     /**
      * Inline-replaces the use of escaped string quotes which delimit GraphQL injections, e.g. an escaped backtick '\`'

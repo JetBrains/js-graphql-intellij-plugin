@@ -43,7 +43,7 @@ data class GraphQLConfig(
     private fun initProjects(): Map<String, GraphQLProjectConfig> {
         val root = GraphQLRawProjectConfig(data.schema, data.documents, data.extensions, data.include, data.exclude)
 
-        return if (data.projects.isEmpty()) {
+        return if (data.projects.isNullOrEmpty()) {
             mapOf(DEFAULT_PROJECT to GraphQLProjectConfig(project, DEFAULT_PROJECT, root, null, this))
         } else {
             data.projects.mapValues { (name, config) ->
@@ -70,6 +70,15 @@ data class GraphQLConfig(
 
     val isLegacy: Boolean
         get() = isLegacyConfig(file)
+
+    /**
+     * Empty if it doesn't contain any explicit file patterns,
+     * so it becomes a default config for the files under this root.
+     */
+    val isEmpty: Boolean = data.schema.isNullOrEmpty() &&
+        data.projects.isNullOrEmpty() &&
+        data.include.isNullOrEmpty() &&
+        data.exclude.isNullOrEmpty()
 
     fun match(context: PsiFile): GraphQLProjectConfig? {
         return getPhysicalVirtualFile(context)?.let { match(it) }

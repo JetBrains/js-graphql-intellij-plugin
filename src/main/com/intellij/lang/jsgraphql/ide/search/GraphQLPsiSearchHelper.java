@@ -71,7 +71,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
     public List<GraphQLFragmentDefinition> getKnownFragmentDefinitions(@NotNull PsiElement context) {
         try {
             final List<GraphQLFragmentDefinition> fragmentDefinitions = Lists.newArrayList();
-            GlobalSearchScope schemaScope = GraphQLScopeProvider.getInstance(myProject).getResolveScope(context);
+            GlobalSearchScope schemaScope = GraphQLScopeProvider.getInstance(myProject).getResolveScope(context, false);
             VirtualFile originalFile = GraphQLPsiUtil.getOriginalVirtualFile(context.getContainingFile());
             if (originalFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalFile)) {
                 // include the fragments defined in the currently edited scratch file (scratch files don't appear to be indexed)
@@ -132,18 +132,60 @@ public class GraphQLPsiSearchHelper implements Disposable {
         return false;
     }
 
+    public void processNamedElements(@NotNull PsiElement context,
+                                     @NotNull String name,
+                                     @NotNull Processor<? super PsiNamedElement> processor) {
+        GlobalSearchScope scope = GraphQLScopeProvider.getInstance(context.getProject()).getResolveScope(context);
+        processNamedElements(context, name, scope, processor);
+    }
+
     /**
-     * Processes GraphQL identifiers whose name matches the specified word within the given schema scope.
+     * Processes all named elements that match the specified name, e.g. the declaration of a type name
+     */
+    public void processNamedElements(@NotNull PsiElement context,
+                                     @NotNull String name,
+                                     @NotNull GlobalSearchScope scope,
+                                     @NotNull Processor<? super PsiNamedElement> processor) {
+        try {
+            processNamedElementsUsingIdentifierIndex(scope, name, processor);
+
+            final PsiRecursiveElementVisitor visitor = new PsiRecursiveElementVisitor() {
+                @Override
+                public void visitElement(@NotNull PsiElement element) {
+                    if (element instanceof PsiNamedElement && name.equals(((PsiNamedElement) element).getName())) {
+                        if (!processor.process((PsiNamedElement) element)) {
+                            return; // done processing
+                        }
+                    }
+                    super.visitElement(element);
+                }
+            };
+
+            // finally, look in the current scratch file
+            PsiFile containingFile = context.getContainingFile();
+            VirtualFile originalVirtualFile = GraphQLPsiUtil.getOriginalVirtualFile(containingFile);
+            if (originalVirtualFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalVirtualFile)) {
+                containingFile.accept(visitor);
+            }
+
+        } catch (IndexNotReadyException e) {
+            // TODO: rethrow
+            // can't search yet (e.g. during project startup)
+        }
+    }
+
+    /**
+     * Processes GraphQL named elements whose name matches the specified name within the given schema scope.
      *
      * @param schemaScope the schema scope which limits the processing
-     * @param word        the word to match identifiers for
-     * @param processor   processor called for all GraphQL identifiers whose name match the specified word
+     * @param name        the name to match elements for
+     * @param processor   processor called for all GraphQL elements whose name match the specified name
      * @see GraphQLIdentifierIndex
      */
-    private void processElementsWithWordUsingIdentifierIndex(@NotNull GlobalSearchScope schemaScope,
-                                                             @NotNull String word,
-                                                             @NotNull Processor<PsiNamedElement> processor) {
-        FileBasedIndex.getInstance().getFilesWithKey(GraphQLIdentifierIndex.NAME, Collections.singleton(word), virtualFile -> {
+    private void processNamedElementsUsingIdentifierIndex(@NotNull GlobalSearchScope schemaScope,
+                                                          @NotNull String name,
+                                                          @NotNull Processor<? super PsiNamedElement> processor) {
+        FileBasedIndex.getInstance().getFilesWithKey(GraphQLIdentifierIndex.NAME, Collections.singleton(name), virtualFile -> {
             final PsiFile psiFile = myPsiManager.findFile(virtualFile);
             final Ref<Boolean> continueProcessing = Ref.create(true);
             if (psiFile != null) {
@@ -156,9 +198,8 @@ public class GraphQLPsiSearchHelper implements Disposable {
                             return; // done visiting as the processor returned false
                         }
                         if (element instanceof PsiNamedElement) {
-                            final String name = ((PsiNamedElement) element).getName();
-                            if (word.equals(name)) {
-                                // found an element with a name that matches
+                            final String candidate = ((PsiNamedElement) element).getName();
+                            if (name.equals(candidate)) {
                                 continueProcessing.set(processor.process((PsiNamedElement) element));
                             }
                             if (!continueProcessing.get()) {
@@ -188,47 +229,12 @@ public class GraphQLPsiSearchHelper implements Disposable {
     }
 
     /**
-     * Processes all named elements that match the specified word, e.g. the declaration of a type name
-     */
-    public void processElementsWithWord(@NotNull PsiElement scopedElement,
-                                        @NotNull String word,
-                                        @NotNull Processor<PsiNamedElement> processor) {
-        try {
-            GlobalSearchScope searchScope = GraphQLScopeProvider.getInstance(myProject).getResolveScope(scopedElement);
-
-            processElementsWithWordUsingIdentifierIndex(searchScope, word, processor);
-
-            final PsiRecursiveElementVisitor visitor = new PsiRecursiveElementVisitor() {
-                @Override
-                public void visitElement(@NotNull PsiElement element) {
-                    if (element instanceof PsiNamedElement && word.equals(((PsiNamedElement) element).getName())) {
-                        if (!processor.process((PsiNamedElement) element)) {
-                            return; // done processing
-                        }
-                    }
-                    super.visitElement(element);
-                }
-            };
-
-            // finally, look in the current scratch file
-            PsiFile containingFile = scopedElement.getContainingFile();
-            VirtualFile originalVirtualFile = GraphQLPsiUtil.getOriginalVirtualFile(containingFile);
-            if (originalVirtualFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalVirtualFile)) {
-                containingFile.accept(visitor);
-            }
-
-        } catch (IndexNotReadyException e) {
-            // can't search yet (e.g. during project startup)
-        }
-    }
-
-    /**
      * Process injected GraphQL PsiFiles
      *
      * @param schemaScope the search scope to use for limiting the schema definitions
      * @param processor   a processor that will be invoked for each injected GraphQL PsiFile
      */
-    public void processInjectedGraphQLPsiFiles(@NotNull GlobalSearchScope schemaScope, @NotNull Processor<PsiFile> processor) {
+    public void processInjectedGraphQLPsiFiles(@NotNull GlobalSearchScope schemaScope, @NotNull Processor<? super PsiFile> processor) {
         if (myInjectionSearchHelper != null) {
             myInjectionSearchHelper.processInjectedGraphQLPsiFiles(myProject, schemaScope, processor);
         }

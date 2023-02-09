@@ -1,0 +1,12 @@
+type Three1 {
+    id: ID
+}
+
+type Three2 {
+    id: ID
+}
+
+type Query {
+    one: Three1
+    two: Three2
+}
