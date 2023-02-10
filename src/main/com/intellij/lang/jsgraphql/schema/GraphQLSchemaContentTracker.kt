@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.json.psi.JsonFile
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
@@ -96,9 +96,10 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
                 }
             }
 
+            // TODO: check if it works as expected, looks like event.parent is not enough
             if (event.parent is PsiLanguageInjectionHost) {
-                val injectionHelper = GraphQLInjectionSearchHelper.getInstance()
-                if (injectionHelper != null && injectionHelper.isGraphQLLanguageInjectionTarget(event.parent)) {
+                val injectionHelper = GraphQLInjectedLanguage.forElement(event.parent)
+                if (injectionHelper != null && injectionHelper.isLanguageInjectionTarget(event.parent)) {
                     // change in injection target
                     schemaChanged()
                 }

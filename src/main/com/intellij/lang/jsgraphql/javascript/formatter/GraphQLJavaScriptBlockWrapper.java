@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.formatter.javascript;
+package com.intellij.lang.jsgraphql.javascript.formatter;
 
 import com.intellij.formatting.*;
 import com.intellij.injected.editor.DocumentWindow;
@@ -14,7 +14,7 @@ import com.intellij.lang.Language;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLLanguageInjectionUtil;
+import com.intellij.lang.jsgraphql.javascript.injection.GraphQLJavaScriptLanguageInjectionUtil;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
@@ -31,21 +31,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, SettingsAwareBlock {
+class GraphQLJavaScriptBlockWrapper extends AbstractBlock implements BlockEx, SettingsAwareBlock {
     @Nullable
-    private final GraphQLBlockWrapper parent;
+    private final GraphQLJavaScriptBlockWrapper parent;
     private final SpacingBuilder spacingBuilder;
     private final CodeStyleSettings settings;
     private final Block wrapped;
     private List<Block> subBlocks;
 
-    protected GraphQLBlockWrapper(Block wrapped,
-                                  @Nullable GraphQLBlockWrapper parent,
-                                  @NotNull ASTNode node,
-                                  @Nullable Wrap wrap,
-                                  @Nullable Alignment alignment,
-                                  SpacingBuilder spacingBuilder,
-                                  CodeStyleSettings settings) {
+    protected GraphQLJavaScriptBlockWrapper(Block wrapped,
+                                            @Nullable GraphQLJavaScriptBlockWrapper parent,
+                                            @NotNull ASTNode node,
+                                            @Nullable Wrap wrap,
+                                            @Nullable Alignment alignment,
+                                            SpacingBuilder spacingBuilder,
+                                            CodeStyleSettings settings) {
         super(node, wrap, alignment);
         this.wrapped = wrapped;
         this.parent = parent;
@@ -65,7 +65,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
                     if (myNodeContainsGraphQL.get()) {
                         return;
                     } else if (element instanceof JSStringTemplateExpression) {
-                        if (GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(element)) {
+                        if (GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(element)) {
                             myNodeContainsGraphQL.set(true);
                             return;
                         }
@@ -81,7 +81,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
 
         final List<Block> blocks = new ArrayList<>();
 
-        if (myNode.getPsi() instanceof JSStringTemplateExpression && GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(myNode.getPsi())) {
+        if (myNode.getPsi() instanceof JSStringTemplateExpression && GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(myNode.getPsi())) {
 
             JSStringTemplateExpression psi = (JSStringTemplateExpression) myNode.getPsi();
             InjectedLanguageManager.getInstance(psi.getProject()).enumerate(psi, (injectedPsi, places) -> {
@@ -98,7 +98,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
                 if (subBlock instanceof ASTBlock) {
                     final ASTNode node = ((ASTBlock) subBlock).getNode();
                     if (node != null) {
-                        blocks.add(new GraphQLBlockWrapper(
+                        blocks.add(new GraphQLJavaScriptBlockWrapper(
                             subBlock,
                             this,
                             node,
@@ -115,7 +115,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
                         if (nestedSubBlock instanceof ASTBlock) {
                             ASTNode node = ((ASTBlock) nestedSubBlock).getNode();
                             if (node != null) {
-                                blocks.add(new GraphQLBlockWrapper(
+                                blocks.add(new GraphQLJavaScriptBlockWrapper(
                                     nestedSubBlock,
                                     this,
                                     node,
@@ -237,13 +237,13 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
     // ---- implementation ----
 
     private Block unwrap(Block child) {
-        if (child instanceof GraphQLBlockWrapper) {
-            return ((GraphQLBlockWrapper) child).wrapped;
+        if (child instanceof GraphQLJavaScriptBlockWrapper) {
+            return ((GraphQLJavaScriptBlockWrapper) child).wrapped;
         }
         return child;
     }
 
-    // This is based on AbstractBlock.buildInjectedBlocks, but substitutes DefaultInjectedLanguageBlockBuilder for a GraphQLInjectedLanguageBlockBuilder to
+    // This is based on AbstractBlock.buildInjectedBlocks, but substitutes DefaultInjectedLanguageBlockBuilder for a GraphQLJavaScriptInjectedLanguageBlockBuilder to
     //  enable host JS/TS template fragments that separate/shreds the GraphQL with ${...} expressions
     @NotNull
     private List<Block> buildInjectedBlocks() {
@@ -271,7 +271,7 @@ public class GraphQLBlockWrapper extends AbstractBlock implements BlockEx, Setti
                 PsiFile injected = PsiDocumentManager.getInstance(psi.getProject()).getCachedPsiFile(documentWindow);
                 if (injected != null) {
                     List<Block> result = new ArrayList<>();
-                    GraphQLInjectedLanguageBlockBuilder builder = new GraphQLInjectedLanguageBlockBuilder(settings);
+                    GraphQLJavaScriptInjectedLanguageBlockBuilder builder = new GraphQLJavaScriptInjectedLanguageBlockBuilder(settings);
                     builder.addInjectedBlocks(result, myNode, getWrap(), getAlignment(), getIndent());
                     return result;
                 }

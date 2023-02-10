@@ -13,17 +13,15 @@ import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryProvider.Companion.getInstance
 import junit.framework.TestCase
 
-/**
- * Verifies that two schemas can be separated using graphql-config
- */
-class GraphQLSchemaConfigTest : GraphQLTestCaseBase() {
-    override fun getBasePath() = "/schema/config"
+class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
+    override fun getBasePath() = "/schema/types"
 
     override fun setUp() {
         super.setUp()
 
         myFixture.copyDirectoryToProject(getTestName(true), "")
         reloadConfiguration()
+        enableAllInspections()
     }
 
     fun testMultipleSchemasLegacy() {
@@ -66,6 +64,17 @@ class GraphQLSchemaConfigTest : GraphQLTestCaseBase() {
         doTestFragmentDefinitions(fileName, listOf("TheOnlyFragment"))
     }
 
+    fun testFragmentsInInjections() {
+        doTest(
+            "src/query2.js",
+            listOf("FragmentOne", "FragmentTwo", "FragmentThree", "FragmentFour", "FragmentInSchema", "FragmentTested", "on"),
+            listOf("FragmentOne", "FragmentTwo", "FragmentThree", "FragmentFour", "FragmentInSchema", "FragmentTested"),
+            listOf("Query", "User")
+        )
+
+        doTestHighlighting("src/query1.js", "src/index.html")
+    }
+
     private fun doTest(
         fileName: String,
         expectedCompletions: List<String>,
@@ -86,7 +95,7 @@ class GraphQLSchemaConfigTest : GraphQLTestCaseBase() {
 
     private fun doTestFragmentDefinitions(fileName: String, expectedFragments: List<String>) {
         val file = myFixture.configureFromTempProjectFile(fileName)!!
-        val fragments = GraphQLPsiSearchHelper.getInstance(project).getKnownFragmentDefinitions(file).map { it.name }
+        val fragments = GraphQLPsiSearchHelper.getInstance(project).findFragmentDefinitions(file).map { it.name }
         assertSameElements(fragments, expectedFragments)
     }
 
@@ -98,5 +107,12 @@ class GraphQLSchemaConfigTest : GraphQLTestCaseBase() {
             .map { it.name }
             .filter { !GraphQLKnownTypes.isIntrospectionType(it) }
         assertSameElements(types, expectedTypes)
+    }
+
+    private fun doTestHighlighting(vararg files: String) {
+        files.forEach {
+            myFixture.configureFromTempProjectFile(it)
+            myFixture.checkHighlighting()
+        }
     }
 }

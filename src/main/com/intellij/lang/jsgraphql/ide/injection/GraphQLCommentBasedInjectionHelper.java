@@ -10,9 +10,11 @@ package com.intellij.lang.jsgraphql.ide.injection;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface GraphQLCommentBasedInjectionHelper {
 
+    @Nullable
     static GraphQLCommentBasedInjectionHelper getInstance() {
         return ApplicationManager.getApplication().getService(GraphQLCommentBasedInjectionHelper.class);
     }

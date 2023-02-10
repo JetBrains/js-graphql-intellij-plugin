@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Control+Enter is "split line" by default in IDEA and the JS GraphQL editor uses that binding to execute queries for .graphqil files.
+ * Control+Enter is "split line" by default in IDEA and the GraphQL editor uses that binding to execute queries for .graphqil files.
  * This EditorActionHandler stops that default behavior and runs the "execute GraphQL" action.
  */
 public class GraphQLExecuteEditorActionHandler extends EditorActionHandler {
