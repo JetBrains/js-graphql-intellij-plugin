@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.config
 
+import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.notifications.GRAPHQL_NOTIFICATION_GROUP_ID
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -29,7 +30,7 @@ import java.util.function.Consumer
 class GraphQLConfigFactory(private val project: Project) {
 
     companion object {
-        const val PREFERRED_CONFIG = GRAPHQL_CONFIG_YML
+        const val PREFERRED_CONFIG = GRAPHQL_RC_YML
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigFactory>()
@@ -50,28 +51,33 @@ class GraphQLConfigFactory(private val project: Project) {
         }
     ) {
         invokeLater {
-            WriteCommandAction.runWriteCommandAction(project) {
-                try {
-                    val configFile = configBaseDir.createChildData(this, PREFERRED_CONFIG)
-                    configFile.getOutputStream(this).use { stream -> outputStreamConsumer.accept(stream) }
-                    val psiFile = PsiManager.getInstance(project).findFile(configFile)
-                    if (psiFile != null) {
-                        CodeStyleManager.getInstance(project).reformat(psiFile)
-                    }
-                    if (openEditor) {
-                        FileEditorManager.getInstance(project).openFile(configFile, true, true)
-                    }
-                } catch (e: IOException) {
-                    Notifications.Bus.notify(
-                        Notification(
-                            GRAPHQL_NOTIFICATION_GROUP_ID,
-                            "Unable to create $PREFERRED_CONFIG",
-                            "Unable to create file '$PREFERRED_CONFIG' in directory '${configBaseDir.path}': ${e.message}",
-                            NotificationType.ERROR
+            WriteCommandAction.runWriteCommandAction(
+                project,
+                GraphQLBundle.message("graphql.action.create.config.file.command"),
+                null,
+                {
+                    try {
+                        val configFile = configBaseDir.createChildData(this, PREFERRED_CONFIG)
+                        configFile.getOutputStream(this).use { stream -> outputStreamConsumer.accept(stream) }
+                        val psiFile = PsiManager.getInstance(project).findFile(configFile)
+                        if (psiFile != null) {
+                            CodeStyleManager.getInstance(project).reformat(psiFile)
+                        }
+                        if (openEditor) {
+                            FileEditorManager.getInstance(project).openFile(configFile, true, true)
+                        }
+                    } catch (e: IOException) {
+                        Notifications.Bus.notify(
+                            Notification(
+                                GRAPHQL_NOTIFICATION_GROUP_ID,
+                                "Unable to create $PREFERRED_CONFIG",
+                                "Unable to create file '$PREFERRED_CONFIG' in directory '${configBaseDir.path}': ${e.message}",
+                                NotificationType.ERROR
+                            )
                         )
-                    )
+                    }
                 }
-            }
+            )
         }
     }
 
