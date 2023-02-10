@@ -34,7 +34,7 @@ public class GraphQLSchemasRootNode extends SimpleNode {
     public SimpleNode @NotNull [] getChildren() {
         try {
             GraphQLConfigProvider provider = GraphQLConfigProvider.getInstance(myProject);
-            if (DumbService.getInstance(myProject).isDumb() || provider.getModificationCount() != 0) {
+            if (DumbService.getInstance(myProject).isDumb() || provider.getModificationCount() == 0) {
                 // empty the tree view during indexing and until the config has been initialized
                 return SimpleNode.NO_CHILDREN;
             }
