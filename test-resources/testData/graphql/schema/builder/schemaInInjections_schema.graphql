@@ -1,0 +1,11 @@
+type Type1 {
+    type1: String
+}
+
+type Type2 {
+    type2: String
+}
+
+type Type3 {
+    type3: String
+}

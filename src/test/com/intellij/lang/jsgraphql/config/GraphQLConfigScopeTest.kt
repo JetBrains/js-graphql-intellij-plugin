@@ -35,6 +35,35 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
     }
 
+    fun testRecursiveGlobIncludingCurrent() {
+        val expectedSchemas = setOf(
+            "file.graphql",
+            "file1.graphql",
+            "dir2/file2.graphql",
+            "dir2/dir3/file3.graphql",
+            "dir2/dir3/dir4/file4.graphql",
+        )
+
+        val expectedDocuments = emptySet<String>()
+
+        doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
+    }
+
+    fun testRecursiveGlobFromNestedDir() {
+        val expectedSchemas = setOf(
+            "dir2/file2.graphql",
+            "dir2/dir3/file3.graphql",
+            "dir2/dir3/dir4/file4.graphql",
+        )
+
+        val expectedDocuments = setOf(
+            "file.graphql",
+            "file1.graphql",
+        )
+
+        doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
+    }
+
     private fun doScopeTest(
         configPath: String,
         expectedSchemas: Set<String>,
@@ -46,11 +75,12 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
             projectName
                 ?.let { checkNotNull(config.findProject(projectName)) }
                 ?: checkNotNull(config.getDefault())
-        compareFiles(projectConfig.schemaScope, expectedSchemas)
-        compareFiles(projectConfig.scope, expectedSchemas + expectedDocuments)
+        compareFiles("schema scope is invalid", projectConfig.schemaScope, expectedSchemas)
+        compareFiles("scope is invalid", projectConfig.scope, expectedSchemas + expectedDocuments)
     }
 
     private fun compareFiles(
+        message: String,
         scope: GlobalSearchScope,
         expected: Set<String>
     ) {
@@ -60,7 +90,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
             TestCase.assertNotNull("expected file not found: $it", file)
             file
         }.sortedBy { it.name }.toSet()
-        assertSameElements(actualFiles, expectedFiles)
+        assertSameElements(message, actualFiles, expectedFiles)
     }
 
     private fun copyProject() {
