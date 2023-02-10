@@ -9,9 +9,8 @@ assignees: ''
 
 **Before you create the issue**
 - If you're using an EAP, try with a stable version. If that works, please mention it in the issue along with both versions
-- Please search the [existing issues](https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/issues?q=sort%3Aupdated-desc) before opening a new issue
-- Review the [developer guide](https://jimkyndemeyer.github.io/js-graphql-intellij-plugin/docs/developer-guide)
-- Review the [example projects](https://github.com/jimkyndemeyer/graphql-config-examples)
+- Please search the [existing issues](https://github.com/JetBrains/js-graphql-intellij-plugin/issues?q=sort%3Aupdated-desc) before opening a new issue
+- Review the [developer guide](https://github.com/JetBrains/js-graphql-intellij-plugin#developer-guide)
 
 **Describe the bug**
 A clear and concise description of what the bug is.
