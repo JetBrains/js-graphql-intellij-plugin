@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter
+import com.intellij.psi.PsiFile
 import java.util.function.UnaryOperator
 
 class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
@@ -57,10 +58,9 @@ class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
 
     private fun doTest(optionsBuilder: UnaryOperator<SchemaPrinter.Options>? = null) {
         myFixture.configureByFile(getTestName(true) + ".graphql")
-        val schemaProvider = GraphQLSchemaProvider.getInstance(myFixture.project)
-        val schema = schemaProvider.getSchemaInfo(myFixture.file).schema
-        myFixture.configureByText("result.graphql", SchemaPrinter(project, getOptions(optionsBuilder)).print(schema))
-        myFixture.checkResultByFile("${getTestName(true)}_schema.graphql")
+
+        val file = myFixture.file
+        checkByExpectedSchema(file, optionsBuilder)
     }
 
     private fun doProjectTest(fileName: String, optionsBuilder: UnaryOperator<SchemaPrinter.Options>? = null) {
@@ -68,9 +68,16 @@ class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
         reloadConfiguration()
 
         val file = myFixture.configureFromTempProjectFile(fileName)!!
+        checkByExpectedSchema(file, optionsBuilder)
+    }
+
+    private fun checkByExpectedSchema(
+        file: PsiFile?,
+        optionsBuilder: UnaryOperator<SchemaPrinter.Options>?
+    ) {
         val schemaProvider = GraphQLSchemaProvider.getInstance(myFixture.project)
         val schema = schemaProvider.getSchemaInfo(file).schema
         myFixture.configureByText("result.graphql", SchemaPrinter(project, getOptions(optionsBuilder)).print(schema))
-        myFixture.checkResultByFile("${getTestName(true)}_schema.graphql")
+        myFixture.checkResultByFile("${getTestName(true)}_expected.graphql")
     }
 }
