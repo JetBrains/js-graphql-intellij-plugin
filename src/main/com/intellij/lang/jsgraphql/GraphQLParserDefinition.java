@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphQLParserDefinition implements ParserDefinition {
 
-    public static final Key<Boolean> JSGRAPHQL_ACTIVATED = Key.create("JSGraphQL.activated");
+    public static final Key<Boolean> GRAPHQL_ACTIVATED = Key.create("graphql.activated");
 
     public static final IFileElementType FILE = new IFileElementType("GRAPHQL", GraphQLLanguage.INSTANCE);
 

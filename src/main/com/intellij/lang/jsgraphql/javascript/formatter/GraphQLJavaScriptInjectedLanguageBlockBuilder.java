@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.formatter.javascript;
+package com.intellij.lang.jsgraphql.javascript.formatter;
 
 import com.google.common.collect.Lists;
 import com.intellij.formatting.*;
@@ -28,9 +28,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public class GraphQLInjectedLanguageBlockBuilder extends DefaultInjectedLanguageBlockBuilder {
+class GraphQLJavaScriptInjectedLanguageBlockBuilder extends DefaultInjectedLanguageBlockBuilder {
 
-    public GraphQLInjectedLanguageBlockBuilder(@NotNull CodeStyleSettings settings) {
+    public GraphQLJavaScriptInjectedLanguageBlockBuilder(@NotNull CodeStyleSettings settings) {
         super(settings);
     }
 

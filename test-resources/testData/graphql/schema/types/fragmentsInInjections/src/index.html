@@ -1,0 +1,18 @@
+<script>
+    function fn() {
+        gql`
+            fragment FragmentThree on User {
+                name
+                children {
+                    ...FragmentOne
+                }
+            }
+        `
+
+        gql`
+            fragment FragmentFour on User {
+                name
+            }
+        `
+    }
+</script>

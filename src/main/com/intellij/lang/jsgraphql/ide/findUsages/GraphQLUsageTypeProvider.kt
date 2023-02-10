@@ -5,26 +5,18 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.findUsages;
+package com.intellij.lang.jsgraphql.ide.findUsages
 
-import com.intellij.lang.jsgraphql.psi.GraphQLReferenceElement;
-import com.intellij.psi.PsiElement;
-import com.intellij.usages.impl.rules.UsageType;
-import com.intellij.usages.impl.rules.UsageTypeProvider;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.lang.jsgraphql.psi.GraphQLReferenceElement
+import com.intellij.psi.PsiElement
+import com.intellij.usages.impl.rules.UsageType
+import com.intellij.usages.impl.rules.UsageTypeProvider
 
 /**
  * Shows field access as "read" in the find usages panel
  */
-public class GraphQLUsageTypeProvider implements UsageTypeProvider {
-
-    @Nullable
-    @Override
-    public UsageType getUsageType(@NotNull PsiElement element) {
-        if (element instanceof GraphQLReferenceElement) {
-            return UsageType.READ;
-        }
-        return null;
+class GraphQLUsageTypeProvider : UsageTypeProvider {
+    override fun getUsageType(element: PsiElement): UsageType? {
+        return if (element is GraphQLReferenceElement) UsageType.READ else null
     }
 }

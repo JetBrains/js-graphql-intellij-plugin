@@ -774,7 +774,7 @@ public class GraphQLCompletionContributor extends CompletionContributor {
                     .getRegistryInfo(parameters.getOriginalFile()).getTypeDefinitionRegistry();
 
                 final List<GraphQLFragmentDefinition> knownFragmentDefinitions = GraphQLPsiSearchHelper
-                    .getInstance(completionElement.getProject()).getKnownFragmentDefinitions(parameters.getOriginalFile());
+                    .getInstance(completionElement.getProject()).findFragmentDefinitions(parameters.getOriginalFile());
                 for (GraphQLFragmentDefinition fragmentDefinition : knownFragmentDefinitions) {
                     final String name = fragmentDefinition.getName();
                     if (name != null) {

@@ -3,28 +3,24 @@
 
     <!-- Formatting -->
     <lang.formatter language="JavaScript"
-                    implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder"/>
+                    implementationClass="com.intellij.lang.jsgraphql.javascript.formatter.GraphQLJavaScriptInjectedFormattingModelBuilder"/>
     <lang.formatter language="TypeScript"
-                    implementationClass="com.intellij.lang.jsgraphql.ide.formatter.javascript.GraphQLInjectedFormattingModelBuilder"/><!-- Own reg required -->
+                    implementationClass="com.intellij.lang.jsgraphql.javascript.formatter.GraphQLJavaScriptInjectedFormattingModelBuilder"/>
 
     <!-- Language Injection -->
-    <multiHostInjector implementation="com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLTemplateFragmentLanguageInjector"
+    <multiHostInjector implementation="com.intellij.lang.jsgraphql.javascript.injection.GraphQLJavaScriptTemplateFragmentLanguageInjector"
                        order="first"/>
-    <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper"
-                        serviceImplementation="com.intellij.lang.jsgraphql.ide.indexing.javascript.GraphQLJavaScriptInjectionSearchHelper"/>
-
-    <!-- Indexing -->
-    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.javascript.GraphQLInjectionIndex"/>
   </extensions>
 
   <extensions defaultExtensionNs="JavaScript">
     <JsonSchema.ProviderFactory
-      implementation="com.intellij.lang.jsgraphql.ide.config.schema.GraphQLLegacyConfigJsonSchemaProvider"/>
+      implementation="com.intellij.lang.jsgraphql.javascript.jsonSchema.GraphQLLegacyConfigJsonSchemaProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">
-    <findUsagesFileTypeContributor
-      implementation="com.intellij.lang.jsgraphql.ide.findUsages.javascript.GraphQLJavaScriptFindUsagesFileTypeContributor"/>
+    <fileTypeContributor
+      implementation="com.intellij.lang.jsgraphql.javascript.injection.GraphQLJavaScriptFileTypeContributor"/>
+    <injectedLanguage implementation="com.intellij.lang.jsgraphql.javascript.injection.GraphQLJavaScriptInjectedLanguage"/>
   </extensions>
 
 </idea-plugin>

@@ -1,8 +1,8 @@
 package com.intellij.lang.jsgraphql.ide.resolve
 
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLMetaInfSchemaSearchScope
+import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLRestrictedFileTypesScope
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider
@@ -39,9 +39,7 @@ class GraphQLScopeProvider(private val project: Project) {
                 .union(createExternalDefinitionsLibraryScope(project))
                 .union(GraphQLMetaInfSchemaSearchScope(project))
 
-            // filter all the resulting scopes by file types, we don't want some child scope to override this
-            val fileTypes = GraphQLFindUsagesUtil.getService().includedFileTypes.toTypedArray()
-            return GlobalSearchScope.getScopeRestrictedByFileTypes(scope, *fileTypes)
+            return GraphQLRestrictedFileTypesScope(scope)
         }
 
         private fun createExternalDefinitionsLibraryScope(project: Project): GlobalSearchScope {
@@ -73,7 +71,7 @@ class GraphQLScopeProvider(private val project: Project) {
 
     @RequiresReadLock
     fun getResolveScope(element: PsiElement?): GlobalSearchScope {
-        return getResolveScope(element, isResolvedInNonStrictScope(element))
+        return getResolveScope(element, !isResolvedInNonStrictScope(element))
     }
 
     @RequiresReadLock

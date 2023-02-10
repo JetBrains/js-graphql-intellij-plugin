@@ -5,47 +5,38 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.injection;
+package com.intellij.lang.jsgraphql.ide.injection
 
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiLanguageInjectionHost;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.util.Processor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.psi.PsiElement
 
-public interface GraphQLInjectionSearchHelper {
+interface GraphQLInjectedLanguage {
+    companion object {
+        @JvmField
+        val EP_NAME =
+            ExtensionPointName.create<GraphQLInjectedLanguage>("com.intellij.lang.jsgraphql.injectedLanguage")
 
-    static @Nullable GraphQLInjectionSearchHelper getInstance() {
-        return ApplicationManager.getApplication().getService(GraphQLInjectionSearchHelper.class);
+        @JvmStatic
+        fun forElement(host: PsiElement): GraphQLInjectedLanguage? {
+            return EP_NAME.findFirstSafe { it.accepts(host) }
+        }
     }
 
-    /**
-     * Gets whether the specified host is a target for GraphQL Injection
-     */
-    boolean isGraphQLLanguageInjectionTarget(PsiElement host);
+    fun accepts(host: PsiElement): Boolean
 
     /**
-     * Process injected GraphQL PsiFiles
-     *
-     * @param project       a project
-     * @param schemaScope   the search scope to use for limiting the schema definitions
-     * @param consumer      a consumer that will be invoked for each injected GraphQL PsiFile
+     * Gets whether the specified host is a target for GraphQL Injection.
      */
-    void processInjectedGraphQLPsiFiles(@NotNull Project project,
-                                        @NotNull GlobalSearchScope schemaScope,
-                                        @NotNull Processor<? super PsiFile> consumer);
+    fun isLanguageInjectionTarget(host: PsiElement?): Boolean
 
     /**
-     * Inline-replaces the use of escaped string quotes which delimit GraphQL injections, e.g. an escaped backtick '\`'
-     * in JavaScript tagged template literals, such that the injected GraphQL text represents valid GraphQL
+     * Inline-replaces the use of escaped string quotes which delimit GraphQL injections, e.g. an escaped backtick '\`'.
+     * in JavaScript tagged template literals, such that the injected GraphQL text represents valid GraphQL.
      *
-     * @param rawGraphQLText the raw injected GraphQL text to escape
+     * @param rawText the raw injected GraphQL text to escape
      * @return the text with injection-delimiting escaped while preserving text length and token positions, e.g. '\`' becomes ' `'
-     * @see PsiLanguageInjectionHost#createLiteralTextEscaper()
      */
-    String applyInjectionDelimitingQuotesEscape(String rawGraphQLText);
+    fun escapeHostElements(rawText: String?): String?
+
+    fun getInjectedTextForIndexing(host: PsiElement): String?
 }

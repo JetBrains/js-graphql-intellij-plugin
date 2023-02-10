@@ -5,13 +5,11 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.indexing.javascript;
+package com.intellij.lang.jsgraphql.ide.indexing;
 
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.injection.javascript.GraphQLLanguageInjectionUtil;
-import com.intellij.lang.jsgraphql.ide.indexing.GraphQLIndexUtil;
-import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
-import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
+import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiRecursiveElementVisitor;
@@ -22,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Indexes files which contain GraphQL Injection to enable discovery of type definitions written using injected Schema IDL.
@@ -40,7 +37,8 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
         inputData.getPsiFile().accept(new PsiRecursiveElementVisitor() {
             @Override
             public void visitElement(@NotNull PsiElement element) {
-                if (GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(element)) {
+                GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
+                if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
                     isInjected.set(Boolean.TRUE);
                 } else {
                     // visit deeper until injection found
@@ -50,8 +48,6 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
         });
         return isInjected.get() == Boolean.FALSE ? Collections.emptyMap() : INJECTED_KEY;
     };
-
-    private final Set<FileType> myIncludedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
 
     @NotNull
     @Override
@@ -74,7 +70,8 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
     @NotNull
     @Override
     public FileBasedIndex.InputFilter getInputFilter() {
-        return file -> file.getFileType() != GraphQLFileType.INSTANCE && myIncludedFileTypes.contains(file.getFileType());
+        return file -> file.getFileType() != GraphQLFileType.INSTANCE &&
+            GraphQLFileTypesProvider.getService().isAcceptedFile(file);
     }
 
     @Override

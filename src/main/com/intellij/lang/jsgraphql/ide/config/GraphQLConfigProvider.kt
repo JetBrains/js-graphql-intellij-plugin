@@ -4,6 +4,8 @@ import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigLoader
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
@@ -47,6 +49,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigProvider>()
+    }
+
+    init {
+        GraphQLFileTypeContributor.EP_NAME.addChangeListener({ invalidate() }, this)
+        GraphQLInjectedLanguage.EP_NAME.addChangeListener({ invalidate() }, this)
     }
 
     private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)

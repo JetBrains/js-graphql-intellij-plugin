@@ -35,16 +35,15 @@
   <resource-bundle>messages.GraphQLMessages</resource-bundle>
 
   <extensionPoints>
-    <extensionPoint name="findUsagesFileTypeContributor" dynamic="true"
-                    interface="com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesFileTypeContributor"/>
+    <extensionPoint name="fileTypeContributor" dynamic="true"
+                    interface="com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor"/>
+    <extensionPoint name="injectedLanguage" dynamic="true"
+                    interface="com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage"/>
     <extensionPoint name="errorFilter" dynamic="true"
                     interface="com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-
-    <applicationService serviceImplementation="com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil"/>
-
     <!-- Color scheme -->
     <additionalTextAttributes scheme="Default" file="colorSchemes/GraphQLLanguageDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/GraphQLLanguageDarcula.xml"/>
@@ -84,6 +83,7 @@
     <!-- Indexing -->
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex"/>
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex"/>
+    <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLInjectionIndex"/>
 
     <additionalLibraryRootsProvider implementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider"/>
 
@@ -255,6 +255,8 @@
     <errorFilter implementation="com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayErrorFilter"/>
     <errorFilter implementation="com.intellij.lang.jsgraphql.frameworks.apollo.GraphQLApolloErrorFilter"/>
     <errorFilter implementation="com.intellij.lang.jsgraphql.frameworks.federation.GraphQLFederationErrorFilter"/>
+
+    <fileTypeContributor implementation="com.intellij.lang.jsgraphql.ide.injection.GraphQLDefaultFileTypeContributor"/>
   </extensions>
 
   <actions>

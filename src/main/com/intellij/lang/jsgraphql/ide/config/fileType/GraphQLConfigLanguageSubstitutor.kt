@@ -2,7 +2,6 @@ package com.intellij.lang.jsgraphql.ide.config.fileType
 
 import com.intellij.json.JsonLanguage
 import com.intellij.lang.Language
-import com.intellij.lang.javascript.linter.JSLinterConfigLangSubstitutor
 import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_RC
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.PlainTextLanguage
@@ -16,7 +15,7 @@ import java.io.IOException
 
 class GraphQLConfigLanguageSubstitutor : LanguageSubstitutor() {
     companion object {
-        private val LOG = logger<JSLinterConfigLangSubstitutor>()
+        private val LOG = logger<GraphQLConfigLanguageSubstitutor>()
 
         private const val FILE_NAME = GRAPHQL_RC
 

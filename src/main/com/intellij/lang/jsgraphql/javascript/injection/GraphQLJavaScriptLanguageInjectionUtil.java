@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.injection.javascript;
+package com.intellij.lang.jsgraphql.javascript.injection;
 
 import com.google.common.collect.Sets;
 import com.intellij.lang.javascript.JSTokenTypes;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class GraphQLLanguageInjectionUtil {
+public class GraphQLJavaScriptLanguageInjectionUtil {
     private static final String GRAPHQL_EOL_COMMENT = "#graphql";
     // Min length for injection - `#graphql`
     private static final int GRAPHQL_EOL_COMMENT_MIN_TEMPLATE_LENGTH = 10;

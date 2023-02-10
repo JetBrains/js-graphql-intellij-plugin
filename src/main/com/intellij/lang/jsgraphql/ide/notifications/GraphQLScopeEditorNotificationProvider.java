@@ -14,7 +14,7 @@ import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLOpenConfigAction;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
-import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
+import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -115,7 +115,7 @@ public class GraphQLScopeEditorNotificationProvider extends Provider<EditorNotif
         return false;
     }
 
-    private boolean isGraphQLRelatedFile(VirtualFile file) {
-        return GraphQLFindUsagesUtil.getService().getIncludedFileTypes().contains(file.getFileType());
+    private boolean isGraphQLRelatedFile(@NotNull VirtualFile file) {
+        return GraphQLFileTypesProvider.getService().isAcceptedFile(file);
     }
 }

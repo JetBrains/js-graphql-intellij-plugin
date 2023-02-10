@@ -114,7 +114,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
         myFixture.configureByFile(sourcePath);
 
         List<PsiFile> psiFiles = new ArrayList<>();
-        GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLPsiFiles(
+        GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLFiles(
             GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
         assertSize(1, psiFiles);
 
@@ -128,7 +128,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
         myFixture.configureByFile(sourcePath);
 
         List<PsiFile> psiFiles = new ArrayList<>();
-        GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLPsiFiles(
+        GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLFiles(
             GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
         assertEmpty(psiFiles);
     }

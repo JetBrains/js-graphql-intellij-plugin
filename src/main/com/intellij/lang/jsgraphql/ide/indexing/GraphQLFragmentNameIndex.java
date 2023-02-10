@@ -8,11 +8,10 @@
 package com.intellij.lang.jsgraphql.ide.indexing;
 
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
-import com.intellij.lang.jsgraphql.ide.findUsages.GraphQLFindUsagesUtil;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
+import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
-import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.*;
 import com.intellij.util.indexing.*;
@@ -22,10 +21,8 @@ import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
-import java.util.Set;
 
 /**
  * Index for processing files that contain one or more GraphQL fragment definitions
@@ -36,11 +33,6 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
 
     public static final String HAS_FRAGMENTS = "fragments";
     public static final int VERSION = 1;
-
-
-    private final @Nullable GraphQLInjectionSearchHelper graphQLInjectionSearchHelper;
-
-    private final Set<FileType> includedFileTypes;
 
     private final DataIndexer<String, Boolean, FileContent> myDataIndexer;
 
@@ -62,11 +54,13 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
                             hasFragments.set(true);
                         }
                         return; // no need to visit deeper than definitions since fragments are top level
-                    } else if (element instanceof PsiLanguageInjectionHost && graphQLInjectionSearchHelper != null) {
-                        if (graphQLInjectionSearchHelper.isGraphQLLanguageInjectionTarget(element)) {
+                    } else if (element instanceof PsiLanguageInjectionHost) {
+                        GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
+                        if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
                             final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
                             final String graphqlBuffer = StringUtils.strip(element.getText(), "` \t\n");
-                            final PsiFile graphqlInjectedPsiFile = psiFileFactory.createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
+                            final PsiFile graphqlInjectedPsiFile = psiFileFactory
+                                .createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
                             graphqlInjectedPsiFile.accept(identifierVisitor.get());
                             return;
                         }
@@ -84,8 +78,6 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
             }
 
         };
-        includedFileTypes = GraphQLFindUsagesUtil.getService().getIncludedFileTypes();
-        graphQLInjectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
     }
 
     @NotNull
@@ -120,7 +112,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
     @NotNull
     @Override
     public FileBasedIndex.InputFilter getInputFilter() {
-        return file -> includedFileTypes.contains(file.getFileType());
+        return file -> GraphQLFileTypesProvider.getService().isAcceptedFile(file);
     }
 
     @Override

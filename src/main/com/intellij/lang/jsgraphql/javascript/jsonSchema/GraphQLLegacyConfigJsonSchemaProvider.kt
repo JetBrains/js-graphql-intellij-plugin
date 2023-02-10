@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.config.schema
+package com.intellij.lang.jsgraphql.javascript.jsonSchema
 
 import com.intellij.lang.javascript.EmbeddedJsonSchemaFileProvider
 import com.intellij.lang.jsgraphql.GraphQLBundle

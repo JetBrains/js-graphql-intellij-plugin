@@ -5,7 +5,7 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.injection.javascript;
+package com.intellij.lang.jsgraphql.javascript.injection;
 
 import com.google.common.collect.Lists;
 import com.intellij.lang.ASTNode;
@@ -23,19 +23,19 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class GraphQLTemplateFragmentLanguageInjector implements MultiHostInjector {
+public class GraphQLJavaScriptTemplateFragmentLanguageInjector implements MultiHostInjector {
 
     private static final List<Class<JSStringTemplateExpression>> INJECTION_CLASSES = Lists.newArrayList(JSStringTemplateExpression.class);
 
     @Override
     public void getLanguagesToInject(@NotNull MultiHostRegistrar registrar, @NotNull PsiElement context) {
-        if (!GraphQLLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(context)) {
+        if (!GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(context)) {
             return;
         }
 
         final JSStringTemplateExpression template = (JSStringTemplateExpression) context;
 
-        final TextRange graphQlTextRange = GraphQLLanguageInjectionUtil.getGraphQLTextRange(template);
+        final TextRange graphQlTextRange = GraphQLJavaScriptLanguageInjectionUtil.getGraphQLTextRange(template);
         if (graphQlTextRange.isEmpty()) {
             // all whitespace
             return;

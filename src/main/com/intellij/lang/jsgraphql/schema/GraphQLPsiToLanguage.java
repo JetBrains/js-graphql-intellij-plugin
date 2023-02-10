@@ -1,11 +1,13 @@
 package com.intellij.lang.jsgraphql.schema;
 
 
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionSearchHelper;
+import com.intellij.lang.injection.InjectedLanguageManager;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLanguageInjectionHost;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -784,9 +786,15 @@ public final class GraphQLPsiToLanguage {
         }
 
         String content = description.getText();
-        GraphQLInjectionSearchHelper injectionSearchHelper = GraphQLInjectionSearchHelper.getInstance();
-        if (injectionSearchHelper != null) {
-            content = injectionSearchHelper.applyInjectionDelimitingQuotesEscape(content);
+
+        PsiLanguageInjectionHost injectionHost =
+            InjectedLanguageManager.getInstance(description.getProject()).getInjectionHost(description);
+        GraphQLInjectedLanguage injectedLanguage = injectionHost != null ? GraphQLInjectedLanguage.forElement(injectionHost) : null;
+        if (injectedLanguage != null) {
+            String escaped = injectedLanguage.escapeHostElements(content);
+            if (!StringUtil.isEmpty(escaped)) {
+                content = escaped;
+            }
         }
 
         boolean multiLine = content.startsWith("\"\"\"");

@@ -135,7 +135,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         messageBusConnection.subscribe(GraphQLConfigListener.TOPIC, this);
 
         // and notify to configure the schema
-        project.putUserData(GraphQLParserDefinition.JSGRAPHQL_ACTIVATED, true);
+        project.putUserData(GraphQLParserDefinition.GRAPHQL_ACTIVATED, true);
         EditorNotifications.getInstance(project).updateAllNotifications();
     }
 

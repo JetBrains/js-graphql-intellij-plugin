@@ -1,15 +1,12 @@
-package com.intellij.lang.jsgraphql.ide.indexing;
+@file:JvmName("GraphQLIndexUtil")
 
-import com.google.common.collect.ImmutableList;
-import com.intellij.json.JsonFileType;
-import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.openapi.fileTypes.FileType;
+package com.intellij.lang.jsgraphql.ide.indexing
 
-import java.util.Collection;
+import com.intellij.json.JsonFileType
+import com.intellij.lang.jsgraphql.GraphQLFileType
+import com.intellij.openapi.fileTypes.FileType
 
-public final class GraphQLIndexUtil {
-    public static final int INDEX_BASE_VERSION = 1;
+const val INDEX_BASE_VERSION = 2
 
-    public static final Collection<FileType> FILE_TYPES_WITH_IGNORED_SIZE_LIMIT =
-        ImmutableList.of(GraphQLFileType.INSTANCE, JsonFileType.INSTANCE);
-}
+@JvmField
+val FILE_TYPES_WITH_IGNORED_SIZE_LIMIT: Collection<FileType> = setOf(GraphQLFileType.INSTANCE, JsonFileType.INSTANCE)

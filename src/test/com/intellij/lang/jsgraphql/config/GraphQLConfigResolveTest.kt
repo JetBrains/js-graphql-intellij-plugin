@@ -14,6 +14,12 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
 
     override fun getBasePath(): String = "/config/resolve"
 
+    override fun setUp() {
+        super.setUp()
+
+        copyProject()
+    }
+
     fun testConfigRc() {
         val config = resolveProjectConfig("dir/schema.graphql")
         TestCase.assertEquals(".graphqlrc", config.file?.name)
@@ -42,11 +48,15 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     }
 
     fun testGlobAsPath() {
-        copyProject()
         val config = GraphQLConfigProvider.getInstance(project).getAllConfigs().first()
         val pointer = config.getDefault()?.schema?.first()!!
         TestCase.assertEquals("src/**/*.graphql", pointer.globPath)
         TestCase.assertEquals(null, pointer.filePath)
+    }
+
+    fun testInjection() {
+        val config = resolveProjectConfig("dir/file.js")
+        TestCase.assertEquals(".graphqlrc.yml", config.file?.name)
     }
 
     private fun copyProject() {
@@ -55,7 +65,6 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     }
 
     private fun resolveConfig(filePath: String): GraphQLConfig {
-        copyProject()
         val context = myFixture.configureFromTempProjectFile(filePath)
         TestCase.assertNotNull(context)
         val config = GraphQLConfigProvider.getInstance(project).resolveConfig(context)
