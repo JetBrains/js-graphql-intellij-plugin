@@ -1,151 +1,150 @@
-package com.intellij.lang.jsgraphql.resolve;
+package com.intellij.lang.jsgraphql.resolve
 
-import com.intellij.lang.jsgraphql.GraphQLResolveTestCaseBase;
-import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.GraphQLResolveTestCaseBase
+import com.intellij.lang.jsgraphql.psi.*
 
-public class GraphQLSchemaResolveTest extends GraphQLResolveTestCaseBase {
-    @Override
-    protected String getBasePath() {
-        return "/resolve/schema";
+class GraphQLSchemaResolveTest : GraphQLResolveTestCaseBase() {
+    override fun getBasePath(): String {
+        return "/resolve/schema"
     }
 
-    public void testGithubSchema() {
-        doHighlightingTest();
+    fun testGithubSchema() {
+        doHighlightingTest()
     }
 
-    public void testAniListSchema() {
-        doHighlightingTest();
+    fun testAniListSchema() {
+        doHighlightingTest()
     }
 
-    public void testBitQuerySchema() {
-        doHighlightingTest();
+    fun testBitQuerySchema() {
+        doHighlightingTest()
     }
 
-    public void testUniverseSchema() {
-        doHighlightingTest();
+    fun testUniverseSchema() {
+        doHighlightingTest()
     }
 
-    public void testDirectiveArgumentObjectFieldValue() {
-        doResolveWithOffsetTest(GraphQLEnumValueDefinition.class, "owner");
+    fun testDirectiveArgumentObjectFieldValue() {
+        doResolveWithOffsetTest(GraphQLEnumValueDefinition::class.java, "owner")
     }
 
-    public void testDirectiveArgumentObjectField() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "allow");
+    fun testDirectiveArgumentObjectField() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "allow")
     }
 
-    public void testDefaultArgumentObjectField() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "field");
+    fun testDefaultArgumentObjectField() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "field")
     }
 
-    public void testDirectiveArgumentEnumValue() {
-        doResolveWithOffsetTest(GraphQLEnumValueDefinition.class, "FOREVER");
+    fun testDirectiveArgumentEnumValue() {
+        doResolveWithOffsetTest(GraphQLEnumValueDefinition::class.java, "FOREVER")
     }
 
-    public void testDefaultArgumentObjectFieldInsideArray() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "field");
+    fun testDefaultArgumentObjectFieldInsideArray() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "field")
     }
 
-    public void testDefaultArgumentObjectFieldNestedCircular() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "order");
+    fun testDefaultArgumentObjectFieldNestedCircular() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "order")
     }
 
-    public void testObjectFieldDefinitionObjectType() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "Location");
+    fun testObjectFieldDefinitionObjectType() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "Location")
     }
 
-    public void testObjectFieldDefinitionEnumType() {
-        doResolveWithOffsetTest(GraphQLEnumTypeDefinition.class, "CheckStatusState");
+    fun testObjectFieldDefinitionEnumType() {
+        doResolveWithOffsetTest(GraphQLEnumTypeDefinition::class.java, "CheckStatusState")
     }
 
-    public void testObjectFieldDefinitionScalarType() {
-        doResolveWithOffsetTest(GraphQLScalarTypeDefinition.class, "Upload");
+    fun testObjectFieldDefinitionScalarType() {
+        doResolveWithOffsetTest(GraphQLScalarTypeDefinition::class.java, "Upload")
     }
 
-    public void testObjectFieldDefinitionUnionType() {
-        doResolveWithOffsetTest(GraphQLUnionTypeDefinition.class, "Node");
+    fun testObjectFieldDefinitionUnionType() {
+        doResolveWithOffsetTest(GraphQLUnionTypeDefinition::class.java, "Node")
     }
 
-    public void testObjectFieldDefinitionInterfaceType() {
-        doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition.class, "Node");
+    fun testObjectFieldDefinitionInterfaceType() {
+        doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition::class.java, "Node")
     }
 
-    public void testArgumentDefinitionObjectType() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "Argument");
+    fun testArgumentDefinitionObjectType() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "Argument")
     }
 
-    public void testArgumentDefinitionInputType() {
-        doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition.class, "Argument");
+    fun testArgumentDefinitionInputType() {
+        doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition::class.java, "Argument")
     }
 
-    public void testDirectiveArgument() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "fieldType");
+    fun testDirectiveArgument() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "fieldType")
     }
 
-    public void testSchemaOperationQueryType() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "CustomQuery");
+    fun testSchemaOperationQueryType() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomQuery")
     }
 
-    public void testSchemaOperationMutationType() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "CustomMutation");
+    fun testSchemaOperationMutationType() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomMutation")
     }
 
-    public void testSchemaOperationSubscriptionType() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "CustomSubscription");
+    fun testSchemaOperationSubscriptionType() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomSubscription")
     }
 
-    public void testSchemaExtensionOperationQueryType() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "CustomQuery");
+    fun testSchemaExtensionOperationQueryType() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomQuery")
     }
 
-    public void testSchemaExtensionOperationMutationType() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "CustomMutation");
+    fun testSchemaExtensionOperationMutationType() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomMutation")
     }
 
-    public void testSchemaExtensionOperationSubscriptionType() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "CustomSubscription");
+    fun testSchemaExtensionOperationSubscriptionType() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomSubscription")
     }
 
-    public void testInterfaceFieldDefinitionObjectType() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "Location");
+    fun testInterfaceFieldDefinitionObjectType() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "Location")
     }
 
-    public void testInputFieldDefinitionInputType() {
-        doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition.class, "LocationInput");
+    fun testInputFieldDefinitionInputType() {
+        doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition::class.java, "LocationInput")
     }
 
-    public void testObjectTypeImplementsInterface() {
-        doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition.class, "Entity");
+    fun testObjectTypeImplementsInterface() {
+        doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition::class.java, "Entity")
     }
 
-    public void testObjectTypeDirective() {
-        doResolveWithOffsetTest(GraphQLDirectiveDefinition.class, "table");
+    fun testObjectTypeDirective() {
+        doResolveWithOffsetTest(GraphQLDirectiveDefinition::class.java, "table")
     }
 
-    public void testObjectFieldDefinitionDirective() {
-        doResolveWithOffsetTest(GraphQLDirectiveDefinition.class, "field");
+    fun testObjectFieldDefinitionDirective() {
+        doResolveWithOffsetTest(GraphQLDirectiveDefinition::class.java, "field")
     }
 
-    public void testInterfaceTypeImplementsInterface() {
-        doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition.class, "Node");
+    fun testInterfaceTypeImplementsInterface() {
+        doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition::class.java, "Node")
     }
 
-    public void testInterfaceTypeImplementsCircular() {
-        doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition.class, "Named");
+    fun testInterfaceTypeImplementsCircular() {
+        doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition::class.java, "Named")
     }
 
-    public void testInputObjectTypeCircular() {
-        doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition.class, "Example");
+    fun testInputObjectTypeCircular() {
+        doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition::class.java, "Example")
     }
 
-    public void testInputObjectTypeCircularList() {
-        doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition.class, "Example");
+    fun testInputObjectTypeCircularList() {
+        doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition::class.java, "Example")
     }
 
-    public void testUnionTypeMember() {
-        doResolveWithOffsetTest(GraphQLObjectTypeDefinition.class, "B");
+    fun testUnionTypeMember() {
+        doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "B")
     }
 
-    public void testUnionTypeMemberCircular() {
-        doResolveWithOffsetTest(GraphQLUnionTypeDefinition.class, "U");
+    fun testUnionTypeMemberCircular() {
+        doResolveWithOffsetTest(GraphQLUnionTypeDefinition::class.java, "U")
     }
 }

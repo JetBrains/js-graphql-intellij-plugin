@@ -1,0 +1,5 @@
+query {
+    user {
+        ...<error descr="Unknown fragment spread \"UserFragment\"">User<caret>Fragment</error>
+}
+}

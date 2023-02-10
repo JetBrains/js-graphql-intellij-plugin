@@ -1,0 +1,5 @@
+projects:
+  foo:
+    schema: foo/schema.graphql
+  bar:
+    schema: bar/schema.graphql

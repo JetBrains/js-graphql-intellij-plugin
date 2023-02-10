@@ -1,108 +1,179 @@
-package com.intellij.lang.jsgraphql.resolve;
+package com.intellij.lang.jsgraphql.resolve
 
-import com.intellij.lang.jsgraphql.GraphQLResolveTestCaseBase;
-import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.GraphQLResolveTestCaseBase
+import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition
 
-public class GraphQLOperationsResolveTest extends GraphQLResolveTestCaseBase {
+class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
 
-    private static final String GITHUB_SCHEMA = "GithubSchema.graphql";
-
-    @Override
-    protected String getBasePath() {
-        return "/resolve/operations";
+    companion object {
+        private const val GITHUB_SCHEMA = "GithubSchema.graphql"
     }
 
-    public void testQueryFieldRoot() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "name");
+    override fun getBasePath(): String {
+        return "/resolve/operations"
     }
 
-    public void testCustomQueryFieldRoot() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "name");
+    fun testQueryFieldRoot() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
     }
 
-    public void testSelectionSetQueryFieldRoot() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "name");
+    fun testCustomQueryFieldRoot() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
     }
 
-    public void testMutationFieldRoot() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "createUser");
+    fun testSelectionSetQueryFieldRoot() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
     }
 
-    public void testCustomMutationFieldRoot() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "createUser");
+    fun testMutationFieldRoot() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createUser")
     }
 
-    public void testSubscriptionFieldRoot() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "users");
+    fun testCustomMutationFieldRoot() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createUser")
     }
 
-    public void testCustomSubscriptionFieldRoot() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "users");
+    fun testSubscriptionFieldRoot() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "users")
     }
 
-    public void testFragmentName() {
-        doResolveWithOffsetTest(GraphQLFragmentDefinition.class, "fragment1");
+    fun testCustomSubscriptionFieldRoot() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "users")
     }
 
-    public void testFragmentObjectField() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "name");
+    fun testFragmentName() {
+        doResolveWithOffsetTest(GraphQLFragmentDefinition::class.java, "fragment1")
     }
 
-    public void testFragmentObjectFieldExtension() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "email");
+    fun testFragmentObjectField() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
     }
 
-    public void testFragmentInterfaceField() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "id");
+    fun testFragmentObjectFieldExtension() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "email")
     }
 
-    public void testFragmentInterfaceFieldExtension() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "createdAt");
+    fun testFragmentInterfaceField() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "id")
     }
 
-    public void testFragmentUnionField() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "language");
+    fun testFragmentInterfaceFieldExtension() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createdAt")
     }
 
-    public void testFragmentUnionFieldExtension() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "someOtherField");
+    fun testFragmentUnionField() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "language")
     }
 
-    public void testFragmentInlineAnonymous() {
-        doResolveWithOffsetTest(GraphQLFieldDefinition.class, "id");
+    fun testFragmentUnionFieldExtension() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "someOtherField")
     }
 
-    public void testFieldArgument() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "after");
+    fun testFragmentInlineAnonymous() {
+        doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "id")
     }
 
-    public void testDirectiveArgument() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "second");
+    fun testFieldArgument() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "after")
     }
 
-    public void testDirective() {
-        doResolveWithOffsetTest(GraphQLDirectiveDefinition.class, "someDir");
+    fun testDirectiveArgument() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "second")
     }
 
-    public void testInputValue() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "address");
+    fun testDirective() {
+        doResolveWithOffsetTest(GraphQLDirectiveDefinition::class.java, "someDir")
     }
 
-    public void testInputValueNested() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "zip");
+    fun testInputValue() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "address")
     }
 
-    public void testInputValueDefinitionDefault() {
-        doResolveWithOffsetTest(GraphQLInputValueDefinition.class, "street");
+    fun testInputValueNested() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "zip")
     }
 
-    public void testGithubQueries() {
-        myFixture.copyFileToProject(GITHUB_SCHEMA);
-        doHighlightingTest();
+    fun testInputValueDefinitionDefault() {
+        doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "street")
     }
 
-    public void testUnresolvedReferences() {
-        myFixture.copyFileToProject(GITHUB_SCHEMA);
-        doHighlightingTest();
+    fun testGithubQueries() {
+        myFixture.copyFileToProject(GITHUB_SCHEMA)
+        doHighlightingTest()
+    }
+
+    fun testUnresolvedReferences() {
+        myFixture.copyFileToProject(GITHUB_SCHEMA)
+        doHighlightingTest()
+    }
+
+    fun testFragmentExplicitDocumentsGlob() {
+        doProjectResolveTest(
+            "bar/bar.js",
+            GraphQLFragmentDefinition::class.java,
+            "UserFragment",
+            "bar/schema.graphql"
+        )
+    }
+
+    fun testFragmentFallbackToFirstNonStrictProject() {
+        doProjectResolveTest(
+            "bar/bar.js",
+            GraphQLFragmentDefinition::class.java,
+            "UserFragment",
+            "foo/schema.graphql"
+        )
+    }
+
+    fun testFragmentFallbackToFirstNonStrictProjectSkipInclude() {
+        doProjectResolveTest(
+            "bar/bar.js",
+            GraphQLFragmentDefinition::class.java,
+            "UserFragment",
+            "bar/schema.graphql"
+        )
+    }
+
+    fun testFragmentMatchedBySchema() {
+        doProjectResolveTest(
+            "bar/bar.js",
+            GraphQLFragmentDefinition::class.java,
+            "UserFragment",
+            "bar/schema.graphql"
+        )
+    }
+
+    fun testFragmentInjectedInHtml() {
+        doProjectResolveTest(
+            "index.html",
+            GraphQLFragmentDefinition::class.java,
+            "UserFragment",
+            "fragments.graphql"
+        )
+    }
+
+    fun testFragmentInjectedResolvedToOtherInjection() {
+        doProjectResolveTest(
+            "index.html",
+            GraphQLFragmentDefinition::class.java,
+            "UserFragment",
+            "fragments.js"
+        )
+    }
+
+    fun testFragmentIncluded() {
+        doProjectResolveTest(
+            "query.graphql",
+            GraphQLFragmentDefinition::class.java,
+            "UserFragment",
+            "fragments.graphql"
+        )
+    }
+
+    fun testFragmentExcluded() {
+        doProjectHighlighting("query.graphql")
     }
 }
