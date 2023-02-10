@@ -1,0 +1,11 @@
+type User {
+    name: String
+}
+
+type Query {
+    user: User
+}
+
+fragment UserFragment on User {
+    name
+}

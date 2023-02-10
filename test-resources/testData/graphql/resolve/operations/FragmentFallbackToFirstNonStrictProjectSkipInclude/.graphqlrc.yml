@@ -1,0 +1,6 @@
+projects:
+  foo:
+    schema: foo/schema.graphql
+    include: foo/*.js
+  bar:
+    schema: bar/schema.graphql

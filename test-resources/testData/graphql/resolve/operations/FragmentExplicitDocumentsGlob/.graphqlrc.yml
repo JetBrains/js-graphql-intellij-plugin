@@ -1,0 +1,6 @@
+projects:
+  foo:
+    schema: foo/schema.graphql
+  bar:
+    schema: bar/schema.graphql
+    documents: bar/*.js # should match `bar` and not fallback to `foo`, because documents are explicitly defined

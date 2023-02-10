@@ -76,8 +76,7 @@ public final class GraphQLResolveUtil {
     public static PsiElement findResolvedDefinition(@Nullable PsiElement resolveTarget) {
         if (resolveTarget == null) return null;
 
-        // getParent() is used because now we resolve to GraphQLIdentifier most of the time instead of an actual symbol definition
-        PsiElement definition = resolveTarget.getParent();
+        PsiElement definition = resolveTarget instanceof GraphQLIdentifier ? resolveTarget.getParent() : resolveTarget;
         if (definition instanceof GraphQLEnumValue) {
             definition = definition.getParent();
         }
