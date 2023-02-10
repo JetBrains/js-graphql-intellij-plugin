@@ -18,13 +18,12 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Path
+import java.nio.file.PathMatcher
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * Matcher which uses nashorn-minimatch to achieve same glob semantics as graphql-config.
- */
+
 @Service(Service.Level.PROJECT)
-class GraphQLConfigGlobMatcher(private val project: Project) {
+class GraphQLConfigGlobMatcher {
     companion object {
         private val LOG = logger<GraphQLConfigGlobMatcher>()
 
@@ -32,7 +31,9 @@ class GraphQLConfigGlobMatcher(private val project: Project) {
         fun getInstance(project: Project) = project.service<GraphQLConfigGlobMatcher>()
     }
 
-    private val matches: MutableMap<Pair<String, String>, Boolean> = ConcurrentHashMap()
+    private val matchResults: MutableMap<Pair<String, String>, Boolean> = ConcurrentHashMap()
+    private val matchers: MutableMap<String, PathMatcher> = ConcurrentHashMap()
+    private val groupRegex = Regex("[{}]")
 
     fun matches(file: VirtualFile, pattern: String, context: VirtualFile): Boolean {
         val path = VfsUtil.findRelativePath(context, file, File.separatorChar)
@@ -48,13 +49,72 @@ class GraphQLConfigGlobMatcher(private val project: Project) {
             return false
         }
 
-        return matches.computeIfAbsent(path to glob) { (path, glob) ->
+        return matchResults.computeIfAbsent(path to glob) { (path, glob) ->
             try {
-                FileSystems.getDefault().getPathMatcher("glob:$glob").matches(Path.of(path))
+                getOrCreateMatcher(glob).matches(Path.of(path))
             } catch (e: Exception) {
                 LOG.warn("path=$path, glob=$glob", e)
                 false
             }
         }
+    }
+
+    private fun getOrCreateMatcher(glob: String): PathMatcher {
+        val cached = matchers[glob]
+        if (cached != null) {
+            return cached
+        }
+
+        val expandedGlobs = expandGlob(glob)
+        val patterns = buildPatterns(expandedGlobs)
+        val matcher = buildMatcher(patterns)
+        return matchers.putIfAbsent(glob, matcher) ?: matcher
+    }
+
+    private fun expandGlob(glob: String): Collection<String> {
+        return buildSet {
+            add(glob)
+            add(glob.replace("**/", ""))
+        }.filter { it.isNotBlank() }
+    }
+
+    private fun buildPatterns(patterns: Collection<String>): Collection<String> {
+        if (patterns.size <= 1) {
+            return patterns
+        }
+
+        val result = mutableListOf<String>()
+        val union = mutableListOf<String>()
+
+        patterns.forEach {
+            // nested groups are not allowed, so we need a separate matcher,
+            // e.g. `glob:{file.{graphql,js,css},**/file.{graphql,js,css}}` is invalid
+            if (it.contains(groupRegex)) {
+                result.add(it)
+            } else {
+                union.add(it)
+            }
+        }
+
+        if (union.size > 1) {
+            result.add(union.joinToString(separator = ",", prefix = "{", postfix = "}"))
+        } else if (union.size == 1) {
+            result.add(union.first())
+        }
+
+        return result
+    }
+
+    private fun buildMatcher(patterns: Collection<String>): PathMatcher {
+        val matchers = patterns.mapNotNull {
+            try {
+                FileSystems.getDefault().getPathMatcher("glob:$it")
+            } catch (e: Exception) {
+                LOG.warn("buildMatcher: pattern=$it", e)
+                null
+            }
+        }
+
+        return PathMatcher { path: Path -> matchers.any { it.matches(path) } }
     }
 }
