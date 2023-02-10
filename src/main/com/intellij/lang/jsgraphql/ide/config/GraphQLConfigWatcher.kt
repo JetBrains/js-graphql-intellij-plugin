@@ -22,6 +22,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent
 import com.intellij.testFramework.LightVirtualFile
@@ -57,20 +58,55 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
         })
 
         connection.subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
-            override fun after(events: List<VFileEvent>) {
+            override fun before(events: MutableList<out VFileEvent>) {
                 val fileIndex = ProjectFileIndex.getInstance(project)
                 var configurationsChanged = false
-                val watchedDirs = configProvider.getAllConfigs()
-                    .asSequence()
-                    .map { it.dir }
-                    .filter { it.isValid && it.isDirectory }
-                    .toSet()
+                val watchedDirs = collectWatchedDirectories()
 
                 for (event in events) {
                     if (configurationsChanged) break
 
+                    if (event !is VFileDeleteEvent) {
+                        continue
+                    }
+
+                    val file = event.file
+                    if (!fileIndex.isInContent(file)) {
+                        continue
+                    }
+
+                    if (file.isDirectory) {
+                        if (file in watchedDirs || configProvider.findConfigFileInDirectory(file) != null) {
+                            configurationsChanged = true
+                        }
+                    } else {
+                        if (file.name in CONFIG_NAMES) {
+                            configurationsChanged = true
+                        }
+                    }
+                }
+
+                if (configurationsChanged) {
+                    configProvider.scheduleConfigurationReload()
+                }
+            }
+
+            override fun after(events: List<VFileEvent>) {
+                val fileIndex = ProjectFileIndex.getInstance(project)
+                var configurationsChanged = false
+                val watchedDirs = collectWatchedDirectories()
+
+                for (event in events) {
+                    if (configurationsChanged) break
+
+                    if (event is VFileDeleteEvent) {
+                        continue
+                    }
+
                     val file = event.file ?: continue
-                    if (!fileIndex.isInContent(file)) continue
+                    if (!fileIndex.isInContent(file)) {
+                        continue
+                    }
 
                     if (file.isDirectory) {
                         if (file in watchedDirs ||
@@ -112,6 +148,12 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
             }
         }, this)
     }
+
+    private fun collectWatchedDirectories() = configProvider.getAllConfigs()
+        .asSequence()
+        .map { it.dir }
+        .filter { it.isDirectory }
+        .toSet()
 
     private fun scheduleDocumentSave() {
         if (ApplicationManager.getApplication().isUnitTestMode) {
