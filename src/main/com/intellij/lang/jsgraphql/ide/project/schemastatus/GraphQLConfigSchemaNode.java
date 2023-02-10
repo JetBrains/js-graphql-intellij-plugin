@@ -42,7 +42,6 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     private final GraphQLConfig myConfig;
     private final @Nullable GraphQLProjectConfig myProjectConfig;
     private final @Nullable GraphQLSchemaInfo mySchemaInfo;
-    private final @Nullable List<GraphQLConfigEndpoint> myEndpoints;
     private final boolean myPerformSchemaDiscovery;
     private final boolean myIsProjectLevelNode;
 
@@ -71,13 +70,11 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
 
         if (myPerformSchemaDiscovery) {
             myProjectConfig = projectConfig != null ? projectConfig : defaultProjectConfig;
-            myEndpoints = myProjectConfig.getEndpoints();
             mySchemaInfo = SlowOperations.allowSlowOperations(() -> ReadAction.compute(() -> {
-                GlobalSearchScope scope = myProjectConfig.getScope();
+                GlobalSearchScope scope = myProjectConfig.getSchemaScope();
                 return GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope);
             }));
         } else {
-            myEndpoints = null;
             mySchemaInfo = null;
             myProjectConfig = null;
         }
@@ -92,7 +89,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
                 return true;
             }
             if (myPerformSchemaDiscovery) {
-                GlobalSearchScope scope = myProjectConfig != null ? myProjectConfig.getScope() : null;
+                GlobalSearchScope scope = myProjectConfig != null ? myProjectConfig.getSchemaScope() : null;
                 if (scope != null) {
                     return scope.contains(virtualFile);
                 }
@@ -106,7 +103,7 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     }
 
     @Override
-    protected void update(PresentationData presentation) {
+    protected void update(@NotNull PresentationData presentation) {
         super.update(presentation);
         final int style = representsCurrentFile() ? SimpleTextAttributes.STYLE_BOLD : SimpleTextAttributes.STYLE_PLAIN;
         presentation.addText(getName(), new SimpleTextAttributes(style, getColor()));
@@ -124,9 +121,9 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
         if (!myIsProjectLevelNode && !myConfig.hasOnlyDefaultProject()) {
             children.add(new GraphQLConfigProjectsNode(this));
         }
-        if (myProjectConfig != null && myEndpoints != null) {
+        if (myProjectConfig != null) {
             final String projectKey = myProjectConfig.getName();
-            children.add(new GraphQLSchemaEndpointsListNode(this, projectKey, myEndpoints));
+            children.add(new GraphQLSchemaEndpointsListNode(this, projectKey, myProjectConfig));
         }
         return children.toArray(SimpleNode.NO_CHILDREN);
     }

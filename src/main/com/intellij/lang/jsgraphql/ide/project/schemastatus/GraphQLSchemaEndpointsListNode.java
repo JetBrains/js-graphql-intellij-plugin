@@ -12,6 +12,7 @@ import com.intellij.ide.scratch.ScratchRootType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,27 +46,27 @@ import static com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService.GRAPH_QL_EN
 public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
 
     @Nullable
-    private final String projectKey;
-
-    @Nullable
-    private final List<GraphQLConfigEndpoint> endpoints;
+    private final String myProjectKey;
+    @NotNull
+    private final List<GraphQLConfigEndpoint> myEndpoints;
 
     public GraphQLSchemaEndpointsListNode(@Nullable SimpleNode parent,
                                           @Nullable String projectKey,
-                                          @Nullable List<GraphQLConfigEndpoint> endpoints) {
+                                          @Nullable GraphQLProjectConfig projectConfig) {
         super(parent);
-        this.projectKey = projectKey;
-        this.endpoints = endpoints;
+        myProjectKey = projectKey;
+        myEndpoints = projectConfig != null ? projectConfig.getEndpoints() : Collections.emptyList();
         myName = "Endpoints";
         setIcon(AllIcons.Nodes.WebFolder);
     }
 
     @Override
     public SimpleNode[] buildChildren() {
-        if (endpoints == null || endpoints.isEmpty()) {
+        if (myEndpoints.isEmpty()) {
             return new SimpleNode[]{new DefaultEndpointNode(myProject)};
         } else {
-            return endpoints.stream().map(endpoint -> new ConfigurableEndpointNode(this, projectKey, endpoint)).toArray(SimpleNode[]::new);
+            return myEndpoints.stream()
+                    .map(endpoint -> new ConfigurableEndpointNode(this, myProjectKey, endpoint)).toArray(SimpleNode[]::new);
         }
     }
 
@@ -93,36 +95,36 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
             final String introspect = "Get GraphQL Schema from Endpoint (introspection)";
             final String createScratch = "New GraphQL Scratch File (for query, mutation testing)";
             ListPopup listPopup = JBPopupFactory.getInstance().createListPopup(
-                new BaseListPopupStep<>("Choose Endpoint Action", introspect, createScratch) {
+                    new BaseListPopupStep<>("Choose Endpoint Action", introspect, createScratch) {
 
-                    @Override
-                    public PopupStep onChosen(String selectedValue, boolean finalChoice) {
-                        return doFinalStep(() -> {
-                            if (introspect.equals(selectedValue)) {
-                                GraphQLIntrospectionService.getInstance(myProject)
-                                    .performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
-                            } else if (createScratch.equals(selectedValue)) {
-                                final String configBaseDir = endpoint.getDir().getPresentableUrl();
-                                final String text = "# " + GRAPHQLCONFIG_COMMENT + configBaseDir + "!" +
-                                    Optional.ofNullable(projectKey).orElse("") + "\n\nquery ScratchQuery {\n\n}";
-                                final VirtualFile scratchFile = ScratchRootType.getInstance().createScratchFile(myProject,
-                                    "scratch.graphql", GraphQLLanguage.INSTANCE, text);
-                                if (scratchFile != null) {
-                                    FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(scratchFile, true);
-                                    for (FileEditor editor : fileEditors) {
-                                        if (editor instanceof TextEditor) {
-                                            final GraphQLEndpointsModel endpointsModel = ((TextEditor) editor).getEditor().getUserData(
-                                                GRAPH_QL_ENDPOINTS_MODEL);
-                                            if (endpointsModel != null) {
-                                                endpointsModel.setSelectedItem(endpoint);
+                        @Override
+                        public PopupStep onChosen(String selectedValue, boolean finalChoice) {
+                            return doFinalStep(() -> {
+                                if (introspect.equals(selectedValue)) {
+                                    GraphQLIntrospectionService.getInstance(myProject)
+                                            .performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
+                                } else if (createScratch.equals(selectedValue)) {
+                                    final String configBaseDir = endpoint.getDir().getPresentableUrl();
+                                    final String text = "# " + GRAPHQLCONFIG_COMMENT + configBaseDir + "!" +
+                                            Optional.ofNullable(projectKey).orElse("") + "\n\nquery ScratchQuery {\n\n}";
+                                    final VirtualFile scratchFile = ScratchRootType.getInstance().createScratchFile(myProject,
+                                            "scratch.graphql", GraphQLLanguage.INSTANCE, text);
+                                    if (scratchFile != null) {
+                                        FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(scratchFile, true);
+                                        for (FileEditor editor : fileEditors) {
+                                            if (editor instanceof TextEditor) {
+                                                final GraphQLEndpointsModel endpointsModel =
+                                                        ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
+                                                if (endpointsModel != null) {
+                                                    endpointsModel.setSelectedItem(endpoint);
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        });
-                    }
-                });
+                            });
+                        }
+                    });
             if (inputEvent instanceof KeyEvent) {
                 listPopup.showInFocusCenter();
             } else if (inputEvent instanceof MouseEvent) {
@@ -131,7 +133,7 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
         }
 
         @Override
-        public SimpleNode[] getChildren() {
+        public SimpleNode @NotNull [] getChildren() {
             return SimpleNode.NO_CHILDREN;
         }
 
@@ -147,13 +149,11 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
             super(project);
             myName = "No endpoints available in the default schema";
             getTemplatePresentation().setTooltip("Endpoints allow you to perform GraphQL introspection, queries and mutations");
-            getTemplatePresentation().setLocationString(
-                "- Click the \"+\" button to create a schema configuration with configurable endpoints");
             setIcon(AllIcons.General.Information);
         }
 
         @Override
-        public SimpleNode[] getChildren() {
+        public SimpleNode @NotNull [] getChildren() {
             return SimpleNode.NO_CHILDREN;
         }
 
