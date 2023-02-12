@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.resolve
 
+import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLMetaInfSchemaSearchScope
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLRestrictedFileTypesScope
@@ -94,9 +95,13 @@ class GraphQLScopeProvider(private val project: Project) {
         return CachedValuesManager.getCachedValue(file, key) {
             val configProvider = GraphQLConfigProvider.getInstance(project)
             val projectConfig = configProvider.resolveConfig(file)
-            val scope: GlobalSearchScope = projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
+            var scope: GlobalSearchScope = projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
                 ?: globalScope.takeUnless { configProvider.hasConfigurationFiles }
                 ?: createScope(project, GlobalSearchScope.fileScope(file))
+
+            if (ScratchUtil.isScratch(file.virtualFile)) {
+                scope = scope.union(GlobalSearchScope.fileScope(file))
+            }
 
             CachedValueProvider.Result.create(
                 scope,

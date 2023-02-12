@@ -12,7 +12,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.injection.InjectedLanguageManager;
-import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLInjectionIndex;
@@ -22,16 +21,13 @@ import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLPsiUtil;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
@@ -70,15 +66,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
         try {
             final List<GraphQLFragmentDefinition> fragmentDefinitions = Lists.newArrayList();
             GlobalSearchScope scope = GraphQLScopeProvider.getInstance(myProject).getResolveScope(context, false);
-            VirtualFile originalFile = GraphQLPsiUtil.getOriginalVirtualFile(context.getContainingFile());
-            if (originalFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalFile)) {
-                // include the fragments defined in the currently edited scratch file (scratch files don't appear to be indexed)
-                fragmentDefinitions.addAll(PsiTreeUtil.getChildrenOfTypeAsList(context.getContainingFile().getOriginalFile(),
-                    GraphQLFragmentDefinition.class));
-            }
-
             final PsiManager psiManager = PsiManager.getInstance(myProject);
-
             FileBasedIndex.getInstance().processFilesContainingAllKeys(
                 GraphQLFragmentNameIndex.NAME,
                 Collections.singleton(GraphQLFragmentNameIndex.HAS_FRAGMENTS),
@@ -151,25 +139,6 @@ public class GraphQLPsiSearchHelper implements Disposable {
                                      @NotNull Processor<? super PsiNamedElement> processor) {
         try {
             processNamedElementsUsingIdentifierIndex(scope, name, processor);
-
-            final PsiRecursiveElementVisitor visitor = new PsiRecursiveElementVisitor() {
-                @Override
-                public void visitElement(@NotNull PsiElement element) {
-                    if (element instanceof PsiNamedElement && name.equals(((PsiNamedElement) element).getName())) {
-                        if (!processor.process((PsiNamedElement) element)) {
-                            return; // done processing
-                        }
-                    }
-                    super.visitElement(element);
-                }
-            };
-
-            // finally, look in the current scratch file
-            PsiFile containingFile = context.getContainingFile();
-            VirtualFile originalVirtualFile = GraphQLPsiUtil.getOriginalVirtualFile(containingFile);
-            if (originalVirtualFile != null && GraphQLFileType.isGraphQLScratchFile(myProject, originalVirtualFile)) {
-                containingFile.accept(visitor);
-            }
         } catch (IndexNotReadyException e) {
             // TODO: rethrow
             // can't search yet (e.g. during project startup)
