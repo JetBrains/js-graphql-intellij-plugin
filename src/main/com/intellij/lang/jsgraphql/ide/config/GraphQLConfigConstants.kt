@@ -49,3 +49,5 @@ val CONFIG_NAMES: Set<String> = LinkedHashSet<String>().apply {
     addAll(MODERN_CONFIG_NAMES)
     addAll(LEGACY_CONFIG_NAMES)
 }
+
+val OPTIONAL_CONFIG_NAMES = setOf("package.json")

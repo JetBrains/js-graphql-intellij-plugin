@@ -4,6 +4,7 @@ import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.GraphQLConfigOverridePath
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigLoader
+import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor
@@ -219,8 +220,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, file) { dir ->
             val configFile = findConfigFileInDirectory(dir)
             if (configFile != null) {
-                val configEntry = configData[configFile]
-                if (configEntry != null && configEntry.status == GraphQLConfigLoader.Status.EMPTY) {
+                if (shouldSkipConfig(configFile)) {
                     true
                 } else {
                     found = configFile
@@ -233,6 +233,15 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
         val result = Optional.ofNullable(found)
         return (cache.putIfAbsent(file, result) ?: result).orElse(null)
+    }
+
+    private fun shouldSkipConfig(candidate: VirtualFile): Boolean {
+        if (candidate.name !in OPTIONAL_CONFIG_NAMES) {
+            return false
+        }
+
+        val configEntry = configData[candidate] ?: return true
+        return configEntry.status != GraphQLConfigLoader.Status.SUCCESS
     }
 
     @RequiresReadLock
@@ -294,11 +303,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             }
 
             val result = loader.load(file)
-            val entry = if (result.data == null) {
-                ConfigEntry(null, timeStamp, result.status)
-            } else {
-                ConfigEntry(GraphQLConfig(project, dir, file, result.data), timeStamp, result.status)
-            }
+            val entry = ConfigEntry(
+                GraphQLConfig(project, dir, file, result.data ?: GraphQLRawConfig.EMPTY),
+                timeStamp,
+                result.status
+            )
 
             hasChanged = true
             if (cached == null) {
