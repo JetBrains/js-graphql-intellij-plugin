@@ -243,9 +243,8 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
                 final TreeDirectoryChooserDialog dialog = new TreeDirectoryChooserDialog(myProject, "Select GraphQL Schema Base Directory");
                 if (dialog.showAndGet()) {
                     if (dialog.getSelectedDirectory() != null) {
-                        final GraphQLConfigFactory configManager = GraphQLConfigFactory.getInstance(myProject);
-                        configManager.createAndOpenConfigFile(dialog.getSelectedDirectory(), true);
-                        ApplicationManager.getApplication().saveAll();
+                        GraphQLConfigFactory configFactory = GraphQLConfigFactory.getInstance(myProject);
+                        configFactory.createAndOpenConfigFile(dialog.getSelectedDirectory(), true);
                     }
                 }
             }

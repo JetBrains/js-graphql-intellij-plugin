@@ -12,6 +12,7 @@ import com.intellij.lang.jsgraphql.ide.notifications.GRAPHQL_NOTIFICATION_GROUP_
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.components.Service
@@ -66,6 +67,7 @@ class GraphQLConfigFactory(private val project: Project) {
                         if (openEditor) {
                             FileEditorManager.getInstance(project).openFile(configFile, true, true)
                         }
+                        ApplicationManager.getApplication().saveAll()
                     } catch (e: IOException) {
                         Notifications.Bus.notify(
                             Notification(
