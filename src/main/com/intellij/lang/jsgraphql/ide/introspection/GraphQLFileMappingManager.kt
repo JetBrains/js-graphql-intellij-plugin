@@ -66,7 +66,7 @@ class GraphQLFileMappingManager(private val project: Project) {
 
     fun getCachedIntrospectionSDL(psiFile: PsiFile): GraphQLFile? {
         val cachedValue = psiFile.getUserData(GRAPHQL_SOURCE_TO_SDL) ?: return null
-        return if (cachedValue.hasUpToDateValue()) cachedValue.value else null
+        return cachedValue.upToDateOrNull?.get()
     }
 
     fun getOrCreateIntrospectionSDL(file: VirtualFile): GraphQLFile? {

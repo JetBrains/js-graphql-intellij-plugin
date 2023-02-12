@@ -1,0 +1,5 @@
+projects:
+  backend:
+    schema: backend/schema.graphql
+  frontend:
+    schema: frontend/schema.graphql

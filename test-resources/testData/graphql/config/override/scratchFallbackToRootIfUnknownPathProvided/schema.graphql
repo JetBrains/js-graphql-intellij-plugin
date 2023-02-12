@@ -1,0 +1,12 @@
+type Node {
+    name: String
+    child: Node
+}
+
+type Query {
+    node: Node
+}
+
+fragment NodeFragment on Node {
+    name
+}

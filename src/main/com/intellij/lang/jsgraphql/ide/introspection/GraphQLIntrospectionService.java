@@ -610,7 +610,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         public void run(@NotNull ProgressIndicator indicator) {
             indicator.setIndeterminate(true);
             String responseJson;
-            GraphQLConfig config = GraphQLConfigProvider.getInstance(myProject).getConfig(introspectionSourceFile);
+            GraphQLConfig config = GraphQLConfigProvider.getInstance(myProject).getForConfigFile(introspectionSourceFile);
             GraphQLConfigSecurity sslConfig = config != null ? GraphQLConfigSecurity.getSecurityConfig(config.getDefault()) : null;
             try (final CloseableHttpClient httpClient = createHttpClient(url, sslConfig);
                  final CloseableHttpResponse response = httpClient.execute(request)) {

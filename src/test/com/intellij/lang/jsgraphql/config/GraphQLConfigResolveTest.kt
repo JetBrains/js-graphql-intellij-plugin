@@ -3,7 +3,6 @@ package com.intellij.lang.jsgraphql.config
 import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.withCustomEnv
 import com.intellij.psi.PsiManager
@@ -21,19 +20,19 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     }
 
     fun testConfigRc() {
-        val config = resolveProjectConfig("dir/schema.graphql")
+        val config = resolveConfig("dir/schema.graphql")
         TestCase.assertEquals(".graphqlrc", config.file?.name)
         TestCase.assertEquals(YAMLFileType.YML, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
     }
 
     fun testConfigRcAsJson() {
-        val config = resolveProjectConfig("dir/schema.graphql")
+        val config = resolveConfig("dir/schema.graphql")
         TestCase.assertEquals(".graphqlrc", config.file?.name)
         TestCase.assertEquals(JsonFileType.INSTANCE, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
     }
 
     fun testSkipEmptyFiles() {
-        val config = resolveProjectConfig("some/nested/dir/nested.graphql")
+        val config = resolveConfig("some/nested/dir/nested.graphql")
         TestCase.assertEquals("graphql.config.yml", config.file?.name)
     }
 
@@ -41,7 +40,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         val filename = "dir/schema.graphql"
 
         withCustomEnv(mapOf("SCHEMA_PATH" to filename)) {
-            val config = resolveProjectConfig(filename)
+            val config = resolveConfig(filename)
             TestCase.assertEquals("graphql.config.yml", config.file?.name)
             TestCase.assertEquals(filename, config.schema.first().filePath)
         }
@@ -55,7 +54,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     }
 
     fun testInjection() {
-        val config = resolveProjectConfig("dir/file.js")
+        val config = resolveConfig("dir/file.js")
         TestCase.assertEquals(".graphqlrc.yml", config.file?.name)
     }
 
@@ -64,20 +63,11 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         reloadConfiguration()
     }
 
-    private fun resolveConfig(filePath: String): GraphQLConfig {
+    private fun resolveConfig(filePath: String): GraphQLProjectConfig {
         val context = myFixture.configureFromTempProjectFile(filePath)
-        TestCase.assertNotNull(context)
+        TestCase.assertNotNull("source file is not found", context)
         val config = GraphQLConfigProvider.getInstance(project).resolveConfig(context)
-        TestCase.assertNotNull(config)
+        TestCase.assertNotNull("config is not found", config)
         return config!!
-    }
-
-    private fun resolveProjectConfig(filePath: String): GraphQLProjectConfig {
-        val config = resolveConfig(filePath)
-        val psiFile = myFixture.file
-        TestCase.assertNotNull(psiFile)
-        val projectConfig = config.match(psiFile!!)
-        TestCase.assertNotNull(projectConfig)
-        return projectConfig!!
     }
 }

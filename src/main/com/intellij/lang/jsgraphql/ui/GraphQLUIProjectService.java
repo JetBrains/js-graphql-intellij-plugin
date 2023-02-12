@@ -22,7 +22,6 @@ import com.intellij.lang.jsgraphql.ide.actions.GraphQLOpenConfigAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigSecurity;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
@@ -190,7 +189,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
             for (VirtualFile file : files) {
                 List<GraphQLConfigEndpoint> endpoints = ReadAction.compute(() -> {
-                    GraphQLProjectConfig config = configProvider.resolveProjectConfig(file);
+                    GraphQLProjectConfig config = configProvider.resolveConfig(file);
                     return config != null ? config.getEndpoints() : Collections.emptyList();
                 });
 
@@ -240,7 +239,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     }
 
     private JComponent createEditorHeaderComponent(@NotNull Editor editor, @NotNull VirtualFile file) {
-        GraphQLProjectConfig config = ReadAction.compute(() -> GraphQLConfigProvider.getInstance(myProject).resolveProjectConfig(file));
+        GraphQLProjectConfig config = ReadAction.compute(() -> GraphQLConfigProvider.getInstance(myProject).resolveConfig(file));
         List<GraphQLConfigEndpoint> endpoints = config != null ? config.getEndpoints() : Collections.emptyList();
 
         final GraphQLEditorHeaderComponent headerComponent = new GraphQLEditorHeaderComponent();
@@ -387,8 +386,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
         try {
             GraphQLConfigSecurity sslConfig = ReadAction.compute(() -> {
-                GraphQLConfig config = GraphQLConfigProvider.getInstance(myProject).resolveConfig(virtualFile);
-                return config != null ? GraphQLConfigSecurity.getSecurityConfig(config.getDefault()) : null;
+                GraphQLProjectConfig config = GraphQLConfigProvider.getInstance(myProject).resolveConfig(virtualFile);
+                return config != null ? GraphQLConfigSecurity.getSecurityConfig(config) : null;
             });
             try (final CloseableHttpClient httpClient = introspectionService.createHttpClient(url, sslConfig)) {
                 editor.putUserData(GRAPH_QL_EDITOR_QUERYING, true);

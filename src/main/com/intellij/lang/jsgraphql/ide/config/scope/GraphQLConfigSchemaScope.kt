@@ -12,6 +12,12 @@ class GraphQLConfigSchemaScope(
 ) : GraphQLConfigScope(project, baseScope, config) {
 
     override fun match(file: VirtualFile): Boolean {
-        return super.match(file) && (config.matchesSchema(file) || config.isDefault && config.parent.isEmpty)
+        if (!super.match(file)) {
+            return false
+        }
+        if (config.isDefault && config.parent.isEmpty) {
+            return true
+        }
+        return config.matchesSchema(file)
     }
 }

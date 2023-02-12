@@ -84,7 +84,7 @@ data class GraphQLConfig(
         return getPhysicalVirtualFile(context)?.let { match(it) }
     }
 
-    fun match(virtualFile: VirtualFile): GraphQLProjectConfig? {
+    private fun match(virtualFile: VirtualFile): GraphQLProjectConfig? {
         val cache = fileToProjectCache.value
         val cachedResult = cache[virtualFile]
         if (cachedResult != null) {

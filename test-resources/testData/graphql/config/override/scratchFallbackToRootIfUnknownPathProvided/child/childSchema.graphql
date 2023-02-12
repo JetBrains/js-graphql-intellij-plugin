@@ -1,0 +1,15 @@
+type ChildNode {
+    name: String
+    childNode: ChildNode
+}
+
+type Query {
+    childNode: ChildNode
+}
+
+fragment ChildNodeFragmentInSchema on ChildNode {
+    name
+    childNode {
+        name
+    }
+}

@@ -2,15 +2,20 @@
 
 package com.intellij.lang.jsgraphql
 
+import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.lang.jsgraphql.GraphQLSettings.GraphQLSettingsState
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.util.concurrency.annotations.RequiresEdt
 import java.io.File
 import java.util.function.Consumer
 import java.util.function.Function
@@ -80,4 +85,30 @@ fun withCustomEnv(env: Map<String, String?>, runnable: Runnable) {
     } finally {
         GraphQLConfigEnvironment.getEnvVariable = before
     }
+}
+
+@RequiresEdt
+fun createTestScratchFile(
+    fixture: CodeInsightTestFixture,
+    path: String,
+    projectName: String?,
+    query: String?,
+): VirtualFile? {
+    return createTestScratchFile(fixture, createOverrideConfigComment(path, projectName), query)
+}
+
+fun createTestScratchFile(
+    fixture: CodeInsightTestFixture,
+    comment: String,
+    query: String?,
+): VirtualFile? {
+    val text = "$comment\n\n${query.orEmpty()}"
+
+    return ScratchRootType.getInstance()
+        .createScratchFile(fixture.project, "scratch.graphql", GraphQLLanguage.INSTANCE, text)
+        ?.also { file ->
+            Disposer.register(fixture.testRootDisposable) {
+                ApplicationManager.getApplication().runWriteAction { file.delete(null) }
+            }
+        }
 }
