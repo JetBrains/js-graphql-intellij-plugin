@@ -56,11 +56,6 @@ class GraphQLFileMappingManager(private val project: Project) {
          */
         private val GRAPHQL_SDL_TO_SOURCE = Key.create<WeakReference<PsiFile>>("graphql.sdl.to.source")
 
-        /**
-         * Set on a scratch Virtual File to indicate which project it's been associated with
-         */
-        private val GRAPHQL_SCRATCH_PROJECT_KEY = Key.create<String>("graphql.scratch.project.key")
-
         private val IGNORED_INTROSPECTION_FILES = setOf(*CONFIG_NAMES.toTypedArray(), "package.json")
     }
 
