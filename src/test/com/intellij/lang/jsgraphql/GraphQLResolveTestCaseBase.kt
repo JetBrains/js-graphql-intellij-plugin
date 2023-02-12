@@ -1,9 +1,9 @@
 package com.intellij.lang.jsgraphql
 
-import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier
+import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile

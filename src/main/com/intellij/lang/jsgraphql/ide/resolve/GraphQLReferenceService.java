@@ -293,7 +293,7 @@ public class GraphQLReferenceService implements Disposable {
 
     @Nullable
     PsiReference resolveTypeName(@NotNull GraphQLReferenceMixin element) {
-        final String logicalTypeName = GraphQLPsiUtil.getFileName(element.getContainingFile()) + ":" + element.getName();
+        final String logicalTypeName = GraphQLPsiUtil.getPhysicalFileName(element.getContainingFile()) + ":" + element.getName();
         // intentionally not using computeIfAbsent here to avoid locking during long-running write actions
         // it's better to compute multiple times in certain rare cases than blocking
         // NOTE: concurrent hash map doesn't allow nulls, so using the NULL_REFERENCE sentinel value to avoid re-computation of unresolvable references

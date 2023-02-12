@@ -9,9 +9,11 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
 import com.intellij.lang.jsgraphql.parseOverrideConfigComment
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
+import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
 import com.intellij.openapi.components.Service
@@ -71,6 +73,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         GraphQLFileTypeContributor.EP_NAME.addChangeListener({ invalidate() }, this)
         GraphQLInjectedLanguage.EP_NAME.addChangeListener({ invalidate() }, this)
     }
+
+    private val fileMappingService = GraphQLFileMappingManager.getInstance(project)
 
     private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
 
@@ -202,7 +206,20 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     @RequiresReadLock
     fun findClosestConfigFile(context: PsiFile): VirtualFile? {
         return CachedValuesManager.getCachedValue(context, CONFIG_FILE_KEY) {
-            val configFile = findConfigFileInParents(getPhysicalVirtualFile(context))
+            var from: VirtualFile? = null
+
+            if (fileMappingService.isGeneratedFile(context)) {
+                val sourceFile = fileMappingService.getSourceFile(context)
+                if (sourceFile != null) {
+                    from = sourceFile
+                }
+            }
+
+            if (from == null) {
+                from = getPhysicalVirtualFile(context)
+            }
+
+            val configFile = findConfigFileInParents(from)
             CachedValueProvider.Result.create(configFile, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
         }
     }

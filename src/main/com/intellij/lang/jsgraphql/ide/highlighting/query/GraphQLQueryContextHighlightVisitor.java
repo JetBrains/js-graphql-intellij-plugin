@@ -210,7 +210,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
         if (definition == null) {
             return "";
         }
-        return GraphQLPsiUtil.getFileName(definition.getContainingFile()) + ":" + definition.getName();
+        return GraphQLPsiUtil.getPhysicalFileName(definition.getContainingFile()) + ":" + definition.getName();
     }
 
     private static void removeHighlights(Editor editor, Project project) {
@@ -394,7 +394,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
                     // include fragments from other PsiFiles
                     for (PsiElement queryElement : queryElements) {
                         query.append("\n\n# ---- fragment automatically included from \"");
-                        query.append(GraphQLPsiUtil.getFileName(queryElement.getContainingFile())).append("\" ----\n");
+                        query.append(GraphQLPsiUtil.getPhysicalFileName(queryElement.getContainingFile())).append("\" ----\n");
                         query.append(queryElement.getText());
                     }
 
