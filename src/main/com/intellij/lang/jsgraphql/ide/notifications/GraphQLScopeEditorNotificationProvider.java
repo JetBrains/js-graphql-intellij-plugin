@@ -106,12 +106,13 @@ public class GraphQLScopeEditorNotificationProvider extends Provider<EditorNotif
                 return false;
             }
         }
-        if (GlobalSearchScope.projectScope(project).accept(file) && psiFile != null) {
-            GraphQLConfig config = configProvider.resolveConfig(psiFile);
-            if (config != null) {
-                return config.match(psiFile) == null;
-            }
-        }
+        // TODO: rework exclusion notification check
+        // if (GlobalSearchScope.projectScope(project).accept(file) && psiFile != null) {
+        //     GraphQLConfig config = configProvider.resolveConfig(psiFile);
+        //     if (config != null) {
+        //         return config.match(psiFile) == null;
+        //     }
+        // }
         return false;
     }
 

@@ -1,12 +1,16 @@
 package com.intellij.lang.jsgraphql.ide.config
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.ide.scratch.ScratchUtil
+import com.intellij.lang.jsgraphql.GraphQLConfigOverridePath
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigLoader
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
+import com.intellij.lang.jsgraphql.parseOverrideConfigComment
+import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
 import com.intellij.openapi.components.Service
@@ -16,19 +20,25 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.ex.temp.TempFileSystem
+import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.Alarm
 import com.intellij.util.CommonProcessors
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
@@ -45,7 +55,12 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     companion object {
         private val LOG = logger<GraphQLConfigProvider>()
 
-        private val CONFIG_FILE_KEY = Key.create<CachedValue<VirtualFile?>>("graphql.config.file")
+        private val CONFIG_FILE_KEY =
+            Key.create<CachedValue<VirtualFile?>>("graphql.config.file")
+        private val CONFIG_OVERRIDE_FILE_KEY =
+            Key.create<CachedValue<GraphQLConfigOverride?>>("graphql.config.override.file")
+        private val CONFIG_OVERRIDE_PATH_KEY =
+            Key.create<CachedValue<GraphQLConfigOverridePath?>>("graphql.config.override.path")
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigProvider>()
@@ -87,7 +102,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             )
         }
 
-    private val closestConfigFile: CachedValue<ConcurrentMap<VirtualFile, Optional<VirtualFile>>> =
+    private val configsInParentDirectories: CachedValue<ConcurrentMap<VirtualFile, Optional<VirtualFile>>> =
         CachedValuesManager.getManager(project).createCachedValue {
             CachedValueProvider.Result.create(
                 ConcurrentHashMap(),
@@ -97,23 +112,27 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         }
 
     @RequiresReadLock
-    fun resolveConfig(context: PsiFile): GraphQLConfig? =
-        findClosestConfigFile(context)?.let { getConfig(it) }
+    fun resolveConfig(context: PsiFile): GraphQLProjectConfig? {
+        val overriddenConfig = findOverriddenConfig(context)
+        if (overriddenConfig != null) {
+            val config = getForConfigFile(overriddenConfig.file)
+            if (config != null) {
+                val projectConfig = config.findProject(overriddenConfig.projectName)
+                if (projectConfig != null) {
+                    return projectConfig
+                }
+            }
+        }
+
+        return getForConfigFile(findClosestConfigFile(context))?.match(context)
+    }
 
     @RequiresReadLock
-    fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? =
-        resolveConfig(context)?.match(context)
+    fun resolveConfig(virtualFile: VirtualFile): GraphQLProjectConfig? =
+        PsiManager.getInstance(project).findFile(virtualFile)?.let { resolveConfig(it) }
 
-    @RequiresReadLock
-    fun resolveConfig(file: VirtualFile): GraphQLConfig? =
-        PsiManager.getInstance(project).findFile(file)?.let { resolveConfig(it) }
-
-    @RequiresReadLock
-    fun resolveProjectConfig(virtualFile: VirtualFile): GraphQLProjectConfig? =
-        PsiManager.getInstance(project).findFile(virtualFile)?.let { resolveProjectConfig(it) }
-
-    fun getConfig(configFile: VirtualFile?): GraphQLConfig? {
-        return configData[configFile]?.config
+    fun getForConfigFile(configFile: VirtualFile?): GraphQLConfig? {
+        return configFile?.let { configData[it] }?.config
     }
 
     fun getAllConfigs(): List<GraphQLConfig> {
@@ -124,20 +143,73 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         get() = configData.isNotEmpty()
 
     @RequiresReadLock
+    fun findOverriddenConfig(file: PsiFile): GraphQLConfigOverride? {
+        return CachedValuesManager.getCachedValue(file, CONFIG_OVERRIDE_FILE_KEY) {
+            CachedValueProvider.Result.create(findOverriddenConfigImpl(file), file, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
+        }
+    }
+
+    private fun findOverriddenConfigImpl(file: PsiFile): GraphQLConfigOverride? {
+        if (file is GraphQLFile && ScratchUtil.isScratch(file.virtualFile)) {
+            val override = getContentDependentOverridePath(file)
+            if (override != null) {
+                val virtualFile = findFileByPath(override.path)
+                if (virtualFile != null) {
+                    return if (virtualFile.isDirectory) {
+                        findConfigFileInDirectory(virtualFile)?.let {
+                            GraphQLConfigOverride(it, override.project)
+                        }
+                    } else {
+                        GraphQLConfigOverride(virtualFile, override.project)
+                    }
+                }
+            }
+
+            return project.guessProjectDir()?.let { findConfigFileInDirectory(it) }?.let { GraphQLConfigOverride(it, null) }
+        }
+
+        return null
+    }
+
+    private fun findFileByPath(path: String): VirtualFile? {
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+            return TempFileSystem.getInstance().findFileByPath(path)
+        }
+
+        return LocalFileSystem.getInstance().findFileByPath(path)
+    }
+
+    @RequiresReadLock
+    fun getContentDependentOverridePath(file: PsiFile): GraphQLConfigOverridePath? {
+        if (file !is GraphQLFile) {
+            return null
+        }
+
+        return CachedValuesManager.getCachedValue(file, CONFIG_OVERRIDE_PATH_KEY) {
+            val start = file.firstChild?.let { if (it is PsiWhiteSpace) PsiTreeUtil.skipWhitespacesForward(it) else it }
+            val override =
+                generateSequence(start) { prev ->
+                    PsiTreeUtil.skipWhitespacesForward(prev)?.takeIf { it is PsiComment }
+                }
+                    .mapNotNull { parseOverrideConfigComment(it.text) }
+                    .firstOrNull()
+
+            CachedValueProvider.Result.create(override, file)
+        }
+    }
+
+    @RequiresReadLock
     fun findClosestConfigFile(context: PsiFile): VirtualFile? {
         return CachedValuesManager.getCachedValue(context, CONFIG_FILE_KEY) {
-            // TODO: here should be implemented PsiFile dependent config file search logic, e.g. reading a graphqlconfig comment
-
-            val virtualFile = getPhysicalVirtualFile(context)
-            val configFile = findConfigFileInParents(virtualFile)
-            CachedValueProvider.Result.create(configFile, context, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
+            val configFile = findConfigFileInParents(getPhysicalVirtualFile(context))
+            CachedValueProvider.Result.create(configFile, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
         }
     }
 
     private fun findConfigFileInParents(file: VirtualFile?): VirtualFile? {
-        if (file == null) return null
+        if (file == null || ScratchUtil.isScratch(file)) return null
 
-        val cache = closestConfigFile.value
+        val cache = configsInParentDirectories.value
         val prev = cache[file]
         if (prev != null) {
             return prev.orElse(null)
@@ -292,3 +364,5 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     override fun dispose() {
     }
 }
+
+data class GraphQLConfigOverride(val file: VirtualFile, val projectName: String?)

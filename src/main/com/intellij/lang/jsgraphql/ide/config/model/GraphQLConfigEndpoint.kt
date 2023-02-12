@@ -34,11 +34,13 @@ data class GraphQLConfigEndpoint(
 
     val file: VirtualFile? = configPointer?.file
 
+    val projectName = configPointer?.projectName
+
     val introspect = data.introspect
 
     fun findConfig(): GraphQLProjectConfig? {
         val provider = GraphQLConfigProvider.getInstance(project)
-        val config = provider.getConfig(configPointer?.file)
+        val config = provider.getForConfigFile(configPointer?.file)
         return config?.findProject(configPointer?.projectName) ?: config?.getDefault()
     }
 

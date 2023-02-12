@@ -101,7 +101,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     private fun loadConfig(configPath: String): GraphQLConfig {
         copyProject()
         val context = myFixture.configureFromTempProjectFile(configPath)!!
-        val config = GraphQLConfigProvider.getInstance(project).getConfig(context.virtualFile)
+        val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(context.virtualFile)
         TestCase.assertNotNull(config)
         return config!!
     }

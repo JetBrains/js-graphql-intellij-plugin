@@ -57,7 +57,10 @@ public class GraphQLFileType extends LanguageFileType {
      *
      * @return true if the scratch file contains a GraphQL PsiFile
      */
-    public static boolean isGraphQLScratchFile(@NotNull Project project, @NotNull VirtualFile file) {
+    public static boolean isGraphQLScratchFile(@NotNull Project project, @Nullable VirtualFile file) {
+        if (file == null) {
+            return false;
+        }
         if (ScratchUtil.isScratch(file)) {
             final PsiManager psiManager = PsiManager.getInstance(project);
             try {

@@ -2,7 +2,9 @@
 
 package com.intellij.lang.jsgraphql.ide.config
 
-const val GRAPHQLCONFIG_COMMENT = ".graphqlconfig="
+const val CONFIG_OVERRIDE_COMMENT_LEGACY = ".graphqlconfig="
+const val CONFIG_OVERRIDE_COMMENT = "config="
+const val CONFIG_OVERRIDE_PROJECT_SEP = "!"
 
 const val GRAPHQLCONFIG = ".graphqlconfig"
 const val GRAPHQLCONFIG_JSON = ".graphqlconfig.json"

@@ -35,6 +35,6 @@ open class GraphQLConfigScope(
         // Scope checks will be evaluated against the whole project,
         // so we need to run a complete matching algorithm, including a search for the nearest config file.
         // Otherwise, it's possible to include a random file from non-related subdirectory, e.g. when we have an empty config.
-        return configProvider.resolveProjectConfig(file) == config
+        return configProvider.resolveConfig(file) == config
     }
 }

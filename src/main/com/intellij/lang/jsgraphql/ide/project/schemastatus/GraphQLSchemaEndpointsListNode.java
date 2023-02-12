@@ -8,21 +8,16 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.scratch.ScratchRootType;
-import com.intellij.lang.jsgraphql.GraphQLLanguage;
+import com.intellij.lang.jsgraphql.GraphQLUtil;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.ListPopup;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -35,10 +30,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-
-import static com.intellij.lang.jsgraphql.ide.config.GraphQLConfigConstants.GRAPHQLCONFIG_COMMENT;
-import static com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL;
 
 /**
  * Tree node which provides a schema endpoints list
@@ -104,23 +95,7 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
                                     GraphQLIntrospectionService.getInstance(myProject)
                                             .performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
                                 } else if (createScratch.equals(selectedValue)) {
-                                    final String configBaseDir = endpoint.getDir().getPresentableUrl();
-                                    final String text = "# " + GRAPHQLCONFIG_COMMENT + configBaseDir + "!" +
-                                            Optional.ofNullable(projectKey).orElse("") + "\n\nquery ScratchQuery {\n\n}";
-                                    final VirtualFile scratchFile = ScratchRootType.getInstance().createScratchFile(myProject,
-                                            "scratch.graphql", GraphQLLanguage.INSTANCE, text);
-                                    if (scratchFile != null) {
-                                        FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(scratchFile, true);
-                                        for (FileEditor editor : fileEditors) {
-                                            if (editor instanceof TextEditor) {
-                                                final GraphQLEndpointsModel endpointsModel =
-                                                        ((TextEditor) editor).getEditor().getUserData(GRAPH_QL_ENDPOINTS_MODEL);
-                                                if (endpointsModel != null) {
-                                                    endpointsModel.setSelectedItem(endpoint);
-                                                }
-                                            }
-                                        }
-                                    }
+                                    GraphQLUtil.createScratchFromEndpoint(myProject, endpoint, true);
                                 }
                             });
                         }
