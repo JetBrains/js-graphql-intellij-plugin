@@ -4,5 +4,5 @@ extensions:
     Default GraphQL Endpoint:
       url: http://localhost:8080/graphql
       headers:
-        Authorization: ${TOKEN}
+        Authorization: bearer ${TOKEN}
       introspect: false
