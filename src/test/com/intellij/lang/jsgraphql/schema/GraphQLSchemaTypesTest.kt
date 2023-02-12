@@ -75,38 +75,58 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
         doTestHighlighting("src/query1.js", "src/index.html")
     }
 
+    fun testSchemaInJson() {
+        val file = "client/query.graphql"
+        doTestCompletion(file, listOf("localField", "Activity", "Character", "GenreCollection"), false)
+        doTestTypeDefinitions(file, listOf("LocalType", "ThreadCommentLikeNotification", "ActivityMessageNotification", "ModAction"), false)
+        doTestHighlighting("client/highlight.graphql")
+    }
+
     private fun doTest(
         fileName: String,
         expectedCompletions: List<String>,
         expectedFragments: List<String>,
         expectedTypes: List<String>,
+        strict: Boolean = true
     ) {
-        doTestCompletion(fileName, expectedCompletions)
-        doTestFragmentDefinitions(fileName, expectedFragments)
-        doTestTypeDefinitions(fileName, expectedTypes)
+        doTestCompletion(fileName, expectedCompletions, strict)
+        doTestFragmentDefinitions(fileName, expectedFragments, strict)
+        doTestTypeDefinitions(fileName, expectedTypes, strict)
     }
 
-    private fun doTestCompletion(fileName: String, expectedCompletions: List<String>) {
+    private fun doTestCompletion(fileName: String, expectedCompletions: List<String>, strict: Boolean = true) {
         myFixture.configureFromTempProjectFile(fileName)
         myFixture.complete(CompletionType.BASIC, 1)
         val completions = myFixture.lookupElementStrings ?: emptyList()
-        assertSameElements(completions, expectedCompletions)
+        if (strict) {
+            assertSameElements(completions, expectedCompletions)
+        } else {
+            assertContainsElements(completions, expectedCompletions)
+        }
     }
 
-    private fun doTestFragmentDefinitions(fileName: String, expectedFragments: List<String>) {
+    private fun doTestFragmentDefinitions(fileName: String, expectedFragments: List<String>, strict: Boolean = true) {
         val file = myFixture.configureFromTempProjectFile(fileName)!!
         val fragments = GraphQLPsiSearchHelper.getInstance(project).findFragmentDefinitions(file).map { it.name }
-        assertSameElements(fragments, expectedFragments)
+        if (strict) {
+            assertSameElements(fragments, expectedFragments)
+        } else {
+            assertContainsElements(fragments, expectedFragments)
+        }
     }
 
-    private fun doTestTypeDefinitions(fileName: String, expectedTypes: List<String>) {
+    private fun doTestTypeDefinitions(fileName: String, expectedTypes: List<String>, strict: Boolean = true) {
         val psiFile = myFixture.configureFromTempProjectFile(fileName)
         TestCase.assertNotNull(psiFile)
         val registry = getInstance(project).getRegistryInfo(psiFile).typeDefinitionRegistry
         val types = registry.types().values
             .map { it.name }
             .filter { !GraphQLKnownTypes.isIntrospectionType(it) }
-        assertSameElements(types, expectedTypes)
+        if (strict) {
+            assertSameElements(types, expectedTypes)
+        } else {
+            assertContainsElements(types, expectedTypes)
+        }
     }
 
     private fun doTestHighlighting(vararg files: String) {

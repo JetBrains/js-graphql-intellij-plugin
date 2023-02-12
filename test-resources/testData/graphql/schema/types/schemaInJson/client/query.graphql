@@ -1,0 +1,16 @@
+query {
+    Activity(id: 123) {
+        ... on ListActivity {
+            user {
+                avatar {
+                    large
+                    medium
+                }
+            }
+        }
+    }
+    localField {
+        localName
+    }
+    aliased: <caret>
+}

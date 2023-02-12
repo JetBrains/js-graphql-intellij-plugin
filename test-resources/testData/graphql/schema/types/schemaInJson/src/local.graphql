@@ -1,0 +1,7 @@
+type LocalType {
+    localName: String
+}
+
+extend type Query {
+    localField: LocalType
+}

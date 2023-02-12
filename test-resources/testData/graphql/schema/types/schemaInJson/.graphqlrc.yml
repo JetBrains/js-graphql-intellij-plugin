@@ -1,0 +1,3 @@
+schema:
+  - schemas/remote.json
+  - src/local.graphql
