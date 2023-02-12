@@ -141,10 +141,6 @@
     <!-- Settings -->
     <projectConfigurable id="settings.jsgraphql" groupId="language" instance="com.intellij.lang.jsgraphql.ui.GraphQLSettingsConfigurable"/>
 
-    <!-- Editor notifications -->
-    <editorNotificationProvider
-      implementation="com.intellij.lang.jsgraphql.ide.notifications.GraphQLScopeEditorNotificationProvider"/>
-
     <!-- Introspection -->
     <codeInsight.lineMarkerProvider
       implementationClass="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionJsonToSDLLineMarkerProvider"
