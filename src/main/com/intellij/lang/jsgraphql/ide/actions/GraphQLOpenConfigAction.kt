@@ -13,9 +13,9 @@ import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
 import com.intellij.lang.jsgraphql.ide.notifications.GRAPHQL_NOTIFICATION_GROUP_ID
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
+import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType

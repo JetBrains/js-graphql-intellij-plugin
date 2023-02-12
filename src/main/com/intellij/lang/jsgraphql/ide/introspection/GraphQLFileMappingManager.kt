@@ -19,7 +19,6 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import java.io.IOException
-import java.lang.ref.WeakReference
 
 @Service(Service.Level.PROJECT)
 class GraphQLFileMappingManager(private val project: Project) {
@@ -32,7 +31,7 @@ class GraphQLFileMappingManager(private val project: Project) {
         /**
          * Set on a source file (only PSI) to get the generated file.
          */
-        private val GRAPHQL_SOURCE_TO_SDL = Key.create<CachedValue<GraphQLFile>>("graphql.source.to.sdl")
+        private val GRAPHQL_SOURCE_TO_SDL = Key.create<CachedValue<GraphQLFile?>>("graphql.source.to.sdl")
 
         /**
          * Set on a source file (both PSI and VirtualFile) to check if it has the corresponding generated file.
@@ -52,9 +51,9 @@ class GraphQLFileMappingManager(private val project: Project) {
 
         /**
          * Reverse mapping of [GRAPHQL_SOURCE_TO_SDL].
-         * Set on a generated file (only PSI) to get the source file that the file is derived from.
+         * Set on a generated file (both PSI and VirtualFile) to get the source file that the file is derived from.
          */
-        private val GRAPHQL_SDL_TO_SOURCE = Key.create<WeakReference<PsiFile>>("graphql.sdl.to.source")
+        private val GRAPHQL_SDL_TO_SOURCE = Key.create<VirtualFile>("graphql.sdl.to.source")
 
         private val IGNORED_INTROSPECTION_FILES = setOf(*CONFIG_NAMES.toTypedArray(), "package.json")
     }
@@ -78,7 +77,8 @@ class GraphQLFileMappingManager(private val project: Project) {
                 throw e
             } catch (e: Exception) {
                 LOG.info("SDL generation failed for: ${file.path}", e)
-                return@getCachedValue null
+                return@getCachedValue CachedValueProvider.Result
+                    .create(null, psiFile, GraphQLSettings.getSettings(project).modificationTracker)
             }
 
             psiFile.putUserData(GRAPHQL_SOURCE_HAS_GENERATED_FILE, true)
@@ -93,8 +93,8 @@ class GraphQLFileMappingManager(private val project: Project) {
             newIntrospectionFile.putUserData(GRAPHQL_SOURCE_PATH, file.path)
             newIntrospectionFile.virtualFile.putUserData(GRAPHQL_SOURCE_PATH, file.path)
 
-            // only for PSI, we shouldn't store any PSI references in a VirtualFile
-            newIntrospectionFile.putUserData(GRAPHQL_SDL_TO_SOURCE, WeakReference(psiFile))
+            newIntrospectionFile.putUserData(GRAPHQL_SDL_TO_SOURCE, file)
+            newIntrospectionFile.virtualFile.putUserData(GRAPHQL_SDL_TO_SOURCE, file)
 
             try {
                 newIntrospectionFile.virtualFile.isWritable = false
@@ -118,5 +118,9 @@ class GraphQLFileMappingManager(private val project: Project) {
 
     fun isGeneratedFile(virtualFile: VirtualFile?): Boolean {
         return virtualFile?.getUserData(GRAPHQL_IS_GENERATED_SDL) ?: false
+    }
+
+    fun getSourceFile(psiFile: PsiFile?): VirtualFile? {
+        return psiFile?.getUserData(GRAPHQL_SDL_TO_SOURCE) ?: psiFile?.virtualFile?.getUserData(GRAPHQL_SDL_TO_SOURCE)
     }
 }

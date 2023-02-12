@@ -161,7 +161,7 @@ public class GraphQLSchemaAnnotator implements Annotator {
             return Collections.emptyList();
         }
 
-        String currentFileName = GraphQLPsiUtil.getFileName(containingFile);
+        String currentFileName = GraphQLPsiUtil.getPhysicalFileName(containingFile);
         return ContainerUtil.mapNotNull(locations, location -> {
             if (!currentFileName.equals(location.getSourceName())) {
                 return null;

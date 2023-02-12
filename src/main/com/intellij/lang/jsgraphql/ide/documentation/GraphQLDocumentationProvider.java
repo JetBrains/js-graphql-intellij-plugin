@@ -127,7 +127,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
     @Nullable
     private String getEnumValueDocumentation(GraphQLSchema schema, GraphQLEnumValue parent) {
-        final String enumName = GraphQLPsiUtil.getTypeName(parent, null);
+        final String enumName = GraphQLPsiUtil.findContainingTypeName(parent);
         if (enumName != null) {
             com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(enumName);
             if (schemaType instanceof GraphQLEnumType) {
@@ -164,7 +164,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                 GraphQLDirectiveDefinition.class, GraphQLInputObjectTypeDefinition.class, GraphQLInputObjectTypeExtensionDefinition.class);
             if (definition instanceof GraphQLFieldDefinition) {
 
-                final String typeName = GraphQLPsiUtil.getTypeName(parent, null);
+                final String typeName = GraphQLPsiUtil.findContainingTypeName(parent);
                 if (typeName != null) {
                     final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(typeName);
                     List<com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition> fieldDefinitions;
@@ -202,7 +202,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
                 }
             } else if (definition instanceof GraphQLInputObjectTypeDefinition || definition instanceof GraphQLInputObjectTypeExtensionDefinition) {
 
-                final String inputTypeName = GraphQLPsiUtil.getTypeName(parent, null);
+                final String inputTypeName = GraphQLPsiUtil.findContainingTypeName(parent);
                 final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(inputTypeName);
                 if (schemaType instanceof GraphQLInputObjectType) {
                     for (GraphQLInputObjectField inputObjectField : ((GraphQLInputObjectType) schemaType).getFieldDefinitions()) {

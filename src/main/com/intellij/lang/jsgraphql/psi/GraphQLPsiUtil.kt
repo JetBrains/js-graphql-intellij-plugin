@@ -1,3 +1,4 @@
+@file:JvmName("GraphQLPsiUtil")
 /*
  *  Copyright (c) 2015-present, Jim Kynde Meyer
  *  All rights reserved.
@@ -5,134 +6,102 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.psi;
+package com.intellij.lang.jsgraphql.psi
 
-import com.intellij.injected.editor.VirtualFileWindow;
-import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.util.SmartList;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.injected.editor.VirtualFileWindow
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiComment
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.testFramework.LightVirtualFile
+import com.intellij.util.SmartList
 
-import java.util.List;
 
-public class GraphQLPsiUtil {
-
-    public static @Nullable String getTypeName(@Nullable PsiElement psiElement, @Nullable Ref<GraphQLIdentifier> typeNameRef) {
-
-        if (psiElement != null) {
-
-            final PsiElement typeOwner = PsiTreeUtil.getParentOfType(psiElement, GraphQLNamedTypeDefinition.class, GraphQLNamedTypeExtension.class);
-
-            GraphQLIdentifier nameIdentifier = null;
-
-            if (typeOwner instanceof GraphQLNamedTypeDefinition) {
-                final GraphQLTypeNameDefinition typeNameDefinition = ((GraphQLNamedTypeDefinition) typeOwner).getTypeNameDefinition();
-                if (typeNameDefinition != null) {
-                    nameIdentifier = typeNameDefinition.getNameIdentifier();
-                }
-            } else if (typeOwner instanceof GraphQLNamedTypeExtension) {
-                final GraphQLTypeName typeName = ((GraphQLNamedTypeExtension) typeOwner).getTypeName();
-                if (typeName != null) {
-                    nameIdentifier = typeName.getNameIdentifier();
-                }
-            }
-
-            if (nameIdentifier != null) {
-                if (typeNameRef != null) {
-                    typeNameRef.set(nameIdentifier);
-                }
-                return nameIdentifier.getText();
-            }
-
-        }
-
-        return null;
+fun findContainingTypeNameIdentifier(psiElement: PsiElement?): PsiElement? {
+    if (psiElement == null) {
+        return null
     }
+    val typeOwner = PsiTreeUtil.getParentOfType(
+        psiElement,
+        GraphQLNamedTypeDefinition::class.java,
+        GraphQLNamedTypeExtension::class.java
+    )
 
-    @Nullable
-    public static VirtualFile getOriginalVirtualFile(@Nullable PsiFile containingFile) {
-        if (containingFile == null || !containingFile.isValid()) return null;
-
-        VirtualFile file = containingFile.getVirtualFile();
-        if (file == null) {
-            PsiFile originalFile = containingFile.getOriginalFile();
-            if (originalFile != containingFile && originalFile.isValid()) {
-                file = originalFile.getVirtualFile();
-            }
-        }
-
-        return file;
+    return when (typeOwner) {
+        is GraphQLNamedTypeDefinition -> typeOwner.typeNameDefinition?.nameIdentifier
+        is GraphQLNamedTypeExtension -> typeOwner.typeName?.nameIdentifier
+        else -> null
     }
+}
 
-    @Nullable
-    public static VirtualFile getPhysicalVirtualFile(@Nullable VirtualFile virtualFile) {
-        if (virtualFile == null) return null;
+fun findContainingTypeName(psiElement: PsiElement?): String? =
+    findContainingTypeNameIdentifier(psiElement)?.text
 
-        if (virtualFile instanceof LightVirtualFile) {
-            VirtualFile originalFile = ((LightVirtualFile) virtualFile).getOriginalFile();
-            if (originalFile != null) {
-                virtualFile = originalFile;
-            }
-        }
-
-        if (virtualFile instanceof VirtualFileWindow) {
-            // injected virtual files
-            virtualFile = ((VirtualFileWindow) virtualFile).getDelegate();
-        }
-        return virtualFile;
+fun getOriginalVirtualFile(psiFile: PsiFile?): VirtualFile? {
+    if (psiFile == null || !psiFile.isValid) {
+        return null
     }
-
-    @Nullable
-    public static VirtualFile getPhysicalVirtualFile(@Nullable PsiFile psiFile) {
-        if (psiFile == null) return null;
-        return getPhysicalVirtualFile(getOriginalVirtualFile(psiFile));
-    }
-
-    /**
-     * Gets the virtual file system path of a PSI file
-     */
-    @NotNull
-    public static String getFileName(@NotNull PsiFile psiFile) {
-        VirtualFile virtualFile = getPhysicalVirtualFile(psiFile);
-        if (virtualFile != null) {
-            return virtualFile.getPath();
+    var file = psiFile.virtualFile
+    if (file == null) {
+        val originalFile = psiFile.originalFile
+        if (originalFile !== psiFile && originalFile.isValid) {
+            file = originalFile.virtualFile
         }
-        return psiFile.getName(); // is needed for some manually created in-memory PSI files
     }
+    return file
+}
 
-    public static @NotNull List<PsiComment> getLeadingFileComments(@NotNull PsiFile file) {
-        List<PsiComment> comments = new SmartList<>();
-        PsiElement child = file.getFirstChild();
-        if (child instanceof PsiWhiteSpace) {
-            child = PsiTreeUtil.skipWhitespacesForward(child);
+fun getPhysicalVirtualFile(virtualFile: VirtualFile?): VirtualFile? {
+    var result = virtualFile ?: return null
+    if (result is LightVirtualFile) {
+        val originalFile = result.originalFile
+        if (originalFile != null) {
+            result = originalFile
         }
-        while (child instanceof PsiComment) {
-            comments.add(((PsiComment) child));
-            child = PsiTreeUtil.skipWhitespacesForward(child);
-        }
-
-        return comments;
     }
+    if (result is VirtualFileWindow) {
+        // injected virtual files
+        result = (result as VirtualFileWindow).delegate
+    }
+    return result
+}
 
-    @NotNull
-    public static PsiElement skipDescription(@NotNull PsiElement element) {
-        if (element instanceof GraphQLDescriptionAware) {
-            GraphQLDescription description = ((GraphQLDescriptionAware) element).getDescription();
-            if (description != null) {
-                PsiElement target = PsiTreeUtil.skipWhitespacesForward(description);
-                if (target != null) {
-                    return target;
-                }
+fun getPhysicalVirtualFile(psiFile: PsiFile?): VirtualFile? {
+    return getPhysicalVirtualFile(getOriginalVirtualFile(psiFile))
+}
+
+/**
+ * Gets the virtual file system path of a PSI file
+ */
+fun getPhysicalFileName(psiFile: PsiFile): String {
+    val virtualFile = getPhysicalVirtualFile(psiFile)
+    return virtualFile?.path ?: psiFile.name
+}
+
+fun getLeadingFileComments(file: PsiFile): List<PsiComment> {
+    val comments: MutableList<PsiComment> = SmartList()
+    var child = file.firstChild
+    if (child is PsiWhiteSpace) {
+        child = PsiTreeUtil.skipWhitespacesForward(child)
+    }
+    while (child is PsiComment) {
+        comments.add(child)
+        child = PsiTreeUtil.skipWhitespacesForward(child)
+    }
+    return comments
+}
+
+fun skipDescription(element: PsiElement): PsiElement {
+    if (element is GraphQLDescriptionAware) {
+        val description = element.description
+        if (description != null) {
+            val target = PsiTreeUtil.skipWhitespacesForward(description)
+            if (target != null) {
+                return target
             }
         }
-
-        return element;
     }
+    return element
 }

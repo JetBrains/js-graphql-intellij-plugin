@@ -1,6 +1,5 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
-import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigKeys
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
@@ -11,6 +10,7 @@ import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigSchemaScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLFileMatcherCache
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
+import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile

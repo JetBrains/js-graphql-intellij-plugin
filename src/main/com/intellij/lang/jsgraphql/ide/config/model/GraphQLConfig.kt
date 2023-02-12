@@ -1,9 +1,9 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
-import com.intellij.lang.jsgraphql.ide.config.getPhysicalVirtualFile
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
+import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
