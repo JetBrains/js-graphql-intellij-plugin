@@ -21,12 +21,10 @@ data class GraphQLProjectConfig(
     val name: String,
     private val ownConfig: GraphQLRawProjectConfig,
     private val defaultConfig: GraphQLRawProjectConfig?,
-    val parent: GraphQLConfig,
+    val dir: VirtualFile,
+    val file: VirtualFile?,
+    val isRootEmpty: Boolean,
 ) {
-    val dir = parent.dir
-
-    val file = parent.file
-
     val schema: List<GraphQLSchemaPointer> = (ownConfig.schema ?: defaultConfig?.schema ?: emptyList()).map {
         GraphQLSchemaPointer(project, dir, it, isLegacy, false)
     }

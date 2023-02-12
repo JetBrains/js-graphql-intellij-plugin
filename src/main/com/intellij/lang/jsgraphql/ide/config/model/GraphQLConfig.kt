@@ -25,12 +25,21 @@ data class GraphQLConfig(
         const val DEFAULT_PROJECT = "default"
     }
 
+    /**
+     * Empty if it doesn't contain any explicit file patterns,
+     * so it becomes a default config for the files under this root.
+     */
+    val isEmpty: Boolean = data.schema.isNullOrEmpty() &&
+        data.projects.isNullOrEmpty() &&
+        data.include.isNullOrEmpty() &&
+        data.exclude.isNullOrEmpty()
+
     private val projects: Map<String, GraphQLProjectConfig> = initProjects()
 
     /**
      * NULL config to store as weak referenced value in [fileToProjectCache]. Shouldn't be exposed to the outside of the class.
      */
-    private val nullConfig = GraphQLProjectConfig(project, "NULL", GraphQLRawProjectConfig.EMPTY, null, this)
+    private val nullConfig = GraphQLProjectConfig(project, "NULL", GraphQLRawProjectConfig.EMPTY, null, dir, file, isEmpty)
 
     private val fileToProjectCache: CachedValue<ConcurrentMap<VirtualFile, GraphQLProjectConfig>> =
         CachedValuesManager.getManager(project).createCachedValue {
@@ -44,10 +53,10 @@ data class GraphQLConfig(
         val root = GraphQLRawProjectConfig(data.schema, data.documents, data.extensions, data.include, data.exclude)
 
         return if (data.projects.isNullOrEmpty()) {
-            mapOf(DEFAULT_PROJECT to GraphQLProjectConfig(project, DEFAULT_PROJECT, root, null, this))
+            mapOf(DEFAULT_PROJECT to GraphQLProjectConfig(project, DEFAULT_PROJECT, root, null, dir, file, isEmpty))
         } else {
             data.projects.mapValues { (name, config) ->
-                GraphQLProjectConfig(project, name, config, root, this)
+                GraphQLProjectConfig(project, name, config, root, dir, file, isEmpty)
             }
         }
     }
@@ -70,15 +79,6 @@ data class GraphQLConfig(
 
     val isLegacy: Boolean
         get() = isLegacyConfig(file)
-
-    /**
-     * Empty if it doesn't contain any explicit file patterns,
-     * so it becomes a default config for the files under this root.
-     */
-    val isEmpty: Boolean = data.schema.isNullOrEmpty() &&
-        data.projects.isNullOrEmpty() &&
-        data.include.isNullOrEmpty() &&
-        data.exclude.isNullOrEmpty()
 
     fun match(context: PsiFile): GraphQLProjectConfig? {
         return getPhysicalVirtualFile(context)?.let { match(it) }
