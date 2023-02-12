@@ -15,7 +15,7 @@ class GraphQLConfigSchemaScope(
         if (!super.match(file)) {
             return false
         }
-        if (config.isDefault && config.parent.isEmpty) {
+        if (config.isDefault && config.isRootEmpty) {
             return true
         }
         return config.matchesSchema(file)
