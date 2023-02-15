@@ -3,6 +3,8 @@ package com.intellij.lang.jsgraphql;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager;
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceUpdater;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.*;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition;
@@ -53,6 +55,10 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
     protected void reloadConfiguration() {
         ApplicationManager.getApplication().assertIsDispatchThread();
         GraphQLConfigProvider.getInstance(getProject()).scheduleConfigurationReload();
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+        GraphQLGeneratedSourceUpdater.getInstance(getProject()).drainUpdateRequests();
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+        GraphQLGeneratedSourceManager.getInstance(getProject()).waitForAllTasks();
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     }
 
