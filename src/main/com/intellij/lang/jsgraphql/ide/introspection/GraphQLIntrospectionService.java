@@ -153,16 +153,16 @@ public final class GraphQLIntrospectionService implements Disposable {
 
     public void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint,
                                                                  @NotNull String schemaPath,
-                                                                 @NotNull VirtualFile introspectionSourceFile) {
+                                                                 @NotNull VirtualFile configFile) {
         latestIntrospection = new GraphQLIntrospectionTask(endpoint,
-            () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile));
+            () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, configFile));
 
         final NotificationAction retry = new NotificationAction(GraphQLBundle.message("graphql.notification.retry")) {
 
             @Override
             public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                 notification.expire();
-                performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile);
+                performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, configFile);
             }
         };
 
@@ -170,7 +170,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         if (StringUtil.isEmptyOrSpaces(url)) {
             GraphQLNotificationUtil.showInvalidConfigurationNotification(
                 GraphQLBundle.message("graphql.notification.empty.endpoint.url"),
-                introspectionSourceFile,
+                configFile,
                 myProject
             );
             return;
@@ -183,7 +183,7 @@ public final class GraphQLIntrospectionService implements Disposable {
             final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
             HttpPost request = createRequest(endpoint, url, requestJson);
             Task.Backgroundable task = new IntrospectionQueryTask(
-                request, schemaPath, introspectionSourceFile, retry, settings, endpoint, url);
+                request, schemaPath, configFile, retry, settings, endpoint, url);
             ProgressManager.getInstance().run(task);
         } catch (IllegalStateException | IllegalArgumentException e) {
             LOG.warn(e);
@@ -417,32 +417,29 @@ public final class GraphQLIntrospectionService implements Disposable {
                                                @NotNull IntrospectionOutputFormat format,
                                                @NotNull VirtualFile configFile,
                                                @NotNull String outputFileName) {
-        final String header;
-        switch (format) {
-            case SDL:
-                header = "# This file was generated based on \"" + configFile.getName() + "\". Do not edit manually.\n\n";
-                break;
-            case JSON:
-                header = "";
-                break;
-            default:
-                throw new IllegalArgumentException("unsupported output format: " + format);
-        }
+        String header = switch (format) {
+            case SDL -> "# This file was generated based on \"" + configFile.getName() + "\". Do not edit manually.\n\n";
+            case JSON -> "";
+        };
 
         WriteCommandAction.runWriteCommandAction(myProject, () -> {
             try {
+                FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
+                PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
+
                 VirtualFile outputFile =
                     createOrUpdateSchemaFile(configFile, FileUtil.toSystemIndependentName(outputFileName));
-                com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getDocument(outputFile);
+                com.intellij.openapi.editor.Document document = fileDocumentManager.getDocument(outputFile);
                 if (document == null) {
                     throw new IllegalStateException("Document not found");
                 }
                 document.setText(StringUtil.convertLineSeparators(header + schemaText));
-                PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
                 psiDocumentManager.commitDocument(document);
                 PsiFile psiFile = psiDocumentManager.getPsiFile(document);
                 if (psiFile != null) {
                     CodeStyleManager.getInstance(myProject).reformat(psiFile);
+                    psiDocumentManager.commitDocument(document);
+                    fileDocumentManager.saveDocument(document);
                 }
                 openSchemaInEditor(outputFile);
             } catch (ProcessCanceledException e) {
@@ -579,7 +576,7 @@ public final class GraphQLIntrospectionService implements Disposable {
     private class IntrospectionQueryTask extends Task.Backgroundable {
         private final HttpUriRequest request;
         private final String schemaPath;
-        private final VirtualFile introspectionSourceFile;
+        private final VirtualFile configFile;
         private final NotificationAction retry;
         private final GraphQLSettings graphQLSettings;
         private final GraphQLConfigEndpoint endpoint;
@@ -587,7 +584,7 @@ public final class GraphQLIntrospectionService implements Disposable {
 
         public IntrospectionQueryTask(@NotNull HttpUriRequest request,
                                       @NotNull String schemaPath,
-                                      @NotNull VirtualFile introspectionSourceFile,
+                                      @NotNull VirtualFile configFile,
                                       @NotNull NotificationAction retry,
                                       @NotNull GraphQLSettings graphQLSettings,
                                       @NotNull GraphQLConfigEndpoint endpoint,
@@ -599,7 +596,7 @@ public final class GraphQLIntrospectionService implements Disposable {
             );
             this.request = request;
             this.schemaPath = schemaPath;
-            this.introspectionSourceFile = introspectionSourceFile;
+            this.configFile = configFile;
             this.retry = retry;
             this.graphQLSettings = graphQLSettings;
             this.endpoint = endpoint;
@@ -610,7 +607,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         public void run(@NotNull ProgressIndicator indicator) {
             indicator.setIndeterminate(true);
             String responseJson;
-            GraphQLConfig config = GraphQLConfigProvider.getInstance(myProject).getForConfigFile(introspectionSourceFile);
+            GraphQLConfig config = GraphQLConfigProvider.getInstance(myProject).getForConfigFile(configFile);
             GraphQLConfigSecurity sslConfig = config != null ? GraphQLConfigSecurity.getSecurityConfig(config.getDefault()) : null;
             try (final CloseableHttpClient httpClient = createHttpClient(url, sslConfig);
                  final CloseableHttpResponse response = httpClient.execute(request)) {
@@ -648,7 +645,7 @@ public final class GraphQLIntrospectionService implements Disposable {
 
             ApplicationManager.getApplication().invokeLater(() -> {
                 try {
-                    createOrUpdateIntrospectionOutputFile(schemaText, format, introspectionSourceFile, schemaPath);
+                    createOrUpdateIntrospectionOutputFile(schemaText, format, configFile, schemaPath);
                 } catch (ProcessCanceledException exception) {
                     throw exception;
                 } catch (Exception e) {
@@ -677,7 +674,7 @@ public final class GraphQLIntrospectionService implements Disposable {
             ).addAction(retry).setImportant(true);
 
             GraphQLNotificationUtil.addRetryFailedSchemaIntrospectionAction(notification, graphQLSettings, e,
-                () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, introspectionSourceFile));
+                () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, configFile));
             addIntrospectionStackTraceAction(notification, e);
 
             Notifications.Bus.notify(notification, myProject);

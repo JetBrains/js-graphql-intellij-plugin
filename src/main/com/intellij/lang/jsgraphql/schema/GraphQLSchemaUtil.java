@@ -256,8 +256,11 @@ public class GraphQLSchemaUtil {
     }
 
     public static ModificationTracker getSchemaModificationTracker(@NotNull Project project) {
-        return () -> GraphQLSchemaContentTracker.getInstance(project).getModificationCount() +
-            GraphQLConfigProvider.getInstance(project).getModificationCount() +
+        GraphQLSchemaContentTracker contentTracker = GraphQLSchemaContentTracker.getInstance(project);
+        GraphQLConfigProvider configProvider = GraphQLConfigProvider.getInstance(project);
+
+        return () -> contentTracker.getModificationCount() +
+            configProvider.getModificationCount() +
             VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS.getModificationCount();
     }
 }

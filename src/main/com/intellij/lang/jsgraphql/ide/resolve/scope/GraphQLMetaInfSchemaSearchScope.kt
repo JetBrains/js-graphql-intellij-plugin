@@ -13,12 +13,12 @@ private const val META_INF_DIR = "META-INF/schema"
 class GraphQLMetaInfSchemaSearchScope(project: Project) :
     DelegatingGlobalSearchScope(getScopeRestrictedByFileTypes(allScope(project), GraphQLFileType.INSTANCE)) {
 
-    private val myIndex: ProjectFileIndex = ProjectRootManager.getInstance(project).fileIndex
+    private val index: ProjectFileIndex = ProjectRootManager.getInstance(project).fileIndex
 
     override fun contains(file: VirtualFile): Boolean {
         return super.contains(file)
-            && myIndex.isInLibrary(file)
-            && myIndex.isInLibraryClasses(file)
+            && index.isInLibrary(file)
+            && index.isInLibraryClasses(file)
             && file.parent != null
             && file.parent.path.endsWith(META_INF_DIR)
     }

@@ -7,9 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.schema
 
-import com.intellij.json.psi.JsonFile
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition
@@ -43,7 +41,7 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
         private val LOG = logger<GraphQLSchemaContentTracker>()
 
 
-        private const val EVENT_PUBLISH_TIMEOUT = 300
+        private const val EVENT_PUBLISH_TIMEOUT = 500
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLSchemaContentTracker>()
@@ -101,13 +99,6 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
                 val injectionHelper = GraphQLInjectedLanguage.forElement(event.parent)
                 if (injectionHelper != null && injectionHelper.isLanguageInjectionTarget(event.parent)) {
                     // change in injection target
-                    schemaChanged()
-                }
-            }
-
-            if (event.file is JsonFile) {
-                val introspectionJsonUpdated = GraphQLFileMappingManager.getInstance(myProject).isSourceForGeneratedFile(event.file)
-                if (introspectionJsonUpdated) {
                     schemaChanged()
                 }
             }

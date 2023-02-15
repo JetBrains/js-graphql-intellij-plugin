@@ -10,8 +10,8 @@ package com.intellij.lang.jsgraphql.ide.actions;
 import com.intellij.icons.AllIcons;
 import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
+import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GraphQLExecuteEditorAction extends AnAction {
+    public static final String ACTION_ID = "GraphQLExecuteEditor";
 
     public GraphQLExecuteEditorAction() {
         super("Execute GraphQL", "Executes the current GraphQL file against the specified GraphQL endpoint", AllIcons.Actions.Execute);

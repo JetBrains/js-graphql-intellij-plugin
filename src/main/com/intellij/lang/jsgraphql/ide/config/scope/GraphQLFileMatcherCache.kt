@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.config.scope
 
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -22,16 +23,26 @@ class GraphQLFileMatcherCache {
                 CachedValueProvider.Result.create(
                     GraphQLFileMatcherCache(),
                     VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+                    GraphQLGeneratedSourceManager.getInstance(project),
                     *dependencies
                 )
             }
     }
 
+    private val lock = ReentrantReadWriteLock()
     private val matchingFiles = VfsUtil.createCompactVirtualFileSet() // lock
     private val excludedFiles = VfsUtil.createCompactVirtualFileSet() // lock
-    private val lock = ReentrantReadWriteLock()
 
-    fun getMatchResult(virtualFile: VirtualFile): Match {
+    fun match(virtualFile: VirtualFile, matcher: (VirtualFile) -> Boolean): Boolean {
+        val status = getMatchResult(virtualFile)
+        if (status != Match.UNKNOWN) {
+            return status == Match.MATCHING
+        }
+
+        return cacheResult(virtualFile, matcher(virtualFile)) == Match.MATCHING
+    }
+
+    private fun getMatchResult(virtualFile: VirtualFile): Match {
         return lock.read {
             if (matchingFiles.contains(virtualFile)) {
                 Match.MATCHING
@@ -43,7 +54,7 @@ class GraphQLFileMatcherCache {
         }
     }
 
-    fun cacheResult(virtualFile: VirtualFile, isMatching: Boolean): Match {
+    private fun cacheResult(virtualFile: VirtualFile, isMatching: Boolean): Match {
         return lock.write {
             // need to re-check to prevent races
             val concurrentMatch = getMatchResult(virtualFile)
@@ -58,15 +69,6 @@ class GraphQLFileMatcherCache {
                 Match.EXCLUDED
             }
         }
-    }
-
-    fun match(virtualFile: VirtualFile, matcher: (VirtualFile) -> Boolean): Boolean {
-        val status = getMatchResult(virtualFile)
-        if (status != Match.UNKNOWN) {
-            return status == Match.MATCHING
-        }
-
-        return cacheResult(virtualFile, matcher(virtualFile)) == Match.MATCHING
     }
 
     enum class Match {
