@@ -5,6 +5,7 @@ import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_NAMES
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
+import com.intellij.lang.jsgraphql.inEdt
 import com.intellij.lang.jsgraphql.inWriteAction
 import com.intellij.lang.jsgraphql.isCancellation
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
@@ -33,6 +34,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.XCollection
+import org.jetbrains.annotations.TestOnly
 import java.io.FileNotFoundException
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -82,13 +84,17 @@ class GraphQLGeneratedSourceManager(
     private val modificationTracker = SimpleModificationTracker()
 
     private val notifyAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
-    private val executor =
+
+    private val executor = if (ApplicationManager.getApplication().isUnitTestMode) {
+        inEdt(ModalityState.defaultModalityState())
+    } else {
         AppExecutorUtil.createBoundedApplicationPoolExecutor(
             "GraphQL Source File Generation",
             AppExecutorUtil.getAppExecutorService(),
             1,
             this
         )
+    }
 
     fun createGeneratedSourceScope(): GlobalSearchScope {
         val dir = LocalFileSystem.getInstance().findFileByPath(getGeneratedFilesPath())
@@ -166,6 +172,12 @@ class GraphQLGeneratedSourceManager(
                     }
                 }
         }
+    }
+
+    @TestOnly
+    fun waitForAllTasks() {
+        CompletableFuture.allOf(*pendingTasks.values.toTypedArray()).join()
+        notifyAlarm.drainRequestsInTest()
     }
 
     private fun resetRetries(source: Source) {

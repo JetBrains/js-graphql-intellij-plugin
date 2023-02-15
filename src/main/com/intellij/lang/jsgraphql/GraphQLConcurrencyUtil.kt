@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.ProcessCanceledException
 import java.util.concurrent.CancellationException
@@ -24,4 +25,13 @@ fun isCancellation(error: Throwable?): Boolean {
     return error is ProcessCanceledException
         || error is CancellationException
         || error is InterruptedException
+}
+
+fun executeOnPooledThread(runnable: () -> Unit) {
+    val app = ApplicationManager.getApplication()
+    if (app.isUnitTestMode) {
+        invokeLater(ModalityState.defaultModalityState(), runnable)
+    } else {
+        app.executeOnPooledThread(runnable)
+    }
 }
