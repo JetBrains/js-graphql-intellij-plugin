@@ -11,8 +11,7 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.service
+import com.intellij.openapi.components.*
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -31,6 +30,9 @@ import com.intellij.psi.search.GlobalSearchScopes
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.Alarm
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.xmlb.annotations.Attribute
+import com.intellij.util.xmlb.annotations.Tag
+import com.intellij.util.xmlb.annotations.XCollection
 import java.io.FileNotFoundException
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -42,7 +44,13 @@ import kotlin.concurrent.write
 
 
 @Service(Service.Level.PROJECT)
-class GraphQLGeneratedSourceManager(private val project: Project) : Disposable, ModificationTracker {
+@State(name = "GraphQLGeneratedSources", storages = [Storage(value = StoragePathMacros.CACHE_FILE, roamingType = RoamingType.DISABLED)])
+class GraphQLGeneratedSourceManager(
+    private val project: Project
+) : Disposable,
+    ModificationTracker,
+    PersistentStateComponent<GraphQLGeneratedSourceManager.GraphQLGeneratedSourceState> {
+
     companion object {
         private val LOG = logger<GraphQLGeneratedSourceManager>()
 
@@ -88,8 +96,8 @@ class GraphQLGeneratedSourceManager(private val project: Project) : Disposable, 
         return GlobalSearchScopes.directoryScope(project, dir, false)
     }
 
-    fun requestGeneratedFile(file: VirtualFile): VirtualFile? {
-        if (project.isDisposed) return null
+    fun requestGeneratedFile(file: VirtualFile?): VirtualFile? {
+        if (file == null || project.isDisposed) return null
 
         val source = Source.create(file) ?: return null
         val entry = lock.read { generatedFiles[source] }
@@ -118,6 +126,7 @@ class GraphQLGeneratedSourceManager(private val project: Project) : Disposable, 
             generatedFiles[source] = entry
             entry.output?.let { reverseMappings[it] = source }
         }
+        modificationTracker.incModificationCount()
     }
 
     private fun removeEntry(source: Source, entry: GeneratedEntry?) {
@@ -127,6 +136,7 @@ class GraphQLGeneratedSourceManager(private val project: Project) : Disposable, 
             generatedFiles.remove(source, entry)
             entry.output?.let { reverseMappings.remove(it, source) }
         }
+        modificationTracker.incModificationCount()
     }
 
     private fun startAsyncProcessing(source: Source) {
@@ -263,6 +273,7 @@ class GraphQLGeneratedSourceManager(private val project: Project) : Disposable, 
         }
 
         retries.clear()
+        modificationTracker.incModificationCount()
         notifySourcesChanged()
     }
 
@@ -339,8 +350,77 @@ class GraphQLGeneratedSourceManager(private val project: Project) : Disposable, 
         val exception: Throwable?,
     )
 
-    private enum class RequestStatus {
+    enum class RequestStatus {
         SUCCESS,
         ERROR,
     }
+
+    override fun getState(): GraphQLGeneratedSourceState {
+        val items = lock.read {
+            generatedFiles.mapNotNull { (source, entry) ->
+                val sourcePath = source.file.takeIf { it.isValid }?.path ?: return@mapNotNull null
+                val outputPath = entry.output?.takeIf { it.isValid }?.path ?: return@mapNotNull null
+                GraphQLGeneratedSourceStateItem(entry.status, entry.timeStamp, sourcePath, outputPath)
+            }
+        }
+
+        return GraphQLGeneratedSourceState(items)
+    }
+
+    override fun loadState(state: GraphQLGeneratedSourceState) {
+        val items = state.items?.mapNotNull {
+            val status = it.status
+            val sourcePath = it.sourcePath
+            val outputPath = it.outputPath
+
+            if (status == null ||
+                sourcePath.isNullOrEmpty() ||
+                outputPath.isNullOrEmpty()
+            ) {
+                return@mapNotNull null
+            }
+
+            val sourceFile = LocalFileSystem.getInstance().findFileByPath(sourcePath)
+            val outputFile = LocalFileSystem.getInstance().findFileByPath(outputPath)
+            if (sourceFile == null || outputFile == null) {
+                return@mapNotNull null
+            }
+
+            val source = Source.create(sourceFile) ?: return@mapNotNull null
+            source to GeneratedEntry(status, it.timeStamp, outputFile, null)
+        } ?: emptyList()
+
+        lock.write {
+            generatedFiles.clear()
+            reverseMappings.clear()
+            items.forEach { (source, entry) ->
+                generatedFiles[source] = entry
+                entry.output?.let { reverseMappings[it] = source }
+            }
+            modificationTracker.incModificationCount()
+        }
+
+        ApplicationManager.getApplication().executeOnPooledThread {
+            generatedFiles.forEach {
+                requestGeneratedFile(it.key.file)
+            }
+        }
+    }
+
+    data class GraphQLGeneratedSourceState(
+        @get:XCollection(propertyElementName = "sources")
+        var items: List<GraphQLGeneratedSourceStateItem>? = emptyList()
+    )
+
+    @Tag("source")
+    data class GraphQLGeneratedSourceStateItem(
+        @get:Attribute
+        var status: RequestStatus? = null,
+        @get:Attribute
+        var timeStamp: Long = 0,
+        @get:Tag
+        var sourcePath: String? = null,
+        @get:Tag
+        var outputPath: String? = null,
+    )
 }
