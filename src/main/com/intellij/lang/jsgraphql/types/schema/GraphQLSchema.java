@@ -172,14 +172,17 @@ public class GraphQLSchema {
 
 
     public GraphQLCodeRegistry getCodeRegistry() {
+        ProgressManager.checkCanceled();
         return codeRegistry;
     }
 
     public Set<GraphQLType> getAdditionalTypes() {
+        ProgressManager.checkCanceled();
         return additionalTypes;
     }
 
     public GraphQLType getType(String typeName) {
+        ProgressManager.checkCanceled();
         return typeMap.get(typeName);
     }
 
@@ -193,6 +196,7 @@ public class GraphQLSchema {
      * @throws com.intellij.lang.jsgraphql.types.GraphQLException if the type is NOT a object type
      */
     public GraphQLObjectType getObjectType(String typeName) {
+        ProgressManager.checkCanceled();
         GraphQLType graphQLType = typeMap.get(typeName);
         if (graphQLType != null) {
             assertTrue(graphQLType instanceof GraphQLObjectType,
@@ -202,10 +206,12 @@ public class GraphQLSchema {
     }
 
     public Map<String, GraphQLNamedType> getTypeMap() {
+        ProgressManager.checkCanceled();
         return typeMap;
     }
 
     public List<GraphQLNamedType> getAllTypesAsList() {
+        ProgressManager.checkCanceled();
         return sortTypes(byNameAsc(), typeMap.values());
     }
 
@@ -218,6 +224,7 @@ public class GraphQLSchema {
      * @return list of types implementing provided interface
      */
     public List<GraphQLObjectType> getImplementations(GraphQLInterfaceType type) {
+        ProgressManager.checkCanceled();
         return interfaceNameToObjectTypes.getOrDefault(type.getName(), emptyList());
     }
 
@@ -233,6 +240,7 @@ public class GraphQLSchema {
      * @return true if possible type, false otherwise.
      */
     public boolean isPossibleType(GraphQLNamedType abstractType, GraphQLObjectType concreteType) {
+        ProgressManager.checkCanceled();
         if (abstractType instanceof GraphQLInterfaceType) {
             ImmutableList<String> objectNames = this.interfaceNameToObjectTypeNames.getOrDefault(abstractType.getName(), emptyList());
             return objectNames.contains(concreteType.getName());
@@ -243,14 +251,17 @@ public class GraphQLSchema {
     }
 
     public GraphQLObjectType getQueryType() {
+        ProgressManager.checkCanceled();
         return queryType;
     }
 
     public GraphQLObjectType getMutationType() {
+        ProgressManager.checkCanceled();
         return mutationType;
     }
 
     public GraphQLObjectType getSubscriptionType() {
+        ProgressManager.checkCanceled();
         return subscriptionType;
     }
 
@@ -271,6 +282,7 @@ public class GraphQLSchema {
      * @return a list of directives
      */
     public List<GraphQLDirective> getDirectives() {
+        ProgressManager.checkCanceled();
         return directives.getDirectives();
     }
 
@@ -278,6 +290,7 @@ public class GraphQLSchema {
      * @return a a map of non repeatable directives by directive name
      */
     public Map<String, GraphQLDirective> getDirectivesByName() {
+        ProgressManager.checkCanceled();
         return directives.getDirectivesByName();
     }
 
@@ -288,6 +301,7 @@ public class GraphQLSchema {
      * @return a map of all directives by directive name
      */
     public Map<String, List<GraphQLDirective>> getAllDirectivesByName() {
+        ProgressManager.checkCanceled();
         return directives.getAllDirectivesByName();
     }
 
@@ -300,6 +314,7 @@ public class GraphQLSchema {
      */
     @Deprecated
     public GraphQLDirective getDirective(String directiveName) {
+        ProgressManager.checkCanceled();
         return directives.getDirective(directiveName);
     }
 
@@ -311,6 +326,7 @@ public class GraphQLSchema {
      * @return the directive or empty list if there is not one with that name
      */
     public List<GraphQLDirective> getDirectives(String directiveName) {
+        ProgressManager.checkCanceled();
         return directives.getDirectives(directiveName);
     }
 
@@ -323,6 +339,7 @@ public class GraphQLSchema {
      * @return the directive or null if there is not one with that name
      */
     public GraphQLDirective getFirstDirective(String directiveName) {
+        ProgressManager.checkCanceled();
         return DirectivesUtil.getFirstDirective(directiveName, getAllDirectivesByName());
     }
 
@@ -335,6 +352,7 @@ public class GraphQLSchema {
      * @return a list of directives
      */
     public List<GraphQLDirective> getSchemaDirectives() {
+        ProgressManager.checkCanceled();
         return schemaDirectives.getDirectives();
     }
 
@@ -347,6 +365,7 @@ public class GraphQLSchema {
      * @return a list of directives
      */
     public Map<String, GraphQLDirective> getSchemaDirectiveByName() {
+        ProgressManager.checkCanceled();
         return schemaDirectives.getDirectivesByName();
     }
 
@@ -357,6 +376,7 @@ public class GraphQLSchema {
      * @return a map of all schema directives by directive name
      */
     public Map<String, List<GraphQLDirective>> getAllSchemaDirectivesByName() {
+        ProgressManager.checkCanceled();
         return schemaDirectives.getAllDirectivesByName();
     }
 
@@ -371,18 +391,22 @@ public class GraphQLSchema {
      * @return a named directive
      */
     public GraphQLDirective getSchemaDirective(String directiveName) {
+        ProgressManager.checkCanceled();
         return schemaDirectives.getDirective(directiveName);
     }
 
     public List<GraphQLDirective> getSchemaDirectives(String directiveName) {
+        ProgressManager.checkCanceled();
         return schemaDirectives.getDirectives(directiveName);
     }
 
     public SchemaDefinition getDefinition() {
+        ProgressManager.checkCanceled();
         return definition;
     }
 
     public List<SchemaExtensionDefinition> getExtensionDefinitions() {
+        ProgressManager.checkCanceled();
         return extensionDefinitions;
     }
 
