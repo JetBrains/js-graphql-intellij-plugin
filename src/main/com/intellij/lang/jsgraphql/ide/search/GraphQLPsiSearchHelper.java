@@ -10,13 +10,11 @@ package com.intellij.lang.jsgraphql.ide.search;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLInjectionIndex;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
@@ -174,14 +172,6 @@ public class GraphQLPsiSearchHelper implements Disposable {
                             if (name.equals(candidate)) {
                                 continueProcessing.set(processor.process((PsiNamedElement) element));
                             }
-                        } else if (element instanceof JsonStringLiteral) {
-                            GraphQLFile introspectionSDL =
-                                GraphQLFileMappingManager.getInstance(myProject).getOrCreateIntrospectionSDL(virtualFile);
-                            if (introspectionSDL != null && introspectionFiles.add(introspectionSDL)) {
-                                // index the associated introspection SDL from a JSON introspection result file
-                                introspectionSDL.accept(identifierVisitor.get());
-                            }
-                            return; // no need to visit deeper
                         } else if (element instanceof PsiLanguageInjectionHost) {
                             if (visitLanguageInjectionHost((PsiLanguageInjectionHost) element, identifierVisitor.get())) {
                                 return;

@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.ide.config.model
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -25,6 +26,8 @@ data class GraphQLConfig(
         const val DEFAULT_PROJECT = "default"
     }
 
+    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
+
     /**
      * Empty if it doesn't contain any explicit file patterns,
      * so it becomes a default config for the files under this root.
@@ -46,6 +49,7 @@ data class GraphQLConfig(
             CachedValueProvider.Result.create(
                 ContainerUtil.createConcurrentWeakValueMap(),
                 VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+                generatedSourceManager,
             )
         }
 
@@ -96,6 +100,17 @@ data class GraphQLConfig(
     }
 
     private fun findProjectForFile(virtualFile: VirtualFile): GraphQLProjectConfig? {
+        if (generatedSourceManager.isGeneratedFile(virtualFile)) {
+            for (config in projects.values) {
+                // more strict than matching for regular project files
+                if (config.matchesSchema(virtualFile)) {
+                    return config
+                }
+            }
+
+            return null
+        }
+
         for (config in projects.values) {
             if (config.matches(virtualFile)) {
                 return config

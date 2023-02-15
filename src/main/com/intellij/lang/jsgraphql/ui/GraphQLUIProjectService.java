@@ -254,7 +254,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
         // query execute
         final DefaultActionGroup queryActions = new DefaultActionGroup();
-        final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(GraphQLExecuteEditorAction.class.getName());
+        final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(GraphQLExecuteEditorAction.ACTION_ID);
         queryActions.add(executeGraphQLAction);
         final JComponent queryToolbar = createToolbar(queryActions, headerComponent);
 

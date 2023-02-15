@@ -31,7 +31,6 @@ import com.intellij.util.concurrency.annotations.RequiresEdt
 import com.intellij.util.messages.MessageBusConnection
 import java.util.concurrent.ConcurrentHashMap
 
-private const val SAVE_DOCUMENTS_TIMEOUT = 3000
 
 @Service(Service.Level.PROJECT)
 class GraphQLConfigWatcher(private val project: Project) : Disposable {
@@ -39,6 +38,8 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
     companion object {
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigWatcher>()
+
+        private const val SAVE_DOCUMENTS_TIMEOUT = 2000
     }
 
     private val configProvider = GraphQLConfigProvider.getInstance(project)

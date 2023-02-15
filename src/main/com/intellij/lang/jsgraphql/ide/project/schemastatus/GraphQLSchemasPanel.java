@@ -12,9 +12,9 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeEventQueue;
 import com.intellij.ide.util.treeView.IndexComparator;
+import com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryAction;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentChangeListener;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
@@ -250,7 +250,8 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
             }
         });
 
-        final AnAction reRunAction = ActionManager.getInstance().getAction(GraphQLRerunLatestIntrospectionAction.class.getName());
+        ActionManager actionManager = ActionManager.getInstance();
+        final AnAction reRunAction = actionManager.getAction(GraphQLRerunLatestIntrospectionAction.class.getName());
         if (reRunAction != null) {
             leftActionGroup.add(reRunAction);
         }
@@ -287,13 +288,11 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
                 return null;
             }
         });
-        leftActionGroup.add(
-            new AnAction("Restart Schema Discovery", "Performs GraphQL schema discovery across the project", AllIcons.Actions.Refresh) {
-                @Override
-                public void actionPerformed(@NotNull AnActionEvent e) {
-                    GraphQLConfigProvider.getInstance(myProject).invalidate();
-                }
-            });
+
+        AnAction restartSchemaAction = actionManager.getAction(GraphQLRestartSchemaDiscoveryAction.ACTION_ID);
+        if (restartSchemaAction != null) {
+            leftActionGroup.add(restartSchemaAction);
+        }
         leftActionGroup.add(new AnAction("Help", "Open the GraphQL plugin documentation", AllIcons.Actions.Help) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
@@ -302,7 +301,6 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
         });
 
         final JPanel panel = new JPanel(new BorderLayout());
-        final ActionManager actionManager = ActionManager.getInstance();
         final ActionToolbar leftToolbar = actionManager.createActionToolbar(ActionPlaces.COMPILER_MESSAGES_TOOLBAR, leftActionGroup, false);
         leftToolbar.setTargetComponent(panel);
         panel.add(leftToolbar.getComponent(), BorderLayout.WEST);

@@ -9,7 +9,7 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
 import com.intellij.lang.jsgraphql.parseOverrideConfigComment
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
@@ -51,7 +51,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicBoolean
 
-private const val CONFIG_RELOAD_TIMEOUT = 2000
 
 @Service(Service.Level.PROJECT)
 class GraphQLConfigProvider(private val project: Project) : Disposable, ModificationTracker {
@@ -65,6 +64,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         private val CONFIG_OVERRIDE_PATH_KEY =
             Key.create<CachedValue<GraphQLConfigOverridePath?>>("graphql.config.override.path")
 
+        private const val CONFIG_RELOAD_DELAY = 500
+
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigProvider>()
     }
@@ -74,17 +75,21 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         GraphQLInjectedLanguage.EP_NAME.addChangeListener({ invalidate() }, this)
     }
 
-    private val fileMappingService = GraphQLFileMappingManager.getInstance(project)
+    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
 
     private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
 
     // need to trigger invalidation of dependent caches regardless of whether any changes are detected or not
     private val pendingInvalidation = AtomicBoolean(false)
 
+    @Volatile
+    private var initialized = false
+
     /**
      * Use this service as a dependency for tracking content changes in configuration files.
      * Computations resolving config locations usually
-     * should additionally depend on [com.intellij.openapi.vfs.VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS].
+     * should additionally depend on [VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS]
+     * and optionally on [GraphQLGeneratedSourceManager] and similar.
      */
     private val modificationTracker = SimpleModificationTracker()
 
@@ -144,6 +149,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return configData.mapNotNull { it.value.config }
     }
 
+    val isInitialized
+        get() = initialized
+
     val hasConfigurationFiles
         get() = configData.isNotEmpty()
 
@@ -170,7 +178,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
                 }
             }
 
-            return project.guessProjectDir()?.let { findConfigFileInDirectory(it) }?.let { GraphQLConfigOverride(it, null) }
+            return project.guessProjectDir()
+                ?.let { findConfigFileInDirectory(it) }
+                ?.let { GraphQLConfigOverride(it, null) }
         }
 
         return null
@@ -206,21 +216,20 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     @RequiresReadLock
     fun findClosestConfigFile(context: PsiFile): VirtualFile? {
         return CachedValuesManager.getCachedValue(context, CONFIG_FILE_KEY) {
-            var from: VirtualFile? = null
+            var from: VirtualFile? = getPhysicalVirtualFile(context)
 
-            if (fileMappingService.isGeneratedFile(context)) {
-                val sourceFile = fileMappingService.getSourceFile(context)
-                if (sourceFile != null) {
-                    from = sourceFile
-                }
-            }
-
-            if (from == null) {
-                from = getPhysicalVirtualFile(context)
+            val sourceFile = generatedSourceManager.getSourceFile(from)
+            if (sourceFile != null) {
+                from = sourceFile
             }
 
             val configFile = findConfigFileInParents(from)
-            CachedValueProvider.Result.create(configFile, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
+            CachedValueProvider.Result.create(
+                configFile,
+                this,
+                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+                generatedSourceManager,
+            )
         }
     }
 
@@ -280,6 +289,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         if (configFile != null) {
             configData.remove(configFile)
         } else {
+            initialized = false
             configData.clear()
         }
 
@@ -294,7 +304,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             alarm.cancelAllRequests()
             alarm.addRequest({
                 BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::reload)
-            }, CONFIG_RELOAD_TIMEOUT)
+            }, CONFIG_RELOAD_DELAY)
         }
     }
 
@@ -334,13 +344,15 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             }
         }
 
-        if (hasChanged || explicitInvalidate) {
+        if (hasChanged || explicitInvalidate || !initialized) {
             notifyConfigurationChanged()
         }
     }
 
     private fun notifyConfigurationChanged() {
         invokeLater(ModalityState.NON_MODAL) {
+            initialized = true
+
             modificationTracker.incModificationCount()
             PsiManager.getInstance(project).dropPsiCaches()
             DaemonCodeAnalyzer.getInstance(project).restart()
@@ -350,6 +362,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     private fun saveModifiedDocuments(files: Collection<VirtualFile>) {
+        if (files.isEmpty()) return
         val fileDocumentManager = FileDocumentManager.getInstance()
         val anyFileModified = runReadAction { files.any { fileDocumentManager.isFileModified(it) } }
         if (anyFileModified) {

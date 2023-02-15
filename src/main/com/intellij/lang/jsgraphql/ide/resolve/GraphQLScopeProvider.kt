@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.ide.resolve
 
 import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLMetaInfSchemaSearchScope
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLRestrictedFileTypesScope
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread
@@ -58,6 +59,9 @@ class GraphQLScopeProvider(private val project: Project) {
         }
     }
 
+    private val configProvider = GraphQLConfigProvider.getInstance(project)
+    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
+
     private val globalScopeCache: CachedValue<GlobalSearchScope> =
         CachedValuesManager.getManager(project).createCachedValue {
             CachedValueProvider.Result.create(
@@ -93,11 +97,11 @@ class GraphQLScopeProvider(private val project: Project) {
     ): GlobalSearchScope {
         val file = element.containingFile
         return CachedValuesManager.getCachedValue(file, key) {
-            val configProvider = GraphQLConfigProvider.getInstance(project)
             val projectConfig = configProvider.resolveConfig(file)
-            var scope: GlobalSearchScope = projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
-                ?: globalScope.takeUnless { configProvider.hasConfigurationFiles }
-                ?: createScope(project, GlobalSearchScope.fileScope(file))
+            var scope: GlobalSearchScope =
+                projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
+                    ?: globalScope.takeUnless { configProvider.hasConfigurationFiles }
+                    ?: createScope(project, GlobalSearchScope.fileScope(file))
 
             if (ScratchUtil.isScratch(file.virtualFile)) {
                 scope = scope.union(GlobalSearchScope.fileScope(file))
@@ -107,7 +111,8 @@ class GraphQLScopeProvider(private val project: Project) {
                 scope,
                 file,
                 configProvider,
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
+                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+                generatedSourceManager,
             )
         }
     }

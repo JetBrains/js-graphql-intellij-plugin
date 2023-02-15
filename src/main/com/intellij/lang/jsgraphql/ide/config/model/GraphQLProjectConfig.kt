@@ -9,12 +9,17 @@ import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigSchemaScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLFileMatcherCache
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 
 data class GraphQLProjectConfig(
     private val project: Project,
@@ -25,6 +30,8 @@ data class GraphQLProjectConfig(
     val file: VirtualFile?,
     val isRootEmpty: Boolean,
 ) {
+    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
+
     val schema: List<GraphQLSchemaPointer> = (ownConfig.schema ?: defaultConfig?.schema ?: emptyList()).map {
         GraphQLSchemaPointer(project, dir, it, isLegacy, false)
     }
@@ -40,14 +47,6 @@ data class GraphQLProjectConfig(
 
     val exclude: List<String> = ownConfig.exclude ?: defaultConfig?.exclude ?: emptyList()
 
-    val scope = GraphQLScopeProvider.createScope(
-        project, GraphQLConfigScope(project, GlobalSearchScope.projectScope(project), this)
-    )
-
-    val schemaScope = GraphQLScopeProvider.createScope(
-        project, GraphQLConfigSchemaScope(project, GlobalSearchScope.projectScope(project), this)
-    )
-
     private val endpointsLazy: Lazy<List<GraphQLConfigEndpoint>> = lazy { buildEndpoints() }
 
     val endpoints = endpointsLazy.value
@@ -58,6 +57,33 @@ data class GraphQLProjectConfig(
 
     private val matchingSchemaCache = GraphQLFileMatcherCache.newInstance(project)
 
+    private val baseScope
+        get() = GlobalSearchScope
+            .projectScope(project)
+            .union(generatedSourceManager.createGeneratedSourceScope())
+
+    private val scopeCached: CachedValue<GlobalSearchScope> = CachedValuesManager.getManager(project).createCachedValue {
+        CachedValueProvider.Result.create(
+            GraphQLScopeProvider.createScope(project, GraphQLConfigScope(project, baseScope, this)),
+            VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+            generatedSourceManager,
+        )
+    }
+
+    val scope: GlobalSearchScope
+        get() = scopeCached.value
+
+    private val schemaScopeCached: CachedValue<GlobalSearchScope> = CachedValuesManager.getManager(project).createCachedValue {
+        CachedValueProvider.Result.create(
+            GraphQLScopeProvider.createScope(project, GraphQLConfigSchemaScope(project, baseScope, this)),
+            VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+            generatedSourceManager,
+        )
+    }
+
+    val schemaScope: GlobalSearchScope
+        get() = schemaScopeCached.value
+
     fun matches(context: PsiFile): Boolean {
         return getPhysicalVirtualFile(context)?.let { matches(it) } ?: false
     }
@@ -67,6 +93,10 @@ data class GraphQLProjectConfig(
     }
 
     private fun matchesImpl(virtualFile: VirtualFile): Boolean {
+        if (generatedSourceManager.isGeneratedFile(virtualFile)) {
+            return generatedSourceManager.getSourceFile(virtualFile)?.let { matches(it) } ?: false
+        }
+
         val isSchemaOrDocument = sequenceOf(schema, documents).any { matchPattern(virtualFile, it) }
         if (isSchemaOrDocument) {
             return true
@@ -84,6 +114,10 @@ data class GraphQLProjectConfig(
     }
 
     private fun matchesSchemaImpl(virtualFile: VirtualFile): Boolean {
+        if (generatedSourceManager.isGeneratedFile(virtualFile)) {
+            return generatedSourceManager.getSourceFile(virtualFile)?.let { matchesSchema(it) } ?: false
+        }
+
         val isSchema = schema.any { matchPattern(virtualFile, it) }
         if (isSchema) {
             return true

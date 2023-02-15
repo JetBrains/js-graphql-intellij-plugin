@@ -7,14 +7,13 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
-import com.intellij.json.psi.JsonFile
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLFileMappingManager
+import com.intellij.json.JsonFileType
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
 import com.intellij.lang.jsgraphql.types.language.SourceLocation
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.NavigatablePsiElement
-import com.intellij.psi.PsiManager
 
 object GraphQLTreeNodeNavigationUtil {
     @JvmStatic
@@ -28,12 +27,11 @@ object GraphQLTreeNodeNavigationUtil {
         }
 
         var sourceFile = StandardFileSystems.local().findFileByPath(location.sourceName) ?: return
-        val file = PsiManager.getInstance(myProject).findFile(sourceFile) ?: return
-        if (file is JsonFile && followGeneratedFile) {
-            val cachedFile = GraphQLFileMappingManager.getInstance(myProject).getCachedIntrospectionSDL(file)
-            if (cachedFile != null) {
+        if (sourceFile.fileType == JsonFileType.INSTANCE && followGeneratedFile) {
+            val generatedSource = GraphQLGeneratedSourceManager.getInstance(myProject).requestGeneratedFile(sourceFile)
+            if (generatedSource != null) {
                 // open the SDL file and not the JSON introspection file it was based on
-                sourceFile = cachedFile.virtualFile
+                sourceFile = generatedSource
             }
         }
         OpenFileDescriptor(myProject, sourceFile, location.line - 1, location.column - 1).navigate(true)
