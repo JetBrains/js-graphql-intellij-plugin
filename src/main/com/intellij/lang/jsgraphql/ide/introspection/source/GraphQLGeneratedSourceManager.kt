@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.ide.introspection.source
 import com.google.common.hash.Hashing
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.json.JsonFileType
+import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_NAMES
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
 import com.intellij.lang.jsgraphql.inEdt
@@ -69,9 +70,8 @@ class GraphQLGeneratedSourceManager(
         private const val GRAPHQL_CACHE_DIR = "graphql"
         private const val GRAPHQL_SDL_DIR = "sdl"
 
-        fun getGeneratedFilesPath(): String {
-            return FileUtil.join(PathManager.getConfigPath(), GRAPHQL_CACHE_DIR, GRAPHQL_SDL_DIR)
-        }
+        val generatedFilesPath: String
+            get() = FileUtil.join(PathManager.getConfigPath(), GRAPHQL_CACHE_DIR, GRAPHQL_SDL_DIR)
     }
 
     private val lock = ReentrantReadWriteLock()
@@ -97,7 +97,7 @@ class GraphQLGeneratedSourceManager(
     }
 
     fun createGeneratedSourceScope(): GlobalSearchScope {
-        val dir = LocalFileSystem.getInstance().findFileByPath(getGeneratedFilesPath())
+        val dir = LocalFileSystem.getInstance().findFileByPath(generatedFilesPath)
             ?: return GlobalSearchScope.EMPTY_SCOPE
         return GlobalSearchScopes.directoryScope(project, dir, false)
     }
@@ -210,7 +210,7 @@ class GraphQLGeneratedSourceManager(
             .thenApplyAsync({ introspection ->
                 if (project.isDisposed) throw ProcessCanceledException()
 
-                val file = getGeneratedFilesPath()
+                val file = generatedFilesPath
                     .let { VfsUtil.createDirectories(it) }
                     .findOrCreateChildData(null, source.targetFileName)
 
@@ -298,7 +298,15 @@ class GraphQLGeneratedSourceManager(
 
     fun isGeneratedFile(file: VirtualFile?): Boolean {
         if (file == null) return false
-        return lock.read { reverseMappings.containsKey(file) }
+
+        if (lock.read { reverseMappings.containsKey(file) }) {
+            return true
+        }
+
+        // need this for cases when the file mapping is not registered, but the file already exists is in the generated directory
+        return file.fileType == GraphQLFileType.INSTANCE &&
+            file.parent?.name == GRAPHQL_SDL_DIR &&
+            FileUtil.isAncestor(generatedFilesPath, file.path, true)
     }
 
     fun getSourceFile(generatedFile: VirtualFile?): VirtualFile? {

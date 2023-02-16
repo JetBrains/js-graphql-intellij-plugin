@@ -6,7 +6,7 @@ import com.intellij.util.indexing.IndexableSetContributor
 
 class GraphQLGeneratedSourceIndexableSetContributor : IndexableSetContributor() {
     override fun getAdditionalRootsToIndex(): Set<VirtualFile> {
-        return LocalFileSystem.getInstance().findFileByPath(GraphQLGeneratedSourceManager.getGeneratedFilesPath())
+        return LocalFileSystem.getInstance().findFileByPath(GraphQLGeneratedSourceManager.generatedFilesPath)
             ?.takeIf { it.isValid }
             ?.let { setOf(it) }
             ?: emptySet()
