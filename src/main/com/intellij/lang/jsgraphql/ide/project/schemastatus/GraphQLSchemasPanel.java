@@ -17,7 +17,7 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentChangeListener;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.Application;
@@ -69,7 +69,7 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
         myProject = project;
 
         myConnection = project.getMessageBus().connect(this);
-        mySchemaModificationTracker = GraphQLSchemaUtil.getSchemaModificationTracker(project);
+        mySchemaModificationTracker = GraphQLSchemaContentTracker.getInstance(project);
 
         setLayout(new BorderLayout());
         add(createToolPanel(), BorderLayout.WEST);

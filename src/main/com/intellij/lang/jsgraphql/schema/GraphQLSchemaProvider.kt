@@ -51,7 +51,7 @@ class GraphQLSchemaProvider(project: Project) {
         CachedValuesManager.getManager(project).createCachedValue {
             CachedValueProvider.Result.create(
                 ContainerUtil.createConcurrentSoftMap(),
-                GraphQLSchemaUtil.getSchemaDependencies(project),
+                GraphQLSchemaContentTracker.getInstance(project),
             )
         }
 
