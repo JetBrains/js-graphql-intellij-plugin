@@ -10,6 +10,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 @Service(Service.Level.PROJECT)
 class GraphQLScopeDependency : ModificationTracker {
     companion object {
+        @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLScopeDependency>()
     }
 
