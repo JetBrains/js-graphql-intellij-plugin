@@ -58,18 +58,6 @@ public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl impl
         ));
     }
 
-    @NotNull
-    @Override
-    public SearchScope getUseScope() {
-        SearchScope useScope = super.getUseScope();
-        final GraphQLFile psiFile = ObjectUtils.tryCast(getContainingFile(), GraphQLFile.class);
-        if (psiFile != null && InjectedLanguageManager.getInstance(getProject()).isInjectedFragment(psiFile)) {
-            // this PSI element is part of injected GraphQL, so we have to expand the use scope which defaults to the current file only
-            useScope = useScope.union(GraphQLScopeProvider.getInstance(getProject()).getResolveScope(this, false));
-        }
-        return useScope;
-    }
-
     @Override
     public boolean isEquivalentTo(PsiElement another) {
         boolean equivalentTo = super.isEquivalentTo(another);
