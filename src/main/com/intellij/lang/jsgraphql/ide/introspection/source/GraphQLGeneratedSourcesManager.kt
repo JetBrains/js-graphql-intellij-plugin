@@ -138,7 +138,8 @@ class GraphQLGeneratedSourcesManager(
             generatedFiles[source] = entry
             entry.output?.let { reverseMappings[it] = source }
         }
-        modificationTracker.incModificationCount()
+
+        notifySourcesChanged()
     }
 
     private fun removeEntry(source: Source, entry: GeneratedEntry?) {
@@ -148,7 +149,8 @@ class GraphQLGeneratedSourcesManager(
             generatedFiles.remove(source, entry)
             entry.output?.let { reverseMappings.remove(it, source) }
         }
-        modificationTracker.incModificationCount()
+
+        notifySourcesChanged()
     }
 
     private fun startAsyncProcessing(source: Source) {
@@ -266,7 +268,6 @@ class GraphQLGeneratedSourcesManager(
         }
 
         addEntry(source, result)
-        notifySourcesChanged()
     }
 
     fun notifySourcesChanged() {
@@ -295,7 +296,6 @@ class GraphQLGeneratedSourcesManager(
         }
 
         retries.clear()
-        modificationTracker.incModificationCount()
         notifySourcesChanged()
     }
 
@@ -418,19 +418,20 @@ class GraphQLGeneratedSourcesManager(
             source to GeneratedEntry(status, it.timeStamp, outputFile, null)
         } ?: emptyList()
 
-        lock.write {
-            generatedFiles.clear()
-            reverseMappings.clear()
-            items.forEach { (source, entry) ->
-                generatedFiles[source] = entry
-                entry.output?.let { reverseMappings[it] = source }
+        if (items.isNotEmpty()) {
+            lock.write {
+                generatedFiles.clear()
+                reverseMappings.clear()
+                items.forEach { (source, entry) ->
+                    generatedFiles[source] = entry
+                    entry.output?.let { reverseMappings[it] = source }
+                }
             }
-            modificationTracker.incModificationCount()
-        }
 
-        ApplicationManager.getApplication().executeOnPooledThread {
-            generatedFiles.forEach {
-                requestGeneratedFile(it.key.file)
+            ApplicationManager.getApplication().executeOnPooledThread {
+                generatedFiles.forEach {
+                    requestGeneratedFile(it.key.file)
+                }
             }
         }
     }
