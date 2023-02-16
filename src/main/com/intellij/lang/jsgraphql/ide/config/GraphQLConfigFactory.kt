@@ -31,7 +31,7 @@ import java.util.function.Consumer
 class GraphQLConfigFactory(private val project: Project) {
 
     companion object {
-        const val PREFERRED_CONFIG = GRAPHQL_RC_YML
+        const val PREFERRED_CONFIG = GRAPHQL_CONFIG_YML
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigFactory>()
