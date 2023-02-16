@@ -20,6 +20,7 @@ import com.intellij.openapi.vfs.AsyncFileListener.ChangeApplier
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
@@ -40,7 +41,7 @@ class GraphQLGeneratedSourceUpdater(private val project: Project) : Disposable, 
         private const val RETRY_REFRESH_DELAY = 10_000
     }
 
-    private val generateSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
+    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
     private val fileDocumentManager = FileDocumentManager.getInstance()
 
     private val queue = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
@@ -57,6 +58,7 @@ class GraphQLGeneratedSourceUpdater(private val project: Project) : Disposable, 
 
     override fun prepareChange(events: MutableList<out VFileEvent>): ChangeApplier? {
         var changed = false
+        val generatedFilesPath = GraphQLGeneratedSourceManager.generatedFilesPath
 
         for (event in events) {
             if (event is VFileCreateEvent) {
@@ -68,6 +70,16 @@ class GraphQLGeneratedSourceUpdater(private val project: Project) : Disposable, 
             }
 
             val file = event.file ?: continue
+
+            if (event is VFileDeleteEvent) {
+                // regenerate GraphQL SDLs from cache directory on deletion
+                if (file.isDirectory && FileUtil.isAncestor(file.path, generatedFilesPath, false) ||
+                    FileUtil.pathsEqual(file.parent?.path, generatedFilesPath)
+                ) {
+                    changed = true
+                    break
+                }
+            }
             if (file in jsonSchemaFiles) {
                 changed = true
                 break
@@ -93,7 +105,7 @@ class GraphQLGeneratedSourceUpdater(private val project: Project) : Disposable, 
         refreshJsonSchemaFiles()
     }
 
-    fun refreshJsonSchemaFiles(retry: Boolean = false) {
+    fun refreshJsonSchemaFiles(isRetry: Boolean = false) {
         if (ApplicationManager.getApplication().isUnitTestMode) {
             invokeLater { refreshJsonSchemaFilesSync() }
             return
@@ -107,7 +119,7 @@ class GraphQLGeneratedSourceUpdater(private val project: Project) : Disposable, 
                 .withDocumentsCommitted(project)
                 .finishOnUiThread(ModalityState.defaultModalityState(), ::updateCachedSchemas)
                 .submit(executor)
-        }, if (retry) RETRY_REFRESH_DELAY else REFRESH_DELAY)
+        }, if (isRetry) RETRY_REFRESH_DELAY else REFRESH_DELAY)
     }
 
     private fun refreshJsonSchemaFilesSync() {
@@ -134,13 +146,13 @@ class GraphQLGeneratedSourceUpdater(private val project: Project) : Disposable, 
         if (schemas.isNotEmpty()) {
             executeOnPooledThread {
                 for (virtualFile in schemas) {
-                    generateSourceManager.requestGeneratedFile(virtualFile)
+                    generatedSourceManager.requestGeneratedFile(virtualFile)
                 }
             }
         }
 
         if (prevSchemas != schemas) {
-            generateSourceManager.notifySourcesChanged()
+            generatedSourceManager.notifySourcesChanged()
         }
     }
 
