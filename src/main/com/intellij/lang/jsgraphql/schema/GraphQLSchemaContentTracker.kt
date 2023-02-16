@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition
@@ -19,8 +20,8 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.CompositeModificationTracker
 import com.intellij.openapi.util.ModificationTracker
-import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
@@ -32,7 +33,8 @@ import com.intellij.util.Alarm
 
 /**
  * Tracks PSI changes that can affect declared GraphQL schemas.
- * For configuration changes use [com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider].
+ * For configuration only changes use [com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider],
+ * for scope changes use broader [com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency].
  */
 @Service(Service.Level.PROJECT)
 class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, ModificationTracker {
@@ -48,13 +50,13 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
     }
 
     private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
-    private val myModificationTracker = SimpleModificationTracker()
+    private val myModificationTracker = CompositeModificationTracker(GraphQLScopeDependency.getInstance(myProject))
 
     init {
         PsiManager.getInstance(myProject).addPsiTreeChangeListener(PsiChangeListener(), this)
     }
 
-    fun schemaChanged() {
+    fun schemaContentChanged() {
         LOG.debug("GraphQL schema cache invalidated", if (LOG.isTraceEnabled) Throwable() else null)
 
         if (ApplicationManager.getApplication().isUnitTestMode) {
@@ -90,7 +92,7 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
 
             if (event.file is GraphQLFile) {
                 if (affectsGraphQLSchema(event)) {
-                    schemaChanged()
+                    schemaContentChanged()
                 }
             }
 
@@ -99,7 +101,7 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
                 val injectionHelper = GraphQLInjectedLanguage.forElement(event.parent)
                 if (injectionHelper != null && injectionHelper.isLanguageInjectionTarget(event.parent)) {
                     // change in injection target
-                    schemaChanged()
+                    schemaContentChanged()
                 }
             }
         }

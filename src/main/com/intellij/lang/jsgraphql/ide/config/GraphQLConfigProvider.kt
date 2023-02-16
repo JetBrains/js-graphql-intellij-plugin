@@ -11,6 +11,7 @@ import com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.parseOverrideConfigComment
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
@@ -76,6 +77,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
+    private val scopeDependency = GraphQLScopeDependency.getInstance(project)
 
     private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
 
@@ -105,20 +107,12 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     private val configFileInDirectory: CachedValue<ConcurrentMap<VirtualFile, Optional<VirtualFile>>> =
         CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(
-                ConcurrentHashMap(),
-                this,
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
-            )
+            CachedValueProvider.Result.create(ConcurrentHashMap(), scopeDependency)
         }
 
     private val configsInParentDirectories: CachedValue<ConcurrentMap<VirtualFile, Optional<VirtualFile>>> =
         CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(
-                ConcurrentHashMap(),
-                this,
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
-            )
+            CachedValueProvider.Result.create(ConcurrentHashMap(), scopeDependency)
         }
 
     @RequiresReadLock
@@ -158,7 +152,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     @RequiresReadLock
     fun findOverriddenConfig(file: PsiFile): GraphQLConfigOverride? {
         return CachedValuesManager.getCachedValue(file, CONFIG_OVERRIDE_FILE_KEY) {
-            CachedValueProvider.Result.create(findOverriddenConfigImpl(file), file, this, VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
+            CachedValueProvider.Result.create(findOverriddenConfigImpl(file), file, scopeDependency)
         }
     }
 
@@ -224,12 +218,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             }
 
             val configFile = findConfigFileInParents(from)
-            CachedValueProvider.Result.create(
-                configFile,
-                this,
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-                generatedSourcesManager,
-            )
+            CachedValueProvider.Result.create(configFile, scopeDependency)
         }
     }
 
@@ -350,13 +339,14 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     private fun notifyConfigurationChanged() {
-        invokeLater(ModalityState.NON_MODAL) {
+        invokeLater(ModalityState.defaultModalityState()) {
             initialized = true
 
             modificationTracker.incModificationCount()
+            scopeDependency.update()
             PsiManager.getInstance(project).dropPsiCaches()
-            DaemonCodeAnalyzer.getInstance(project).restart()
 
+            DaemonCodeAnalyzer.getInstance(project).restart()
             project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()
         }
     }
