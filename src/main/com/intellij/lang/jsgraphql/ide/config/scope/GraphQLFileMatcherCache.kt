@@ -1,10 +1,9 @@
 package com.intellij.lang.jsgraphql.ide.config.scope
 
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -22,8 +21,7 @@ class GraphQLFileMatcherCache {
             CachedValuesManager.getManager(project).createCachedValue {
                 CachedValueProvider.Result.create(
                     GraphQLFileMatcherCache(),
-                    VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-                    GraphQLGeneratedSourcesManager.getInstance(project),
+                    GraphQLScopeDependency.getInstance(project),
                     *dependencies
                 )
             }

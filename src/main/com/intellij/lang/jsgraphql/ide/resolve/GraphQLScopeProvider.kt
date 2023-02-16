@@ -2,7 +2,6 @@ package com.intellij.lang.jsgraphql.ide.resolve
 
 import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLMetaInfSchemaSearchScope
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLRestrictedFileTypesScope
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread
@@ -12,7 +11,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
@@ -60,15 +58,11 @@ class GraphQLScopeProvider(private val project: Project) {
     }
 
     private val configProvider = GraphQLConfigProvider.getInstance(project)
-    private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
+    private val scopeDependency = GraphQLScopeDependency.getInstance(project)
 
     private val globalScopeCache: CachedValue<GlobalSearchScope> =
         CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(
-                createScope(project, null),
-                GraphQLConfigProvider.getInstance(project),
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-            )
+            CachedValueProvider.Result.create(createScope(project, null), scopeDependency)
         }
 
     val globalScope: GlobalSearchScope
@@ -107,13 +101,7 @@ class GraphQLScopeProvider(private val project: Project) {
                 scope = scope.union(GlobalSearchScope.fileScope(file))
             }
 
-            CachedValueProvider.Result.create(
-                scope,
-                file,
-                configProvider,
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-                generatedSourcesManager,
-            )
+            CachedValueProvider.Result.create(scope, file, scopeDependency)
         }
     }
 }

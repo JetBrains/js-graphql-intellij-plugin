@@ -19,7 +19,7 @@ class GraphQLConfigEnvironmentParser(private val project: Project) {
     private val cache =
         CachedValuesManager.getManager(project).createCachedValue {
             CachedValueProvider.Result.create(
-                ConcurrentHashMap<ConfigKey, GraphQLConfigValueNode>(),
+                ConcurrentHashMap<ConfigValue, GraphQLConfigValueNode>(),
                 GraphQLConfigProvider.getInstance(project),
             )
         }
@@ -31,7 +31,7 @@ class GraphQLConfigEnvironmentParser(private val project: Project) {
     }
 
     fun parse(text: String, isLegacy: Boolean): GraphQLConfigValueNode {
-        return cache.value.computeIfAbsent(ConfigKey(text, isLegacy)) {
+        return cache.value.computeIfAbsent(ConfigValue(text, isLegacy)) {
             if (it.isLegacy) {
                 parseLegacy(it.text)
             } else {
@@ -76,7 +76,7 @@ class GraphQLConfigEnvironmentParser(private val project: Project) {
         }
     }
 
-    private data class ConfigKey(val text: String, val isLegacy: Boolean)
+    private data class ConfigValue(val text: String, val isLegacy: Boolean)
 
     data class GraphQLConfigValueNode(
         val text: String,

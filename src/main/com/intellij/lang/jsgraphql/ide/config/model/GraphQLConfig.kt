@@ -5,10 +5,10 @@ import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -49,8 +49,7 @@ data class GraphQLConfig(
         CachedValuesManager.getManager(project).createCachedValue {
             CachedValueProvider.Result.create(
                 ContainerUtil.createConcurrentWeakValueMap(),
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-                generatedSourcesManager,
+                GraphQLScopeDependency.getInstance(project),
             )
         }
 

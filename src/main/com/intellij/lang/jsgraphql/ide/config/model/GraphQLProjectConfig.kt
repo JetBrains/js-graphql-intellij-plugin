@@ -10,11 +10,11 @@ import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigSchemaScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLFileMatcherCache
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
@@ -65,8 +65,7 @@ data class GraphQLProjectConfig(
     private val scopeCached: CachedValue<GlobalSearchScope> = CachedValuesManager.getManager(project).createCachedValue {
         CachedValueProvider.Result.create(
             GraphQLScopeProvider.createScope(project, GraphQLConfigScope(project, baseScope, this)),
-            VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-            generatedSourcesManager,
+            GraphQLScopeDependency.getInstance(project),
         )
     }
 
@@ -76,8 +75,7 @@ data class GraphQLProjectConfig(
     private val schemaScopeCached: CachedValue<GlobalSearchScope> = CachedValuesManager.getManager(project).createCachedValue {
         CachedValueProvider.Result.create(
             GraphQLScopeProvider.createScope(project, GraphQLConfigSchemaScope(project, baseScope, this)),
-            VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-            generatedSourcesManager,
+            GraphQLScopeDependency.getInstance(project),
         )
     }
 

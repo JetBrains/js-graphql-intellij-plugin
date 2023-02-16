@@ -6,6 +6,7 @@ import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_NAMES
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.inEdt
 import com.intellij.lang.jsgraphql.inWriteAction
 import com.intellij.lang.jsgraphql.isCancellation
@@ -276,10 +277,11 @@ class GraphQLGeneratedSourcesManager(
             if (project.isDisposed) return@addRequest
 
             modificationTracker.incModificationCount()
+            GraphQLScopeDependency.getInstance(project).update()
             PsiManager.getInstance(project).dropPsiCaches()
-            DaemonCodeAnalyzer.getInstance(project).restart()
+            GraphQLSchemaContentTracker.getInstance(project).schemaContentChanged()
 
-            GraphQLSchemaContentTracker.getInstance(project).schemaChanged()
+            DaemonCodeAnalyzer.getInstance(project).restart()
         }, NOTIFY_DELAY_MS)
     }
 
