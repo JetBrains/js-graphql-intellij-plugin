@@ -32,7 +32,6 @@ import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
@@ -99,7 +98,6 @@ import static com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService.setHeadersF
 public final class GraphQLIntrospectionService implements Disposable {
     private static final Logger LOG = Logger.getInstance(GraphQLIntrospectionService.class);
 
-    private static final String DISABLE_EMPTY_ERRORS_WARNING_KEY = "graphql.empty.errors.warning.disabled";
     public static final String GRAPHQL_TRUST_ALL_HOSTS = "graphql.trust.all.hosts";
 
     private GraphQLIntrospectionTask latestIntrospection = null;
@@ -364,11 +362,9 @@ public final class GraphQLIntrospectionService implements Disposable {
         // possibly a full query result
         if (introspection.containsKey("errors")) {
             final Object errorsValue = introspection.get("errors");
-            if (errorsValue instanceof List && ((List<?>) errorsValue).size() == 0) {
-                showEmptyErrorsNotification();
-            } else {
+            if (errorsValue instanceof Collection<?> && !((Collection<?>) errorsValue).isEmpty()) {
                 throw new IllegalArgumentException(
-                    GraphQLBundle.message("graphql.introspection.errors", new Gson().toJson(introspection.get("errors"))));
+                    GraphQLBundle.message("graphql.introspection.errors", new Gson().toJson(errorsValue)));
             }
         }
         if (!introspection.containsKey("data")) {
@@ -379,29 +375,6 @@ public final class GraphQLIntrospectionService implements Disposable {
             throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.schema"));
         }
         return introspection;
-    }
-
-    private void showEmptyErrorsNotification() {
-        if (!PropertiesComponent.getInstance().isTrueValue(DISABLE_EMPTY_ERRORS_WARNING_KEY)) {
-            final Notification emptyErrorNotification = new Notification(
-                GRAPHQL_NOTIFICATION_GROUP_ID,
-                GraphQLBundle.message("graphql.notification.introspection.error.title"),
-                GraphQLBundle.message("graphql.notification.introspection.empty.errors"),
-                NotificationType.WARNING
-            );
-
-            final AnAction dontShowAgainAction = new NotificationAction(
-                GraphQLBundle.message("graphql.notification.dont.show.again.message")) {
-                @Override
-                public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                    PropertiesComponent.getInstance().setValue(DISABLE_EMPTY_ERRORS_WARNING_KEY, "true");
-                    notification.hideBalloon();
-                }
-            };
-
-            emptyErrorNotification.addAction(dontShowAgainAction);
-            Notifications.Bus.notify(emptyErrorNotification, myProject);
-        }
     }
 
     public GraphQLIntrospectionTask getLatestIntrospection() {
