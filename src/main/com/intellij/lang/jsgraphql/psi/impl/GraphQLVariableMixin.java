@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.psi.impl;
 
-import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLElement;
 import com.intellij.psi.PsiElement;
@@ -15,7 +14,7 @@ import com.intellij.psi.PsiNamedElement;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GraphQLVariableMixin extends ASTWrapperPsiElement implements GraphQLElement, PsiNamedElement {
+public abstract class GraphQLVariableMixin extends GraphQLElementImpl implements GraphQLElement, PsiNamedElement {
     public GraphQLVariableMixin(@NotNull ASTNode node) {
         super(node);
     }
