@@ -28,6 +28,7 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
@@ -215,11 +216,11 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         if (!GraphQLFileType.isGraphQLFile(myProject, file)) {
             return;
         }
-        if (ReadAction.compute(() -> GraphQLLibraryManager.getInstance(myProject).isLibraryRoot(file))) {
+        if (ReadAction.compute(() -> shouldSkipEditorHeaderCreation(file))) {
             return;
         }
 
-        UIUtil.invokeLaterIfNeeded(() -> { // ensure components are created on the swing thread
+        UIUtil.invokeLaterIfNeeded(() -> {
             FileEditor fileEditor = source.getSelectedEditor(file);
             if (fileEditor instanceof TextEditor) {
                 final Editor editor = ((TextEditor) fileEditor).getEditor();
@@ -233,6 +234,11 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                 }
             }
         });
+    }
+
+    private boolean shouldSkipEditorHeaderCreation(@NotNull VirtualFile file) {
+        return GraphQLLibraryManager.getInstance(myProject).isLibraryRoot(file) ||
+            GraphQLGeneratedSourceManager.getInstance(myProject).isGeneratedFile(file);
     }
 
     private static class GraphQLEditorHeaderComponent extends EditorHeaderComponent {
