@@ -6,10 +6,11 @@ import com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.extensions.ExtensionPointUtil
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.LanguageFileType
+import com.intellij.openapi.util.ClearableLazyValue
 import com.intellij.openapi.vfs.VirtualFile
-import java.util.concurrent.atomic.AtomicReference
 
 @Service(Service.Level.APP)
 class GraphQLFileTypesProvider : Disposable {
@@ -18,13 +19,9 @@ class GraphQLFileTypesProvider : Disposable {
         fun getService() = service<GraphQLFileTypesProvider>()
     }
 
-    private val myContributedFileTypes = AtomicReference(GraphQLFileTypeContributor.getAllFileTypes())
-
-    init {
-        GraphQLFileTypeContributor.EP_NAME.addChangeListener({
-            myContributedFileTypes.set(GraphQLFileTypeContributor.getAllFileTypes())
-        }, this)
-    }
+    private val myContributedFileTypes = ExtensionPointUtil.dropLazyValueOnChange(ClearableLazyValue.createAtomic {
+        GraphQLFileTypeContributor.getAllFileTypes()
+    }, GraphQLFileTypeContributor.EP_NAME, this)
 
     fun isAcceptedFile(file: VirtualFile): Boolean {
         val fileType = file.fileType
@@ -36,7 +33,7 @@ class GraphQLFileTypesProvider : Disposable {
     }
 
     fun getContributedFileTypes(): Collection<FileType> {
-        return myContributedFileTypes.get()
+        return myContributedFileTypes.value
     }
 
     override fun dispose() {
