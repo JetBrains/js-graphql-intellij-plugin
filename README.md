@@ -1,5 +1,3 @@
-![](docs/js-graphql-logo.png)
-
 # GraphQL IntelliJ Plugin
 GraphQL language support for [WebStorm](https://www.jetbrains.com/webstorm/), [IntelliJ IDEA](https://www.jetbrains.com/idea/) and all other
 [IDEs](https://www.jetbrains.com/products/#type=ide). The plugin works with all IDEs in the IntelliJ Platform.
