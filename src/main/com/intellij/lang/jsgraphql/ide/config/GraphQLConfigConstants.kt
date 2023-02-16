@@ -23,8 +23,8 @@ const val GRAPHQL_CONFIG_YAML = "graphql.config.yaml"
 const val GRAPHQL_CONFIG_YML = "graphql.config.yml"
 const val GRAPHQL_RC = ".graphqlrc"
 const val GRAPHQL_RC_JSON = ".graphqlrc.json"
-const val GRAPHQL_RC_YML = ".graphqlrc.yml"
 const val GRAPHQL_RC_YAML = ".graphqlrc.yaml"
+const val GRAPHQL_RC_YML = ".graphqlrc.yml"
 
 val MODERN_CONFIG_NAMES: Set<String> = linkedSetOf(
 //    "graphql.config.ts",
@@ -39,8 +39,8 @@ val MODERN_CONFIG_NAMES: Set<String> = linkedSetOf(
 //    ".graphqlrc.js",
 //    ".graphqlrc.cjs",
     GRAPHQL_RC_JSON,
-    GRAPHQL_RC_YML,
     GRAPHQL_RC_YAML,
+    GRAPHQL_RC_YML,
 //    ".graphqlrc.toml",
 //    "package.json",
 )
