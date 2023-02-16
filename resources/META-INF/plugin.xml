@@ -80,6 +80,10 @@
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.GraphQLPluginDisposable"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager"/>
 
+    <!-- Sources -->
+    <generatedSourcesFilter implementation="com.intellij.lang.jsgraphql.ide.project.model.GraphQLGeneratedSourcesFilter"/>
+    <writingAccessProvider implementation="com.intellij.lang.jsgraphql.ide.project.model.GraphQLGeneratedSourcesWritingAccessProvider"/>
+
     <!-- Indexing -->
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex"/>
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex"/>

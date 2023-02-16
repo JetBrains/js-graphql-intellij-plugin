@@ -70,8 +70,14 @@ class GraphQLGeneratedSourceManager(
         private const val GRAPHQL_CACHE_DIR = "graphql"
         private const val GRAPHQL_SDL_DIR = "sdl"
 
-        val generatedFilesPath: String
+        val generatedSdlFilesPath: String
             get() = FileUtil.join(PathManager.getConfigPath(), GRAPHQL_CACHE_DIR, GRAPHQL_SDL_DIR)
+
+        private fun isInGeneratedSourcesRoot(file: VirtualFile?) =
+            file != null &&
+                file.fileType == GraphQLFileType.INSTANCE &&
+                file.parent?.name == GRAPHQL_SDL_DIR &&
+                FileUtil.isAncestor(generatedSdlFilesPath, file.path, true)
     }
 
     private val lock = ReentrantReadWriteLock()
@@ -97,7 +103,7 @@ class GraphQLGeneratedSourceManager(
     }
 
     fun createGeneratedSourceScope(): GlobalSearchScope {
-        val dir = LocalFileSystem.getInstance().findFileByPath(generatedFilesPath)
+        val dir = LocalFileSystem.getInstance().findFileByPath(generatedSdlFilesPath)
             ?: return GlobalSearchScope.EMPTY_SCOPE
         return GlobalSearchScopes.directoryScope(project, dir, false)
     }
@@ -210,7 +216,7 @@ class GraphQLGeneratedSourceManager(
             .thenApplyAsync({ introspection ->
                 if (project.isDisposed) throw ProcessCanceledException()
 
-                val file = generatedFilesPath
+                val file = generatedSdlFilesPath
                     .let { VfsUtil.createDirectories(it) }
                     .findOrCreateChildData(null, source.targetFileName)
 
@@ -304,9 +310,7 @@ class GraphQLGeneratedSourceManager(
         }
 
         // need this for cases when the file mapping is not registered, but the file already exists is in the generated directory
-        return file.fileType == GraphQLFileType.INSTANCE &&
-            file.parent?.name == GRAPHQL_SDL_DIR &&
-            FileUtil.isAncestor(generatedFilesPath, file.path, true)
+        return isInGeneratedSourcesRoot(file)
     }
 
     fun getSourceFile(generatedFile: VirtualFile?): VirtualFile? {
