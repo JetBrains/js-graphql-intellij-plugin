@@ -2,6 +2,18 @@
 
 # Changelog
 
+## [4.0.0] - 2023-02-16
+
+### Added
+
+- GraphQL config v3 support.
+
+### Fixed
+
+- Compatibility with 2023.1.
+- Updated Federation 2 schema.
+- Updated Apollo Kotlin schema.
+
 ## [3.4.0] - 2023-02-07
 
 ### Fixed
