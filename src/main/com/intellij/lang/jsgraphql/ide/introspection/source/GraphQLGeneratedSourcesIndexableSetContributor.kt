@@ -4,9 +4,9 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.indexing.IndexableSetContributor
 
-class GraphQLGeneratedSourceIndexableSetContributor : IndexableSetContributor() {
+class GraphQLGeneratedSourcesIndexableSetContributor : IndexableSetContributor() {
     override fun getAdditionalRootsToIndex(): Set<VirtualFile> {
-        return LocalFileSystem.getInstance().findFileByPath(GraphQLGeneratedSourceManager.generatedSdlFilesPath)
+        return LocalFileSystem.getInstance().findFileByPath(GraphQLGeneratedSourcesManager.generatedSdlFilesPath)
             ?.takeIf { it.isValid }
             ?.let { setOf(it) }
             ?: emptySet()

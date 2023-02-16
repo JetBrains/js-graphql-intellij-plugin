@@ -28,7 +28,7 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager;
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow;
@@ -238,7 +238,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
     private boolean shouldSkipEditorHeaderCreation(@NotNull VirtualFile file) {
         return GraphQLLibraryManager.getInstance(myProject).isLibraryRoot(file) ||
-            GraphQLGeneratedSourceManager.getInstance(myProject).isGeneratedFile(file);
+            GraphQLGeneratedSourcesManager.getInstance(myProject).isGeneratedFile(file);
     }
 
     private static class GraphQLEditorHeaderComponent extends EditorHeaderComponent {

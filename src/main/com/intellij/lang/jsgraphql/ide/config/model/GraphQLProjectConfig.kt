@@ -9,7 +9,7 @@ import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigSchemaScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLFileMatcherCache
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.project.Project
@@ -30,7 +30,7 @@ data class GraphQLProjectConfig(
     val file: VirtualFile?,
     val isRootEmpty: Boolean,
 ) {
-    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
+    private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
 
     val schema: List<GraphQLSchemaPointer> = (ownConfig.schema ?: defaultConfig?.schema ?: emptyList()).map {
         GraphQLSchemaPointer(project, dir, it, isLegacy, false)
@@ -60,13 +60,13 @@ data class GraphQLProjectConfig(
     private val baseScope
         get() = GlobalSearchScope
             .projectScope(project)
-            .union(generatedSourceManager.createGeneratedSourceScope())
+            .union(generatedSourcesManager.createGeneratedSourcesScope())
 
     private val scopeCached: CachedValue<GlobalSearchScope> = CachedValuesManager.getManager(project).createCachedValue {
         CachedValueProvider.Result.create(
             GraphQLScopeProvider.createScope(project, GraphQLConfigScope(project, baseScope, this)),
             VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-            generatedSourceManager,
+            generatedSourcesManager,
         )
     }
 
@@ -77,7 +77,7 @@ data class GraphQLProjectConfig(
         CachedValueProvider.Result.create(
             GraphQLScopeProvider.createScope(project, GraphQLConfigSchemaScope(project, baseScope, this)),
             VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-            generatedSourceManager,
+            generatedSourcesManager,
         )
     }
 
@@ -93,8 +93,8 @@ data class GraphQLProjectConfig(
     }
 
     private fun matchesImpl(virtualFile: VirtualFile): Boolean {
-        if (generatedSourceManager.isGeneratedFile(virtualFile)) {
-            return generatedSourceManager.getSourceFile(virtualFile)?.let { matches(it) } ?: false
+        if (generatedSourcesManager.isGeneratedFile(virtualFile)) {
+            return generatedSourcesManager.getSourceFile(virtualFile)?.let { matches(it) } ?: false
         }
 
         val isSchemaOrDocument = sequenceOf(schema, documents).any { matchPattern(virtualFile, it) }
@@ -114,8 +114,8 @@ data class GraphQLProjectConfig(
     }
 
     private fun matchesSchemaImpl(virtualFile: VirtualFile): Boolean {
-        if (generatedSourceManager.isGeneratedFile(virtualFile)) {
-            return generatedSourceManager.getSourceFile(virtualFile)?.let { matchesSchema(it) } ?: false
+        if (generatedSourcesManager.isGeneratedFile(virtualFile)) {
+            return generatedSourcesManager.getSourceFile(virtualFile)?.let { matchesSchema(it) } ?: false
         }
 
         val isSchema = schema.any { matchPattern(virtualFile, it) }

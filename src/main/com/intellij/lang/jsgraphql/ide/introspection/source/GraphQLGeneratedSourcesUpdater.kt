@@ -29,19 +29,20 @@ import com.intellij.util.concurrency.SequentialTaskExecutor
 import io.ktor.util.collections.*
 import org.jetbrains.annotations.TestOnly
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 
 @Service(Service.Level.PROJECT)
-class GraphQLGeneratedSourceUpdater(private val project: Project) : Disposable, AsyncFileListener, GraphQLConfigListener {
+class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable, AsyncFileListener, GraphQLConfigListener {
     companion object {
         @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLGeneratedSourceUpdater>()
+        fun getInstance(project: Project) = project.service<GraphQLGeneratedSourcesUpdater>()
 
         private const val REFRESH_DELAY = 500
         private const val RETRY_REFRESH_DELAY = 10_000
     }
 
-    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
+    private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
     private val fileDocumentManager = FileDocumentManager.getInstance()
 
     private val queue = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
@@ -58,7 +59,7 @@ class GraphQLGeneratedSourceUpdater(private val project: Project) : Disposable, 
 
     override fun prepareChange(events: MutableList<out VFileEvent>): ChangeApplier? {
         var changed = false
-        val generatedFilesPath = GraphQLGeneratedSourceManager.generatedSdlFilesPath
+        val generatedFilesPath = GraphQLGeneratedSourcesManager.generatedSdlFilesPath
 
         for (event in events) {
             if (event is VFileCreateEvent) {
@@ -146,18 +147,19 @@ class GraphQLGeneratedSourceUpdater(private val project: Project) : Disposable, 
         if (schemas.isNotEmpty()) {
             executeOnPooledThread {
                 for (virtualFile in schemas) {
-                    generatedSourceManager.requestGeneratedFile(virtualFile)
+                    generatedSourcesManager.requestGeneratedFile(virtualFile)
                 }
             }
         }
 
         if (prevSchemas != schemas) {
-            generatedSourceManager.notifySourcesChanged()
+            generatedSourcesManager.notifySourcesChanged()
         }
     }
 
     @TestOnly
-    fun drainUpdateRequests() {
+    fun waitForAllUpdates() {
+        queue.waitForAllExecuted(10, TimeUnit.SECONDS)
         queue.drainRequestsInTest()
     }
 

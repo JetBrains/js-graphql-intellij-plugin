@@ -4,7 +4,7 @@ import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -27,7 +27,7 @@ data class GraphQLConfig(
         const val DEFAULT_PROJECT = "default"
     }
 
-    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
+    private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
 
     /**
      * Empty if it doesn't contain any explicit file patterns,
@@ -50,7 +50,7 @@ data class GraphQLConfig(
             CachedValueProvider.Result.create(
                 ContainerUtil.createConcurrentWeakValueMap(),
                 VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-                generatedSourceManager,
+                generatedSourcesManager,
             )
         }
 
@@ -129,8 +129,8 @@ data class GraphQLConfig(
 
     private fun requiresSchemaStrictMatch(virtualFile: VirtualFile) =
         virtualFile.fileType == JsonFileType.INSTANCE ||
-            generatedSourceManager.isGeneratedFile(virtualFile) ||
-            generatedSourceManager.isSourceForGeneratedFile(virtualFile)
+            generatedSourcesManager.isGeneratedFile(virtualFile) ||
+            generatedSourcesManager.isSourceForGeneratedFile(virtualFile)
 }
 
 

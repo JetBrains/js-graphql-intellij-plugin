@@ -2,7 +2,7 @@ package com.intellij.lang.jsgraphql.ide.resolve
 
 import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLMetaInfSchemaSearchScope
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLRestrictedFileTypesScope
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread
@@ -60,7 +60,7 @@ class GraphQLScopeProvider(private val project: Project) {
     }
 
     private val configProvider = GraphQLConfigProvider.getInstance(project)
-    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
+    private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
 
     private val globalScopeCache: CachedValue<GlobalSearchScope> =
         CachedValuesManager.getManager(project).createCachedValue {
@@ -112,7 +112,7 @@ class GraphQLScopeProvider(private val project: Project) {
                 file,
                 configProvider,
                 VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-                generatedSourceManager,
+                generatedSourcesManager,
             )
         }
     }

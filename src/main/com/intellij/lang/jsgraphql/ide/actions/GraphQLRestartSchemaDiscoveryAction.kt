@@ -3,7 +3,7 @@ package com.intellij.lang.jsgraphql.ide.actions
 import com.intellij.icons.AllIcons
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -20,6 +20,6 @@ class GraphQLRestartSchemaDiscoveryAction : AnAction(
         val project = e.project ?: return
 
         GraphQLConfigProvider.getInstance(project).invalidate()
-        GraphQLGeneratedSourceManager.getInstance(project).reset()
+        GraphQLGeneratedSourcesManager.getInstance(project).reset()
     }
 }
