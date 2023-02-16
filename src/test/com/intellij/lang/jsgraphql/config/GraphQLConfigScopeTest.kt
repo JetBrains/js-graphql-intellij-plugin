@@ -1,10 +1,15 @@
 package com.intellij.lang.jsgraphql.config
 
+import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
+import com.intellij.openapi.components.PathMacroManager
 import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import junit.framework.TestCase
 
@@ -64,6 +69,17 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
     }
 
+    fun testJsonSchema() {
+        val expectedSchemas = setOf(
+            "dir/remoteSchema.json",
+            "\$APPLICATION_CONFIG_DIR$/graphql/sdl/6833dafe39e404965a21449cbb58bc232e8b364ee5eb08fa1652f29fe081515c.graphql"
+        )
+
+        val expectedDocuments = emptySet<String>()
+
+        doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
+    }
+
     private fun doScopeTest(
         configPath: String,
         expectedSchemas: Set<String>,
@@ -86,9 +102,11 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     ) {
         val actualFiles = getAllFiles(scope)
         val expectedFiles = expected.mapTo(mutableSetOf()) {
-            val file = myFixture.findFileInTempDir(it)
+            val expandedPath = PathMacroManager.getInstance(project).expandPath(it)
+            val file = myFixture.findFileInTempDir(expandedPath)
+                ?: LocalFileSystem.getInstance().findFileByPath(expandedPath)
             TestCase.assertNotNull("expected file not found: $it", file)
-            file
+            file!!
         }.sortedBy { it.name }.toSet()
         assertSameElements(message, actualFiles, expectedFiles)
     }
@@ -107,12 +125,21 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     }
 
     private fun getAllFiles(scope: GlobalSearchScope): Set<VirtualFile> {
-        val result = mutableListOf<VirtualFile>()
+        val result = mutableSetOf<VirtualFile>()
+        // need to include files outside of content root, which are processed by ProjectFileIndex
+        result.addAll(FileTypeIndex.getFiles(GraphQLFileType.INSTANCE, scope))
+
         ProjectFileIndex.getInstance(project).iterateContent({
             result.add(it)
+            true
         }) {
             scope.contains(it)
         }
-        return result.sortedBy { it.path }.toSet()
+
+        val libraryManager = GraphQLLibraryManager.getInstance(project)
+        return result
+            .filterNot { libraryManager.isLibraryRoot(it) }
+            .sortedBy { it.path }
+            .toSet()
     }
 }

@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
+import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
@@ -100,7 +101,7 @@ data class GraphQLConfig(
     }
 
     private fun findProjectForFile(virtualFile: VirtualFile): GraphQLProjectConfig? {
-        if (generatedSourceManager.isGeneratedFile(virtualFile)) {
+        if (requiresSchemaStrictMatch(virtualFile)) {
             for (config in projects.values) {
                 // more strict than matching for regular project files
                 if (config.matchesSchema(virtualFile)) {
@@ -126,6 +127,10 @@ data class GraphQLConfig(
         return null
     }
 
+    private fun requiresSchemaStrictMatch(virtualFile: VirtualFile) =
+        virtualFile.fileType == JsonFileType.INSTANCE ||
+            generatedSourceManager.isGeneratedFile(virtualFile) ||
+            generatedSourceManager.isSourceForGeneratedFile(virtualFile)
 }
 
 

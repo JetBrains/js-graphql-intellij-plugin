@@ -58,6 +58,13 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         TestCase.assertEquals("/src/.graphqlrc.yml", config.file?.path)
     }
 
+    fun testJsonSchema() {
+        val config = resolveConfig("dir/remoteSchema.json")
+        TestCase.assertEquals("/src/.graphqlrc.yml", config.file?.path)
+
+        noConfig("dir2/otherSchema.json")
+    }
+
     private fun copyProject() {
         myFixture.copyDirectoryToProject(getTestName(true), "")
         reloadConfiguration()
@@ -69,5 +76,12 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         val config = GraphQLConfigProvider.getInstance(project).resolveConfig(context)
         TestCase.assertNotNull("config is not resolved", config)
         return config!!
+    }
+
+    private fun noConfig(filePath: String) {
+        val context = myFixture.configureFromTempProjectFile(filePath)
+        TestCase.assertNotNull("source file is not found", context)
+        val config = GraphQLConfigProvider.getInstance(project).resolveConfig(context)
+        TestCase.assertNull("config should be null", config)
     }
 }

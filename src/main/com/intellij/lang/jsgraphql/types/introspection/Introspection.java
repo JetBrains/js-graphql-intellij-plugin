@@ -26,6 +26,7 @@ import com.intellij.lang.jsgraphql.types.language.AstPrinter;
 import com.intellij.lang.jsgraphql.types.language.AstValueHelper;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
+import com.intellij.openapi.progress.ProgressManager;
 
 import java.util.*;
 
@@ -588,7 +589,9 @@ public class Introspection {
 
         // make sure all TypeReferences are resolved.
         // note: it is important to put this on the bottom of static code block.
-        // GraphQLSchema.newSchema().query(IntrospectionQuery).build();
+        ProgressManager.getInstance().executeNonCancelableSection(() -> {
+            GraphQLSchema.newSchema().query(IntrospectionQuery).build();
+        });
     }
 
     public static boolean isIntrospectionTypes(GraphQLNamedType type) {

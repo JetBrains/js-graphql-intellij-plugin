@@ -265,6 +265,8 @@ class GraphQLGeneratedSourceManager(
     fun notifySourcesChanged() {
         notifyAlarm.cancelAllRequests()
         notifyAlarm.addRequest({
+            if (project.isDisposed) return@addRequest
+
             modificationTracker.incModificationCount()
             PsiManager.getInstance(project).dropPsiCaches()
             DaemonCodeAnalyzer.getInstance(project).restart()
