@@ -90,7 +90,7 @@
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLInjectionIndex"/>
 
     <indexedRootsProvider
-      implementation="com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceIndexableSetContributor"/>
+      implementation="com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesIndexableSetContributor"/>
     <additionalLibraryRootsProvider implementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider"/>
 
     <!-- Startup -->

@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
 import com.intellij.json.JsonFileType
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.types.language.SourceLocation
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
@@ -28,7 +28,7 @@ object GraphQLTreeNodeNavigationUtil {
 
         var sourceFile = StandardFileSystems.local().findFileByPath(location.sourceName) ?: return
         if (sourceFile.fileType == JsonFileType.INSTANCE && followGeneratedFile) {
-            val generatedSource = GraphQLGeneratedSourceManager.getInstance(myProject).requestGeneratedFile(sourceFile)
+            val generatedSource = GraphQLGeneratedSourcesManager.getInstance(myProject).requestGeneratedFile(sourceFile)
             if (generatedSource != null) {
                 // open the SDL file and not the JSON introspection file it was based on
                 sourceFile = generatedSource

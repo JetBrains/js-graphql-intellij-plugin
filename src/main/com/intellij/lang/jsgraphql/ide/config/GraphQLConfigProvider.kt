@@ -9,7 +9,7 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
 import com.intellij.lang.jsgraphql.parseOverrideConfigComment
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
@@ -75,7 +75,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         GraphQLInjectedLanguage.EP_NAME.addChangeListener({ invalidate() }, this)
     }
 
-    private val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
+    private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
 
     private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
 
@@ -89,7 +89,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
      * Use this service as a dependency for tracking content changes in configuration files.
      * Computations resolving config locations usually
      * should additionally depend on [VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS]
-     * and optionally on [GraphQLGeneratedSourceManager] and similar.
+     * and optionally on [GraphQLGeneratedSourcesManager] and similar.
      */
     private val modificationTracker = SimpleModificationTracker()
 
@@ -218,7 +218,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return CachedValuesManager.getCachedValue(context, CONFIG_FILE_KEY) {
             var from: VirtualFile? = getPhysicalVirtualFile(context)
 
-            val sourceFile = generatedSourceManager.getSourceFile(from)
+            val sourceFile = generatedSourcesManager.getSourceFile(from)
             if (sourceFile != null) {
                 from = sourceFile
             }
@@ -228,7 +228,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
                 configFile,
                 this,
                 VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-                generatedSourceManager,
+                generatedSourcesManager,
             )
         }
     }

@@ -7,7 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.introspection
 
-import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourceManager
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.openapi.fileEditor.UniqueVFilePathBuilder
 import com.intellij.openapi.fileEditor.impl.EditorTabTitleProvider
 import com.intellij.openapi.project.Project
@@ -15,9 +15,9 @@ import com.intellij.openapi.vfs.VirtualFile
 
 class GraphQLIntrospectionEditorTabTitleProvider : EditorTabTitleProvider {
     override fun getEditorTabTitle(project: Project, file: VirtualFile): String? {
-        val generatedSourceManager = GraphQLGeneratedSourceManager.getInstance(project)
-        if (generatedSourceManager.isGeneratedFile(file)) {
-            return generatedSourceManager.getSourceFile(file)
+        val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
+        if (generatedSourcesManager.isGeneratedFile(file)) {
+            return generatedSourcesManager.getSourceFile(file)
                 ?.let { UniqueVFilePathBuilder.getInstance().getUniqueVirtualFilePath(project, it) }
                 ?.let { "GraphQL Schema ($it)" }
         }

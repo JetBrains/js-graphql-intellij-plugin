@@ -48,17 +48,17 @@ import kotlin.concurrent.write
 
 @Service(Service.Level.PROJECT)
 @State(name = "GraphQLGeneratedSources", storages = [Storage(value = StoragePathMacros.CACHE_FILE, roamingType = RoamingType.DISABLED)])
-class GraphQLGeneratedSourceManager(
+class GraphQLGeneratedSourcesManager(
     private val project: Project
 ) : Disposable,
     ModificationTracker,
-    PersistentStateComponent<GraphQLGeneratedSourceManager.GraphQLGeneratedSourceState> {
+    PersistentStateComponent<GraphQLGeneratedSourcesManager.GraphQLGeneratedSourceState> {
 
     companion object {
-        private val LOG = logger<GraphQLGeneratedSourceManager>()
+        private val LOG = logger<GraphQLGeneratedSourcesManager>()
 
         @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLGeneratedSourceManager>()
+        fun getInstance(project: Project) = project.service<GraphQLGeneratedSourcesManager>()
 
         private const val EXECUTION_TIMEOUT_MS = 10000L
         private const val NOTIFY_DELAY_MS = 500L
@@ -102,7 +102,7 @@ class GraphQLGeneratedSourceManager(
         )
     }
 
-    fun createGeneratedSourceScope(): GlobalSearchScope {
+    fun createGeneratedSourcesScope(): GlobalSearchScope {
         val dir = LocalFileSystem.getInstance().findFileByPath(generatedSdlFilesPath)
             ?: return GlobalSearchScope.EMPTY_SCOPE
         return GlobalSearchScopes.directoryScope(project, dir, false)
@@ -183,6 +183,7 @@ class GraphQLGeneratedSourceManager(
     @TestOnly
     fun waitForAllTasks() {
         CompletableFuture.allOf(*pendingTasks.values.toTypedArray()).join()
+        notifyAlarm.waitForAllExecuted(10, TimeUnit.SECONDS)
         notifyAlarm.drainRequestsInTest()
     }
 
@@ -197,7 +198,7 @@ class GraphQLGeneratedSourceManager(
             retries.computeIfAbsent(source) { AtomicInteger() }.incrementAndGet() <= RETRIES_COUNT
         if (retry) {
             LOG.info("Retry GraphQL SDL generation: source=$source")
-            GraphQLGeneratedSourceUpdater.getInstance(project).refreshJsonSchemaFiles(true)
+            GraphQLGeneratedSourcesUpdater.getInstance(project).refreshJsonSchemaFiles(true)
         } else {
             LOG.warn("Retry GraphQL SDL generation limit exceeded: source=$source")
         }
@@ -276,6 +277,7 @@ class GraphQLGeneratedSourceManager(
             modificationTracker.incModificationCount()
             PsiManager.getInstance(project).dropPsiCaches()
             DaemonCodeAnalyzer.getInstance(project).restart()
+
             GraphQLSchemaContentTracker.getInstance(project).schemaChanged()
         }, NOTIFY_DELAY_MS)
     }
