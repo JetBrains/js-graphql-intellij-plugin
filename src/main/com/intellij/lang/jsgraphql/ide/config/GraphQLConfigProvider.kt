@@ -92,9 +92,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     /**
      * Use this service as a dependency for tracking content changes in configuration files.
-     * Computations resolving config locations usually
-     * should additionally depend on [VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS]
-     * and optionally on [GraphQLGeneratedSourcesManager] and similar.
+     * Note, that calculations which depends on the scope structure should probably depend on
+     * [GraphQLScopeDependency] instead, which tracks this service state and some more stuff,
+     * which could affect resolve and type evaluation.
      */
     private val modificationTracker = SimpleModificationTracker()
 
