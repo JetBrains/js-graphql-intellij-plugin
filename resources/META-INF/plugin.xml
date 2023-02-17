@@ -41,6 +41,8 @@
                     interface="com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage"/>
     <extensionPoint name="errorFilter" dynamic="true"
                     interface="com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter"/>
+    <extensionPoint name="configContributor" dynamic="true"
+                    interface="com.intellij.lang.jsgraphql.ide.config.GraphQLConfigContributor"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">

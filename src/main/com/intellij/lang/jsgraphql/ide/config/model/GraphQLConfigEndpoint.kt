@@ -40,7 +40,7 @@ data class GraphQLConfigEndpoint(
 
     fun findConfig(): GraphQLProjectConfig? {
         val provider = GraphQLConfigProvider.getInstance(project)
-        val config = provider.getForConfigFile(configPointer?.file)
+        val config = provider.getForConfigFile(configPointer?.fileOrDir)
         return config?.findProject(configPointer?.projectName) ?: config?.getDefault()
     }
 
@@ -66,4 +66,6 @@ data class GraphQLConfigEndpoint(
  * Endpoint model is a long-lived object inside the editor,
  * so we avoid hard references to the GraphQLProjectConfig.
  */
-data class GraphQLConfigPointer(val file: VirtualFile?, val projectName: String?)
+data class GraphQLConfigPointer(val fileOrDir: VirtualFile?, val projectName: String?) {
+    val file = fileOrDir?.takeUnless { it.isDirectory }
+}

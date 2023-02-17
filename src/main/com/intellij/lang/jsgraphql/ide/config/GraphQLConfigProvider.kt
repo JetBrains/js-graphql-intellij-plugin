@@ -19,6 +19,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
@@ -51,6 +52,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 
 @Service(Service.Level.PROJECT)
@@ -58,8 +60,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     companion object {
         private val LOG = logger<GraphQLConfigProvider>()
 
-        private val CONFIG_FILE_KEY =
-            Key.create<CachedValue<VirtualFile?>>("graphql.config.file")
+        private val CONFIG_CLOSEST =
+            Key.create<CachedValue<GraphQLConfig?>>("graphql.config.closest")
         private val CONFIG_OVERRIDE_FILE_KEY =
             Key.create<CachedValue<GraphQLConfigOverride?>>("graphql.config.override.file")
         private val CONFIG_OVERRIDE_PATH_KEY =
@@ -74,6 +76,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     init {
         GraphQLFileTypeContributor.EP_NAME.addChangeListener({ invalidate() }, this)
         GraphQLInjectedLanguage.EP_NAME.addChangeListener({ invalidate() }, this)
+        GraphQLConfigContributor.EP_NAME.addChangeListener({ invalidate() }, this)
     }
 
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
@@ -97,6 +100,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     private val configData: MutableMap<VirtualFile, ConfigEntry> = ConcurrentHashMap()
 
+    // NB: this is directory -> config mapping, because a physical config file may not exist
+    private val contributedConfigs: AtomicReference<Map<VirtualFile, GraphQLConfig>> = AtomicReference(emptyMap())
+
     private val configFiles: CachedValue<Set<VirtualFile>> = CachedValuesManager.getManager(project).createCachedValue {
         CachedValueProvider.Result.create(
             queryAllConfigFiles(),
@@ -110,7 +116,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             CachedValueProvider.Result.create(ConcurrentHashMap(), scopeDependency)
         }
 
-    private val configsInParentDirectories: CachedValue<ConcurrentMap<VirtualFile, Optional<VirtualFile>>> =
+    private val configsInParentDirectories: CachedValue<ConcurrentMap<VirtualFile, Optional<GraphQLConfig>>> =
         CachedValuesManager.getManager(project).createCachedValue {
             CachedValueProvider.Result.create(ConcurrentHashMap(), scopeDependency)
         }
@@ -128,15 +134,19 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             }
         }
 
-        return getForConfigFile(findClosestConfigFile(context))?.match(context)
+        return findClosestConfig(context)?.match(context)
     }
 
     @RequiresReadLock
     fun resolveConfig(virtualFile: VirtualFile): GraphQLProjectConfig? =
         PsiManager.getInstance(project).findFile(virtualFile)?.let { resolveConfig(it) }
 
-    fun getForConfigFile(configFile: VirtualFile?): GraphQLConfig? {
-        return configFile?.let { configData[it] }?.config
+    fun getForConfigFile(file: VirtualFile?): GraphQLConfig? {
+        return when {
+            file == null -> null
+            file.isDirectory -> contributedConfigs.get()[file]
+            else -> configData[file]?.config
+        }
     }
 
     fun getAllConfigs(): List<GraphQLConfig> {
@@ -149,8 +159,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     val hasConfigurationFiles
         get() = configData.isNotEmpty()
 
-    @RequiresReadLock
-    fun findOverriddenConfig(file: PsiFile): GraphQLConfigOverride? {
+    private fun findOverriddenConfig(file: PsiFile): GraphQLConfigOverride? {
         return CachedValuesManager.getCachedValue(file, CONFIG_OVERRIDE_FILE_KEY) {
             CachedValueProvider.Result.create(findOverriddenConfigImpl(file), file, scopeDependency)
         }
@@ -188,8 +197,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return LocalFileSystem.getInstance().findFileByPath(path)
     }
 
-    @RequiresReadLock
-    fun getContentDependentOverridePath(file: PsiFile): GraphQLConfigOverridePath? {
+    private fun getContentDependentOverridePath(file: PsiFile): GraphQLConfigOverridePath? {
         if (file !is GraphQLFile) {
             return null
         }
@@ -208,8 +216,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     @RequiresReadLock
-    fun findClosestConfigFile(context: PsiFile): VirtualFile? {
-        return CachedValuesManager.getCachedValue(context, CONFIG_FILE_KEY) {
+    fun findClosestConfig(context: PsiFile): GraphQLConfig? {
+        return CachedValuesManager.getCachedValue(context, CONFIG_CLOSEST) {
             var from: VirtualFile? = getPhysicalVirtualFile(context)
 
             val sourceFile = generatedSourcesManager.getSourceFile(from)
@@ -217,12 +225,12 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
                 from = sourceFile
             }
 
-            val configFile = findConfigFileInParents(from)
-            CachedValueProvider.Result.create(configFile, scopeDependency)
+            val config = findConfigInParents(from)
+            CachedValueProvider.Result.create(config, scopeDependency)
         }
     }
 
-    private fun findConfigFileInParents(file: VirtualFile?): VirtualFile? {
+    private fun findConfigInParents(file: VirtualFile?): GraphQLConfig? {
         if (file == null || ScratchUtil.isScratch(file)) return null
 
         val cache = configsInParentDirectories.value
@@ -231,14 +239,23 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             return prev.orElse(null)
         }
 
-        var found: VirtualFile? = null
+        val contributedConfigsSnapshot = contributedConfigs.get()
+
+        var config: GraphQLConfig? = null
+        var fallback: GraphQLConfig? = null
+
         GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, file) { dir ->
+            val candidate = contributedConfigsSnapshot[dir]
+            if (fallback == null && candidate != null) {
+                fallback = candidate
+            }
+
             val configFile = findConfigFileInDirectory(dir)
             if (configFile != null) {
                 if (shouldSkipConfig(configFile)) {
                     true
                 } else {
-                    found = configFile
+                    config = getForConfigFile(configFile)
                     false
                 }
             } else {
@@ -246,7 +263,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             }
         }
 
-        val result = Optional.ofNullable(found)
+        if (config == null) {
+            config = fallback
+        }
+
+        val result = Optional.ofNullable(config)
         return (cache.putIfAbsent(file, result) ?: result).orElse(null)
     }
 
@@ -280,6 +301,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         } else {
             initialized = false
             configData.clear()
+            contributedConfigs.set(emptyMap())
         }
 
         pendingInvalidation.set(true)
@@ -333,8 +355,33 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             }
         }
 
+        if (pollConfigContributors()) {
+            hasChanged = true
+        }
+
         if (hasChanged || explicitInvalidate || !initialized) {
             notifyConfigurationChanged()
+        }
+    }
+
+    private fun pollConfigContributors(): Boolean {
+        val prevSnapshot = contributedConfigs.get()
+        val prevContributed = prevSnapshot.values.toSet()
+        val updatedContributed =
+            GraphQLConfigContributor.EP_NAME.extensionList.flatMap { it.contributeConfigs(project) }.toSet()
+
+        return if (prevContributed != updatedContributed) {
+            if (contributedConfigs.compareAndSet(prevSnapshot, updatedContributed.associateBy { it.dir })) {
+                LOG.info("contributed configs changed")
+                LOG.debug { "contributed configs: new=$updatedContributed, previous=$prevContributed" }
+                true
+            } else {
+                // concurrent modification, let's try again later
+                scheduleConfigurationReload()
+                false
+            }
+        } else {
+            false
         }
     }
 
@@ -394,4 +441,4 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 }
 
-data class GraphQLConfigOverride(val file: VirtualFile, val projectName: String?)
+private data class GraphQLConfigOverride(val file: VirtualFile, val projectName: String?)

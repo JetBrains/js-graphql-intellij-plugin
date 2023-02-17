@@ -1,0 +1,17 @@
+type Query {
+	animals: [Animal!]!
+	b: String
+	c: Int
+}
+
+type Animal {
+	id: ID!
+	name: String!
+	adoptedDate: Date
+}
+
+scalar Date
+
+type CommonType {
+	fieldB: String
+}

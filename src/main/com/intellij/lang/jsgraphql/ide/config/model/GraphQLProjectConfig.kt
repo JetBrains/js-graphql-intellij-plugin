@@ -187,7 +187,7 @@ data class GraphQLProjectConfig(
                 project,
                 it,
                 dir,
-                GraphQLConfigPointer(file, name),
+                GraphQLConfigPointer(file ?: dir, name),
                 isLegacy,
                 false
             )
