@@ -21,7 +21,7 @@ data class GraphQLConfig(
     private val project: Project,
     val dir: VirtualFile,
     val file: VirtualFile?,
-    private val data: GraphQLRawConfig,
+    val rawData: GraphQLRawConfig,
 ) {
     companion object {
         const val DEFAULT_PROJECT = "default"
@@ -33,10 +33,10 @@ data class GraphQLConfig(
      * Empty if it doesn't contain any explicit file patterns,
      * so it becomes a default config for the files under this root.
      */
-    val isEmpty: Boolean = data.schema.isNullOrEmpty() &&
-        data.projects.isNullOrEmpty() &&
-        data.include.isNullOrEmpty() &&
-        data.exclude.isNullOrEmpty()
+    val isEmpty: Boolean = rawData.schema.isNullOrEmpty() &&
+        rawData.projects.isNullOrEmpty() &&
+        rawData.include.isNullOrEmpty() &&
+        rawData.exclude.isNullOrEmpty()
 
     private val projects: Map<String, GraphQLProjectConfig> = initProjects()
 
@@ -54,12 +54,12 @@ data class GraphQLConfig(
         }
 
     private fun initProjects(): Map<String, GraphQLProjectConfig> {
-        val root = GraphQLRawProjectConfig(data.schema, data.documents, data.extensions, data.include, data.exclude)
+        val root = GraphQLRawProjectConfig(rawData.schema, rawData.documents, rawData.extensions, rawData.include, rawData.exclude)
 
-        return if (data.projects.isNullOrEmpty()) {
+        return if (rawData.projects.isNullOrEmpty()) {
             mapOf(DEFAULT_PROJECT to GraphQLProjectConfig(project, DEFAULT_PROJECT, root, null, dir, file, isEmpty))
         } else {
-            data.projects.mapValues { (name, config) ->
+            rawData.projects.mapValues { (name, config) ->
                 GraphQLProjectConfig(project, name, config, root, dir, file, isEmpty)
             }
         }
