@@ -49,21 +49,21 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
         fun getInstance(project: Project) = project.service<GraphQLSchemaContentTracker>()
     }
 
-    private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
+    private val notifyChangedAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
     private val myModificationTracker = CompositeModificationTracker(GraphQLScopeDependency.getInstance(myProject))
 
     init {
         PsiManager.getInstance(myProject).addPsiTreeChangeListener(PsiChangeListener(), this)
     }
 
-    fun schemaContentChanged() {
+    fun schemaChanged() {
         LOG.debug("GraphQL schema cache invalidated", if (LOG.isTraceEnabled) Throwable() else null)
 
         if (ApplicationManager.getApplication().isUnitTestMode) {
             invokeLater { notifySchemaContentChanged() }
         } else {
-            alarm.cancelAllRequests()
-            alarm.addRequest(::notifySchemaContentChanged, EVENT_PUBLISH_TIMEOUT)
+            notifyChangedAlarm.cancelAllRequests()
+            notifyChangedAlarm.addRequest(::notifySchemaContentChanged, EVENT_PUBLISH_TIMEOUT)
         }
     }
 
@@ -92,7 +92,7 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
 
             if (event.file is GraphQLFile) {
                 if (affectsGraphQLSchema(event)) {
-                    schemaContentChanged()
+                    schemaChanged()
                 }
             }
 
@@ -101,7 +101,7 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
                 val injectionHelper = GraphQLInjectedLanguage.forElement(event.parent)
                 if (injectionHelper != null && injectionHelper.isLanguageInjectionTarget(event.parent)) {
                     // change in injection target
-                    schemaContentChanged()
+                    schemaChanged()
                 }
             }
         }
