@@ -56,10 +56,6 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
         ApplicationManager.getApplication().assertIsDispatchThread();
         GraphQLConfigProvider.getInstance(getProject()).scheduleConfigurationReload();
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-        GraphQLGeneratedSourcesUpdater.getInstance(getProject()).waitForAllUpdates();
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-        GraphQLGeneratedSourcesManager.getInstance(getProject()).waitForAllTasks();
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     }
 
     protected void doHighlightingTest() {

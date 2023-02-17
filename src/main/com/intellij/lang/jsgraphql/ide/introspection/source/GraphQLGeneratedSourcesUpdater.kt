@@ -27,9 +27,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.Alarm
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import io.ktor.util.collections.*
-import org.jetbrains.annotations.TestOnly
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 
 @Service(Service.Level.PROJECT)
@@ -107,20 +105,21 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
     }
 
     fun refreshJsonSchemaFiles(isRetry: Boolean = false) {
+        if (project.isDisposed) return
+
         if (ApplicationManager.getApplication().isUnitTestMode) {
             invokeLater { refreshJsonSchemaFilesSync() }
-            return
+        } else {
+            queue.cancelAllRequests()
+            queue.addRequest({
+                ReadAction.nonBlocking(::findJsonSchemaCandidates)
+                    .expireWith(this)
+                    .inSmartMode(project)
+                    .withDocumentsCommitted(project)
+                    .finishOnUiThread(ModalityState.defaultModalityState(), ::updateCachedSchemas)
+                    .submit(executor)
+            }, if (isRetry) RETRY_REFRESH_DELAY else REFRESH_DELAY)
         }
-
-        queue.cancelAllRequests()
-        queue.addRequest({
-            ReadAction.nonBlocking(::findJsonSchemaCandidates)
-                .expireWith(this)
-                .inSmartMode(project)
-                .withDocumentsCommitted(project)
-                .finishOnUiThread(ModalityState.defaultModalityState(), ::updateCachedSchemas)
-                .submit(executor)
-        }, if (isRetry) RETRY_REFRESH_DELAY else REFRESH_DELAY)
     }
 
     private fun refreshJsonSchemaFilesSync() {
@@ -153,14 +152,8 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
         }
 
         if (prevSchemas != schemas) {
-            generatedSourcesManager.notifySourcesChanged()
+            generatedSourcesManager.sourcesChanged()
         }
-    }
-
-    @TestOnly
-    fun waitForAllUpdates() {
-        queue.waitForAllExecuted(10, TimeUnit.SECONDS)
-        queue.drainRequestsInTest()
     }
 
     override fun dispose() {

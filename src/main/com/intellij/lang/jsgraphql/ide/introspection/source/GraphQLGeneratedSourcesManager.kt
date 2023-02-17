@@ -36,7 +36,6 @@ import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.XCollection
-import org.jetbrains.annotations.TestOnly
 import java.io.FileNotFoundException
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -90,10 +89,10 @@ class GraphQLGeneratedSourcesManager(
 
     private val modificationTracker = SimpleModificationTracker()
 
-    private val notifyAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
+    private val notifyChangedAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
 
     private val executor = if (ApplicationManager.getApplication().isUnitTestMode) {
-        inEdt(ModalityState.defaultModalityState())
+        inEdt()
     } else {
         AppExecutorUtil.createBoundedApplicationPoolExecutor(
             "GraphQL Source File Generation",
@@ -140,7 +139,7 @@ class GraphQLGeneratedSourcesManager(
             entry.output?.let { reverseMappings[it] = source }
         }
 
-        notifySourcesChanged()
+        sourcesChanged()
     }
 
     private fun removeEntry(source: Source, entry: GeneratedEntry?) {
@@ -151,7 +150,7 @@ class GraphQLGeneratedSourcesManager(
             entry.output?.let { reverseMappings.remove(it, source) }
         }
 
-        notifySourcesChanged()
+        sourcesChanged()
     }
 
     private fun startAsyncProcessing(source: Source) {
@@ -181,13 +180,6 @@ class GraphQLGeneratedSourcesManager(
                     }
                 }
         }
-    }
-
-    @TestOnly
-    fun waitForAllTasks() {
-        CompletableFuture.allOf(*pendingTasks.values.toTypedArray()).join()
-        notifyAlarm.waitForAllExecuted(10, TimeUnit.SECONDS)
-        notifyAlarm.drainRequestsInTest()
     }
 
     private fun resetRetries(source: Source) {
@@ -271,18 +263,26 @@ class GraphQLGeneratedSourcesManager(
         addEntry(source, result)
     }
 
-    fun notifySourcesChanged() {
-        notifyAlarm.cancelAllRequests()
-        notifyAlarm.addRequest({
-            if (project.isDisposed) return@addRequest
+    fun sourcesChanged() {
+        if (project.isDisposed) return
 
-            modificationTracker.incModificationCount()
-            GraphQLScopeDependency.getInstance(project).update()
-            PsiManager.getInstance(project).dropPsiCaches()
-            GraphQLSchemaContentTracker.getInstance(project).schemaContentChanged()
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+            invokeLater { notifySourcesChanged() }
+        } else {
+            notifyChangedAlarm.cancelAllRequests()
+            notifyChangedAlarm.addRequest(::notifySourcesChanged, NOTIFY_DELAY_MS)
+        }
+    }
 
-            DaemonCodeAnalyzer.getInstance(project).restart()
-        }, NOTIFY_DELAY_MS)
+    private fun notifySourcesChanged() {
+        if (project.isDisposed) return
+
+        modificationTracker.incModificationCount()
+        GraphQLScopeDependency.getInstance(project).update()
+        PsiManager.getInstance(project).dropPsiCaches()
+        GraphQLSchemaContentTracker.getInstance(project).schemaChanged()
+
+        DaemonCodeAnalyzer.getInstance(project).restart()
     }
 
     private fun Source.createResult(file: VirtualFile) =
@@ -298,7 +298,7 @@ class GraphQLGeneratedSourcesManager(
         }
 
         retries.clear()
-        notifySourcesChanged()
+        sourcesChanged()
     }
 
     fun isSourceForGeneratedFile(file: VirtualFile?): Boolean {

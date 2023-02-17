@@ -82,7 +82,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
     private val scopeDependency = GraphQLScopeDependency.getInstance(project)
 
-    private val alarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+    private val reloadConfigAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
 
     // need to trigger invalidation of dependent caches regardless of whether any changes are detected or not
     private val pendingInvalidation = AtomicBoolean(false)
@@ -312,8 +312,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         if (ApplicationManager.getApplication().isUnitTestMode) {
             invokeLater { reload() }
         } else {
-            alarm.cancelAllRequests()
-            alarm.addRequest({
+            reloadConfigAlarm.cancelAllRequests()
+            reloadConfigAlarm.addRequest({
                 BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::reload)
             }, CONFIG_RELOAD_DELAY)
         }
