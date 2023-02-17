@@ -2,10 +2,14 @@ package com.intellij.lang.jsgraphql.config
 
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigContributor
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
+import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
+import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.openapi.components.PathMacroManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -16,6 +20,12 @@ import junit.framework.TestCase
 class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
 
     override fun getBasePath(): String = "/config/scope"
+
+    override fun setUp() {
+        super.setUp()
+
+        copyProject()
+    }
 
     fun testRootProject() {
         val expectedSchemas = setOf(
@@ -80,6 +90,46 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
     }
 
+    fun testOverriddenScope() {
+        GraphQLConfigContributor.EP_NAME.point.registerExtension(object : GraphQLConfigContributor {
+            override fun contributeConfigs(project: Project): Collection<GraphQLConfig> {
+                val customConfig = GraphQLRawConfig(
+                    schema = listOf(
+                        GraphQLRawSchemaPointer(pathOrUrl = "**/schema.graphql"),
+                        GraphQLRawSchemaPointer(pathOrUrl = "directives.graphql")
+                    ),
+                    documents = listOf("operations.graphql"),
+                    exclude = listOf("ignored.graphql")
+                )
+                return listOf(
+                    GraphQLConfig(project, myFixture.findFileInTempDir("main/graphql/servicea/"), null, GraphQLRawConfig.EMPTY),
+                    GraphQLConfig(project, myFixture.findFileInTempDir("main/graphql/serviceb/"), null, customConfig),
+                )
+            }
+        }, testRootDisposable)
+        reloadConfiguration()
+
+        doScopeTest(
+            "main/graphql/servicea",
+            setOf(
+                "main/graphql/servicea/schema.graphql",
+                "main/graphql/servicea/operations.graphql",
+            ),
+            emptySet(),
+        )
+
+        doScopeTest(
+            "main/graphql/serviceb",
+            setOf(
+                "main/graphql/serviceb/nested/dir/schema.graphql",
+                "main/graphql/serviceb/directives.graphql",
+            ),
+            setOf(
+                "main/graphql/serviceb/operations.graphql",
+            ),
+        )
+    }
+
     private fun doScopeTest(
         configPath: String,
         expectedSchemas: Set<String>,
@@ -91,8 +141,8 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
             projectName
                 ?.let { checkNotNull(config.findProject(projectName)) }
                 ?: checkNotNull(config.getDefault())
-        compareFiles("schema scope is invalid", projectConfig.schemaScope, expectedSchemas)
-        compareFiles("scope is invalid", projectConfig.scope, expectedSchemas + expectedDocuments)
+        compareFiles("strict schema scope is invalid", projectConfig.schemaScope, expectedSchemas)
+        compareFiles("documents scope is invalid", projectConfig.scope, expectedSchemas + expectedDocuments)
     }
 
     private fun compareFiles(
@@ -117,9 +167,8 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     }
 
     private fun loadConfig(configPath: String): GraphQLConfig {
-        copyProject()
-        val context = myFixture.configureFromTempProjectFile(configPath)!!
-        val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(context.virtualFile)
+        val file = myFixture.findFileInTempDir(configPath)!!
+        val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)
         TestCase.assertNotNull(config)
         return config!!
     }

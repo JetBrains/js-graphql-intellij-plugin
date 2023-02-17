@@ -1,0 +1,9 @@
+query SchemaModuleServiceBQuery {
+    animals {
+        ... on Animal {
+            id
+            name
+        }
+    }
+    b
+}

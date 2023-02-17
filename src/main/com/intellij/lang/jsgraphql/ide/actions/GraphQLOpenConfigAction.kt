@@ -50,10 +50,14 @@ class GraphQLOpenConfigAction : AnAction(
             return
         }
         val provider = GraphQLConfigProvider.getInstance(project)
-        val configFile = provider.findClosestConfigFile(psiFile)
-        if (configFile != null) {
-            val fileEditorManager = FileEditorManager.getInstance(project)
-            fileEditorManager.openFile(configFile, true, true)
+        val config = provider.findClosestConfig(psiFile)
+        if (config != null) {
+            if (config.file != null) {
+                val fileEditorManager = FileEditorManager.getInstance(project)
+                fileEditorManager.openFile(config.file, true, true)
+            } else {
+                // TODO: open in-memory file
+            }
         } else {
             // no config associated, ask to create one
             val notification = Notification(
