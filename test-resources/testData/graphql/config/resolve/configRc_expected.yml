@@ -1,0 +1,2 @@
+schema: dir/schema.graphql
+exclude: notEmptyNotToMatchByDefault.graphql

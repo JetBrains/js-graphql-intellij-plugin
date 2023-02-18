@@ -1,0 +1,5 @@
+schema: '**/*.graphql'
+documents:
+  - '**/queries/*.graphql'
+  - some/query/file.graphql
+exclude: excluded/**

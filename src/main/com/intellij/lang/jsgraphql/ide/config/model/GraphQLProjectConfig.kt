@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigKeys
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
@@ -62,25 +63,30 @@ data class GraphQLProjectConfig(
             .projectScope(project)
             .union(generatedSourcesManager.createGeneratedSourcesScope())
 
-    private val scopeCached: CachedValue<GlobalSearchScope> = CachedValuesManager.getManager(project).createCachedValue {
-        CachedValueProvider.Result.create(
-            GraphQLScopeProvider.createScope(project, GraphQLConfigScope(project, baseScope, this)),
-            GraphQLScopeDependency.getInstance(project),
-        )
-    }
+    private val scopeCached: CachedValue<GlobalSearchScope> =
+        CachedValuesManager.getManager(project).createCachedValue {
+            CachedValueProvider.Result.create(
+                GraphQLScopeProvider.createScope(project, GraphQLConfigScope(project, baseScope, this)),
+                GraphQLScopeDependency.getInstance(project),
+            )
+        }
 
     val scope: GlobalSearchScope
         get() = scopeCached.value
 
-    private val schemaScopeCached: CachedValue<GlobalSearchScope> = CachedValuesManager.getManager(project).createCachedValue {
-        CachedValueProvider.Result.create(
-            GraphQLScopeProvider.createScope(project, GraphQLConfigSchemaScope(project, baseScope, this)),
-            GraphQLScopeDependency.getInstance(project),
-        )
-    }
+    private val schemaScopeCached: CachedValue<GlobalSearchScope> =
+        CachedValuesManager.getManager(project).createCachedValue {
+            CachedValueProvider.Result.create(
+                GraphQLScopeProvider.createScope(project, GraphQLConfigSchemaScope(project, baseScope, this)),
+                GraphQLScopeDependency.getInstance(project),
+            )
+        }
 
     val schemaScope: GlobalSearchScope
         get() = schemaScopeCached.value
+
+    val rootConfig: GraphQLConfig?
+        get() = GraphQLConfigProvider.getInstance(project).getForConfigFile(file ?: dir)
 
     fun matches(context: PsiFile): Boolean {
         return getPhysicalVirtualFile(context)?.let { matches(it) } ?: false
@@ -161,19 +167,19 @@ data class GraphQLProjectConfig(
                     GraphQLRawEndpoint(
                         endpointName,
                         value as String?,
-                        false,
                         emptyMap(),
+                        false,
                     )
                 }
 
                 is Map<*, *> -> {
-                    val url = value["url"]
+                    val url = value[GraphQLConfigKeys.EXTENSION_ENDPOINT_URL]
                     if (url is String) {
                         GraphQLRawEndpoint(
                             endpointName,
                             url,
-                            value["introspect"] as Boolean? ?: false,
-                            parseMap(value["headers"]) ?: emptyMap()
+                            parseMap(value[GraphQLConfigKeys.HEADERS]) ?: emptyMap(),
+                            value[GraphQLConfigKeys.INTROSPECT] as Boolean?
                         )
                     } else {
                         null

@@ -38,11 +38,12 @@ data class GraphQLRawProjectConfig(
 data class GraphQLRawSchemaPointer(
     val pathOrUrl: String,
     val headers: Map<String, Any?> = emptyMap(),
+    val introspect: Boolean? = false,
 )
 
 data class GraphQLRawEndpoint(
     var name: String? = null,
     var url: String? = null,
-    var introspect: Boolean = false,
-    var headers: Map<String, Any?> = emptyMap()
+    var headers: Map<String, Any?> = emptyMap(),
+    var introspect: Boolean? = false,
 )

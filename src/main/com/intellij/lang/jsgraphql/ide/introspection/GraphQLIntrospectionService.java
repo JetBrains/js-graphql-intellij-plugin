@@ -497,7 +497,7 @@ public final class GraphQLIntrospectionService implements Disposable {
 
                     List<GraphQLConfigEndpoint> endpoints = config.getEndpoints();
                     for (GraphQLConfigEndpoint endpoint : endpoints) {
-                        if (!endpoint.getIntrospect() || schemaPath.isBlank()) {
+                        if (!Boolean.TRUE.equals(endpoint.getIntrospect()) || schemaPath.isBlank()) {
                             continue;
                         }
                         String url = endpoint.getUrl();

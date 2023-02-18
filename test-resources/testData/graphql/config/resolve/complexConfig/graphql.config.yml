@@ -1,0 +1,53 @@
+projects:
+  remote:
+    schema:
+      - http://localhost:8080/graphql:
+          headers:
+            User-Agent: GraphQL IDE
+            Authorization: bearer ${TOKEN}
+            Cache-Control: no-store
+            Max-Age: 36000
+          introspect: false
+  foo:
+    schema: './packages/foo/schema.graphql'
+    documents: './packages/foo/src/components/**/*.graphql'
+    extensions:
+      codegen:
+        generates:
+          ./src/types.ts:
+            plugins:
+              - typescript
+              - typescript-resolvers
+  bar:
+    schema: './packages/bar/schema.graphql'
+    extensions:
+      endpoints:
+        Default GraphQL Endpoint:
+          url: http://localhost:8080/graphql
+          headers:
+            User-Agent: GraphQL IDE
+            Authorization: bearer ${TOKEN}
+            Cache-Control:
+            Max-Age: 36000
+          introspect: false
+  multipleRemotes:
+    schema:
+      - https://google.com/1:
+          headers:
+            User-Agent: GraphQL IDE
+      - https://google.com/2:
+          headers:
+            User-Agent: GraphQL IDE
+    extensions:
+      endpoints:
+        Default GraphQL Endpoint:
+          url: http://localhost:8080/graphql
+          introspect:
+extensions:
+  codegen:
+    generates:
+      ./src/types.ts:
+        plugins:
+          - typescript
+          - typescript-resolvers
+          -

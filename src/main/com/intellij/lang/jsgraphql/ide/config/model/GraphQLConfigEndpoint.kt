@@ -34,9 +34,9 @@ data class GraphQLConfigEndpoint(
 
     val file: VirtualFile? = configPointer?.file
 
-    val projectName = configPointer?.projectName
+    val projectName: String? = configPointer?.projectName
 
-    val introspect = data.introspect
+    val introspect: Boolean? = data.introspect
 
     fun findConfig(): GraphQLProjectConfig? {
         val provider = GraphQLConfigProvider.getInstance(project)

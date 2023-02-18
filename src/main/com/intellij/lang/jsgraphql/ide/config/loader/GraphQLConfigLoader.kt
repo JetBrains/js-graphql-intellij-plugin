@@ -11,7 +11,9 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import org.yaml.snakeyaml.LoaderOptions
 import org.yaml.snakeyaml.Yaml
+import org.yaml.snakeyaml.constructor.SafeConstructor
 
 @Service(Service.Level.PROJECT)
 class GraphQLConfigLoader(private val project: Project) {
@@ -81,15 +83,15 @@ class GraphQLConfigLoader(private val project: Project) {
     private fun parseRemoteSchema(data: Map<*, *>): GraphQLRawSchemaPointer? {
         val (key, params) = data.entries.firstOrNull() ?: return null
         val url = key as? String ?: return null
-        val headers = params
-            .asSafely<Map<*, *>>()
-            ?.get(GraphQLConfigKeys.SCHEMA_HEADERS)
+        val paramsMap = params.asSafely<Map<*, *>>()
+
+        val headers = paramsMap
+            ?.get(GraphQLConfigKeys.HEADERS)
             ?.asSafely<Map<*, *>>()
             ?.mapNotNull { (k, v) ->
                 val header = k as? String
-                val value = v as? String
-                if (header != null && value != null) {
-                    header to value
+                if (header != null) {
+                    header to v
                 } else {
                     null
                 }
@@ -97,7 +99,9 @@ class GraphQLConfigLoader(private val project: Project) {
             ?.toMap()
             ?: emptyMap()
 
-        return GraphQLRawSchemaPointer(url, headers)
+        val introspect = paramsMap?.get(GraphQLConfigKeys.INTROSPECT) as? Boolean
+
+        return GraphQLRawSchemaPointer(url, headers, introspect)
     }
 
     private inline fun <reified T> parseListOrItem(data: Any?): List<T>? {
@@ -147,7 +151,7 @@ class GraphQLConfigLoader(private val project: Project) {
         return readYml(text)
     }
 
-    private fun readYml(text: String) = Yaml().load(text) as? Map<*, *>
+    private fun readYml(text: String) = Yaml(SafeConstructor(LoaderOptions())).load(text) as? Map<*, *>
 
     private fun loadText(file: VirtualFile): String? =
         runReadAction { VfsUtil.loadText(file) }.takeIf { it.isNotBlank() }

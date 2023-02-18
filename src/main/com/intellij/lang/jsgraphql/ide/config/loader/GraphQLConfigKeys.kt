@@ -13,7 +13,9 @@ object GraphQLConfigKeys {
     const val LEGACY_EXCLUDES = "excludes"
     const val LEGACY_EXTENSIONS = EXTENSIONS
 
-    const val SCHEMA_HEADERS = "headers"
+    const val HEADERS = "headers"
+    const val INTROSPECT = "introspect"
 
     const val EXTENSION_ENDPOINTS = "endpoints"
+    const val EXTENSION_ENDPOINT_URL = "url"
 }

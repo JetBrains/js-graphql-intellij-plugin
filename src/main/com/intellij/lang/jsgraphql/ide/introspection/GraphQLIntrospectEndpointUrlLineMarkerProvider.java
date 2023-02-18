@@ -191,7 +191,7 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
 
             final String name = supportsHeaders ? parent.getName() : url;
 
-            final GraphQLRawEndpoint endpointConfig = new GraphQLRawEndpoint(name, url, false, Collections.emptyMap());
+            final GraphQLRawEndpoint endpointConfig = new GraphQLRawEndpoint(name, url, Collections.emptyMap(), false);
 
             if (supportsHeaders) {
                 final Stream<JsonProperty> jsonPropertyStream = PsiTreeUtil.getChildrenOfTypeAsList(urlJsonProperty.getParent(),
