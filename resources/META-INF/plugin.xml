@@ -154,7 +154,7 @@
       implementationClass="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionJsonToSDLLineMarkerProvider"
       language="JSON"/>
     <codeInsight.lineMarkerProvider
-      implementationClass="com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectEndpointUrlLineMarkerProvider"
+      implementationClass="com.intellij.lang.jsgraphql.ide.introspection.editor.json.GraphQLIntrospectionJsonLineMarkerProvider"
       language="JSON"/>
     <projectViewNestingRulesProvider
       implementation="com.intellij.lang.jsgraphql.ide.project.GraphQLIntrospectionProjectViewNestingRulesProvider"/>

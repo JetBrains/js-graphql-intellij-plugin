@@ -149,6 +149,12 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         }
     }
 
+    fun isCachedConfigOutdated(file: VirtualFile?): Boolean {
+        if (file == null) return false
+        val entry = configData[file] ?: return false
+        return runReadAction { file.timeStamp != entry.timeStamp || FileDocumentManager.getInstance().isFileModified(file) }
+    }
+
     fun getAllConfigs(): List<GraphQLConfig> {
         return configData.mapNotNull { it.value.config }
     }

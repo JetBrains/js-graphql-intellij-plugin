@@ -28,7 +28,7 @@ public class GraphQLRerunLatestIntrospectionAction extends AnAction {
             final GraphQLIntrospectionTask latestIntrospection = GraphQLIntrospectionService.getInstance(e.getProject()).getLatestIntrospection();
             if (latestIntrospection != null) {
                 enabled = true;
-                e.getPresentation().setText(TEXT + " (" + latestIntrospection.getEndpoint().getName() + ")");
+                e.getPresentation().setText(TEXT + " (" + latestIntrospection.getEndpoint().getDisplayName() + ")");
             }
         }
         e.getPresentation().setEnabled(enabled);

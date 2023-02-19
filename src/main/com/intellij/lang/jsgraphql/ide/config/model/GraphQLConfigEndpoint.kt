@@ -21,10 +21,13 @@ data class GraphQLConfigEndpoint(
     val isLegacy: Boolean,
     val isUIContext: Boolean,
 ) {
-    val name: String = data.name
-        ?: url
-        ?: configPointer?.file?.name
-        ?: dir.path
+    val name: String? = data.name ?: data.url // raw url is used intentionally
+
+    val displayName: String
+        get() = data.name
+            ?: url
+            ?: configPointer?.file?.name
+            ?: dir.path
 
     val url: String?
         get() = data.url?.let { expandVariables(project, it, dir, isLegacy, isUIContext) }
@@ -49,7 +52,7 @@ data class GraphQLConfigEndpoint(
     }
 
     override fun toString(): String {
-        val endpointName = name
+        val endpointName = displayName
         val endpointUrl = url
 
         return if (endpointUrl == null) {
@@ -57,7 +60,7 @@ data class GraphQLConfigEndpoint(
         } else if (endpointName == endpointUrl) {
             endpointUrl
         } else {
-            "$name - $url"
+            "$displayName - $url"
         }
     }
 }

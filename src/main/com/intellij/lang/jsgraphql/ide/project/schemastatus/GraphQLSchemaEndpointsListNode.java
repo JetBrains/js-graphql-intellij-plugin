@@ -57,7 +57,8 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
             return new SimpleNode[]{new DefaultEndpointNode(myProject)};
         } else {
             return myEndpoints.stream()
-                    .map(endpoint -> new ConfigurableEndpointNode(this, myProjectKey, endpoint)).toArray(SimpleNode[]::new);
+                .map(endpoint -> new ConfigurableEndpointNode(this, endpoint))
+                .toArray(SimpleNode[]::new);
         }
     }
 
@@ -68,14 +69,12 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
 
     private static class ConfigurableEndpointNode extends SimpleNode {
 
-        private final @Nullable String projectKey;
         private final @NotNull GraphQLConfigEndpoint endpoint;
 
-        public ConfigurableEndpointNode(@Nullable SimpleNode parent, @Nullable String projectKey, @NotNull GraphQLConfigEndpoint endpoint) {
+        public ConfigurableEndpointNode(@Nullable SimpleNode parent, @NotNull GraphQLConfigEndpoint endpoint) {
             super(parent);
-            this.projectKey = projectKey;
             this.endpoint = endpoint;
-            myName = endpoint.getName();
+            myName = endpoint.getDisplayName();
             getTemplatePresentation().setTooltip("Endpoints allow you to perform GraphQL introspection, queries and mutations");
             getTemplatePresentation().setLocationString(endpoint.getUrl());
             setIcon(GraphQLIcons.UI.GraphQLNode);
@@ -86,20 +85,20 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
             final String introspect = "Get GraphQL Schema from Endpoint (introspection)";
             final String createScratch = "New GraphQL Scratch File (for query, mutation testing)";
             ListPopup listPopup = JBPopupFactory.getInstance().createListPopup(
-                    new BaseListPopupStep<>("Choose Endpoint Action", introspect, createScratch) {
+                new BaseListPopupStep<>("Choose Endpoint Action", introspect, createScratch) {
 
-                        @Override
-                        public PopupStep onChosen(String selectedValue, boolean finalChoice) {
-                            return doFinalStep(() -> {
-                                if (introspect.equals(selectedValue)) {
-                                    GraphQLIntrospectionService.getInstance(myProject)
-                                            .performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
-                                } else if (createScratch.equals(selectedValue)) {
-                                    GraphQLUtil.createScratchFromEndpoint(myProject, endpoint, true);
-                                }
-                            });
-                        }
-                    });
+                    @Override
+                    public PopupStep onChosen(String selectedValue, boolean finalChoice) {
+                        return doFinalStep(() -> {
+                            if (introspect.equals(selectedValue)) {
+                                GraphQLIntrospectionService.getInstance(myProject)
+                                    .performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
+                            } else if (createScratch.equals(selectedValue)) {
+                                GraphQLUtil.createScratchFromEndpoint(myProject, endpoint, true);
+                            }
+                        });
+                    }
+                });
             if (inputEvent instanceof KeyEvent) {
                 listPopup.showInFocusCenter();
             } else if (inputEvent instanceof MouseEvent) {

@@ -1,0 +1,17 @@
+schema:
+  - rootSchema.graphql
+  - https://rickandmortyapi.com/graphql:
+      headers:
+        User-Agent: GraphQL IDE
+  - https://graphql.anilist.co/
+extensions:
+  endpoints:
+    Root 1 Endpoint: https://rickandmortyapi.com/graphql
+    Root 2 Endpoint:
+      url: https://rickandmortyapi.com/graphql
+      headers:
+        User-Agent: GraphQL IDE
+        Authorization: bearer ${TOKEN}
+        Cache-Control:
+        Max-Age: 36000
+      introspect: false
