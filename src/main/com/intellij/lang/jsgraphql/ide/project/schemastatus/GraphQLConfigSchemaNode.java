@@ -12,7 +12,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
@@ -51,12 +50,15 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
                                       @Nullable GraphQLProjectConfig projectConfig) {
         super(project, parent);
         myConfig = config;
-        // use the last part of the folder as name
-        myName = StringUtils.substringAfterLast(config.getDir().getPath(), "/");
+        myName = projectConfig != null
+            ? projectConfig.getName()
+            : StringUtils.substringAfterLast(config.getDir().getPath(), "/"); // use the last part of the folder as name
         myIsProjectLevelNode = projectConfig != null;
 
         getPresentation().setIcon(GraphQLIcons.Files.GraphQLSchema);
-        getPresentation().setLocationString(config.getDir().getPresentableUrl());
+        if (projectConfig == null) {
+            getPresentation().setLocationString(config.getDir().getPresentableUrl());
+        }
 
         GraphQLProjectConfig defaultProjectConfig = null;
         if (!myIsProjectLevelNode && config.hasOnlyDefaultProject()) {
@@ -164,8 +166,8 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
             if (config != null) {
                 try {
                     return config.getProjects().values().stream()
-                            .map(projectConfig -> new GraphQLConfigSchemaNode(myProject, this, config, projectConfig))
-                            .toArray(SimpleNode[]::new);
+                        .map(projectConfig -> new GraphQLConfigSchemaNode(myProject, this, config, projectConfig))
+                        .toArray(SimpleNode[]::new);
                 } catch (IndexNotReadyException ignored) {
                     // entered "dumb" mode, so just return no children as the tree view will be rebuilt as empty shortly (GraphQLSchemasRootNode)
                 }
