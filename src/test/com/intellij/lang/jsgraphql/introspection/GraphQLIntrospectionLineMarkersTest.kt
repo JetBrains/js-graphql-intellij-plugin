@@ -13,7 +13,17 @@ class GraphQLIntrospectionLineMarkersTest : GraphQLTestCaseBase() {
     }
 
     fun testYamlProjects() {
+        // note that endpoints in the root are NOT introspected,
+        // because when we have multiple projects, values on the root levels are treated as defaults only
         doTest("graphql.config.yml", listOf(23, 31, 48, 49))
+    }
+
+    fun testJson() {
+        doTest("graphql.config.json", listOf(14, 15))
+    }
+
+    fun testJsonProjects() {
+        doTest("graphql.config.json", listOf(34, 44, 71, 72))
     }
 
     private fun doTest(name: String, expectedGutterOffsets: List<Int>) {

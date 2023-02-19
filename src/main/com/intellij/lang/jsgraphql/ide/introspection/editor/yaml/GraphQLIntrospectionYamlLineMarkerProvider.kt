@@ -2,20 +2,14 @@ package com.intellij.lang.jsgraphql.ide.introspection.editor.yaml
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
-import com.intellij.icons.AllIcons
-import com.intellij.lang.jsgraphql.GraphQLBundle
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.MODERN_CONFIG_NAMES
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigKeys
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
-import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.lang.jsgraphql.ide.introspection.createIntrospectionLineMarker
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.yaml.psi.*
 
 class GraphQLIntrospectionYamlLineMarkerProvider : LineMarkerProvider {
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
-        val project = element.project
         val keyValue = element as? YAMLKeyValue ?: return null
         val file = keyValue.containingFile as? YAMLFile ?: return null
         val virtualFile = file.virtualFile ?: return null
@@ -45,30 +39,12 @@ class GraphQLIntrospectionYamlLineMarkerProvider : LineMarkerProvider {
 
             else -> false
         }
-        if (!isValidEndpoint) {
-            return null
-        }
 
-        val endpointName = keyValue.keyText.trim().takeIf { it.isNotBlank() } ?: return null
-        val configProvider = GraphQLConfigProvider.getInstance(project)
-        if (configProvider.isCachedConfigOutdated(virtualFile)) {
-            return null
+        return if (isValidEndpoint)
+            createIntrospectionLineMarker(element.project, keyValue.keyText, virtualFile, projectName, keyValue)
+        else {
+            null
         }
-        val config = configProvider.getForConfigFile(virtualFile) ?: return null
-        val endpoint = config.findProject(projectName)?.endpoints?.find { it.name == endpointName } ?: return null
-
-        val anchor = PsiTreeUtil.getDeepestFirst(keyValue)
-        return LineMarkerInfo(
-            anchor,
-            anchor.textRange,
-            AllIcons.RunConfigurations.TestState.Run,
-            { GraphQLBundle.message("graphql.introspection.run.query") },
-            { _, _ ->
-                GraphQLIntrospectionService.getInstance(project).performIntrospectionQueryAndUpdateSchemaPathFile(endpoint)
-            },
-            GutterIconRenderer.Alignment.CENTER,
-            GraphQLBundle.messagePointer("graphql.introspection.run.query")
-        )
     }
 
     private fun getParentKeyValueWithName(element: YAMLPsiElement?, name: String): YAMLKeyValue? {
