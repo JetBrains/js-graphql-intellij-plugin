@@ -130,6 +130,10 @@
                                 implementationClass="com.intellij.lang.jsgraphql.ide.formatter.GraphQLEnterBetweenBracesHandler"/>
     <typedHandler implementation="com.intellij.lang.jsgraphql.ide.editor.GraphQLTypedHandlerDelegate"/>
 
+    <!-- Notifications -->
+    <editorNotificationProvider
+      implementation="com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesEditorNotificationProvider"/>
+
     <!-- Completion -->
     <lookup.charFilter implementation="com.intellij.lang.jsgraphql.ide.completion.GraphQLCharFilter"/>
 

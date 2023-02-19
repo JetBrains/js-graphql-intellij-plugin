@@ -31,6 +31,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScopes
 import com.intellij.testFramework.LightVirtualFile
+import com.intellij.ui.EditorNotifications
 import com.intellij.util.Alarm
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.xmlb.annotations.Attribute
@@ -49,7 +50,7 @@ import kotlin.concurrent.write
 @Service(Service.Level.PROJECT)
 @State(name = "GraphQLGeneratedSources", storages = [Storage(value = StoragePathMacros.CACHE_FILE, roamingType = RoamingType.DISABLED)])
 class GraphQLGeneratedSourcesManager(
-    private val project: Project
+    private val project: Project,
 ) : Disposable,
     ModificationTracker,
     PersistentStateComponent<GraphQLGeneratedSourcesManager.GraphQLGeneratedSourceState> {
@@ -255,7 +256,7 @@ class GraphQLGeneratedSourcesManager(
         }
 
         if (result.exception != null) {
-            LOG.warn("Error during GraphQL SDL generation: $source", result.exception)
+            LOG.info("Error during GraphQL SDL generation: $source", result.exception)
         } else {
             LOG.info("GraphQL SDL generation finished: $source")
         }
@@ -283,13 +284,19 @@ class GraphQLGeneratedSourcesManager(
         GraphQLSchemaContentTracker.getInstance(project).schemaChanged()
 
         DaemonCodeAnalyzer.getInstance(project).restart()
+        EditorNotifications.getInstance(project).updateAllNotifications()
     }
 
     private fun Source.createResult(file: VirtualFile) =
         GeneratedEntry(RequestStatus.SUCCESS, timeStamp, file, null)
 
     private fun Source.createErrorResult(e: Throwable? = null) =
-        GeneratedEntry(RequestStatus.ERROR, timeStamp, null, e)
+        GeneratedEntry(
+            RequestStatus.ERROR, timeStamp, null, when (e) {
+                is CompletionException -> e.cause ?: e
+                else -> e
+            }
+        )
 
     fun reset() {
         lock.write {
@@ -319,6 +326,13 @@ class GraphQLGeneratedSourcesManager(
 
     fun getSourceFile(generatedFile: VirtualFile?): VirtualFile? {
         return generatedFile?.let { lock.read { reverseMappings[it] } }?.file?.takeIf { it.isValid }
+    }
+
+    fun getErrorForSource(sourceFile: VirtualFile?): Throwable? {
+        val source = Source.create(sourceFile) ?: return null
+        return lock.read { generatedFiles[source] }
+            ?.takeIf { it.status == RequestStatus.ERROR }
+            ?.exception
     }
 
     override fun getModificationCount(): Long = modificationTracker.modificationCount
@@ -440,7 +454,7 @@ class GraphQLGeneratedSourcesManager(
 
     data class GraphQLGeneratedSourceState(
         @get:XCollection(propertyElementName = "sources")
-        var items: List<GraphQLGeneratedSourceStateItem>? = emptyList()
+        var items: List<GraphQLGeneratedSourceStateItem>? = emptyList(),
     )
 
     @Tag("source")
