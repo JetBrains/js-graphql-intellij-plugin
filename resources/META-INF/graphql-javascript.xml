@@ -12,11 +12,6 @@
                        order="first"/>
   </extensions>
 
-  <extensions defaultExtensionNs="JavaScript">
-    <JsonSchema.ProviderFactory
-      implementation="com.intellij.lang.jsgraphql.javascript.jsonSchema.GraphQLLegacyConfigJsonSchemaProvider"/>
-  </extensions>
-
   <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">
     <fileTypeContributor
       implementation="com.intellij.lang.jsgraphql.javascript.injection.GraphQLJavaScriptFileTypeContributor"/>
