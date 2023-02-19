@@ -1,0 +1,51 @@
+schema: rootSchema.graphql
+extensions:
+  endpoints:
+    Root 1 Endpoint: https://rickandmortyapi.com/graphql
+    Root 2 Endpoint:
+      url: https://rickandmortyapi.com/graphql
+      headers:
+        User-Agent: GraphQL IDE
+        Authorization: bearer ${TOKEN}
+        Cache-Control:
+        Max-Age: 36000
+      introspect: false
+projects:
+  remote:
+    schema:
+      - http://localhost:8080/graphql:
+          headers:
+            User-Agent: GraphQL IDE
+          introspect: false
+  bar:
+    schema: './packages/bar/schema.graphql'
+    extensions:
+      endpoints:
+        Bar RickAndMorty Endpoint:
+          url: https://rickandmortyapi.com/graphql
+          headers:
+            User-Agent: GraphQL IDE
+            Authorization: bearer ${TOKEN}
+            Cache-Control:
+            Max-Age: 36000
+          introspect: false
+        Bar AniList Endpoint:
+          url: https://graphql.anilist.co/
+          headers:
+            User-Agent: GraphQL IDE
+            Authorization: bearer ${TOKEN}
+            Cache-Control:
+            Max-Age: 36000
+          introspect: false
+  multipleRemotes:
+    schema:
+      - localSchema.graphql
+      - https://rickandmortyapi.com/graphql:
+          headers:
+            User-Agent: GraphQL IDE
+      - https://graphql.anilist.co/
+    extensions:
+      endpoints:
+        MultipleRemotes RickAndMorty Endpoint: https://rickandmortyapi.com/graphql
+        MultipleRemotes AniList Endpoint: https://graphql.anilist.co/
+

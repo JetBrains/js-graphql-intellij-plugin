@@ -5,7 +5,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.introspection;
+package com.intellij.lang.jsgraphql.ide.introspection.editor.json;
 
 import com.google.gson.Gson;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
@@ -20,6 +20,7 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigConstants;
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironmentParser;
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
@@ -47,7 +48,7 @@ import java.util.stream.Stream;
 /**
  * Line marker for running an introspection against a configured endpoint url in a .graphqlconfig file
  */
-public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarkerProvider {
+public class GraphQLIntrospectionJsonLineMarkerProvider implements LineMarkerProvider {
     private static final Boolean IS_LEGACY = true; // TODO: should depend on the file
 
     @Nullable
@@ -90,11 +91,8 @@ public class GraphQLIntrospectEndpointUrlLineMarkerProvider implements LineMarke
                     }
 
                     final Project project = element.getProject();
-                    final VirtualFile introspectionSourceFile = element.getContainingFile().getVirtualFile();
 
-                    GraphQLIntrospectionService.getInstance(project).performIntrospectionQueryAndUpdateSchemaPathFile(endpoint,
-                        schemaPath, introspectionSourceFile);
-
+                    GraphQLIntrospectionService.getInstance(project).performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath);
                 },
                 GutterIconRenderer.Alignment.CENTER,
                 () -> GraphQLBundle.message("graphql.introspection.run.query")

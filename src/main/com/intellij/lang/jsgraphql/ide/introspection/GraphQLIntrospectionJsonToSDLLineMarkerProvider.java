@@ -60,17 +60,22 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
         for (JsonProperty property : ((JsonObject) jsonProperty.getValue()).getPropertyList()) {
             if ("types".equals(property.getName()) && property.getValue() instanceof JsonArray) {
                 // likely a GraphQL schema with a { __schema: { types: [] } }
-                final GraphQLIntrospectionService graphQLIntrospectionService = GraphQLIntrospectionService.getInstance(project);
+                final GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(project);
                 final Ref<Runnable> generateAction = Ref.create();
                 generateAction.set(() -> {
                     try {
                         final String introspectionJson = element.getContainingFile().getText();
-                        final String schemaAsSDL = graphQLIntrospectionService.printIntrospectionAsGraphQL(introspectionJson);
+                        final String schemaAsSDL = introspectionService.printIntrospectionAsGraphQL(introspectionJson);
 
                         final VirtualFile jsonFile = element.getContainingFile().getVirtualFile();
                         final String outputFileName = jsonFile.getName() + ".graphql";
 
-                        graphQLIntrospectionService.createOrUpdateIntrospectionOutputFile(schemaAsSDL, GraphQLIntrospectionService.IntrospectionOutputFormat.SDL, jsonFile, outputFileName);
+                        introspectionService.createOrUpdateIntrospectionOutputFile(
+                            schemaAsSDL,
+                            GraphQLIntrospectionService.IntrospectionOutputFormat.SDL,
+                            outputFileName,
+                            jsonFile.getParent()
+                        );
                     } catch (ProcessCanceledException e) {
                         throw e;
                     } catch (Exception e) {
@@ -81,8 +86,9 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
                             NotificationType.ERROR
                         );
 
-                        GraphQLNotificationUtil.addRetryFailedSchemaIntrospectionAction(notification, GraphQLSettings.getSettings(project), e, generateAction.get());
-                        graphQLIntrospectionService.addIntrospectionStackTraceAction(notification, e);
+                        GraphQLNotificationUtil.addRetryFailedSchemaIntrospectionAction(
+                            notification, GraphQLSettings.getSettings(project), e, generateAction.get());
+                        introspectionService.addIntrospectionStackTraceAction(notification, e);
                         Notifications.Bus.notify(notification.setImportant(true));
                     }
                 });

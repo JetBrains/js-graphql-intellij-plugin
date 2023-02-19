@@ -26,7 +26,7 @@ const val GRAPHQL_NOTIFICATION_GROUP_ID = GraphQLConstants.GraphQL
 
 fun showInvalidConfigurationNotification(
     message: String,
-    introspectionSourceFile: VirtualFile?,
+    configFile: VirtualFile?,
     project: Project
 ) {
     val notification = Notification(
@@ -35,11 +35,11 @@ fun showInvalidConfigurationNotification(
         message,
         NotificationType.WARNING
     )
-    if (introspectionSourceFile != null) {
+    if (configFile != null) {
         notification.addAction(
-            object : NotificationAction(GraphQLBundle.message("graphql.notification.open.file", introspectionSourceFile.name)) {
+            object : NotificationAction(GraphQLBundle.message("graphql.notification.open.file", configFile.name)) {
                 override fun actionPerformed(e: AnActionEvent, notification: Notification) {
-                    FileEditorManager.getInstance(project).openFile(introspectionSourceFile, true)
+                    FileEditorManager.getInstance(project).openFile(configFile, true)
                 }
             })
     }

@@ -14,7 +14,7 @@ public class GraphQLIntrospectionPrinterTest extends GraphQLTestCaseBase {
 
     @Override
     protected @NotNull String getBasePath() {
-        return "/introspection";
+        return "/introspection/print";
     }
 
     public void testPrintIntrospectionJsonAsGraphQL() {

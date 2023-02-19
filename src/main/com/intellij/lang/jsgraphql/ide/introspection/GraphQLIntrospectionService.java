@@ -146,21 +146,19 @@ public final class GraphQLIntrospectionService implements Disposable {
             );
             return;
         }
-        performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, configFile);
+        performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath);
     }
 
-    public void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint,
-                                                                 @NotNull String schemaPath,
-                                                                 @NotNull VirtualFile configFile) {
+    public void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint, @NotNull String schemaPath) {
         latestIntrospection = new GraphQLIntrospectionTask(endpoint,
-            () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, configFile));
+            () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath));
 
         final NotificationAction retry = new NotificationAction(GraphQLBundle.message("graphql.notification.retry")) {
 
             @Override
             public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                 notification.expire();
-                performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, configFile);
+                performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath);
             }
         };
 
@@ -168,7 +166,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         if (StringUtil.isEmptyOrSpaces(url)) {
             GraphQLNotificationUtil.showInvalidConfigurationNotification(
                 GraphQLBundle.message("graphql.notification.empty.endpoint.url"),
-                configFile,
+                endpoint.getFile(),
                 myProject
             );
             return;
@@ -180,8 +178,7 @@ public final class GraphQLIntrospectionService implements Disposable {
 
             final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
             HttpPost request = createRequest(endpoint, url, requestJson);
-            Task.Backgroundable task = new IntrospectionQueryTask(
-                request, schemaPath, configFile, retry, settings, endpoint, url);
+            Task.Backgroundable task = new IntrospectionQueryTask(request, schemaPath, retry, settings, endpoint, url);
             ProgressManager.getInstance().run(task);
         } catch (IllegalStateException | IllegalArgumentException e) {
             LOG.warn(e);
@@ -388,10 +385,10 @@ public final class GraphQLIntrospectionService implements Disposable {
 
     void createOrUpdateIntrospectionOutputFile(@NotNull String schemaText,
                                                @NotNull IntrospectionOutputFormat format,
-                                               @NotNull VirtualFile configFile,
-                                               @NotNull String outputFileName) {
+                                               @NotNull String outputFileName,
+                                               @NotNull VirtualFile dir) {
         String header = switch (format) {
-            case SDL -> "# This file was generated based on \"" + configFile.getName() + "\". Do not edit manually.\n\n";
+            case SDL -> "# This file was generated. Do not edit manually.\n\n";
             case JSON -> "";
         };
 
@@ -401,7 +398,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                 PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
 
                 VirtualFile outputFile =
-                    createOrUpdateSchemaFile(configFile, FileUtil.toSystemIndependentName(outputFileName));
+                    createOrUpdateSchemaFile(dir, FileUtil.toSystemIndependentName(outputFileName));
                 com.intellij.openapi.editor.Document document = fileDocumentManager.getDocument(outputFile);
                 if (document == null) {
                     throw new IllegalStateException("Document not found");
@@ -423,7 +420,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                     GRAPHQL_NOTIFICATION_GROUP_ID,
                     GraphQLBundle.message("graphql.notification.error.title"),
                     GraphQLBundle.message("graphql.notification.unable.to.create.file",
-                        outputFileName, configFile.getParent().getPath(), GraphQLNotificationUtil.formatExceptionMessage(e)),
+                        outputFileName, dir.getPath(), GraphQLNotificationUtil.formatExceptionMessage(e)),
                     NotificationType.ERROR
                 ));
             } catch (Exception e) {
@@ -463,13 +460,13 @@ public final class GraphQLIntrospectionService implements Disposable {
 
     @RequiresWriteLock
     @NotNull
-    private VirtualFile createOrUpdateSchemaFile(@NotNull VirtualFile configFile,
+    private VirtualFile createOrUpdateSchemaFile(@NotNull VirtualFile dir,
                                                  @NotNull String relativeOutputFileName) throws IOException {
-        VirtualFile outputFile = configFile.getParent().findFileByRelativePath(relativeOutputFileName);
+        VirtualFile outputFile = dir.findFileByRelativePath(relativeOutputFileName);
         if (outputFile == null) {
-            PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(configFile.getParent());
-            CreateFileAction.MkDirs dirs = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
-            outputFile = dirs.directory.getVirtualFile().createChildData(configFile, dirs.newName);
+            PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(dir);
+            CreateFileAction.MkDirs result = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
+            outputFile = result.directory.getVirtualFile().createChildData(dir, result.newName);
         }
         return outputFile;
     }
@@ -508,7 +505,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                         final Notification introspect = new Notification(
                             GRAPHQL_NOTIFICATION_GROUP_ID,
                             GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.title"),
-                            GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.body", endpoint.getName()),
+                            GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.body", endpoint.getDisplayName()),
                             NotificationType.INFORMATION
                         ).setImportant(true);
 
@@ -549,7 +546,6 @@ public final class GraphQLIntrospectionService implements Disposable {
     private class IntrospectionQueryTask extends Task.Backgroundable {
         private final HttpUriRequest request;
         private final String schemaPath;
-        private final VirtualFile configFile;
         private final NotificationAction retry;
         private final GraphQLSettings graphQLSettings;
         private final GraphQLConfigEndpoint endpoint;
@@ -557,7 +553,6 @@ public final class GraphQLIntrospectionService implements Disposable {
 
         public IntrospectionQueryTask(@NotNull HttpUriRequest request,
                                       @NotNull String schemaPath,
-                                      @NotNull VirtualFile configFile,
                                       @NotNull NotificationAction retry,
                                       @NotNull GraphQLSettings graphQLSettings,
                                       @NotNull GraphQLConfigEndpoint endpoint,
@@ -569,7 +564,6 @@ public final class GraphQLIntrospectionService implements Disposable {
             );
             this.request = request;
             this.schemaPath = schemaPath;
-            this.configFile = configFile;
             this.retry = retry;
             this.graphQLSettings = graphQLSettings;
             this.endpoint = endpoint;
@@ -580,8 +574,8 @@ public final class GraphQLIntrospectionService implements Disposable {
         public void run(@NotNull ProgressIndicator indicator) {
             indicator.setIndeterminate(true);
             String responseJson;
-            GraphQLConfig config = GraphQLConfigProvider.getInstance(myProject).getForConfigFile(configFile);
-            GraphQLConfigSecurity sslConfig = config != null ? GraphQLConfigSecurity.getSecurityConfig(config.getDefault()) : null;
+            GraphQLProjectConfig config = endpoint.findConfig();
+            GraphQLConfigSecurity sslConfig = config != null ? GraphQLConfigSecurity.getSecurityConfig(config) : null;
             try (final CloseableHttpClient httpClient = createHttpClient(url, sslConfig);
                  final CloseableHttpResponse response = httpClient.execute(request)) {
                 responseJson = ObjectUtils.coalesce(EntityUtils.toString(response.getEntity()), "");
@@ -618,7 +612,7 @@ public final class GraphQLIntrospectionService implements Disposable {
 
             ApplicationManager.getApplication().invokeLater(() -> {
                 try {
-                    createOrUpdateIntrospectionOutputFile(schemaText, format, configFile, schemaPath);
+                    createOrUpdateIntrospectionOutputFile(schemaText, format, schemaPath, endpoint.getDir());
                 } catch (ProcessCanceledException exception) {
                     throw exception;
                 } catch (Exception e) {
@@ -647,7 +641,7 @@ public final class GraphQLIntrospectionService implements Disposable {
             ).addAction(retry).setImportant(true);
 
             GraphQLNotificationUtil.addRetryFailedSchemaIntrospectionAction(notification, graphQLSettings, e,
-                () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath, configFile));
+                () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath));
             addIntrospectionStackTraceAction(notification, e);
 
             Notifications.Bus.notify(notification, myProject);
