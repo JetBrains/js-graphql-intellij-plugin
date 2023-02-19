@@ -254,6 +254,11 @@
                                implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLInspectionSuppressor"/>
   </extensions>
 
+  <extensions defaultExtensionNs="JavaScript">
+    <JsonSchema.ProviderFactory
+      implementation="com.intellij.lang.jsgraphql.ide.config.jsonSchema.GraphQLConfigJsonSchemaProvider"/>
+  </extensions>
+
   <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">
     <errorFilter implementation="com.intellij.lang.jsgraphql.ide.validation.GraphQLGeneralErrorFilter"/>
     <errorFilter implementation="com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayErrorFilter"/>

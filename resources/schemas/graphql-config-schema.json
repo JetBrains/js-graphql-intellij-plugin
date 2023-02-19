@@ -31,7 +31,7 @@
     },
     "projects": {
       "type": "object",
-      "description" : "One or more projects as an object keyed by project name. Values are objects with fields describing schema structure, endpoints etc.",
+      "description": "One or more projects as an object keyed by project name. Values are objects with fields describing schema structure, endpoints etc.",
       "patternProperties": {
         ".*": {
           "description": "A named project with fields for describing schema structure, endpoints etc.",

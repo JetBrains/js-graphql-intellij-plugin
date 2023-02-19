@@ -1,0 +1,162 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "anyOf": [
+    {
+      "$ref": "#/definitions/IGraphQLProjects"
+    },
+    {
+      "$ref": "#/definitions/IGraphQLProject"
+    }
+  ],
+  "definitions": {
+    "DocumentPointer": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "DocumentPointer"
+    },
+    "IExtensions": {
+      "properties": {
+        "endpoints": {
+          "type": "object",
+          "description": "GraphQL endpoints used for introspection and queries",
+          "patternProperties": {
+            ".*": {
+              "description": "A string containing the URL of the endpoint, or an object with the URL and headers",
+              "oneOf": [
+                {
+                  "type": "string",
+                  "description": "The URL of the endpoint"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "The URL of the endpoint"
+                    },
+                    "headers": {
+                      "type": "object",
+                      "description": "HTTP headers to send with requests"
+                    },
+                    "introspect": {
+                      "type": "boolean",
+                      "description": "Boolean indicating whether this endpoint should be introspected automatically by the tool that loads the configuration, e.g. an IDE"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "additionalProperties": {},
+      "description": "Configuration of each used extension",
+      "title": "IExtensions",
+      "type": "object"
+    },
+    "IGraphQLProject": {
+      "description": "GraphQL Project",
+      "properties": {
+        "documents": {
+          "$ref": "#/definitions/DocumentPointer",
+          "title": "documents"
+        },
+        "exclude": {
+          "$ref": "#/definitions/WithList<string>",
+          "title": "exclude"
+        },
+        "extensions": {
+          "$ref": "#/definitions/IExtensions",
+          "title": "extensions"
+        },
+        "include": {
+          "$ref": "#/definitions/WithList<string>",
+          "title": "include"
+        },
+        "schema": {
+          "$ref": "#/definitions/SchemaPointer",
+          "title": "schema"
+        }
+      },
+      "required": [
+        "schema"
+      ],
+      "title": "IGraphQLProject",
+      "type": "object"
+    },
+    "IGraphQLProjects": {
+      "description": "Multiple named projects",
+      "properties": {
+        "projects": {
+          "additionalProperties": {
+            "$ref": "#/definitions/IGraphQLProject"
+          },
+          "title": "projects",
+          "type": "object"
+        }
+      },
+      "required": [
+        "projects"
+      ],
+      "title": "IGraphQLProjects",
+      "type": "object"
+    },
+    "SchemaPointer": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "items": {
+            "additionalProperties": {
+              "properties": {
+                "headers": {
+                  "additionalProperties": {},
+                  "title": "headers",
+                  "type": "object"
+                }
+              },
+              "required": [
+                "headers"
+              ],
+              "type": "object"
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "SchemaPointer"
+    },
+    "WithList<string>": {
+      "anyOf": [
+        {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        {
+          "type": "string"
+        }
+      ],
+      "title": "WithList<string>"
+    }
+  },
+  "description": "Structure of GraphQL Config"
+}
