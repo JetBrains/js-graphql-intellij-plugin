@@ -49,7 +49,7 @@
                     },
                     "introspect": {
                       "type": "boolean",
-                      "description": "Boolean indicating whether this endpoint should be introspected automatically by the tool that loads the configuration, e.g. an IDE"
+                      "description": "Boolean indicating whether this endpoint should be introspected automatically"
                     }
                   }
                 }
@@ -114,26 +114,28 @@
       "anyOf": [
         {
           "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        {
-          "items": {
-            "additionalProperties": {
-              "properties": {
-                "headers": {
-                  "additionalProperties": {},
-                  "title": "headers",
-                  "type": "object"
-                }
+            "anyOf": [
+              {
+                "type": "string"
               },
-              "required": [
-                "headers"
-              ],
-              "type": "object"
-            },
-            "type": "object"
+              {
+                "additionalProperties": {
+                  "properties": {
+                    "headers": {
+                      "additionalProperties": {},
+                      "title": "headers",
+                      "type": "object"
+                    },
+                    "introspect": {
+                      "description": "Boolean indicating whether this endpoint should be introspected automatically",
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "object"
+              }
+            ]
           },
           "type": "array"
         },
