@@ -109,23 +109,6 @@ private fun addRetryWithoutDefaultValuesAction(
     }
 }
 
-fun showParseErrorNotification(project: Project, file: VirtualFile, throwable: Throwable) {
-    val notification = Notification(
-        GRAPHQL_NOTIFICATION_GROUP_ID,
-        GraphQLBundle.message("graphql.notification.unable.to.parse.file", file.name),
-        "<a href=\"${file.url}\">${file.presentableUrl}</a>: ${formatExceptionMessage(throwable)}",
-        NotificationType.WARNING
-    ) { n: Notification, event: HyperlinkEvent ->
-        val virtualFile = VirtualFileManager.getInstance().findFileByUrl(event.url.toString())
-        if (virtualFile != null) {
-            FileEditorManager.getInstance(project).openFile(virtualFile, true, true)
-        } else {
-            n.expire()
-        }
-    }
-    Notifications.Bus.notify(notification)
-}
-
 fun formatExceptionMessage(throwable: Throwable): String {
     return StringUtil.decapitalize(ObjectUtils.coalesce(throwable.message, ""))
 }
