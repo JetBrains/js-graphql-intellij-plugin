@@ -1,0 +1,28 @@
+schema: ${SCHEMA_PATH}
+include:
+  - ./some/dir/schema/**
+  - ${env:}
+  - ${env}
+  - ${}
+  - aaa ${
+projects:
+  frontend:
+    schema: ./frontend/schema.path
+    include:
+      - ./frontend/schema/**
+      - ${INCLUDE}
+  backend:
+    schema: ./backend/schema.path
+    exclude: ./backend/schema/**
+    extensions:
+      endpoints:
+        dev:
+          url: ${URL}
+          headers:
+            Authorization: Bearer ${AUTH_TOKEN}
+extensions:
+  endpoints:
+    dev:
+      url: ${URL}
+      headers:
+        Authorization: Bearer ${AUTH_TOKEN}
