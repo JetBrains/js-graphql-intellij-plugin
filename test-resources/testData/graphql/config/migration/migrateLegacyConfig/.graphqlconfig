@@ -1,0 +1,45 @@
+{
+    "schemaPath": "${env:SCHEMA_PATH}",
+    "includes": [
+        "./some/dir/schema/**",
+        "${env:}",
+        "${env}",
+        "${}",
+        "aaa ${"
+    ],
+    "projects": {
+        "frontend": {
+            "schemaPath": "./frontend/schema.path",
+            "includes": [
+                "./frontend/schema/**",
+                "${env:INCLUDE  }"
+            ]
+        },
+        "backend": {
+            "schemaPath": "./backend/schema.path",
+            "excludes": [
+                "./backend/schema/**"
+            ],
+            "extensions": {
+                "endpoints": {
+                    "dev": {
+                        "url": "${env:URL}",
+                        "headers": {
+                            "Authorization": "Bearer ${env:AUTH_TOKEN}"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "extensions": {
+        "endpoints": {
+            "dev": {
+                "url": "${env:URL}",
+                "headers": {
+                    "Authorization": "Bearer ${env:AUTH_TOKEN}"
+                }
+            }
+        }
+    }
+}

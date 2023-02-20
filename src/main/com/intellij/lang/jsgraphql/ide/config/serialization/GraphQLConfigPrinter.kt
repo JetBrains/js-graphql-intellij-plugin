@@ -5,7 +5,6 @@ import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigKeys
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawSchemaPointer
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.openapi.diagnostic.logger
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
@@ -15,10 +14,10 @@ import org.yaml.snakeyaml.representer.Represent
 import org.yaml.snakeyaml.representer.Representer
 
 
-object GraphQLConfigSerializer {
-    private val LOG = logger<GraphQLConfigSerializer>()
+object GraphQLConfigPrinter {
+    private val LOG = logger<GraphQLConfigPrinter>()
 
-    fun toYml(config: GraphQLConfig): String? {
+    fun toYml(config: GraphQLRawConfig): String? {
         return try {
             val options = DumperOptions().apply {
                 indent = 2
@@ -26,7 +25,7 @@ object GraphQLConfigSerializer {
                 defaultFlowStyle = DumperOptions.FlowStyle.BLOCK
             }
             val yaml = Yaml(ConfigRepresenter(), options)
-            yaml.dump(config.rawData)
+            yaml.dump(config)
         } catch (e: Exception) {
             LOG.warn(e)
             null

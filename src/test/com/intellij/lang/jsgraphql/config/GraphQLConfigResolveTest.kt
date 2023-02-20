@@ -7,7 +7,7 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
-import com.intellij.lang.jsgraphql.ide.config.serialization.GraphQLConfigSerializer
+import com.intellij.lang.jsgraphql.ide.config.serialization.GraphQLConfigPrinter
 import com.intellij.lang.jsgraphql.withCustomEnv
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -151,13 +151,11 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     }
 
     private fun compareContents(config: GraphQLProjectConfig) {
-        val rootConfig = config.parentConfig
-        TestCase.assertNotNull("root config is not found", rootConfig)
-        compareContents(rootConfig!!)
+        compareContents(config.parentConfig)
     }
 
     private fun compareContents(config: GraphQLConfig) {
-        val text = GraphQLConfigSerializer.toYml(config)!!
+        val text = GraphQLConfigPrinter.toYml(config.rawData)!!
         val file = PsiFileFactory.getInstance(project).createFileFromText("graphql.config.yml", YAMLFileType.YML, text)
         WriteCommandAction.runWriteCommandAction(project) {
             CodeStyleManager.getInstance(project).reformat(file)

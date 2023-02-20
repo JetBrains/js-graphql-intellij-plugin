@@ -133,6 +133,8 @@
     <!-- Notifications -->
     <editorNotificationProvider
       implementation="com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesEditorNotificationProvider"/>
+    <editorNotificationProvider
+      implementation="com.intellij.lang.jsgraphql.ide.config.migration.GraphQLMigrateLegacyConfigEditorNotificationProvider"/>
 
     <!-- Completion -->
     <lookup.charFilter implementation="com.intellij.lang.jsgraphql.ide.completion.GraphQLCharFilter"/>
@@ -293,6 +295,8 @@
 
     <action id="GraphQLRestartSchemaDiscovery"
             class="com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryAction"/>
+    <action id="GraphQLMigrateLegacyConfig"
+            class="com.intellij.lang.jsgraphql.ide.config.migration.GraphQLMigrateLegacyConfigAction"/>
   </actions>
 
 </idea-plugin>
