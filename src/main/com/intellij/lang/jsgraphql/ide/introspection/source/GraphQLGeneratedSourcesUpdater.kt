@@ -37,7 +37,6 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
         fun getInstance(project: Project) = project.service<GraphQLGeneratedSourcesUpdater>()
 
         private const val REFRESH_DELAY = 500
-        private const val RETRY_REFRESH_DELAY = 10_000
     }
 
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
@@ -104,7 +103,7 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
         refreshJsonSchemaFiles()
     }
 
-    fun refreshJsonSchemaFiles(isRetry: Boolean = false) {
+    fun refreshJsonSchemaFiles() {
         if (project.isDisposed) return
 
         if (ApplicationManager.getApplication().isUnitTestMode) {
@@ -118,7 +117,7 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
                     .withDocumentsCommitted(project)
                     .finishOnUiThread(ModalityState.defaultModalityState(), ::updateCachedSchemas)
                     .submit(executor)
-            }, if (isRetry) RETRY_REFRESH_DELAY else REFRESH_DELAY)
+            }, REFRESH_DELAY)
         }
     }
 

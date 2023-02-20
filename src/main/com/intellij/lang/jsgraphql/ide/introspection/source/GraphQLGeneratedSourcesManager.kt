@@ -61,9 +61,10 @@ class GraphQLGeneratedSourcesManager(
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLGeneratedSourcesManager>()
 
-        private const val EXECUTION_TIMEOUT_MS = 10000L
-        private const val NOTIFY_DELAY_MS = 500L
+        private const val EXECUTION_TIMEOUT = 10000L
+        private const val NOTIFY_DELAY = 500
 
+        private const val RETRY_DELAY = 5000
         private const val RETRIES_COUNT = 5
 
         private val IGNORED_INTROSPECTION_FILES = setOf(*CONFIG_NAMES.toTypedArray(), "package.json")
@@ -91,6 +92,7 @@ class GraphQLGeneratedSourcesManager(
     private val modificationTracker = SimpleModificationTracker()
 
     private val notifyChangedAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
+    private val retryAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
 
     private val executor = if (ApplicationManager.getApplication().isUnitTestMode) {
         inEdt()
@@ -161,7 +163,7 @@ class GraphQLGeneratedSourcesManager(
             }
 
             scheduleTask(source)
-                .orTimeout(EXECUTION_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+                .orTimeout(EXECUTION_TIMEOUT, TimeUnit.MILLISECONDS)
                 .whenComplete { entry, error ->
                     if (!isCancellation(error) && error !is TimeoutException) {
                         if (error != null) {
@@ -188,13 +190,13 @@ class GraphQLGeneratedSourcesManager(
     }
 
     private fun scheduleRetry(source: Source) {
-        if (project.isDisposed) return
+        if (project.isDisposed || ApplicationManager.getApplication().isUnitTestMode) return
 
         val retry =
             retries.computeIfAbsent(source) { AtomicInteger() }.incrementAndGet() <= RETRIES_COUNT
         if (retry) {
             LOG.info("Retry GraphQL SDL generation: source=$source")
-            GraphQLGeneratedSourcesUpdater.getInstance(project).refreshJsonSchemaFiles(true)
+            retryAlarm.addRequest({ requestGeneratedFile(source.file) }, RETRY_DELAY)
         } else {
             LOG.warn("Retry GraphQL SDL generation limit exceeded: source=$source")
         }
@@ -271,7 +273,7 @@ class GraphQLGeneratedSourcesManager(
             invokeLater { notifySourcesChanged() }
         } else {
             notifyChangedAlarm.cancelAllRequests()
-            notifyChangedAlarm.addRequest(::notifySourcesChanged, NOTIFY_DELAY_MS)
+            notifyChangedAlarm.addRequest(::notifySourcesChanged, NOTIFY_DELAY)
         }
     }
 
