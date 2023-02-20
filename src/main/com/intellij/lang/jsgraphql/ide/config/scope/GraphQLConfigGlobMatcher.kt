@@ -15,6 +15,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import java.io.File
 import java.nio.file.FileSystems
 import java.nio.file.Path
@@ -23,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 @Service(Service.Level.PROJECT)
-class GraphQLConfigGlobMatcher {
+class GraphQLConfigGlobMatcher(project: Project) {
     companion object {
         private val LOG = logger<GraphQLConfigGlobMatcher>()
 
@@ -31,7 +35,14 @@ class GraphQLConfigGlobMatcher {
         fun getInstance(project: Project) = project.service<GraphQLConfigGlobMatcher>()
     }
 
-    private val matchResults: MutableMap<Pair<String, String>, Boolean> = ConcurrentHashMap()
+    private val matchResults: CachedValue<MutableMap<Pair<String, String>, Boolean>> =
+        CachedValuesManager.getManager(project).createCachedValue {
+            CachedValueProvider.Result.create(
+                ConcurrentHashMap(),
+                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
+            )
+        }
+
     private val matchers: MutableMap<String, PathMatcher> = ConcurrentHashMap()
     private val groupRegex = Regex("[{}]")
 
@@ -49,7 +60,7 @@ class GraphQLConfigGlobMatcher {
             return false
         }
 
-        return matchResults.computeIfAbsent(path to glob) { (path, glob) ->
+        return matchResults.value.computeIfAbsent(path to glob) { (path, glob) ->
             try {
                 getOrCreateMatcher(glob).matches(Path.of(path))
             } catch (e: Exception) {
