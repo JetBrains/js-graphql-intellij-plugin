@@ -1,6 +1,5 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLExpandVariableContext
 import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
@@ -26,36 +25,40 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 
 
-data class GraphQLProjectConfig(
+class GraphQLProjectConfig(
     private val project: Project,
     val name: String,
-    private val ownConfig: GraphQLRawProjectConfig,
-    private val defaultConfig: GraphQLRawProjectConfig?,
-    val dir: VirtualFile,
-    val file: VirtualFile?,
-    val isRootEmpty: Boolean,
+    val rawData: GraphQLRawProjectConfig,
+    val defaultData: GraphQLRawProjectConfig?,
+    val parentConfig: GraphQLConfig,
     val environment: GraphQLEnvironmentSnapshot,
 ) {
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
 
+    val dir: VirtualFile = parentConfig.dir
+
+    val file: VirtualFile? = parentConfig.file
+
+    val isRootEmpty: Boolean = parentConfig.isEmpty
+
     val isLegacy = isLegacyConfig(file)
 
     val schema: List<GraphQLSchemaPointer> =
-        (ownConfig.schema ?: defaultConfig?.schema)?.map { GraphQLSchemaPointer(project, dir, it, isLegacy, environment) } ?: emptyList()
+        (rawData.schema ?: defaultData?.schema)?.map { GraphQLSchemaPointer(project, dir, it, isLegacy, environment) } ?: emptyList()
 
     val documents: List<String> =
-        (ownConfig.documents ?: defaultConfig?.documents)?.let { expandVariables(it, expandContext) } ?: emptyList()
+        (rawData.documents ?: defaultData?.documents)?.let { expandVariables(it, expandContext) } ?: emptyList()
 
     val extensions: Map<String, Any?> = buildMap {
-        defaultConfig?.extensions?.let { putAll(it) }
-        ownConfig.extensions?.let { putAll(it) }
+        defaultData?.extensions?.let { putAll(it) }
+        rawData.extensions?.let { putAll(it) }
     }
 
     val include: List<String> =
-        (ownConfig.include ?: defaultConfig?.include)?.let { expandVariables(it, expandContext) } ?: emptyList()
+        (rawData.include ?: defaultData?.include)?.let { expandVariables(it, expandContext) } ?: emptyList()
 
     val exclude: List<String> =
-        (ownConfig.exclude ?: defaultConfig?.exclude)?.let { expandVariables(it, expandContext) } ?: emptyList()
+        (rawData.exclude ?: defaultData?.exclude)?.let { expandVariables(it, expandContext) } ?: emptyList()
 
     private val endpointsLazy: Lazy<List<GraphQLConfigEndpoint>> = lazy { buildEndpoints() }
 
@@ -97,9 +100,6 @@ data class GraphQLProjectConfig(
 
     val schemaScope: GlobalSearchScope
         get() = schemaScopeCached.value
-
-    val parentConfig: GraphQLConfig?
-        get() = GraphQLConfigProvider.getInstance(project).getForConfigFile(file ?: dir)
 
     fun matches(context: PsiFile): Boolean {
         return getPhysicalVirtualFile(context)?.let { matches(it) } ?: false
@@ -208,5 +208,33 @@ data class GraphQLProjectConfig(
                 environment,
             )
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as GraphQLProjectConfig
+
+        if (project != other.project) return false
+        if (name != other.name) return false
+        if (rawData != other.rawData) return false
+        if (defaultData != other.defaultData) return false
+        if (environment != other.environment) return false
+        if (dir != other.dir) return false
+        if (file != other.file) return false
+        return isRootEmpty == other.isRootEmpty
+    }
+
+    override fun hashCode(): Int {
+        var result = project.hashCode()
+        result = 31 * result + name.hashCode()
+        result = 31 * result + rawData.hashCode()
+        result = 31 * result + (defaultData?.hashCode() ?: 0)
+        result = 31 * result + environment.hashCode()
+        result = 31 * result + dir.hashCode()
+        result = 31 * result + (file?.hashCode() ?: 0)
+        result = 31 * result + isRootEmpty.hashCode()
+        return result
     }
 }
