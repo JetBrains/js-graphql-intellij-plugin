@@ -134,7 +134,8 @@ public final class GraphQLIntrospectionService implements Disposable {
         }
 
         String schemaPath = projectConfig.getSchema().stream()
-            .map((pointer) -> pointer.withUIContext(endpoint.isUIContext()).getFilePath())
+            .map(GraphQLSchemaPointer::withCurrentEnvironment)
+            .map(GraphQLSchemaPointer::getFilePath)
             .filter(Objects::nonNull)
             .findFirst().orElse(null);
 

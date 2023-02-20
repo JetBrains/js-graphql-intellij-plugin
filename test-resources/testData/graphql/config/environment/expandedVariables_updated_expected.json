@@ -1,0 +1,87 @@
+{
+  "name": "default",
+  "dir": "/src",
+  "file": "/src/graphql.config.yml",
+  "isDefault": true,
+  "isLegacy": false,
+  "isRootEmpty": false,
+  "schema": [
+    {
+      "pathOrUrl": "schema.graphql",
+      "filePath": "schema.graphql",
+      "globPath": "schema.graphql",
+      "headers": {},
+      "isRemote": false
+    },
+    {
+      "pathOrUrl": "/user/some/custom/path",
+      "filePath": "/user/some/custom/path",
+      "globPath": "/user/some/custom/path",
+      "headers": {},
+      "isRemote": false
+    },
+    {
+      "pathOrUrl": "not/default/anymore/file.graphql",
+      "filePath": "not/default/anymore/file.graphql",
+      "globPath": "not/default/anymore/file.graphql",
+      "headers": {},
+      "isRemote": false
+    },
+    {
+      "pathOrUrl": "https://google.com",
+      "filePath": null,
+      "globPath": null,
+      "headers": {
+        "Authorization": "Bearer 7FGD63HHDY373UFDSJF838FSNDFK3922WSJ99"
+      },
+      "isRemote": true
+    }
+  ],
+  "documents": [
+    "path.graphql",
+    "/user/some/custom/path"
+  ],
+  "include": [
+    "/user/some/custom/path"
+  ],
+  "exclude": [
+    "/user/some/custom/path"
+  ],
+  "extensions": {
+    "endpoints": {
+      "one": {
+        "url": "https://google.com",
+        "headers": {
+          "Authorization": "Bearer ${AUTH}",
+          "InvalidButExpanded": {
+            "Nested": {
+              "Field": "${CUSTOM_PATH}"
+            }
+          }
+        }
+      }
+    }
+  },
+  "endpoints": [
+    {
+      "name": "one",
+      "displayName": "one",
+      "projectName": "default",
+      "url": "https://google.com",
+      "headers": {
+        "Authorization": "Bearer 7FGD63HHDY373UFDSJF838FSNDFK3922WSJ99",
+        "InvalidButExpanded": {
+          "Nested": {
+            "Field": "/user/some/custom/path"
+          }
+        }
+      },
+      "introspect": null
+    }
+  ],
+  "environmentVariables": {
+    "CUSTOM_PATH": "/user/some/custom/path",
+    "WITH_DEFAULT": "not/default/anymore/file.graphql",
+    "AUTH": "7FGD63HHDY373UFDSJF838FSNDFK3922WSJ99"
+  }
+}

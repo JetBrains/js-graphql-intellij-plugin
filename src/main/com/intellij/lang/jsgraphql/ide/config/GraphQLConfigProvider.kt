@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.ide.config
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.GraphQLConfigOverridePath
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironmentListener
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigLoader
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
@@ -56,7 +57,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 
 @Service(Service.Level.PROJECT)
-class GraphQLConfigProvider(private val project: Project) : Disposable, ModificationTracker {
+class GraphQLConfigProvider(private val project: Project) : Disposable, ModificationTracker, GraphQLConfigEnvironmentListener {
     companion object {
         private val LOG = logger<GraphQLConfigProvider>()
 
@@ -77,6 +78,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         GraphQLFileTypeContributor.EP_NAME.addChangeListener({ invalidate() }, this)
         GraphQLInjectedLanguage.EP_NAME.addChangeListener({ invalidate() }, this)
         GraphQLConfigContributor.EP_NAME.addChangeListener({ invalidate() }, this)
+
+        project.messageBus.connect(this).subscribe(GraphQLConfigEnvironmentListener.TOPIC, this)
     }
 
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
@@ -304,6 +307,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     fun invalidate(configFile: VirtualFile? = null) {
         if (configFile != null) {
             configData.remove(configFile)
+            if (configFile.isDirectory) {
+                contributedConfigs.set(emptyMap())
+            }
         } else {
             initialized = false
             configData.clear()
@@ -389,6 +395,18 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         } else {
             false
         }
+    }
+
+    override fun onEnvironmentChanged() {
+        configData.values
+            .asSequence()
+            .mapNotNull { it.config }
+            .flatMap { it.getProjects().values }
+            .filter { it.environment.variables.isNotEmpty() }
+            .mapTo(mutableSetOf()) { it.file ?: it.dir }
+            .forEach {
+                invalidate(it)
+            }
     }
 
     private fun notifyConfigurationChanged() {

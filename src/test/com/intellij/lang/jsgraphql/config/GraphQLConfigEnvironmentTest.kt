@@ -8,9 +8,14 @@
 package com.intellij.lang.jsgraphql.config
 
 import com.google.gson.Gson
+import com.intellij.json.JsonFileType
+import com.intellij.lang.jsgraphql.GraphQLConfigTestPrinter
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
-import com.intellij.lang.jsgraphql.ide.config.expandVariables
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLExpandVariableContext
+import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
+import com.intellij.lang.jsgraphql.ide.config.env.extractEnvironmentVariables
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
 import com.intellij.lang.jsgraphql.withCustomEnv
@@ -20,12 +25,46 @@ import java.util.function.Function
 
 class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
 
+    override fun getBasePath(): String = "/config/environment"
+
+    fun testExpandedVariables() {
+        withCustomEnv(
+            project,
+            mapOf(
+                "CUSTOM_PATH" to "/user/some/custom/path",
+                "AUTH" to "7FGD63HHDY373UFDSJF838FSNDFK3922WSJ99"
+            ),
+        ) {
+            myFixture.copyDirectoryToProject(getTestName(true), "")
+            reloadConfiguration()
+
+            val config = GraphQLConfigProvider.getInstance(project).getAllConfigs().first().getDefault()!!
+            myFixture.configureByText(JsonFileType.INSTANCE, GraphQLConfigTestPrinter(config).print())
+            myFixture.checkResultByFile("${getTestName(false)}_expected.json")
+
+            GraphQLConfigEnvironment.getInstance(project).setExplicitVariable("WITH_DEFAULT", "not/default/anymore/file.graphql")
+            reloadConfiguration()
+
+            val updatedConfig = GraphQLConfigProvider.getInstance(project).getAllConfigs().first().getDefault()!!
+            myFixture.configureByText(JsonFileType.INSTANCE, GraphQLConfigTestPrinter(updatedConfig).print())
+            myFixture.checkResultByFile("${getTestName(false)}_updated_expected.json")
+
+        }
+    }
+
     fun testExpandedVariablesLegacy() {
-        withCustomEnv(emptyMap()) {
-            val data = GraphQLRawEndpoint("remoteUrl", "http://localhost/")
-            val endpoint = GraphQLConfigEndpoint(
-                myFixture.project, data, project.guessProjectDir()!!, null, isLegacy = true, isUIContext = false
-            )
+        withCustomEnv(project, emptyMap()) {
+            val dir = project.guessProjectDir()!!
+
+            fun createEndpoint(data: GraphQLRawEndpoint): GraphQLConfigEndpoint {
+                val isLegacy = true
+                val snapshot = GraphQLConfigEnvironment.getInstance(project)
+                    .createSnapshot(extractEnvironmentVariables(project, isLegacy, data))
+                return GraphQLConfigEndpoint(myFixture.project, data, dir, null, isLegacy, snapshot)
+            }
+
+            val initial = GraphQLRawEndpoint("remoteUrl", "http://localhost/")
+            var endpoint = createEndpoint(initial)
 
             // setup env var resolver
             GraphQLConfigEnvironment.getEnvVariable = Function { name: String? -> "$name-value" }
@@ -34,15 +73,19 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
             Assert.assertEquals("http://localhost/", endpoint.url)
 
             // add a variable and verify it's expanded
-            data.url += "\${env:test-var}"
+            endpoint = createEndpoint(initial.copy(url = initial.url + "\${env:test-var}"))
             Assert.assertEquals("http://localhost/test-var-value", endpoint.url)
 
             // verify headers as well as nested header objects are expanded
-            data.headers = mapOf(
-                "boolean" to true,
-                "number" to 3.14,
-                "auth" to "$ some value before \${env:auth} \${test",
-                "nested" to mapOf("nested-auth" to "$ some value before \${env:auth} \${test")
+            endpoint = createEndpoint(
+                initial.copy(
+                    headers = mapOf(
+                        "boolean" to true,
+                        "number" to 3.14,
+                        "auth" to "$ some value before \${env:auth} \${test",
+                        "nested" to mapOf("nested-auth" to "$ some value before \${env:auth} \${test")
+                    )
+                )
             )
             Assert.assertEquals(
                 "{\"boolean\":true,\"number\":3.14,\"auth\":\"$ some value before auth-value \${test\",\"nested\":{\"nested-auth\":\"$ some value before auth-value \${test\"}}",
@@ -52,6 +95,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
             // verify that as variables change values, the nested objects are expanded
             // this verifies that the values in the original maps are not overwritten as part of the expansion
             GraphQLConfigEnvironment.getEnvVariable = Function { name: String? -> "$name-new-value" }
+            endpoint = endpoint.withCurrentEnvironment()
             Assert.assertEquals(
                 "{\"boolean\":true,\"number\":3.14,\"auth\":\"$ some value before auth-new-value \${test\",\"nested\":{\"nested-auth\":\"$ some value before auth-new-value \${test\"}}",
                 Gson().toJson(endpoint.headers)
@@ -60,7 +104,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
     }
 
     fun testInterpolation() {
-        withCustomEnv(emptyMap()) {
+        withCustomEnv(project, emptyMap()) {
             val env = mapOf(
                 "HOME" to "/usr/bin",
                 "PATH" to """C:\Users\my-path"""
@@ -69,9 +113,14 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
             GraphQLConfigEnvironment.getEnvVariable = Function { name: String? -> env[name] }
 
             fun test(expected: String, value: String, isLegacy: Boolean) {
+                val snapshot = GraphQLConfigEnvironment.getInstance(project).createSnapshot(env.keys)
+
                 Assert.assertEquals(
                     expected,
-                    expandVariables(myFixture.project, value, myFixture.project.guessProjectDir()!!, isLegacy, false)
+                    expandVariables(
+                        value,
+                        GraphQLExpandVariableContext(myFixture.project, myFixture.project.guessProjectDir()!!, isLegacy, snapshot)
+                    )
                 )
             }
 

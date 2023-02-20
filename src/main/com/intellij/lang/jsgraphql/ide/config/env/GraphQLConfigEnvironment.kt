@@ -1,11 +1,14 @@
 package com.intellij.lang.jsgraphql.ide.config.env
 
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.ModificationTracker
+import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
@@ -22,7 +25,7 @@ import javax.swing.JComponent
 
 
 @Service(Service.Level.PROJECT)
-class GraphQLConfigEnvironment(private val project: Project) {
+class GraphQLConfigEnvironment(private val project: Project) : ModificationTracker {
     companion object {
         @JvmField
         @VisibleForTesting
@@ -42,6 +45,11 @@ class GraphQLConfigEnvironment(private val project: Project) {
     }
 
     private val explicitVariables: ConcurrentMap<String, String> = ConcurrentHashMap()
+    private val modificationTracker = SimpleModificationTracker()
+
+    fun createSnapshot(variables: Collection<String>): GraphQLEnvironmentSnapshot {
+        return GraphQLEnvironmentSnapshot(variables.associateWith { getVariable(it) })
+    }
 
     fun setExplicitVariable(name: String, value: String?) {
         if (value == null) {
@@ -49,33 +57,29 @@ class GraphQLConfigEnvironment(private val project: Project) {
         } else {
             explicitVariables[name] = value
         }
+
+        notifyEnvironmentChanged()
     }
 
-    fun getVariable(name: String?, dir: VirtualFile? = null, isUIContext: Boolean = false): String? {
+    fun getExplicitVariable(name: String): String? {
+        return explicitVariables[name]
+    }
+
+    fun getVariable(name: String?, dir: VirtualFile? = null): String? {
         if (name.isNullOrBlank()) {
             return null
         }
 
         // Try to load the variable from the jvm parameters
         var value = getEnvVariable.apply(name)
-        // If the variable wasn't found in the system try to see if the user has a .env file with the variable
         if (value.isNullOrBlank()) {
             value = tryToGetVariableFromDotEnvFile(name, dir)
         }
         if (value.isNullOrBlank()) {
-            value = EnvironmentUtil.getValue(name)
-        }
-        // If it still wasn't found present the user with a dialog to enter the variable
-        if (value.isNullOrBlank() && isUIContext) {
-            val dialog = VariableDialog(project, name, explicitVariables)
-            value = if (dialog.showAndGet()) {
-                dialog.value
-            } else {
-                null
-            }
+            value = explicitVariables[name]
         }
         if (value.isNullOrBlank()) {
-            value = explicitVariables[name]
+            value = EnvironmentUtil.getValue(name)
         }
         return value
     }
@@ -116,6 +120,13 @@ class GraphQLConfigEnvironment(private val project: Project) {
         return null
     }
 
+    fun notifyEnvironmentChanged() {
+        invokeLater {
+            modificationTracker.incModificationCount()
+            project.messageBus.syncPublisher(GraphQLConfigEnvironmentListener.TOPIC).onEnvironmentChanged()
+        }
+    }
+
     private fun createDotenvBuilder(path: String): DotenvBuilder {
         return Dotenv
             .configure()
@@ -124,38 +135,43 @@ class GraphQLConfigEnvironment(private val project: Project) {
             .ignoreIfMissing()
     }
 
-    private class VariableDialog(
-        project: Project,
-        private val name: String,
-        private val explicitVariables: MutableMap<String, String>
-    ) : DialogWrapper(project) {
+    override fun getModificationCount(): Long = modificationTracker.modificationCount
+}
 
-        private val textField = JBTextField().apply {
-            text = explicitVariables.getOrDefault(name, "")
-        }
+class GraphQLVariableDialog(private val project: Project, private val name: String) : DialogWrapper(project) {
 
-        init {
-            title = "Enter Missing GraphQL \"$name\" Environment Variable"
-            init()
-        }
+    private val textField = JBTextField().apply {
+        text = GraphQLConfigEnvironment.getInstance(project).getExplicitVariable(name).orEmpty()
+    }
 
-        override fun createCenterPanel(): JComponent? {
-            myPreferredFocusedComponent = textField
-            val hint =
-                JBLabel("<html><b>Hint</b>: Specify environment variables using <code>-DvarName=varValue</code> on the IDE command line.<div style=\"margin-top: 6\">This dialog stores the entered value until the IDE is restarted.</div></html>")
-            return FormBuilder.createFormBuilder().addLabeledComponent(name, textField).addComponent(hint).panel
-        }
+    val value: String
+        get() = textField.text
 
-        override fun getPreferredFocusedComponent(): JComponent {
-            return textField
-        }
+    init {
+        title = "Enter Missing GraphQL \"$name\" Environment Variable"
+        init()
+    }
 
-        override fun doOKAction() {
-            explicitVariables[name] = textField.text
-            super.doOKAction()
-        }
+    override fun createCenterPanel(): JComponent? {
+        myPreferredFocusedComponent = textField
+        val hint =
+            JBLabel("<html><b>Hint</b>: Specify environment variables using <code>-DvarName=varValue</code> on the IDE command line.<div style=\"margin-top: 6\">This dialog stores the entered value until the IDE is restarted.</div></html>")
+        return FormBuilder.createFormBuilder().addLabeledComponent(name, textField).addComponent(hint).panel
+    }
 
-        val value: String
-            get() = textField.text
+    override fun getPreferredFocusedComponent(): JComponent {
+        return textField
+    }
+
+    override fun doOKAction() {
+        GraphQLConfigEnvironment.getInstance(project).setExplicitVariable(name, value)
+
+        super.doOKAction()
+    }
+}
+
+data class GraphQLEnvironmentSnapshot(val variables: Map<String, String?>) {
+    companion object {
+        val EMPTY = GraphQLEnvironmentSnapshot(emptyMap())
     }
 }

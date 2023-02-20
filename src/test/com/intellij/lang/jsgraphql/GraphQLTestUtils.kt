@@ -38,7 +38,7 @@ fun withSettings(
     project: Project,
     consumer: Consumer<GraphQLSettings>,
     onDispose: Runnable?,
-    disposable: Disposable
+    disposable: Disposable,
 ) {
     val settings = GraphQLSettings.getSettings(project)
     val previousState = settings.state!!
@@ -55,7 +55,7 @@ fun withLibrary(
     project: Project,
     libraryDescriptor: GraphQLLibraryDescriptor,
     testCase: Runnable,
-    disposable: Disposable
+    disposable: Disposable,
 ) {
     withSettings(project, { settings: GraphQLSettings ->
         if (libraryDescriptor === GraphQLLibraryTypes.RELAY) {
@@ -77,10 +77,12 @@ private fun updateLibraries(project: Project) {
     PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 }
 
-fun withCustomEnv(env: Map<String, String?>, runnable: Runnable) {
+fun withCustomEnv(project: Project, env: Map<String, String?>, runnable: Runnable) {
     val before = GraphQLConfigEnvironment.getEnvVariable
     GraphQLConfigEnvironment.getEnvVariable = Function { env[it] }
     try {
+        GraphQLConfigEnvironment.getInstance(project).notifyEnvironmentChanged()
+        PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
         runnable.run()
     } finally {
         GraphQLConfigEnvironment.getEnvVariable = before

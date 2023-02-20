@@ -42,8 +42,8 @@ data class GraphQLRawSchemaPointer(
 )
 
 data class GraphQLRawEndpoint(
-    var name: String? = null,
-    var url: String? = null,
-    var headers: Map<String, Any?> = emptyMap(),
-    var introspect: Boolean? = false,
+    val name: String? = null,
+    val url: String? = null,
+    val headers: Map<String, Any?> = emptyMap(),
+    val introspect: Boolean? = false,
 )

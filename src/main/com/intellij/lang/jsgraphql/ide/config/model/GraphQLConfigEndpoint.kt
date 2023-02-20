@@ -8,8 +8,12 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.config.expandVariables
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLExpandVariableContext
+import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
+import com.intellij.lang.jsgraphql.ide.config.parseMap
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -19,21 +23,23 @@ data class GraphQLConfigEndpoint(
     val dir: VirtualFile,
     private val configPointer: GraphQLConfigPointer?,
     val isLegacy: Boolean,
-    val isUIContext: Boolean,
+    val environment: GraphQLEnvironmentSnapshot,
 ) {
     val name: String? = data.name ?: data.url // raw url is used intentionally
 
-    val displayName: String
-        get() = data.name
-            ?: url
-            ?: configPointer?.file?.name
-            ?: dir.path
+    val url: String? = expandVariables(data.url, GraphQLExpandVariableContext(project, dir, isLegacy, environment))
 
-    val url: String?
-        get() = data.url?.let { expandVariables(project, it, dir, isLegacy, isUIContext) }
+    val displayName: String = data.name
+        ?: url
+        ?: configPointer?.file?.name
+        ?: dir.path
 
-    val headers: Map<String, Any?>
-        get() = expandVariables(project, data.headers, dir, isLegacy, isUIContext)
+    val headers: Map<String, Any?> = parseMap(
+        expandVariables(
+            data.headers,
+            GraphQLExpandVariableContext(project, dir, isLegacy, environment)
+        )
+    ) ?: emptyMap()
 
     val file: VirtualFile? = configPointer?.file
 
@@ -41,14 +47,14 @@ data class GraphQLConfigEndpoint(
 
     val introspect: Boolean? = data.introspect
 
+    fun withCurrentEnvironment(): GraphQLConfigEndpoint {
+        return copy(environment = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys))
+    }
+
     fun findConfig(): GraphQLProjectConfig? {
         val provider = GraphQLConfigProvider.getInstance(project)
         val config = provider.getForConfigFile(configPointer?.fileOrDir)
         return config?.findProject(configPointer?.projectName) ?: config?.getDefault()
-    }
-
-    fun withUIContext(newIsUIContext: Boolean): GraphQLConfigEndpoint {
-        return copy(isUIContext = newIsUIContext)
     }
 
     override fun toString(): String {

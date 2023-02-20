@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 val pluginGroup = prop("pluginGroup")
 val pluginVersion = prop("pluginVersion")
 val pluginSinceBuild = prop("pluginSinceBuild")
@@ -101,10 +103,11 @@ tasks {
         options.encoding = "UTF-8"
     }
 
-    compileKotlin {
+    withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = "17"
-            languageVersion = "1.7"
+            languageVersion = "1.8"
+            // see https://plugins.jetbrains.com/docs/intellij/using-kotlin.html#kotlin-standard-library
             apiVersion = "1.7"
             freeCompilerArgs = listOf("-Xjvm-default=all")
         }

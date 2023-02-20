@@ -1,6 +1,9 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLExpandVariableContext
+import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigKeys
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
@@ -22,6 +25,7 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 
+
 data class GraphQLProjectConfig(
     private val project: Project,
     val name: String,
@@ -30,29 +34,38 @@ data class GraphQLProjectConfig(
     val dir: VirtualFile,
     val file: VirtualFile?,
     val isRootEmpty: Boolean,
+    val environment: GraphQLEnvironmentSnapshot,
 ) {
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
 
-    val schema: List<GraphQLSchemaPointer> = (ownConfig.schema ?: defaultConfig?.schema ?: emptyList()).map {
-        GraphQLSchemaPointer(project, dir, it, isLegacy, false)
-    }
+    val isLegacy = isLegacyConfig(file)
 
-    val documents: List<String> = ownConfig.documents ?: defaultConfig?.documents ?: emptyList()
+    val schema: List<GraphQLSchemaPointer> =
+        (ownConfig.schema ?: defaultConfig?.schema)?.map { GraphQLSchemaPointer(project, dir, it, isLegacy, environment) } ?: emptyList()
+
+    val documents: List<String> =
+        (ownConfig.documents ?: defaultConfig?.documents)?.let { expandVariables(it, expandContext) } ?: emptyList()
 
     val extensions: Map<String, Any?> = buildMap {
         defaultConfig?.extensions?.let { putAll(it) }
         ownConfig.extensions?.let { putAll(it) }
     }
 
-    val include: List<String> = ownConfig.include ?: defaultConfig?.include ?: emptyList()
+    val include: List<String> =
+        (ownConfig.include ?: defaultConfig?.include)?.let { expandVariables(it, expandContext) } ?: emptyList()
 
-    val exclude: List<String> = ownConfig.exclude ?: defaultConfig?.exclude ?: emptyList()
+    val exclude: List<String> =
+        (ownConfig.exclude ?: defaultConfig?.exclude)?.let { expandVariables(it, expandContext) } ?: emptyList()
 
     private val endpointsLazy: Lazy<List<GraphQLConfigEndpoint>> = lazy { buildEndpoints() }
 
     val endpoints = endpointsLazy.value
 
     val isDefault = name == GraphQLConfig.DEFAULT_PROJECT
+
+    // need to create a new one for each invocation, because it has its own state
+    private val expandContext
+        get() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 
     private val matchingCache = GraphQLFileMatcherCache.newInstance(project)
 
@@ -85,7 +98,7 @@ data class GraphQLProjectConfig(
     val schemaScope: GlobalSearchScope
         get() = schemaScopeCached.value
 
-    val rootConfig: GraphQLConfig?
+    val parentConfig: GraphQLConfig?
         get() = GraphQLConfigProvider.getInstance(project).getForConfigFile(file ?: dir)
 
     fun matches(context: PsiFile): Boolean {
@@ -152,9 +165,6 @@ data class GraphQLProjectConfig(
         }
     }
 
-    val isLegacy
-        get() = isLegacyConfig(file)
-
     private fun buildEndpoints(): List<GraphQLConfigEndpoint> {
         val endpointsMap =
             extensions[GraphQLConfigKeys.EXTENSION_ENDPOINTS] as? Map<*, *> ?: return emptyList()
@@ -195,7 +205,7 @@ data class GraphQLProjectConfig(
                 dir,
                 GraphQLConfigPointer(file ?: dir, name),
                 isLegacy,
-                false
+                environment,
             )
         }
     }
