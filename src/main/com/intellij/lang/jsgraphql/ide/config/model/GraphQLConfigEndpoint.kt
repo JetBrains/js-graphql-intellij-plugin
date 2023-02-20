@@ -48,7 +48,7 @@ data class GraphQLConfigEndpoint(
     val introspect: Boolean? = data.introspect
 
     fun withCurrentEnvironment(): GraphQLConfigEndpoint {
-        return copy(environment = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys))
+        return copy(environment = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir))
     }
 
     fun findConfig(): GraphQLProjectConfig? {

@@ -63,11 +63,11 @@ data class GraphQLConfig(
 
         val environment = GraphQLConfigEnvironment.getInstance(project)
         return if (rawData.projects.isNullOrEmpty()) {
-            val snapshot = environment.createSnapshot(extractEnvironmentVariables(project, isLegacy, root))
+            val snapshot = environment.createSnapshot(extractEnvironmentVariables(project, isLegacy, root), dir)
             mapOf(DEFAULT_PROJECT to GraphQLProjectConfig(project, DEFAULT_PROJECT, root, null, this, snapshot))
         } else {
             rawData.projects.mapValues { (name, config) ->
-                val snapshot = environment.createSnapshot(extractEnvironmentVariables(project, isLegacy, config, root))
+                val snapshot = environment.createSnapshot(extractEnvironmentVariables(project, isLegacy, config, root), dir)
                 GraphQLProjectConfig(project, name, config, root, this, snapshot)
             }
         }
