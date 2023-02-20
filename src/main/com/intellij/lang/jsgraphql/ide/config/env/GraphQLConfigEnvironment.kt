@@ -1,5 +1,7 @@
 package com.intellij.lang.jsgraphql.ide.config.env
 
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -9,6 +11,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
@@ -47,8 +50,8 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     private val explicitVariables: ConcurrentMap<String, String> = ConcurrentHashMap()
     private val modificationTracker = SimpleModificationTracker()
 
-    fun createSnapshot(variables: Collection<String>): GraphQLEnvironmentSnapshot {
-        return GraphQLEnvironmentSnapshot(variables.associateWith { getVariable(it) })
+    fun createSnapshot(variables: Collection<String>, dir: VirtualFile?): GraphQLEnvironmentSnapshot {
+        return GraphQLEnvironmentSnapshot(variables.associateWith { getVariable(it, dir) })
     }
 
     fun setExplicitVariable(name: String, value: String?) {
@@ -65,7 +68,7 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
         return explicitVariables[name]
     }
 
-    fun getVariable(name: String?, dir: VirtualFile? = null): String? {
+    fun getVariable(name: String?, dir: VirtualFile?): String? {
         if (name.isNullOrBlank()) {
             return null
         }
@@ -85,22 +88,32 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     }
 
     private fun tryToGetVariableFromDotEnvFile(varName: String, dir: VirtualFile?): String? {
-        var value: String? = null
-
-        if (dir != null) {
-            value = findVariableValueInDirectory(dir, varName)
-        }
-
+        var value = findClosestEnvFile(dir)?.let { findVariableValueInFile(it, varName) }
         if (value == null) {
-            value = project.guessProjectDir()?.let { findVariableValueInDirectory(it, varName) }
+            value = project.guessProjectDir()
+                ?.let { findEnvFileInDirectory(it) }
+                ?.let { findVariableValueInFile(it, varName) }
         }
         return value
     }
 
-    private fun findVariableValueInDirectory(dir: VirtualFile, name: String): String? {
-        val filename = findEnvFileInDirectory(dir) ?: return null
+    private fun findClosestEnvFile(dir: VirtualFile?): VirtualFile? {
+        if (dir == null) return null
+        var file: VirtualFile? = null
+        GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, dir) {
+            file = findEnvFileInDirectory(it)
+            file == null
+        }
+        return file
+    }
+
+    private fun findVariableValueInFile(file: VirtualFile, name: String): String? {
         return try {
-            val dotenv = createDotenvBuilder(dir.path).filename(filename).load()
+            if (ApplicationManager.getApplication().isUnitTestMode) {
+                return loadFromVirtualFile(file)[name]
+            }
+
+            val dotenv = createDotenvBuilder(file.parent.path).filename(file.name).load()
             dotenv[name]
         } catch (e: DotenvException) {
             thisLogger().warn(e)
@@ -108,13 +121,24 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
         }
     }
 
-    private fun findEnvFileInDirectory(dir: VirtualFile): String? {
+    // test only, dotenv can't read from the TempFS
+    private fun loadFromVirtualFile(file: VirtualFile?): Map<String, String?> {
+        if (file == null) return emptyMap()
+        return VfsUtil.loadText(file)
+            .lines()
+            .asSequence()
+            .map { it.split('=', limit = 2) }
+            .filter { it.isNotEmpty() }
+            .associate { it[0].trim() to it.getOrNull(1)?.trim() }
+    }
+
+    private fun findEnvFileInDirectory(dir: VirtualFile): VirtualFile? {
         if (!dir.isDirectory) return null
 
         for (candidate in FILENAMES) {
             val file = dir.findChild(candidate)
-            if (file != null && file.exists()) {
-                return candidate
+            if (file != null && file.isValid) {
+                return file
             }
         }
         return null

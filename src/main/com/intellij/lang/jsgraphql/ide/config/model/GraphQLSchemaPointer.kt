@@ -32,6 +32,6 @@ data class GraphQLSchemaPointer(
     val globPath: String? = pathOrUrl.takeUnless { URLUtil.canContainUrl(it) || it.contains('$') }
 
     fun withCurrentEnvironment(): GraphQLSchemaPointer {
-        return copy(environment = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys))
+        return copy(environment = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir))
     }
 }
