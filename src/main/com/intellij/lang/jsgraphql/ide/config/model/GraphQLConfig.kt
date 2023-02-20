@@ -1,6 +1,9 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
 import com.intellij.json.JsonFileType
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot
+import com.intellij.lang.jsgraphql.ide.config.env.extractEnvironmentVariables
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
@@ -43,7 +46,9 @@ data class GraphQLConfig(
     /**
      * NULL config to store as weak referenced value in [fileToProjectCache]. Shouldn't be exposed to the outside of the class.
      */
-    private val nullConfig = GraphQLProjectConfig(project, "NULL", GraphQLRawProjectConfig.EMPTY, null, dir, file, isEmpty)
+    private val nullConfig = GraphQLProjectConfig(
+        project, "NULL", GraphQLRawProjectConfig.EMPTY, null, dir, file, isEmpty, GraphQLEnvironmentSnapshot.EMPTY
+    )
 
     private val fileToProjectCache: CachedValue<ConcurrentMap<VirtualFile, GraphQLProjectConfig>> =
         CachedValuesManager.getManager(project).createCachedValue {
@@ -56,11 +61,14 @@ data class GraphQLConfig(
     private fun initProjects(): Map<String, GraphQLProjectConfig> {
         val root = GraphQLRawProjectConfig(rawData.schema, rawData.documents, rawData.extensions, rawData.include, rawData.exclude)
 
+        val environment = GraphQLConfigEnvironment.getInstance(project)
         return if (rawData.projects.isNullOrEmpty()) {
-            mapOf(DEFAULT_PROJECT to GraphQLProjectConfig(project, DEFAULT_PROJECT, root, null, dir, file, isEmpty))
+            val snapshot = environment.createSnapshot(extractEnvironmentVariables(project, isLegacy, root))
+            mapOf(DEFAULT_PROJECT to GraphQLProjectConfig(project, DEFAULT_PROJECT, root, null, dir, file, isEmpty, snapshot))
         } else {
             rawData.projects.mapValues { (name, config) ->
-                GraphQLProjectConfig(project, name, config, root, dir, file, isEmpty)
+                val snapshot = environment.createSnapshot(extractEnvironmentVariables(project, isLegacy, config, root))
+                GraphQLProjectConfig(project, name, config, root, dir, file, isEmpty, snapshot)
             }
         }
     }

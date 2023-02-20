@@ -1,0 +1,22 @@
+schema:
+  - schema.graphql
+  - ${CUSTOM_PATH}
+  - ${WITH_DEFAULT:"./default/path/default_schema.graphql"}
+  - https://google.com:
+      headers:
+        Authorization: Bearer ${AUTH}
+documents:
+  - path.graphql
+  - ${CUSTOM_PATH}
+include: ${CUSTOM_PATH}
+exclude:
+  - ${CUSTOM_PATH}
+extensions:
+  endpoints:
+    one:
+      url: https://google.com
+      headers:
+        Authorization: Bearer ${AUTH}
+        InvalidButExpanded:
+          Nested:
+            Field: ${CUSTOM_PATH}

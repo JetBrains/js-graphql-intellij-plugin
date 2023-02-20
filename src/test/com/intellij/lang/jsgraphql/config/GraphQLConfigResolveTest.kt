@@ -50,7 +50,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     fun testSchemaInEnvVariable() {
         val filename = "dir/schema.graphql"
 
-        withCustomEnv(mapOf("SCHEMA_PATH" to filename)) {
+        withCustomEnv(project, mapOf("SCHEMA_PATH" to filename)) {
             val config = resolveConfig(filename)
             TestCase.assertEquals("/src/graphql.config.yml", config.file?.path)
             TestCase.assertEquals(filename, config.schema.first().filePath)
@@ -151,7 +151,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     }
 
     private fun compareContents(config: GraphQLProjectConfig) {
-        val rootConfig = config.rootConfig
+        val rootConfig = config.parentConfig
         TestCase.assertNotNull("root config is not found", rootConfig)
         compareContents(rootConfig!!)
     }
