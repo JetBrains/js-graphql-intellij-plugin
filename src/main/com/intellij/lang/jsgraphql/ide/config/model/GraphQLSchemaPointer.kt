@@ -1,24 +1,65 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
+import com.google.common.hash.Hashing
+import com.google.gson.Gson
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLExpandVariableContext
 import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.parseMap
+import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.URLUtil
+import java.nio.charset.StandardCharsets
 
 private val invalidPathCharsRegex = Regex("[{}$*,]")
 
 data class GraphQLSchemaPointer(
     private val project: Project,
-    private val dir: VirtualFile,
+    val dir: VirtualFile,
     val rawData: GraphQLRawSchemaPointer,
-    private val isLegacy: Boolean,
-    private val environment: GraphQLEnvironmentSnapshot,
+    val isLegacy: Boolean,
+    val environment: GraphQLEnvironmentSnapshot,
 ) {
+    companion object {
+        @JvmStatic
+        fun createPathForLocal(pointer: GraphQLSchemaPointer): String? {
+            val filePath = pointer.filePath ?: return null
+            return FileUtil.toSystemDependentName(FileUtil.join(pointer.dir.path, filePath))
+        }
+
+        @JvmStatic
+        fun createPathForRemote(pointer: GraphQLSchemaPointer): String? {
+            return createFileNameForRemote(pointer)
+                ?.let { FileUtil.toSystemDependentName(FileUtil.join(GraphQLRemoteSchemasRegistry.remoteSchemasDirPath, it)) }
+        }
+
+        @Suppress("UnstableApiUsage")
+        @JvmStatic
+        fun createFileNameForRemote(pointer: GraphQLSchemaPointer): String? {
+            val url = pointer.url ?: return null
+            val headers = try {
+                Gson().toJson(pointer.headers)
+            } catch (e: Exception) {
+                thisLogger().warn(e)
+                ""
+            }
+
+            val name = Hashing.sha256().newHasher()
+                .putString(url, StandardCharsets.UTF_8)
+                .putString(headers, StandardCharsets.UTF_8)
+                .putString(FileUtil.toSystemIndependentName(pointer.dir.path), StandardCharsets.UTF_8)
+                .hash()
+                .toString()
+
+            return "$name.graphql"
+        }
+    }
+
     val pathOrUrl: String =
         expandVariables(rawData.pathOrUrl, createExpandContext()) ?: rawData.pathOrUrl
 
@@ -27,9 +68,19 @@ data class GraphQLSchemaPointer(
 
     val isRemote: Boolean = URLUtil.canContainUrl(pathOrUrl)
 
+    val url: String? = pathOrUrl.takeIf { isRemote }
+
     val filePath: String? = pathOrUrl.takeUnless { URLUtil.canContainUrl(it) || it.contains(invalidPathCharsRegex) }
 
     val globPath: String? = pathOrUrl.takeUnless { URLUtil.canContainUrl(it) || it.contains('$') }
+
+    val outputPath: String? = if (isRemote) {
+        createPathForRemote(this)
+    } else if (filePath != null) {
+        createPathForLocal(this)
+    } else {
+        null
+    }
 
     fun withCurrentEnvironment(): GraphQLSchemaPointer {
         val snapshot = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir)

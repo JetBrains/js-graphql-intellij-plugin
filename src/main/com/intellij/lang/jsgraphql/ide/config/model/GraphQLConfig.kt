@@ -7,6 +7,7 @@ import com.intellij.lang.jsgraphql.ide.config.env.extractEnvironmentVariables
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawProjectConfig
+import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
@@ -31,6 +32,7 @@ data class GraphQLConfig(
     }
 
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
+    private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
 
     /**
      * Empty if it doesn't contain any explicit file patterns,
@@ -137,7 +139,8 @@ data class GraphQLConfig(
     private fun requiresSchemaStrictMatch(virtualFile: VirtualFile) =
         virtualFile.fileType == JsonFileType.INSTANCE ||
             generatedSourcesManager.isGeneratedFile(virtualFile) ||
-            generatedSourcesManager.isSourceForGeneratedFile(virtualFile)
+            generatedSourcesManager.isSourceForGeneratedFile(virtualFile) ||
+            remoteSchemasRegistry.isRemoteSchemaFile(virtualFile)
 }
 
 

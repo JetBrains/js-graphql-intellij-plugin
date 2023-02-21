@@ -56,7 +56,7 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
 
     override fun prepareChange(events: MutableList<out VFileEvent>): ChangeApplier? {
         var changed = false
-        val generatedFilesPath = GraphQLGeneratedSourcesManager.generatedSdlFilesPath
+        val generatedFilesPath = GraphQLGeneratedSourcesManager.generatedSdlDirPath
 
         for (event in events) {
             if (event is VFileCreateEvent) {

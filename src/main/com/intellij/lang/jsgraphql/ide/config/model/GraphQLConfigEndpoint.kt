@@ -13,6 +13,7 @@ import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLExpandVariableContext
 import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
+import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.parseMap
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -25,7 +26,7 @@ data class GraphQLConfigEndpoint(
     private val configPointer: GraphQLConfigPointer?,
     val isLegacy: Boolean,
     val environment: GraphQLEnvironmentSnapshot,
-    val computePath: Boolean?,
+    private val rawSchemaPointer: GraphQLRawSchemaPointer?,
 ) {
     val key: String? = rawData.name ?: rawData.url // raw url is used intentionally
 
@@ -44,7 +45,9 @@ data class GraphQLConfigEndpoint(
 
     val introspect: Boolean? = rawData.introspect
 
-    val hasValidUrl: Boolean = url?.let { URLUtil.canContainUrl(url) } ?: false
+    val isValidUrl: Boolean = url?.let { URLUtil.canContainUrl(url) } ?: false
+
+    val schemaPointer: GraphQLSchemaPointer? = rawSchemaPointer?.let { GraphQLSchemaPointer(project, dir, it, isLegacy, environment) }
 
     fun withCurrentEnvironment(): GraphQLConfigEndpoint {
         return copy(
