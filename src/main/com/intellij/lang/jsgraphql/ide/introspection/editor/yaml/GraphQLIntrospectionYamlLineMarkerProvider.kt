@@ -20,13 +20,13 @@ class GraphQLIntrospectionYamlLineMarkerProvider : LineMarkerProvider {
         }
 
         return when (element) {
-            is YAMLSequenceItem, is YAMLScalar -> createRemoteSchemaLineMarker(element, virtualFile)
-            is YAMLKeyValue -> createEndpointsLineMarker(element, virtualFile)
+            is YAMLSequenceItem, is YAMLScalar -> createRemoteSchemaMarker(element, virtualFile)
+            is YAMLKeyValue -> createEndpointMarker(element, virtualFile)
             else -> null
         }
     }
 
-    private fun createRemoteSchemaLineMarker(
+    private fun createRemoteSchemaMarker(
         element: PsiElement,
         virtualFile: VirtualFile,
     ): LineMarkerInfo<*>? {
@@ -92,7 +92,7 @@ class GraphQLIntrospectionYamlLineMarkerProvider : LineMarkerProvider {
         } else null
     }
 
-    private fun createEndpointsLineMarker(keyValue: YAMLKeyValue, virtualFile: VirtualFile): LineMarkerInfo<*>? {
+    private fun createEndpointMarker(keyValue: YAMLKeyValue, virtualFile: VirtualFile): LineMarkerInfo<*>? {
         val endpointsKeyValue =
             getParentKeyValueWithName(keyValue, GraphQLConfigKeys.EXTENSION_ENDPOINTS) ?: return null
         val extensionsKeyValue =
@@ -137,8 +137,6 @@ class GraphQLIntrospectionYamlLineMarkerProvider : LineMarkerProvider {
     private fun isRootKeyValue(element: PsiElement?): Boolean {
         return element?.parent
             ?.takeIf { it is YAMLMapping }
-            ?.parent
-            ?.let { it is YAMLDocument }
-            ?: false
+            ?.parent is YAMLDocument
     }
 }

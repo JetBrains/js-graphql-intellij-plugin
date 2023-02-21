@@ -31,11 +31,15 @@ class GraphQLIntrospectionLineMarkersTest : GraphQLTestCaseBase() {
     }
 
     fun testJson() {
-        doTest("graphql.config.json", listOf(14, 15))
+        doTest("graphql.config.json", listOf(4, 10, 14, 15))
     }
 
     fun testJsonProjects() {
-        doTest("graphql.config.json", listOf(34, 44, 71, 72))
+        doTest("graphql.config.json", listOf(21, 34, 44, 61, 67, 71, 72))
+    }
+
+    fun testJsonSchemaScalar() {
+        doTest("graphql.config.json", listOf(1))
     }
 
     private fun doTest(name: String, expectedGutterOffsets: List<Int>) {
