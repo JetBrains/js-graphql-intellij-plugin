@@ -16,6 +16,8 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.annotations.RequiresEdt
 
+const val GRAPHQL_CACHE_DIR_NAME = "graphql"
+
 @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 inline fun <reified T : Any> Any?.asSafely(): @kotlin.internal.NoInfer T? = this as? T
 
@@ -58,7 +60,7 @@ fun createScratchFile(
 
 fun createOverrideConfigComment(
     path: String,
-    projectName: String?
+    projectName: String?,
 ): String {
     return buildString {
         append("# ")

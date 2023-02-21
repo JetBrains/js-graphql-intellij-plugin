@@ -10,6 +10,7 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLFileTypeContributor
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
+import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
@@ -83,6 +84,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
+    private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
     private val scopeDependency = GraphQLScopeDependency.getInstance(project)
 
     private val reloadConfigAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
@@ -229,7 +231,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return CachedValuesManager.getCachedValue(context, CONFIG_CLOSEST) {
             var from: VirtualFile? = getPhysicalVirtualFile(context)
 
-            val sourceFile = generatedSourcesManager.getSourceFile(from)
+            val sourceFile = generatedSourcesManager.getSourceFile(from) ?: remoteSchemasRegistry.getSourceFile(from)
             if (sourceFile != null) {
                 from = sourceFile
             }

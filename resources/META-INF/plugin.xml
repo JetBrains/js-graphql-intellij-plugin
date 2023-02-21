@@ -83,8 +83,8 @@
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager"/>
 
     <!-- Sources -->
-    <generatedSourcesFilter implementation="com.intellij.lang.jsgraphql.ide.project.model.GraphQLGeneratedSourcesFilter"/>
-    <writingAccessProvider implementation="com.intellij.lang.jsgraphql.ide.project.model.GraphQLGeneratedSourcesWritingAccessProvider"/>
+    <generatedSourcesFilter implementation="com.intellij.lang.jsgraphql.ide.project.model.GraphQLIntrospectionSourcesFilter"/>
+    <writingAccessProvider implementation="com.intellij.lang.jsgraphql.ide.project.model.GraphQLIntrospectionWritingAccessProvider"/>
 
     <!-- Indexing -->
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex"/>
@@ -92,7 +92,7 @@
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLInjectionIndex"/>
 
     <indexedRootsProvider
-      implementation="com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesIndexableSetContributor"/>
+      implementation="com.intellij.lang.jsgraphql.ide.introspection.indexing.GraphQLIntrospectionIndexableSetContributor"/>
     <additionalLibraryRootsProvider implementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider"/>
 
     <!-- Startup -->

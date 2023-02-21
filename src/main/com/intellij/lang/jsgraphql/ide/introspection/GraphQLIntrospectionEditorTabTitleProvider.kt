@@ -7,10 +7,13 @@
  */
 package com.intellij.lang.jsgraphql.ide.introspection
 
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
+import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.openapi.fileEditor.UniqueVFilePathBuilder
 import com.intellij.openapi.fileEditor.impl.EditorTabTitleProvider
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 class GraphQLIntrospectionEditorTabTitleProvider : EditorTabTitleProvider {
@@ -20,6 +23,17 @@ class GraphQLIntrospectionEditorTabTitleProvider : EditorTabTitleProvider {
             return generatedSourcesManager.getSourceFile(file)
                 ?.let { UniqueVFilePathBuilder.getInstance().getUniqueVirtualFilePath(project, it) }
                 ?.let { "GraphQL Schema ($it)" }
+        }
+        val schemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
+        if (schemasRegistry.isRemoteSchemaFile(file)) {
+            val config = GraphQLConfigProvider.getInstance(project)
+                .getForConfigFile(schemasRegistry.getSourceFile(file)) ?: return null
+
+            return config.getProjects().values
+                .asSequence()
+                .flatMap { it.schema }
+                .find { it.isRemote && FileUtil.pathsEqual(it.outputPath, file.path) }
+                ?.let { "GraphQL Schema (${it.url})" }
         }
         return null
     }

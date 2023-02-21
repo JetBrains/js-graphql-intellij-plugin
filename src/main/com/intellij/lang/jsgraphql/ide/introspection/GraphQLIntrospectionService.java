@@ -85,6 +85,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.net.ssl.HostnameVerifier;
+import java.io.File;
 import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -100,7 +101,7 @@ public final class GraphQLIntrospectionService implements Disposable {
 
     public static final String GRAPHQL_TRUST_ALL_HOSTS = "graphql.trust.all.hosts";
 
-    private GraphQLIntrospectionTask latestIntrospection = null;
+    private volatile GraphQLIntrospectionTask latestIntrospection = null;
     private final AtomicBoolean myIntrospected = new AtomicBoolean();
     private final Project myProject;
 
@@ -126,51 +127,67 @@ public final class GraphQLIntrospectionService implements Disposable {
         VirtualFile configFile = projectConfig != null ? projectConfig.getFile() : null;
         if (projectConfig == null || configFile == null) {
             GraphQLNotificationUtil.showInvalidConfigurationNotification(
-                GraphQLBundle.message("graphql.notification.endpoint.config.not.found"),
+                GraphQLBundle.message("graphql.notification.introspection.endpoint.config.not.found"),
                 endpoint.getFile(),
                 myProject
             );
             return;
         }
 
-        GraphQLSchemaPointer pointer = projectConfig.getSchema().stream().findFirst()
-            .map(GraphQLSchemaPointer::withCurrentEnvironment).orElse(null);
-        String schemaPath = pointer != null ? pointer.getFilePath() : null;
+        if (StringUtil.isEmptyOrSpaces(endpoint.getUrl())) {
+            GraphQLNotificationUtil.showInvalidConfigurationNotification(
+                GraphQLBundle.message("graphql.notification.introspection.empty.endpoint.url"),
+                endpoint.getFile(),
+                myProject
+            );
+            return;
+        }
+
+        GraphQLSchemaPointer pointer = endpoint.getSchemaPointer();
+        String schemaPath = pointer != null ? pointer.getOutputPath() : null;
 
         if (StringUtil.isEmptyOrSpaces(schemaPath)) {
-            GraphQLNotificationUtil.showInvalidConfigurationNotification(
-                GraphQLBundle.message("graphql.notification.empty.schema.path", pointer != null ? pointer.getPathOrUrl() : "<empty>"),
-                endpoint.getFile(),
-                myProject
-            );
+            if (pointer == null || !pointer.isRemote()) {
+                GraphQLNotificationUtil.showInvalidConfigurationNotification(
+                    GraphQLBundle.message(
+                        "graphql.notification.introspection.empty.schema.path",
+                        pointer != null ? GraphQLBundle.message(
+                            "graphql.notification.introspection.empty.schema.path.provided",
+                            pointer.getPathOrUrl()
+                        ) : ""
+                    ),
+                    endpoint.getFile(),
+                    myProject
+                );
+            } else {
+                GraphQLNotificationUtil.showInvalidConfigurationNotification(
+                    GraphQLBundle.message("graphql.notification.introspection.unable.to.build.path"),
+                    endpoint.getFile(),
+                    myProject
+                );
+            }
             return;
         }
+
         performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath);
     }
 
     private void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint, @NotNull String schemaPath) {
-        latestIntrospection = new GraphQLIntrospectionTask(endpoint,
-            () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath));
+        latestIntrospection = new GraphQLIntrospectionTask(
+            endpoint,
+            () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint)
+        );
 
         final NotificationAction retry = new NotificationAction(GraphQLBundle.message("graphql.notification.retry")) {
 
             @Override
             public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                 notification.expire();
-                performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath);
+                performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
             }
         };
 
-        String url = endpoint.getUrl();
-        if (StringUtil.isEmptyOrSpaces(url)) {
-            GraphQLNotificationUtil.showInvalidConfigurationNotification(
-                GraphQLBundle.message("graphql.notification.empty.endpoint.url"),
-                endpoint.getFile(),
-                myProject
-            );
-            return;
-        }
-
+        String url = Objects.requireNonNull(endpoint.getUrl());
         try {
             final GraphQLSettings settings = GraphQLSettings.getSettings(myProject);
             String query = buildIntrospectionQuery(settings);
@@ -544,14 +561,14 @@ public final class GraphQLIntrospectionService implements Disposable {
 
     private class IntrospectionQueryTask extends Task.Backgroundable {
         private final HttpUriRequest request;
-        private final String schemaPath;
+        private final String filePath;
         private final NotificationAction retry;
         private final GraphQLSettings graphQLSettings;
         private final GraphQLConfigEndpoint endpoint;
         private final String url;
 
         public IntrospectionQueryTask(@NotNull HttpUriRequest request,
-                                      @NotNull String schemaPath,
+                                      @NotNull String filePath,
                                       @NotNull NotificationAction retry,
                                       @NotNull GraphQLSettings graphQLSettings,
                                       @NotNull GraphQLConfigEndpoint endpoint,
@@ -562,7 +579,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                 false
             );
             this.request = request;
-            this.schemaPath = schemaPath;
+            this.filePath = filePath;
             this.retry = retry;
             this.graphQLSettings = graphQLSettings;
             this.endpoint = endpoint;
@@ -595,7 +612,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                 return;
             }
 
-            IntrospectionOutputFormat format = schemaPath.endsWith(".json")
+            IntrospectionOutputFormat format = filePath.endsWith(".json")
                 ? IntrospectionOutputFormat.JSON : IntrospectionOutputFormat.SDL;
             String schemaText;
             try {
@@ -611,7 +628,14 @@ public final class GraphQLIntrospectionService implements Disposable {
 
             ApplicationManager.getApplication().invokeLater(() -> {
                 try {
-                    createOrUpdateIntrospectionOutputFile(schemaText, format, schemaPath, endpoint.getDir());
+                    File file = new File(filePath);
+                    FileUtil.createParentDirs(file);
+                    File ioDir = file.getParentFile();
+                    VirtualFile dir = ioDir != null ? LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioDir) : null;
+                    if (dir == null) {
+                        throw new IOException("unable to create target directory: path=" + filePath);
+                    }
+                    createOrUpdateIntrospectionOutputFile(schemaText, format, file.getName(), dir);
                 } catch (ProcessCanceledException exception) {
                     throw exception;
                 } catch (Exception e) {
@@ -640,7 +664,7 @@ public final class GraphQLIntrospectionService implements Disposable {
             ).addAction(retry).setImportant(true);
 
             GraphQLNotificationUtil.addRetryFailedSchemaIntrospectionAction(notification, graphQLSettings, e,
-                () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath));
+                () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint));
             addIntrospectionStackTraceAction(notification, e);
 
             Notifications.Bus.notify(notification, myProject);

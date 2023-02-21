@@ -3,13 +3,10 @@ package com.intellij.lang.jsgraphql.ide.introspection.source
 import com.google.common.hash.Hashing
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.json.JsonFileType
-import com.intellij.lang.jsgraphql.GraphQLFileType
+import com.intellij.lang.jsgraphql.*
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_NAMES
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
-import com.intellij.lang.jsgraphql.inEdt
-import com.intellij.lang.jsgraphql.inWriteAction
-import com.intellij.lang.jsgraphql.isCancellation
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
@@ -69,17 +66,17 @@ class GraphQLGeneratedSourcesManager(
 
         private val IGNORED_INTROSPECTION_FILES = setOf(*CONFIG_NAMES.toTypedArray(), "package.json")
 
-        private const val GRAPHQL_CACHE_DIR = "graphql"
         private const val GRAPHQL_SDL_DIR = "sdl"
 
-        val generatedSdlFilesPath: String
-            get() = FileUtil.join(PathManager.getConfigPath(), GRAPHQL_CACHE_DIR, GRAPHQL_SDL_DIR)
+        @JvmStatic
+        val generatedSdlDirPath: String
+            get() = FileUtil.join(PathManager.getConfigPath(), GRAPHQL_CACHE_DIR_NAME, GRAPHQL_SDL_DIR)
 
         private fun isInGeneratedSourcesRoot(file: VirtualFile?) =
             file != null &&
                 file.fileType == GraphQLFileType.INSTANCE &&
                 file.parent?.name == GRAPHQL_SDL_DIR &&
-                FileUtil.isAncestor(generatedSdlFilesPath, file.path, true)
+                FileUtil.isAncestor(generatedSdlDirPath, file.path, true)
     }
 
     private val lock = ReentrantReadWriteLock()
@@ -106,7 +103,7 @@ class GraphQLGeneratedSourcesManager(
     }
 
     fun createGeneratedSourcesScope(): GlobalSearchScope {
-        val dir = LocalFileSystem.getInstance().findFileByPath(generatedSdlFilesPath)
+        val dir = LocalFileSystem.getInstance().findFileByPath(generatedSdlDirPath)
             ?: return GlobalSearchScope.EMPTY_SCOPE
         return GlobalSearchScopes.directoryScope(project, dir, false)
     }
@@ -215,7 +212,7 @@ class GraphQLGeneratedSourcesManager(
             .thenApplyAsync({ introspection ->
                 if (project.isDisposed) throw ProcessCanceledException()
 
-                val file = generatedSdlFilesPath
+                val file = generatedSdlDirPath
                     .let { VfsUtil.createDirectories(it) }
                     .findOrCreateChildData(null, source.targetFileName)
 

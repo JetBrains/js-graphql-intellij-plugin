@@ -13,11 +13,13 @@ import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigGlobMatcher
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigSchemaScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLConfigScope
 import com.intellij.lang.jsgraphql.ide.config.scope.GraphQLFileMatcherCache
+import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -35,6 +37,7 @@ class GraphQLProjectConfig(
     val environment: GraphQLEnvironmentSnapshot,
 ) {
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
+    private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
 
     val dir: VirtualFile = parentConfig.dir
 
@@ -45,7 +48,13 @@ class GraphQLProjectConfig(
     val isLegacy = isLegacyConfig(file)
 
     val schema: List<GraphQLSchemaPointer> = (rawData.schema ?: defaultData?.schema)
-        ?.map { GraphQLSchemaPointer(project, dir, it, isLegacy, environment) }
+        ?.map {
+            GraphQLSchemaPointer(project, dir, it, isLegacy, environment).also { pointer ->
+                if (pointer.isRemote && !pointer.outputPath.isNullOrEmpty()) {
+                    remoteSchemasRegistry.associate(pointer.outputPath, file?.path ?: dir.path)
+                }
+            }
+        }
         ?: emptyList()
 
     val documents: List<String> =
@@ -68,9 +77,6 @@ class GraphQLProjectConfig(
 
     val isDefault = name == GraphQLConfig.DEFAULT_PROJECT
 
-    // need to create a new one for each invocation, because it has its own state
-    private fun createExpandContext() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
-
     private val matchingCache = GraphQLFileMatcherCache.newInstance(project)
 
     private val matchingSchemaCache = GraphQLFileMatcherCache.newInstance(project)
@@ -79,6 +85,7 @@ class GraphQLProjectConfig(
         get() = GlobalSearchScope
             .projectScope(project)
             .union(generatedSourcesManager.createGeneratedSourcesScope())
+            .union(remoteSchemasRegistry.createRemoteIntrospectionScope())
 
     private val scopeCached: CachedValue<GlobalSearchScope> =
         CachedValuesManager.getManager(project).createCachedValue {
@@ -161,7 +168,12 @@ class GraphQLProjectConfig(
         return when (pointer) {
             is List<*> -> pointer.any { matchPattern(candidate, it) }
             is String -> GraphQLConfigGlobMatcher.getInstance(project).matches(candidate, pointer, dir)
-            is GraphQLSchemaPointer -> matchPattern(candidate, pointer.globPath)
+            is GraphQLSchemaPointer -> if (pointer.isRemote) {
+                FileUtil.pathsEqual(remoteSchemasRegistry.getSourcePath(candidate), file?.path ?: dir.path)
+            } else {
+                matchPattern(candidate, pointer.globPath)
+            }
+
             else -> false
         }
     }
@@ -177,10 +189,11 @@ class GraphQLProjectConfig(
                     GraphQLConfigPointer(file ?: dir, name),
                     isLegacy,
                     environment,
-                    true,
+                    it.rawData,
                 )
             }
 
+        val localIntrospectionPath = schema.firstOrNull()?.takeUnless { it.isRemote }?.rawData
         val extensionEndpoints = extensions[GraphQLConfigKeys.EXTENSION_ENDPOINTS].asSafely<Map<*, *>>()
             ?.mapNotNull { (key: Any?, value: Any?) ->
                 val endpointName = key as? String ?: return@mapNotNull null
@@ -215,13 +228,16 @@ class GraphQLProjectConfig(
             ?.map {
                 GraphQLConfigEndpoint(
                     project, it, dir, GraphQLConfigPointer(file ?: dir, name),
-                    isLegacy, environment, false,
+                    isLegacy, environment, localIntrospectionPath,
                 )
             }
             ?: emptyList()
 
         return schemaEndpoints + extensionEndpoints
     }
+
+    // need to create a new one for each invocation, because it has its own state
+    private fun createExpandContext() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
