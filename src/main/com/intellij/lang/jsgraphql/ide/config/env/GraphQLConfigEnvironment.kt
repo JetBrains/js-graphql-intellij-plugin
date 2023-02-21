@@ -1,21 +1,36 @@
 package com.intellij.lang.jsgraphql.ide.config.env
 
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
+import com.intellij.openapi.vfs.AsyncFileListener
+import com.intellij.openapi.vfs.AsyncFileListener.ChangeApplier
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.events.*
+import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
+import com.intellij.util.Alarm
 import com.intellij.util.EnvironmentUtil
+import com.intellij.util.concurrency.annotations.RequiresEdt
 import com.intellij.util.ui.FormBuilder
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.DotenvBuilder
@@ -28,7 +43,7 @@ import javax.swing.JComponent
 
 
 @Service(Service.Level.PROJECT)
-class GraphQLConfigEnvironment(private val project: Project) : ModificationTracker {
+class GraphQLConfigEnvironment(private val project: Project) : ModificationTracker, Disposable, AsyncFileListener, DocumentListener {
     companion object {
         @JvmField
         @VisibleForTesting
@@ -45,10 +60,20 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
             ".env.dev",
             ".env"
         )
+
+        private const val SAVE_DOCUMENTS_DELAY = 2000
     }
 
     private val variables: ConcurrentMap<VirtualFile, ConcurrentMap<String, String>> = ConcurrentHashMap()
     private val modificationTracker = SimpleModificationTracker()
+
+    private val documentsToSave = ConcurrentHashMap.newKeySet<WatchedFile>()
+    private val documentsSaveAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
+
+    init {
+        VirtualFileManager.getInstance().addAsyncFileListener(this, this)
+        EditorFactory.getInstance().eventMulticaster.addDocumentListener(this, this)
+    }
 
     fun createSnapshot(variables: Collection<String>, fileOrDir: VirtualFile?): GraphQLEnvironmentSnapshot {
         return GraphQLEnvironmentSnapshot(variables.associateWith { getVariable(it, fileOrDir) })
@@ -161,6 +186,92 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
 
     private val VirtualFile.parentDirectory: VirtualFile
         get() = (if (isDirectory) this else parent) ?: this
+
+    override fun prepareChange(events: List<VFileEvent>): ChangeApplier? {
+        var changed = false
+
+        for (event in events) {
+            if (changed) break
+
+            when (event) {
+                is VFileCreateEvent -> if (event.childName in FILENAMES) {
+                    changed = true
+                }
+
+                is VFileCopyEvent -> if (event.newChildName in FILENAMES) {
+                    changed = true
+                }
+
+                is VFileDeleteEvent -> if (event.file.name in FILENAMES) {
+                    changed = true
+                }
+
+                is VFileContentChangeEvent -> if (event.file.name in FILENAMES) {
+                    changed = true
+                }
+
+                is VFileMoveEvent -> if (event.file.name in FILENAMES) {
+                    changed = true
+                }
+
+                is VFilePropertyChangeEvent -> if (event.propertyName == VirtualFile.PROP_NAME) {
+                    if (event.oldValue in FILENAMES || event.newValue in FILENAMES) {
+                        changed = true
+                    }
+                }
+            }
+        }
+
+        if (!changed) {
+            return null
+        }
+
+        return object : ChangeApplier {
+            override fun afterVfsChange() {
+                notifyEnvironmentChanged()
+            }
+        }
+    }
+
+    override fun documentChanged(event: DocumentEvent) {
+        val file = FileDocumentManager.getInstance().getFile(event.document) ?: return
+        if (file is LightVirtualFile || file.name !in FILENAMES) return
+
+        documentsToSave.add(WatchedFile(file, event.document))
+        scheduleDocumentSave()
+    }
+
+    private fun scheduleDocumentSave() {
+        if (ApplicationManager.getApplication().isUnitTestMode) {
+            invokeLater { saveDocuments() }
+        } else {
+            documentsSaveAlarm.cancelAllRequests()
+            documentsSaveAlarm.addRequest({
+                BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::saveDocuments)
+            }, SAVE_DOCUMENTS_DELAY)
+        }
+    }
+
+    @RequiresEdt
+    private fun saveDocuments() {
+        if (documentsToSave.isEmpty()) {
+            return
+        }
+
+        val documentManager = FileDocumentManager.getInstance()
+        HashSet(documentsToSave)
+            .also { documentsToSave.removeAll(it) }
+            .filter { it.file.isValid }
+            .forEach {
+                ProgressManager.checkCanceled()
+                documentManager.saveDocument(it.document)
+            }
+    }
+
+    private data class WatchedFile(val file: VirtualFile, val document: Document)
+
+    override fun dispose() {
+    }
 }
 
 class GraphQLVariableDialog(

@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.startup
 
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigWatcher
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesUpdater
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
@@ -27,6 +28,7 @@ class GraphQLStartupActivity : StartupActivity.Background {
         GraphQLConfigWatcher.getInstance(project)
         GraphQLGeneratedSourcesUpdater.getInstance(project)
         GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
+        GraphQLConfigEnvironment.getInstance(project)
 
         if (!ApplicationManager.getApplication().isUnitTestMode) {
             GraphQLUIProjectService.getService(project)
