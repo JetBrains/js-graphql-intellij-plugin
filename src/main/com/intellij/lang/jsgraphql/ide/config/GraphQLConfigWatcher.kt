@@ -156,6 +156,8 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
         .toSet()
 
     private fun scheduleDocumentSave() {
+        if (project.isDisposed) return
+
         if (ApplicationManager.getApplication().isUnitTestMode) {
             invokeLater { saveDocuments() }
         } else {
