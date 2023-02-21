@@ -38,7 +38,7 @@ class GraphQLConfigTestPrinter(private val config: GraphQLProjectConfig) {
 
     private fun buildEndpoint(endpoint: GraphQLConfigEndpoint): Any {
         return buildMap {
-            this["name"] = endpoint.name
+            this["key"] = endpoint.key
             this["displayName"] = endpoint.displayName
             this["projectName"] = endpoint.projectName
             this["url"] = endpoint.url

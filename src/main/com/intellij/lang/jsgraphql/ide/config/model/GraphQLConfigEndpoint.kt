@@ -16,39 +16,40 @@ import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.lang.jsgraphql.ide.config.parseMap
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.io.URLUtil
 
 data class GraphQLConfigEndpoint(
     private val project: Project,
-    private val data: GraphQLRawEndpoint,
+    val rawData: GraphQLRawEndpoint,
     val dir: VirtualFile,
     private val configPointer: GraphQLConfigPointer?,
     val isLegacy: Boolean,
     val environment: GraphQLEnvironmentSnapshot,
+    val computePath: Boolean?,
 ) {
-    val name: String? = data.name ?: data.url // raw url is used intentionally
+    val key: String? = rawData.name ?: rawData.url // raw url is used intentionally
 
-    val url: String? = expandVariables(data.url, GraphQLExpandVariableContext(project, dir, isLegacy, environment))
+    val url: String? = expandVariables(rawData.url, createExpandContext())
 
-    val displayName: String = data.name
+    val displayName: String = rawData.name
         ?: url
         ?: configPointer?.file?.name
         ?: dir.path
 
-    val headers: Map<String, Any?> = parseMap(
-        expandVariables(
-            data.headers,
-            GraphQLExpandVariableContext(project, dir, isLegacy, environment)
-        )
-    ) ?: emptyMap()
+    val headers: Map<String, Any?> = parseMap(expandVariables(rawData.headers, createExpandContext())) ?: emptyMap()
 
     val file: VirtualFile? = configPointer?.file
 
     val projectName: String? = configPointer?.projectName
 
-    val introspect: Boolean? = data.introspect
+    val introspect: Boolean? = rawData.introspect
+
+    val hasValidUrl: Boolean = url?.let { URLUtil.canContainUrl(url) } ?: false
 
     fun withCurrentEnvironment(): GraphQLConfigEndpoint {
-        return copy(environment = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir))
+        return copy(
+            environment = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir)
+        )
     }
 
     fun findConfig(): GraphQLProjectConfig? {
@@ -69,6 +70,8 @@ data class GraphQLConfigEndpoint(
             "$displayName - $url"
         }
     }
+
+    private fun createExpandContext() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 }
 
 /**

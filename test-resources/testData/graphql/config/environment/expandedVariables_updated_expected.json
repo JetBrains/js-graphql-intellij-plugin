@@ -21,6 +21,13 @@
       "isRemote": false
     },
     {
+      "pathOrUrl": "https://default.com/graphql",
+      "filePath": null,
+      "globPath": null,
+      "headers": {},
+      "isRemote": true
+    },
+    {
       "pathOrUrl": "not/default/anymore/file.graphql",
       "filePath": "not/default/anymore/file.graphql",
       "globPath": "not/default/anymore/file.graphql",
@@ -64,7 +71,25 @@
   },
   "endpoints": [
     {
-      "name": "one",
+      "key": "${DEFAULT_URL:https://default.com/graphql}",
+      "displayName": "https://default.com/graphql",
+      "projectName": "default",
+      "url": "https://default.com/graphql",
+      "headers": {},
+      "introspect": false
+    },
+    {
+      "key": "https://google.com",
+      "displayName": "https://google.com",
+      "projectName": "default",
+      "url": "https://google.com",
+      "headers": {
+        "Authorization": "Bearer 7FGD63HHDY373UFDSJF838FSNDFK3922WSJ99"
+      },
+      "introspect": false
+    },
+    {
+      "key": "one",
       "displayName": "one",
       "projectName": "default",
       "url": "https://google.com",
@@ -81,6 +106,7 @@
   ],
   "environmentVariables": {
     "CUSTOM_PATH": "/user/some/custom/path",
+    "DEFAULT_URL": null,
     "WITH_DEFAULT": "not/default/anymore/file.graphql",
     "AUTH": "7FGD63HHDY373UFDSJF838FSNDFK3922WSJ99"
   }

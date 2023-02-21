@@ -133,15 +133,13 @@ public final class GraphQLIntrospectionService implements Disposable {
             return;
         }
 
-        String schemaPath = projectConfig.getSchema().stream()
-            .map(GraphQLSchemaPointer::withCurrentEnvironment)
-            .map(GraphQLSchemaPointer::getFilePath)
-            .filter(Objects::nonNull)
-            .findFirst().orElse(null);
+        GraphQLSchemaPointer pointer = projectConfig.getSchema().stream().findFirst()
+            .map(GraphQLSchemaPointer::withCurrentEnvironment).orElse(null);
+        String schemaPath = pointer != null ? pointer.getFilePath() : null;
 
         if (StringUtil.isEmptyOrSpaces(schemaPath)) {
             GraphQLNotificationUtil.showInvalidConfigurationNotification(
-                GraphQLBundle.message("graphql.notification.empty.schema.path"),
+                GraphQLBundle.message("graphql.notification.empty.schema.path", pointer != null ? pointer.getPathOrUrl() : "<empty>"),
                 endpoint.getFile(),
                 myProject
             );
@@ -150,7 +148,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath);
     }
 
-    public void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint, @NotNull String schemaPath) {
+    private void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint, @NotNull String schemaPath) {
         latestIntrospection = new GraphQLIntrospectionTask(endpoint,
             () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath));
 

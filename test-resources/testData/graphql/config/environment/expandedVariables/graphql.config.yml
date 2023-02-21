@@ -1,6 +1,7 @@
 schema:
   - schema.graphql
   - ${CUSTOM_PATH}
+  - ${DEFAULT_URL:https://default.com/graphql}
   - ${WITH_DEFAULT:"./default/path/default_schema.graphql"}
   - https://google.com:
       headers:

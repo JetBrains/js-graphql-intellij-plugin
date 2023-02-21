@@ -30,7 +30,7 @@ fun createIntrospectionLineMarker(
         return null
     }
     val config = configProvider.getForConfigFile(virtualFile) ?: return null
-    val endpoint = config.findProject(projectName)?.endpoints?.find { it.name == endpointName } ?: return null
+    val endpoint = config.findProject(projectName)?.endpoints?.find { it.key == endpointName } ?: return null
 
     val anchor = PsiTreeUtil.getDeepestFirst(element)
     return LineMarkerInfo(
