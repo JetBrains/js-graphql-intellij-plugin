@@ -305,6 +305,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     @JvmOverloads
     fun invalidate(configFile: VirtualFile? = null) {
+        if (project.isDisposed) return
+
         if (configFile != null) {
             configData.remove(configFile)
             if (configFile.isDirectory) {
@@ -321,6 +323,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     fun scheduleConfigurationReload() {
+        if (project.isDisposed) return
+
         if (ApplicationManager.getApplication().isUnitTestMode) {
             invokeLater { reload() }
         } else {
@@ -332,6 +336,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     private fun reload() {
+        if (project.isDisposed) return
+        ProgressManager.checkCanceled()
+
         val discoveredConfigFiles = configFiles.value
         saveModifiedDocuments(discoveredConfigFiles)
 
@@ -411,6 +418,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     private fun notifyConfigurationChanged() {
         invokeLater(ModalityState.defaultModalityState()) {
+            if (project.isDisposed) return@invokeLater
+
             initialized = true
 
             modificationTracker.incModificationCount()
@@ -422,17 +431,21 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         }
     }
 
+    @RequiresBackgroundThread
     private fun saveModifiedDocuments(files: Collection<VirtualFile>) {
         if (files.isEmpty()) return
         val fileDocumentManager = FileDocumentManager.getInstance()
         val anyFileModified = runReadAction { files.any { fileDocumentManager.isFileModified(it) } }
         if (anyFileModified) {
-            WriteAction.runAndWait<Throwable> {
-                files
-                    .asSequence()
-                    .filter { it.isValid }
-                    .mapNotNull { fileDocumentManager.getDocument(it) }
-                    .forEach { fileDocumentManager.saveDocument(it) }
+            ApplicationManager.getApplication().invokeAndWait {
+                val documents = runReadAction {
+                    files.filter { it.isValid }.mapNotNull { fileDocumentManager.getDocument(it) }
+                }
+
+                documents.forEach {
+                    ProgressManager.checkCanceled()
+                    fileDocumentManager.saveDocument(it)
+                }
             }
         }
     }

@@ -169,6 +169,8 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
 
     fun notifyEnvironmentChanged() {
         invokeLater {
+            if (project.isDisposed) return@invokeLater
+
             modificationTracker.incModificationCount()
             project.messageBus.syncPublisher(GraphQLConfigEnvironmentListener.TOPIC).onEnvironmentChanged()
         }
@@ -254,7 +256,7 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
 
     @RequiresEdt
     private fun saveDocuments() {
-        if (documentsToSave.isEmpty()) {
+        if (project.isDisposed || documentsToSave.isEmpty()) {
             return
         }
 
