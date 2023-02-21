@@ -47,39 +47,37 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
         )
     }
 
-    private val explicitVariables: ConcurrentMap<String, String> = ConcurrentHashMap()
+    private val variables: ConcurrentMap<VirtualFile, ConcurrentMap<String, String>> = ConcurrentHashMap()
     private val modificationTracker = SimpleModificationTracker()
 
-    fun createSnapshot(variables: Collection<String>, dir: VirtualFile?): GraphQLEnvironmentSnapshot {
-        return GraphQLEnvironmentSnapshot(variables.associateWith { getVariable(it, dir) })
+    fun createSnapshot(variables: Collection<String>, fileOrDir: VirtualFile?): GraphQLEnvironmentSnapshot {
+        return GraphQLEnvironmentSnapshot(variables.associateWith { getVariable(it, fileOrDir) })
     }
 
-    fun setExplicitVariable(name: String, value: String?) {
-        if (value == null) {
-            explicitVariables.remove(name)
+    fun setExplicitVariable(name: String, value: String?, fileOrDir: VirtualFile) {
+        val key = fileOrDir.parentDirectory
+        val variables = variables.computeIfAbsent(key) { ConcurrentHashMap() }
+        if (value.isNullOrBlank()) {
+            variables.remove(name)
         } else {
-            explicitVariables[name] = value
+            variables[name] = value
         }
 
         notifyEnvironmentChanged()
     }
 
-    fun getExplicitVariable(name: String): String? {
-        return explicitVariables[name]
+    fun getExplicitVariable(name: String, fileOrDir: VirtualFile): String? {
+        return fileOrDir.parentDirectory.let { variables[it] }?.get(name)
     }
 
-    fun getVariable(name: String?, dir: VirtualFile?): String? {
-        if (name.isNullOrBlank()) {
-            return null
-        }
-
+    private fun getVariable(name: String, fileOrDir: VirtualFile?): String? {
         // Try to load the variable from the jvm parameters
         var value = getEnvVariable.apply(name)
         if (value.isNullOrBlank()) {
-            value = tryToGetVariableFromDotEnvFile(name, dir)
+            value = tryToGetVariableFromDotEnvFile(name, fileOrDir)
         }
-        if (value.isNullOrBlank()) {
-            value = explicitVariables[name]
+        if (value.isNullOrBlank() && fileOrDir != null) {
+            value = getExplicitVariable(name, fileOrDir)
         }
         if (value.isNullOrBlank()) {
             value = EnvironmentUtil.getValue(name)
@@ -87,8 +85,8 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
         return value
     }
 
-    private fun tryToGetVariableFromDotEnvFile(varName: String, dir: VirtualFile?): String? {
-        var value = findClosestEnvFile(dir)?.let { findVariableValueInFile(it, varName) }
+    private fun tryToGetVariableFromDotEnvFile(varName: String, fileOrDir: VirtualFile?): String? {
+        var value = findClosestEnvFile(fileOrDir)?.let { findVariableValueInFile(it, varName) }
         if (value == null) {
             value = project.guessProjectDir()
                 ?.let { findEnvFileInDirectory(it) }
@@ -97,14 +95,14 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
         return value
     }
 
-    private fun findClosestEnvFile(dir: VirtualFile?): VirtualFile? {
-        if (dir == null) return null
-        var file: VirtualFile? = null
-        GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, dir) {
-            file = findEnvFileInDirectory(it)
-            file == null
+    private fun findClosestEnvFile(fileOrDir: VirtualFile?): VirtualFile? {
+        if (fileOrDir == null) return null
+        var result: VirtualFile? = null
+        GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, fileOrDir) {
+            result = findEnvFileInDirectory(it)
+            result == null
         }
-        return file
+        return result
     }
 
     private fun findVariableValueInFile(file: VirtualFile, name: String): String? {
@@ -160,12 +158,19 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     }
 
     override fun getModificationCount(): Long = modificationTracker.modificationCount
+
+    private val VirtualFile.parentDirectory: VirtualFile
+        get() = (if (isDirectory) this else parent) ?: this
 }
 
-class GraphQLVariableDialog(private val project: Project, private val name: String) : DialogWrapper(project) {
+class GraphQLVariableDialog(
+    private val project: Project,
+    private val name: String,
+    private val dir: VirtualFile,
+) : DialogWrapper(project) {
 
     private val textField = JBTextField().apply {
-        text = GraphQLConfigEnvironment.getInstance(project).getExplicitVariable(name).orEmpty()
+        text = GraphQLConfigEnvironment.getInstance(project).getExplicitVariable(name, dir).orEmpty()
     }
 
     val value: String
@@ -188,7 +193,7 @@ class GraphQLVariableDialog(private val project: Project, private val name: Stri
     }
 
     override fun doOKAction() {
-        GraphQLConfigEnvironment.getInstance(project).setExplicitVariable(name, value)
+        GraphQLConfigEnvironment.getInstance(project).setExplicitVariable(name, value, dir)
 
         super.doOKAction()
     }
