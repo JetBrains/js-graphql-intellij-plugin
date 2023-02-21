@@ -61,7 +61,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
                 val isLegacy = true
                 val snapshot = GraphQLConfigEnvironment.getInstance(project)
                     .createSnapshot(extractEnvironmentVariables(project, isLegacy, data), null)
-                return GraphQLConfigEndpoint(myFixture.project, data, dir, null, isLegacy, snapshot, false)
+                return GraphQLConfigEndpoint(myFixture.project, data, dir, null, isLegacy, snapshot, null)
             }
 
             val initial = GraphQLRawEndpoint("remoteUrl", "http://localhost/")
@@ -213,5 +213,23 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
         val rootConfig = GraphQLConfigProvider.getInstance(project)
             .getForConfigFile(root.findChild("graphql.config.yml"))?.getDefault()!!
         TestCase.assertEquals("https://google.com/graphql", rootConfig.schema.single().pathOrUrl)
+    }
+
+    fun testEndpointShouldUpdateSchemaPathOnEnvChange() {
+        myFixture.copyDirectoryToProject(getTestName(true), "")
+        reloadConfiguration()
+        val config = GraphQLConfigProvider.getInstance(project).getAllConfigs().single().getDefault()!!
+        var endpoint = config.endpoints.single()
+        TestCase.assertEquals("https://default.com/graphql", endpoint.url)
+        TestCase.assertEquals("https://default.com/graphql", endpoint.schemaPointer?.url)
+
+        withCustomEnv(project, mapOf("URL" to "https://some.com/api/graphql")) {
+            TestCase.assertEquals("https://default.com/graphql", endpoint.url)
+            TestCase.assertEquals("https://default.com/graphql", endpoint.schemaPointer?.url)
+
+            endpoint = endpoint.withCurrentEnvironment()
+            TestCase.assertEquals("https://some.com/api/graphql", endpoint.url)
+            TestCase.assertEquals("https://some.com/api/graphql", endpoint.schemaPointer?.url)
+        }
     }
 }
