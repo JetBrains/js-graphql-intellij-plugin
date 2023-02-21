@@ -4,7 +4,6 @@ import com.intellij.ProjectTopics
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Document
@@ -44,7 +43,7 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
 
     private val configProvider = GraphQLConfigProvider.getInstance(project)
 
-    private val documentsToSave = ConcurrentHashMap.newKeySet<WatchedConfigFile>()
+    private val documentsToSave = ConcurrentHashMap.newKeySet<WatchedFile>()
     private val documentsSaveAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
 
     init {
@@ -143,7 +142,7 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
             override fun documentChanged(event: DocumentEvent) {
                 val virtualFile = FileDocumentManager.getInstance().getFile(event.document)
                 if (virtualFile != null && virtualFile !is LightVirtualFile && virtualFile.name in CONFIG_NAMES) {
-                    documentsToSave.add(WatchedConfigFile(virtualFile, event.document))
+                    documentsToSave.add(WatchedFile(virtualFile, event.document))
                     scheduleDocumentSave()
                 }
             }
@@ -160,11 +159,10 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
         if (ApplicationManager.getApplication().isUnitTestMode) {
             invokeLater { saveDocuments() }
         } else {
-            if (documentsSaveAlarm.isEmpty) {
-                documentsSaveAlarm.addRequest({
-                    BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::saveDocuments)
-                }, SAVE_DOCUMENTS_TIMEOUT)
-            }
+            documentsSaveAlarm.cancelAllRequests()
+            documentsSaveAlarm.addRequest({
+                BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::saveDocuments)
+            }, SAVE_DOCUMENTS_TIMEOUT)
         }
     }
 
@@ -174,19 +172,17 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
             return
         }
 
-        runWriteAction {
-            val documentManager = FileDocumentManager.getInstance()
-            HashSet(documentsToSave)
-                .also { documentsToSave.removeAll(it) }
-                .filter { it.file.isValid }
-                .forEach {
-                    ProgressManager.checkCanceled()
-                    documentManager.saveDocument(it.document)
-                }
-        }
+        val documentManager = FileDocumentManager.getInstance()
+        HashSet(documentsToSave)
+            .also { documentsToSave.removeAll(it) }
+            .filter { it.file.isValid }
+            .forEach {
+                ProgressManager.checkCanceled()
+                documentManager.saveDocument(it.document)
+            }
     }
 
-    private data class WatchedConfigFile(val file: VirtualFile, val document: Document)
+    private data class WatchedFile(val file: VirtualFile, val document: Document)
 
     override fun dispose() {
     }
