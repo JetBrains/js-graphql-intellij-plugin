@@ -15,15 +15,15 @@ private val invalidPathCharsRegex = Regex("[{}$*,]")
 data class GraphQLSchemaPointer(
     private val project: Project,
     private val dir: VirtualFile,
-    private val data: GraphQLRawSchemaPointer,
+    val rawData: GraphQLRawSchemaPointer,
     private val isLegacy: Boolean,
     private val environment: GraphQLEnvironmentSnapshot,
 ) {
     val pathOrUrl: String =
-        expandVariables(data.pathOrUrl, GraphQLExpandVariableContext(project, dir, isLegacy, environment)) ?: data.pathOrUrl
+        expandVariables(rawData.pathOrUrl, createExpandContext()) ?: rawData.pathOrUrl
 
     val headers: Map<String, Any?> =
-        parseMap(expandVariables(data.headers, GraphQLExpandVariableContext(project, dir, isLegacy, environment))) ?: emptyMap()
+        parseMap(expandVariables(rawData.headers, createExpandContext())) ?: emptyMap()
 
     val isRemote: Boolean = URLUtil.canContainUrl(pathOrUrl)
 
@@ -32,6 +32,9 @@ data class GraphQLSchemaPointer(
     val globPath: String? = pathOrUrl.takeUnless { URLUtil.canContainUrl(it) || it.contains('$') }
 
     fun withCurrentEnvironment(): GraphQLSchemaPointer {
-        return copy(environment = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir))
+        val snapshot = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir)
+        return copy(environment = snapshot)
     }
+
+    private fun createExpandContext() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 }

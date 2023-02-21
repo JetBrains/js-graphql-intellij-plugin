@@ -9,13 +9,25 @@ class GraphQLIntrospectionLineMarkersTest : GraphQLTestCaseBase() {
     override fun getBasePath() = "/introspection/lineMarkers"
 
     fun testYaml() {
-        doTest("graphql.config.yml", listOf(8, 9))
+        doTest("graphql.config.yml", listOf(2, 5, 8, 9))
     }
 
     fun testYamlProjects() {
         // note that endpoints in the root are NOT introspected,
         // because when we have multiple projects, values on the root levels are treated as defaults only
-        doTest("graphql.config.yml", listOf(23, 31, 48, 49))
+        doTest("graphql.config.yml", listOf(15, 23, 31, 42, 45, 48, 49))
+    }
+
+    fun testYamlSchemaScalar() {
+        doTest("graphql.config.yml", listOf(0))
+    }
+
+    fun testYamlUnresolvedEnvVariable() {
+        doTest("graphql.config.yml", emptyList())
+    }
+
+    fun testYamlResolvedEnvVariable() {
+        doTest("graphql.config.yml", listOf(0))
     }
 
     fun testJson() {
@@ -27,7 +39,8 @@ class GraphQLIntrospectionLineMarkersTest : GraphQLTestCaseBase() {
     }
 
     private fun doTest(name: String, expectedGutterOffsets: List<Int>) {
-        myFixture.configureByFile("${getTestName(true)}/$name")
+        myFixture.copyDirectoryToProject(getTestName(true), "")
+        myFixture.configureFromTempProjectFile(name)
         reloadConfiguration()
         val allGutters = myFixture.findAllGutters()
         TestCase.assertEquals("total gutters count", expectedGutterOffsets.size, allGutters.size)

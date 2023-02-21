@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.config.model
 
+import com.intellij.lang.jsgraphql.asSafely
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLExpandVariableContext
 import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
@@ -43,11 +44,12 @@ class GraphQLProjectConfig(
 
     val isLegacy = isLegacyConfig(file)
 
-    val schema: List<GraphQLSchemaPointer> =
-        (rawData.schema ?: defaultData?.schema)?.map { GraphQLSchemaPointer(project, dir, it, isLegacy, environment) } ?: emptyList()
+    val schema: List<GraphQLSchemaPointer> = (rawData.schema ?: defaultData?.schema)
+        ?.map { GraphQLSchemaPointer(project, dir, it, isLegacy, environment) }
+        ?: emptyList()
 
     val documents: List<String> =
-        (rawData.documents ?: defaultData?.documents)?.let { expandVariables(it, expandContext) } ?: emptyList()
+        (rawData.documents ?: defaultData?.documents)?.let { expandVariables(it, createExpandContext()) } ?: emptyList()
 
     val extensions: Map<String, Any?> = buildMap {
         defaultData?.extensions?.let { putAll(it) }
@@ -55,10 +57,10 @@ class GraphQLProjectConfig(
     }
 
     val include: List<String> =
-        (rawData.include ?: defaultData?.include)?.let { expandVariables(it, expandContext) } ?: emptyList()
+        (rawData.include ?: defaultData?.include)?.let { expandVariables(it, createExpandContext()) } ?: emptyList()
 
     val exclude: List<String> =
-        (rawData.exclude ?: defaultData?.exclude)?.let { expandVariables(it, expandContext) } ?: emptyList()
+        (rawData.exclude ?: defaultData?.exclude)?.let { expandVariables(it, createExpandContext()) } ?: emptyList()
 
     private val endpointsLazy: Lazy<List<GraphQLConfigEndpoint>> = lazy { buildEndpoints() }
 
@@ -67,8 +69,7 @@ class GraphQLProjectConfig(
     val isDefault = name == GraphQLConfig.DEFAULT_PROJECT
 
     // need to create a new one for each invocation, because it has its own state
-    private val expandContext
-        get() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
+    private fun createExpandContext() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 
     private val matchingCache = GraphQLFileMatcherCache.newInstance(project)
 
@@ -166,48 +167,60 @@ class GraphQLProjectConfig(
     }
 
     private fun buildEndpoints(): List<GraphQLConfigEndpoint> {
-        val endpointsMap =
-            extensions[GraphQLConfigKeys.EXTENSION_ENDPOINTS] as? Map<*, *> ?: return emptyList()
+        val schemaEndpoints = schema
+            .filter { it.isRemote }
+            .map {
+                GraphQLConfigEndpoint(
+                    project,
+                    GraphQLRawEndpoint(url = it.rawData.pathOrUrl, headers = it.rawData.headers),
+                    dir,
+                    GraphQLConfigPointer(file ?: dir, name),
+                    isLegacy,
+                    environment,
+                    true,
+                )
+            }
 
-        return endpointsMap.mapNotNull { (key: Any?, value: Any?) ->
-            val endpointName = key as? String ?: return@mapNotNull null
+        val extensionEndpoints = extensions[GraphQLConfigKeys.EXTENSION_ENDPOINTS].asSafely<Map<*, *>>()
+            ?.mapNotNull { (key: Any?, value: Any?) ->
+                val endpointName = key as? String ?: return@mapNotNull null
 
-            when (value) {
-                is String -> {
-                    GraphQLRawEndpoint(
-                        endpointName,
-                        value as String?,
-                        emptyMap(),
-                        false,
-                    )
-                }
-
-                is Map<*, *> -> {
-                    val url = value[GraphQLConfigKeys.EXTENSION_ENDPOINT_URL]
-                    if (url is String) {
+                when (value) {
+                    is String -> {
                         GraphQLRawEndpoint(
                             endpointName,
-                            url,
-                            parseMap(value[GraphQLConfigKeys.HEADERS]) ?: emptyMap(),
-                            value[GraphQLConfigKeys.INTROSPECT] as Boolean?
+                            value as String?,
+                            emptyMap(),
+                            false,
                         )
-                    } else {
-                        null
                     }
-                }
 
-                else -> null
+                    is Map<*, *> -> {
+                        val url = value[GraphQLConfigKeys.EXTENSION_ENDPOINT_URL]
+                        if (url is String) {
+                            GraphQLRawEndpoint(
+                                endpointName,
+                                url,
+                                parseMap(value[GraphQLConfigKeys.HEADERS]) ?: emptyMap(),
+                                value[GraphQLConfigKeys.INTROSPECT] as Boolean?
+                            )
+                        } else {
+                            null
+                        }
+                    }
+
+                    else -> null
+                }
             }
-        }.map {
-            GraphQLConfigEndpoint(
-                project,
-                it,
-                dir,
-                GraphQLConfigPointer(file ?: dir, name),
-                isLegacy,
-                environment,
-            )
-        }
+            ?.map {
+                GraphQLConfigEndpoint(
+                    project, it, dir, GraphQLConfigPointer(file ?: dir, name),
+                    isLegacy, environment, false,
+                )
+            }
+            ?: emptyList()
+
+        return schemaEndpoints + extensionEndpoints
     }
 
     override fun equals(other: Any?): Boolean {

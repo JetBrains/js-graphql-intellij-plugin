@@ -43,7 +43,8 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
             myFixture.configureByText(JsonFileType.INSTANCE, GraphQLConfigTestPrinter(config).print())
             myFixture.checkResultByFile("${getTestName(false)}_expected.json")
 
-            GraphQLConfigEnvironment.getInstance(project).setExplicitVariable("WITH_DEFAULT", "not/default/anymore/file.graphql", config.file!!)
+            GraphQLConfigEnvironment.getInstance(project)
+                .setExplicitVariable("WITH_DEFAULT", "not/default/anymore/file.graphql", config.file!!)
             reloadConfiguration()
 
             val updatedConfig = GraphQLConfigProvider.getInstance(project).getAllConfigs().first().getDefault()!!
@@ -60,7 +61,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
                 val isLegacy = true
                 val snapshot = GraphQLConfigEnvironment.getInstance(project)
                     .createSnapshot(extractEnvironmentVariables(project, isLegacy, data), null)
-                return GraphQLConfigEndpoint(myFixture.project, data, dir, null, isLegacy, snapshot)
+                return GraphQLConfigEndpoint(myFixture.project, data, dir, null, isLegacy, snapshot, false)
             }
 
             val initial = GraphQLRawEndpoint("remoteUrl", "http://localhost/")
@@ -119,7 +120,12 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
                     expected,
                     expandVariables(
                         value,
-                        GraphQLExpandVariableContext(myFixture.project, myFixture.project.guessProjectDir()!!, isLegacy, snapshot)
+                        GraphQLExpandVariableContext(
+                            myFixture.project,
+                            myFixture.project.guessProjectDir()!!,
+                            isLegacy,
+                            snapshot
+                        )
                     )
                 )
             }
@@ -196,7 +202,8 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
 
     fun testEnvPerFile() {
         val root = myFixture.copyDirectoryToProject(getTestName(true), "")
-        GraphQLConfigEnvironment.getInstance(project).setExplicitVariable("SCHEMA_URL", "https://google.com/graphql", root)
+        GraphQLConfigEnvironment.getInstance(project)
+            .setExplicitVariable("SCHEMA_URL", "https://google.com/graphql", root)
         reloadConfiguration()
 
         val childConfig = GraphQLConfigProvider.getInstance(project)
