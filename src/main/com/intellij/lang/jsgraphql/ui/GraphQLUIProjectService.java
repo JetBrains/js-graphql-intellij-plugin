@@ -22,6 +22,7 @@ import com.intellij.lang.jsgraphql.ide.actions.GraphQLOpenConfigAction;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLToggleVariablesAction;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEditEnvironmentVariablesAction;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigSecurity;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
@@ -256,6 +257,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         final DefaultActionGroup settingsActions = new DefaultActionGroup();
         settingsActions.add(new GraphQLOpenConfigAction());
         settingsActions.add(new GraphQLToggleVariablesAction());
+        settingsActions.add(ActionManager.getInstance().getAction(GraphQLEditEnvironmentVariablesAction.ACTION_ID));
 
         final JComponent settingsToolbar = createToolbar(settingsActions, headerComponent);
         headerComponent.add(settingsToolbar, BorderLayout.WEST);

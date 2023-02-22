@@ -15,6 +15,8 @@ import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot;
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentVariablesDialog;
 import com.intellij.lang.jsgraphql.ide.config.model.*;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
@@ -133,6 +135,17 @@ public final class GraphQLIntrospectionService implements Disposable {
             );
             return;
         }
+
+        GraphQLEnvironmentSnapshot environment = endpoint.getEnvironment();
+        var hasMissingVariableValues = environment.getHasMissingValues();
+        if (hasMissingVariableValues) {
+            GraphQLEnvironmentVariablesDialog variableDialog = new GraphQLEnvironmentVariablesDialog(myProject, environment, endpoint.getDir(), true);
+            if (!variableDialog.showAndGet()) {
+                return;
+            }
+        }
+
+        endpoint = endpoint.withUpdatedEnvironment();
 
         if (StringUtil.isEmptyOrSpaces(endpoint.getUrl())) {
             GraphQLNotificationUtil.showInvalidConfigurationNotification(

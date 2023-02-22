@@ -128,6 +128,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     @RequiresReadLock
     fun resolveConfig(context: PsiFile): GraphQLProjectConfig? {
+        // shouldn't try resolving for the config file itself
+        if (getPhysicalVirtualFile(context)?.name in CONFIG_NAMES) {
+            return null
+        }
+
         val overriddenConfig = findOverriddenConfig(context)
         if (overriddenConfig != null) {
             val config = getForConfigFile(overriddenConfig.file)
@@ -310,10 +315,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         if (project.isDisposed) return
 
         if (configFile != null) {
-            configData.remove(configFile)
-            if (configFile.isDirectory) {
-                contributedConfigs.set(emptyMap())
-            }
+            configData[configFile]?.invalidated?.set(true)
         } else {
             initialized = false
             configData.clear()
@@ -345,7 +347,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         saveModifiedDocuments(discoveredConfigFiles)
 
         val loader = GraphQLConfigLoader.getInstance(project)
-        val explicitInvalidate = pendingInvalidation.getAndSet(false)
+        val explicitInvalidation = pendingInvalidation.getAndSet(false)
         var hasChanged = configData.keys.removeIf { !it.isValid || it !in discoveredConfigFiles }
 
         for (file in discoveredConfigFiles) {
@@ -357,7 +359,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
             val timeStamp = file.timeStamp
             val cached = configData[file]
-            if (cached?.timeStamp == timeStamp) {
+            if (cached != null && cached.timeStamp == timeStamp && !cached.invalidated.getAndSet(false)) {
                 continue
             }
 
@@ -368,30 +370,31 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
                 result.status
             )
 
-            hasChanged = true
             if (cached == null) {
                 configData.putIfAbsent(file, entry)
             } else {
                 configData.replace(file, cached, entry)
             }
-        }
 
-        if (pollConfigContributors()) {
             hasChanged = true
         }
 
-        if (hasChanged || explicitInvalidate || !initialized) {
+        if (pollConfigContributors(explicitInvalidation)) {
+            hasChanged = true
+        }
+
+        if (hasChanged || explicitInvalidation || !initialized) {
             notifyConfigurationChanged()
         }
     }
 
-    private fun pollConfigContributors(): Boolean {
+    private fun pollConfigContributors(explicitInvalidation: Boolean): Boolean {
         val prevSnapshot = contributedConfigs.get()
         val prevContributed = prevSnapshot.values.toSet()
         val updatedContributed =
             GraphQLConfigContributor.EP_NAME.extensionList.flatMap { it.contributeConfigs(project) }.toSet()
 
-        return if (prevContributed != updatedContributed) {
+        return if (prevContributed != updatedContributed || explicitInvalidation) {
             if (contributedConfigs.compareAndSet(prevSnapshot, updatedContributed.associateBy { it.dir })) {
                 LOG.info("contributed configs changed")
                 LOG.debug { "contributed configs: new=$updatedContributed, previous=$prevContributed" }
@@ -468,10 +471,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             .expireWith(this)
             .executeSynchronously()
 
-    private data class ConfigEntry(
+    private class ConfigEntry(
         val config: GraphQLConfig? = null,
         val timeStamp: Long = -1,
         val status: GraphQLConfigLoader.Status,
+        val invalidated: AtomicBoolean = AtomicBoolean(false),
     )
 
     override fun getModificationCount(): Long = modificationTracker.modificationCount

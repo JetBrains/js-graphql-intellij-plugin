@@ -275,7 +275,6 @@
   </extensions>
 
   <actions>
-
     <action id="GraphQLNewFileAction" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLNewFileAction">
       <add-to-group group-id="NewGroup"/>
     </action>
@@ -295,8 +294,14 @@
 
     <action id="GraphQLRestartSchemaDiscovery"
             class="com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryAction"/>
+
     <action id="GraphQLMigrateLegacyConfig"
             class="com.intellij.lang.jsgraphql.ide.config.migration.GraphQLMigrateLegacyConfigAction"/>
+
+    <action id="GraphQLEditEnvironmentVariables"
+            class="com.intellij.lang.jsgraphql.ide.config.env.GraphQLEditEnvironmentVariablesAction">
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+    </action>
   </actions>
 
 </idea-plugin>

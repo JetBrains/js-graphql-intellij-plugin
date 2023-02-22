@@ -96,7 +96,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
             // verify that as variables change values, the nested objects are expanded
             // this verifies that the values in the original maps are not overwritten as part of the expansion
             GraphQLConfigEnvironment.getEnvVariable = Function { name: String? -> "$name-new-value" }
-            endpoint = endpoint.withCurrentEnvironment()
+            endpoint = endpoint.withUpdatedEnvironment()
             Assert.assertEquals(
                 "{\"boolean\":true,\"number\":3.14,\"auth\":\"$ some value before auth-new-value \${test\",\"nested\":{\"nested-auth\":\"$ some value before auth-new-value \${test\"}}",
                 Gson().toJson(endpoint.headers)
@@ -227,7 +227,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
             TestCase.assertEquals("https://default.com/graphql", endpoint.url)
             TestCase.assertEquals("https://default.com/graphql", endpoint.schemaPointer?.url)
 
-            endpoint = endpoint.withCurrentEnvironment()
+            endpoint = endpoint.withUpdatedEnvironment()
             TestCase.assertEquals("https://some.com/api/graphql", endpoint.url)
             TestCase.assertEquals("https://some.com/api/graphql", endpoint.schemaPointer?.url)
         }

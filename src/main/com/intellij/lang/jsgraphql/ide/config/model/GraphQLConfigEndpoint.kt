@@ -49,7 +49,7 @@ data class GraphQLConfigEndpoint(
 
     val schemaPointer: GraphQLSchemaPointer? = rawSchemaPointer?.let { GraphQLSchemaPointer(project, dir, it, isLegacy, environment) }
 
-    fun withCurrentEnvironment(): GraphQLConfigEndpoint {
+    fun withUpdatedEnvironment(): GraphQLConfigEndpoint {
         return copy(
             environment = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir)
         )
