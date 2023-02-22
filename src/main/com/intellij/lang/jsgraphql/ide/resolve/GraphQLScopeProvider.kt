@@ -94,7 +94,7 @@ class GraphQLScopeProvider(private val project: Project) {
             val projectConfig = configProvider.resolveConfig(file)
             var scope: GlobalSearchScope =
                 projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
-                    ?: globalScope.takeUnless { configProvider.hasConfigurationFiles }
+                    ?: globalScope.takeUnless { configProvider.hasExplicitConfiguration }
                     ?: createScope(project, GlobalSearchScope.fileScope(file))
 
             if (ScratchUtil.isScratch(file.virtualFile)) {
