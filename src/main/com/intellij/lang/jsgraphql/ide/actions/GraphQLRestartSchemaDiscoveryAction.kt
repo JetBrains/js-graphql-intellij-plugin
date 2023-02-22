@@ -10,7 +10,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 class GraphQLRestartSchemaDiscoveryAction : AnAction(
     GraphQLBundle.message("graphql.action.restart.schema.discovery.title"),
     GraphQLBundle.message("graphql.action.restart.schema.discovery.desc"),
-    AllIcons.Actions.Refresh
+    AllIcons.Actions.Restart,
 ) {
     companion object {
         const val ACTION_ID = "GraphQLRestartSchemaDiscovery"

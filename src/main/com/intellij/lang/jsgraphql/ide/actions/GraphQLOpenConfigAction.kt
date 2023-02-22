@@ -50,14 +50,15 @@ class GraphQLOpenConfigAction : AnAction(
             return
         }
         val provider = GraphQLConfigProvider.getInstance(project)
-        val config = provider.findClosestConfig(psiFile)
-        if (config != null) {
-            if (config.file != null) {
-                val fileEditorManager = FileEditorManager.getInstance(project)
-                fileEditorManager.openFile(config.file, true, true)
-            } else {
-                // TODO: open in-memory file
-            }
+        val config = provider.resolveConfig(psiFile)
+        // look for the closest one as a fallback for cases when a file is excluded
+        // and not matched by the `resolveConfig` call
+        val configFile = config?.file ?: provider.findClosestConfig(psiFile)?.file
+        if (configFile != null) {
+            val fileEditorManager = FileEditorManager.getInstance(project)
+            fileEditorManager.openFile(configFile, true, true)
+        } else if (config != null) {
+            // TODO: create and show in-memory config
         } else {
             // no config associated, ask to create one
             val notification = Notification(
@@ -129,7 +130,7 @@ class GraphQLOpenConfigAction : AnAction(
 
     private fun getParentDirsUpToContentRoots(
         project: Project,
-        virtualFile: VirtualFile
+        virtualFile: VirtualFile,
     ): Collection<VirtualFile> {
         return if (GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
             project.guessProjectDir()?.let { listOf(it) } ?: emptyList()

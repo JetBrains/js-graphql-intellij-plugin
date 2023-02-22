@@ -41,7 +41,7 @@ fun createIntrospectionLineMarker(
         AllIcons.RunConfigurations.TestState.Run,
         { GraphQLBundle.message("graphql.introspection.run.query") },
         { _, _ ->
-            GraphQLIntrospectionService.getInstance(project).performIntrospectionQueryAndUpdateSchemaPathFile(endpoint)
+            GraphQLIntrospectionService.getInstance(project).performIntrospectionQuery(endpoint)
         },
         GutterIconRenderer.Alignment.CENTER,
         GraphQLBundle.messagePointer("graphql.introspection.run.query")
