@@ -331,7 +331,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         return component;
     }
 
-    public void executeGraphQL(Editor editor, VirtualFile virtualFile) {
+    public void executeGraphQL(@NotNull Editor editor, @NotNull VirtualFile virtualFile) {
         final GraphQLEndpointsModel endpointsModel = editor.getUserData(GRAPH_QL_ENDPOINTS_MODEL);
         if (endpointsModel == null) {
             return;
@@ -392,7 +392,11 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
     }
 
-    private void runQuery(Editor editor, VirtualFile virtualFile, GraphQLQueryContext context, String url, HttpPost request) {
+    private void runQuery(@NotNull Editor editor,
+                          @NotNull VirtualFile virtualFile,
+                          @NotNull GraphQLQueryContext context,
+                          @NotNull String url,
+                          @NotNull HttpPost request) {
         GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
         try {
             GraphQLConfigSecurity sslConfig = ReadAction.compute(() -> {

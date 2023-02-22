@@ -12,6 +12,7 @@ import com.intellij.json.JsonFileType;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -44,6 +45,11 @@ public class GraphQLExecuteEditorAction extends AnAction {
     }
 
     @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.EDT;
+    }
+
+    @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         VirtualFile virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE);
         final Project project = e.getData(CommonDataKeys.PROJECT);
@@ -68,6 +74,9 @@ public class GraphQLExecuteEditorAction extends AnAction {
             // this action comes from the variables editor, so we need to resolve the query editor which contains the GraphQL
             editor = queryEditor;
             virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(((EditorEx) editor).getDataContext());
+        }
+        if (virtualFile == null) {
+            return;
         }
         GraphQLUIProjectService.getService(project).executeGraphQL(editor, virtualFile);
     }

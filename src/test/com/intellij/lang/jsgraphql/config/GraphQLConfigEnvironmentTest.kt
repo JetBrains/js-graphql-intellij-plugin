@@ -61,7 +61,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
                 val isLegacy = true
                 val snapshot = GraphQLConfigEnvironment.getInstance(project)
                     .createSnapshot(extractEnvironmentVariables(project, isLegacy, data), null)
-                return GraphQLConfigEndpoint(myFixture.project, data, dir, null, isLegacy, snapshot, null)
+                return GraphQLConfigEndpoint(myFixture.project, data, dir, isLegacy, snapshot, null, null)
             }
 
             val initial = GraphQLRawEndpoint("remoteUrl", "http://localhost/")
