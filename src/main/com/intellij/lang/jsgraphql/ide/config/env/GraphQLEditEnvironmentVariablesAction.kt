@@ -21,13 +21,16 @@ class GraphQLEditEnvironmentVariablesAction : AnAction(
         val provider = GraphQLConfigProvider.getInstance(project)
         val inToolbar = e.place == ActionPlaces.EDITOR_TOOLBAR
 
-        val isEnabled = if (virtualFile.name in CONFIG_NAMES) {
-            true
+        val environment = if (virtualFile.name in CONFIG_NAMES) {
+            provider.getForConfigFile(virtualFile)?.environment
         } else if (GraphQLFileType.isGraphQLFile(project, virtualFile) && inToolbar) {
-            provider.hasConfigurationFiles
+            provider.resolveConfig(virtualFile)?.parentConfig?.environment
         } else {
-            false
+            null
         }
+
+        val isEnabled = environment?.hasVariables ?: false
+        val isVisible = environment != null
 
         val title = if (inToolbar) {
             GraphQLBundle.message("graphql.action.edit.environment.variables.toolbar.title")
@@ -36,7 +39,8 @@ class GraphQLEditEnvironmentVariablesAction : AnAction(
         }
 
         e.presentation.text = title
-        e.presentation.isEnabledAndVisible = isEnabled
+        e.presentation.isEnabled = isEnabled
+        e.presentation.isVisible = isVisible
     }
 
     override fun getActionUpdateThread(): ActionUpdateThread {
