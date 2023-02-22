@@ -141,6 +141,13 @@ data class GraphQLConfig(
             generatedSourcesManager.isGeneratedFile(virtualFile) ||
             generatedSourcesManager.isSourceForGeneratedFile(virtualFile) ||
             remoteSchemasRegistry.isRemoteSchemaFile(virtualFile)
+
+    val environment: GraphQLEnvironmentSnapshot
+        get() = GraphQLEnvironmentSnapshot(buildMap {
+            projects.values.map { it.environment }.forEach {
+                putAll(it.variables)
+            }
+        })
 }
 
 

@@ -2,7 +2,6 @@ package com.intellij.lang.jsgraphql.ide.config.model
 
 import com.google.common.hash.Hashing
 import com.google.gson.Gson
-import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLExpandVariableContext
 import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
@@ -80,11 +79,6 @@ data class GraphQLSchemaPointer(
         createPathForLocal(this)
     } else {
         null
-    }
-
-    fun withCurrentEnvironment(): GraphQLSchemaPointer {
-        val snapshot = GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir)
-        return copy(environment = snapshot)
     }
 
     private fun createExpandContext() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)

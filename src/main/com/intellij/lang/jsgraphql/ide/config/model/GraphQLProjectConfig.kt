@@ -28,6 +28,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 
 
+// NOTE: update hashCode and equals when changed
 class GraphQLProjectConfig(
     private val project: Project,
     val name: String,

@@ -11,6 +11,7 @@ const val GRAPHQLCONFIG_JSON = ".graphqlconfig.json"
 const val GRAPHQLCONFIG_YML = ".graphqlconfig.yml"
 const val GRAPHQLCONFIG_YAML = ".graphqlconfig.yaml"
 
+@JvmField
 val LEGACY_CONFIG_NAMES: Set<String> = linkedSetOf(
     GRAPHQLCONFIG,
     GRAPHQLCONFIG_JSON,
@@ -26,6 +27,7 @@ const val GRAPHQL_RC_JSON = ".graphqlrc.json"
 const val GRAPHQL_RC_YAML = ".graphqlrc.yaml"
 const val GRAPHQL_RC_YML = ".graphqlrc.yml"
 
+@JvmField
 val MODERN_CONFIG_NAMES: Set<String> = linkedSetOf(
 //    "graphql.config.ts",
 //    "graphql.config.js",
@@ -45,9 +47,11 @@ val MODERN_CONFIG_NAMES: Set<String> = linkedSetOf(
 //    "package.json",
 )
 
+@JvmField
 val CONFIG_NAMES: Set<String> = LinkedHashSet<String>().apply {
     addAll(MODERN_CONFIG_NAMES)
     addAll(LEGACY_CONFIG_NAMES)
 }
 
+@JvmField
 val OPTIONAL_CONFIG_NAMES = setOf("package.json")

@@ -16,7 +16,6 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.AsyncFileListener
@@ -26,12 +25,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.*
 import com.intellij.testFramework.LightVirtualFile
-import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.JBTextField
 import com.intellij.util.Alarm
 import com.intellij.util.EnvironmentUtil
 import com.intellij.util.concurrency.annotations.RequiresEdt
-import com.intellij.util.ui.FormBuilder
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.DotenvBuilder
 import io.github.cdimascio.dotenv.DotenvException
@@ -39,7 +35,6 @@ import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.function.Function
-import javax.swing.JComponent
 
 
 @Service(Service.Level.PROJECT)
@@ -82,10 +77,26 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     fun setExplicitVariable(name: String, value: String?, fileOrDir: VirtualFile) {
         val key = fileOrDir.parentDirectory
         val variables = variables.computeIfAbsent(key) { ConcurrentHashMap() }
+
         if (value.isNullOrBlank()) {
             variables.remove(name)
         } else {
             variables[name] = value
+        }
+
+        notifyEnvironmentChanged()
+    }
+
+    fun setExplicitVariables(newVariables: Map<String, String?>, fileOrDir: VirtualFile) {
+        val key = fileOrDir.parentDirectory
+        val variables = variables.computeIfAbsent(key) { ConcurrentHashMap() }
+
+        newVariables.forEach {
+            if (it.value.isNullOrBlank()) {
+                variables.remove(it.key)
+            } else {
+                variables[it.key] = it.value
+            }
         }
 
         notifyEnvironmentChanged()
@@ -98,11 +109,11 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     private fun getVariable(name: String, fileOrDir: VirtualFile?): String? {
         // Try to load the variable from the jvm parameters
         var value = getEnvVariable.apply(name)
-        if (value.isNullOrBlank()) {
-            value = tryToGetVariableFromDotEnvFile(name, fileOrDir)
-        }
         if (value.isNullOrBlank() && fileOrDir != null) {
             value = getExplicitVariable(name, fileOrDir)
+        }
+        if (value.isNullOrBlank()) {
+            value = tryToGetVariableFromDotEnvFile(name, fileOrDir)
         }
         if (value.isNullOrBlank()) {
             value = EnvironmentUtil.getValue(name)
@@ -276,44 +287,15 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     }
 }
 
-class GraphQLVariableDialog(
-    private val project: Project,
-    private val name: String,
-    private val dir: VirtualFile,
-) : DialogWrapper(project) {
-
-    private val textField = JBTextField().apply {
-        text = GraphQLConfigEnvironment.getInstance(project).getExplicitVariable(name, dir).orEmpty()
-    }
-
-    val value: String
-        get() = textField.text
-
-    init {
-        title = "Enter Missing GraphQL \"$name\" Environment Variable"
-        init()
-    }
-
-    override fun createCenterPanel(): JComponent? {
-        myPreferredFocusedComponent = textField
-        val hint =
-            JBLabel("<html><b>Hint</b>: Specify environment variables using <code>-DvarName=varValue</code> on the IDE command line.<div style=\"margin-top: 6\">This dialog stores the entered value until the IDE is restarted.</div></html>")
-        return FormBuilder.createFormBuilder().addLabeledComponent(name, textField).addComponent(hint).panel
-    }
-
-    override fun getPreferredFocusedComponent(): JComponent {
-        return textField
-    }
-
-    override fun doOKAction() {
-        GraphQLConfigEnvironment.getInstance(project).setExplicitVariable(name, value, dir)
-
-        super.doOKAction()
-    }
-}
-
 data class GraphQLEnvironmentSnapshot(val variables: Map<String, String?>) {
     companion object {
         val EMPTY = GraphQLEnvironmentSnapshot(emptyMap())
+    }
+
+    val hasMissingValues = variables.values.any { it.isNullOrBlank() }
+
+    override fun toString(): String {
+        // don't write env values to log
+        return "GraphQLEnvironmentSnapshot(variables=${variables.keys.joinToString()}, hasMissingValues=$hasMissingValues)"
     }
 }
