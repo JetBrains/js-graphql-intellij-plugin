@@ -125,7 +125,7 @@ public final class GraphQLIntrospectionService implements Disposable {
     }
 
     public void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint) {
-        GraphQLProjectConfig projectConfig = endpoint.findConfig();
+        GraphQLProjectConfig projectConfig = endpoint.getConfig();
         VirtualFile configFile = projectConfig != null ? projectConfig.getFile() : null;
         if (projectConfig == null || configFile == null) {
             GraphQLNotificationUtil.showInvalidConfigurationNotification(
@@ -603,7 +603,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         public void run(@NotNull ProgressIndicator indicator) {
             indicator.setIndeterminate(true);
             String responseJson;
-            GraphQLProjectConfig config = endpoint.findConfig();
+            GraphQLProjectConfig config = endpoint.getConfig();
             GraphQLConfigSecurity sslConfig = config != null ? GraphQLConfigSecurity.getSecurityConfig(config) : null;
             try (final CloseableHttpClient httpClient = createHttpClient(url, sslConfig);
                  final CloseableHttpResponse response = httpClient.execute(request)) {

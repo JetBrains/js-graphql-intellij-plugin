@@ -34,8 +34,8 @@ class GraphQLProjectConfig(
     val name: String,
     val rawData: GraphQLRawProjectConfig,
     val defaultData: GraphQLRawProjectConfig?,
-    val parentConfig: GraphQLConfig,
     val environment: GraphQLEnvironmentSnapshot,
+    val parentConfig: GraphQLConfig,
 ) {
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
     private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
@@ -187,10 +187,10 @@ class GraphQLProjectConfig(
                     project,
                     GraphQLRawEndpoint(url = it.rawData.pathOrUrl, headers = it.rawData.headers),
                     dir,
-                    GraphQLConfigPointer(file ?: dir, name),
                     isLegacy,
                     environment,
                     it.rawData,
+                    this,
                 )
             }
 
@@ -227,10 +227,7 @@ class GraphQLProjectConfig(
                 }
             }
             ?.map {
-                GraphQLConfigEndpoint(
-                    project, it, dir, GraphQLConfigPointer(file ?: dir, name),
-                    isLegacy, environment, localIntrospectionPath,
-                )
+                GraphQLConfigEndpoint(project, it, dir, isLegacy, environment, localIntrospectionPath, this)
             }
             ?: emptyList()
 
