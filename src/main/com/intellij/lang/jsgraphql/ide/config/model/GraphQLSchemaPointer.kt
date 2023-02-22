@@ -59,19 +59,19 @@ data class GraphQLSchemaPointer(
         }
     }
 
-    val pathOrUrl: String =
-        expandVariables(rawData.pathOrUrl, createExpandContext()) ?: rawData.pathOrUrl
+    val pattern: String =
+        expandVariables(rawData.pattern, createExpandContext()) ?: rawData.pattern
 
     val headers: Map<String, Any?> =
         parseMap(expandVariables(rawData.headers, createExpandContext())) ?: emptyMap()
 
-    val isRemote: Boolean = URLUtil.canContainUrl(pathOrUrl)
+    val isRemote: Boolean = URLUtil.canContainUrl(pattern)
 
-    val url: String? = pathOrUrl.takeIf { isRemote }
+    val url: String? = pattern.takeIf { isRemote }
 
-    val filePath: String? = pathOrUrl.takeUnless { URLUtil.canContainUrl(it) || it.contains(invalidPathCharsRegex) }
+    val filePath: String? = pattern.takeUnless { URLUtil.canContainUrl(it) || it.contains(invalidPathCharsRegex) }
 
-    val globPath: String? = pathOrUrl.takeUnless { URLUtil.canContainUrl(it) || it.contains('$') }
+    val globPath: String? = pattern.takeUnless { URLUtil.canContainUrl(it) || it.contains('$') }
 
     val outputPath: String? = if (isRemote) {
         createPathForRemote(this)

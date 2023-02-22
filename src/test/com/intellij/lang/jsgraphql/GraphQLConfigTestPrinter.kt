@@ -28,9 +28,10 @@ class GraphQLConfigTestPrinter(private val config: GraphQLProjectConfig) {
 
     private fun buildSchemaPointer(pointer: GraphQLSchemaPointer): Map<String, Any?> {
         return buildMap {
-            this["pathOrUrl"] = pointer.pathOrUrl
+            this["pattern"] = pointer.pattern
             this["filePath"] = pointer.filePath
             this["globPath"] = pointer.globPath
+            this["url"] = pointer.url
             this["headers"] = pointer.headers
             this["isRemote"] = pointer.isRemote
         }

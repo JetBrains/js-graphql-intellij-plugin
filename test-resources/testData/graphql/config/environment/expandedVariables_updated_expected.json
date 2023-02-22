@@ -7,37 +7,42 @@
   "isRootEmpty": false,
   "schema": [
     {
-      "pathOrUrl": "schema.graphql",
+      "pattern": "schema.graphql",
       "filePath": "schema.graphql",
       "globPath": "schema.graphql",
+      "url": null,
       "headers": {},
       "isRemote": false
     },
     {
-      "pathOrUrl": "/user/some/custom/path",
+      "pattern": "/user/some/custom/path",
       "filePath": "/user/some/custom/path",
       "globPath": "/user/some/custom/path",
+      "url": null,
       "headers": {},
       "isRemote": false
     },
     {
-      "pathOrUrl": "https://default.com/graphql",
+      "pattern": "https://default.com/graphql",
       "filePath": null,
       "globPath": null,
+      "url": "https://default.com/graphql",
       "headers": {},
       "isRemote": true
     },
     {
-      "pathOrUrl": "not/default/anymore/file.graphql",
+      "pattern": "not/default/anymore/file.graphql",
       "filePath": "not/default/anymore/file.graphql",
       "globPath": "not/default/anymore/file.graphql",
+      "url": null,
       "headers": {},
       "isRemote": false
     },
     {
-      "pathOrUrl": "https://google.com",
+      "pattern": "https://google.com",
       "filePath": null,
       "globPath": null,
+      "url": "https://google.com",
       "headers": {
         "Authorization": "Bearer 7FGD63HHDY373UFDSJF838FSNDFK3922WSJ99"
       },

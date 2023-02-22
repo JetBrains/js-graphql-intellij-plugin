@@ -95,8 +95,8 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
             override fun contributeConfigs(project: Project): Collection<GraphQLConfig> {
                 val customConfig = GraphQLRawConfig(
                     schema = listOf(
-                        GraphQLRawSchemaPointer(pathOrUrl = "**/schema.graphql"),
-                        GraphQLRawSchemaPointer(pathOrUrl = "directives.graphql")
+                        GraphQLRawSchemaPointer(pattern = "**/schema.graphql"),
+                        GraphQLRawSchemaPointer(pattern = "directives.graphql")
                     ),
                     documents = listOf("operations.graphql"),
                     exclude = listOf("ignored.graphql")

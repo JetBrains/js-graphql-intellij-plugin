@@ -208,11 +208,11 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
 
         val childConfig = GraphQLConfigProvider.getInstance(project)
             .getForConfigFile(myFixture.findFileInTempDir("some/dir/graphql.config.yml"))?.getDefault()!!
-        TestCase.assertEquals("\${SCHEMA_URL}", childConfig.schema.single().pathOrUrl)
+        TestCase.assertEquals("\${SCHEMA_URL}", childConfig.schema.single().pattern)
 
         val rootConfig = GraphQLConfigProvider.getInstance(project)
             .getForConfigFile(root.findChild("graphql.config.yml"))?.getDefault()!!
-        TestCase.assertEquals("https://google.com/graphql", rootConfig.schema.single().pathOrUrl)
+        TestCase.assertEquals("https://google.com/graphql", rootConfig.schema.single().pattern)
     }
 
     fun testEndpointShouldUpdateSchemaPathOnEnvChange() {

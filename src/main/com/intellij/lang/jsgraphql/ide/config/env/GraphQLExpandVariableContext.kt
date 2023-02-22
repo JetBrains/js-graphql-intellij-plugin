@@ -80,7 +80,7 @@ internal fun extractEnvironmentVariables(
             }
 
             is GraphQLRawSchemaPointer -> {
-                visitObject(obj.pathOrUrl)
+                visitObject(obj.pattern)
                 visitObject(obj.headers)
                 visitObject(obj.introspect)
             }
