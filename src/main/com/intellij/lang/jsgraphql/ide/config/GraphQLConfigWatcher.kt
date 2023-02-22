@@ -149,7 +149,8 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
         }, this)
     }
 
-    private fun collectWatchedDirectories() = configProvider.getAllConfigs()
+    private fun collectWatchedDirectories() = configProvider
+        .getAllConfigs(false)
         .asSequence()
         .map { it.dir }
         .filter { it.isDirectory }

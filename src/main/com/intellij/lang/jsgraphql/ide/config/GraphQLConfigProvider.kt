@@ -165,14 +165,16 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return runReadAction { file.timeStamp != entry.timeStamp || FileDocumentManager.getInstance().isFileModified(file) }
     }
 
-    fun getAllConfigs(): List<GraphQLConfig> {
-        return configData.mapNotNull { it.value.config }
+    @JvmOverloads
+    fun getAllConfigs(includeContributed: Boolean = true): List<GraphQLConfig> {
+        val configs = configData.mapNotNull { it.value.config }
+        return if (includeContributed) configs + contributedConfigs.get().values else configs
     }
 
     val isInitialized
         get() = initialized
 
-    val hasConfigurationFiles
+    val hasExplicitConfiguration
         get() = configData.isNotEmpty()
 
     private fun findOverriddenConfig(file: PsiFile): GraphQLConfigOverride? {
