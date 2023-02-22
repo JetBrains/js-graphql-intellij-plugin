@@ -170,7 +170,7 @@ class GraphQLProjectConfig(
             is List<*> -> pointer.any { matchPattern(candidate, it) }
             is String -> GraphQLConfigGlobMatcher.getInstance(project).matches(candidate, pointer, dir)
             is GraphQLSchemaPointer -> if (pointer.isRemote) {
-                FileUtil.pathsEqual(remoteSchemasRegistry.getSourcePath(candidate), file?.path ?: dir.path)
+                FileUtil.pathsEqual(candidate.path, pointer.outputPath)
             } else {
                 matchPattern(candidate, pointer.globPath)
             }
