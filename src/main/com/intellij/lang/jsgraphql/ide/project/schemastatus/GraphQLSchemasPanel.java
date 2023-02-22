@@ -15,7 +15,6 @@ import com.intellij.ide.util.treeView.IndexComparator;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryAction;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentChangeListener;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker;
 import com.intellij.openapi.Disposable;
@@ -250,12 +249,6 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
             }
         });
 
-        ActionManager actionManager = ActionManager.getInstance();
-        final AnAction reRunAction = actionManager.getAction(GraphQLRerunLatestIntrospectionAction.class.getName());
-        if (reRunAction != null) {
-            leftActionGroup.add(reRunAction);
-        }
-
         leftActionGroup.add(new AnAction(
             "Edit Selected Schema Configuration",
             "Opens the GraphQL config file for the selected schema",
@@ -277,6 +270,11 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
                 e.getPresentation().setEnabled(getSelectedSchemaNode() != null);
             }
 
+            @Override
+            public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.EDT;
+            }
+
             private GraphQLConfigSchemaNode getSelectedSchemaNode() {
                 SimpleNode node = myTree.getSelectedNode();
                 while (node != null) {
@@ -289,6 +287,7 @@ public class GraphQLSchemasPanel extends JPanel implements Disposable {
             }
         });
 
+        ActionManager actionManager = ActionManager.getInstance();
         AnAction restartSchemaAction = actionManager.getAction(GraphQLRestartSchemaDiscoveryAction.ACTION_ID);
         if (restartSchemaAction != null) {
             leftActionGroup.add(restartSchemaAction);

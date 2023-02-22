@@ -122,7 +122,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         });
     }
 
-    public void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint) {
+    public void performIntrospectionQuery(@NotNull GraphQLConfigEndpoint endpoint) {
         GraphQLProjectConfig projectConfig = endpoint.getConfig();
         VirtualFile configFile = projectConfig != null ? projectConfig.getFile() : null;
         if (projectConfig == null || configFile == null) {
@@ -172,13 +172,13 @@ public final class GraphQLIntrospectionService implements Disposable {
             return;
         }
 
-        performIntrospectionQueryAndUpdateSchemaPathFile(endpoint, schemaPath);
+        performIntrospectionQuery(endpoint, schemaPath);
     }
 
-    private void performIntrospectionQueryAndUpdateSchemaPathFile(@NotNull GraphQLConfigEndpoint endpoint, @NotNull String schemaPath) {
+    private void performIntrospectionQuery(@NotNull GraphQLConfigEndpoint endpoint, @NotNull String schemaPath) {
         latestIntrospection = new GraphQLIntrospectionTask(
             endpoint,
-            () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint)
+            () -> performIntrospectionQuery(endpoint)
         );
 
         final NotificationAction retry = new NotificationAction(GraphQLBundle.message("graphql.notification.retry")) {
@@ -186,7 +186,7 @@ public final class GraphQLIntrospectionService implements Disposable {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                 notification.expire();
-                performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
+                performIntrospectionQuery(endpoint);
             }
         };
 
@@ -533,8 +533,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                             GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.action", url)) {
                             @Override
                             public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                                GraphQLIntrospectionService.getInstance(myProject)
-                                    .performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
+                                GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQuery(endpoint);
                             }
                         });
 
@@ -666,8 +665,10 @@ public final class GraphQLIntrospectionService implements Disposable {
                 NotificationType.WARNING
             ).addAction(retry).setImportant(true);
 
-            GraphQLNotificationUtil.addRetryFailedSchemaIntrospectionAction(notification, graphQLSettings, e,
-                () -> performIntrospectionQueryAndUpdateSchemaPathFile(endpoint));
+            GraphQLNotificationUtil.addRetryFailedSchemaIntrospectionAction(
+                notification, graphQLSettings, e,
+                () -> performIntrospectionQuery(endpoint)
+            );
             addIntrospectionStackTraceAction(notification, e);
 
             Notifications.Bus.notify(notification, myProject);

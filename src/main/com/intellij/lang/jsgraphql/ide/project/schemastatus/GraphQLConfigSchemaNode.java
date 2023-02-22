@@ -101,7 +101,13 @@ public class GraphQLConfigSchemaNode extends CachingSimpleNode {
     }
 
     public @Nullable VirtualFile getConfigFile() {
-        return myProjectConfig != null ? myProjectConfig.getFile() : null;
+        if (myConfig != null) {
+            return myConfig.getFile();
+        }
+        if (myProjectConfig != null) {
+            return myProjectConfig.getFile();
+        }
+        return null;
     }
 
     @Override

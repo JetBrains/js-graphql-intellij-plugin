@@ -91,8 +91,7 @@ public class GraphQLSchemaEndpointsListNode extends CachingSimpleNode {
                     public PopupStep onChosen(String selectedValue, boolean finalChoice) {
                         return doFinalStep(() -> {
                             if (introspect.equals(selectedValue)) {
-                                GraphQLIntrospectionService.getInstance(myProject)
-                                    .performIntrospectionQueryAndUpdateSchemaPathFile(endpoint);
+                                GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQuery(endpoint);
                             } else if (createScratch.equals(selectedValue)) {
                                 GraphQLUtil.createScratchFromEndpoint(myProject, endpoint, true);
                             }

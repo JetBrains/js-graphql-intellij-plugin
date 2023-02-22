@@ -30,6 +30,8 @@ import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionUtil;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLOpenIntrospectionSchemaAction;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLRunIntrospectionQueryAction;
 import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry;
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
@@ -257,8 +259,9 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         // variables & settings actions
         final DefaultActionGroup settingsActions = new DefaultActionGroup();
         settingsActions.add(new GraphQLOpenConfigAction());
-        settingsActions.add(new GraphQLToggleVariablesAction());
         settingsActions.add(ActionManager.getInstance().getAction(GraphQLEditEnvironmentVariablesAction.ACTION_ID));
+        settingsActions.addSeparator();
+        settingsActions.add(new GraphQLToggleVariablesAction());
 
         final JComponent settingsToolbar = createToolbar(settingsActions, headerComponent);
         headerComponent.add(settingsToolbar, BorderLayout.WEST);
@@ -267,6 +270,9 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         final DefaultActionGroup queryActions = new DefaultActionGroup();
         final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(GraphQLExecuteEditorAction.ACTION_ID);
         queryActions.add(executeGraphQLAction);
+        queryActions.addSeparator();
+        queryActions.add(new GraphQLRunIntrospectionQueryAction());
+        queryActions.add(new GraphQLOpenIntrospectionSchemaAction());
         final JComponent queryToolbar = createToolbar(queryActions, headerComponent);
 
         // configured endpoints combo box
