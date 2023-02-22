@@ -156,7 +156,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                         "graphql.notification.introspection.empty.schema.path",
                         pointer != null ? GraphQLBundle.message(
                             "graphql.notification.introspection.empty.schema.path.provided",
-                            pointer.getPathOrUrl()
+                            pointer.getPattern()
                         ) : ""
                     ),
                     endpoint.getFile(),

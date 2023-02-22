@@ -185,7 +185,7 @@ class GraphQLProjectConfig(
             .map {
                 GraphQLConfigEndpoint(
                     project,
-                    GraphQLRawEndpoint(url = it.rawData.pathOrUrl, headers = it.rawData.headers),
+                    GraphQLRawEndpoint(url = it.rawData.pattern, headers = it.rawData.headers),
                     dir,
                     isLegacy,
                     environment,

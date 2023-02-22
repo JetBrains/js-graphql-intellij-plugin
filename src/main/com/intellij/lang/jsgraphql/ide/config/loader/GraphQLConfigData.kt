@@ -36,7 +36,7 @@ data class GraphQLRawProjectConfig(
 }
 
 data class GraphQLRawSchemaPointer(
-    val pathOrUrl: String,
+    val pattern: String,
     val headers: Map<String, Any?> = emptyMap(),
     val introspect: Boolean? = false,
 )

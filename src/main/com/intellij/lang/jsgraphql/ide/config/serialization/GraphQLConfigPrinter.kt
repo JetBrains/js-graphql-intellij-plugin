@@ -79,12 +79,12 @@ object GraphQLConfigPrinter {
             override fun representData(data: Any): Node {
                 val schemaPointer = data as GraphQLRawSchemaPointer
                 return if (schemaPointer.headers.isEmpty()) {
-                    representScalar(Tag.STR, schemaPointer.pathOrUrl)
+                    representScalar(Tag.STR, schemaPointer.pattern)
                 } else {
                     representMapping(
                         Tag.MAP,
                         mapOf(
-                            schemaPointer.pathOrUrl to mapOf(
+                            schemaPointer.pattern to mapOf(
                                 GraphQLConfigKeys.HEADERS to schemaPointer.headers,
                                 GraphQLConfigKeys.INTROSPECT to schemaPointer.introspect,
                             )
