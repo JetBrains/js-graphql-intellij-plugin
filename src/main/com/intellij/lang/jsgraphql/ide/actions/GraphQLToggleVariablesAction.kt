@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.actions
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -33,6 +34,10 @@ class GraphQLToggleVariablesAction : ToggleAction(
             val endpointsModel = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)
             e.presentation.isEnabled = endpointsModel?.selectedItem != null
         }
+    }
+
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.EDT
     }
 
     override fun isSelected(e: AnActionEvent): Boolean {
