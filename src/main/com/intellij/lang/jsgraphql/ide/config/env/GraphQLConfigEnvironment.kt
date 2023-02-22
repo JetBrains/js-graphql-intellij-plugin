@@ -294,6 +294,8 @@ data class GraphQLEnvironmentSnapshot(val variables: Map<String, String?>) {
 
     val hasMissingValues = variables.values.any { it.isNullOrBlank() }
 
+    val hasVariables = variables.isNotEmpty()
+
     override fun toString(): String {
         // don't write env values to log
         return "GraphQLEnvironmentSnapshot(variables=${variables.keys.joinToString()}, hasMissingValues=$hasMissingValues)"
