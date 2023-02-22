@@ -29,6 +29,7 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionUtil;
 import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry;
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
@@ -336,7 +337,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         if (endpointsModel == null) {
             return;
         }
-        final GraphQLConfigEndpoint selectedEndpoint = endpointsModel.getSelectedItem();
+        final GraphQLConfigEndpoint selectedEndpoint =
+            GraphQLIntrospectionUtil.promptForEnvVariables(myProject, endpointsModel.getSelectedItem());
         if (selectedEndpoint == null || selectedEndpoint.getUrl() == null) {
             return;
         }
@@ -381,7 +383,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                 @Override
                 public void run(@NotNull ProgressIndicator indicator) {
                     indicator.setIndeterminate(true);
-                    runQuery(editor, virtualFile, context, url, request);
+                    runQuery(editor, virtualFile, context, url, request, selectedEndpoint);
                 }
             };
             ProgressManager.getInstance().run(task);
@@ -396,13 +398,11 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                           @NotNull VirtualFile virtualFile,
                           @NotNull GraphQLQueryContext context,
                           @NotNull String url,
-                          @NotNull HttpPost request) {
+                          @NotNull HttpPost request,
+                          @NotNull GraphQLConfigEndpoint endpoint) {
         GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
         try {
-            GraphQLConfigSecurity sslConfig = ReadAction.compute(() -> {
-                GraphQLProjectConfig config = GraphQLConfigProvider.getInstance(myProject).resolveConfig(virtualFile);
-                return config != null ? GraphQLConfigSecurity.getSecurityConfig(config) : null;
-            });
+            GraphQLConfigSecurity sslConfig = GraphQLConfigSecurity.getSecurityConfig(endpoint.getConfig());
             try (final CloseableHttpClient httpClient = introspectionService.createHttpClient(url, sslConfig)) {
                 editor.putUserData(GRAPH_QL_EDITOR_QUERYING, true);
 

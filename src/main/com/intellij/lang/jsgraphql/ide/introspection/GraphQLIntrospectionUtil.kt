@@ -6,6 +6,8 @@ import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.icons.AllIcons
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
+import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentVariablesDialog
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.project.Project
@@ -44,4 +46,19 @@ fun createIntrospectionLineMarker(
         GutterIconRenderer.Alignment.CENTER,
         GraphQLBundle.messagePointer("graphql.introspection.run.query")
     )
+}
+
+fun promptForEnvVariables(project: Project, endpoint: GraphQLConfigEndpoint?): GraphQLConfigEndpoint? {
+    if (endpoint == null) return null
+
+    val environment = endpoint.environment
+    val hasMissingVariableValues = environment.hasMissingValues
+    if (hasMissingVariableValues) {
+        val variableDialog = GraphQLEnvironmentVariablesDialog(project, environment, endpoint.dir, true)
+        if (!variableDialog.showAndGet()) {
+            return null
+        }
+    }
+
+    return endpoint.withUpdatedEnvironment()
 }
