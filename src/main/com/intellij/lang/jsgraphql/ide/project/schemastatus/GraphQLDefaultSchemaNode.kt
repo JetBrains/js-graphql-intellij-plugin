@@ -5,59 +5,51 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.schemastatus;
+package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
-import com.google.common.collect.Lists;
-import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.ui.treeStructure.CachingSimpleNode;
-import com.intellij.ui.treeStructure.SimpleNode;
-import com.intellij.util.SlowOperations;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
+import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.project.Project
+import com.intellij.ui.treeStructure.CachingSimpleNode
+import com.intellij.ui.treeStructure.SimpleNode
+import com.intellij.util.SlowOperations
 
 /**
  * Tree node that represents the default project schema when no config files exist
  */
-public class GraphQLDefaultSchemaNode extends CachingSimpleNode {
+class GraphQLDefaultSchemaNode(project: Project, parent: GraphQLSchemasRootNode) : CachingSimpleNode(project, parent) {
+    private val schemaInfo: GraphQLSchemaInfo
 
-    private final GraphQLSchemaInfo mySchemaInfo;
+    init {
+        myName = "Default project-wide schema"
+        presentation.locationString = project.presentableUrl
+        presentation.setIcon(GraphQLIcons.Files.GraphQLSchema)
 
-    protected GraphQLDefaultSchemaNode(@NotNull Project project, @NotNull GraphQLSchemasRootNode parent) {
-        super(project, parent);
-        myName = "Default project-wide schema";
-        getPresentation().setLocationString(project.getPresentableUrl());
-        getPresentation().setIcon(GraphQLIcons.Files.GraphQLSchema);
-        mySchemaInfo = SlowOperations.allowSlowOperations(() -> ReadAction.compute(() -> {
-            GlobalSearchScope globalScope = GraphQLScopeProvider.getInstance(project).getGlobalScope();
-            return GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(globalScope);
-        }));
-    }
-
-    @Override
-    public SimpleNode[] buildChildren() {
-        final List<SimpleNode> children = Lists.newArrayList(new GraphQLSchemaContentNode(this, mySchemaInfo));
-        if (mySchemaInfo.getRegistryInfo().isProcessedGraphQL()) {
-            children.add(new GraphQLSchemaErrorsListNode(this, mySchemaInfo));
+        schemaInfo = SlowOperations.allowSlowOperations<GraphQLSchemaInfo, RuntimeException> {
+            ReadAction.compute<GraphQLSchemaInfo, RuntimeException> {
+                val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
+                GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(globalScope)
+            }
         }
-        children.add(new GraphQLSchemaEndpointsListNode(this, null, null));
-        return children.toArray(SimpleNode.NO_CHILDREN);
     }
 
-    @Override
-    public boolean isAutoExpandNode() {
-        return true;
+    public override fun buildChildren(): Array<SimpleNode> {
+        val children: MutableList<SimpleNode> = mutableListOf(GraphQLSchemaContentNode(this, schemaInfo))
+        if (schemaInfo.registryInfo.hasProcessedAnyFile()) {
+            children.add(GraphQLSchemaErrorsListNode(this, schemaInfo))
+        }
+        children.add(GraphQLSchemaEndpointsListNode(this, null))
+        return children.toTypedArray()
     }
 
-    @NotNull
-    @Override
-    public Object[] getEqualityObjects() {
-        return new Object[]{"Default schema", mySchemaInfo};
+    override fun isAutoExpandNode(): Boolean {
+        return true
+    }
+
+    override fun getEqualityObjects(): Array<Any> {
+        return arrayOf("Default schema", schemaInfo)
     }
 }

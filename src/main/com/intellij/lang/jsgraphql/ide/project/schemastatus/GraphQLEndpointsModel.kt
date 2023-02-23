@@ -5,82 +5,76 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.schemastatus;
+package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
-import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
-import org.jdesktop.swingx.combobox.ListComboBoxModel;
+import com.intellij.ide.util.PropertiesComponent
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
+import org.jdesktop.swingx.combobox.ListComboBoxModel
+import javax.swing.event.ListDataEvent
+import javax.swing.event.ListDataListener
 
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-public class GraphQLEndpointsModel extends ListComboBoxModel<GraphQLConfigEndpoint> {
-
-    private final static String INDEX_PROPERTY_NAME = GraphQLEndpointsModel.class.getName() + ".index";
-
-    public GraphQLEndpointsModel(List<GraphQLConfigEndpoint> list, PropertiesComponent propertiesComponent) {
-        super(new ArrayList<>(list)); // ensure it's not readonly
-
-        if (!list.isEmpty()) {
-            int defaultSelectedIndex = propertiesComponent.getInt(INDEX_PROPERTY_NAME + getConfigPathPersistenceKey(), 0);
-            if (defaultSelectedIndex >= 0 && defaultSelectedIndex < list.size()) {
-                setSelectedItem(list.get(defaultSelectedIndex));
+class GraphQLEndpointsModel(
+    list: List<GraphQLConfigEndpoint>,
+    propertiesComponent: PropertiesComponent,
+) : ListComboBoxModel<GraphQLConfigEndpoint>(
+    ArrayList(list)
+) {
+    init {
+        if (list.isNotEmpty()) {
+            val defaultSelectedIndex = propertiesComponent.getInt(INDEX_PROPERTY_NAME + configPathPersistenceKey, 0)
+            if (defaultSelectedIndex >= 0 && defaultSelectedIndex < list.size) {
+                selectedItem = list[defaultSelectedIndex]
             }
         }
 
-        this.addListDataListener(new ListDataListener() {
-            @Override
-            public void intervalAdded(ListDataEvent listDataEvent) {
-            }
-
-            @Override
-            public void intervalRemoved(ListDataEvent listDataEvent) {
-            }
-
-            @Override
-            public void contentsChanged(ListDataEvent listDataEvent) {
-                final GraphQLConfigEndpoint selectedItem = getSelectedItem();
+        addListDataListener(object : ListDataListener {
+            override fun intervalAdded(listDataEvent: ListDataEvent) {}
+            override fun intervalRemoved(listDataEvent: ListDataEvent) {}
+            override fun contentsChanged(listDataEvent: ListDataEvent) {
+                val selectedItem = selectedItem
                 if (selectedItem != null) {
-                    propertiesComponent.setValue(INDEX_PROPERTY_NAME + getConfigPathPersistenceKey(), data.indexOf(selectedItem), 0);
+                    propertiesComponent.setValue(
+                        INDEX_PROPERTY_NAME + configPathPersistenceKey,
+                        data.indexOf(selectedItem),
+                        0
+                    )
                 }
             }
-        });
+        })
     }
 
-    public void reload(List<GraphQLConfigEndpoint> newEndpoints) {
-        if (!Objects.equals(data, newEndpoints)) {
-            data.clear();
+    fun reload(newEndpoints: List<GraphQLConfigEndpoint?>?) {
+        if (data != newEndpoints) {
+            data.clear()
             if (newEndpoints != null) {
-                data.addAll(newEndpoints);
+                data.addAll(newEndpoints)
             }
         }
-
-        final GraphQLConfigEndpoint selectedItem = getSelectedItem();
-
+        val selectedItem = selectedItem
         if (selectedItem == null) {
             // default to the first endpoint if one is available
-            if (!data.isEmpty()) {
-                setSelectedItem(data.get(0));
+            if (data.isNotEmpty()) {
+                setSelectedItem(data[0])
             }
         } else {
             // check that the selected endpoint is one of the available ones
             if (!data.contains(selectedItem)) {
-                setSelectedItem(data.isEmpty() ? null : data.get(0));
+                setSelectedItem(if (data.isEmpty()) null else data[0])
             }
         }
 
         // we have to let components that bind to the model know that the model has been changed
-        this.fireContentsChanged(this, -1, -1);
+        fireContentsChanged(this, -1, -1)
     }
 
-    private String getConfigPathPersistenceKey() {
-        if (getSize() > 0) {
-            return ":" + getElementAt(0).getDir().getPath();
+    private val configPathPersistenceKey: String
+        get() = if (size > 0) {
+            ":" + getElementAt(0)!!.dir.path
         } else {
-            return "";
+            ""
         }
+
+    companion object {
+        private val INDEX_PROPERTY_NAME = GraphQLEndpointsModel::class.java.name + ".index"
     }
 }

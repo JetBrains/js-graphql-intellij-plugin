@@ -5,305 +5,306 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.schemastatus;
+package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
-import com.intellij.codeInspection.InspectionProfile;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.BrowserUtil;
-import com.intellij.ide.IdeEventQueue;
-import com.intellij.ide.util.treeView.IndexComparator;
-import com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryAction;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentChangeListener;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker;
-import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.application.Application;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.project.DumbService;
-import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.profile.ProfileChangeAdapter;
-import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.SideBorder;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.treeStructure.SimpleNode;
-import com.intellij.ui.treeStructure.SimpleTree;
-import com.intellij.ui.treeStructure.SimpleTreeBuilder;
-import com.intellij.ui.treeStructure.SimpleTreeStructure;
-import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import com.intellij.codeInspection.InspectionProfile
+import com.intellij.icons.AllIcons
+import com.intellij.ide.BrowserUtil
+import com.intellij.ide.IdeEventQueue
+import com.intellij.ide.util.treeView.IndexComparator
+import com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryAction
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentChangeListener
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Condition
+import com.intellij.openapi.util.Disposer
+import com.intellij.profile.ProfileChangeAdapter
+import com.intellij.ui.IdeBorderFactory
+import com.intellij.ui.SideBorder
+import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.treeStructure.SimpleTree
+import com.intellij.ui.treeStructure.SimpleTreeBuilder
+import com.intellij.ui.treeStructure.SimpleTreeStructure
+import com.intellij.util.messages.MessageBusConnection
+import com.intellij.util.ui.tree.TreeUtil
+import java.awt.BorderLayout
+import java.awt.Component
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import javax.swing.JPanel
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreePath
+import javax.swing.tree.TreeSelectionModel
 
 /**
  * Tool window panel that shows the status of the GraphQL schemas discovered in the project.
  */
-public class GraphQLSchemasPanel extends JPanel implements Disposable {
+class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
+    private val myConnection: MessageBusConnection = project.messageBus.connect(this)
+    private val mySchemaModificationTracker = GraphQLSchemaContentTracker.getInstance(project)
+    private lateinit var tree: SimpleTree
 
-    private final Project myProject;
-    private final MessageBusConnection myConnection;
-    private final ModificationTracker mySchemaModificationTracker;
-    private SimpleTree myTree;
-
-    public GraphQLSchemasPanel(@NotNull Project project) {
-        myProject = project;
-
-        myConnection = project.getMessageBus().connect(this);
-        mySchemaModificationTracker = GraphQLSchemaContentTracker.getInstance(project);
-
-        setLayout(new BorderLayout());
-        add(createToolPanel(), BorderLayout.WEST);
-        add(createTreePanel(), BorderLayout.CENTER);
+    init {
+        layout = BorderLayout()
+        add(createToolPanel(), BorderLayout.WEST)
+        add(createTreePanel(), BorderLayout.CENTER)
     }
 
-    @Override
-    public void dispose() {
+    override fun dispose() {
         // disposed by tool window
     }
 
-    enum TreeUpdate {
+    internal enum class TreeUpdate {
         NONE,
         UPDATE,
         REBUILD
     }
 
-    private Component createTreePanel() {
-
-        myTree = new SimpleTree() {
-
+    private fun createTreePanel(): Component {
+        tree = object : SimpleTree() {
             // tree implementation which only show selection when focused to prevent selection flash during updates (editor changes)
-
-            @Override
-            public boolean isRowSelected(int i) {
-                return hasFocus() && super.isRowSelected(i);
+            override fun isRowSelected(i: Int): Boolean {
+                return hasFocus() && super.isRowSelected(i)
             }
 
-            @Override
-            public boolean isPathSelected(TreePath treePath) {
-                return hasFocus() && super.isPathSelected(treePath);
+            override fun isPathSelected(treePath: TreePath): Boolean {
+                return hasFocus() && super.isPathSelected(treePath)
+            }
+        }
+        tree.emptyText.setText("Schema discovery has not completed.")
+        tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+        tree.isRootVisible = false
+        tree.showsRootHandles = true
+        tree.isLargeModel = true
+
+        TreeUtil.installActions(tree)
+
+        val application = ApplicationManager.getApplication()
+        val treeStructure = SimpleTreeStructure.Impl(GraphQLSchemasRootNode(project))
+        val treeModel = DefaultTreeModel(DefaultMutableTreeNode())
+        val myBuilder: SimpleTreeBuilder =
+            object : SimpleTreeBuilder(tree, treeModel, treeStructure, IndexComparator.INSTANCE) {
+                override fun isToBuildChildrenInBackground(element: Any): Boolean {
+                    // don't block the UI thread when doing schema discovery in the tree
+                    return application.isDispatchThread
+                }
             }
 
-        };
-
-        myTree.getEmptyText().setText("Schema discovery has not completed.");
-        myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        myTree.setRootVisible(false);
-        myTree.setShowsRootHandles(true);
-        myTree.setLargeModel(true);
-
-        TreeUtil.installActions(myTree);
-
-        final Application application = ApplicationManager.getApplication();
-
-        final SimpleTreeStructure.Impl treeStructure = new SimpleTreeStructure.Impl(new GraphQLSchemasRootNode(myProject));
-        final DefaultTreeModel treeModel = new DefaultTreeModel(new DefaultMutableTreeNode());
-        final SimpleTreeBuilder myBuilder = new SimpleTreeBuilder(myTree, treeModel, treeStructure, IndexComparator.INSTANCE) {
-            @Override
-            public boolean isToBuildChildrenInBackground(Object element) {
-                // don't block the UI thread when doing schema discovery in the tree
-                return application.isDispatchThread();
-            }
-        };
-        Disposer.register(this, myBuilder);
+        Disposer.register(this, myBuilder)
 
         // queue tree updates for when the user is idle to prevent perf-hit in the editor
-        final AtomicReference<TreeUpdate> shouldUpdateTree = new AtomicReference<>(TreeUpdate.NONE);
-        final AtomicBoolean isInitialized = new AtomicBoolean();
-
-        final Runnable treeUpdater = () -> {
-            final TreeUpdate updateToPerform = shouldUpdateTree.getAndSet(TreeUpdate.NONE);
+        val shouldUpdateTree = AtomicReference(TreeUpdate.NONE)
+        val isInitialized = AtomicBoolean()
+        val treeUpdater = Runnable {
+            val updateToPerform = shouldUpdateTree.getAndSet(TreeUpdate.NONE)
             if (updateToPerform != TreeUpdate.NONE) {
-                final long startVersion = mySchemaModificationTracker.getModificationCount();
-                myBuilder.cancelUpdate().doWhenProcessed(() -> {
-                    application.executeOnPooledThread(() -> {
+                val startVersion = mySchemaModificationTracker.modificationCount
+                myBuilder.cancelUpdate().doWhenProcessed {
+                    application.executeOnPooledThread {
                         // run the schema discovery on a pooled to prevent blocking of the UI thread by asking the nodes for heir child nodes
                         // the schema caches will be ready when the UI thread then needs to show the tree nodes
-                        if (myProject.isDisposed()) {
-                            return;
+                        if (project.isDisposed) {
+                            return@executeOnPooledThread
                         }
                         try {
-                            application.runReadAction(() -> {
+                            runReadAction {
                                 // use read action to enable use of indexes
-                                final GraphQLSchemasRootNode root = (GraphQLSchemasRootNode) treeStructure.getRootElement();
-                                for (SimpleNode schemaNode : root.getChildren()) {
-                                    for (SimpleNode node : schemaNode.getChildren()) {
-                                        node.getChildren();
+                                val root = treeStructure.rootElement as GraphQLSchemasRootNode
+                                for (schemaNode in root.children) {
+                                    for (node in schemaNode.children) {
+                                        node.children
                                     }
                                 }
-                                final long endVersion = mySchemaModificationTracker.getModificationCount();
+                                val endVersion = mySchemaModificationTracker.modificationCount
                                 if (isInitialized.compareAndSet(false, true) || startVersion == endVersion) {
                                     // initial update or we're still on the same version
                                     // otherwise a new update is pending so don't need to call the updateFromRoot in this thread
-                                    myBuilder.updateFromRoot(updateToPerform == TreeUpdate.REBUILD);
+                                    myBuilder.updateFromRoot(updateToPerform == TreeUpdate.REBUILD)
                                 }
-                            });
-                        } catch (IndexNotReadyException | ProcessCanceledException ignored) {
+                            }
+                        } catch (ignored: IndexNotReadyException) {
                             // allowed to happen here -- retry will run later
+                        } catch (ignored: ProcessCanceledException) {
                         }
-                    });
-                });
+                    }
+                }
             }
-        };
+        }
 
         // update the tree after being idle for a short while
-        IdeEventQueue.getInstance().addIdleListener(treeUpdater, 750);
-
-        Disposer.register(this, () -> IdeEventQueue.getInstance().removeIdleListener(treeUpdater));
+        IdeEventQueue.getInstance().addIdleListener(treeUpdater, 750)
+        Disposer.register(this) { IdeEventQueue.getInstance().removeIdleListener(treeUpdater) }
 
         // update tree on schema or config changes
         myConnection.subscribe(GraphQLSchemaContentChangeListener.TOPIC,
-            (GraphQLSchemaContentChangeListener) () -> shouldUpdateTree.compareAndSet(TreeUpdate.NONE, TreeUpdate.UPDATE));
-        myConnection.subscribe(GraphQLConfigListener.TOPIC, (GraphQLConfigListener) () -> shouldUpdateTree.set(TreeUpdate.REBUILD));
+            object : GraphQLSchemaContentChangeListener {
+                override fun onSchemaChanged() {
+                    shouldUpdateTree.compareAndSet(TreeUpdate.NONE, TreeUpdate.UPDATE)
+                }
+            })
 
+        myConnection.subscribe(
+            GraphQLConfigListener.TOPIC,
+            object : GraphQLConfigListener {
+                override fun onConfigurationChanged() {
+                    shouldUpdateTree.set(TreeUpdate.REBUILD)
+                }
+            }
+        )
 
         // update tree in response to indexing changes
-        myConnection.subscribe(DumbService.DUMB_MODE, new DumbService.DumbModeListener() {
-            @Override
-            public void enteredDumbMode() {
-                shouldUpdateTree.set(TreeUpdate.REBUILD);
-            }
+        myConnection.subscribe(
+            DumbService.DUMB_MODE,
+            object : DumbService.DumbModeListener {
+                override fun enteredDumbMode() {
+                    shouldUpdateTree.set(TreeUpdate.REBUILD)
+                }
 
-            @Override
-            public void exitDumbMode() {
-                shouldUpdateTree.set(TreeUpdate.REBUILD);
-            }
-        });
+                override fun exitDumbMode() {
+                    shouldUpdateTree.set(TreeUpdate.REBUILD)
+                }
+            })
 
-        final JBScrollPane scrollPane = new JBScrollPane(myTree);
-        scrollPane.setBorder(IdeBorderFactory.createBorder(SideBorder.LEFT));
+        val scrollPane = JBScrollPane(tree)
+        scrollPane.border = IdeBorderFactory.createBorder(SideBorder.LEFT)
 
         // "bold" the schema node that matches the edited file
-        myConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
-            @Override
-            public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-                if (event.getNewFile() != null) {
-                    final DefaultMutableTreeNode schemaNode = findNode((DefaultMutableTreeNode) treeModel.getRoot(), node -> {
-                        if (node.getUserObject() instanceof GraphQLConfigSchemaNode) {
-                            return ((GraphQLConfigSchemaNode) node.getUserObject()).representsFile(event.getNewFile());
+        myConnection.subscribe(
+            FileEditorManagerListener.FILE_EDITOR_MANAGER,
+            object : FileEditorManagerListener {
+                override fun selectionChanged(event: FileEditorManagerEvent) {
+                    if (event.newFile != null) {
+                        val schemaNode =
+                            findNode(treeModel.root as DefaultMutableTreeNode) { node: DefaultMutableTreeNode ->
+                                if (node.userObject is GraphQLConfigSchemaNode) {
+                                    return@findNode (node.userObject as GraphQLConfigSchemaNode).representsFile(event.newFile)
+                                }
+                                false
+                            }
+                        if (schemaNode != null) {
+                            shouldUpdateTree.set(TreeUpdate.UPDATE)
                         }
-                        return false;
-                    });
-                    if (schemaNode != null) {
-                        shouldUpdateTree.set(TreeUpdate.UPDATE);
                     }
                 }
-            }
-        });
+            })
 
-        myConnection.subscribe(ProfileChangeAdapter.TOPIC, new ProfileChangeAdapter() {
-            @Override
-            public void profileChanged(@Nullable InspectionProfile profile) {
-                shouldUpdateTree.set(TreeUpdate.UPDATE);
+        myConnection.subscribe(ProfileChangeAdapter.TOPIC, object : ProfileChangeAdapter {
+            override fun profileChanged(profile: InspectionProfile) {
+                shouldUpdateTree.set(TreeUpdate.UPDATE)
             }
-        });
+        })
 
-        return scrollPane;
+        return scrollPane
     }
 
-    private static DefaultMutableTreeNode findNode(@NotNull final DefaultMutableTreeNode aRoot,
-                                                   @NotNull final Condition<DefaultMutableTreeNode> condition) {
-        if (condition.value(aRoot)) {
-            return aRoot;
-        } else {
-            for (int i = 0; i < aRoot.getChildCount(); i++) {
-                final DefaultMutableTreeNode candidate = findNode((DefaultMutableTreeNode) aRoot.getChildAt(i), condition);
-                if (null != candidate) {
-                    return candidate;
-                }
-            }
-            return null;
-        }
-    }
+    private fun createToolPanel(): Component {
+        val actionManager = ActionManager.getInstance()
+        val leftActionGroup = DefaultActionGroup()
 
-    private Component createToolPanel() {
-        DefaultActionGroup leftActionGroup = new DefaultActionGroup();
-        leftActionGroup.add(new AnAction("Add Schema Configuration", "Adds a new GraphQL configuration file", AllIcons.General.Add) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                final TreeDirectoryChooserDialog dialog = new TreeDirectoryChooserDialog(myProject, "Select GraphQL Schema Base Directory");
+        leftActionGroup.add(object : AnAction(
+            "Add Schema Configuration",
+            "Adds a new GraphQL configuration file",
+            AllIcons.General.Add
+        ) {
+            override fun actionPerformed(e: AnActionEvent) {
+                val dialog = TreeDirectoryChooserDialog(project, "Select GraphQL Schema Base Directory")
                 if (dialog.showAndGet()) {
-                    if (dialog.getSelectedDirectory() != null) {
-                        GraphQLConfigFactory configFactory = GraphQLConfigFactory.getInstance(myProject);
-                        configFactory.createAndOpenConfigFile(dialog.getSelectedDirectory(), true);
+                    val selectedDirectory = dialog.selectedDirectory
+                    if (selectedDirectory != null) {
+                        val configFactory = GraphQLConfigFactory.getInstance(project)
+                        configFactory.createAndOpenConfigFile(selectedDirectory, true)
                     }
                 }
             }
-        });
+        })
 
-        leftActionGroup.add(new AnAction(
+        leftActionGroup.add(object : AnAction(
             "Edit Selected Schema Configuration",
             "Opens the GraphQL config file for the selected schema",
             AllIcons.General.Settings
         ) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                GraphQLConfigSchemaNode selectedSchemaNode = getSelectedSchemaNode();
+            override fun actionPerformed(e: AnActionEvent) {
+                val selectedSchemaNode = selectedSchemaNode
                 if (selectedSchemaNode != null) {
-                    VirtualFile configFile = selectedSchemaNode.getConfigFile();
+                    val configFile = selectedSchemaNode.configFile
                     if (configFile != null) {
-                        FileEditorManager.getInstance(myProject).openFile(configFile, true);
+                        FileEditorManager.getInstance(project).openFile(configFile, true)
                     }
                 }
             }
 
-            @Override
-            public void update(@NotNull AnActionEvent e) {
-                e.getPresentation().setEnabled(getSelectedSchemaNode() != null);
+            override fun update(e: AnActionEvent) {
+                e.presentation.isEnabled = selectedSchemaNode != null
             }
 
-            @Override
-            public @NotNull ActionUpdateThread getActionUpdateThread() {
-                return ActionUpdateThread.EDT;
+            override fun getActionUpdateThread(): ActionUpdateThread {
+                return ActionUpdateThread.EDT
             }
 
-            private GraphQLConfigSchemaNode getSelectedSchemaNode() {
-                SimpleNode node = myTree.getSelectedNode();
-                while (node != null) {
-                    if (node instanceof GraphQLConfigSchemaNode) {
-                        return (GraphQLConfigSchemaNode) node;
+            private val selectedSchemaNode: GraphQLConfigSchemaNode?
+                get() {
+                    var node = tree.selectedNode
+                    while (node != null) {
+                        if (node is GraphQLConfigSchemaNode) {
+                            return node
+                        }
+                        node = node.parent
                     }
-                    node = node.getParent();
+                    return null
                 }
-                return null;
-            }
-        });
+        })
 
-        ActionManager actionManager = ActionManager.getInstance();
-        AnAction restartSchemaAction = actionManager.getAction(GraphQLRestartSchemaDiscoveryAction.ACTION_ID);
-        if (restartSchemaAction != null) {
-            leftActionGroup.add(restartSchemaAction);
+        actionManager.getAction(GraphQLRestartSchemaDiscoveryAction.ACTION_ID)?.let {
+            leftActionGroup.add(it)
         }
-        leftActionGroup.add(new AnAction("Help", "Open the GraphQL plugin documentation", AllIcons.Actions.Help) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                BrowserUtil.browse("https://github.com/JetBrains/js-graphql-intellij-plugin");
-            }
-        });
 
-        final JPanel panel = new JPanel(new BorderLayout());
-        final ActionToolbar leftToolbar = actionManager.createActionToolbar(ActionPlaces.COMPILER_MESSAGES_TOOLBAR, leftActionGroup, false);
-        leftToolbar.setTargetComponent(panel);
-        panel.add(leftToolbar.getComponent(), BorderLayout.WEST);
-        return panel;
+        leftActionGroup.add(object : AnAction(
+            "Help",
+            "Open the GraphQL plugin documentation",
+            AllIcons.Actions.Help
+        ) {
+            override fun actionPerformed(e: AnActionEvent) {
+                BrowserUtil.browse("https://github.com/JetBrains/js-graphql-intellij-plugin")
+            }
+        })
+
+        val leftToolbar =
+            actionManager.createActionToolbar(ActionPlaces.COMPILER_MESSAGES_TOOLBAR, leftActionGroup, false)
+        leftToolbar.targetComponent = this
+        return leftToolbar.component
     }
 
+    companion object {
+        private fun findNode(
+            root: DefaultMutableTreeNode,
+            condition: Condition<DefaultMutableTreeNode>,
+        ): DefaultMutableTreeNode? {
+            return if (condition.value(root)) {
+                root
+            } else {
+                for (i in 0 until root.childCount) {
+                    val candidate =
+                        findNode(root.getChildAt(i) as DefaultMutableTreeNode, condition)
+                    if (candidate != null) {
+                        return candidate
+                    }
+                }
+
+                null
+            }
+        }
+    }
 }

@@ -5,161 +5,132 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.schemastatus;
+package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
-import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.util.gotoByName.ChooseByNamePopup;
-import com.intellij.ide.util.gotoByName.ChooseByNamePopupComponent;
-import com.intellij.ide.util.gotoByName.SimpleChooseByNameModel;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
-import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo;
-import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.psi.PsiElement;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.treeStructure.CachingSimpleNode;
-import com.intellij.ui.treeStructure.SimpleNode;
-import com.intellij.ui.treeStructure.SimpleTree;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.event.InputEvent;
-import java.util.List;
-import java.util.Optional;
+import com.intellij.icons.AllIcons
+import com.intellij.ide.util.gotoByName.ChooseByNamePopup
+import com.intellij.ide.util.gotoByName.ChooseByNamePopupComponent
+import com.intellij.ide.util.gotoByName.SimpleChooseByNameModel
+import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLTreeNodeNavigationUtil.openSourceLocation
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
+import com.intellij.lang.jsgraphql.types.language.*
+import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo
+import com.intellij.openapi.application.ModalityState
+import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.treeStructure.CachingSimpleNode
+import com.intellij.ui.treeStructure.SimpleNode
+import com.intellij.ui.treeStructure.SimpleTree
+import org.apache.commons.lang.StringUtils
+import java.awt.event.InputEvent
+import javax.swing.JList
+import javax.swing.ListCellRenderer
 
 /**
  * Tree node which provides schema statistics
  */
-public class GraphQLSchemaContentNode extends CachingSimpleNode {
+class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: GraphQLSchemaInfo) :
+    CachingSimpleNode(parent) {
 
-    private final GraphQLSchemaInfo myValidatedSchema;
+    init {
+        val parts: MutableList<String> = mutableListOf()
+        val registry = validatedSchema.registryInfo.typeDefinitionRegistry
+        parts.add("${registry.getTypes(ObjectTypeDefinition::class.java).size} types")
+        parts.add("${registry.getTypes(InterfaceTypeDefinition::class.java).size} interfaces")
+        parts.add("${registry.getTypes(InputObjectTypeDefinition::class.java).size} inputs")
+        parts.add("${registry.getTypes(EnumTypeDefinition::class.java).size} enums")
+        parts.add("${registry.getTypes(UnionTypeDefinition::class.java).size} unions")
+        parts.add("${(registry.scalars().size - ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS.size)} scalars")
+        parts.add("${registry.directiveDefinitions.size} directives")
 
-    public GraphQLSchemaContentNode(@NotNull SimpleNode parent, @NotNull GraphQLSchemaInfo validatedSchema) {
-        super(parent);
-        myValidatedSchema = validatedSchema;
+        myName = "Schema discovery summary"
 
-        final List<String> parts = Lists.newArrayList();
-        TypeDefinitionRegistry registry = validatedSchema.getRegistryInfo().getTypeDefinitionRegistry();
-        parts.add(registry.getTypes(ObjectTypeDefinition.class).size() + " types");
-        parts.add(registry.getTypes(InterfaceTypeDefinition.class).size() + " interfaces");
-        parts.add(registry.getTypes(InputObjectTypeDefinition.class).size() + " inputs");
-        parts.add(registry.getTypes(EnumTypeDefinition.class).size() + " enums");
-        parts.add(registry.getTypes(UnionTypeDefinition.class).size() + " unions");
-        parts.add(registry.scalars().size() - ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS.size() + " scalars");
-        parts.add(registry.getDirectiveDefinitions().size() + " directives");
-
-        myName = "Schema discovery summary";
-
-        final Object[] nonEmptyParts = parts.stream().filter(p -> p.charAt(0) != '0').toArray();
-        if (nonEmptyParts.length > 0) {
-            getTemplatePresentation().setLocationString("- " + StringUtils.join(nonEmptyParts, ", "));
+        val nonEmptyParts = parts.filter { it[0] != '0' }
+        if (nonEmptyParts.isNotEmpty()) {
+            templatePresentation.locationString = "- " + nonEmptyParts.joinToString()
         } else {
-            final String message = validatedSchema.getRegistryInfo().isProcessedGraphQL() ? "- schema is empty" : "- no schema definitions were found";
-            getTemplatePresentation().setLocationString(message);
+            templatePresentation.locationString =
+                if (validatedSchema.registryInfo.hasProcessedAnyFile()) "- schema is empty" else "- no schema definitions were found"
         }
 
-        getTemplatePresentation().setTooltip("Double click or press enter to search the schema registry");
-
-        setIcon(AllIcons.Nodes.ModuleGroup);
-
+        templatePresentation.tooltip = "Double click or press enter to search the schema registry"
+        icon = AllIcons.Nodes.ModuleGroup
     }
 
-    @Override
-    public void handleDoubleClickOrEnter(SimpleTree tree, InputEvent inputEvent) {
-        ChooseByNamePopup popup = ChooseByNamePopup.createPopup(myProject,
-            new SimpleChooseByNameModel(myProject, "Search schema registry \"" + getParent().getName() + "\"", null) {
-                @Override
-                public String[] getNames() {
-                    final List<String> names = Lists.newArrayList();
-                    myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry().types().values().forEach(
-                        type -> names.add(type.getName()));
-                    myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry().scalars().values().forEach(
-                        type -> names.add(type.getName()));
-                    myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry().getDirectiveDefinitions().values().forEach(
-                        type -> names.add(type.getName()));
-                    return names.toArray(new String[]{});
+    override fun handleDoubleClickOrEnter(tree: SimpleTree, inputEvent: InputEvent) {
+        val popup = ChooseByNamePopup.createPopup(
+            myProject,
+            object : SimpleChooseByNameModel(myProject, "Search schema registry \"${parent.name}\"", null) {
+                override fun getNames(): Array<String> {
+                    val names: MutableList<String> = mutableListOf()
+                    val registry = validatedSchema.registryInfo.typeDefinitionRegistry
+                    registry.types().values.forEach { names.add(it.name) }
+                    registry.scalars().values.forEach { names.add(it.name) }
+                    registry.directiveDefinitions.values.forEach { names.add(it.name) }
+                    return names.toTypedArray()
                 }
 
-                @Override
-                protected Object[] getElementsByName(String name, String pattern) {
-                    final TypeDefinitionRegistry registry = myValidatedSchema.getRegistryInfo().getTypeDefinitionRegistry();
-                    Optional<TypeDefinition> type = registry.getType(name);
-                    if (type.isPresent()) {
-                        return new Object[]{type.get()};
+                override fun getElementsByName(name: String, pattern: String): Array<Any> {
+                    val registry = validatedSchema.registryInfo.typeDefinitionRegistry
+                    val type = registry.getType(name)
+                    if (type.isPresent) {
+                        return arrayOf(type.get())
                     }
-                    final ScalarTypeDefinition scalarTypeDefinition = registry.scalars().get(name);
+                    val scalarTypeDefinition = registry.scalars()[name]
                     if (scalarTypeDefinition != null) {
-                        return new Object[]{scalarTypeDefinition};
+                        return arrayOf(scalarTypeDefinition)
                     }
-                    final Optional<DirectiveDefinition> directiveDefinition = registry.getDirectiveDefinition(name);
-                    if (directiveDefinition.isPresent()) {
-                        return new Object[]{directiveDefinition.get()};
+                    val directiveDefinition = registry.getDirectiveDefinition(name)
+                    return if (directiveDefinition.isPresent) {
+                        arrayOf(directiveDefinition.get())
+                    } else {
+                        arrayOf(name)
                     }
-                    return new Object[]{name};
                 }
 
-                @Override
-                public ListCellRenderer getListCellRenderer() {
-                    return new ColoredListCellRenderer() {
-
-                        @Override
-                        protected void customizeCellRenderer(@NotNull JList list,
-                                                             Object value,
-                                                             int index,
-                                                             boolean selected,
-                                                             boolean hasFocus) {
-                            String elementName = getElementName(value);
-                            if (elementName != null) {
-                                this.append(elementName);
-                                if (value instanceof AbstractNode) {
-                                    final SourceLocation sourceLocation = ((AbstractNode) value).getSourceLocation();
-                                    if (sourceLocation != null) {
-                                        String sourceName = sourceLocation.getSourceName();
-                                        if (sourceName != null) {
-                                            sourceName = StringUtils.substringAfterLast(sourceName, "/");
-                                            this.append(" - " + sourceName, SimpleTextAttributes.GRAYED_ATTRIBUTES);
-                                        }
-                                    }
-                                }
-                            }
+                override fun getListCellRenderer(): ListCellRenderer<*> {
+                    return object : ColoredListCellRenderer<Any?>() {
+                        override fun customizeCellRenderer(
+                            list: JList<*>,
+                            value: Any?,
+                            index: Int,
+                            selected: Boolean,
+                            hasFocus: Boolean,
+                        ) {
+                            val elementName = value?.let { getElementName(it) } ?: return
+                            append(elementName)
+                            if (value !is AbstractNode<*>) return
+                            var sourceName = value.sourceLocation?.sourceName ?: return
+                            sourceName = StringUtils.substringAfterLast(sourceName, "/")
+                            append(" - $sourceName", SimpleTextAttributes.GRAYED_ATTRIBUTES)
                         }
-                    };
+                    }
                 }
 
-                @Nullable
-                @Override
-                public String getElementName(Object element) {
-                    return element instanceof NamedNode ? ((NamedNode) element).getName() : null;
+                override fun getElementName(element: Any): String? {
+                    return if (element is NamedNode<*>) element.name else null
                 }
-            }, (PsiElement) null);
-        popup.invoke(new ChooseByNamePopupComponent.Callback() {
-            @Override
-            public void elementChosen(Object element) {
-                if (element instanceof AbstractNode) {
-                    final SourceLocation sourceLocation = ((AbstractNode) element).getSourceLocation();
-                    if (sourceLocation != null && sourceLocation.getSourceName() != null) {
-                        GraphQLTreeNodeNavigationUtil.openSourceLocation(myProject, sourceLocation, true);
+            },
+            null
+        )
+
+        popup.invoke(object : ChooseByNamePopupComponent.Callback() {
+            override fun elementChosen(element: Any) {
+                if (element is AbstractNode<*>) {
+                    val sourceLocation = element.sourceLocation
+                    if (sourceLocation != null && sourceLocation.sourceName != null) {
+                        openSourceLocation(myProject, sourceLocation, true)
                     }
                 }
             }
-        }, ModalityState.NON_MODAL, false);
-
+        }, ModalityState.NON_MODAL, false)
     }
 
-    @Override
-    public SimpleNode[] buildChildren() {
-        return SimpleNode.NO_CHILDREN;
+    public override fun buildChildren(): Array<SimpleNode> {
+        return NO_CHILDREN
     }
 
-    @Override
-    public boolean isAlwaysLeaf() {
-        return true;
+    override fun isAlwaysLeaf(): Boolean {
+        return true
     }
-
-
 }

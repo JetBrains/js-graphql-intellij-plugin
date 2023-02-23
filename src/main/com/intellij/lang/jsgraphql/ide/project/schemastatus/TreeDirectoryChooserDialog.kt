@@ -5,186 +5,161 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.schemastatus;
+package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
-import com.intellij.ide.projectView.ProjectViewNode;
-import com.intellij.ide.projectView.TreeStructureProvider;
-import com.intellij.ide.projectView.impl.AbstractProjectTreeStructure;
-import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase;
-import com.intellij.ide.projectView.impl.ProjectTreeBuilder;
-import com.intellij.ide.util.treeView.AlphaComparator;
-import com.intellij.ide.util.treeView.NodeRenderer;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.DoubleClickListener;
-import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.TreeSpeedSearch;
-import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.util.List;
+import com.intellij.ide.projectView.ProjectViewNode
+import com.intellij.ide.projectView.TreeStructureProvider
+import com.intellij.ide.projectView.impl.AbstractProjectTreeStructure
+import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase
+import com.intellij.ide.projectView.impl.ProjectTreeBuilder
+import com.intellij.ide.util.treeView.AlphaComparator
+import com.intellij.ide.util.treeView.NodeRenderer
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.DoubleClickListener
+import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.TreeSpeedSearch
+import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.JBUI
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.MouseEvent
+import javax.swing.JComponent
+import javax.swing.SwingUtilities
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeSelectionModel
 
 /**
  * Directory picker for where to place a GraphQL schema configuration file.
  */
-public final class TreeDirectoryChooserDialog extends DialogWrapper {
+class TreeDirectoryChooserDialog(private val project: Project, title: String?) : DialogWrapper(project, true) {
+    private val disposable = Disposer.newDisposable()
 
-    private Tree myTree;
-    private VirtualFile mySelectedFile = null;
-    private final Project myProject;
-    private ProjectTreeBuilder myBuilder;
+    private lateinit var myTree: Tree
+    private lateinit var myBuilder: ProjectTreeBuilder
 
-    public TreeDirectoryChooserDialog(final Project project, String title) {
-        super(project, true);
-        setTitle(title);
-        myProject = project;
-        init();
-        SwingUtilities.invokeLater(this::handleSelectionChanged);
+    private var mySelectedFile: VirtualFile? = null
+
+    init {
+        setTitle(title)
+        init()
+        SwingUtilities.invokeLater { handleSelectionChanged() }
     }
 
-    @Override
-    protected JComponent createCenterPanel() {
-        final DefaultTreeModel model = new DefaultTreeModel(new DefaultMutableTreeNode());
-        myTree = new Tree(model);
+    override fun createCenterPanel(): JComponent {
+        val model = DefaultTreeModel(DefaultMutableTreeNode())
+        myTree = Tree(model)
 
-        final ProjectAbstractTreeStructureBase treeStructure = new AbstractProjectTreeStructure(myProject) {
-            @Override
-            public boolean isFlattenPackages() {
-                return false;
+        val treeStructure: ProjectAbstractTreeStructureBase = object : AbstractProjectTreeStructure(project) {
+            override fun isFlattenPackages(): Boolean {
+                return false
             }
 
-            @Override
-            public boolean isShowMembers() {
-                return false;
+            override fun isShowMembers(): Boolean {
+                return false
             }
 
-            @Override
-            public boolean isHideEmptyMiddlePackages() {
-                return true;
+            override fun isHideEmptyMiddlePackages(): Boolean {
+                return true
             }
 
-            @Override
-            public boolean isAbbreviatePackageNames() {
-                return false;
+            override fun isAbbreviatePackageNames(): Boolean {
+                return false
             }
 
-            @Override
-            public boolean isShowLibraryContents() {
-                return false;
+            override fun isShowLibraryContents(): Boolean {
+                return false
             }
 
-            @Override
-            public boolean isShowModules() {
-                return false;
+            override fun isShowModules(): Boolean {
+                return false
             }
 
-            @Override
-            public List<TreeStructureProvider> getProviders() {
-                return null;
+            override fun getProviders(): List<TreeStructureProvider>? {
+                return null
             }
-        };
-        myBuilder = new ProjectTreeBuilder(myProject, myTree, model, AlphaComparator.INSTANCE, treeStructure);
+        }
 
-        myTree.setRootVisible(false);
-        myTree.expandRow(0);
-        myTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        myTree.setCellRenderer(new NodeRenderer());
+        myBuilder = ProjectTreeBuilder(project, myTree, model, AlphaComparator.INSTANCE, treeStructure)
+        Disposer.register(disposable, myBuilder)
 
-        final JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myTree);
-        scrollPane.setPreferredSize(JBUI.size(500, 300));
+        myTree.isRootVisible = false
+        myTree.expandRow(0)
+        myTree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+        myTree.cellRenderer = NodeRenderer()
 
-        myTree.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(final KeyEvent e) {
-                if (KeyEvent.VK_ENTER == e.getKeyCode()) {
-                    doOKAction();
+        val scrollPane = ScrollPaneFactory.createScrollPane(myTree)
+        scrollPane.preferredSize = JBUI.size(500, 300)
+
+        myTree.addKeyListener(object : KeyAdapter() {
+            override fun keyPressed(e: KeyEvent) {
+                if (KeyEvent.VK_ENTER == e.keyCode) {
+                    doOKAction()
                 }
             }
-        });
+        })
 
-        new DoubleClickListener() {
-            @Override
-            protected boolean onDoubleClick(@NotNull MouseEvent e) {
-                final TreePath path = myTree.getPathForLocation(e.getX(), e.getY());
+        object : DoubleClickListener() {
+            override fun onDoubleClick(e: MouseEvent): Boolean {
+                val path = myTree.getPathForLocation(e.x, e.y)
                 if (path != null && myTree.isPathSelected(path)) {
-                    doOKAction();
-                    return true;
+                    doOKAction()
+                    return true
                 }
-                return false;
+                return false
             }
-        }.installOn(myTree);
+        }.installOn(myTree)
 
-        myTree.addTreeSelectionListener(e -> handleSelectionChanged());
-
-        new TreeSpeedSearch(myTree);
-
-        return scrollPane;
+        myTree.addTreeSelectionListener { handleSelectionChanged() }
+        TreeSpeedSearch(myTree)
+        return scrollPane
     }
 
-    private void handleSelectionChanged() {
-        final VirtualFile selection = calcSelectedClass();
-        setOKActionEnabled(selection != null);
+    private fun handleSelectionChanged() {
+        val selection = calcSelectedClass()
+        isOKActionEnabled = selection != null
     }
 
-    @Override
-    protected void doOKAction() {
-        mySelectedFile = calcSelectedClass();
-        if (mySelectedFile == null) return;
-        super.doOKAction();
+    override fun doOKAction() {
+        mySelectedFile = calcSelectedClass()
+        if (mySelectedFile == null) return
+        super.doOKAction()
     }
 
-    @Override
-    public void doCancelAction() {
-        mySelectedFile = null;
-        super.doCancelAction();
+    override fun doCancelAction() {
+        mySelectedFile = null
+        super.doCancelAction()
     }
 
-    public VirtualFile getSelectedDirectory() {
-        if (mySelectedFile != null) {
-            return mySelectedFile.isDirectory() ? mySelectedFile : mySelectedFile.getParent();
+    val selectedDirectory: VirtualFile?
+        get() {
+            val file = mySelectedFile
+            return if (file != null) {
+                if (file.isDirectory) file else file.parent
+            } else null
         }
-        return null;
+
+    private fun calcSelectedClass(): VirtualFile? {
+        val path = myTree.selectionPath ?: return null
+        val node = path.lastPathComponent as DefaultMutableTreeNode
+        val userObject = node.userObject as? ProjectViewNode<*> ?: return null
+        return userObject.virtualFile
     }
 
-    private VirtualFile calcSelectedClass() {
-        final TreePath path = myTree.getSelectionPath();
-        if (path == null) return null;
-        final DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
-        final Object userObject = node.getUserObject();
-        if (!(userObject instanceof ProjectViewNode)) return null;
-        ProjectViewNode pvNode = (ProjectViewNode) userObject;
-        return pvNode.getVirtualFile();
+    public override fun dispose() {
+        Disposer.dispose(disposable)
+
+        super.dispose()
     }
 
-
-    @Override
-    public void dispose() {
-        if (myBuilder != null) {
-            Disposer.dispose(myBuilder);
-            myBuilder = null;
-        }
-        super.dispose();
+    override fun getDimensionServiceKey(): String {
+        return "#com.intellij.ide.util.TreeDirectoryChooserDialog"
     }
 
-    @Override
-    protected String getDimensionServiceKey() {
-        return "#com.intellij.ide.util.TreeDirectoryChooserDialog";
+    override fun getPreferredFocusedComponent(): JComponent {
+        return myTree
     }
-
-    @Override
-    public JComponent getPreferredFocusedComponent() {
-        return myTree;
-    }
-
 }
