@@ -5,185 +5,157 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.project.schemastatus;
+package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
-import com.google.common.collect.Lists;
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.projectView.PresentationData;
-import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
-import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
-import com.intellij.openapi.project.IndexNotReadyException;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.ui.SimpleTextAttributes;
-import com.intellij.ui.treeStructure.CachingSimpleNode;
-import com.intellij.ui.treeStructure.SimpleNode;
-import com.intellij.util.SlowOperations;
-import com.intellij.util.ui.UIUtil;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
+import com.intellij.icons.AllIcons
+import com.intellij.ide.projectView.PresentationData
+import com.intellij.lang.jsgraphql.icons.GraphQLIcons
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
+import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.ui.SimpleTextAttributes
+import com.intellij.ui.treeStructure.CachingSimpleNode
+import com.intellij.ui.treeStructure.SimpleNode
+import com.intellij.util.SlowOperations
+import org.apache.commons.lang.StringUtils
 
 /**
  * Tree node that represents a graphql-config schema
  */
-public class GraphQLConfigSchemaNode extends CachingSimpleNode {
+class GraphQLConfigSchemaNode(
+    project: Project,
+    parent: SimpleNode,
+    private val config: GraphQLConfig,
+    projectConfig: GraphQLProjectConfig?,
+) : CachingSimpleNode(project, parent) {
 
-    private final GraphQLConfig myConfig;
-    private final @Nullable GraphQLProjectConfig myProjectConfig;
-    private final @Nullable GraphQLSchemaInfo mySchemaInfo;
-    private final boolean myPerformSchemaDiscovery;
-    private final boolean myIsProjectLevelNode;
+    private val usedProjectConfig: GraphQLProjectConfig?
+    private val schemaInfo: GraphQLSchemaInfo?
+    private val performSchemaDiscovery: Boolean
+    private val isProjectLevelNode: Boolean
 
-    protected GraphQLConfigSchemaNode(@NotNull Project project,
-                                      @NotNull SimpleNode parent,
-                                      @NotNull GraphQLConfig config,
-                                      @Nullable GraphQLProjectConfig projectConfig) {
-        super(project, parent);
-        myConfig = config;
-        myName = projectConfig != null
-            ? projectConfig.getName()
-            : StringUtils.substringAfterLast(config.getDir().getPath(), "/"); // use the last part of the folder as name
-        myIsProjectLevelNode = projectConfig != null;
+    init {
+        myName = projectConfig?.name ?: StringUtils.substringAfterLast(config.dir.path, "/")
+        isProjectLevelNode = projectConfig != null
+        presentation.setIcon(GraphQLIcons.Files.GraphQLSchema)
 
-        getPresentation().setIcon(GraphQLIcons.Files.GraphQLSchema);
         if (projectConfig == null) {
-            getPresentation().setLocationString(config.getDir().getPresentableUrl());
+            presentation.locationString = config.dir.presentableUrl
         }
 
-        GraphQLProjectConfig defaultProjectConfig = null;
-        if (!myIsProjectLevelNode && config.hasOnlyDefaultProject()) {
-            defaultProjectConfig = config.getDefault();
+        var defaultProjectConfig: GraphQLProjectConfig? = null
+        if (!isProjectLevelNode && config.hasOnlyDefaultProject()) {
+            defaultProjectConfig = config.getDefault()
         }
 
-        // this node is only considered a "real" schema that should be discovered if the config file doesn't use projects
-        // if the config uses projects we can't do discovery at the root level as that's likely to consider multiple distinct schemas
-        // as one with resulting re-declaration errors during validation
-        myPerformSchemaDiscovery = myIsProjectLevelNode || defaultProjectConfig != null;
+        performSchemaDiscovery = isProjectLevelNode || defaultProjectConfig != null
 
-        if (myPerformSchemaDiscovery) {
-            myProjectConfig = projectConfig != null ? projectConfig : defaultProjectConfig;
-            mySchemaInfo = SlowOperations.allowSlowOperations(() -> ReadAction.compute(() -> {
-                GlobalSearchScope scope = myProjectConfig.getSchemaScope();
-                return GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope);
-            }));
+        if (performSchemaDiscovery) {
+            usedProjectConfig = projectConfig ?: defaultProjectConfig
+            schemaInfo = SlowOperations.allowSlowOperations<GraphQLSchemaInfo, RuntimeException> {
+                runReadAction {
+                    val scope = usedProjectConfig!!.schemaScope
+                    GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope)
+                }
+            }
         } else {
-            mySchemaInfo = null;
-            myProjectConfig = null;
+            schemaInfo = null
+            usedProjectConfig = null
         }
     }
 
     /**
      * Gets whether this node contains a schema that includes the specified file
      */
-    public boolean representsFile(@Nullable VirtualFile virtualFile) {
+    fun representsFile(virtualFile: VirtualFile?): Boolean {
         if (virtualFile != null) {
-            if (virtualFile.equals(getConfigFile())) {
-                return true;
+            if (virtualFile == configFile) {
+                return true
             }
-            if (myPerformSchemaDiscovery) {
-                GlobalSearchScope scope = myProjectConfig != null ? myProjectConfig.getSchemaScope() : null;
+            if (performSchemaDiscovery) {
+                val scope = usedProjectConfig?.schemaScope
                 if (scope != null) {
-                    return scope.contains(virtualFile);
+                    return scope.contains(virtualFile)
                 }
             }
         }
-        return false;
+        return false
     }
 
-    public @Nullable VirtualFile getConfigFile() {
-        if (myConfig != null) {
-            return myConfig.getFile();
-        }
-        if (myProjectConfig != null) {
-            return myProjectConfig.getFile();
-        }
-        return null;
+    val configFile: VirtualFile?
+        get() = usedProjectConfig?.file ?: config.file
+
+    override fun update(presentation: PresentationData) {
+        super.update(presentation)
+        val style = if (representsCurrentFile()) SimpleTextAttributes.STYLE_BOLD else SimpleTextAttributes.STYLE_PLAIN
+        presentation.addText(name, SimpleTextAttributes(style, color))
     }
 
-    @Override
-    protected void update(@NotNull PresentationData presentation) {
-        super.update(presentation);
-        final int style = representsCurrentFile() ? SimpleTextAttributes.STYLE_BOLD : SimpleTextAttributes.STYLE_PLAIN;
-        presentation.addText(getName(), new SimpleTextAttributes(style, getColor()));
-    }
-
-    @Override
-    public SimpleNode[] buildChildren() {
-        final List<SimpleNode> children = Lists.newArrayList();
-        if (myPerformSchemaDiscovery && mySchemaInfo != null) {
-            children.add(new GraphQLSchemaContentNode(this, mySchemaInfo));
-            if (mySchemaInfo.getRegistryInfo().isProcessedGraphQL()) {
-                children.add(new GraphQLSchemaErrorsListNode(this, mySchemaInfo));
+    public override fun buildChildren(): Array<SimpleNode> {
+        val children: MutableList<SimpleNode> = mutableListOf()
+        if (performSchemaDiscovery && schemaInfo != null) {
+            children.add(GraphQLSchemaContentNode(this, schemaInfo))
+            if (schemaInfo.registryInfo.hasProcessedAnyFile()) {
+                children.add(GraphQLSchemaErrorsListNode(this, schemaInfo))
             }
         }
-        if (!myIsProjectLevelNode && !myConfig.hasOnlyDefaultProject()) {
-            children.add(new GraphQLConfigProjectsNode(this));
+        if (!isProjectLevelNode && !config.hasOnlyDefaultProject()) {
+            children.add(GraphQLConfigProjectsNode(this))
         }
-        if (myProjectConfig != null) {
-            final String projectKey = myProjectConfig.getName();
-            children.add(new GraphQLSchemaEndpointsListNode(this, projectKey, myProjectConfig));
+        if (usedProjectConfig != null) {
+            children.add(GraphQLSchemaEndpointsListNode(this, usedProjectConfig))
         }
-        return children.toArray(SimpleNode.NO_CHILDREN);
+        return children.toTypedArray()
     }
 
-    @Override
-    public boolean isAutoExpandNode() {
-        return representsCurrentFile() || !myPerformSchemaDiscovery;
+    override fun isAutoExpandNode(): Boolean {
+        return representsCurrentFile() || !performSchemaDiscovery
     }
 
-    @Override
-    public Object @NotNull [] getEqualityObjects() {
-        return new Object[]{myConfig, mySchemaInfo};
+    override fun getEqualityObjects(): Array<Any?> {
+        return arrayOf(config, schemaInfo)
     }
 
-    private boolean representsCurrentFile() {
-        final Ref<Boolean> represents = Ref.create(false);
-        final FileEditorManagerEx fileEditorManagerEx = FileEditorManagerEx.getInstanceEx(myProject);
-        UIUtil.invokeLaterIfNeeded(() -> {
-            represents.set(representsFile(fileEditorManagerEx.getCurrentFile()));
-        });
-        return represents.get();
+    private fun representsCurrentFile(): Boolean {
+        val fileEditorManagerEx = FileEditorManagerEx.getInstanceEx(myProject)
+        return representsFile(fileEditorManagerEx.currentFile)
     }
 
-    private static class GraphQLConfigProjectsNode extends CachingSimpleNode {
+    private class GraphQLConfigProjectsNode(private val parent: GraphQLConfigSchemaNode) :
+        CachingSimpleNode(parent.myProject, parent) {
 
-        private final GraphQLConfigSchemaNode parent;
-
-        public GraphQLConfigProjectsNode(@NotNull GraphQLConfigSchemaNode parent) {
-            super(parent.myProject, parent);
-            this.parent = parent;
-            myName = "Projects";
-            setIcon(AllIcons.Nodes.Folder);
+        init {
+            myName = "Projects"
+            icon = AllIcons.Nodes.Folder
         }
 
-        @Override
-        public SimpleNode[] buildChildren() {
-            GraphQLConfig config = parent.myConfig;
-            if (config != null) {
-                try {
-                    return config.getProjects().values().stream()
-                        .map(projectConfig -> new GraphQLConfigSchemaNode(myProject, this, config, projectConfig))
-                        .toArray(SimpleNode[]::new);
-                } catch (IndexNotReadyException ignored) {
-                    // entered "dumb" mode, so just return no children as the tree view will be rebuilt as empty shortly (GraphQLSchemasRootNode)
-                }
+        public override fun buildChildren(): Array<SimpleNode> {
+            return try {
+                val config = parent.config
+                return config.getProjects().values
+                    .map {
+                        GraphQLConfigSchemaNode(
+                            myProject,
+                            this,
+                            config,
+                            it,
+                        )
+                    }
+                    .toTypedArray()
+            } catch (ignored: IndexNotReadyException) {
+                // entered "dumb" mode, so just return no children as the tree view will be rebuilt as empty shortly (GraphQLSchemasRootNode)
+                NO_CHILDREN
             }
-            return SimpleNode.NO_CHILDREN;
         }
 
-        @Override
-        public boolean isAutoExpandNode() {
-            return true;
+        override fun isAutoExpandNode(): Boolean {
+            return true
         }
     }
 }

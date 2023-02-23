@@ -12,8 +12,6 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
@@ -213,9 +211,10 @@ public class GraphQLSchemaAnnotator implements Annotator {
                 if (ref.getSourceLocation() == null) return false;
 
                 PsiElement refElement = ref.getElement();
-                if (refElement != null) {
+                if (refElement != null && refElement.isValid()) {
                     // NavigationLinkHandler can't handle non-physical PSI
-                    return refElement.getContainingFile().getViewProvider().isPhysical();
+                    PsiFile psiFile = refElement.getContainingFile();
+                    return psiFile != null && psiFile.getViewProvider().isPhysical();
                 }
                 return true;
             });

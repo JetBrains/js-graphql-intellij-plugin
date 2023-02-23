@@ -18,14 +18,14 @@ public class GraphQLRegistryInfo {
 
     private final TypeDefinitionRegistry myRegistry;
     private final List<GraphQLException> myErrors;
-    private final boolean myProcessedGraphQL;
+    private final boolean myHasProcessedAnyFile;
 
     public GraphQLRegistryInfo(@NotNull TypeDefinitionRegistry registry,
                                @NotNull List<GraphQLException> errors,
-                               boolean processedGraphQL) {
+                               boolean processedAnyFile) {
         myRegistry = registry;
         myErrors = errors;
-        myProcessedGraphQL = processedGraphQL;
+        myHasProcessedAnyFile = processedAnyFile;
     }
 
     public @NotNull TypeDefinitionRegistry getTypeDefinitionRegistry() {
@@ -39,7 +39,7 @@ public class GraphQLRegistryInfo {
         return errors;
     }
 
-    public boolean isProcessedGraphQL() {
-        return myProcessedGraphQL;
+    public boolean hasProcessedAnyFile() {
+        return myHasProcessedAnyFile;
     }
 }
