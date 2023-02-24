@@ -64,7 +64,9 @@ class GraphQLSchemaEndpointsListNode(
         init {
             myName = endpoint.displayName
             templatePresentation.tooltip = "Endpoints allow you to perform GraphQL introspection, queries and mutations"
-            templatePresentation.locationString = endpoint.url
+            if (!endpoint.url.equals(endpoint.displayName, true)) {
+                templatePresentation.locationString = endpoint.url
+            }
             icon = GraphQLIcons.UI.GraphQLNode
         }
 
