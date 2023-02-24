@@ -11,9 +11,8 @@ import com.intellij.ide.projectView.ProjectViewNode
 import com.intellij.ide.projectView.TreeStructureProvider
 import com.intellij.ide.projectView.impl.AbstractProjectTreeStructure
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase
-import com.intellij.ide.projectView.impl.ProjectTreeBuilder
-import com.intellij.ide.util.treeView.AlphaComparator
 import com.intellij.ide.util.treeView.NodeRenderer
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
@@ -21,15 +20,15 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TreeSpeedSearch
+import com.intellij.ui.tree.AsyncTreeModel
+import com.intellij.ui.tree.StructureTreeModel
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
-import javax.swing.SwingUtilities
 import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeSelectionModel
 
 /**
@@ -38,21 +37,17 @@ import javax.swing.tree.TreeSelectionModel
 class TreeDirectoryChooserDialog(private val project: Project, title: String?) : DialogWrapper(project, true) {
     private val disposable = Disposer.newDisposable()
 
-    private lateinit var myTree: Tree
-    private lateinit var myBuilder: ProjectTreeBuilder
+    private lateinit var tree: Tree
 
-    private var mySelectedFile: VirtualFile? = null
+    private var selectedFile: VirtualFile? = null
 
     init {
         setTitle(title)
         init()
-        SwingUtilities.invokeLater { handleSelectionChanged() }
+        invokeLater { handleSelectionChanged() }
     }
 
     override fun createCenterPanel(): JComponent {
-        val model = DefaultTreeModel(DefaultMutableTreeNode())
-        myTree = Tree(model)
-
         val treeStructure: ProjectAbstractTreeStructureBase = object : AbstractProjectTreeStructure(project) {
             override fun isFlattenPackages(): Boolean {
                 return false
@@ -83,18 +78,18 @@ class TreeDirectoryChooserDialog(private val project: Project, title: String?) :
             }
         }
 
-        myBuilder = ProjectTreeBuilder(project, myTree, model, AlphaComparator.INSTANCE, treeStructure)
-        Disposer.register(disposable, myBuilder)
+        val model = StructureTreeModel(treeStructure, disposable)
 
-        myTree.isRootVisible = false
-        myTree.expandRow(0)
-        myTree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
-        myTree.cellRenderer = NodeRenderer()
+        tree = Tree(AsyncTreeModel(model, disposable))
+        tree.isRootVisible = false
+        tree.expandRow(0)
+        tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+        tree.cellRenderer = NodeRenderer()
 
-        val scrollPane = ScrollPaneFactory.createScrollPane(myTree)
+        val scrollPane = ScrollPaneFactory.createScrollPane(tree)
         scrollPane.preferredSize = JBUI.size(500, 300)
 
-        myTree.addKeyListener(object : KeyAdapter() {
+        tree.addKeyListener(object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent) {
                 if (KeyEvent.VK_ENTER == e.keyCode) {
                     doOKAction()
@@ -104,17 +99,17 @@ class TreeDirectoryChooserDialog(private val project: Project, title: String?) :
 
         object : DoubleClickListener() {
             override fun onDoubleClick(e: MouseEvent): Boolean {
-                val path = myTree.getPathForLocation(e.x, e.y)
-                if (path != null && myTree.isPathSelected(path)) {
+                val path = tree.getPathForLocation(e.x, e.y)
+                if (path != null && tree.isPathSelected(path)) {
                     doOKAction()
                     return true
                 }
                 return false
             }
-        }.installOn(myTree)
+        }.installOn(tree)
 
-        myTree.addTreeSelectionListener { handleSelectionChanged() }
-        TreeSpeedSearch(myTree)
+        tree.addTreeSelectionListener { handleSelectionChanged() }
+        TreeSpeedSearch(tree)
         return scrollPane
     }
 
@@ -124,26 +119,26 @@ class TreeDirectoryChooserDialog(private val project: Project, title: String?) :
     }
 
     override fun doOKAction() {
-        mySelectedFile = calcSelectedClass()
-        if (mySelectedFile == null) return
+        selectedFile = calcSelectedClass()
+        if (selectedFile == null) return
         super.doOKAction()
     }
 
     override fun doCancelAction() {
-        mySelectedFile = null
+        selectedFile = null
         super.doCancelAction()
     }
 
     val selectedDirectory: VirtualFile?
         get() {
-            val file = mySelectedFile
+            val file = selectedFile
             return if (file != null) {
                 if (file.isDirectory) file else file.parent
             } else null
         }
 
     private fun calcSelectedClass(): VirtualFile? {
-        val path = myTree.selectionPath ?: return null
+        val path = tree.selectionPath ?: return null
         val node = path.lastPathComponent as DefaultMutableTreeNode
         val userObject = node.userObject as? ProjectViewNode<*> ?: return null
         return userObject.virtualFile
@@ -160,6 +155,6 @@ class TreeDirectoryChooserDialog(private val project: Project, title: String?) :
     }
 
     override fun getPreferredFocusedComponent(): JComponent {
-        return myTree
+        return tree
     }
 }
