@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.schema
 
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
@@ -37,7 +38,7 @@ import com.intellij.util.Alarm
  * for scope changes use broader [com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency].
  */
 @Service(Service.Level.PROJECT)
-class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, ModificationTracker {
+class GraphQLSchemaContentTracker(private val project: Project) : Disposable, ModificationTracker {
 
     companion object {
         private val LOG = logger<GraphQLSchemaContentTracker>()
@@ -50,10 +51,10 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
     }
 
     private val notifyChangedAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
-    private val myModificationTracker = CompositeModificationTracker(GraphQLScopeDependency.getInstance(myProject))
+    private val modificationTracker = CompositeModificationTracker(GraphQLScopeDependency.getInstance(project))
 
     init {
-        PsiManager.getInstance(myProject).addPsiTreeChangeListener(PsiChangeListener(), this)
+        PsiManager.getInstance(project).addPsiTreeChangeListener(PsiChangeListener(), this)
     }
 
     fun schemaChanged() {
@@ -68,12 +69,13 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
     }
 
     private fun notifySchemaContentChanged() {
-        myModificationTracker.incModificationCount()
-        myProject.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
+        modificationTracker.incModificationCount()
+        project.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
+        DaemonCodeAnalyzer.getInstance(project).restart()
     }
 
     override fun getModificationCount(): Long {
-        return myModificationTracker.modificationCount
+        return modificationTracker.modificationCount
     }
 
     override fun dispose() {}
@@ -86,7 +88,7 @@ class GraphQLSchemaContentTracker(private val myProject: Project) : Disposable, 
      */
     private inner class PsiChangeListener : PsiTreeChangeAdapter() {
         private fun checkForSchemaChange(event: PsiTreeChangeEvent) {
-            if (myProject.isDisposed) {
+            if (project.isDisposed) {
                 return
             }
 
