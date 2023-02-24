@@ -11,11 +11,10 @@ import com.intellij.lang.jsgraphql.icons.GraphQLIcons
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
-import com.intellij.util.SlowOperations
 
 /**
  * Tree node that represents the default project schema when no config files exist
@@ -28,11 +27,9 @@ class GraphQLDefaultSchemaNode(project: Project, parent: GraphQLSchemasRootNode)
         presentation.locationString = project.presentableUrl
         presentation.setIcon(GraphQLIcons.Files.GraphQLSchema)
 
-        schemaInfo = SlowOperations.allowSlowOperations<GraphQLSchemaInfo, RuntimeException> {
-            ReadAction.compute<GraphQLSchemaInfo, RuntimeException> {
-                val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
-                GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(globalScope)
-            }
+        schemaInfo = runReadAction {
+            val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
+            GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(globalScope)
         }
     }
 
