@@ -7,7 +7,9 @@
  */
 package com.intellij.lang.jsgraphql.icons;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
+import com.intellij.ui.LayeredIcon;
 
 import javax.swing.*;
 
@@ -26,6 +28,7 @@ public class GraphQLIcons {
         public static final Icon GraphQL = FILE;
         public static final Icon GraphQLConfig = GraphQLIcons.load("/icons/graphqlConfig.svg");
         public static final Icon GraphQLSchema = GraphQLIcons.load("/icons/graphqlSchema.svg");
+        public static final Icon GraphQLScratch = new LayeredIcon(GraphQL, AllIcons.Actions.Scratch);
     }
 
     public static class UI {

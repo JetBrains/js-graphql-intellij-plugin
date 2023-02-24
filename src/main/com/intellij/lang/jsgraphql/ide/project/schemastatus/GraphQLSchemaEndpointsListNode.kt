@@ -8,21 +8,23 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
 import com.intellij.icons.AllIcons
+import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.createScratchFromEndpoint
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
+import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.ui.popup.PopupStep
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep
-import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
 import com.intellij.ui.treeStructure.SimpleTree
+import java.awt.Component
 import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 
 /**
@@ -55,8 +57,10 @@ class GraphQLSchemaEndpointsListNode(
         return true
     }
 
-    private class ConfigurableEndpointNode(parent: SimpleNode, private val endpoint: GraphQLConfigEndpoint) :
-        SimpleNode(parent) {
+    private class ConfigurableEndpointNode(
+        parent: SimpleNode,
+        private val endpoint: GraphQLConfigEndpoint,
+    ) : SimpleNode(parent), GraphQLSchemaContextMenuNode {
         init {
             myName = endpoint.displayName
             templatePresentation.tooltip = "Endpoints allow you to perform GraphQL introspection, queries and mutations"
@@ -65,26 +69,38 @@ class GraphQLSchemaEndpointsListNode(
         }
 
         override fun handleDoubleClickOrEnter(tree: SimpleTree, inputEvent: InputEvent) {
-            val introspect = "Get GraphQL Schema from Endpoint (introspection)"
-            val createScratch = "New GraphQL Scratch File (for query, mutation testing)"
-            val listPopup = JBPopupFactory.getInstance().createListPopup(
-                object : BaseListPopupStep<String>("Choose Endpoint Action", introspect, createScratch) {
-                    override fun onChosen(selectedValue: String, finalChoice: Boolean): PopupStep<*> {
-                        return doFinalStep {
-                            if (introspect == selectedValue) {
-                                GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQuery(endpoint)
-                            } else if (createScratch == selectedValue) {
-                                createScratchFromEndpoint(myProject, endpoint, true)
-                            }
-                        }
-                    }
-                })
-
-            if (inputEvent is KeyEvent) {
-                listPopup.showInFocusCenter()
-            } else if (inputEvent is MouseEvent) {
-                listPopup.show(RelativePoint(inputEvent))
+            if (inputEvent is MouseEvent) {
+                showPopup(inputEvent.component, inputEvent.x, inputEvent.y)
             }
+        }
+
+        override fun handleContextMenu(component: Component?, x: Int, y: Int) {
+            showPopup(component, x, y)
+        }
+
+        private fun showPopup(component: Component?, x: Int, y: Int) {
+            val group = DefaultActionGroup();
+            group.add(object : AnAction(
+                GraphQLBundle.messagePointer("graphql.tool.window.action.introspect.endpoint"),
+                AllIcons.Actions.Refresh,
+            ) {
+                override fun actionPerformed(e: AnActionEvent) {
+                    GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQuery(endpoint)
+                }
+            })
+
+            group.add(object : AnAction(
+                GraphQLBundle.messagePointer("graphql.tool.window.action.create.scratch"),
+                GraphQLIcons.Files.GraphQLScratch,
+            ) {
+                override fun actionPerformed(e: AnActionEvent) {
+                    createScratchFromEndpoint(myProject, endpoint, true)
+                }
+            })
+
+            val popupMenu =
+                ActionManager.getInstance().createActionPopupMenu(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_POPUP, group);
+            popupMenu.component.show(component, x, y);
         }
 
         override fun getChildren(): Array<SimpleNode> {

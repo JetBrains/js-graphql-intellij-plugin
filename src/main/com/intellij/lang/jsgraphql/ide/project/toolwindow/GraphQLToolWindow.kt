@@ -37,7 +37,7 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
         val schemasPanel = GraphQLSchemasPanel(project)
         val contentManager = toolWindow.contentManager
         val schemasContent = contentManager.factory
-            .createContent(schemasPanel, CONTENT_SCHEMAS_AND_PROJECT_STRUCTURE, false)
+            .createContent(schemasPanel, CONTENT_SCHEMAS_AND_PROJECT_STRUCTURE_CONTENT, false)
         schemasContent.isCloseable = false
         contentManager.addContent(schemasContent)
     }
@@ -63,7 +63,7 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
 
         val contentManager = toolWindow.contentManager
         val content = contentManager.factory
-            .createContent(fileEditor.component, CONTENT_QUERY_RESULT, true)
+            .createContent(fileEditor.component, CONTENT_QUERY_RESULT_CONTENT, true)
         content.isCloseable = false
         content.setShouldDisposeContent(false) // fileEditor will dispose the component itself
         content.setDisposer(fileEditor)
@@ -103,10 +103,14 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
     }
 
     companion object {
-        const val GRAPH_QL_TOOL_WINDOW = GraphQLConstants.GraphQL
+        const val GRAPHQL_TOOL_WINDOW = GraphQLConstants.GraphQL
+        const val CONTENT_QUERY_RESULT_CONTENT = "Query Result"
+        const val CONTENT_SCHEMAS_AND_PROJECT_STRUCTURE_CONTENT = "Schemas and Project Structure"
+
+        const val GRAPHQL_TOOL_WINDOW_TOOLBAR = "GraphQLToolWindowToolbar"
+        const val GRAPHQL_TOOL_WINDOW_POPUP = "GraphQLToolWindowPopup"
+
         const val FILE_URL_PROPERTY = "fileUrl"
-        const val CONTENT_QUERY_RESULT = "Query Result"
-        const val CONTENT_SCHEMAS_AND_PROJECT_STRUCTURE = "Schemas and Project Structure"
 
         private val QUERY_RESULT_EDITOR_KEY = Key.create<TextEditor>("graphql.query.result.editor")
 
@@ -118,8 +122,8 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
         }
 
         private fun getQueryResultContent(project: Project): Content? {
-            val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GRAPH_QL_TOOL_WINDOW) ?: return null
-            return toolWindow.contentManager.findContent(CONTENT_QUERY_RESULT)
+            val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GRAPHQL_TOOL_WINDOW) ?: return null
+            return toolWindow.contentManager.findContent(CONTENT_QUERY_RESULT_CONTENT)
         }
 
         @JvmStatic
@@ -131,9 +135,9 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
         fun showQueryResultEditor(project: Project) {
             runInEdt {
                 val toolWindow =
-                    ToolWindowManager.getInstance(project).getToolWindow(GRAPH_QL_TOOL_WINDOW) ?: return@runInEdt
+                    ToolWindowManager.getInstance(project).getToolWindow(GRAPHQL_TOOL_WINDOW) ?: return@runInEdt
                 val content =
-                    toolWindow.contentManager.findContent(CONTENT_QUERY_RESULT) ?: return@runInEdt
+                    toolWindow.contentManager.findContent(CONTENT_QUERY_RESULT_CONTENT) ?: return@runInEdt
                 toolWindow.show { toolWindow.contentManager.setSelectedContent(content) }
                 val textEditor = content.getUserData(QUERY_RESULT_EDITOR_KEY)
                 textEditor?.editor?.scrollingModel?.scrollVertically(0)

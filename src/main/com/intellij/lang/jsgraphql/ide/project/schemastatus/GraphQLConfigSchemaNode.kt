@@ -15,14 +15,13 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
-import com.intellij.util.SlowOperations
 import org.apache.commons.lang.StringUtils
 
 /**
@@ -58,11 +57,9 @@ class GraphQLConfigSchemaNode(
 
         if (performSchemaDiscovery) {
             usedProjectConfig = projectConfig ?: defaultProjectConfig
-            schemaInfo = SlowOperations.allowSlowOperations<GraphQLSchemaInfo, RuntimeException> {
-                runReadAction {
-                    val scope = usedProjectConfig!!.schemaScope
-                    GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope)
-                }
+            schemaInfo = runReadAction {
+                val scope = usedProjectConfig!!.schemaScope
+                GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope)
             }
         } else {
             schemaInfo = null
@@ -74,15 +71,14 @@ class GraphQLConfigSchemaNode(
      * Gets whether this node contains a schema that includes the specified file
      */
     fun representsFile(virtualFile: VirtualFile?): Boolean {
-        if (virtualFile != null) {
-            if (virtualFile == configFile) {
-                return true
-            }
-            if (performSchemaDiscovery) {
-                val scope = usedProjectConfig?.schemaScope
-                if (scope != null) {
-                    return scope.contains(virtualFile)
-                }
+        if (virtualFile == null) return false
+        if (virtualFile == configFile && !isProjectLevelNode) {
+            return true
+        }
+        if (performSchemaDiscovery) {
+            val scope = usedProjectConfig?.scope
+            if (scope != null) {
+                return scope.contains(virtualFile)
             }
         }
         return false
@@ -123,8 +119,7 @@ class GraphQLConfigSchemaNode(
     }
 
     private fun representsCurrentFile(): Boolean {
-        val fileEditorManagerEx = FileEditorManagerEx.getInstanceEx(myProject)
-        return representsFile(fileEditorManagerEx.currentFile)
+        return representsFile(FileEditorManager.getInstance(myProject).selectedFiles.getOrNull(0))
     }
 
     private class GraphQLConfigProjectsNode(private val parent: GraphQLConfigSchemaNode) :
