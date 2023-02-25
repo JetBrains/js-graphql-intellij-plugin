@@ -1,0 +1,3 @@
+schema: schema.graphql
+exclude: ./**/__tests__/**/*
+include: some/**

@@ -90,6 +90,19 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
     }
 
+    fun testExcludeNested() {
+        val expectedSchemas = setOf(
+            "some/some.graphql",
+            "some/nested/nested.graphql",
+            "some/nested/deep/deep.graphql",
+            "some/nested/deep/src/src.graphql",
+        )
+
+        val expectedDocuments = emptySet<String>()
+
+        doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
+    }
+
     fun testOverriddenScope() {
         GraphQLConfigContributor.EP_NAME.point.registerExtension(object : GraphQLConfigContributor {
             override fun contributeConfigs(project: Project): Collection<GraphQLConfig> {
@@ -134,7 +147,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         configPath: String,
         expectedSchemas: Set<String>,
         expectedDocuments: Set<String>,
-        projectName: String? = null
+        projectName: String? = null,
     ) {
         val config = loadConfig(configPath)
         val projectConfig =
@@ -148,7 +161,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     private fun compareFiles(
         message: String,
         scope: GlobalSearchScope,
-        expected: Set<String>
+        expected: Set<String>,
     ) {
         val actualFiles = getAllFiles(scope)
         val expectedFiles = expected.mapTo(mutableSetOf()) {
