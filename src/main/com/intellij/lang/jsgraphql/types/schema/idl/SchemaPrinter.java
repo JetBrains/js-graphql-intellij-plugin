@@ -729,6 +729,7 @@ public class SchemaPrinter {
         return schema.getDirectives().stream()
             .filter(options.getIncludeDirective())
             .filter(options.getIncludeSchemaElement())
+            .sorted(Comparator.comparing(GraphQLDirective::getName))
             .collect(toList());
     }
 

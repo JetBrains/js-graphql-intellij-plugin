@@ -2,11 +2,11 @@ schema {
     query: Query
 }
 
-directive @tableField(name: String!) repeatable on FIELD | FIELD_DEFINITION
+directive @cache repeatable on FIELD
 
 directive @format(pattern: String) on SCALAR
 
-directive @cache repeatable on FIELD
+directive @tableField(name: String!) repeatable on FIELD | FIELD_DEFINITION
 
 type Query {
     id: ID

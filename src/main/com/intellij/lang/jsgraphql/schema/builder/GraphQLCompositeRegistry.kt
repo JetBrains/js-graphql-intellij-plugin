@@ -1,237 +1,216 @@
-package com.intellij.lang.jsgraphql.schema.builder;
+package com.intellij.lang.jsgraphql.schema.builder
 
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil;
-import com.intellij.lang.jsgraphql.types.GraphQLError;
-import com.intellij.lang.jsgraphql.types.GraphQLException;
-import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.idl.SchemaExtensionsChecker;
-import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveRedefinitionError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionError;
-import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes
+import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil
+import com.intellij.lang.jsgraphql.types.GraphQLError
+import com.intellij.lang.jsgraphql.types.GraphQLException
+import com.intellij.lang.jsgraphql.types.language.*
+import com.intellij.lang.jsgraphql.types.schema.idl.SchemaExtensionsChecker
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveRedefinitionError
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionError
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.util.containers.orNull
 
-import java.util.*;
-import java.util.stream.Collectors;
+class GraphQLCompositeRegistry {
 
-public final class GraphQLCompositeRegistry {
-    private static final Logger LOG = Logger.getInstance(GraphQLCompositeRegistry.class);
+    private val namedCompositeDefinitions = mutableMapOf<String, GraphQLCompositeDefinition<*>>()
+    private val schemaCompositeDefinition = GraphQLSchemaTypeCompositeDefinition()
 
-    private final Map<String, GraphQLCompositeDefinition<?>> myNamedCompositeDefinitions = new HashMap<>();
-    private final GraphQLSchemaTypeCompositeDefinition mySchemaCompositeDefinition = new GraphQLSchemaTypeCompositeDefinition();
-
-    public void merge(@NotNull TypeDefinitionRegistry source) throws GraphQLException {
-        if (source.schemaDefinition().isPresent()) {
-            addTypeDefinition(source.schemaDefinition().get());
+    @Throws(GraphQLException::class)
+    fun merge(source: TypeDefinitionRegistry) {
+        if (source.schemaDefinition().isPresent) {
+            addTypeDefinition(source.schemaDefinition().get())
         }
 
-        source.types().values().forEach(this::addTypeDefinition);
-        source.getDirectiveDefinitions().values().forEach(this::addTypeDefinition);
-        source.scalars().values().forEach(this::addTypeDefinition);
+        source.types().values.forEach(::addTypeDefinition)
+        source.directiveDefinitions.values.forEach(::addTypeDefinition)
+        source.scalars().values.forEach(::addTypeDefinition)
 
-        source.getSchemaExtensionDefinitions().forEach(this::addExtensionDefinition);
-        source.objectTypeExtensions().forEach((key, value) -> value.forEach(this::addExtensionDefinition));
-        source.interfaceTypeExtensions().forEach((key, value) -> value.forEach(this::addExtensionDefinition));
-        source.unionTypeExtensions().forEach((key, value) -> value.forEach(this::addExtensionDefinition));
-        source.enumTypeExtensions().forEach((key, value) -> value.forEach(this::addExtensionDefinition));
-        source.scalarTypeExtensions().forEach((key, value) -> value.forEach(this::addExtensionDefinition));
-        source.inputObjectTypeExtensions().forEach((key, value) -> value.forEach(this::addExtensionDefinition));
+        source.schemaExtensionDefinitions.forEach(::addExtensionDefinition)
+
+        sequenceOf(
+            source.objectTypeExtensions(),
+            source.interfaceTypeExtensions(),
+            source.unionTypeExtensions(),
+            source.enumTypeExtensions(),
+            source.scalarTypeExtensions(),
+            source.inputObjectTypeExtensions()
+        )
+            .flatMap { it.values.asSequence() }
+            .flatten()
+            .forEach {
+                addExtensionDefinition(it)
+            }
     }
 
-    @NotNull
-    private static GraphQLCompositeDefinition<?> createCompositeDefinition(@NotNull SDLDefinition<?> definition) {
-        if (definition instanceof InputObjectTypeDefinition) {
-            return new GraphQLInputObjectTypeCompositeDefinition();
-        } else if (definition instanceof ObjectTypeDefinition) {
-            return new GraphQLObjectTypeCompositeDefinition();
-        } else if (definition instanceof InterfaceTypeDefinition) {
-            return new GraphQLInterfaceTypeCompositeDefinition();
-        } else if (definition instanceof UnionTypeDefinition) {
-            return new GraphQLUnionTypeCompositeDefinition();
-        } else if (definition instanceof EnumTypeDefinition) {
-            return new GraphQLEnumTypeCompositeDefinition();
-        } else if (definition instanceof ScalarTypeDefinition) {
-            return new GraphQLScalarTypeCompositeDefinition();
-        } else if (definition instanceof DirectiveDefinition) {
-            return new GraphQLDirectiveTypeCompositeDefinition();
-        } else if (definition instanceof SchemaDefinition) {
-            return new GraphQLSchemaTypeCompositeDefinition();
-        } else {
-            throw new IllegalStateException("Unknown definition type: " + definition.getClass().getName());
+    fun getCompositeDefinition(definition: SDLDefinition<*>): GraphQLCompositeDefinition<*>? {
+        if (definition is SchemaDefinition) {
+            return schemaCompositeDefinition
+        }
+        if (definition !is NamedNode<*>) {
+            return null
+        }
+        val name = (definition as NamedNode<*>).name
+        return if (name.isEmpty()) null else namedCompositeDefinitions.computeIfAbsent(name) {
+            createCompositeDefinition(definition)
         }
     }
 
-    @Nullable
-    public GraphQLCompositeDefinition<?> getCompositeDefinition(@NotNull SDLDefinition<?> definition) {
-        if (definition instanceof SchemaDefinition) {
-            return mySchemaCompositeDefinition;
-        }
+    fun addTypeDefinition(definition: SDLDefinition<*>) {
+        LOG.assertTrue(!GraphQLTypeDefinitionUtil.isExtension(definition))
 
-        if (!(definition instanceof NamedNode)) {
-            return null;
-        }
-
-        String name = ((NamedNode<?>) definition).getName();
-        if (StringUtil.isEmpty(name)) {
-            return null;
-        }
-
-        return myNamedCompositeDefinitions.computeIfAbsent(
-            name, n -> createCompositeDefinition(definition));
-    }
-
-    public void addTypeDefinition(@NotNull SDLDefinition<?> definition) {
-        GraphQLCompositeDefinition<?> builder = getCompositeDefinition(definition);
-        if (builder == null) {
-            return;
-        }
-
-        if (builder instanceof GraphQLDirectiveTypeCompositeDefinition) {
-            ((GraphQLDirectiveTypeCompositeDefinition) builder).addDefinition(ObjectUtils.tryCast(definition, DirectiveDefinition.class));
-        } else if (builder instanceof GraphQLEnumTypeCompositeDefinition) {
-            ((GraphQLEnumTypeCompositeDefinition) builder).addDefinition(ObjectUtils.tryCast(definition, EnumTypeDefinition.class));
-        } else if (builder instanceof GraphQLInputObjectTypeCompositeDefinition) {
-            ((GraphQLInputObjectTypeCompositeDefinition) builder).addDefinition(ObjectUtils.tryCast(definition, InputObjectTypeDefinition.class));
-        } else if (builder instanceof GraphQLInterfaceTypeCompositeDefinition) {
-            ((GraphQLInterfaceTypeCompositeDefinition) builder).addDefinition(ObjectUtils.tryCast(definition, InterfaceTypeDefinition.class));
-        } else if (builder instanceof GraphQLObjectTypeCompositeDefinition) {
-            ((GraphQLObjectTypeCompositeDefinition) builder).addDefinition(ObjectUtils.tryCast(definition, ObjectTypeDefinition.class));
-        } else if (builder instanceof GraphQLScalarTypeCompositeDefinition) {
-            ((GraphQLScalarTypeCompositeDefinition) builder).addDefinition(ObjectUtils.tryCast(definition, ScalarTypeDefinition.class));
-        } else if (builder instanceof GraphQLSchemaTypeCompositeDefinition) {
-            ((GraphQLSchemaTypeCompositeDefinition) builder).addDefinition(ObjectUtils.tryCast(definition, SchemaDefinition.class));
-        } else if (builder instanceof GraphQLUnionTypeCompositeDefinition) {
-            ((GraphQLUnionTypeCompositeDefinition) builder).addDefinition(ObjectUtils.tryCast(definition, UnionTypeDefinition.class));
-        } else {
-            LOG.error("Unknown builder type: " + builder.getClass().getName());
+        val builder = getCompositeDefinition(definition) ?: return
+        when (builder) {
+            is GraphQLDirectiveTypeCompositeDefinition -> builder.addDefinition(definition as? DirectiveDefinition)
+            is GraphQLEnumTypeCompositeDefinition -> builder.addDefinition(definition as? EnumTypeDefinition)
+            is GraphQLInputObjectTypeCompositeDefinition -> builder.addDefinition(definition as? InputObjectTypeDefinition)
+            is GraphQLInterfaceTypeCompositeDefinition -> builder.addDefinition(definition as? InterfaceTypeDefinition)
+            is GraphQLObjectTypeCompositeDefinition -> builder.addDefinition(definition as? ObjectTypeDefinition)
+            is GraphQLScalarTypeCompositeDefinition -> builder.addDefinition(definition as? ScalarTypeDefinition)
+            is GraphQLSchemaTypeCompositeDefinition -> builder.addDefinition(definition as? SchemaDefinition)
+            is GraphQLUnionTypeCompositeDefinition -> builder.addDefinition(definition as? UnionTypeDefinition)
+            else -> LOG.error("Unknown builder type: " + builder.javaClass.name)
         }
     }
 
-    public void addExtensionDefinition(@NotNull SDLDefinition<?> definition) {
-        LOG.assertTrue(GraphQLTypeDefinitionUtil.isExtension(definition));
+    fun addExtensionDefinition(definition: SDLDefinition<*>) {
+        LOG.assertTrue(GraphQLTypeDefinitionUtil.isExtension(definition))
 
-        GraphQLCompositeDefinition<?> builder = getCompositeDefinition(definition);
-        if (builder == null) {
-            return;
-        }
+        val builder =
+            getCompositeDefinition(definition) as? GraphQLExtendableCompositeDefinition<*, *> ?: return
 
-        if (!(builder instanceof GraphQLExtendableCompositeDefinition)) {
-            return;
-        }
-
-        if (builder instanceof GraphQLEnumTypeCompositeDefinition) {
-            ((GraphQLEnumTypeCompositeDefinition) builder).addExtension(ObjectUtils.tryCast(definition, EnumTypeExtensionDefinition.class));
-        } else if (builder instanceof GraphQLInputObjectTypeCompositeDefinition) {
-            ((GraphQLInputObjectTypeCompositeDefinition) builder).addExtension(ObjectUtils.tryCast(definition, InputObjectTypeExtensionDefinition.class));
-        } else if (builder instanceof GraphQLInterfaceTypeCompositeDefinition) {
-            ((GraphQLInterfaceTypeCompositeDefinition) builder).addExtension(ObjectUtils.tryCast(definition, InterfaceTypeExtensionDefinition.class));
-        } else if (builder instanceof GraphQLObjectTypeCompositeDefinition) {
-            ((GraphQLObjectTypeCompositeDefinition) builder).addExtension(ObjectUtils.tryCast(definition, ObjectTypeExtensionDefinition.class));
-        } else if (builder instanceof GraphQLScalarTypeCompositeDefinition) {
-            ((GraphQLScalarTypeCompositeDefinition) builder).addExtension(ObjectUtils.tryCast(definition, ScalarTypeExtensionDefinition.class));
-        } else if (builder instanceof GraphQLSchemaTypeCompositeDefinition) {
-            ((GraphQLSchemaTypeCompositeDefinition) builder).addExtension(ObjectUtils.tryCast(definition, SchemaExtensionDefinition.class));
-        } else if (builder instanceof GraphQLUnionTypeCompositeDefinition) {
-            ((GraphQLUnionTypeCompositeDefinition) builder).addExtension(ObjectUtils.tryCast(definition, UnionTypeExtensionDefinition.class));
-        } else {
-            LOG.error("Unknown extension builder type: " + builder.getClass().getName());
+        when (builder) {
+            is GraphQLEnumTypeCompositeDefinition -> builder.addExtension(definition as? EnumTypeExtensionDefinition)
+            is GraphQLInputObjectTypeCompositeDefinition -> builder.addExtension(definition as? InputObjectTypeExtensionDefinition)
+            is GraphQLInterfaceTypeCompositeDefinition -> builder.addExtension(definition as? InterfaceTypeExtensionDefinition)
+            is GraphQLObjectTypeCompositeDefinition -> builder.addExtension(definition as? ObjectTypeExtensionDefinition)
+            is GraphQLScalarTypeCompositeDefinition -> builder.addExtension(definition as? ScalarTypeExtensionDefinition)
+            is GraphQLSchemaTypeCompositeDefinition -> builder.addExtension(definition as? SchemaExtensionDefinition)
+            is GraphQLUnionTypeCompositeDefinition -> builder.addExtension(definition as? UnionTypeExtensionDefinition)
+            else -> LOG.error("Unknown extension builder type: " + builder.javaClass.name)
         }
     }
 
-    public void addDefinition(@NotNull SDLDefinition<?> definition) {
+    fun addDefinition(definition: SDLDefinition<*>) {
         if (GraphQLTypeDefinitionUtil.isExtension(definition)) {
-            addExtensionDefinition(definition);
+            addExtensionDefinition(definition)
         } else {
-            addTypeDefinition(definition);
+            addTypeDefinition(definition)
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    public void addFromDocument(@NotNull Document document) {
-        List<Definition> definitions = document.getDefinitions();
-        for (Definition definition : definitions) {
-            if (definition instanceof SDLDefinition) {
-                addDefinition(((SDLDefinition<?>) definition));
+    fun addFromDocument(document: Document) {
+        val definitions = document.definitions
+        for (definition in definitions) {
+            if (definition is SDLDefinition<*>) {
+                addDefinition(definition)
             }
         }
     }
 
-    @NotNull
-    public TypeDefinitionRegistry buildTypeDefinitionRegistry() {
-        TypeDefinitionRegistry registry = new TypeDefinitionRegistry();
+    fun buildTypeDefinitionRegistry(): TypeDefinitionRegistry {
+        val registry = TypeDefinitionRegistry()
 
-        SchemaDefinition schemaDefinition = mySchemaCompositeDefinition.getMergedDefinition();
+        val schemaDefinition = schemaCompositeDefinition.mergedDefinition
         if (schemaDefinition != null) {
-            registry.add(schemaDefinition);
+            registry.add(schemaDefinition)
         }
-        mySchemaCompositeDefinition.getExtensions().forEach(registry::add);
+        schemaCompositeDefinition.extensions.forEach(registry::add)
 
-        myNamedCompositeDefinitions.values().forEach(builder -> {
-            SDLDefinition<?> definition = builder.getMergedDefinition();
+        namedCompositeDefinitions.values.forEach { builder: GraphQLCompositeDefinition<*> ->
+            val definition = builder.mergedDefinition
             if (definition != null) {
-                registry.add(definition);
+                registry.add(definition)
             }
-
-            if (builder instanceof GraphQLExtendableCompositeDefinition) {
-                ((GraphQLExtendableCompositeDefinition<?, ?>) builder).getExtensions()
-                    .forEach(registry::add);
+            if (builder is GraphQLExtendableCompositeDefinition<*, *>) {
+                builder.extensions.forEach(registry::add)
             }
-        });
+        }
 
-        validate(registry);
-        return registry;
+        addMissingTypes(registry)
+
+        validate(registry)
+        return registry
+    }
+
+    private fun addMissingTypes(registry: TypeDefinitionRegistry) {
+        val queryType = registry.getType(GraphQLKnownTypes.QUERY_TYPE).orNull()
+        if (queryType != null) {
+            return
+        }
+
+        if (!registry.schemaDefinition().isEmpty || registry.schemaExtensionDefinitions.isNotEmpty()) {
+            return
+        }
+
+        registry.add(ObjectTypeDefinition.newObjectTypeDefinition().name(GraphQLKnownTypes.QUERY_TYPE).build())
     }
 
     // TODO: [intellij] find a better place, perhaps SchemaTypeChecker
-    @SuppressWarnings("rawtypes")
-    private void validate(@NotNull TypeDefinitionRegistry registry) {
-        List<SchemaDefinition> sourceSchemaDefinitions = mySchemaCompositeDefinition.getSourceDefinitions();
-        if (sourceSchemaDefinitions.size() > 1) {
-            SchemaDefinition initialSchema = sourceSchemaDefinitions.get(0);
-            for (int i = 1; i < sourceSchemaDefinitions.size(); i++) {
-                registry.addError(new SchemaRedefinitionError(initialSchema, sourceSchemaDefinitions.get(i)));
+    private fun validate(registry: TypeDefinitionRegistry) {
+        val sourceSchemaDefinitions = schemaCompositeDefinition.sourceDefinitions
+        if (sourceSchemaDefinitions.size > 1) {
+            val initialSchema = sourceSchemaDefinitions[0]
+            for (i in 1 until sourceSchemaDefinitions.size) {
+                registry.addError(SchemaRedefinitionError(initialSchema, sourceSchemaDefinitions[i]))
             }
         }
-
-        List<GraphQLError> operationRedefinitionErrors = new ArrayList<>();
-        Map<String, OperationTypeDefinition> operationDefs = new LinkedHashMap<>();
-        for (SchemaDefinition sourceSchemaDefinition : sourceSchemaDefinitions) {
+        val operationRedefinitionErrors: MutableList<GraphQLError> = mutableListOf()
+        val operationDefs: MutableMap<String, OperationTypeDefinition> = mutableMapOf()
+        for (sourceSchemaDefinition in sourceSchemaDefinitions) {
             // pass an empty list because extensions are validated in a separate extensions validator
-            SchemaExtensionsChecker.gatherOperationDefs(operationDefs, operationRedefinitionErrors, sourceSchemaDefinition, Collections.emptyList());
+            SchemaExtensionsChecker.gatherOperationDefs(
+                operationDefs,
+                operationRedefinitionErrors,
+                sourceSchemaDefinition,
+                emptyList()
+            )
         }
-        if (!operationRedefinitionErrors.isEmpty()) {
-            registry.addError(new SchemaProblem(operationRedefinitionErrors));
+        if (operationRedefinitionErrors.isNotEmpty()) {
+            registry.addError(SchemaProblem(operationRedefinitionErrors))
         }
 
-        myNamedCompositeDefinitions.values().forEach(compositeDefinition -> {
-            if (compositeDefinition instanceof GraphQLDirectiveTypeCompositeDefinition) {
-                List<DirectiveDefinition> sourceDefinitions = ((GraphQLDirectiveTypeCompositeDefinition) compositeDefinition).getSourceDefinitions();
-                if (sourceDefinitions.size() > 1) {
-                    DirectiveDefinition initialDefinition = sourceDefinitions.get(0);
-                    for (int i = 1; i < sourceDefinitions.size(); i++) {
-                        registry.addError(new DirectiveRedefinitionError(sourceDefinitions.get(i), initialDefinition));
+        namedCompositeDefinitions.values.forEach { compositeDefinition: GraphQLCompositeDefinition<*> ->
+            if (compositeDefinition is GraphQLDirectiveTypeCompositeDefinition) {
+                val sourceDefinitions = compositeDefinition.sourceDefinitions
+                if (sourceDefinitions.size > 1) {
+                    val initialDefinition = sourceDefinitions[0]
+                    for (i in 1 until sourceDefinitions.size) {
+                        registry.addError(DirectiveRedefinitionError(sourceDefinitions[i], initialDefinition))
                     }
                 }
-                return;
+                return@forEach
             }
 
-
-            List<TypeDefinition> sourceDefinitions = compositeDefinition.getSourceDefinitions().stream()
-                .filter(def -> def instanceof TypeDefinition)
-                .map(def -> ((TypeDefinition) def))
-                .collect(Collectors.toList());
-
-            if (sourceDefinitions.size() > 1) {
-                TypeDefinition initialDefinition = sourceDefinitions.get(0);
-                for (int i = 1; i < sourceDefinitions.size(); i++) {
-                    registry.addError(new TypeRedefinitionError(sourceDefinitions.get(i), initialDefinition));
+            val sourceDefinitions = compositeDefinition.sourceDefinitions.filterIsInstance<TypeDefinition<*>>()
+            if (sourceDefinitions.size > 1) {
+                val initialDefinition = sourceDefinitions[0]
+                for (i in 1 until sourceDefinitions.size) {
+                    registry.addError(TypeRedefinitionError(sourceDefinitions[i], initialDefinition))
                 }
             }
-        });
+        }
+    }
+
+    companion object {
+        private val LOG: Logger = logger<GraphQLCompositeRegistry>()
+
+        private fun createCompositeDefinition(definition: SDLDefinition<*>): GraphQLCompositeDefinition<*> {
+            return when (definition) {
+                is InputObjectTypeDefinition -> GraphQLInputObjectTypeCompositeDefinition()
+                is ObjectTypeDefinition -> GraphQLObjectTypeCompositeDefinition()
+                is InterfaceTypeDefinition -> GraphQLInterfaceTypeCompositeDefinition()
+                is UnionTypeDefinition -> GraphQLUnionTypeCompositeDefinition()
+                is EnumTypeDefinition -> GraphQLEnumTypeCompositeDefinition()
+                is ScalarTypeDefinition -> GraphQLScalarTypeCompositeDefinition()
+                is DirectiveDefinition -> GraphQLDirectiveTypeCompositeDefinition()
+                is SchemaDefinition -> GraphQLSchemaTypeCompositeDefinition()
+                else -> throw IllegalStateException("Unknown definition type: " + definition.javaClass.name)
+            }
+        }
     }
 }

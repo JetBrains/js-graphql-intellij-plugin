@@ -1,3 +1,5 @@
+type Query
+
 type Type1 {
     type1: String
 }
