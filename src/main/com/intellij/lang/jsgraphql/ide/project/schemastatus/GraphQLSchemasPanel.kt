@@ -10,6 +10,8 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus
 import com.intellij.codeInspection.InspectionProfile
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
+import com.intellij.ide.CommonActionsManager
+import com.intellij.ide.DefaultTreeExpander
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryAction
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
@@ -66,6 +68,8 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
 
     init {
         layout = BorderLayout()
+
+        createTree()
         add(createToolPanel(), BorderLayout.WEST)
         add(createTreePanel(), BorderLayout.CENTER)
     }
@@ -75,8 +79,6 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
     }
 
     private fun createTreePanel(): Component {
-        createTree()
-
         structure = GraphQLSchemaTreeStructure(project)
         model = StructureTreeModel(structure, this)
 
@@ -177,9 +179,9 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
 
     private fun createToolPanel(): Component {
         val actionManager = ActionManager.getInstance()
-        val leftActionGroup = DefaultActionGroup()
+        val group = DefaultActionGroup()
 
-        leftActionGroup.add(object : AnAction(
+        group.add(object : AnAction(
             "Add Schema Configuration",
             "Adds a new GraphQL configuration file",
             AllIcons.General.Add
@@ -196,7 +198,7 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
             }
         })
 
-        leftActionGroup.add(object : AnAction(
+        group.add(object : AnAction(
             "Edit Selected Schema Configuration",
             "Opens the GraphQL config file for the selected schema",
             AllIcons.General.Settings
@@ -233,10 +235,10 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
         })
 
         actionManager.getAction(GraphQLRestartSchemaDiscoveryAction.ACTION_ID)?.let {
-            leftActionGroup.add(it)
+            group.add(it)
         }
 
-        leftActionGroup.add(object : AnAction(
+        group.add(object : AnAction(
             "Help",
             "Open the GraphQL plugin documentation",
             AllIcons.Actions.Help
@@ -246,10 +248,16 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
             }
         })
 
-        val leftToolbar =
-            actionManager.createActionToolbar(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_TOOLBAR, leftActionGroup, false)
-        leftToolbar.targetComponent = this
-        return leftToolbar.component
+        val actionsManager = CommonActionsManager.getInstance()
+        val treeExpander = DefaultTreeExpander(tree);
+        group.addSeparator()
+        group.add(actionsManager.createExpandAllAction(treeExpander, tree));
+        group.add(actionsManager.createCollapseAllAction(treeExpander, tree));
+
+        val toolbar =
+            actionManager.createActionToolbar(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_TOOLBAR, group, false)
+        toolbar.targetComponent = this
+        return toolbar.component
     }
 
     private fun updateTree() {
