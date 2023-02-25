@@ -103,6 +103,16 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
     }
 
+    fun testAbsolutePath() {
+        val expectedSchemas = setOf(
+            "some/dir/schema.graphql",
+        )
+
+        val expectedDocuments = emptySet<String>()
+
+        doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
+    }
+
     fun testOverriddenScope() {
         GraphQLConfigContributor.EP_NAME.point.registerExtension(object : GraphQLConfigContributor {
             override fun contributeConfigs(project: Project): Collection<GraphQLConfig> {
