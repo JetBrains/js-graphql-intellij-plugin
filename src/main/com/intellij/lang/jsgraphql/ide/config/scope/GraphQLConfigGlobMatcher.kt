@@ -33,6 +33,9 @@ class GraphQLConfigGlobMatcher(project: Project) {
 
         @JvmStatic
         fun getInstance(project: Project) = project.service<GraphQLConfigGlobMatcher>()
+
+        private val MATCH_ALL_REGEX = Regex("\\*\\*/")
+        private val GROUP_REGEX = Regex("[{}]")
     }
 
     private val matchResults: CachedValue<MutableMap<Pair<String, String>, Boolean>> =
@@ -44,7 +47,6 @@ class GraphQLConfigGlobMatcher(project: Project) {
         }
 
     private val matchers: MutableMap<String, PathMatcher> = ConcurrentHashMap()
-    private val groupRegex = Regex("[{}]")
 
     fun matches(file: VirtualFile, pattern: String, context: VirtualFile): Boolean {
         val path = VfsUtil.findRelativePath(context, file, File.separatorChar)
@@ -85,6 +87,15 @@ class GraphQLConfigGlobMatcher(project: Project) {
     private fun expandGlob(glob: String): Collection<String> {
         return buildSet {
             add(glob)
+
+            // `**` in java is treated like one or more,
+            // so a glob like `**/__tests__/**/*` wouldn't match either
+            // `./__tests__/nested/file.graphql` or `./some/nested/__tests__/file.graphql`
+            MATCH_ALL_REGEX.findAll(glob).forEach {
+                add(glob.replaceRange(it.range, ""))
+            }
+
+            // the same glob `**/__tests__/**/*` wouldn't match `./__tests__/file.graphql`
             add(glob.replace("**/", ""))
         }.filter { it.isNotBlank() }
     }
@@ -100,7 +111,7 @@ class GraphQLConfigGlobMatcher(project: Project) {
         patterns.forEach {
             // nested groups are not allowed, so we need a separate matcher,
             // e.g. `glob:{file.{graphql,js,css},**/file.{graphql,js,css}}` is invalid
-            if (it.contains(groupRegex)) {
+            if (it.contains(GROUP_REGEX)) {
                 result.add(it)
             } else {
                 union.add(it)
