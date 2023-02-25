@@ -4,6 +4,7 @@ import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
@@ -133,12 +134,15 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
 
     private fun findClosestEnvFile(fileOrDir: VirtualFile?): VirtualFile? {
         if (fileOrDir == null) return null
-        var result: VirtualFile? = null
-        GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, fileOrDir) {
-            result = findEnvFileInDirectory(it)
-            result == null
+
+        return runReadAction {
+            var result: VirtualFile? = null
+            GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, fileOrDir) {
+                result = findEnvFileInDirectory(it)
+                result == null
+            }
+            result
         }
-        return result
     }
 
     private fun findVariableValueInFile(file: VirtualFile, name: String): String? {
