@@ -16,6 +16,7 @@
     <fileTypeContributor
       implementation="com.intellij.lang.jsgraphql.javascript.injection.GraphQLJavaScriptFileTypeContributor"/>
     <injectedLanguage implementation="com.intellij.lang.jsgraphql.javascript.injection.GraphQLJavaScriptInjectedLanguage"/>
+    <configCustomLoader implementation="com.intellij.lang.jsgraphql.javascript.config.GraphQLJavaScriptConfigLoader"/>
   </extensions>
 
 </idea-plugin>

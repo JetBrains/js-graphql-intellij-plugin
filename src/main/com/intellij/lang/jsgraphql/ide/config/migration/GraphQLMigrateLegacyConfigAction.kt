@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.ide.config.migration
 
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.config.GRAPHQLCONFIG
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigEvaluationStatus
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigLoader
 import com.intellij.lang.jsgraphql.ide.config.serialization.GraphQLConfigPrinter
@@ -42,7 +43,7 @@ class GraphQLMigrateLegacyConfigAction : AnAction(GraphQLBundle.message("graphql
         val dir = sourceFile.parent.takeIf { it.isValid && it.isDirectory } ?: return
 
         val result = GraphQLConfigLoader.getInstance(project).load(sourceFile)
-        if (result.status == GraphQLConfigLoader.Status.ERROR) {
+        if (result.status == GraphQLConfigEvaluationStatus.ERROR) {
             Notifications.Bus.notify(
                 Notification(
                     GRAPHQL_NOTIFICATION_GROUP_ID,

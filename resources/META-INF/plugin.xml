@@ -43,6 +43,8 @@
                     interface="com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter"/>
     <extensionPoint name="configContributor" dynamic="true"
                     interface="com.intellij.lang.jsgraphql.ide.config.GraphQLConfigContributor"/>
+    <extensionPoint name="configCustomLoader" dynamic="true"
+                    interface="com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigCustomLoader"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -135,6 +137,7 @@
       implementation="com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesEditorNotificationProvider"/>
     <editorNotificationProvider
       implementation="com.intellij.lang.jsgraphql.ide.config.migration.GraphQLMigrateLegacyConfigEditorNotificationProvider"/>
+    <editorNotificationProvider implementation="com.intellij.lang.jsgraphql.ide.config.GraphQLConfigStatusEditorNotificationProvider"/>
 
     <!-- Completion -->
     <lookup.charFilter implementation="com.intellij.lang.jsgraphql.ide.completion.GraphQLCharFilter"/>

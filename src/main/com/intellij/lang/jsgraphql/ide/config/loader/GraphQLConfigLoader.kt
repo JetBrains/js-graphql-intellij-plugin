@@ -2,8 +2,7 @@ package com.intellij.lang.jsgraphql.ide.config.loader
 
 import com.google.gson.Gson
 import com.intellij.lang.jsgraphql.asSafely
-import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
-import com.intellij.lang.jsgraphql.ide.config.parseMap
+import com.intellij.lang.jsgraphql.ide.config.*
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -29,9 +28,9 @@ class GraphQLConfigLoader(private val project: Project) {
         val raw = try {
             readData(file)
         } catch (e: Throwable) {
-            LOG.info("Unable to parse config: ${file.path}", e)
-            return Result(null, Status.ERROR)
-        } ?: return Result(null, Status.EMPTY)
+            LOG.info("Unable to load config: ${file.path}", e)
+            return Result(null, GraphQLConfigEvaluationStatus.ERROR, e)
+        } ?: return Result(null, GraphQLConfigEvaluationStatus.EMPTY)
 
         val isLegacy = isLegacyConfig(file)
         val root = parseProjectConfig(raw, isLegacy)
@@ -49,7 +48,7 @@ class GraphQLConfigLoader(private val project: Project) {
             }
             ?.toMap()
 
-        return Result(GraphQLRawConfig(root, projects), Status.SUCCESS)
+        return Result(GraphQLRawConfig(root, projects), GraphQLConfigEvaluationStatus.SUCCESS)
     }
 
     private fun parseProjectConfig(data: Map<*, *>, isLegacy: Boolean): GraphQLRawProjectConfig {
@@ -125,7 +124,12 @@ class GraphQLConfigLoader(private val project: Project) {
         return when (file.extension) {
             "json" -> readJson(file)
             "yaml", "yml" -> readYml(file)
-            else -> if (isLegacyConfig(file)) return readJson(file) else return readContentDependent(file)
+            "js", "cjs", "ts" -> readJs(file)
+            else -> when (file.name) {
+                GRAPHQLCONFIG -> readJson(file)
+                GRAPHQL_RC -> readContentDependent(file)
+                else -> throw IllegalArgumentException("unknown config file format: ${file.path}")
+            }
         }
     }
 
@@ -153,14 +157,19 @@ class GraphQLConfigLoader(private val project: Project) {
 
     private fun readYml(text: String) = Yaml(SafeConstructor(LoaderOptions())).load(text) as? Map<*, *>
 
+    private fun readJs(file: VirtualFile): Map<*, *>? {
+        val loader = GraphQLConfigCustomLoader.forFile(file)
+        if (loader == null) {
+            val msg = "custom loader not found for ${file.path}"
+            LOG.warn(msg)
+            throw IllegalArgumentException(msg)
+        }
+        return loader.load(project, file)
+    }
+
     private fun loadText(file: VirtualFile): String? =
         runReadAction { VfsUtil.loadText(file) }.takeIf { it.isNotBlank() }
 
-    data class Result(val data: GraphQLRawConfig?, val status: Status)
-
-    enum class Status {
-        SUCCESS,
-        ERROR,
-        EMPTY,
-    }
+    data class Result(val data: GraphQLRawConfig?, val status: GraphQLConfigEvaluationStatus, val error: Throwable? = null)
 }
+

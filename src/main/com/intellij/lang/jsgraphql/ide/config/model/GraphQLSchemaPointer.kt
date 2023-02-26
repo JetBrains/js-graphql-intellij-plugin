@@ -28,7 +28,14 @@ data class GraphQLSchemaPointer(
         @JvmStatic
         fun createPathForLocal(pointer: GraphQLSchemaPointer): String? {
             val filePath = pointer.filePath ?: return null
-            return FileUtil.toSystemDependentName(FileUtil.join(pointer.dir.path, filePath))
+
+            return FileUtil.toSystemDependentName(
+                if (FileUtil.isAbsolute(pointer.filePath)) {
+                    pointer.filePath
+                } else {
+                    FileUtil.join(pointer.dir.path, filePath)
+                }
+            )
         }
 
         @JvmStatic
