@@ -171,6 +171,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         return if (includeContributed) configs + contributedConfigs.get().values else configs
     }
 
+    fun getConfigEvaluationState(file: VirtualFile): ConfigEvaluationState? {
+        val entry = configData[file] ?: return null
+        return ConfigEvaluationState(entry.status, entry.error)
+    }
+
     val isInitialized
         get() = initialized
 
@@ -295,7 +300,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         }
 
         val configEntry = configData[candidate] ?: return true
-        return configEntry.status != GraphQLConfigLoader.Status.SUCCESS
+        return configEntry.status != GraphQLConfigEvaluationStatus.SUCCESS
     }
 
     @RequiresReadLock
@@ -369,7 +374,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
             val entry = ConfigEntry(
                 GraphQLConfig(project, dir, file, result.data ?: GraphQLRawConfig.EMPTY),
                 timeStamp,
-                result.status
+                result.status,
+                result.error,
             )
 
             if (cached == null) {
@@ -395,6 +401,10 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         val prevContributed = prevSnapshot.values.toSet()
         val updatedContributed =
             GraphQLConfigContributor.EP_NAME.extensionList.flatMap { it.contributeConfigs(project) }.toSet()
+
+        if (prevContributed.isEmpty() && updatedContributed.isEmpty()) {
+            return false
+        }
 
         return if (prevContributed != updatedContributed || explicitInvalidation) {
             if (contributedConfigs.compareAndSet(prevSnapshot, updatedContributed.associateBy { it.dir })) {
@@ -476,14 +486,18 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     private class ConfigEntry(
         val config: GraphQLConfig? = null,
         val timeStamp: Long = -1,
-        val status: GraphQLConfigLoader.Status,
-        val invalidated: AtomicBoolean = AtomicBoolean(false),
-    )
+        val status: GraphQLConfigEvaluationStatus,
+        val error: Throwable? = null,
+    ) {
+        val invalidated: AtomicBoolean = AtomicBoolean(false)
+    }
 
     override fun getModificationCount(): Long = modificationTracker.modificationCount
 
     override fun dispose() {
     }
+
+    data class ConfigEvaluationState(val status: GraphQLConfigEvaluationStatus, val error: Throwable?)
 }
 
 private data class GraphQLConfigOverride(val file: VirtualFile, val projectName: String?)
