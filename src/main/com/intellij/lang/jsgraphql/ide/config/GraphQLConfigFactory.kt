@@ -49,7 +49,7 @@ class GraphQLConfigFactory(private val project: Project) {
             } catch (e: IOException) {
                 throw RuntimeException(e)
             }
-        }
+        },
     ) {
         invokeLater {
             WriteCommandAction.runWriteCommandAction(
@@ -67,7 +67,9 @@ class GraphQLConfigFactory(private val project: Project) {
                         if (openEditor) {
                             FileEditorManager.getInstance(project).openFile(configFile, true, true)
                         }
-                        ApplicationManager.getApplication().saveAll()
+                        invokeLater {
+                            ApplicationManager.getApplication().saveAll()
+                        }
                     } catch (e: IOException) {
                         Notifications.Bus.notify(
                             Notification(
