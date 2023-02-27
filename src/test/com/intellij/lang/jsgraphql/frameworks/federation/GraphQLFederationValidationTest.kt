@@ -1,33 +1,38 @@
-package com.intellij.lang.jsgraphql.frameworks.federation;
+package com.intellij.lang.jsgraphql.frameworks.federation
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
-import com.intellij.lang.jsgraphql.GraphQLTestUtils;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes
+import com.intellij.lang.jsgraphql.withLibrary
+import junit.framework.TestCase
 
-public class GraphQLFederationValidationTest extends GraphQLTestCaseBase {
+class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        enableAllInspections();
+    @Throws(Exception::class)
+    override fun setUp() {
+        super.setUp()
+        enableAllInspections()
     }
 
-    @Override
-    protected @NotNull String getBasePath() {
-        return "/frameworks/federation/validation";
+    override fun getBasePath() = "/frameworks/federation/validation"
+
+    fun testQueryValidation() {
+        withLibrary(project, GraphQLLibraryTypes.FEDERATION, {
+            doHighlightingTest()
+
+            val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(myFixture.file)
+            TestCase.assertNotNull(schemaInfo)
+            assertEmpty(schemaInfo.getErrors(project))
+        }, testRootDisposable)
     }
 
-    public void testQueryValidation() {
-        GraphQLTestUtils.withLibrary(getProject(), GraphQLLibraryTypes.FEDERATION, () -> {
-            doHighlightingTest();
-
-            GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(getProject()).getSchemaInfo(myFixture.getFile());
-            assertNotNull(schemaInfo);
-            assertEmpty(schemaInfo.getErrors(getProject()));
-        }, getTestRootDisposable());
+    fun testEmptySchemaValidation() {
+        withLibrary(project, GraphQLLibraryTypes.FEDERATION, {
+            val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
+            val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(globalScope)
+            TestCase.assertNotNull(schemaInfo)
+            assertEmpty(schemaInfo.getErrors(project))
+        }, testRootDisposable)
     }
-
 }
