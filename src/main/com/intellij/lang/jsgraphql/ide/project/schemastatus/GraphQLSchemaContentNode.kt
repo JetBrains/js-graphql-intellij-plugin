@@ -49,8 +49,7 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
         if (nonEmptyParts.isNotEmpty()) {
             templatePresentation.locationString = "- " + nonEmptyParts.joinToString()
         } else {
-            templatePresentation.locationString =
-                if (validatedSchema.registryInfo.hasProcessedAnyFile()) "- schema is empty" else "- no schema definitions were found"
+            templatePresentation.locationString = "- schema is empty"
         }
 
         templatePresentation.tooltip = "Double click or press enter to search the schema registry"

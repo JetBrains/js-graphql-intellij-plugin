@@ -97,9 +97,7 @@ class GraphQLConfigSchemaNode(
         val children: MutableList<SimpleNode> = mutableListOf()
         if (performSchemaDiscovery && schemaInfo != null) {
             children.add(GraphQLSchemaContentNode(this, schemaInfo))
-            if (schemaInfo.registryInfo.hasProcessedAnyFile()) {
-                children.add(GraphQLSchemaErrorsListNode(this, schemaInfo))
-            }
+            children.add(GraphQLSchemaErrorsListNode(this, schemaInfo))
         }
         if (!isProjectLevelNode && !config.hasOnlyDefaultProject()) {
             children.add(GraphQLConfigProjectsNode(this))

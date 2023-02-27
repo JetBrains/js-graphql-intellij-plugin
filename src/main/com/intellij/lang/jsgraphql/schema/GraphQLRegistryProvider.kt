@@ -77,7 +77,7 @@ class GraphQLRegistryProvider(project: Project) {
             psiSearchHelper.processInjectedGraphQLFiles(schemaScope, processor)
 
             val registry = processor.compositeRegistry.buildTypeDefinitionRegistry()
-            GraphQLRegistryInfo(registry, errors, processor.isProcessed)
+            GraphQLRegistryInfo(registry, errors)
         }
     }
 }

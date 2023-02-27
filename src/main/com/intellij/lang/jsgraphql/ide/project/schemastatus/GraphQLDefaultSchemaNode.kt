@@ -35,9 +35,7 @@ class GraphQLDefaultSchemaNode(project: Project, parent: GraphQLSchemasRootNode)
 
     public override fun buildChildren(): Array<SimpleNode> {
         val children: MutableList<SimpleNode> = mutableListOf(GraphQLSchemaContentNode(this, schemaInfo))
-        if (schemaInfo.registryInfo.hasProcessedAnyFile()) {
-            children.add(GraphQLSchemaErrorsListNode(this, schemaInfo))
-        }
+        children.add(GraphQLSchemaErrorsListNode(this, schemaInfo))
         children.add(GraphQLSchemaEndpointsListNode(this, null))
         return children.toTypedArray()
     }

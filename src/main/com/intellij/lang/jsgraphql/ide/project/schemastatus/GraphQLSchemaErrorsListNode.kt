@@ -25,10 +25,6 @@ class GraphQLSchemaErrorsListNode(parent: SimpleNode, private val schemaInfo: Gr
     }
 
     public override fun buildChildren(): Array<SimpleNode> {
-        if (!schemaInfo.registryInfo.hasProcessedAnyFile()) {
-            // no GraphQL PSI files parse yet, so no need to show the "no query defined" error for a non-existing schema
-            return NO_CHILDREN
-        }
         val children = mutableListOf<SimpleNode>()
         for (error in schemaInfo.getErrors(myProject)) {
             val node = error.node
