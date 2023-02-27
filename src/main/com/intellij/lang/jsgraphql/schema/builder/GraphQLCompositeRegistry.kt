@@ -1,6 +1,5 @@
 package com.intellij.lang.jsgraphql.schema.builder
 
-import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes
 import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil
 import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.GraphQLException
@@ -13,7 +12,6 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionErr
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.util.containers.orNull
 
 class GraphQLCompositeRegistry {
 
@@ -131,23 +129,8 @@ class GraphQLCompositeRegistry {
             }
         }
 
-        addMissingTypes(registry)
-
         validate(registry)
         return registry
-    }
-
-    private fun addMissingTypes(registry: TypeDefinitionRegistry) {
-        val queryType = registry.getType(GraphQLKnownTypes.QUERY_TYPE).orNull()
-        if (queryType != null) {
-            return
-        }
-
-        if (!registry.schemaDefinition().isEmpty || registry.schemaExtensionDefinitions.isNotEmpty()) {
-            return
-        }
-
-        registry.add(ObjectTypeDefinition.newObjectTypeDefinition().name(GraphQLKnownTypes.QUERY_TYPE).build())
     }
 
     // TODO: [intellij] find a better place, perhaps SchemaTypeChecker

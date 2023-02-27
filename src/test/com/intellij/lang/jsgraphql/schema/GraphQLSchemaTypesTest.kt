@@ -60,7 +60,7 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
 
     fun testExcludeLegacy() {
         val fileName = "Types3.graphql"
-        doTestTypeDefinitions(fileName, listOf("TheOnlyType", "Query"))
+        doTestTypeDefinitions(fileName, listOf("TheOnlyType"))
         doTestFragmentDefinitions(fileName, listOf("TheOnlyFragment"))
     }
 
