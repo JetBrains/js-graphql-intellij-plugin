@@ -187,7 +187,7 @@ exclude: 'src/**/__tests__/**'
 include: src/**
 ```
 
-> Remember that all files specified in`schema`or`documents`are included by default.
+> Remember that all files specified in `schema` or `documents` are included by default.
 
 ## Multiple projects
 
