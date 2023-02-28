@@ -1,3 +1,4 @@
+import org.jetbrains.changelog.Changelog
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val pluginGroup = prop("pluginGroup")
@@ -83,8 +84,7 @@ tasks {
 
         changeNotes.set(
             """
-            <h2>New in $pluginVersion</h2>
-            ${changelog.get(pluginVersion).toHTML()}
+            ${changelog.renderItem(changelog.get(pluginVersion), Changelog.OutputType.HTML)}
             <br />
             See the <a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/CHANGELOG.md">CHANGELOG</a> for more details and history.
             """.trimIndent()
