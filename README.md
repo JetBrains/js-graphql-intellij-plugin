@@ -1,173 +1,517 @@
 # GraphQL IntelliJ Plugin
+
 GraphQL language support for [WebStorm](https://www.jetbrains.com/webstorm/), [IntelliJ IDEA](https://www.jetbrains.com/idea/) and all other
 [IDEs](https://www.jetbrains.com/products/#type=ide). The plugin works with all IDEs in the IntelliJ Platform.
 
-## Prerequisites & Installation
-### Prerequisites
-The plugin and this documentation assume you are already familiar with the GraphQL language. If you're not, please visit the official 
+# Prerequisites & Installation
+
+## Prerequisites
+
+The plugin and this documentation assume you are already familiar with the GraphQL language. If you're not, please visit the official
 [graphql.org](https://graphql.org/) website first.
-The plugin works out of the box with popular GraphQL clients such as [Apollo GraphQL](https://www.apollographql.com/) and 
+The plugin works out of the box with popular GraphQL clients such as [Apollo GraphQL](https://www.apollographql.com/) and
 [Relay](https://facebook.github.io/relay/), but you're free to choose your client and server framework.
-### Installation
+
+## Installation
+
 The plugin is available from [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/8097-js-graphql).
 You can install it directly from your IDE via the `File | Settings/Preferences | Plugins` screen.
 On the `Marketplace` tab simply search for `graphql` and select the `GraphQL` suggestion:
 
 ![marketplace](docs/assets/marketplace.png)
-## Developer guide
-This developer guide covers how to set up your project to get the most out of the GraphQL language tooling in this plugin.
+
+# Features
 
 The main features of this plugin include:
+
 - Full language support for GraphQL Specification including the Schema Definition Language (SDL).
 - Schema-aware completion, error highlighting, and documentation.
 - Syntax highlighting, code-formatting, folding, commenter, and brace-matching.
-
-  ![completion](docs/assets/completion.png)
-
-  ![docs](docs/assets/docs.png)
-- The plugin [discovers your local schema](#project-structure-and-schema-discovery) on the fly. Remote schemas are easily fetched using 
-  introspection. You can introspect GraphQL endpoints to generate schema declaration files using the GraphQL Type System Definition Language.
-- Support for [multi-schema projects](#setting-up-multi-schema-projects-using-graphql-config) using configurable project scopes or 
-  `graphql-config` files. Schema discovery is configured using [graphql-config v2](https://github.com/kamilkisiela/graphql-config/tree/legacy)
+- The plugin [discovers your local schema](#project-structure-and-schema-discovery) on the fly. Remote schemas are easily fetched using
+  introspection. You can introspect GraphQL endpoints to generate schema declaration files using the GraphQL Type System Definition
+  Language.
+- Support for [multi-schema projects](#setting-up-multi-schema-projects-using-graphql-config) using configurable project scopes or
+  `graphql-config` files. Schema discovery is configured using [graphql-config](https://the-guild.dev/graphql/config/docs)
   files, which includes support for multi-schema projects.
-- Built-in support for [Relay](https://facebook.github.io/relay/) and [Apollo](https://www.apollographql.com/) projects: `graphql` and `gql` 
-  tagged template literals in JavaScript and TypeScript are automatically recognized as GraphQL.
+- Built-in support for [Relay](https://facebook.github.io/relay/) and [Apollo](https://www.apollographql.com/) projects:
+  `graphql` and `gql` tagged template literals in JavaScript and TypeScript are automatically recognized as GraphQL.
 - Execute queries using variables against configurable endpoints, including support for custom headers and environment variables.
-
-  ![run](docs/assets/run.png)
 - `Find Usages` and `Go to Declaration` for schema types, fields, and fragments.
+- `Structure view` to navigate GraphQL files.
+- Load variables from shell, `.env` files or setup them manually per configuration file.
+- Built-in `Relay`, `Federation`, and `Apollo Kotlin` type definitions (You need to enable it
+  in `Preferences / Settings | Languages & Frameworks | GraphQL`).
 
-  ![usages](docs/assets/usages.png)
-- `Structure view` to navigate GraphQL files
-- Load variables from shell or `.env` files. Supported file names: `.env.local`,`.env.development.local`,`.env.development`,
-  `.env.dev.local`,`.env.dev`,`.env`
-- Built-in `Relay`, `Federation`, and `Apollo Kotlin` type definitions (You need to enable it in `Preferences / Settings | Languages & Frameworks | 
-  GraphQL`).
+# How to use
 
-  ![federation](docs/assets/federation.png)
+This developer guide covers how to set up your project to get the most out of the GraphQL language tooling in this plugin.
 
-It is important to configure how the schema types are discovered. If the schema types are not discovered correctly, language features such 
+It is important to configure how the schema types are discovered. If the schema types are not discovered correctly, language features such
 as completion and error highlighting will be based on the wrong type information.
 
 Schemas and their types are declared using GraphQL Type System Definition Language, which is also widely known as GraphQL Schema Definition
 Language (often abbreviated as SDL). If you're authoring your schemas in SDL, the plugin provides the following features:
+
 - Completion for types when defining fields, arguments, implemented interfaces, and so on.
 - Error highlighting of schema errors such as unknown types, wrong use of types, and missing fields when implementing interfaces.
 - Find usages in SDL and refactoring such as rename, which will update the relevant queries, mutations, and so on.
 
-For use cases where you don't declare the schema in the project, an introspection query can be executed against a GraphQL endpoint URL to 
-write the schema to a .graphql file as SDL. See [Working with GraphQL Endpoints](#working-with-graphql-endpoints-and-scratch-files).
-## Project Structure and Schema Discovery
-By default, the plugin assumes that your project contains a single schema. If this is the case, you don't need to perform any actions in 
-terms of schema discovery. For a single-schema project, schema types are discovered as follows: All `.graphql` files in the "Project files" 
+# Configuration
+
+By default, the plugin assumes that your project contains a single schema. If this is the case, you don't need to perform any actions in
+terms of schema discovery. For a single-schema project, schema types are discovered as follows: All `.graphql` files in the `Project files`
 scope are processed for type definitions, which are added to a singleton type registry. If the IDE has JavaScript language support, injected
-GraphQL strings in the `Project files` scope are processed for all JavaScript file types. File extensions include `.js`, `.jsx`, `.ts`, 
-and `.tsx.` 
-Injected GraphQL is found based on `Tagged Template Literals` with one of the following tags: `graphql`, `.gql`, or `Relay.QL`.
-For projects with multiple schemas, developers have to configure a scope for each schema. The purpose of a schema-specific scope is to 
-prevent types from being picked up in more than one GraphQL type registry, which would likely result in validation errors. This is because 
-these types will appear to have been declared more than once. In addition, the scopes prevent non-conflicting types from showing up in 
-completions and ensure that validation only recognizes the types that belong to the current schema. The plugin allows you to configure your 
-schema scopes using `graphql-config v2` configuration files with `includes` and `excludes` glob patterns.
-### Setting up Multi-schema Projects using graphql-config
-Please familiarize yourself with the [graphql-config v2](https://github.com/kamilkisiela/graphql-config/tree/legacy/specification.md) format
-before proceeding.
-The next step is to decide where to place the `.graphqlconfig` file. The config file controls schema discovery from the directory it's placed
-in, as well as any subfolders that don't have their own `.graphqlconfig`. To create a `.graphqlconfig` file, right-click a folder and select 
-`New GraphQL Configuration File` or use the "+" button in the `GraphQL Tool` window tab named `Schemas` and `Project Structure`. Depending on your 
-preference, you can use a single `.graphqlconfig` file in a folder that is a parent to each schema folder, or you can place `.graphqlconfig` 
-files in each schema folder.
+GraphQL strings in the `Project files` scope are processed for all JavaScript file types. File extensions
+include `.js`, `.jsx`, `.ts`,`.tsx`, `.html` and html-based files like `.vue`.
 
-**Option A**: Multiple config files (recommended):
+For projects with multiple schemas, developers have to configure a scope for each schema. The purpose of a schema-specific scope is to
+prevent types from being picked up in more than one GraphQL type registry, which would likely result in validation errors. This is because
+these types will appear to have been declared more than once. In addition, the scopes prevent non-conflicting types from showing up in
+completions and ensure that validation only recognizes the types that belong to the current schema.
+
+However, it’s recommended to have a simple config in the project root. Otherwise, you will not be able to define a remote URL for making
+GraphQL queries directly from the editor.
+
+A documentation describing GraphQL Config itself could be found [here](https://the-guild.dev/graphql/config/docs).
+In the following sections, we will discuss how to use it in the context of this plugin.
+
+## Basic configuration
+
+A simple configuration file `graphql.config.yml` can be created using a context action on the directory in the project view
+via `New > GraphQL Config`:
+
+```
+schema: schema.graphql
+documents: '**/*.graphql'
+```
+
+Here, we expect a schema to be defined in a local file `schema.graphql`. The `documents` key is defined using a glob pattern that will
+include any GraphQL operation in the current or nested directory. By operation, we mean only GraphQL queries and fragments, but not type
+definitions.
+
+Please note that paths are relative to the config directory, unless they are explicitly defined as absolute. Therefore, you do not need to
+prefix them with `./`. Just `schema.graphql` is sufficient. The same applies to glob patterns.
+
+## Remote schemas
+
+If you have a GraphQL endpoint and do not have the local schema file yet, you can define one or more endpoints and make an introspection
+query. This will load a schema from the server, convert it to a GraphQL file, and save it in the IDE's cache directory.
+
+Depending on whether you need additional configuration for an endpoint, you can specify it as a string or an object with supplementary keys
+containing data such as headers.
+
+```
+schema: https://my.api.com/graphql
+
+schema:
+  - https://my.api.com/one/graphql
+  - https://my.api.com/two/graphql
+
+schema:
+  - https://my.api.com/one/graphql:
+      headers:
+        Authorization: Bearer ${TOKEN}
+```
+
+> Pay special attention to the last example; it should have correct indentation.
+
+Now it is required to run an introspection query manually to load a schema from the provided endpoint. You can do this in
+[multiple ways](#Introspection).
+
+You probably need to authenticate with your remote service to run queries, and apparently you'll do this using HTTP headers and some kind of
+token inside them. The best way to provide a token without hardcoding it in the config file is
+through [environment variables](#Environment variables). An
+example of this is a `TOKEN` variable in the code snippet above.
+
+## Local introspection schemas
+
+If you want to store an introspection result locally, you can configure an endpoint as it was done in the legacy configuration format.
+Define one or multiple endpoints in the `endpoints` extension, and then make an introspection query. A file will be saved at the first path
+in the corresponding `schema` section, for example, a `local.graphql` file in the example below.
+
+```
+schema: local.graphql
+extensions:
+  endpoints:
+    One:
+      url: https://my.api.com/one/graphql
+      headers:
+        Authorization: bearer ${TOKEN}
+    Two:
+      url: https://my.api.com/two/graphql
+```
+
+## Advanced configuration
+
+If you need more fine-grained control over which files should be included in the schema, you can use the optional `include` and `exclude`
+keys. First, it checks a candidate file for exclusion. If it's not excluded, the file path is matched against the `include` pattern.
+
+In that example, `schema.graphql` and every file inside the `src` directory except files in `__tests__` will be included in that project.
+
+```yaml
+schema: schema.graphql
+exclude: 'src/**/__tests__/**'
+include: src/**
+```
+
+> Remember that all files specified in`schema`or`documents`are included by default.
+
+## Multiple projects
+
+### Config per project
+
+A config file defines a GraphQL "module" root, similar to how `package.json` or similar files do. Even if this file is empty, all files in
+that directory and in the nested ones will use a schema associated with that configuration. Therefore, the simplest way to separate
+different schemas is to create a configuration file inside each subdirectory, if they are completely independent, as is usually the case
+with monorepos. With this approach, the location of the config files creates separate scopes for each subtree.
+
 ```
 - project root/
     - product a (schema one)/
-        - .graphqlconfig <-----
+        - .graphql.config.yml <-----
         - schema files and graphql aware components
     - product b (schema two)/
-        - .graphqlconfig <-----
+        - .graphql.config.yml <-----
         - schema files and graphql aware components
 ```
 
-With this approach the location of the config files creates separate scopes for the two schemas.
+### Single config
 
-**Option B**: Single config file:
+If you prefer to have a single configuration file, you can specify multiple projects in the same file.
+
 ```
 - project root/
-    - .graphqlconfig <-----
-    - product a (schema one)/
+    - .graphql.config.yml <-----
+    - frontend (schema one)/
         - schema files and graphql aware components
-    - product b (schema two)/
+    - backend (schema two)/
         - schema files and graphql aware components
+    - queries/
 ```
 
-With a single config file you need to separate the schemas using the `includes` globs of the projects field:
-```json
-{
-  "projects": {
-    "product a": {
-      "includes": ["product a (schema one)/**"]
-    },
-    "product b": {
-      "includes": ["product b (schema two)/**"]
-    }
-  }
+The configuration for that case should appear as follows:
+
+```
+projects:
+  frontend:
+    schema: https://my.api.com/graphql
+    documents: frontend/**/*.{graphql,js,ts}
+  backend:
+    schema: backend/schema.graphql
+    documents: backend/**/*.graphql
+```
+
+Files are matched against projects in the order in which the projects are defined. Therefore, if a file matches several projects, the first
+one will be chosen.
+
+GraphQL operations are matched non-strictly when no `include` or `exclude` keys are defined for a specific project. This means that if a
+query or fragment does not match any project explicitly, the file will be associated with the first project that does not have `include`
+or `exclude` keys. In the example above, there is an additional root directory called `queries`, in addition to `backend` and `frontend`.
+If `queries` contains some GraphQL documents that do not match any of the provided patterns, the first project, `frontend`, will be
+associated with those queries.
+
+To achieve this, you can add an `exclude` pattern to the `frontend` project configuration. This will associate the files in the `queries`
+folder with the `backend` project.
+
+```
+projects:
+  frontend:
+    schema: https://my.api.com/graphql
+    documents: frontend/**/*.{graphql,js,ts}
+    exclude: queries/**  # <--- will enable strict matching for that project
+  backend:
+    schema: backend/schema.graphql
+    documents: backend/**/*.graphql
+```
+
+This does not apply to type definitions, as mentioned previously. The plugin only uses type definitions from files that strictly match
+the `schema` or `include` keys.
+
+> NOTE: Values on the root level are defaults for projects. Therefore, if a project does not define a property such as `schema`, `include`,
+> or even `extensions`, it will take a value from the root if it exists.
+
+## Configuration files
+
+The plugin supports multiple configuration file formats. Here is a list of all the possible options:
+
+- graphql.config.json
+- graphql.config.js
+- graphql.config.cjs
+- graphql.config.ts
+- graphql.config.yaml
+- graphql.config.yml
+- .graphqlrc (YAML and JSON)
+- .graphqlrc.json
+- .graphqlrc.yaml
+- .graphqlrc.yml
+- .graphqlrc.js
+- .graphqlrc.ts
+
+### Yaml
+
+The official JetBrains YAML plugin should be installed. However, it should be bundled into every IntelliJ IDE by default, so it usually
+doesn't require any action.
+
+### JavaScript
+
+Internally, we use Node.js to load a JavaScript or TypeScript config file. Therefore, Node.js should be installed and properly configured in
+the IDE. Note that the JavaScript plugin should also be installed in the IDE. This type of configuration will not work in Community
+versions, but should work in IntelliJ IDEA Ultimate, WebStorm, PHPStorm, PyCharm Professional, and other editions.
+
+As mentioned before, we don't transpile config files, so they should be written using the appropriate module system for Node.js. Note that
+in the following snippet, the `module.exports` syntax is used instead of `export default`.
+
+```javascript
+module.exports = {
+    schema: 'https://localhost:8000'
 }
 ```
 
-See https://github.com/jimkyndemeyer/graphql-config-examples for example of uses of `.graphqlconfig` to control schema discovery.
+To use ESM in your configuration, add `"type": "module"` to your package.json file.
 
-## Working with GraphQL Endpoints and Scratch Files
-You can use GraphQL scratch files to work with your schema outside product code, for example, for writing temporary queries to test 
-resolvers. To run queries or mutations against your GraphQL endpoint, add your endpoint details to a `.graphqlconfig` file. If you don't 
-already have a config file, you can create one by right-clicking on your project base dir and choosing `New | GraphQL Configuration File`. 
-If you already have a config file, you can jump to it using the `Edit .graphqlconfig` toolbar button in the top left of the scratch file 
-editor. See https://github.com/kamilkisiela/graphql-config/tree/legacy#specifying-endpoint-info for the expected format of the endpoint 
-details such as the URL, headers, and so on.
-The following example is from [graphql-config-examples/remote-schema-introspection](https://github.com/jimkyndemeyer/graphql-config-examples).
-It demonstrates how to use the endpoints configured in `.graphqlconfig` to fetch an existing remote schema.
+### TypeScript
 
-![config](docs/assets/config.png)
+To load a TypeScript config, the `ts-node` package should be installed either locally in the project or globally. You can find the package
+[here](https://github.com/TypeStrong/ts-node).
 
-With `introspect: true` the plugin asks at project startup whether to update the local schema using the configured endpoint.
+If you use ESM modules in your project and have configured them in package.json as `"type": "module"`, you will also need to set up an ESM
+loader for `ts-node`. This process is described in detail [here](https://github.com/TypeStrong/ts-node#native-ecmascript-modules).
 
-The update works by sending an introspection query to the `endpoint`, and then writing the result to the configured `schemaPath`.
+```json5
+{
+    "compilerOptions": {
+        // or ES2015, ES2020
+        "module": "ESNext"
+    },
+    "ts-node": {
+        "esm": true
+    }
+}
+```
 
-Introspection queries can also be executed by double-clicking `Endpoints` in the schemas tree view:
+## Migration
 
-![introspect](docs/assets/introspect-double-click.png)
-Notes and comments:
-If you're both developing the server schema and consuming it in a client, e.g. via component queries, you'll get the best tooling by having
-your schema expressed using GraphQL Schema Definition Language directly in your project. With this setup, the plugin immediately discovers 
-your schema and you don't have to perform an introspection after the server schema changes.
+If you are using a legacy configuration file, such as `.graphqlconfig`, we recommend converting it to a modern format of your choice.
+Subjectively, YAML files are the most convenient for this purpose. An automatic conversion tool is available: simply open the legacy file in
+the editor and press `Migrate` on the notification panel at the top of the editor. This will update the config keys and environment variable
+syntax, but won't change the structure of the file. So, it's possible that you may still need to update some parts of the config manually.
 
-Tip: The Rerun Introspection Action can be bound to a keyboard shortcut for convenience and if you do 
-make sure to uncheck this option as it stops opening the introspection result file in the IDE (after pressing the shortcut):
-![image](docs/assets/open-window-with-introspection-result.png)
+It is recommended to migrate existing `includes` patterns that were previously used to configure compound schemas to the new `schema` key.
+Additionally, please note that [environment variables](#Environment variables) now have a different syntax and support specifying a default
+value, for example.
 
+## Legacy configuration
 
-## Injections
+If you still prefer to use a legacy configuration format (although we don't recommend it 😉), make sure to explicitly specify the paths to
+schema files in the `includes` property. Otherwise, only the types from `schemaPath` will be used for schema construction.
 
-### Tagged template literals
+```json5
+ {
+    // a default way to provide a single-source schema
+    "schemaPath": "schema.graphql",
+    "includes": [
+        "Types1.graphql",
+        "types/**/*.graphql",
+        "src/files/*.{graphql,js,ts}",
+        "everything/inside/**"
+    ],
+    "excludes": [
+        "types/excluded/**"
+    ]
+}
+```
+
+## Environment variables
+
+You can utilize environment variables in your configuration files to specify a schema path, URL, or a header value. The syntax for using
+environment variables in configuration files is as follows:
+
+```
+${VARIABLE_NAME}
+${VARIABLE_WITH_DEFAULT:./some/default/file.graphql}
+${VARIABLE_QUOTED:"http://localhost:4000/graphql"}
+```
+
+You can load definitions from environment variables, with or without fallback values.
+
+```
+schema: ${SCHEMA_FILE:./schema.json}
+```
+
+If you want to define a fallback endpoint, you probably need to wrap your value with quotation marks.
+
+```
+schema: ${SCHEMA_ENDPOINT:"http://localhost:4000/graphql"}
+```
+
+### .env files
+
+There are several ways to provide environment variables. The most recommended method is to create a dedicated file with the variable values.
+To avoid exposing your credentials, please refrain from committing this file.
+
+The following filenames are supported in order of priority from top to bottom:
+
+- .env.local
+- .env.development.local
+- .env.development
+- .env.dev.local
+- .env.dev
+- .env
+
+The plugin searches for the specified file starting from the directory containing the corresponding configuration file and going up to the
+project root.
+
+In such files, environment variables are represented as simple key-value pairs separated by the `=` sign. Values can optionally be enclosed
+in quotes.
+
+```
+S3_BUCKET="YOURS3BUCKET"
+SECRET_KEY=YOURSECRETKEYGOESHERE # comment 
+SECRET_HASH="something-with-a-#-hash"
+```
+
+### Manual configuration
+
+If you decide not to use .env files, you can provide environment variables manually for each configuration file. There are multiple ways to
+accomplish this.
+
+1. To edit GraphQL environment variables in a config file, open the file in the editor and right-click to open the context menu. Select
+   the `Edit GraphQL Environment Variables` action from the menu. This will open a modal dialog where you can provide values for each
+   environment variable in the file.
+2. You can open the same dialog by clicking on the [toolbar](#Toolbar) inside any GraphQL file. The dialog will automatically find a
+   matching configuration file.
+3. Otherwise, only missing variables would be requested on the first introspection query or GraphQL request.
+
+### System
+
+If no variables are found in the .env files or set manually, the plugin will attempt to retrieve them from your system environment.
+
+# Introspection
+
+To provide resolution, completion, and validation, a plugin requires a schema. This can be achieved by performing an introspection query,
+which should be configured beforehand. This process is described in a separate section dedicated to plugin configuration.
+
+The easiest way to make an introspection query is to press the `Run` button on the editor's gutter if you're using YAML or JSON config
+files. This will make an introspection query and save a file locally, either to the IDE's cache or to the project sources, depending on the
+configuration.
+
+> TIP: If you don't want to open the introspection result file after each query, you can disable it in the GraphQL
+> options: `Languages & Frameworks > GraphQL > Open the editor with introspection result`.
+
+Another way to perform the same query is by using `Run Introspection Query` from the [toolbar](#Toolbar).
+
+Additionally, you can obtain the same result from the GraphQL [tool window](#Tool window) by right-clicking on the endpoint and selecting
+the `Get GraphQL Schema from Endpoint` action.
+
+To inspect the schema structure of an introspection file in the editor, use the `Open Introspection Schema` action in
+the [toolbar](#Toolbar). This will open a file for the selected endpoint.
+
+## Rerun latest introspection
+
+If your schema is constantly changing, and you find yourself repeatedly running the same introspection action against the same endpoint, it
+may be more convenient to use the `Rerun Introspection Query` action. This can be found using the `Find Action` menu, which can be accessed
+by pressing `Cmd/Ctrl + Shift + A`. Note that this option only becomes available after you have already performed an introspection query. If
+desired, you can also assign a hotkey to this action from the `Find Action` window.
+
+# Queries
+
+To execute a query directly from the editor, place the caret on the query definition, and run the `Execute Query` action from the toolbar
+either manually or by using the `Ctrl/Cmd + Enter` hotkey. The query will be sent to a selected endpoint in the toolbar.
+
+If your query has variables, you can open a dedicated variables editor using the `Toggle Variables Editor` action on the same toolbar. You
+can then provide the variables in JSON format.
+
+Alternatively, you can create a GraphQL scratch file and use it as a playground for sending queries. The easiest way to create such a file
+and associate it with the correct GraphQL config is to use the GraphQL [tool window](#Tool window). Simply double-click on the endpoint node
+and choose `New GraphQL Scratch File.`
+
+## Scratch files
+
+If a leading comment in a GraphQL scratch file contains a string that follows the pattern `# config=<path>[!<optionalProjectName>]`, it will
+use the specified config and project for resolving and type validation. Comments that follow this pattern are considered valid:
+
+```
+# config=/user/local/project/.graphqlrc.yml
+# config=/user/local/project/.graphqlrc.yml!backend
+```
+
+> NOTE: it works only for queries and fragment definitions, type definitions in scratch files are ignored.
+
+# Toolbar
+
+GraphQL files have a toolbar that the plugin uses to provide access to the most commonly used actions in one place.
+
+![toolbar](/docs/assets/toolbar.png)
+
+- **Open Configuration File**: Open the corresponding configuration file, or create a new one if it does not exist.
+- **Edit Environment Variables**: This opens a dialog that allows you to provide values for environment variables that are defined in the
+  associated configuration file.
+- **Toggle Variables Editor**: This opens an editor window where you can provide query variables in JSON format.
+- **Endpoints list**: A list of known URLs is defined in a config file, which you can use to select a URL where the GraphQL queries should
+  go or from where the introspection should be fetched.
+- **Execute GraphQL**: Run a selected GraphQL query from the editor below.
+- **Run Introspection Query**: This action refreshes an introspected schema from the selected endpoint.
+- **Open Introspection Schema**: This command opens a local file that corresponding to a selected endpoint.
+
+# Tool window
+
+The GraphQL tool window is used to provide an overview of your GraphQL projects. It can show validation errors, perform introspection
+queries, create scratches, and more.
+
+![tool window](/docs/assets/toolwindow.png)
+
+The main tab, `Schemas and Project Structure`, provides an overview of detected configuration files and the GraphQL schema associated with
+each of them. You can perform several useful actions for multiple nodes in this tree view.
+
+- **Schema discovery summary:** To search through the types discovered for each project, double-click on the corresponding node. This will
+  open a dialog window that enables you to search through every type and navigate to the place where they are defined.
+
+![types search](/docs/assets/types_search.png)
+
+- **Schema errors:** Clicking on the error node will navigate you to the source of the error.
+
+![schema errors](/docs/assets/schema_errors.png)
+
+- **Endpoints:** Right-clicking on the endpoint will give you the ability to make an introspection query or to create a Scratch file
+  associated with the selected configuration file and project.
+
+![endpoints](/docs/assets/endpoints.png)
+
+## Toolbar
+
+Take a look at the toolbar on the left side of the Tool window. It provides some useful actions:
+
+- **Add Schema Configuration**: This feature allows you to create a configuration file in a selected directory, but it is added just for
+  convenience. Nothing prevents you from creating a configuration file through the Project View.
+- **Edit Selected Schema Configuration**: Opens a configuration file for the selected node in the tool window.
+- **Restart Schema Discovery**: This action clears all loaded schemas and starts the discovery process from scratch. It can be useful in
+  cases where cached data is causing issues.
+
+# Injections
+
+## Tagged template literals
 
 Supported tags are: `graphql`, `gql`, `Relay.QL`, `Apollo.gql`.
+
 ```
 const QUERY = gql``;
 ```
 
-### IntelliJ default comment-based injection
+## IntelliJ default comment-based injection
 
 ```
 // language=GraphQL
 const QUERY = `query { field }`;
 ```
 
-### C-style comments
+## C-style comments
+
 ```
 const QUERY = /* GraphQL */ `query { field }`;
 ```
 
-### GraphQL comments
+## GraphQL comments
+
 ```js
 const QUERY = `
     #graphql
@@ -176,17 +520,20 @@ const QUERY = `
 `;
 ```
 
+# Acknowledgements
 
-## Acknowledgements
 This plugin was heavily inspired by [GraphiQL](https://github.com/graphql/graphiql) from Facebook.
 
-A number of language features such as query and schema validation are powered by [graphql-java](https://github.com/graphql-java/graphql-java).
+A number of language features such as query and schema validation are powered
+by [graphql-java](https://github.com/graphql-java/graphql-java).
 
-A thanks also goes out to the [Apollo](https://github.com/apollographql) and [Prisma](https://github.com/prisma)  teams for their continued 
+A thanks also goes out to the [Apollo](https://github.com/apollographql) and [Prisma](https://github.com/prisma)  teams for their continued
 efforts to improve the GraphQL developer experience.
 
 And finally, a thank you to the [JetBrains WebStorm team](https://twitter.com/WebStormIDE) and the Alpha/Beta testers for all their help.
-## License
+
+# License
+
 MIT
 
 
