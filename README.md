@@ -113,7 +113,7 @@ In the following sections, we will discuss how to use it in the context of this 
 A simple configuration file `graphql.config.yml` can be created using a context action on the directory in the project view
 via `New > GraphQL Config`:
 
-```
+```yaml
 schema: schema.graphql
 documents: '**/*.graphql'
 ```
@@ -133,7 +133,7 @@ query. This will load a schema from the server, convert it to a GraphQL file, an
 Depending on whether you need additional configuration for an endpoint, you can specify it as a string or an object with supplementary keys
 containing data such as headers.
 
-```
+```yaml
 schema: https://my.api.com/graphql
 
 schema:
@@ -162,7 +162,7 @@ If you want to store an introspection result locally, you can configure an endpo
 Define one or multiple endpoints in the `endpoints` extension, and then make an introspection query. A file will be saved at the first path
 in the corresponding `schema` section, for example, a `local.graphql` file in the example below.
 
-```
+```yaml
 schema: local.graphql
 extensions:
   endpoints:
@@ -224,7 +224,7 @@ If you prefer to have a single configuration file, you can specify multiple proj
 
 The configuration for that case should appear as follows:
 
-```
+```yaml
 projects:
   frontend:
     schema: https://my.api.com/graphql
@@ -246,7 +246,7 @@ associated with those queries.
 To achieve this, you can add an `exclude` pattern to the `frontend` project configuration. This will associate the files in the `queries`
 folder with the `backend` project.
 
-```
+```yaml
 projects:
   frontend:
     schema: https://my.api.com/graphql
@@ -367,13 +367,13 @@ ${VARIABLE_QUOTED:"http://localhost:4000/graphql"}
 
 You can load definitions from environment variables, with or without fallback values.
 
-```
+```yaml
 schema: ${SCHEMA_FILE:./schema.json}
 ```
 
 If you want to define a fallback endpoint, you probably need to wrap your value with quotation marks.
 
-```
+```yaml
 schema: ${SCHEMA_ENDPOINT:"http://localhost:4000/graphql"}
 ```
 
