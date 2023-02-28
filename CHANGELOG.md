@@ -2,11 +2,43 @@
 
 # Changelog
 
-## [4.0.0] - 2023-02-16
+## [4.0.0] - 2023-02-28
 
 ### Added
 
-- GraphQL config v3 support.
+- GraphQL config v3 support. For more details check the [documentation](https://github.com/JetBrains/js-graphql-intellij-plugin).
+- The modern configuration format is supported for .yml, .json, .js and .ts files. Multiple different file names can be used, introspection
+  requests vie line markers should be available inside the editor only for YAML and JSON files. Configuration in package.json and .toml
+  files is not supported, but you can open an issue if you really need it.
+- You don't need to use the `endpoints` extension to introspect your remote GraphQL schemas. While still supported, it's only useful if you
+  want to store an introspection schema within your project sources. Instead, simply point an entry in the `schema` section to a valid URL
+  and run the introspection query. Automatic schema fetching by a specified time frame will be implemented later.
+- Validation of configuration files and code completion are enabled through the use of JSON schema.
+- Legacy configuration formats will be supported to ease the transition process.
+- An editor notification action could automatically convert configuration files to a new format when they are opened. It is important to
+  note that during the migration of configuration files, the format of variables has also been changed.
+- The glob matching functionality in configs has been reworked and now should only include schema files that strictly match.
+- Local JSON introspection files have been reworked. Now, their corresponding GraphQL SDLs are stored on disk and indexed as regular project
+  files. This should prevent them from being the source of different exceptions and memory leaks. If generating SDL based on the GraphQL
+  introspection result fails, the editor will display error details.
+- Configuration change tracking has been improved. It is now possible to change a configuration file and consistently see an updated state
+  of the IDE without significant delays.
+- The comment format for GraphQL Scratch files has been updated to better suit modern configuration options. However, the legacy format is
+  still supported, so existing files should function as they did before.
+- The external API for contributing GraphQL configuration is now available. This allows third-party plugins to override the project
+  structure and guide the plugin on which sources should be included in the schema and in which directory.
+- Fragments are resolved in Vue and other HTML-like files.
+- The support for search in language injections has been reworked, allowing us to add it for more languages. However, we still need to
+  rethink how language injections work, as the current implementation has its own limitations. Stay tuned 😉.
+- The search algorithm for .env files has been improved. Previously, it only looked for an .env file in the config folder or project root.
+  Now, it scans all directories from the configuration file up to the project root.
+- Manually provided environment variables are stored per configuration file, rather than being set globally for the entire project. You can
+  set them up from the context menu in the configuration file (accessed via the menu item named `Edit GraphQL Environment Variables`), via a
+  new button in the editor toolbar, or by using `Find Action > Edit GraphQL Environment Variables`.
+- It is now possible to perform an introspection query directly from the header of the GraphQL editor. Simply use
+  the `Run Introspection Query` action on the toolbar. To open an introspection file saved on disk, use the
+  adjacent `Open Introspection Result` action.
+- The GraphQL Tool Window has been updated, so it should no longer throw a deprecation exception when opened.
 
 ### Fixed
 
@@ -22,14 +54,14 @@
 - Updated Federation 2 schema.
 - Updated Apollo Kotlin schema.
 
-
 ## [3.3.0] - 2022-09-22
 
 ### Fixed
 
 - Deprecation of input values and arguments ([#507](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/507)).
 - Renamed `specifiedBy` to `specifiedByURL` ([#554](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/554)).
-- Fixed interface implementation inspection for overridden fields with more specific types ([#563](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/563)).
+- Fixed interface implementation inspection for overridden fields with more specific
+  types ([#563](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/563)).
 
 ## [3.2.1] - 2022-07-26
 
@@ -115,7 +147,8 @@
 
 ### Added
 
-- Added separate configurable inspections for existing schema and query validation rules, e.g. **Unresolved reference**, **Type redefinition**, **Member redefinition**, **Duplicate argument**, **Duplicate directive**, and many more.
+- Added separate configurable inspections for existing schema and query validation rules, e.g. **Unresolved reference**, **Type redefinition
+  **, **Member redefinition**, **Duplicate argument**, **Duplicate directive**, and many more.
 - Added support for repeatable directives.
 - Added support for `extend schema` syntax.
 - Added support for schema descriptions.
@@ -190,7 +223,8 @@
 
 ### Changed
 
-- Basic support for schema splitting with GraphQL Modules and similar tools (<a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/pull/374">#374</a>)
+- Basic support for schema splitting with GraphQL Modules and similar
+  tools (<a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/pull/374">#374</a>)
 - Improved error handling for introspection queries
 - Updated for compatibility with IntelliJ IDEA 2020.2
 - Allow introspection query results with empty errors in the response (#272)
@@ -202,7 +236,6 @@
 - Fix escaping of GraphQL query variables (#364)
 - Fix query execution and config creation for GraphQL fragments editor (#365, #356)
 - Fix UI freeze during a request for a large introspection schema
- 
 
 ## [2.5.0] - 2020-05-30
 
