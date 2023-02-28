@@ -3,16 +3,49 @@
 GraphQL language support for [WebStorm](https://www.jetbrains.com/webstorm/), [IntelliJ IDEA](https://www.jetbrains.com/idea/) and all other
 [IDEs](https://www.jetbrains.com/products/#type=ide). The plugin works with all IDEs in the IntelliJ Platform.
 
-# Prerequisites & Installation
+# Contents
 
-## Prerequisites
+* [Prerequisites](#prerequisites)
+* [Installation](#installation)
+* [Features](#features)
+* [How to use](#how-to-use)
+* [Configuration](#configuration)
+    * [Basic configuration](#basic-configuration)
+    * [Remote schemas](#remote-schemas)
+    * [Local introspection schemas](#local-introspection-schemas)
+    * [Advanced configuration](#advanced-configuration)
+    * [Multiple projects](#multiple-projects)
+        * [Config per project](#config-per-project)
+        * [Single config](#single-config)
+    * [Configuration files](#configuration-files)
+        * [Yaml](#yaml)
+        * [JavaScript](#javascript)
+        * [TypeScript](#typescript)
+    * [Migration](#migration)
+    * [Legacy configuration](#legacy-configuration)
+    * [Environment variables](#environment-variables)
+        * [.env files](#env-files)
+        * [Manual configuration](#manual-configuration)
+        * [System](#system)
+* [Introspection](#introspection)
+    * [Rerun latest introspection](#rerun-latest-introspection)
+* [Queries](#queries)
+    * [Scratch files](#scratch-files)
+* [Toolbar](#toolbar)
+* [Tool window](#tool-window)
+    * [Toolbar](#toolbar-1)
+* [Injections](#injections)
+* [Acknowledgements](#acknowledgements)
+* [License](#license)
+
+# Prerequisites
 
 The plugin and this documentation assume you are already familiar with the GraphQL language. If you're not, please visit the official
 [graphql.org](https://graphql.org/) website first.
 The plugin works out of the box with popular GraphQL clients such as [Apollo GraphQL](https://www.apollographql.com/) and
 [Relay](https://facebook.github.io/relay/), but you're free to choose your client and server framework.
 
-## Installation
+# Installation
 
 The plugin is available from [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/8097-js-graphql).
 You can install it directly from your IDE via the `File | Settings/Preferences | Plugins` screen.
@@ -27,10 +60,10 @@ The main features of this plugin include:
 - Full language support for GraphQL Specification including the Schema Definition Language (SDL).
 - Schema-aware completion, error highlighting, and documentation.
 - Syntax highlighting, code-formatting, folding, commenter, and brace-matching.
-- The plugin [discovers your local schema](#project-structure-and-schema-discovery) on the fly. Remote schemas are easily fetched using
+- The plugin [discovers your local schema](#configuration) on the fly. Remote schemas are easily fetched using
   introspection. You can introspect GraphQL endpoints to generate schema declaration files using the GraphQL Type System Definition
   Language.
-- Support for [multi-schema projects](#setting-up-multi-schema-projects-using-graphql-config) using configurable project scopes or
+- Support for [multi-schema projects](#multiple-projects) using configurable project scopes or
   `graphql-config` files. Schema discovery is configured using [graphql-config](https://the-guild.dev/graphql/config/docs)
   files, which includes support for multi-schema projects.
 - Built-in support for [Relay](https://facebook.github.io/relay/) and [Apollo](https://www.apollographql.com/) projects:
@@ -116,11 +149,11 @@ schema:
 > Pay special attention to the last example; it should have correct indentation.
 
 Now it is required to run an introspection query manually to load a schema from the provided endpoint. You can do this in
-[multiple ways](#Introspection).
+[multiple ways](#introspection).
 
 You probably need to authenticate with your remote service to run queries, and apparently you'll do this using HTTP headers and some kind of
 token inside them. The best way to provide a token without hardcoding it in the config file is
-through [environment variables](#Environment variables). An
+through [environment variables](#environment-variables). An
 example of this is a `TOKEN` variable in the code snippet above.
 
 ## Local introspection schemas
@@ -297,7 +330,7 @@ the editor and press `Migrate` on the notification panel at the top of the edito
 syntax, but won't change the structure of the file. So, it's possible that you may still need to update some parts of the config manually.
 
 It is recommended to migrate existing `includes` patterns that were previously used to configure compound schemas to the new `schema` key.
-Additionally, please note that [environment variables](#Environment variables) now have a different syntax and support specifying a default
+Additionally, please note that [environment variables](#environment-variables) now have a different syntax and support specifying a default
 value, for example.
 
 ## Legacy configuration
@@ -378,7 +411,7 @@ accomplish this.
 1. To edit GraphQL environment variables in a config file, open the file in the editor and right-click to open the context menu. Select
    the `Edit GraphQL Environment Variables` action from the menu. This will open a modal dialog where you can provide values for each
    environment variable in the file.
-2. You can open the same dialog by clicking on the [toolbar](#Toolbar) inside any GraphQL file. The dialog will automatically find a
+2. You can open the same dialog by clicking on the [toolbar](#toolbar) inside any GraphQL file. The dialog will automatically find a
    matching configuration file.
 3. Otherwise, only missing variables would be requested on the first introspection query or GraphQL request.
 
@@ -398,13 +431,13 @@ configuration.
 > TIP: If you don't want to open the introspection result file after each query, you can disable it in the GraphQL
 > options: `Languages & Frameworks > GraphQL > Open the editor with introspection result`.
 
-Another way to perform the same query is by using `Run Introspection Query` from the [toolbar](#Toolbar).
+Another way to perform the same query is by using `Run Introspection Query` from the [toolbar](#toolbar).
 
-Additionally, you can obtain the same result from the GraphQL [tool window](#Tool window) by right-clicking on the endpoint and selecting
+Additionally, you can obtain the same result from the GraphQL [tool window](#tool-window) by right-clicking on the endpoint and selecting
 the `Get GraphQL Schema from Endpoint` action.
 
 To inspect the schema structure of an introspection file in the editor, use the `Open Introspection Schema` action in
-the [toolbar](#Toolbar). This will open a file for the selected endpoint.
+the [toolbar](#toolbar). This will open a file for the selected endpoint.
 
 ## Rerun latest introspection
 
@@ -422,7 +455,7 @@ If your query has variables, you can open a dedicated variables editor using the
 can then provide the variables in JSON format.
 
 Alternatively, you can create a GraphQL scratch file and use it as a playground for sending queries. The easiest way to create such a file
-and associate it with the correct GraphQL config is to use the GraphQL [tool window](#Tool window). Simply double-click on the endpoint node
+and associate it with the correct GraphQL config is to use the GraphQL [tool window](#tool-window). Simply double-click on the endpoint node
 and choose `New GraphQL Scratch File.`
 
 ## Scratch files
