@@ -40,12 +40,6 @@
   adjacent `Open Introspection Result` action.
 - The GraphQL Tool Window has been updated, so it should no longer throw a deprecation exception when opened.
 
-### Fixed
-
-- Compatibility with 2023.1.
-- Updated Federation 2 schema.
-- Updated Apollo Kotlin schema.
-
 ## [3.4.0] - 2023-02-07
 
 ### Fixed
@@ -147,8 +141,8 @@
 
 ### Added
 
-- Added separate configurable inspections for existing schema and query validation rules, e.g. **Unresolved reference**, **Type redefinition
-  **, **Member redefinition**, **Duplicate argument**, **Duplicate directive**, and many more.
+- Added separate configurable inspections for existing schema and query validation rules, e.g. **Unresolved reference**, 
+  **Type redefinition**, **Member redefinition**, **Duplicate argument**, **Duplicate directive**, and many more.
 - Added support for repeatable directives.
 - Added support for `extend schema` syntax.
 - Added support for schema descriptions.

@@ -23,7 +23,7 @@
         <li>Support for multiple schemas using graphql-config</li>
       </ul>
       More information about configuring and using the plugin
-      can be found in the <a href="https://jimkyndemeyer.github.io/js-graphql-intellij-plugin/">documentation</a>.
+      can be found in the <a href="https://github.com/JetBrains/js-graphql-intellij-plugin">documentation</a>.
     ]]>
   </description>
 
