@@ -33,7 +33,6 @@ GraphQL language support for [WebStorm](https://www.jetbrains.com/webstorm/), [I
     * [Scratch files](#scratch-files)
 * [Toolbar](#toolbar)
 * [Tool window](#tool-window)
-    * [Toolbar](#toolbar-1)
 * [Injections](#injections)
 * [Acknowledgements](#acknowledgements)
 * [License](#license)
@@ -510,7 +509,7 @@ each of them. You can perform several useful actions for multiple nodes in this 
 
 ![endpoints](/docs/assets/endpoints.png)
 
-## Toolbar
+## Tool window toolbar
 
 Take a look at the toolbar on the left side of the Tool window. It provides some useful actions:
 
