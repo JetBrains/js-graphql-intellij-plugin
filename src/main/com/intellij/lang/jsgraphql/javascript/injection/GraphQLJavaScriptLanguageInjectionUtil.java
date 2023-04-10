@@ -9,12 +9,15 @@ package com.intellij.lang.jsgraphql.javascript.injection;
 
 import com.google.common.collect.Sets;
 import com.intellij.lang.javascript.JSTokenTypes;
+import com.intellij.lang.javascript.patterns.JSPatterns;
+import com.intellij.lang.javascript.psi.JSExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.lang.javascript.psi.ecma6.ES6TaggedTemplateExpression;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLCommentBasedInjectionHelper;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.patterns.ElementPattern;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
@@ -38,6 +41,8 @@ public class GraphQLJavaScriptLanguageInjectionUtil {
     public static final String GQL_TEMPLATE_TAG = "gql";
     public static final String APOLLO_GQL_TEMPLATE_TAG = "Apollo.gql";
 
+    private static final ElementPattern<JSExpression> GRAPHQL_CALL_ARG_PATTERN = JSPatterns.jsArgument(GRAPHQL_TEMPLATE_TAG, 0);
+
     public final static Set<String> SUPPORTED_TAG_NAMES = Sets.newHashSet(
         RELAY_QL_TEMPLATE_TAG,
         GRAPHQL_TEMPLATE_TAG,
@@ -47,13 +52,16 @@ public class GraphQLJavaScriptLanguageInjectionUtil {
     );
 
     public static boolean isGraphQLLanguageInjectionTarget(@Nullable PsiElement host) {
-        if (!(host instanceof JSStringTemplateExpression)) {
+        if (!(host instanceof JSStringTemplateExpression template)) {
             return false;
         }
 
         // gql``, Relay.QL``, etc
-        JSStringTemplateExpression template = (JSStringTemplateExpression) host;
         if (isInjectedUsingTemplateTag(template)) {
+            return true;
+        }
+
+        if (isInjectedInCallArgument(template)) {
             return true;
         }
 
@@ -98,6 +106,12 @@ public class GraphQLJavaScriptLanguageInjectionUtil {
         final String builderTailName = tagExpression.getReferenceName();
         // a builder pattern that ends in a tagged template, e.g. someQueryAPI.graphql``
         return builderTailName != null && SUPPORTED_TAG_NAMES.contains(builderTailName);
+    }
+
+    private static boolean isInjectedInCallArgument(@NotNull JSStringTemplateExpression template) {
+        PsiElement parent = template.getParent();
+        PsiElement expr = parent instanceof ES6TaggedTemplateExpression ? parent : template;
+        return GRAPHQL_CALL_ARG_PATTERN.accepts(expr);
     }
 
     /**

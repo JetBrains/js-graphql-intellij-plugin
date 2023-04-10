@@ -110,6 +110,10 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
         doTestInjectedFile("cStyleCommentMultipleVars.js");
     }
 
+    public void testInjectedInCallArgument() {
+        doTestInjectedFile("callArgument.js");
+    }
+
     private @NotNull PsiFile doTestInjectedFile(@NotNull String sourcePath) {
         myFixture.configureByFile(sourcePath);
 
