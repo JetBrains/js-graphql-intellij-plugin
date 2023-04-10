@@ -66,7 +66,7 @@ public class GraphQLMissingTypeFix extends LocalQuickFixAndIntentionActionOnPsiE
                        @NotNull PsiElement startElement,
                        @NotNull PsiElement endElement) {
         if (editor == null) {
-            editor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(startElement);
+            editor = PsiEditorUtil.getInstance().findEditorByPsiElement(startElement);
             if (editor == null) {
                 return;
             }
