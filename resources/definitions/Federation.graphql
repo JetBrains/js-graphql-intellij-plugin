@@ -1,4 +1,5 @@
 # https://www.apollographql.com/docs/federation/subgraph-spec/
+# Latest update - Fed 2.3
 
 # a union of all types that use the @key directive
 union _Entity
@@ -38,6 +39,7 @@ directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUM
 directive @tag(name: String!) repeatable on FIELD_DEFINITION | INTERFACE | OBJECT | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 directive @override(from: String!) on FIELD_DEFINITION
 directive @composeDirective(name: String!) repeatable on SCHEMA
+directive @interfaceObject on OBJECT
 
 # This definition is required only for libraries that don't support
 # GraphQL's built-in `extend` keyword
