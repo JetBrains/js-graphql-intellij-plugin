@@ -1,0 +1,15 @@
+type Character {
+    name: String
+    age: Int
+    lang: String
+}
+
+type Query {
+    character: Character
+}
+
+query Query1 {
+    character {
+        ...Frag1
+    }
+}

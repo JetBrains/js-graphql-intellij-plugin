@@ -58,6 +58,11 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     }
 
+    protected void copyProject() {
+        myFixture.copyDirectoryToProject(getTestName(true), "");
+        reloadConfiguration();
+    }
+
     protected void doHighlightingTest() {
         doHighlightingTest("graphql");
     }

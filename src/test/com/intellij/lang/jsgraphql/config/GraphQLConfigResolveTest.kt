@@ -130,11 +130,6 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         )
     }
 
-    private fun copyProject() {
-        myFixture.copyDirectoryToProject(getTestName(true), "")
-        reloadConfiguration()
-    }
-
     private fun resolveConfig(filePath: String): GraphQLProjectConfig {
         val context = myFixture.configureFromTempProjectFile(filePath)
         TestCase.assertNotNull("source file is not found", context)

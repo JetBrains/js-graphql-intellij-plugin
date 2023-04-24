@@ -1,0 +1,13 @@
+fragment Fr<caret>ag1 on Character {
+    age
+    name
+}
+
+fragment Frag2 on Character {
+    ...Frag1
+}
+
+fragment Frag3 on Character {
+    ...Frag1
+}
+

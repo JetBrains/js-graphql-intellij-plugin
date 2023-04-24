@@ -4,6 +4,7 @@ import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLMetaInfSchemaSearchScope
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLRestrictedFileTypesScope
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider
@@ -53,7 +54,7 @@ class GraphQLScopeProvider(private val project: Project) {
 
         fun isResolvedInNonStrictScope(element: PsiElement?): Boolean {
             val context = if (element is GraphQLIdentifier) element.parent else element
-            return context is GraphQLFragmentSpread
+            return context is GraphQLFragmentSpread || context is GraphQLFragmentDefinition
         }
     }
 

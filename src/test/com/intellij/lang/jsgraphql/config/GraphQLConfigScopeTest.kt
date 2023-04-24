@@ -184,11 +184,6 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         assertSameElements(message, actualFiles, expectedFiles)
     }
 
-    private fun copyProject() {
-        myFixture.copyDirectoryToProject(getTestName(true), "")
-        reloadConfiguration()
-    }
-
     private fun loadConfig(configPath: String): GraphQLConfig {
         val file = myFixture.findFileInTempDir(configPath)!!
         val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)

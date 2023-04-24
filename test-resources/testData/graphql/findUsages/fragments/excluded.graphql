@@ -1,0 +1,4 @@
+fragment FragExcluded on Character {
+    ...Frag1
+}
+

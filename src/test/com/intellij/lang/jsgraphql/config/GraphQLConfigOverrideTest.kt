@@ -205,11 +205,6 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
         return projectConfig
     }
 
-    private fun copyProject() {
-        myFixture.copyDirectoryToProject(getTestName(true), "")
-        reloadConfiguration()
-    }
-
     private fun resolveConfig(file: VirtualFile): GraphQLProjectConfig {
         val config = GraphQLConfigProvider.getInstance(project).resolveConfig(file)
         TestCase.assertNotNull("config is not found", config)
