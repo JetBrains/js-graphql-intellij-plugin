@@ -71,6 +71,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.Alarm;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.StopWatch;
@@ -110,6 +111,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
      * Gets the query editor associated with a GraphQL variables editor
      */
     public static final Key<Editor> GRAPH_QL_QUERY_EDITOR = Key.create(GRAPH_QL_VARIABLES_JSON + ".query.editor");
+
+    public static final Key<JPanel> GRAPH_QL_QUERY_COMPONENT = Key.create(GRAPH_QL_VARIABLES_JSON + ".query.component");
 
     public final static Key<GraphQLEndpointsModel> GRAPH_QL_ENDPOINTS_MODEL = Key.create("graphql.endpoints.model");
 
@@ -232,7 +235,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                 if (editor.getHeaderComponent() instanceof GraphQLEditorHeaderComponent) {
                     return;
                 }
-                final JComponent headerComponent = createEditorHeaderComponent(editor, file);
+                final JComponent headerComponent = createEditorHeaderComponent(fileEditor, editor, file);
                 editor.setHeaderComponent(headerComponent);
                 if (editor instanceof EditorEx) {
                     ((EditorEx) editor).setPermanentHeaderComponent(headerComponent);
@@ -250,7 +253,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     private static class GraphQLEditorHeaderComponent extends EditorHeaderComponent {
     }
 
-    private JComponent createEditorHeaderComponent(@NotNull Editor editor, @NotNull VirtualFile file) {
+    private JComponent createEditorHeaderComponent(@NotNull FileEditor fileEditor, @NotNull Editor editor, @NotNull VirtualFile file) {
         GraphQLProjectConfig config = ReadAction.compute(() -> GraphQLConfigProvider.getInstance(myProject).resolveConfig(file));
         List<GraphQLConfigEndpoint> endpoints = config != null ? config.getEndpoints() : Collections.emptyList();
 
@@ -300,7 +303,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         // variables editor
         final LightVirtualFile virtualFile = new LightVirtualFile(GRAPH_QL_VARIABLES_JSON, JsonFileType.INSTANCE, "");
         final FileEditor variablesFileEditor = PsiAwareTextEditorProvider.getInstance().createEditor(myProject, virtualFile);
-        Disposer.register(this, variablesFileEditor);
+        Disposer.register(fileEditor, variablesFileEditor);
+
         final EditorEx variablesEditor = (EditorEx) ((TextEditor) variablesFileEditor).getEditor();
         virtualFile.putUserData(IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE, Boolean.TRUE);
         variablesEditor.setPlaceholder("{ variables }");
@@ -314,8 +318,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         variablesEditor.getSettings().setCaretRowShown(false);
         variablesEditor.putUserData(GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
 
-        // hide variables by default
-        variablesEditor.getComponent().setVisible(false);
+        variablesFileEditor.getComponent().setPreferredSize(JBUI.size(Integer.MAX_VALUE, 150));
 
         // link the query and variables editor together
         variablesEditor.putUserData(GRAPH_QL_QUERY_EDITOR, editor);
@@ -323,6 +326,9 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
         final NonOpaquePanel variablesPanel = new NonOpaquePanel(variablesFileEditor.getComponent());
         variablesPanel.setBorder(IdeBorderFactory.createBorder(SideBorder.TOP));
+        // hide variables by default
+        variablesPanel.setVisible(false);
+        variablesEditor.putUserData(GRAPH_QL_QUERY_COMPONENT, variablesPanel);
 
         headerComponent.add(variablesPanel, BorderLayout.SOUTH);
 

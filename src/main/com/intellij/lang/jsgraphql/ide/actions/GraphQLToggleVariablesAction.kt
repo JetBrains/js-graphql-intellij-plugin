@@ -10,6 +10,7 @@ package com.intellij.lang.jsgraphql.ide.actions
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService
+import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService.GRAPH_QL_QUERY_COMPONENT
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -50,7 +51,7 @@ class GraphQLToggleVariablesAction : ToggleAction(
         val scroll = queryEditor.scrollingModel
         val currentScroll = scroll.verticalScrollOffset
         variablesEditor.putUserData(GRAPH_QL_VARIABLES_MODEL, state)
-        variablesEditor.component.isVisible = state
+        variablesEditor.getUserData(GRAPH_QL_QUERY_COMPONENT)?.isVisible = state
         if (state) {
             variablesEditor.contentComponent.grabFocus()
         } else {
