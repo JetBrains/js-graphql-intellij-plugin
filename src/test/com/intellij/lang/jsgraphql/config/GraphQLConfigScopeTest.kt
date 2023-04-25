@@ -153,6 +153,12 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         )
     }
 
+    fun testShared() {
+        doScopeTest("graphql.config.yml", setOf("lib/common.graphql"), emptySet(), "lib")
+        doScopeTest("graphql.config.yml", setOf("lib/common.graphql", "one/one.graphql"), emptySet(), "one")
+        doScopeTest("graphql.config.yml", setOf("lib/common.graphql", "two/two.graphql"), emptySet(), "two")
+    }
+
     private fun doScopeTest(
         configPath: String,
         expectedSchemas: Set<String>,

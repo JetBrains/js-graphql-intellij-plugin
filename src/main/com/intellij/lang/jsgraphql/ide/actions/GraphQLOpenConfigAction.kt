@@ -50,10 +50,10 @@ class GraphQLOpenConfigAction : AnAction(
             return
         }
         val provider = GraphQLConfigProvider.getInstance(project)
-        val config = provider.resolveConfig(psiFile)
+        val config = provider.resolveProjectConfig(psiFile)
         // look for the closest one as a fallback for cases when a file is excluded
         // and not matched by the `resolveConfig` call
-        val configFile = config?.file ?: provider.findClosestConfig(psiFile)?.file
+        val configFile = config?.file ?: provider.findConfig(psiFile)?.config?.file
         if (configFile != null) {
             val fileEditorManager = FileEditorManager.getInstance(project)
             fileEditorManager.openFile(configFile, true, true)

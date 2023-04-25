@@ -133,7 +133,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     private fun resolveConfig(filePath: String): GraphQLProjectConfig {
         val context = myFixture.configureFromTempProjectFile(filePath)
         TestCase.assertNotNull("source file is not found", context)
-        val config = GraphQLConfigProvider.getInstance(project).resolveConfig(context)
+        val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(context)
         TestCase.assertNotNull("config is not resolved", config)
         return config!!
     }
@@ -141,12 +141,12 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     private fun noConfig(filePath: String) {
         val context = myFixture.configureFromTempProjectFile(filePath)
         TestCase.assertNotNull("source file is not found", context)
-        val config = GraphQLConfigProvider.getInstance(project).resolveConfig(context)
+        val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(context)
         TestCase.assertNull("config should be null", config)
     }
 
     private fun compareContents(config: GraphQLProjectConfig) {
-        compareContents(config.parentConfig)
+        compareContents(config.rootConfig)
     }
 
     private fun compareContents(config: GraphQLConfig) {

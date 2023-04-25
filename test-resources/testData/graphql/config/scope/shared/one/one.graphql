@@ -1,0 +1,4 @@
+type OneType {
+    one: String
+    common: CommonType
+}

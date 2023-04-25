@@ -35,16 +35,16 @@ class GraphQLProjectConfig(
     val rawData: GraphQLRawProjectConfig,
     val defaultData: GraphQLRawProjectConfig?,
     val environment: GraphQLEnvironmentSnapshot,
-    val parentConfig: GraphQLConfig,
+    val rootConfig: GraphQLConfig,
 ) {
     private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
     private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
 
-    val dir: VirtualFile = parentConfig.dir
+    val dir: VirtualFile = rootConfig.dir
 
-    val file: VirtualFile? = parentConfig.file
+    val file: VirtualFile? = rootConfig.file
 
-    val isRootEmpty: Boolean = parentConfig.isEmpty
+    val isRootEmpty: Boolean = rootConfig.isEmpty
 
     val isLegacy = isLegacyConfig(file)
 

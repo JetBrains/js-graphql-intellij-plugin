@@ -63,7 +63,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         private val LOG = logger<GraphQLConfigProvider>()
 
         private val CONFIG_CLOSEST =
-            Key.create<CachedValue<GraphQLConfig?>>("graphql.config.closest")
+            Key.create<CachedValue<GraphQLConfigSearchResult?>>("graphql.config.closest")
         private val CONFIG_OVERRIDE_FILE_KEY =
             Key.create<CachedValue<GraphQLConfigOverride?>>("graphql.config.override.file")
         private val CONFIG_OVERRIDE_PATH_KEY =
@@ -127,29 +127,23 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         }
 
     @RequiresReadLock
-    fun resolveConfig(context: PsiFile): GraphQLProjectConfig? {
+    fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? {
         // shouldn't try resolving for the config file itself
-        if (getPhysicalVirtualFile(context)?.name in CONFIG_NAMES) {
+        if (isConfigFile(context)) {
             return null
         }
 
-        val overriddenConfig = findOverriddenConfig(context)
-        if (overriddenConfig != null) {
-            val config = getForConfigFile(overriddenConfig.file)
-            if (config != null) {
-                val projectConfig = config.findProject(overriddenConfig.projectName)
-                if (projectConfig != null) {
-                    return projectConfig
-                }
-            }
+        val searchResult = findConfig(context)
+        return when {
+            searchResult == null -> null
+            searchResult.projectName != null -> searchResult.config.findProject(searchResult.projectName)
+            else -> searchResult.config.match(context)
         }
-
-        return findClosestConfig(context)?.match(context)
     }
 
     @RequiresReadLock
-    fun resolveConfig(virtualFile: VirtualFile): GraphQLProjectConfig? =
-        PsiManager.getInstance(project).findFile(virtualFile)?.let { resolveConfig(it) }
+    fun resolveProjectConfig(virtualFile: VirtualFile): GraphQLProjectConfig? =
+        PsiManager.getInstance(project).findFile(virtualFile)?.let { resolveProjectConfig(it) }
 
     fun getForConfigFile(file: VirtualFile?): GraphQLConfig? {
         return when {
@@ -239,8 +233,19 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     }
 
     @RequiresReadLock
-    fun findClosestConfig(context: PsiFile): GraphQLConfig? {
+    fun findConfig(context: PsiFile): GraphQLConfigSearchResult? {
         return CachedValuesManager.getCachedValue(context, CONFIG_CLOSEST) {
+            val overriddenConfig = findOverriddenConfig(context)
+            if (overriddenConfig != null) {
+                val config = getForConfigFile(overriddenConfig.file)
+                if (config != null) {
+                    return@getCachedValue CachedValueProvider.Result.create(
+                        GraphQLConfigSearchResult(config, overriddenConfig.projectName ?: GraphQLConfig.DEFAULT_PROJECT),
+                        scopeDependency,
+                    )
+                }
+            }
+
             var from: VirtualFile? = getPhysicalVirtualFile(context)
 
             val sourceFile = generatedSourcesManager.getSourceFile(from) ?: remoteSchemasRegistry.getSourceFile(from)
@@ -248,8 +253,10 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
                 from = sourceFile
             }
 
-            val config = findConfigInParents(from)
-            CachedValueProvider.Result.create(config, scopeDependency)
+            CachedValueProvider.Result.create(
+                findConfigInParents(from)?.let { GraphQLConfigSearchResult(it) },
+                scopeDependency,
+            )
         }
     }
 
@@ -499,5 +506,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
     data class ConfigEvaluationState(val status: GraphQLConfigEvaluationStatus, val error: Throwable?)
 }
+
+class GraphQLConfigSearchResult(val config: GraphQLConfig, val projectName: String? = null)
 
 private data class GraphQLConfigOverride(val file: VirtualFile, val projectName: String?)

@@ -1,0 +1,4 @@
+type TwoType {
+    one: String
+    common: CommonType
+}

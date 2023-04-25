@@ -46,6 +46,11 @@ data class GraphQLConfig(
     private val projects: Map<String, GraphQLProjectConfig> = initProjects()
 
     /**
+     * A first project config without `include` and `exclude` specified.
+     */
+    val fallback: GraphQLProjectConfig? = findFallbackConfig()
+
+    /**
      * NULL config to store as weak referenced value in [fileToProjectCache]. Shouldn't be exposed to the outside of the class.
      */
     private val nullConfig = GraphQLProjectConfig(
@@ -73,6 +78,15 @@ data class GraphQLConfig(
                 GraphQLProjectConfig(project, name, config, root, snapshot, this)
             }
         }
+    }
+
+    private fun findFallbackConfig(): GraphQLProjectConfig? {
+        for (config in projects.values) {
+            if (config.include.isEmpty() && config.exclude.isEmpty()) {
+                return config
+            }
+        }
+        return null
     }
 
     fun findProject(name: String? = null): GraphQLProjectConfig? {
@@ -127,16 +141,10 @@ data class GraphQLConfig(
             }
         }
 
-        for (config in projects.values) {
-            if (config.include.isEmpty() && config.exclude.isEmpty()) {
-                return config
-            }
-        }
-
-        return null
+        return fallback
     }
 
-    private fun requiresSchemaStrictMatch(virtualFile: VirtualFile) =
+    fun requiresSchemaStrictMatch(virtualFile: VirtualFile) =
         virtualFile.fileType == JsonFileType.INSTANCE ||
             generatedSourcesManager.isGeneratedFile(virtualFile) ||
             generatedSourcesManager.isSourceForGeneratedFile(virtualFile) ||

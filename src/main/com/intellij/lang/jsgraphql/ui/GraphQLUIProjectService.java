@@ -198,7 +198,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
             for (VirtualFile file : files) {
                 List<GraphQLConfigEndpoint> endpoints = ReadAction.compute(() -> {
-                    GraphQLProjectConfig config = configProvider.resolveConfig(file);
+                    GraphQLProjectConfig config = configProvider.resolveProjectConfig(file);
                     return config != null ? config.getEndpoints() : Collections.emptyList();
                 });
 
@@ -254,7 +254,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     }
 
     private JComponent createEditorHeaderComponent(@NotNull FileEditor fileEditor, @NotNull Editor editor, @NotNull VirtualFile file) {
-        GraphQLProjectConfig config = ReadAction.compute(() -> GraphQLConfigProvider.getInstance(myProject).resolveConfig(file));
+        GraphQLProjectConfig config = ReadAction.compute(() -> GraphQLConfigProvider.getInstance(myProject).resolveProjectConfig(file));
         List<GraphQLConfigEndpoint> endpoints = config != null ? config.getEndpoints() : Collections.emptyList();
 
         final GraphQLEditorHeaderComponent headerComponent = new GraphQLEditorHeaderComponent();

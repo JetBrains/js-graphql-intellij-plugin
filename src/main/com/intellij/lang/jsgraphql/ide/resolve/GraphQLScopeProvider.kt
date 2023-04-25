@@ -92,7 +92,7 @@ class GraphQLScopeProvider(private val project: Project) {
     ): GlobalSearchScope {
         val file = element.containingFile
         return CachedValuesManager.getCachedValue(file, key) {
-            val projectConfig = configProvider.resolveConfig(file)
+            val projectConfig = configProvider.resolveProjectConfig(file)
             var scope: GlobalSearchScope =
                 projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
                     ?: globalScope.takeUnless { configProvider.hasExplicitConfiguration }

@@ -1,0 +1,12 @@
+projects:
+  lib:
+    schema: lib/common.graphql
+  one:
+    schema:
+      - one/one.graphql
+      - lib/common.graphql 
+  two:
+    schema:
+      - two/two.graphql
+      - lib/common.graphql
+  

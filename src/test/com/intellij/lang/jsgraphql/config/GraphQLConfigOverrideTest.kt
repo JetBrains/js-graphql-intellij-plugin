@@ -206,7 +206,7 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     }
 
     private fun resolveConfig(file: VirtualFile): GraphQLProjectConfig {
-        val config = GraphQLConfigProvider.getInstance(project).resolveConfig(file)
+        val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(file)
         TestCase.assertNotNull("config is not found", config)
         return config!!
     }

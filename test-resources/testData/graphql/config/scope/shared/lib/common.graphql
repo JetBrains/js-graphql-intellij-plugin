@@ -1,0 +1,9 @@
+type CommonType {
+    name: String
+    color: CommonColor 
+}
+
+enum CommonColor {
+    RED
+    BLUE
+}
