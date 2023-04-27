@@ -11,6 +11,7 @@ GraphQL language support for [WebStorm](https://www.jetbrains.com/webstorm/), [I
 * [How to use](#how-to-use)
 * [Configuration](#configuration)
     * [Basic configuration](#basic-configuration)
+    * [Composite schema](#composite-schema)
     * [Remote schemas](#remote-schemas)
     * [Local introspection schemas](#local-introspection-schemas)
     * [Advanced configuration](#advanced-configuration)
@@ -90,6 +91,8 @@ Language (often abbreviated as SDL). If you're authoring your schemas in SDL, th
 
 # Configuration
 
+> GraphQL Config docs could be found [here](https://the-guild.dev/graphql/config/docs).
+
 By default, the plugin assumes that your project contains a single schema. If this is the case, you don't need to perform any actions in
 terms of schema discovery. For a single-schema project, schema types are discovered as follows: All `.graphql` files in the `Project files`
 scope are processed for type definitions, which are added to a singleton type registry. If the IDE has JavaScript language support, injected
@@ -123,6 +126,29 @@ definitions.
 
 Please note that paths are relative to the config directory, unless they are explicitly defined as absolute. Therefore, you do not need to
 prefix them with `./`. Just `schema.graphql` is sufficient. The same applies to glob patterns.
+
+## Composite schema
+
+GraphQL Config can also assemble multiple modularized schemas into a single GraphQL schema object.
+
+You can specify a list of files:
+
+```yaml
+schema:
+  - ./foo.graphql
+  - ./bar.graphql
+  - ./baz.graphql
+```
+
+Alternatively, you can use a glob pattern to find and include pieces of schema:
+
+```yaml
+schema: ./*.graphql # includes every GraphQL file in current directory
+# OR
+schema: ./**/*.graphql # includes GraphQL files recursively
+```
+
+GraphQL Config looks for those files, reads the files and merges them to produce a GraphQL schema object.
 
 ## Remote schemas
 
