@@ -358,6 +358,9 @@ It is recommended to migrate existing `includes` patterns that were previously u
 Additionally, please note that [environment variables](#environment-variables) now have a different syntax and support specifying a default
 value, for example.
 
+> IMPORTANT: Starting from plugin version 4.0.0, schema configuration is strict 
+> and won't implicitly include any SDL definitions unless they are explicitly specified in the GraphQL Config.
+
 ## Legacy configuration
 
 If you still prefer to use a legacy configuration format (although we don't recommend it 😉), make sure to explicitly specify the paths to
