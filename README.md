@@ -361,6 +361,14 @@ value, for example.
 > IMPORTANT: Starting from plugin version 4.0.0, schema configuration is strict 
 > and won't implicitly include any SDL definitions unless they are explicitly specified in the GraphQL Config.
 
+The only exception to the above rule is an empty configuration file that may only contain the `extensions` key. 
+This configuration file will implicitly include any GraphQL file located under this directory.
+```yaml
+extensions:
+  endpoints:
+    dev: https://example.com/graphql
+```
+
 ## Legacy configuration
 
 If you still prefer to use a legacy configuration format (although we don't recommend it 😉), make sure to explicitly specify the paths to
