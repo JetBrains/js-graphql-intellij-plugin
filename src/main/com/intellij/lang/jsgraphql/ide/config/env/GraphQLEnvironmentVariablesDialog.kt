@@ -25,6 +25,7 @@ class GraphQLEnvironmentVariablesDialog(
     private val environment: GraphQLEnvironmentSnapshot,
     private val fileOrDir: VirtualFile,
     private val onlyEmpty: Boolean,
+    private val nameFilter: Collection<String>? = null,
 ) : DialogWrapper(project) {
 
     private val env = GraphQLConfigEnvironment.getInstance(project)
@@ -57,6 +58,10 @@ class GraphQLEnvironmentVariablesDialog(
 
     private fun createVariablesTable(): EnvVariablesTable {
         return environment.variables
+            .asSequence()
+            .filter {
+                nameFilter == null || it.key in nameFilter
+            }
             .filter {
                 if (onlyEmpty) {
                     it.value.isNullOrBlank()
@@ -67,6 +72,7 @@ class GraphQLEnvironmentVariablesDialog(
             .map {
                 EnvironmentVariable(it.key, env.getExplicitVariable(it.key, fileOrDir), false)
             }
+            .toList()
             .let { MyEnvVariablesTable(it) }
     }
 

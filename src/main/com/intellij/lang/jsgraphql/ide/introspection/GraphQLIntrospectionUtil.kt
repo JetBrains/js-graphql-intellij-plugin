@@ -52,9 +52,9 @@ fun promptForEnvVariables(project: Project, endpoint: GraphQLConfigEndpoint?): G
     if (endpoint == null) return null
 
     val environment = endpoint.environment
-    val hasMissingVariableValues = environment.hasMissingValues
+    val hasMissingVariableValues = environment.hasMissingValues(endpoint.usedVariables)
     if (hasMissingVariableValues) {
-        val variableDialog = GraphQLEnvironmentVariablesDialog(project, environment, endpoint.dir, true)
+        val variableDialog = GraphQLEnvironmentVariablesDialog(project, environment, endpoint.dir, true, endpoint.usedVariables)
         if (!variableDialog.showAndGet()) {
             return null
         }

@@ -43,7 +43,7 @@ private fun expandVariable(value: Any, context: GraphQLExpandVariableContext) = 
 internal fun extractEnvironmentVariables(
     project: Project,
     isLegacy: Boolean,
-    vararg items: Any,
+    vararg items: Any?,
 ): Collection<String> {
     val variables = mutableSetOf<String>()
     val parser = GraphQLConfigEnvironmentParser.getInstance(project)

@@ -296,12 +296,17 @@ data class GraphQLEnvironmentSnapshot(val variables: Map<String, String?>) {
         val EMPTY = GraphQLEnvironmentSnapshot(emptyMap())
     }
 
-    val hasMissingValues = variables.values.any { it.isNullOrBlank() }
+    fun hasMissingValues(nameFilter: Collection<String>? = null): Boolean {
+        return variables.any { (nameFilter == null || it.key in nameFilter) && it.value.isNullOrBlank() }
+    }
 
     val hasVariables = variables.isNotEmpty()
 
+    fun update(project: Project, dir: VirtualFile): GraphQLEnvironmentSnapshot =
+        GraphQLConfigEnvironment.getInstance(project).createSnapshot(variables.keys, dir)
+
     override fun toString(): String {
         // don't write env values to log
-        return "GraphQLEnvironmentSnapshot(variables=${variables.keys.joinToString()}, hasMissingValues=$hasMissingValues)"
+        return "GraphQLEnvironmentSnapshot(variables=${variables.keys.joinToString()}, hasMissingValues=${hasMissingValues()})"
     }
 }

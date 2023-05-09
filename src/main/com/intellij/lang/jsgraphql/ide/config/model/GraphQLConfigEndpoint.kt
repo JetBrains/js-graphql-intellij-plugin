@@ -7,10 +7,10 @@
  */
 package com.intellij.lang.jsgraphql.ide.config.model
 
-import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
-import com.intellij.lang.jsgraphql.ide.config.env.GraphQLEnvironmentSnapshot
+import com.intellij.lang.jsgraphql.ide.config.env.*
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLExpandVariableContext
 import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
+import com.intellij.lang.jsgraphql.ide.config.env.extractEnvironmentVariables
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.parseMap
@@ -49,11 +49,10 @@ class GraphQLConfigEndpoint(
 
     val schemaPointer: GraphQLSchemaPointer? = rawSchemaPointer?.let { GraphQLSchemaPointer(project, dir, it, isLegacy, environment) }
 
-    fun withUpdatedEnvironment(): GraphQLConfigEndpoint {
-        val updatedEnvironment =
-            GraphQLConfigEnvironment.getInstance(project).createSnapshot(environment.variables.keys, dir)
-        return GraphQLConfigEndpoint(project, rawData, dir, isLegacy, updatedEnvironment, rawSchemaPointer, config)
-    }
+    val usedVariables: Collection<String> = extractEnvironmentVariables(project, isLegacy, rawData.url, rawData.headers)
+
+    fun withUpdatedEnvironment(): GraphQLConfigEndpoint =
+        GraphQLConfigEndpoint(project, rawData, dir, isLegacy, environment.update(project, dir), rawSchemaPointer, config)
 
     private fun createExpandContext() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 
