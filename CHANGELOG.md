@@ -2,17 +2,16 @@
 
 # Changelog
 
-## [4.0.1] - 2023-05-10
+## [4.0.1-222] - 2023-05-10
 
 ### Fixed
-- Plugin configuration in Rider since 2023.1 [#659](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/659)
-- Query variables editor visibility since 2023.1 [#658](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/658)
+- Query variables editor visibility [#658](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/658)
 - Find usages of fragments [#656](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/656)
 - Shared schemas between projects [#661](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/661)
 - Request only required variables before executing a query [#663](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/663)
 - Completion for arguments inside GraphQL injections and scratch files [#662](https://github.com/JetBrains/js-graphql-intellij-plugin/issues/662)
 
-## [4.0.0] - 2023-04-10
+## [4.0.0-222] - 2023-04-10
 
 ### Added
 
