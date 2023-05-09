@@ -29,6 +29,19 @@ public abstract class GraphQLCompletionTestCaseBase extends GraphQLTestCaseBase 
         return doTest();
     }
 
+    protected LookupElement @Nullable [] doTestWithProject() {
+        return doTestWithProject(".graphql");
+    }
+
+    protected LookupElement @Nullable [] doTestWithProject(@NotNull String ext) {
+        String dirName = getTestName(false);
+        myFixture.copyDirectoryToProject(dirName, "");
+        reloadConfiguration();
+        String filePath = dirName + ext;
+        myFixture.configureFromTempProjectFile(filePath);
+        return myFixture.complete(CompletionType.BASIC, 1);
+    }
+
     protected static void checkEqualsOrdered(LookupElement @Nullable [] items, String @NotNull ... variants) {
         assertNotNull(items);
         assertOrderedEquals(ContainerUtil.map(items, LookupElement::getLookupString), variants);

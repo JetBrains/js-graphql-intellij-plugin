@@ -1,0 +1,13 @@
+type Query {
+    field: FieldType
+}
+
+type FieldType {
+   user(role: UserRole): ID
+}
+
+enum UserRole {
+    ADMIN
+    USER
+    GUEST
+}

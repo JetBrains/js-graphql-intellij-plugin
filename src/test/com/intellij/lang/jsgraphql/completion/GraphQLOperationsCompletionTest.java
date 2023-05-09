@@ -398,4 +398,8 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
         checkEqualsOrdered(lookupElements, "SubscriptionDir", "SubscriptionDir1");
     }
 
+    public void testEnumArgumentInInjection() {
+        LookupElement[] lookupElements = doTestWithProject(".js");
+        checkEqualsOrdered(lookupElements, "ADMIN", "GUEST", "USER");
+    }
 }

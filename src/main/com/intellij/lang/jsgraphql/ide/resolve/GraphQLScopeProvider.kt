@@ -90,7 +90,8 @@ class GraphQLScopeProvider(private val project: Project) {
         element: PsiElement,
         key: Key<CachedValue<GlobalSearchScope>>
     ): GlobalSearchScope {
-        val file = element.containingFile
+        val file = element.containingFile.originalFile
+
         return CachedValuesManager.getCachedValue(file, key) {
             val projectConfig = configProvider.resolveProjectConfig(file)
             var scope: GlobalSearchScope =
