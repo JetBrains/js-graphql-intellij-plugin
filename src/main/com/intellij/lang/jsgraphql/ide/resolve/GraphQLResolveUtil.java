@@ -5,8 +5,8 @@ import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.BaseProjectDirectories;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -108,17 +108,22 @@ public final class GraphQLResolveUtil {
         if (project.isDisposed()) {
             return;
         }
+        ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
         VirtualFile dir = fileOrDir.isDirectory() ? fileOrDir : fileOrDir.getParent();
         if (dir == null) {
             return;
         }
-        VirtualFile stopAt = BaseProjectDirectories.getInstance(project).getBaseDirectoryFor(dir);
-        while (dir != null && stopAt != null) {
+        VirtualFile contentRoot = fileIndex.getContentRootForFile(dir, false);
+        while (dir != null && contentRoot != null) {
             if (!directoryProcessor.process(dir)) {
                 return;
             }
-            if (dir.equals(stopAt)) {
-                return;
+            if (dir.equals(contentRoot)) {
+                dir = dir.getParent();
+                if (dir == null) {
+                    return;
+                }
+                contentRoot = fileIndex.getContentRootForFile(dir, false);
             } else {
                 dir = dir.getParent();
             }
