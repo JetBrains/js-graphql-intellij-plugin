@@ -8,50 +8,45 @@
 package com.intellij.lang.jsgraphql.icons;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.util.IconLoader;
+import com.intellij.lang.jsgraphql.GraphqlIcons;
 import com.intellij.ui.LayeredIcon;
 
 import javax.swing.*;
 
-public class GraphQLIcons {
+public final class GraphQLIcons {
 
-    public static final Icon FILE = GraphQLIcons.load("/icons/graphql.svg");
+    public static final Icon FILE = GraphqlIcons.Graphql;
 
-    public static class Logos {
+    public static final class Logos {
         public static final Icon GraphQL = FILE;
-        public static final Icon Relay = GraphQLIcons.load("/icons/relay.svg");
-        public static final Icon Apollo = GraphQLIcons.load("/icons/apollo.svg");
-        public static final Icon Lokka = GraphQLIcons.load("/icons/lokka.svg");
+        public static final Icon Relay = GraphqlIcons.Relay;
+        public static final Icon Apollo = GraphqlIcons.Apollo;
     }
 
-    public static class Files {
+    public static final class Files {
         public static final Icon GraphQL = FILE;
-        public static final Icon GraphQLConfig = GraphQLIcons.load("/icons/graphqlConfig.svg");
-        public static final Icon GraphQLSchema = GraphQLIcons.load("/icons/graphqlSchema.svg");
+        public static final Icon GraphQLConfig = GraphqlIcons.GraphqlConfig;
+        public static final Icon GraphQLSchema = GraphqlIcons.GraphqlSchema;
         public static final Icon GraphQLScratch = new LayeredIcon(GraphQL, AllIcons.Actions.Scratch);
     }
 
-    public static class UI {
-        public static final Icon GraphQLToolWindow = GraphQLIcons.load("/icons/graphqlToolWindow.svg");
-        public static final Icon GraphQLVariables = GraphQLIcons.load("/icons/variable.svg");
-        public static final Icon GraphQLNode = GraphQLIcons.load("/icons/graphqlNode.svg");
+    public static final class UI {
+        public static final Icon GraphQLToolWindow = GraphqlIcons.GraphqlToolWindow;
+        public static final Icon GraphQLVariables = GraphqlIcons.Variable;
+        public static final Icon GraphQLNode = GraphqlIcons.GraphqlNode;
     }
 
-    public static class Schema {
-        public static final Icon Field = GraphQLIcons.load("/icons/field.svg");
-        public static final Icon Scalar = GraphQLIcons.load("/icons/scalar.svg");
-        public static final Icon Enum = GraphQLIcons.load("/icons/enum.svg");
-        public static final Icon Type = GraphQLIcons.load("/icons/type.svg");
-        public static final Icon Interface = GraphQLIcons.load("/icons/interface.svg");
-        public static final Icon Query = GraphQLIcons.load("/icons/query.svg");
-        public static final Icon Attribute = GraphQLIcons.load("/icons/attribute.svg");
-        public static final Icon Subscription = GraphQLIcons.load("/icons/subscription.svg");
-        public static final Icon Mutation = GraphQLIcons.load("/icons/mutation.svg");
-        public static final Icon Fragment = GraphQLIcons.load("/icons/fragment.svg");
-    }
-
-    private static Icon load(String path) {
-        return IconLoader.getIcon(path, GraphQLIcons.class);
+    public static final class Schema {
+        public static final Icon Field = GraphqlIcons.Field;
+        public static final Icon Scalar = GraphqlIcons.Scalar;
+        public static final Icon Enum = GraphqlIcons.Enum;
+        public static final Icon Type = GraphqlIcons.Type;
+        public static final Icon Interface = GraphqlIcons.Interface;
+        public static final Icon Query = GraphqlIcons.Query;
+        public static final Icon Attribute = GraphqlIcons.Attribute;
+        public static final Icon Subscription = GraphqlIcons.Subscription;
+        public static final Icon Mutation = GraphqlIcons.Mutation;
+        public static final Icon Fragment = GraphqlIcons.Fragment;
     }
 
 }

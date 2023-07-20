@@ -41,7 +41,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
 
             val config = GraphQLConfigProvider.getInstance(project).getAllConfigs().first().getDefault()!!
             myFixture.configureByText(JsonFileType.INSTANCE, GraphQLConfigTestPrinter(config).print())
-            myFixture.checkResultByFile("${getTestName(false)}_expected.json")
+            myFixture.checkResultByFile("${getTestName(true)}_expected.json")
 
             GraphQLConfigEnvironment.getInstance(project)
                 .setExplicitVariable("WITH_DEFAULT", "not/default/anymore/file.graphql", config.file!!)
@@ -49,7 +49,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
 
             val updatedConfig = GraphQLConfigProvider.getInstance(project).getAllConfigs().first().getDefault()!!
             myFixture.configureByText(JsonFileType.INSTANCE, GraphQLConfigTestPrinter(updatedConfig).print())
-            myFixture.checkResultByFile("${getTestName(false)}_updated_expected.json")
+            myFixture.checkResultByFile("${getTestName(true)}_updated_expected.json")
         }
     }
 

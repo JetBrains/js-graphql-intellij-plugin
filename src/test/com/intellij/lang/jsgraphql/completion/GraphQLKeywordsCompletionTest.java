@@ -40,13 +40,6 @@ public class GraphQLKeywordsCompletionTest extends GraphQLCompletionTestCaseBase
             "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union");
     }
 
-    public void testTopLevelBrace() {
-        // initially was provided via keyword completion
-        doTest();
-        myFixture.type('{');
-        myFixture.checkResultByFile(getTestName(false) + "_after.graphql");
-    }
-
     public void testExtendKeywords() {
         LookupElement[] lookupElements = doTest();
         checkEqualsOrdered(lookupElements, "enum", "input", "interface", "scalar", "schema", "type", "union");

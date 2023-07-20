@@ -7,10 +7,11 @@
  *  LICENSE file in the root directory of this source tree.
  */
 -->
-<idea-plugin require-restart="true">
+<idea-plugin require-restart="true" package="com.intellij.lang.jsgraphql">
   <id>com.intellij.lang.jsgraphql</id>
   <name>GraphQL</name>
-  <vendor>Jim Kynde Meyer - jimkyndemeyer@gmail.com</vendor>
+  <vendor>JetBrains</vendor>
+  <category>Languages</category>
 
   <description><![CDATA[
       <p>GraphQL language support including tagged template literals in JavaScript and TypeScript. Formerly known as <b>JS GraphQL</b>.</p>
@@ -27,7 +28,10 @@
     ]]>
   </description>
 
-  <depends>com.intellij.modules.lang</depends>
+  <dependencies>
+    <plugin id="com.intellij.modules.lang"/>
+  </dependencies>
+
   <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
   <depends optional="true" config-file="graphql-intellilang.xml">org.intellij.intelliLang</depends>
   <depends optional="true" config-file="graphql-yaml.xml">org.jetbrains.plugins.yaml</depends>
@@ -55,7 +59,7 @@
 
     <!-- Language registration -->
     <fileType name="GraphQL" implementationClass="com.intellij.lang.jsgraphql.GraphQLFileType" fieldName="INSTANCE"
-              language="GraphQL" extensions="graphql;graphqls;gql"/>
+              language="GraphQL" extensions="gql;graphql;graphqls"/>
     <fileType name="JSON" extensions="graphqlconfig;graphqlrc"/>
     <lang.substitutor language="JSON"
                       implementationClass="com.intellij.lang.jsgraphql.ide.config.fileType.GraphQLConfigLanguageSubstitutor"/>
@@ -205,8 +209,6 @@
                          order="first"/>
     <highlightErrorFilter
       implementation="com.intellij.lang.jsgraphql.ide.highlighting.GraphQLVariablesHighlightErrorFilter"/>
-
-    <errorHandler implementation="com.intellij.lang.jsgraphql.ide.diagnostic.GraphQLSentryErrorReporter"/>
 
     <!-- Keys -->
     <registryKey key="graphql.request.timeout" defaultValue="15000" description="GraphQL request timeout"/>

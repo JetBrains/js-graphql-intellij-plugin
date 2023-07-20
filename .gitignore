@@ -68,7 +68,6 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 resources/META-INF/dist/
-*.iml
 
 .gradle
 build

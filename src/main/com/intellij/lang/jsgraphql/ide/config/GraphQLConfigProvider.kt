@@ -26,6 +26,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.util.BackgroundTaskUtil
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ProjectRootManager
@@ -344,7 +345,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
         if (project.isDisposed) return
 
         if (ApplicationManager.getApplication().isUnitTestMode) {
-            invokeLater { reload() }
+            DumbService.getInstance(project).smartInvokeLater { reload() }
         } else {
             reloadConfigAlarm.cancelAllRequests()
             reloadConfigAlarm.addRequest({

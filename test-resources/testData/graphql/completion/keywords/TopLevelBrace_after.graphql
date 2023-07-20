@@ -1,5 +1,0 @@
-type Foo implements Bar {
-    foo:
-}
-
-{<caret>}

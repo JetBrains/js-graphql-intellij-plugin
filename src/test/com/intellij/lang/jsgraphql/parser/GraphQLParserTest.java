@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.parser;
 
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
+import com.intellij.lang.jsgraphql.GraphQLTestUtils;
 import com.intellij.testFramework.ParsingTestCase;
 
 public class GraphQLParserTest extends ParsingTestCase {
@@ -50,7 +51,7 @@ public class GraphQLParserTest extends ParsingTestCase {
 
     @Override
     protected String getTestDataPath() {
-        return "test-resources/testData/graphql/parser";
+        return GraphQLTestUtils.getTestDataPath("parser");
     }
 
     @Override

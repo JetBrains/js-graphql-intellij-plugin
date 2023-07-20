@@ -10,8 +10,10 @@ import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -20,10 +22,12 @@ import java.io.File
 import java.util.function.Consumer
 import java.util.function.Function
 
-const val GRAPHQL_TEST_BASE_PATH = "test-resources/testData/graphql"
+const val GRAPHQL_TEST_RELATIVE_PATH = "test-resources/testData/graphql"
 
 fun getTestDataPath(path: String): String {
-    return listOf(GRAPHQL_TEST_BASE_PATH, path).joinToString(if (path.startsWith(File.separator)) "" else File.separator)
+  return listOf(PluginPathManager.getPluginHomePath("js-graphql"), GRAPHQL_TEST_RELATIVE_PATH, path)
+    .joinToString(File.separator)
+    .let { FileUtil.normalize(it) }
 }
 
 fun withSettings(
@@ -74,7 +78,7 @@ fun withLibrary(
 
 private fun updateLibraries(project: Project) {
     GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged()
-    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 }
 
 fun withCustomEnv(project: Project, env: Map<String, String?>, runnable: Runnable) {
@@ -82,7 +86,7 @@ fun withCustomEnv(project: Project, env: Map<String, String?>, runnable: Runnabl
     GraphQLConfigEnvironment.getEnvVariable = Function { env[it] }
     try {
         GraphQLConfigEnvironment.getInstance(project).notifyEnvironmentChanged()
-        PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
         runnable.run()
     } finally {
         GraphQLConfigEnvironment.getEnvVariable = before

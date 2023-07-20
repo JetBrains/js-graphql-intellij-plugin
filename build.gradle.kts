@@ -65,13 +65,12 @@ kotlin {
 
 dependencies {
     implementation("commons-io:commons-io:2.7")
-    implementation("com.atlassian.commonmark:commonmark:0.12.1")
+    implementation("com.atlassian.commonmark:commonmark:0.17.0")
     implementation(group = "org.yaml", name = "snakeyaml", version = "1.33")
-    implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
-    implementation("io.sentry:sentry:5.4.3")
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     implementation("com.graphql-java:java-dataloader:2.2.3")
-    implementation("org.reactivestreams:reactive-streams:1.0.2")
+    implementation("org.reactivestreams:reactive-streams:1.0.4")
 
     testImplementation(group = "junit", name = "junit", version = "4.13.1")
 }

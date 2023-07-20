@@ -21,6 +21,7 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.net.URL;
 import java.util.Collection;
@@ -36,6 +37,9 @@ public final class GraphQLLibraryManager {
     private static final String DEFINITIONS_RESOURCE_DIR = "definitions";
     private static final GraphQLLibrary EMPTY_LIBRARY =
         new GraphQLLibrary(new GraphQLLibraryDescriptor("EMPTY"), new LightVirtualFile());
+
+    @VisibleForTesting
+    public static volatile boolean LIBRARIES_ENABLED = false;
 
     private static final Map<GraphQLLibraryDescriptor, String> ourDefinitionResourcePaths = Map.of(
         GraphQLLibraryTypes.SPECIFICATION, "Specification.graphql",
@@ -66,6 +70,10 @@ public final class GraphQLLibraryManager {
 
     @Nullable
     public GraphQLLibrary getOrCreateLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor) {
+        if (ApplicationManager.getApplication().isUnitTestMode() && !LIBRARIES_ENABLED) {
+            return null;
+        }
+
         GraphQLLibrary library = myLibraries.computeIfAbsent(libraryDescriptor, __ -> {
             VirtualFile root = resolveLibraryRoot(libraryDescriptor);
             if (root == null) {
