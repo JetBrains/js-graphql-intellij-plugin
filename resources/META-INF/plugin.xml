@@ -156,7 +156,9 @@
     <definitionsSearch implementation="com.intellij.lang.jsgraphql.ide.search.GraphQLDefinitionsSearchExecutor"/>
 
     <!-- Settings -->
-    <projectConfigurable id="settings.jsgraphql" groupId="language" instance="com.intellij.lang.jsgraphql.ui.GraphQLSettingsConfigurable"/>
+    <projectConfigurable id="settings.jsgraphql" groupId="language"
+                         instance="com.intellij.lang.jsgraphql.ui.GraphQLSettingsConfigurable"
+                         bundle="messages.GraphQLMessages" key="graphql"/>
 
     <!-- Introspection -->
     <codeInsight.lineMarkerProvider
