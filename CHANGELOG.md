@@ -2,6 +2,11 @@
 
 # Changelog
 
+## [4.0.2] - 2023-07-25
+
+### Fixed
+- GraphQL settings configurable exception.
+
 ## [4.0.1] - 2023-05-10
 
 ### Fixed

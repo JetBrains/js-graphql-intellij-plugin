@@ -45,7 +45,7 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
     private fun createToolWindowResultEditor(project: Project, toolWindow: ToolWindow) {
         val virtualFile = LightVirtualFile("GraphQL.result.json", JsonFileType.INSTANCE, "")
         val fileEditor =
-            PsiAwareTextEditorProvider.getInstance().createEditor(project, virtualFile) as? TextEditor ?: return
+            PsiAwareTextEditorProvider().createEditor(project, virtualFile) as? TextEditor ?: return
         val editor = fileEditor.editor
         val editorEx = editor as EditorEx
 
