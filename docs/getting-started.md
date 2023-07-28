@@ -14,7 +14,7 @@ The plugin works out of the box with popular GraphQL clients such as [Apollo Gra
 
 ## Installation
 
-The plugin is hosted in the JetBrains Plugin Repository at https://plugins.jetbrains.com/plugin/8097-js-graphql
+The plugin is hosted in JetBrains Marketplace at https://plugins.jetbrains.com/plugin/8097-js-graphql
 
 You can install it directly from your IDE via the "Settings > Plugins" screen.
 
