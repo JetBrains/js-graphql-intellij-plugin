@@ -16,31 +16,30 @@ import org.commonmark.renderer.text.TextContentRenderer;
  */
 public class GraphQLDocumentationMarkdownRenderer {
 
-    private static final Parser PARSER = Parser.builder().build();
+  private static final Parser PARSER = Parser.builder().build();
 
-    private static final HtmlRenderer HTML_RENDERER = HtmlRenderer.builder().build();
-    private static final TextContentRenderer TEXT_SINGLE_LINE_RENDERER = TextContentRenderer.builder().stripNewlines(true).build();
-    private static final TextContentRenderer TEXT_RENDERER = TextContentRenderer.builder().build();
+  private static final HtmlRenderer HTML_RENDERER = HtmlRenderer.builder().build();
+  private static final TextContentRenderer TEXT_SINGLE_LINE_RENDERER = TextContentRenderer.builder().stripNewlines(true).build();
+  private static final TextContentRenderer TEXT_RENDERER = TextContentRenderer.builder().build();
 
-    /**
-     * Parses the specified markdown description and renders it as plain text where formatting is stripped
-     *
-     * @param description   the markdown description to render as plain text
-     * @param stripNewLines whether to strip out new lines
-     * @return a plain text representation of the specified markdown
-     */
-    public static String getDescriptionAsPlainText(String description, boolean stripNewLines) {
-        return (stripNewLines ? TEXT_SINGLE_LINE_RENDERER : TEXT_RENDERER).render(PARSER.parse(description.trim()));
-    }
+  /**
+   * Parses the specified markdown description and renders it as plain text where formatting is stripped
+   *
+   * @param description   the markdown description to render as plain text
+   * @param stripNewLines whether to strip out new lines
+   * @return a plain text representation of the specified markdown
+   */
+  public static String getDescriptionAsPlainText(String description, boolean stripNewLines) {
+    return (stripNewLines ? TEXT_SINGLE_LINE_RENDERER : TEXT_RENDERER).render(PARSER.parse(description.trim()));
+  }
 
-    /**
-     * Parses the specified markdown description and renders it as HTML
-     *
-     * @param description the markdown description to render as HTML
-     * @return an HTML representation of the specified markdown
-     */
-    public static String getDescriptionAsHTML(String description) {
-        return description != null ? HTML_RENDERER.render(PARSER.parse(description.trim())) : null;
-    }
-
+  /**
+   * Parses the specified markdown description and renders it as HTML
+   *
+   * @param description the markdown description to render as HTML
+   * @return an HTML representation of the specified markdown
+   */
+  public static String getDescriptionAsHTML(String description) {
+    return description != null ? HTML_RENDERER.render(PARSER.parse(description.trim())) : null;
+  }
 }

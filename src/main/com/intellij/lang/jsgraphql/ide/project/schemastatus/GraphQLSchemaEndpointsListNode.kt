@@ -31,102 +31,103 @@ import java.awt.event.MouseEvent
  * Tree node which provides a schema endpoints list
  */
 class GraphQLSchemaEndpointsListNode(
-    parent: SimpleNode?,
-    projectConfig: GraphQLProjectConfig?,
+  parent: SimpleNode?,
+  projectConfig: GraphQLProjectConfig?,
 ) : CachingSimpleNode(parent) {
 
-    private val endpoints: List<GraphQLConfigEndpoint>
+  private val endpoints: List<GraphQLConfigEndpoint>
 
+  init {
+    endpoints = projectConfig?.endpoints ?: emptyList()
+    myName = "Endpoints"
+    icon = AllIcons.Nodes.WebFolder
+  }
+
+  public override fun buildChildren(): Array<SimpleNode> {
+    return if (endpoints.isEmpty()) {
+      arrayOf(DefaultEndpointNode(myProject))
+    }
+    else {
+      endpoints
+        .map { ConfigurableEndpointNode(this, it) }
+        .toTypedArray()
+    }
+  }
+
+  override fun isAutoExpandNode(): Boolean {
+    return true
+  }
+
+  private class ConfigurableEndpointNode(
+    parent: SimpleNode,
+    private val endpoint: GraphQLConfigEndpoint,
+  ) : SimpleNode(parent), GraphQLSchemaContextMenuNode {
     init {
-        endpoints = projectConfig?.endpoints ?: emptyList()
-        myName = "Endpoints"
-        icon = AllIcons.Nodes.WebFolder
+      myName = endpoint.displayName
+      templatePresentation.tooltip = "Endpoints allow you to perform GraphQL introspection, queries and mutations"
+      if (!endpoint.url.equals(endpoint.displayName, true)) {
+        templatePresentation.locationString = endpoint.url
+      }
+      icon = GraphQLIcons.UI.GraphQLNode
     }
 
-    public override fun buildChildren(): Array<SimpleNode> {
-        return if (endpoints.isEmpty()) {
-            arrayOf(DefaultEndpointNode(myProject))
-        } else {
-            endpoints
-                .map { ConfigurableEndpointNode(this, it) }
-                .toTypedArray()
-        }
+    override fun handleDoubleClickOrEnter(tree: SimpleTree, inputEvent: InputEvent) {
+      if (inputEvent is MouseEvent) {
+        showPopup(inputEvent.component, inputEvent.x, inputEvent.y)
+      }
     }
 
-    override fun isAutoExpandNode(): Boolean {
-        return true
+    override fun handleContextMenu(component: Component?, x: Int, y: Int) {
+      showPopup(component, x, y)
     }
 
-    private class ConfigurableEndpointNode(
-        parent: SimpleNode,
-        private val endpoint: GraphQLConfigEndpoint,
-    ) : SimpleNode(parent), GraphQLSchemaContextMenuNode {
-        init {
-            myName = endpoint.displayName
-            templatePresentation.tooltip = "Endpoints allow you to perform GraphQL introspection, queries and mutations"
-            if (!endpoint.url.equals(endpoint.displayName, true)) {
-                templatePresentation.locationString = endpoint.url
-            }
-            icon = GraphQLIcons.UI.GraphQLNode
+    private fun showPopup(component: Component?, x: Int, y: Int) {
+      val group = DefaultActionGroup();
+      group.add(object : AnAction(
+        GraphQLBundle.messagePointer("graphql.tool.window.action.introspect.endpoint"),
+        AllIcons.Actions.Refresh,
+      ) {
+        override fun actionPerformed(e: AnActionEvent) {
+          GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQuery(endpoint)
         }
+      })
 
-        override fun handleDoubleClickOrEnter(tree: SimpleTree, inputEvent: InputEvent) {
-            if (inputEvent is MouseEvent) {
-                showPopup(inputEvent.component, inputEvent.x, inputEvent.y)
-            }
+      group.add(object : AnAction(
+        GraphQLBundle.messagePointer("graphql.tool.window.action.create.scratch"),
+        GraphQLIcons.Files.GraphQLScratch,
+      ) {
+        override fun actionPerformed(e: AnActionEvent) {
+          createScratchFromEndpoint(myProject, endpoint, true)
         }
+      })
 
-        override fun handleContextMenu(component: Component?, x: Int, y: Int) {
-            showPopup(component, x, y)
-        }
-
-        private fun showPopup(component: Component?, x: Int, y: Int) {
-            val group = DefaultActionGroup();
-            group.add(object : AnAction(
-                GraphQLBundle.messagePointer("graphql.tool.window.action.introspect.endpoint"),
-                AllIcons.Actions.Refresh,
-            ) {
-                override fun actionPerformed(e: AnActionEvent) {
-                    GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQuery(endpoint)
-                }
-            })
-
-            group.add(object : AnAction(
-                GraphQLBundle.messagePointer("graphql.tool.window.action.create.scratch"),
-                GraphQLIcons.Files.GraphQLScratch,
-            ) {
-                override fun actionPerformed(e: AnActionEvent) {
-                    createScratchFromEndpoint(myProject, endpoint, true)
-                }
-            })
-
-            val popupMenu =
-                ActionManager.getInstance().createActionPopupMenu(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_POPUP, group);
-            popupMenu.component.show(component, x, y);
-        }
-
-        override fun getChildren(): Array<SimpleNode> {
-            return NO_CHILDREN
-        }
-
-        override fun isAlwaysLeaf(): Boolean {
-            return true
-        }
+      val popupMenu =
+        ActionManager.getInstance().createActionPopupMenu(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_POPUP, group);
+      popupMenu.component.show(component, x, y);
     }
 
-    private class DefaultEndpointNode(project: Project) : SimpleNode(project) {
-        init {
-            myName = "No endpoints available in the default schema"
-            templatePresentation.tooltip = "Endpoints allow you to perform GraphQL introspection, queries and mutations"
-            icon = AllIcons.General.Information
-        }
-
-        override fun getChildren(): Array<SimpleNode> {
-            return NO_CHILDREN
-        }
-
-        override fun isAlwaysLeaf(): Boolean {
-            return true
-        }
+    override fun getChildren(): Array<SimpleNode> {
+      return NO_CHILDREN
     }
+
+    override fun isAlwaysLeaf(): Boolean {
+      return true
+    }
+  }
+
+  private class DefaultEndpointNode(project: Project) : SimpleNode(project) {
+    init {
+      myName = "No endpoints available in the default schema"
+      templatePresentation.tooltip = "Endpoints allow you to perform GraphQL introspection, queries and mutations"
+      icon = AllIcons.General.Information
+    }
+
+    override fun getChildren(): Array<SimpleNode> {
+      return NO_CHILDREN
+    }
+
+    override fun isAlwaysLeaf(): Boolean {
+      return true
+    }
+  }
 }

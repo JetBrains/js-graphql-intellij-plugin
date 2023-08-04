@@ -23,118 +23,117 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
 
-        enableAllInspections();
-    }
+    enableAllInspections();
+  }
 
-    private void initPredefinedSchema() {
-        myFixture.configureByFiles(
-            "schema.graphql",
-            ".graphqlconfig",
-            "lines-1/.graphqlconfig",
-            "lines-2/.graphqlconfig"
-        );
+  private void initPredefinedSchema() {
+    myFixture.configureByFiles(
+      "schema.graphql",
+      ".graphqlconfig",
+      "lines-1/.graphqlconfig",
+      "lines-2/.graphqlconfig"
+    );
 
-        reloadConfiguration();
-    }
+    reloadConfiguration();
+  }
 
-    @Override
-    protected @NotNull String getBasePath() {
-        return "/injection";
-    }
+  @Override
+  protected @NotNull String getBasePath() {
+    return "/injection";
+  }
 
-    public void testErrorAnnotatorOnFragments() {
-        initPredefinedSchema();
-        myFixture.configureByFiles("injection-comment.js");
-        myFixture.checkHighlighting();
-        final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
-        assertEquals("Expected just one error", 1, highlighting.size());
-        assertEquals("Unknown fragment name should be the error", "OnlyTheUnknownFragmentShouldBeHighlightedAsError",
-            highlighting.get(0).getText());
-    }
+  public void testErrorAnnotatorOnFragments() {
+    initPredefinedSchema();
+    myFixture.configureByFiles("injection-comment.js");
+    myFixture.checkHighlighting();
+    final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
+    assertEquals("Expected just one error", 1, highlighting.size());
+    assertEquals("Unknown fragment name should be the error", "OnlyTheUnknownFragmentShouldBeHighlightedAsError",
+                 highlighting.get(0).getText());
+  }
 
-    public void testErrorAnnotatorSourceLines1() {
-        initPredefinedSchema();
-        myFixture.configureByFiles("lines-1/injection-source-lines-1.js");
-        myFixture.checkHighlighting();
-        final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
-        assertEquals("Expected just one error", 1, highlighting.size());
-        assertEquals("Should mark ServerType with an error", "ServerType", highlighting.get(0).getText());
-        assertEquals("Should mark ServerType in the right injected position", 193, highlighting.get(0).getStartOffset());
-    }
+  public void testErrorAnnotatorSourceLines1() {
+    initPredefinedSchema();
+    myFixture.configureByFiles("lines-1/injection-source-lines-1.js");
+    myFixture.checkHighlighting();
+    final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
+    assertEquals("Expected just one error", 1, highlighting.size());
+    assertEquals("Should mark ServerType with an error", "ServerType", highlighting.get(0).getText());
+    assertEquals("Should mark ServerType in the right injected position", 193, highlighting.get(0).getStartOffset());
+  }
 
-    public void testErrorAnnotatorSourceLines2() {
-        initPredefinedSchema();
-        myFixture.configureByFiles("lines-2/injection-source-lines-2.js");
-        myFixture.checkHighlighting();
-        final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
-        assertEquals("Expected just one error", 1, highlighting.size());
-        assertEquals("Should mark OutputType with an error", "OutputType", highlighting.get(0).getText());
-        assertEquals("Should mark OutputType in the right injected position", 201, highlighting.get(0).getStartOffset());
-    }
+  public void testErrorAnnotatorSourceLines2() {
+    initPredefinedSchema();
+    myFixture.configureByFiles("lines-2/injection-source-lines-2.js");
+    myFixture.checkHighlighting();
+    final List<HighlightInfo> highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR);
+    assertEquals("Expected just one error", 1, highlighting.size());
+    assertEquals("Should mark OutputType with an error", "OutputType", highlighting.get(0).getText());
+    assertEquals("Should mark OutputType in the right injected position", 201, highlighting.get(0).getStartOffset());
+  }
 
-    public void testInjectedTemplatesDontFail() {
-        PsiFile injectedFile = doTestInjectedFile("injectedTemplates/injectedTemplates.js");
-        myFixture.configureByText(GraphQLFileType.INSTANCE, AstPrinter.printAst(((GraphQLFile) injectedFile).getDocument()));
-        myFixture.checkResultByFile("injectedTemplates/injectedTemplates.graphql");
-    }
+  public void testInjectedTemplatesDontFail() {
+    PsiFile injectedFile = doTestInjectedFile("injectedTemplates/injectedTemplates.js");
+    myFixture.configureByText(GraphQLFileType.INSTANCE, AstPrinter.printAst(((GraphQLFile)injectedFile).getDocument()));
+    myFixture.checkResultByFile("injectedTemplates/injectedTemplates.graphql");
+  }
 
-    public void testInjectedWithEOLComment() {
-        doTestInjectedFile("eolComment.js");
-    }
+  public void testInjectedWithEOLComment() {
+    doTestInjectedFile("eolComment.js");
+  }
 
-    public void testInjectedWithEOLComment1() {
-        doTestInjectedFile("eolComment1.js");
-    }
+  public void testInjectedWithEOLComment1() {
+    doTestInjectedFile("eolComment1.js");
+  }
 
-    public void testInjectedWithEOLCommentInvalid() {
-        doTestNoInjections("eolCommentInvalid.js");
-    }
+  public void testInjectedWithEOLCommentInvalid() {
+    doTestNoInjections("eolCommentInvalid.js");
+  }
 
-    public void testInjectedWithEOLCommentInvalid1() {
-        doTestNoInjections("eolCommentInvalid1.js");
-    }
+  public void testInjectedWithEOLCommentInvalid1() {
+    doTestNoInjections("eolCommentInvalid1.js");
+  }
 
-    public void testInjectedWithCStyleComment() {
-        doTestInjectedFile("cStyleComment.js");
-    }
+  public void testInjectedWithCStyleComment() {
+    doTestInjectedFile("cStyleComment.js");
+  }
 
-    public void testInjectedWithCStyleCommentTagged() {
-        doTestInjectedFile("cStyleCommentTagged.js");
-    }
+  public void testInjectedWithCStyleCommentTagged() {
+    doTestInjectedFile("cStyleCommentTagged.js");
+  }
 
-    public void testInjectedWithCStyleCommentMultipleVars() {
-        doTestInjectedFile("cStyleCommentMultipleVars.js");
-    }
+  public void testInjectedWithCStyleCommentMultipleVars() {
+    doTestInjectedFile("cStyleCommentMultipleVars.js");
+  }
 
-    public void testInjectedInCallArgument() {
-        doTestInjectedFile("callArgument.js");
-    }
+  public void testInjectedInCallArgument() {
+    doTestInjectedFile("callArgument.js");
+  }
 
-    private @NotNull PsiFile doTestInjectedFile(@NotNull String sourcePath) {
-        myFixture.configureByFile(sourcePath);
+  private @NotNull PsiFile doTestInjectedFile(@NotNull String sourcePath) {
+    myFixture.configureByFile(sourcePath);
 
-        List<PsiFile> psiFiles = new ArrayList<>();
-        GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLFiles(
-            GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
-        assertSize(1, psiFiles);
+    List<PsiFile> psiFiles = new ArrayList<>();
+    GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLFiles(
+      GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
+    assertSize(1, psiFiles);
 
-        PsiFile injectedFile = psiFiles.get(0);
-        assertInstanceOf(injectedFile, GraphQLFile.class);
+    PsiFile injectedFile = psiFiles.get(0);
+    assertInstanceOf(injectedFile, GraphQLFile.class);
 
-        return injectedFile;
-    }
+    return injectedFile;
+  }
 
-    private void doTestNoInjections(@NotNull String sourcePath) {
-        myFixture.configureByFile(sourcePath);
+  private void doTestNoInjections(@NotNull String sourcePath) {
+    myFixture.configureByFile(sourcePath);
 
-        List<PsiFile> psiFiles = new ArrayList<>();
-        GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLFiles(
-            GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
-        assertEmpty(psiFiles);
-    }
-
+    List<PsiFile> psiFiles = new ArrayList<>();
+    GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLFiles(
+      GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
+    assertEmpty(psiFiles);
+  }
 }

@@ -5,70 +5,70 @@ import com.intellij.testFramework.HighlightTestInfo;
 
 public class GraphQLHighlightingTest extends GraphQLTestCaseBase {
 
-    @Override
-    protected String getBasePath() {
-        return "/highlighting";
-    }
+  @Override
+  protected String getBasePath() {
+    return "/highlighting";
+  }
 
-    public void testOperationDefinitions() {
-        doTest();
-    }
+  public void testOperationDefinitions() {
+    doTest();
+  }
 
-    public void testFragmentDefinition() {
-        doTest();
-    }
+  public void testFragmentDefinition() {
+    doTest();
+  }
 
-    public void testFragmentSpread() {
-        doTest();
-    }
+  public void testFragmentSpread() {
+    doTest();
+  }
 
-    public void testTypeNameDefinitions() {
-        doTest();
-    }
+  public void testTypeNameDefinitions() {
+    doTest();
+  }
 
-    public void testFields() {
-        doTest();
-    }
+  public void testFields() {
+    doTest();
+  }
 
-    public void testFieldDefinitions() {
-        doTest();
-    }
+  public void testFieldDefinitions() {
+    doTest();
+  }
 
-    public void testInputFieldDefinitions() {
-        doTest();
-    }
+  public void testInputFieldDefinitions() {
+    doTest();
+  }
 
-    public void testArgumentDefinitions() {
-        doTest();
-    }
+  public void testArgumentDefinitions() {
+    doTest();
+  }
 
-    public void testArguments() {
-        doTest();
-    }
+  public void testArguments() {
+    doTest();
+  }
 
-    public void testVariables() {
-        doTest();
-    }
+  public void testVariables() {
+    doTest();
+  }
 
-    public void testValues() {
-        doTest();
-    }
+  public void testValues() {
+    doTest();
+  }
 
-    public void testDirectives() {
-        doTest();
-    }
+  public void testDirectives() {
+    doTest();
+  }
 
-    public void testKeywordsAsIdentifiers() {
-        doTest();
-    }
+  public void testKeywordsAsIdentifiers() {
+    doTest();
+  }
 
-    public void testSchemaDefinition() {
-        doTest();
-    }
+  public void testSchemaDefinition() {
+    doTest();
+  }
 
-    private void doTest() {
-        HighlightTestInfo highlightTestInfo = myFixture.testFile(getTestName(false) + ".graphql");
-        highlightTestInfo.checkSymbolNames();
-        highlightTestInfo.test();
-    }
+  private void doTest() {
+    HighlightTestInfo highlightTestInfo = myFixture.testFile(getTestName(false) + ".graphql");
+    highlightTestInfo.checkSymbolNames();
+    highlightTestInfo.test();
+  }
 }

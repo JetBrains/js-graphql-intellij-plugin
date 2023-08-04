@@ -18,18 +18,18 @@ import org.jetbrains.annotations.Nullable;
 
 public class GraphQLPsiStructureViewFactory implements PsiStructureViewFactory {
 
-    @Nullable
-    @Override
-    public StructureViewBuilder getStructureViewBuilder(@NotNull PsiFile psiFile) {
-        return new TreeBasedStructureViewBuilder() {
-            @NotNull
-            public StructureViewModel createStructureViewModel(@Nullable Editor editor) {
-                return new GraphQLStructureViewModel(psiFile, editor);
-            }
+  @Nullable
+  @Override
+  public StructureViewBuilder getStructureViewBuilder(@NotNull PsiFile psiFile) {
+    return new TreeBasedStructureViewBuilder() {
+      @NotNull
+      public StructureViewModel createStructureViewModel(@Nullable Editor editor) {
+        return new GraphQLStructureViewModel(psiFile, editor);
+      }
 
-            public boolean isRootNodeShown() {
-                return false;
-            }
-        };
-    }
+      public boolean isRootNodeShown() {
+        return false;
+      }
+    };
+  }
 }

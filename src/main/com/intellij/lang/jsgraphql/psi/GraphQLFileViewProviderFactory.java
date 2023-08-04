@@ -9,15 +9,15 @@ import com.intellij.psi.SingleRootFileViewProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class GraphQLFileViewProviderFactory implements FileViewProviderFactory {
-    @Override
-    public @NotNull FileViewProvider createFileViewProvider(@NotNull VirtualFile file,
-                                                            Language language,
-                                                            @NotNull PsiManager manager,
-                                                            boolean eventSystemEnabled) {
-        if (!SingleRootFileViewProvider.isTooLargeForContentLoading(file)) {
-            // GraphQL schema files are expected to be huge unfortunately
-            SingleRootFileViewProvider.doNotCheckFileSizeLimit(file);
-        }
-        return new SingleRootFileViewProvider(manager, file, eventSystemEnabled);
+  @Override
+  public @NotNull FileViewProvider createFileViewProvider(@NotNull VirtualFile file,
+                                                          Language language,
+                                                          @NotNull PsiManager manager,
+                                                          boolean eventSystemEnabled) {
+    if (!SingleRootFileViewProvider.isTooLargeForContentLoading(file)) {
+      // GraphQL schema files are expected to be huge unfortunately
+      SingleRootFileViewProvider.doNotCheckFileSizeLimit(file);
     }
+    return new SingleRootFileViewProvider(manager, file, eventSystemEnabled);
+  }
 }

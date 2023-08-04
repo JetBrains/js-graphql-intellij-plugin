@@ -14,6 +14,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface GraphQLNamedTypeDefinition extends GraphQLTypeDefinition {
 
-    @Nullable
-    GraphQLTypeNameDefinition getTypeNameDefinition();
+  @Nullable
+  GraphQLTypeNameDefinition getTypeNameDefinition();
 }

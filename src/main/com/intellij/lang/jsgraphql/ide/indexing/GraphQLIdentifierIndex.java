@@ -30,142 +30,143 @@ import java.util.HashMap;
  */
 public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, GraphQLIdentifierIndex.IdentifierKind> {
 
-    public static final ID<String, IdentifierKind> NAME = ID.create("GraphQLIdentifierIndex");
-    public static final int VERSION = 3;
+  public static final ID<String, IdentifierKind> NAME = ID.create("GraphQLIdentifierIndex");
+  public static final int VERSION = 3;
 
-    private final DataIndexer<String, IdentifierKind, FileContent> myDataIndexer;
+  private final DataIndexer<String, IdentifierKind, FileContent> myDataIndexer;
 
-    public enum IdentifierKind {
+  public enum IdentifierKind {
 
-        IDENTIFIER_NAME,
-        // FIELD_NAME,
-        // FIELD_ALIAS_NAME,
-        // FIELD_DEFINITION_NAME,
-        // TYPE_NAME,
-        // TYPE_DEFINITION_NAME,
-        // FRAGMENT_SPREAD_NAME,
-        // FRAGMENT_DEFINITION_NAME,
-        // ARGUMENT_NAME,
-        // ENUM_VALUE_NAME,
-        // OBJECT_FIELD_NAME,
-        // DIRECTIVE_NAME,
-        // OPERATION_DEFINITION_NAME
+    IDENTIFIER_NAME,
+    // FIELD_NAME,
+    // FIELD_ALIAS_NAME,
+    // FIELD_DEFINITION_NAME,
+    // TYPE_NAME,
+    // TYPE_DEFINITION_NAME,
+    // FRAGMENT_SPREAD_NAME,
+    // FRAGMENT_DEFINITION_NAME,
+    // ARGUMENT_NAME,
+    // ENUM_VALUE_NAME,
+    // OBJECT_FIELD_NAME,
+    // DIRECTIVE_NAME,
+    // OPERATION_DEFINITION_NAME
+  }
 
-    }
+  public GraphQLIdentifierIndex() {
+    myDataIndexer = inputData -> {
 
-    public GraphQLIdentifierIndex() {
-        myDataIndexer = inputData -> {
+      final HashMap<String, IdentifierKind> identifiers = Maps.newHashMap();
 
-            final HashMap<String, IdentifierKind> identifiers = Maps.newHashMap();
-
-            PsiRecursiveElementVisitor visitor = new PsiRecursiveElementVisitor() {
-                @Override
-                public void visitElement(@NotNull PsiElement element) {
-                    if (element instanceof GraphQLIdentifier) {
-                        identifiers.put(element.getText(), IdentifierKind.IDENTIFIER_NAME);
-                        return; // no need to visit deeper
-                    } else if (element instanceof JsonElement) {
-                        if (element instanceof JsonFile) {
-                            if (!isIntrospectionJsonFile((JsonFile) element)) {
-                                // no need to visit this JSON file as it's not an introspection file
-                                return;
-                            }
-                        }
-                        if (element instanceof JsonProperty jsonProperty) {
-                            // GraphQL identifiers in an introspection result are defined using "name" properties:
-                            // https://graphql.github.io/graphql-spec/June2018/#sec-Schema-Introspection
-                            if ("name".equals(jsonProperty.getName())) {
-                                if (jsonProperty.getValue() instanceof JsonStringLiteral) {
-                                    identifiers.put(
-                                        ((JsonStringLiteral) jsonProperty.getValue()).getValue(),
-                                        IdentifierKind.IDENTIFIER_NAME
-                                    );
-                                }
-                            }
-                        }
-                    } else if (element instanceof PsiLanguageInjectionHost) {
-                        GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
-                        if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
-                            final String injectedText = injectedLanguage.getInjectedTextForIndexing(element);
-                            if (injectedText != null) {
-                                final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
-                                final PsiFile graphqlInjectedPsiFile = psiFileFactory
-                                    .createFileFromText("", GraphQLFileType.INSTANCE, injectedText, 0, false, false);
-                                graphqlInjectedPsiFile.accept(this);
-                                return;
-                            }
-                        }
-                    }
-                    super.visitElement(element);
-                }
-            };
-
-            inputData.getPsiFile().accept(visitor);
-
-            return identifiers;
-        };
-    }
-
-    private boolean isIntrospectionJsonFile(JsonFile jsonFile) {
-        for (PsiElement child : jsonFile.getChildren()) {
-            if (child instanceof JsonObject) {
-                JsonProperty dataProperty = ((JsonObject) child).findProperty("data");
-                if (dataProperty != null) {
-                    if (dataProperty.getValue() instanceof JsonObject) {
-                        return ((JsonObject) dataProperty.getValue()).findProperty("__schema") != null;
-                    }
-                }
-                final JsonProperty schemaProperty = ((JsonObject) child).findProperty("__schema");
-                if (schemaProperty != null) {
-                    return true;
-                }
+      PsiRecursiveElementVisitor visitor = new PsiRecursiveElementVisitor() {
+        @Override
+        public void visitElement(@NotNull PsiElement element) {
+          if (element instanceof GraphQLIdentifier) {
+            identifiers.put(element.getText(), IdentifierKind.IDENTIFIER_NAME);
+            return; // no need to visit deeper
+          }
+          else if (element instanceof JsonElement) {
+            if (element instanceof JsonFile) {
+              if (!isIntrospectionJsonFile((JsonFile)element)) {
+                // no need to visit this JSON file as it's not an introspection file
+                return;
+              }
             }
+            if (element instanceof JsonProperty jsonProperty) {
+              // GraphQL identifiers in an introspection result are defined using "name" properties:
+              // https://graphql.github.io/graphql-spec/June2018/#sec-Schema-Introspection
+              if ("name".equals(jsonProperty.getName())) {
+                if (jsonProperty.getValue() instanceof JsonStringLiteral) {
+                  identifiers.put(
+                    ((JsonStringLiteral)jsonProperty.getValue()).getValue(),
+                    IdentifierKind.IDENTIFIER_NAME
+                  );
+                }
+              }
+            }
+          }
+          else if (element instanceof PsiLanguageInjectionHost) {
+            GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
+            if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
+              final String injectedText = injectedLanguage.getInjectedTextForIndexing(element);
+              if (injectedText != null) {
+                final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
+                final PsiFile graphqlInjectedPsiFile = psiFileFactory
+                  .createFileFromText("", GraphQLFileType.INSTANCE, injectedText, 0, false, false);
+                graphqlInjectedPsiFile.accept(this);
+                return;
+              }
+            }
+          }
+          super.visitElement(element);
         }
-        return false;
-    }
+      };
 
-    @NotNull
-    @Override
-    public ID<String, IdentifierKind> getName() {
-        return NAME;
-    }
+      inputData.getPsiFile().accept(visitor);
 
-    @NotNull
-    @Override
-    public DataIndexer<String, IdentifierKind, FileContent> getIndexer() {
-        return myDataIndexer;
-    }
+      return identifiers;
+    };
+  }
 
-    @NotNull
-    @Override
-    public KeyDescriptor<String> getKeyDescriptor() {
-        return new EnumeratorStringDescriptor();
+  private boolean isIntrospectionJsonFile(JsonFile jsonFile) {
+    for (PsiElement child : jsonFile.getChildren()) {
+      if (child instanceof JsonObject) {
+        JsonProperty dataProperty = ((JsonObject)child).findProperty("data");
+        if (dataProperty != null) {
+          if (dataProperty.getValue() instanceof JsonObject) {
+            return ((JsonObject)dataProperty.getValue()).findProperty("__schema") != null;
+          }
+        }
+        final JsonProperty schemaProperty = ((JsonObject)child).findProperty("__schema");
+        if (schemaProperty != null) {
+          return true;
+        }
+      }
     }
+    return false;
+  }
 
-    @NotNull
-    @Override
-    public DataExternalizer<IdentifierKind> getValueExternalizer() {
-        return new EnumDataDescriptor<>(IdentifierKind.class);
-    }
+  @NotNull
+  @Override
+  public ID<String, IdentifierKind> getName() {
+    return NAME;
+  }
 
-    @Override
-    public int getVersion() {
-        return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
-    }
+  @NotNull
+  @Override
+  public DataIndexer<String, IdentifierKind, FileContent> getIndexer() {
+    return myDataIndexer;
+  }
 
-    @NotNull
-    @Override
-    public FileBasedIndex.InputFilter getInputFilter() {
-        return file -> GraphQLFileTypesProvider.getService().isAcceptedFile(file);
-    }
+  @NotNull
+  @Override
+  public KeyDescriptor<String> getKeyDescriptor() {
+    return new EnumeratorStringDescriptor();
+  }
 
-    @Override
-    public boolean dependsOnFileContent() {
-        return true;
-    }
+  @NotNull
+  @Override
+  public DataExternalizer<IdentifierKind> getValueExternalizer() {
+    return new EnumDataDescriptor<>(IdentifierKind.class);
+  }
 
-    @Override
-    public @NotNull Collection<FileType> getFileTypesWithSizeLimitNotApplicable() {
-        return GraphQLIndexUtil.FILE_TYPES_WITH_IGNORED_SIZE_LIMIT;
-    }
+  @Override
+  public int getVersion() {
+    return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
+  }
+
+  @NotNull
+  @Override
+  public FileBasedIndex.InputFilter getInputFilter() {
+    return file -> GraphQLFileTypesProvider.getService().isAcceptedFile(file);
+  }
+
+  @Override
+  public boolean dependsOnFileContent() {
+    return true;
+  }
+
+  @Override
+  public @NotNull Collection<FileType> getFileTypesWithSizeLimitNotApplicable() {
+    return GraphQLIndexUtil.FILE_TYPES_WITH_IGNORED_SIZE_LIMIT;
+  }
 }

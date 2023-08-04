@@ -29,14 +29,14 @@ import com.intellij.lang.jsgraphql.types.language.SourceLocation;
 public class SimpleDataFetcherExceptionHandler implements DataFetcherExceptionHandler {
 
 
-    @Override
-    public DataFetcherExceptionHandlerResult onException(DataFetcherExceptionHandlerParameters handlerParameters) {
-        Throwable exception = handlerParameters.getException();
-        SourceLocation sourceLocation = handlerParameters.getSourceLocation();
-        ResultPath path = handlerParameters.getPath();
+  @Override
+  public DataFetcherExceptionHandlerResult onException(DataFetcherExceptionHandlerParameters handlerParameters) {
+    Throwable exception = handlerParameters.getException();
+    SourceLocation sourceLocation = handlerParameters.getSourceLocation();
+    ResultPath path = handlerParameters.getPath();
 
-        ExceptionWhileDataFetching error = new ExceptionWhileDataFetching(path, exception, sourceLocation);
+    ExceptionWhileDataFetching error = new ExceptionWhileDataFetching(path, exception, sourceLocation);
 
-        return DataFetcherExceptionHandlerResult.newResult().error(error).build();
-    }
+    return DataFetcherExceptionHandlerResult.newResult().error(error).build();
+  }
 }

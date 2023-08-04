@@ -17,83 +17,83 @@ import com.jetbrains.jsonSchema.extension.SchemaType
 
 
 class GraphQLConfigJsonSchemaProvider : JsonSchemaProviderFactory {
-    companion object {
-        private val MODERN_YML_JSON_CONFIGS = arrayOf(
-            GRAPHQL_CONFIG_JSON,
-            GRAPHQL_CONFIG_YAML,
-            GRAPHQL_CONFIG_YML,
-            GRAPHQL_RC,
-            GRAPHQL_RC_JSON,
-            GRAPHQL_RC_YAML,
-            GRAPHQL_RC_YML,
-        )
+  companion object {
+    private val MODERN_YML_JSON_CONFIGS = arrayOf(
+      GRAPHQL_CONFIG_JSON,
+      GRAPHQL_CONFIG_YAML,
+      GRAPHQL_CONFIG_YML,
+      GRAPHQL_RC,
+      GRAPHQL_RC_JSON,
+      GRAPHQL_RC_YAML,
+      GRAPHQL_RC_YML,
+    )
+  }
+
+  override fun getProviders(project: Project): List<JsonSchemaFileProvider> {
+    return listOf<JsonSchemaFileProvider>(
+      GraphQLEmbeddedJsonSchemaFileProvider(
+        "graphql-config-schema.json",
+        GraphQLBundle.message("graphql.config.legacy.schema.name"),
+        null,
+        GraphQLConfigJsonSchemaProvider::class.java,
+        "/schemas/",
+        GRAPHQLCONFIG,
+      ),
+      GraphQLEmbeddedJsonSchemaFileProvider(
+        "graphql-config.json",
+        GraphQLBundle.message("graphql.config.schema.name"),
+        null,
+        GraphQLConfigJsonSchemaProvider::class.java,
+        "/schemas/",
+        *MODERN_YML_JSON_CONFIGS,
+      )
+    )
+  }
+
+  private class GraphQLEmbeddedJsonSchemaFileProvider(
+    private val resourceName: String,
+    private val presentableName: String?,
+    private val remoteSourceUrl: String?,
+    clazz: Class<*>,
+    pathToFilename: String,
+    vararg files: String,
+  ) : JsonSchemaFileProvider {
+
+    private val schemaFile: VirtualFile?
+    private val userFilename: Set<String>
+
+    init {
+      userFilename = if (files.isEmpty()) setOf(resourceName) else files.toSet()
+      schemaFile = JsonSchemaProviderFactory.getResourceFile(clazz, pathToFilename + resourceName)
     }
 
-    override fun getProviders(project: Project): List<JsonSchemaFileProvider> {
-        return listOf<JsonSchemaFileProvider>(
-            GraphQLEmbeddedJsonSchemaFileProvider(
-                "graphql-config-schema.json",
-                GraphQLBundle.message("graphql.config.legacy.schema.name"),
-                null,
-                GraphQLConfigJsonSchemaProvider::class.java,
-                "/schemas/",
-                GRAPHQLCONFIG,
-            ),
-            GraphQLEmbeddedJsonSchemaFileProvider(
-                "graphql-config.json",
-                GraphQLBundle.message("graphql.config.schema.name"),
-                null,
-                GraphQLConfigJsonSchemaProvider::class.java,
-                "/schemas/",
-                *MODERN_YML_JSON_CONFIGS,
-            )
-        )
+    override fun isAvailable(file: VirtualFile): Boolean {
+      return userFilename.contains(file.name)
     }
 
-    private class GraphQLEmbeddedJsonSchemaFileProvider(
-        private val resourceName: String,
-        private val presentableName: String?,
-        private val remoteSourceUrl: String?,
-        clazz: Class<*>,
-        pathToFilename: String,
-        vararg files: String,
-    ) : JsonSchemaFileProvider {
-
-        private val schemaFile: VirtualFile?
-        private val userFilename: Set<String>
-
-        init {
-            userFilename = if (files.isEmpty()) setOf(resourceName) else files.toSet()
-            schemaFile = JsonSchemaProviderFactory.getResourceFile(clazz, pathToFilename + resourceName)
-        }
-
-        override fun isAvailable(file: VirtualFile): Boolean {
-            return userFilename.contains(file.name)
-        }
-
-        override fun getName(): String {
-            return resourceName
-        }
-
-        override fun getSchemaFile(): VirtualFile? {
-            return schemaFile
-        }
-
-        override fun getSchemaType(): SchemaType {
-            return SchemaType.embeddedSchema
-        }
-
-        override fun getPresentableName(): String {
-            return presentableName ?: name
-        }
-
-        override fun isUserVisible(): Boolean {
-            return presentableName != null
-        }
-
-        override fun getRemoteSource(): String? {
-            return remoteSourceUrl
-        }
+    override fun getName(): String {
+      return resourceName
     }
+
+    override fun getSchemaFile(): VirtualFile? {
+      return schemaFile
+    }
+
+    override fun getSchemaType(): SchemaType {
+      return SchemaType.embeddedSchema
+    }
+
+    override fun getPresentableName(): String {
+      return presentableName ?: name
+    }
+
+    override fun isUserVisible(): Boolean {
+      return presentableName != null
+    }
+
+    override fun getRemoteSource(): String? {
+      return remoteSourceUrl
+    }
+  }
 
 }

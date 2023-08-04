@@ -27,129 +27,131 @@ import java.util.*;
 @Internal
 public class SchemaUtil {
 
-    private static final SchemaTraverser TRAVERSER = new SchemaTraverser();
+  private static final SchemaTraverser TRAVERSER = new SchemaTraverser();
 
 
-    ImmutableMap<String, GraphQLNamedType> allTypes(final GraphQLSchema schema, final Set<GraphQLType> additionalTypes, boolean afterTransform) {
-        List<GraphQLSchemaElement> roots = new ArrayList<>();
-        if (schema.isQueryDefined()) {
-            roots.add(schema.getQueryType());
-        }
-
-        if (schema.isSupportingMutations()) {
-            roots.add(schema.getMutationType());
-        }
-
-        if (schema.isSupportingSubscriptions()) {
-            roots.add(schema.getSubscriptionType());
-        }
-
-        if (additionalTypes != null) {
-            roots.addAll(additionalTypes);
-        }
-
-        if (schema.getDirectives() != null) {
-            roots.addAll(schema.getDirectives());
-        }
-
-        GraphQLTypeCollectingVisitor visitor = new GraphQLTypeCollectingVisitor();
-        SchemaTraverser traverser;
-        // when collecting all types we never want to follow type references
-        // When a schema is build first the type references are not replaced, so
-        // this is not a problem. But when a schema is transformed,
-        // the type references are actually replaced so we need to make sure we
-        // use the original type references
-        if (afterTransform) {
-            traverser = new SchemaTraverser(schemaElement -> schemaElement.getChildrenWithTypeReferences().getChildrenAsList());
-        } else {
-            traverser = new SchemaTraverser();
-        }
-        traverser.depthFirst(visitor, roots);
-        Map<String, GraphQLNamedType> result = visitor.getResult();
-        return ImmutableMap.copyOf(new TreeMap<>(result));
+  ImmutableMap<String, GraphQLNamedType> allTypes(final GraphQLSchema schema,
+                                                  final Set<GraphQLType> additionalTypes,
+                                                  boolean afterTransform) {
+    List<GraphQLSchemaElement> roots = new ArrayList<>();
+    if (schema.isQueryDefined()) {
+      roots.add(schema.getQueryType());
     }
 
+    if (schema.isSupportingMutations()) {
+      roots.add(schema.getMutationType());
+    }
 
-    /*
-     * Indexes GraphQLObject types registered with the provided schema by implemented GraphQLInterface name
-     *
-     * This helps in accelerates/simplifies collecting types that implement a certain interface
-     *
-     * Provided to replace {@link #findImplementations(com.intellij.lang.jsgraphql.types.schema.GraphQLSchema, com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType)}
-     *
-     */
-    Map<String, List<GraphQLObjectType>> groupImplementations(GraphQLSchema schema) {
-        Map<String, List<GraphQLObjectType>> result = new LinkedHashMap<>();
-        for (GraphQLType type : schema.getAllTypesAsList()) {
-            if (type instanceof GraphQLObjectType) {
-                List<GraphQLNamedOutputType> interfaces = ((GraphQLObjectType) type).getInterfaces();
-                for (GraphQLNamedOutputType interfaceType : interfaces) {
-                    List<GraphQLObjectType> myGroup = result.computeIfAbsent(interfaceType.getName(), k -> new ArrayList<>());
-                    myGroup.add((GraphQLObjectType) type);
-                }
-            }
+    if (schema.isSupportingSubscriptions()) {
+      roots.add(schema.getSubscriptionType());
+    }
+
+    if (additionalTypes != null) {
+      roots.addAll(additionalTypes);
+    }
+
+    if (schema.getDirectives() != null) {
+      roots.addAll(schema.getDirectives());
+    }
+
+    GraphQLTypeCollectingVisitor visitor = new GraphQLTypeCollectingVisitor();
+    SchemaTraverser traverser;
+    // when collecting all types we never want to follow type references
+    // When a schema is build first the type references are not replaced, so
+    // this is not a problem. But when a schema is transformed,
+    // the type references are actually replaced so we need to make sure we
+    // use the original type references
+    if (afterTransform) {
+      traverser = new SchemaTraverser(schemaElement -> schemaElement.getChildrenWithTypeReferences().getChildrenAsList());
+    }
+    else {
+      traverser = new SchemaTraverser();
+    }
+    traverser.depthFirst(visitor, roots);
+    Map<String, GraphQLNamedType> result = visitor.getResult();
+    return ImmutableMap.copyOf(new TreeMap<>(result));
+  }
+
+
+  /*
+   * Indexes GraphQLObject types registered with the provided schema by implemented GraphQLInterface name
+   *
+   * This helps in accelerates/simplifies collecting types that implement a certain interface
+   *
+   * Provided to replace {@link #findImplementations(com.intellij.lang.jsgraphql.types.schema.GraphQLSchema, com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType)}
+   *
+   */
+  Map<String, List<GraphQLObjectType>> groupImplementations(GraphQLSchema schema) {
+    Map<String, List<GraphQLObjectType>> result = new LinkedHashMap<>();
+    for (GraphQLType type : schema.getAllTypesAsList()) {
+      if (type instanceof GraphQLObjectType) {
+        List<GraphQLNamedOutputType> interfaces = ((GraphQLObjectType)type).getInterfaces();
+        for (GraphQLNamedOutputType interfaceType : interfaces) {
+          List<GraphQLObjectType> myGroup = result.computeIfAbsent(interfaceType.getName(), k -> new ArrayList<>());
+          myGroup.add((GraphQLObjectType)type);
         }
-        return ImmutableMap.copyOf(new TreeMap<>(result));
+      }
     }
+    return ImmutableMap.copyOf(new TreeMap<>(result));
+  }
 
-    public Map<String, List<GraphQLImplementingType>> groupImplementationsForInterfacesAndObjects(GraphQLSchema schema) {
-        Map<String, List<GraphQLImplementingType>> result = new LinkedHashMap<>();
-        for (GraphQLType type : schema.getAllTypesAsList()) {
-            if (type instanceof GraphQLImplementingType) {
-                List<GraphQLNamedOutputType> interfaces = ((GraphQLImplementingType) type).getInterfaces();
-                for (GraphQLNamedOutputType interfaceType : interfaces) {
-                    List<GraphQLImplementingType> myGroup = result.computeIfAbsent(interfaceType.getName(), k -> new ArrayList<>());
-                    myGroup.add((GraphQLImplementingType) type);
-                }
-            }
+  public Map<String, List<GraphQLImplementingType>> groupImplementationsForInterfacesAndObjects(GraphQLSchema schema) {
+    Map<String, List<GraphQLImplementingType>> result = new LinkedHashMap<>();
+    for (GraphQLType type : schema.getAllTypesAsList()) {
+      if (type instanceof GraphQLImplementingType) {
+        List<GraphQLNamedOutputType> interfaces = ((GraphQLImplementingType)type).getInterfaces();
+        for (GraphQLNamedOutputType interfaceType : interfaces) {
+          List<GraphQLImplementingType> myGroup = result.computeIfAbsent(interfaceType.getName(), k -> new ArrayList<>());
+          myGroup.add((GraphQLImplementingType)type);
         }
-        return ImmutableMap.copyOf(new TreeMap<>(result));
+      }
     }
+    return ImmutableMap.copyOf(new TreeMap<>(result));
+  }
 
-    /**
-     * This method is deprecated due to a performance concern.
-     *
-     * The Algorithm complexity: O(n^2), where n is number of registered GraphQLTypes
-     *
-     * That indexing operation is performed twice per input document:
-     * 1. during validation
-     * 2. during execution
-     *
-     * We now indexed all types at the schema creation, which has brought complexity down to O(1)
-     *
-     * @param schema        GraphQL schema
-     * @param interfaceType an interface type to find implementations for
-     *
-     * @return List of object types implementing provided interface
-     *
-     * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLSchema#getImplementations(GraphQLInterfaceType)} instead
-     */
-    @Deprecated
-    public List<GraphQLObjectType> findImplementations(GraphQLSchema schema, GraphQLInterfaceType interfaceType) {
-        List<GraphQLObjectType> result = new ArrayList<>();
-        for (GraphQLType type : schema.getAllTypesAsList()) {
-            if (!(type instanceof GraphQLObjectType)) {
-                continue;
-            }
-            GraphQLObjectType objectType = (GraphQLObjectType) type;
-            if ((objectType).getInterfaces().contains(interfaceType)) {
-                result.add(objectType);
-            }
-        }
-        return result;
+  /**
+   * This method is deprecated due to a performance concern.
+   * <p>
+   * The Algorithm complexity: O(n^2), where n is number of registered GraphQLTypes
+   * <p>
+   * That indexing operation is performed twice per input document:
+   * 1. during validation
+   * 2. during execution
+   * <p>
+   * We now indexed all types at the schema creation, which has brought complexity down to O(1)
+   *
+   * @param schema        GraphQL schema
+   * @param interfaceType an interface type to find implementations for
+   * @return List of object types implementing provided interface
+   * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLSchema#getImplementations(GraphQLInterfaceType)} instead
+   */
+  @Deprecated
+  public List<GraphQLObjectType> findImplementations(GraphQLSchema schema, GraphQLInterfaceType interfaceType) {
+    List<GraphQLObjectType> result = new ArrayList<>();
+    for (GraphQLType type : schema.getAllTypesAsList()) {
+      if (!(type instanceof GraphQLObjectType)) {
+        continue;
+      }
+      GraphQLObjectType objectType = (GraphQLObjectType)type;
+      if ((objectType).getInterfaces().contains(interfaceType)) {
+        result.add(objectType);
+      }
     }
+    return result;
+  }
 
-    void replaceTypeReferences(GraphQLSchema schema) {
-        final Map<String, GraphQLNamedType> typeMap = schema.getTypeMap();
-        List<GraphQLSchemaElement> roots = new ArrayList<>(typeMap.values());
-        roots.addAll(schema.getDirectives());
-        SchemaTraverser schemaTraverser = new SchemaTraverser(schemaElement -> schemaElement.getChildrenWithTypeReferences().getChildrenAsList());
-        schemaTraverser.depthFirst(new GraphQLTypeResolvingVisitor(typeMap), roots);
-    }
+  void replaceTypeReferences(GraphQLSchema schema) {
+    final Map<String, GraphQLNamedType> typeMap = schema.getTypeMap();
+    List<GraphQLSchemaElement> roots = new ArrayList<>(typeMap.values());
+    roots.addAll(schema.getDirectives());
+    SchemaTraverser schemaTraverser =
+      new SchemaTraverser(schemaElement -> schemaElement.getChildrenWithTypeReferences().getChildrenAsList());
+    schemaTraverser.depthFirst(new GraphQLTypeResolvingVisitor(typeMap), roots);
+  }
 
-    void extractCodeFromTypes(GraphQLCodeRegistry.Builder codeRegistry, GraphQLSchema schema) {
-        Introspection.addCodeForIntrospectionTypes(codeRegistry);
+  void extractCodeFromTypes(GraphQLCodeRegistry.Builder codeRegistry, GraphQLSchema schema) {
+    Introspection.addCodeForIntrospectionTypes(codeRegistry);
 
-        TRAVERSER.depthFirst(new CodeRegistryVisitor(codeRegistry), schema.getAllTypesAsList());
-    }
+    TRAVERSER.depthFirst(new CodeRegistryVisitor(codeRegistry), schema.getAllTypesAsList());
+  }
 }

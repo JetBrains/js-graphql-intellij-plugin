@@ -14,18 +14,18 @@ import java.util.Objects;
 
 public class GraphQLFederationErrorFilter implements GraphQLErrorFilter {
 
-    @Override
-    public boolean isGraphQLErrorSuppressed(@NotNull Project project,
-                                            @NotNull GraphQLError error,
-                                            @Nullable PsiElement element) {
-        if (!GraphQLLibraryTypes.FEDERATION.isEnabled(project)) {
-            return false;
-        }
-
-        if (error instanceof EmptyUnionTypeError && error.getNode() instanceof NamedNode) {
-            return Objects.equals(((NamedNode<?>) error.getNode()).getName(), GraphQLFederationKnownTypes.ENTITY);
-        }
-
-        return false;
+  @Override
+  public boolean isGraphQLErrorSuppressed(@NotNull Project project,
+                                          @NotNull GraphQLError error,
+                                          @Nullable PsiElement element) {
+    if (!GraphQLLibraryTypes.FEDERATION.isEnabled(project)) {
+      return false;
     }
+
+    if (error instanceof EmptyUnionTypeError && error.getNode() instanceof NamedNode) {
+      return Objects.equals(((NamedNode<?>)error.getNode()).getName(), GraphQLFederationKnownTypes.ENTITY);
+    }
+
+    return false;
+  }
 }

@@ -33,36 +33,36 @@ import static com.intellij.lang.jsgraphql.types.schema.SchemaElementChildrenCont
 @PublicApi
 public interface GraphQLSchemaElement {
 
-    default List<GraphQLSchemaElement> getChildren() {
-        return Collections.emptyList();
-    }
+  default List<GraphQLSchemaElement> getChildren() {
+    return Collections.emptyList();
+  }
 
-    default SchemaElementChildrenContainer getChildrenWithTypeReferences() {
-        return newSchemaElementChildrenContainer().build();
-    }
+  default SchemaElementChildrenContainer getChildrenWithTypeReferences() {
+    return newSchemaElementChildrenContainer().build();
+  }
 
-    default GraphQLSchemaElement withNewChildren(SchemaElementChildrenContainer newChildren) {
-        return this;
-    }
+  default GraphQLSchemaElement withNewChildren(SchemaElementChildrenContainer newChildren) {
+    return this;
+  }
 
-    TraversalControl accept(TraverserContext<GraphQLSchemaElement> context, GraphQLTypeVisitor visitor);
+  TraversalControl accept(TraverserContext<GraphQLSchemaElement> context, GraphQLTypeVisitor visitor);
 
 
-    /**
-     * No GraphQLSchemaElement implements `equals` because we need object identity
-     * to treat a GraphQLSchema as an abstract graph.
-     *
-     * @param obj the reference object with which to compare.
-     * @return {@code true} if this object is the same as the obj
-     * argument; {@code false} otherwise.
-     */
-    boolean equals(Object obj);
+  /**
+   * No GraphQLSchemaElement implements `equals` because we need object identity
+   * to treat a GraphQLSchema as an abstract graph.
+   *
+   * @param obj the reference object with which to compare.
+   * @return {@code true} if this object is the same as the obj
+   * argument; {@code false} otherwise.
+   */
+  boolean equals(Object obj);
 
-    /**
-     * No GraphQLSchemaElement implements `equals/hashCode` because we need object identity
-     * to treat a GraphQLSchema as an abstract graph.
-     *
-     * @return a hash code value for this object.
-     */
-    int hashCode();
+  /**
+   * No GraphQLSchemaElement implements `equals/hashCode` because we need object identity
+   * to treat a GraphQLSchema as an abstract graph.
+   *
+   * @return a hash code value for this object.
+   */
+  int hashCode();
 }

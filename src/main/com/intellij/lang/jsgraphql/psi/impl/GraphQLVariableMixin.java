@@ -15,18 +15,18 @@ import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLVariableMixin extends GraphQLElementImpl implements GraphQLElement, PsiNamedElement {
-    public GraphQLVariableMixin(@NotNull ASTNode node) {
-        super(node);
-    }
+  public GraphQLVariableMixin(@NotNull ASTNode node) {
+    super(node);
+  }
 
-    @Override
-    public PsiElement setName(@NotNull String s) throws IncorrectOperationException {
-        throw new IncorrectOperationException("Not implemented yet");
-    }
+  @Override
+  public PsiElement setName(@NotNull String s) throws IncorrectOperationException {
+    throw new IncorrectOperationException("Not implemented yet");
+  }
 
-    @Override
-    public String getName() {
-        String text = getNode().getText();
-        return text.startsWith("$") ? text.substring(1) : text;
-    }
+  @Override
+  public String getName() {
+    String text = getNode().getText();
+    return text.startsWith("$") ? text.substring(1) : text;
+  }
 }

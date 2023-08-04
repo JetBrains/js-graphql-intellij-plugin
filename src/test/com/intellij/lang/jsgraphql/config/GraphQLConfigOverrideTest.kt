@@ -16,76 +16,76 @@ import junit.framework.TestCase
 
 class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
 
-    override fun getBasePath(): String = "/config/override"
+  override fun getBasePath(): String = "/config/override"
 
-    override fun setUp() {
-        super.setUp()
+  override fun setUp() {
+    super.setUp()
 
-        enableAllInspections()
+    enableAllInspections()
+  }
+
+  fun testOverrideComment() {
+    val tests = listOf(
+      null to "#    asdsafasf",
+      null to "#",
+      null to "",
+      null to "# .graphqlconfig=!projectName",
+      null to "# .graphqlconfig=   !projectName",
+
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlconfig",
+        null
+      ) to "# .graphqlconfig=/user/local/project/.graphqlconfig",
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlconfig",
+        null
+      ) to "# .graphqlconfig=/user/local/project/.graphqlconfig!",
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlconfig",
+        null
+      ) to "# .graphqlconfig=/user/local/project/.graphqlconfig!    ",
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlconfig",
+        "backend"
+      ) to "# .graphqlconfig=/user/local/project/.graphqlconfig!backend",
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlconfig",
+        "backend"
+      ) to "# .graphqlconfig=/user/local/project/.graphqlconfig   !    backend",
+
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlrc.yml",
+        null
+      ) to "# config=/user/local/project/.graphqlrc.yml",
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlrc.yml",
+        null
+      ) to "# config=/user/local/project/.graphqlrc.yml!",
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlrc.yml",
+        null
+      ) to "# config=/user/local/project/.graphqlrc.yml!    ",
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlrc.yml",
+        "backend"
+      ) to "# config=/user/local/project/.graphqlrc.yml!backend",
+      GraphQLConfigOverridePath(
+        "/user/local/project/.graphqlrc.yml",
+        "backend"
+      ) to "# config=/user/local/project/.graphqlrc.yml   !   backend",
+    )
+
+    tests.forEach {
+      TestCase.assertEquals(it.second, it.first, parseOverrideConfigComment(it.second))
     }
+  }
 
-    fun testOverrideComment() {
-        val tests = listOf(
-            null to "#    asdsafasf",
-            null to "#",
-            null to "",
-            null to "# .graphqlconfig=!projectName",
-            null to "# .graphqlconfig=   !projectName",
-
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlconfig",
-                null
-            ) to "# .graphqlconfig=/user/local/project/.graphqlconfig",
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlconfig",
-                null
-            ) to "# .graphqlconfig=/user/local/project/.graphqlconfig!",
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlconfig",
-                null
-            ) to "# .graphqlconfig=/user/local/project/.graphqlconfig!    ",
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlconfig",
-                "backend"
-            ) to "# .graphqlconfig=/user/local/project/.graphqlconfig!backend",
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlconfig",
-                "backend"
-            ) to "# .graphqlconfig=/user/local/project/.graphqlconfig   !    backend",
-
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlrc.yml",
-                null
-            ) to "# config=/user/local/project/.graphqlrc.yml",
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlrc.yml",
-                null
-            ) to "# config=/user/local/project/.graphqlrc.yml!",
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlrc.yml",
-                null
-            ) to "# config=/user/local/project/.graphqlrc.yml!    ",
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlrc.yml",
-                "backend"
-            ) to "# config=/user/local/project/.graphqlrc.yml!backend",
-            GraphQLConfigOverridePath(
-                "/user/local/project/.graphqlrc.yml",
-                "backend"
-            ) to "# config=/user/local/project/.graphqlrc.yml   !   backend",
-        )
-
-        tests.forEach {
-            TestCase.assertEquals(it.second, it.first, parseOverrideConfigComment(it.second))
-        }
-    }
-
-    fun testScratch() {
-        doScratchTest(
-            "/src/child/.graphqlrc.yml",
-            GraphQLConfig.DEFAULT_PROJECT,
-            createOverrideConfigComment("/src/child/.graphqlrc.yml", null),
-            """
+  fun testScratch() {
+    doScratchTest(
+      "/src/child/.graphqlrc.yml",
+      GraphQLConfig.DEFAULT_PROJECT,
+      createOverrideConfigComment("/src/child/.graphqlrc.yml", null),
+      """
             fragment InvalidScratchFragment on <error descr="Unknown type \"Node\"">Node</error> {
                 <error descr="Unknown field \"name\": The parent selection or operation does not resolve to a valid schema type">name</error>
             }
@@ -108,17 +108,17 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
                 }
             }
             """.trimIndent()
-        )
+    )
 
-        myFixture.checkHighlighting()
-    }
+    myFixture.checkHighlighting()
+  }
 
-    fun testScratchWithProject() {
-        doScratchTest(
-            "/src/.graphqlrc.yml",
-            "frontend",
-            createOverrideConfigComment("/src/.graphqlrc.yml", "frontend"),
-            """
+  fun testScratchWithProject() {
+    doScratchTest(
+      "/src/.graphqlrc.yml",
+      "frontend",
+      createOverrideConfigComment("/src/.graphqlrc.yml", "frontend"),
+      """
             fragment ScratchFragmentInvalid on <error descr="Unknown type \"Server\"">Server</error> {
                 <error descr="Unknown field \"name\": The parent selection or operation does not resolve to a valid schema type">name</error>
             }
@@ -134,17 +134,17 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
                 <error descr="Unknown field \"server\" on object type \"Query\"">server</error>
             }
             """.trimIndent()
-        )
+    )
 
-        myFixture.checkHighlighting()
-    }
+    myFixture.checkHighlighting()
+  }
 
-    fun testScratchFallbackToRoot() {
-        doScratchTest(
-            "/src/.graphqlrc.yml",
-            GraphQLConfig.DEFAULT_PROJECT,
-            "",
-            """
+  fun testScratchFallbackToRoot() {
+    doScratchTest(
+      "/src/.graphqlrc.yml",
+      GraphQLConfig.DEFAULT_PROJECT,
+      "",
+      """
             fragment InvalidScratchFragment on <error descr="Unknown type \"ChildNode\"">ChildNode</error> {
                 <error descr="Unknown field \"name\": The parent selection or operation does not resolve to a valid schema type">name</error>
             }
@@ -164,17 +164,17 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
                 }
             }
             """.trimIndent()
-        )
+    )
 
-        myFixture.checkHighlighting()
-    }
+    myFixture.checkHighlighting()
+  }
 
-    fun testScratchFallbackToRootIfUnknownPathProvided() {
-        doScratchTest(
-            "/src/.graphqlrc.yml",
-            GraphQLConfig.DEFAULT_PROJECT,
-            createOverrideConfigComment("/src/does/not/exist/.graphqlrc.yml", null),
-            """
+  fun testScratchFallbackToRootIfUnknownPathProvided() {
+    doScratchTest(
+      "/src/.graphqlrc.yml",
+      GraphQLConfig.DEFAULT_PROJECT,
+      createOverrideConfigComment("/src/does/not/exist/.graphqlrc.yml", null),
+      """
             query {
                 node {
                     child {
@@ -184,30 +184,30 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
                 }
             }
             """.trimIndent()
-        )
+    )
 
-        myFixture.checkHighlighting()
-    }
+    myFixture.checkHighlighting()
+  }
 
-    private fun doScratchTest(
-        expectedConfigPath: String,
-        expectedProject: String,
-        comment: String,
-        query: String
-    ): GraphQLProjectConfig {
-        copyProject()
-        val scratchFile = createTestScratchFile(myFixture, comment, query)!!
-        myFixture.configureFromExistingVirtualFile(scratchFile)
+  private fun doScratchTest(
+    expectedConfigPath: String,
+    expectedProject: String,
+    comment: String,
+    query: String
+  ): GraphQLProjectConfig {
+    copyProject()
+    val scratchFile = createTestScratchFile(myFixture, comment, query)!!
+    myFixture.configureFromExistingVirtualFile(scratchFile)
 
-        val projectConfig = resolveConfig(scratchFile)
-        TestCase.assertEquals(expectedConfigPath, projectConfig.file?.path)
-        TestCase.assertEquals(expectedProject, projectConfig.name)
-        return projectConfig
-    }
+    val projectConfig = resolveConfig(scratchFile)
+    TestCase.assertEquals(expectedConfigPath, projectConfig.file?.path)
+    TestCase.assertEquals(expectedProject, projectConfig.name)
+    return projectConfig
+  }
 
-    private fun resolveConfig(file: VirtualFile): GraphQLProjectConfig {
-        val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(file)
-        TestCase.assertNotNull("config is not found", config)
-        return config!!
-    }
+  private fun resolveConfig(file: VirtualFile): GraphQLProjectConfig {
+    val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(file)
+    TestCase.assertNotNull("config is not found", config)
+    return config!!
+  }
 }

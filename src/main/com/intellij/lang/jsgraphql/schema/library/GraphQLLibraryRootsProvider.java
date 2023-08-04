@@ -12,31 +12,31 @@ import java.util.Collections;
 
 public class GraphQLLibraryRootsProvider extends AdditionalLibraryRootsProvider {
 
-    @Nullable
-    public static GraphQLLibrary findLibrary(@NotNull Project project, @NotNull GraphQLLibraryDescriptor libraryDescriptor) {
-        for (SyntheticLibrary library : getLibraries(project)) {
-            if (library instanceof GraphQLLibrary && ((GraphQLLibrary) library).getLibraryDescriptor().equals(libraryDescriptor)) {
-                return (GraphQLLibrary) library;
-            }
-        }
-        return null;
+  @Nullable
+  public static GraphQLLibrary findLibrary(@NotNull Project project, @NotNull GraphQLLibraryDescriptor libraryDescriptor) {
+    for (SyntheticLibrary library : getLibraries(project)) {
+      if (library instanceof GraphQLLibrary && ((GraphQLLibrary)library).getLibraryDescriptor().equals(libraryDescriptor)) {
+        return (GraphQLLibrary)library;
+      }
     }
+    return null;
+  }
 
-    @NotNull
-    public static Collection<SyntheticLibrary> getLibraries(@NotNull Project project) {
-        GraphQLLibraryRootsProvider provider = AdditionalLibraryRootsProvider.EP_NAME.findExtension(GraphQLLibraryRootsProvider.class);
-        return provider != null ? provider.getAdditionalProjectLibraries(project) : Collections.emptyList();
-    }
+  @NotNull
+  public static Collection<SyntheticLibrary> getLibraries(@NotNull Project project) {
+    GraphQLLibraryRootsProvider provider = AdditionalLibraryRootsProvider.EP_NAME.findExtension(GraphQLLibraryRootsProvider.class);
+    return provider != null ? provider.getAdditionalProjectLibraries(project) : Collections.emptyList();
+  }
 
-    @NotNull
-    @Override
-    public Collection<SyntheticLibrary> getAdditionalProjectLibraries(@NotNull Project project) {
-        return GraphQLLibraryManager.getInstance(project).getAllLibraries();
-    }
+  @NotNull
+  @Override
+  public Collection<SyntheticLibrary> getAdditionalProjectLibraries(@NotNull Project project) {
+    return GraphQLLibraryManager.getInstance(project).getAllLibraries();
+  }
 
-    @NotNull
-    @Override
-    public Collection<VirtualFile> getRootsToWatch(@NotNull Project project) {
-        return GraphQLLibraryManager.getInstance(project).getLibraryRoots();
-    }
+  @NotNull
+  @Override
+  public Collection<VirtualFile> getRootsToWatch(@NotNull Project project) {
+    return GraphQLLibraryManager.getInstance(project).getLibraryRoots();
+  }
 }

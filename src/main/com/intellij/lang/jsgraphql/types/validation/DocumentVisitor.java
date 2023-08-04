@@ -26,7 +26,7 @@ import java.util.List;
 @Internal
 public interface DocumentVisitor {
 
-    void enter(Node node, List<Node> path);
+  void enter(Node node, List<Node> path);
 
-    void leave(Node node, List<Node> path);
+  void leave(Node node, List<Node> path);
 }

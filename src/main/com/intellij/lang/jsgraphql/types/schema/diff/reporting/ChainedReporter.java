@@ -28,23 +28,23 @@ import java.util.List;
  */
 @PublicApi
 public class ChainedReporter implements DifferenceReporter {
-    private final List<DifferenceReporter> reporters;
+  private final List<DifferenceReporter> reporters;
 
-    public ChainedReporter(DifferenceReporter... reporters) {
-        this(Arrays.asList(reporters));
-    }
+  public ChainedReporter(DifferenceReporter... reporters) {
+    this(Arrays.asList(reporters));
+  }
 
-    public ChainedReporter(List<DifferenceReporter> reporters) {
-        this.reporters = reporters;
-    }
+  public ChainedReporter(List<DifferenceReporter> reporters) {
+    this.reporters = reporters;
+  }
 
-    @Override
-    public void report(DiffEvent differenceEvent) {
-        reporters.forEach(reporter -> reporter.report(differenceEvent));
-    }
+  @Override
+  public void report(DiffEvent differenceEvent) {
+    reporters.forEach(reporter -> reporter.report(differenceEvent));
+  }
 
-    @Override
-    public void onEnd() {
-        reporters.forEach(DifferenceReporter::onEnd);
-    }
+  @Override
+  public void onEnd() {
+    reporters.forEach(DifferenceReporter::onEnd);
+  }
 }

@@ -5,8 +5,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLStringLiteral;
 
 public abstract class GraphQLStringLiteralMixin extends GraphQLElementImpl implements GraphQLStringLiteral {
 
-    public GraphQLStringLiteralMixin(ASTNode node) {
-        super(node);
-    }
-
+  public GraphQLStringLiteralMixin(ASTNode node) {
+    super(node);
+  }
 }

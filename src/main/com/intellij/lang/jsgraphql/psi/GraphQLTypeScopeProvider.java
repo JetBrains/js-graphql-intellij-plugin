@@ -7,15 +7,13 @@
  */
 package com.intellij.lang.jsgraphql.psi;
 
-import com.intellij.psi.PsiElement;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 
 public interface GraphQLTypeScopeProvider extends GraphQLElement {
 
-    /**
-     * Get the logical type that this Psi Element exposes for children, e.g. the query type for queries, and the output type for fields.
-     * For fragments the type is the type condition.
-     */
-    GraphQLType getTypeScope();
-
+  /**
+   * Get the logical type that this Psi Element exposes for children, e.g. the query type for queries, and the output type for fields.
+   * For fragments the type is the type condition.
+   */
+  GraphQLType getTypeScope();
 }

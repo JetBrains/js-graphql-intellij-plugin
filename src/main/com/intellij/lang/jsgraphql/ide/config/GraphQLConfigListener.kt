@@ -11,15 +11,15 @@ import com.intellij.util.messages.Topic
 
 
 interface GraphQLConfigListener {
-    companion object {
-        @JvmField
-        @Topic.ProjectLevel
-        val TOPIC = Topic(
-            "GraphQL Configuration File Change Events",
-            GraphQLConfigListener::class.java,
-            Topic.BroadcastDirection.NONE
-        )
-    }
+  companion object {
+    @JvmField
+    @Topic.ProjectLevel
+    val TOPIC = Topic(
+      "GraphQL Configuration File Change Events",
+      GraphQLConfigListener::class.java,
+      Topic.BroadcastDirection.NONE
+    )
+  }
 
-    fun onConfigurationChanged()
+  fun onConfigurationChanged()
 }

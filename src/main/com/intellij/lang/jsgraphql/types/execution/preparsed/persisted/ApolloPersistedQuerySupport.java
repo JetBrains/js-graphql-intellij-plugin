@@ -49,19 +49,19 @@ import java.util.Optional;
 @PublicApi
 public class ApolloPersistedQuerySupport extends PersistedQuerySupport {
 
-    public ApolloPersistedQuerySupport(PersistedQueryCache persistedQueryCache) {
-        super(persistedQueryCache);
-    }
+  public ApolloPersistedQuerySupport(PersistedQueryCache persistedQueryCache) {
+    super(persistedQueryCache);
+  }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    protected Optional<Object> getPersistedQueryId(ExecutionInput executionInput) {
-        Map<String, Object> extensions = executionInput.getExtensions();
-        Map<String, Object> persistedQuery = (Map<String, Object>) extensions.get("persistedQuery");
-        if (persistedQuery != null) {
-            Object sha256Hash = persistedQuery.get("sha256Hash");
-            return Optional.ofNullable(sha256Hash);
-        }
-        return Optional.empty();
+  @SuppressWarnings("unchecked")
+  @Override
+  protected Optional<Object> getPersistedQueryId(ExecutionInput executionInput) {
+    Map<String, Object> extensions = executionInput.getExtensions();
+    Map<String, Object> persistedQuery = (Map<String, Object>)extensions.get("persistedQuery");
+    if (persistedQuery != null) {
+      Object sha256Hash = persistedQuery.get("sha256Hash");
+      return Optional.ofNullable(sha256Hash);
     }
+    return Optional.empty();
+  }
 }

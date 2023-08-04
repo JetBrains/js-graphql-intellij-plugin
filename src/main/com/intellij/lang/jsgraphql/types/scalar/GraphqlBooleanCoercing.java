@@ -34,55 +34,58 @@ import static com.intellij.lang.jsgraphql.types.scalar.CoercingUtil.typeName;
 @Internal
 public class GraphqlBooleanCoercing implements Coercing<Boolean, Boolean> {
 
-    private Boolean convertImpl(Object input) {
-        if (input instanceof Boolean) {
-            return (Boolean) input;
-        } else if (input instanceof String) {
-            return Boolean.parseBoolean((String) input);
-        } else if (isNumberIsh(input)) {
-            BigDecimal value;
-            try {
-                value = new BigDecimal(input.toString());
-            } catch (NumberFormatException e) {
-                // this should never happen because String is handled above
-                return assertShouldNeverHappen();
-            }
-            return value.compareTo(BigDecimal.ZERO) != 0;
-        } else {
-            return null;
-        }
-
+  private Boolean convertImpl(Object input) {
+    if (input instanceof Boolean) {
+      return (Boolean)input;
     }
-
-    @Override
-    public Boolean serialize(Object input) {
-        Boolean result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingSerializeException(
-                    "Expected type 'Boolean' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+    else if (input instanceof String) {
+      return Boolean.parseBoolean((String)input);
     }
-
-    @Override
-    public Boolean parseValue(Object input) {
-        Boolean result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingParseValueException(
-                    "Expected type 'Boolean' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+    else if (isNumberIsh(input)) {
+      BigDecimal value;
+      try {
+        value = new BigDecimal(input.toString());
+      }
+      catch (NumberFormatException e) {
+        // this should never happen because String is handled above
+        return assertShouldNeverHappen();
+      }
+      return value.compareTo(BigDecimal.ZERO) != 0;
     }
-
-    @Override
-    public Boolean parseLiteral(Object input) {
-        if (!(input instanceof BooleanValue)) {
-            throw new CoercingParseLiteralException(
-                    "Expected type 'Boolean' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
-            );
-        }
-        return ((BooleanValue) input).isValue();
+    else {
+      return null;
     }
+  }
+
+  @Override
+  public Boolean serialize(Object input) {
+    Boolean result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingSerializeException(
+        "Expected type 'Boolean' but was '" + typeName(input) + "'."
+      );
+    }
+    return result;
+  }
+
+  @Override
+  public Boolean parseValue(Object input) {
+    Boolean result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingParseValueException(
+        "Expected type 'Boolean' but was '" + typeName(input) + "'."
+      );
+    }
+    return result;
+  }
+
+  @Override
+  public Boolean parseLiteral(Object input) {
+    if (!(input instanceof BooleanValue)) {
+      throw new CoercingParseLiteralException(
+        "Expected type 'Boolean' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
+      );
+    }
+    return ((BooleanValue)input).isValue();
+  }
 }

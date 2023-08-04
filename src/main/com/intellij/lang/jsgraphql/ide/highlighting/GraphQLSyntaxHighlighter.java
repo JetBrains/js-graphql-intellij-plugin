@@ -19,41 +19,37 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
 public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   public static final TextAttributesKey IDENTIFIER =
-      createTextAttributesKey("GRAPHQL_IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER);
+    createTextAttributesKey("GRAPHQL_IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER);
   public static final TextAttributesKey KEYWORD =
-      createTextAttributesKey("GRAPHQL_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
+    createTextAttributesKey("GRAPHQL_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
   public static final TextAttributesKey NUMBER =
-      createTextAttributesKey("GRAPHQL_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
+    createTextAttributesKey("GRAPHQL_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
   public static final TextAttributesKey STRING =
-      createTextAttributesKey("GRAPHQL_STRING", DefaultLanguageHighlighterColors.STRING);
+    createTextAttributesKey("GRAPHQL_STRING", DefaultLanguageHighlighterColors.STRING);
   public static final TextAttributesKey COMMENT =
-      createTextAttributesKey("GRAPHQL_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
+    createTextAttributesKey("GRAPHQL_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
   public static final TextAttributesKey BRACES =
-      createTextAttributesKey("GRAPHQL_BRACES", DefaultLanguageHighlighterColors.BRACES);
+    createTextAttributesKey("GRAPHQL_BRACES", DefaultLanguageHighlighterColors.BRACES);
   public static final TextAttributesKey PARENTHESES =
-      createTextAttributesKey("GRAPHQL_PARENTHESES", DefaultLanguageHighlighterColors.PARENTHESES);
+    createTextAttributesKey("GRAPHQL_PARENTHESES", DefaultLanguageHighlighterColors.PARENTHESES);
   public static final TextAttributesKey BRACKETS =
-      createTextAttributesKey("GRAPHQL_BRACKETS", DefaultLanguageHighlighterColors.BRACKETS);
+    createTextAttributesKey("GRAPHQL_BRACKETS", DefaultLanguageHighlighterColors.BRACKETS);
   public static final TextAttributesKey SPREAD =
-      createTextAttributesKey("GRAPHQL_SPREAD", DefaultLanguageHighlighterColors.SEMICOLON);
+    createTextAttributesKey("GRAPHQL_SPREAD", DefaultLanguageHighlighterColors.SEMICOLON);
   public static final TextAttributesKey COLON =
-          createTextAttributesKey("GRAPHQL_COLON", DefaultLanguageHighlighterColors.SEMICOLON);
+    createTextAttributesKey("GRAPHQL_COLON", DefaultLanguageHighlighterColors.SEMICOLON);
   public static final TextAttributesKey BANG =
-          createTextAttributesKey("GRAPHQL_BANG", DefaultLanguageHighlighterColors.OPERATION_SIGN);
+    createTextAttributesKey("GRAPHQL_BANG", DefaultLanguageHighlighterColors.OPERATION_SIGN);
   public static final TextAttributesKey PIPE =
-          createTextAttributesKey("GRAPHQL_PIPE", DefaultLanguageHighlighterColors.SEMICOLON);
+    createTextAttributesKey("GRAPHQL_PIPE", DefaultLanguageHighlighterColors.SEMICOLON);
   public static final TextAttributesKey AMP =
-          createTextAttributesKey("GRAPHQL_AMP", DefaultLanguageHighlighterColors.SEMICOLON);
+    createTextAttributesKey("GRAPHQL_AMP", DefaultLanguageHighlighterColors.SEMICOLON);
   public static final TextAttributesKey BAD_CHARACTER =
-      createTextAttributesKey("GRAPHQL_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER);
+    createTextAttributesKey("GRAPHQL_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER);
 
   private static final TextAttributesKey[] IDENTIFIER_KEYS = new TextAttributesKey[]{IDENTIFIER};
   private static final TextAttributesKey[] KEYWORD_KEYS = new TextAttributesKey[]{KEYWORD};
@@ -82,33 +78,47 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
     if (tokenType.equals(GraphQLElementTypes.NAME)) {
       return IDENTIFIER_KEYS;
-    } else if (GraphQLExtendedElementTypes.KEYWORDS.contains(tokenType)) {
+    }
+    else if (GraphQLExtendedElementTypes.KEYWORDS.contains(tokenType)) {
       return KEYWORD_KEYS;
-    } else if (GraphQLExtendedElementTypes.NUMBER_LITERALS.contains(tokenType)) {
+    }
+    else if (GraphQLExtendedElementTypes.NUMBER_LITERALS.contains(tokenType)) {
       return NUMBER_KEYS;
-    } else if (GraphQLExtendedElementTypes.STRING_TOKENS.contains(tokenType)) {
+    }
+    else if (GraphQLExtendedElementTypes.STRING_TOKENS.contains(tokenType)) {
       return STRING_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.EOL_COMMENT)) {
+    }
+    else if (tokenType.equals(GraphQLElementTypes.EOL_COMMENT)) {
       return COMMENT_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.BRACE_L) || tokenType.equals(GraphQLElementTypes.BRACE_R)) {
+    }
+    else if (tokenType.equals(GraphQLElementTypes.BRACE_L) || tokenType.equals(GraphQLElementTypes.BRACE_R)) {
       return BRACES_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.PAREN_L) || tokenType.equals(GraphQLElementTypes.PAREN_R)) {
+    }
+    else if (tokenType.equals(GraphQLElementTypes.PAREN_L) || tokenType.equals(GraphQLElementTypes.PAREN_R)) {
       return PARENTHESES_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.BRACKET_L) || tokenType.equals(GraphQLElementTypes.BRACKET_R)) {
+    }
+    else if (tokenType.equals(GraphQLElementTypes.BRACKET_L) || tokenType.equals(GraphQLElementTypes.BRACKET_R)) {
       return BRACKETS_KEYS;
-    } else if (tokenType.equals(GraphQLElementTypes.SPREAD)) {
+    }
+    else if (tokenType.equals(GraphQLElementTypes.SPREAD)) {
       return SPREAD_KEYS;
-    } else if(tokenType.equals(GraphQLElementTypes.COLON)) {
+    }
+    else if (tokenType.equals(GraphQLElementTypes.COLON)) {
       return COLON_KEYS;
-    } else if(tokenType.equals(GraphQLElementTypes.BANG)) {
+    }
+    else if (tokenType.equals(GraphQLElementTypes.BANG)) {
       return BANG_KEYS;
-    } else if(tokenType.equals(GraphQLElementTypes.PIPE)) {
+    }
+    else if (tokenType.equals(GraphQLElementTypes.PIPE)) {
       return PIPE_KEYS;
-    } else if(tokenType.equals(GraphQLElementTypes.AMP)) {
+    }
+    else if (tokenType.equals(GraphQLElementTypes.AMP)) {
       return AMP_KEYS;
-    } else if (tokenType.equals(TokenType.BAD_CHARACTER)) {
+    }
+    else if (tokenType.equals(TokenType.BAD_CHARACTER)) {
       return BAD_CHARACTER_KEYS;
-    } else {
+    }
+    else {
       return EMPTY_KEYS;
     }
   }

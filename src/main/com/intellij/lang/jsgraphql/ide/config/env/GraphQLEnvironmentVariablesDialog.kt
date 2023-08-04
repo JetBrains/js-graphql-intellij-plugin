@@ -21,113 +21,115 @@ import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 
 class GraphQLEnvironmentVariablesDialog(
-    project: Project,
-    private val environment: GraphQLEnvironmentSnapshot,
-    private val fileOrDir: VirtualFile,
-    private val onlyEmpty: Boolean,
-    private val nameFilter: Collection<String>? = null,
+  project: Project,
+  private val environment: GraphQLEnvironmentSnapshot,
+  private val fileOrDir: VirtualFile,
+  private val onlyEmpty: Boolean,
+  private val nameFilter: Collection<String>? = null,
 ) : DialogWrapper(project) {
 
-    private val env = GraphQLConfigEnvironment.getInstance(project)
+  private val env = GraphQLConfigEnvironment.getInstance(project)
 
-    private val table = createVariablesTable()
+  private val table = createVariablesTable()
 
+  init {
+    title = GraphQLBundle.message("graphql.environment.variables.dialog.title")
+    init()
+  }
+
+  override fun createCenterPanel(): JComponent {
+    return JPanel(BorderLayout()).apply {
+      add(table.component, BorderLayout.CENTER)
+    }
+  }
+
+  override fun doOKAction() {
+    val newVariables = table.environmentVariables
+      .filterNot { it.name.isNullOrBlank() }
+      .associate { it.name to it.value }
+    env.setExplicitVariables(newVariables, fileOrDir)
+
+    super.doOKAction()
+  }
+
+  override fun getDimensionServiceKey() = "GraphQLEnvironmentVariablesDialog"
+
+  override fun getInitialSize(): Dimension = super.getInitialSize() ?: Dimension(500, 500)
+
+  private fun createVariablesTable(): EnvVariablesTable {
+    return environment.variables
+      .asSequence()
+      .filter {
+        nameFilter == null || it.key in nameFilter
+      }
+      .filter {
+        if (onlyEmpty) {
+          it.value.isNullOrBlank()
+        }
+        else {
+          true
+        }
+      }
+      .map {
+        EnvironmentVariable(it.key, env.getExplicitVariable(it.key, fileOrDir), false)
+      }
+      .toList()
+      .let { MyEnvVariablesTable(it) }
+  }
+
+  private inner class MyEnvVariablesTable(list: List<EnvironmentVariable>) : EnvVariablesTable() {
     init {
-        title = GraphQLBundle.message("graphql.environment.variables.dialog.title")
-        init()
+      tableView.visibleRowCount = JBTable.PREFERRED_SCROLLABLE_VIEWPORT_HEIGHT_IN_ROWS
+      setValues(list)
     }
 
-    override fun createCenterPanel(): JComponent {
-        return JPanel(BorderLayout()).apply {
-            add(table.component, BorderLayout.CENTER)
-        }
+    override fun createAddAction(): AnActionButtonRunnable? {
+      return null
     }
 
-    override fun doOKAction() {
-        val newVariables = table.environmentVariables
-            .filterNot { it.name.isNullOrBlank() }
-            .associate { it.name to it.value }
-        env.setExplicitVariables(newVariables, fileOrDir)
-
-        super.doOKAction()
+    override fun createRemoveAction(): AnActionButtonRunnable? {
+      return null
     }
 
-    override fun getDimensionServiceKey() = "GraphQLEnvironmentVariablesDialog"
-
-    override fun getInitialSize(): Dimension = super.getInitialSize() ?: Dimension(500, 500)
-
-    private fun createVariablesTable(): EnvVariablesTable {
-        return environment.variables
-            .asSequence()
-            .filter {
-                nameFilter == null || it.key in nameFilter
-            }
-            .filter {
-                if (onlyEmpty) {
-                    it.value.isNullOrBlank()
-                } else {
-                    true
-                }
-            }
-            .map {
-                EnvironmentVariable(it.key, env.getExplicitVariable(it.key, fileOrDir), false)
-            }
-            .toList()
-            .let { MyEnvVariablesTable(it) }
+    override fun createListModel(): ListTableModel<*> {
+      return ListTableModel<EnvironmentVariable>(MyNameColumnInfo(), MyValueColumnInfo())
     }
 
-    private inner class MyEnvVariablesTable(list: List<EnvironmentVariable>) : EnvVariablesTable() {
-        init {
-            tableView.visibleRowCount = JBTable.PREFERRED_SCROLLABLE_VIEWPORT_HEIGHT_IN_ROWS
-            setValues(list)
-        }
-
-        override fun createAddAction(): AnActionButtonRunnable? {
-            return null
-        }
-
-        override fun createRemoveAction(): AnActionButtonRunnable? {
-            return null
-        }
-
-        override fun createListModel(): ListTableModel<*> {
-            return ListTableModel<EnvironmentVariable>(MyNameColumnInfo(), MyValueColumnInfo())
-        }
-
-        private inner class MyNameColumnInfo : NameColumnInfo() {
-            override fun isCellEditable(environmentVariable: EnvironmentVariable?): Boolean {
-                return false
-            }
-        }
-
-        private inner class MyValueColumnInfo : ValueColumnInfo() {
-            private val myModifiedRenderer: DefaultTableCellRenderer = object : DefaultTableCellRenderer() {
-                override fun getTableCellRendererComponent(
-                    table: JTable?,
-                    value: Any?,
-                    isSelected: Boolean,
-                    hasFocus: Boolean,
-                    row: Int,
-                    column: Int,
-                ): Component {
-                    val component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
-                    component.font = component.font.deriveFont(Font.BOLD)
-                    if (!hasFocus && !isSelected) {
-                        component.foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
-                    }
-                    return component
-                }
-            }
-
-            override fun getCustomizedRenderer(o: EnvironmentVariable, renderer: TableCellRenderer): TableCellRenderer {
-                val showModified = if (onlyEmpty) {
-                    o.value != null
-                } else {
-                    environment.variables[o.name] != o.value
-                }
-
-                return if (showModified) myModifiedRenderer else renderer
-            }
-        }
+    private inner class MyNameColumnInfo : NameColumnInfo() {
+      override fun isCellEditable(environmentVariable: EnvironmentVariable?): Boolean {
+        return false
+      }
     }
+
+    private inner class MyValueColumnInfo : ValueColumnInfo() {
+      private val myModifiedRenderer: DefaultTableCellRenderer = object : DefaultTableCellRenderer() {
+        override fun getTableCellRendererComponent(
+          table: JTable?,
+          value: Any?,
+          isSelected: Boolean,
+          hasFocus: Boolean,
+          row: Int,
+          column: Int,
+        ): Component {
+          val component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column)
+          component.font = component.font.deriveFont(Font.BOLD)
+          if (!hasFocus && !isSelected) {
+            component.foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
+          }
+          return component
+        }
+      }
+
+      override fun getCustomizedRenderer(o: EnvironmentVariable, renderer: TableCellRenderer): TableCellRenderer {
+        val showModified = if (onlyEmpty) {
+          o.value != null
+        }
+        else {
+          environment.variables[o.name] != o.value
+        }
+
+        return if (showModified) myModifiedRenderer else renderer
+      }
+    }
+  }
 }

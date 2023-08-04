@@ -7,18 +7,18 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.Nullable;
 
 public class GraphQLCharFilter extends CharFilter {
-    @Override
-    public @Nullable Result acceptChar(char c, int prefixLength, Lookup lookup) {
-        PsiFile file = lookup.getPsiFile();
-        if (!(file instanceof GraphQLFile)) {
-            return null;
-        }
-
-        // not to complete an object field from shown popup when a fragment spread is typed
-        if (c == '.') {
-            return Result.HIDE_LOOKUP;
-        }
-
-        return null;
+  @Override
+  public @Nullable Result acceptChar(char c, int prefixLength, Lookup lookup) {
+    PsiFile file = lookup.getPsiFile();
+    if (!(file instanceof GraphQLFile)) {
+      return null;
     }
+
+    // not to complete an object field from shown popup when a fragment spread is typed
+    if (c == '.') {
+      return Result.HIDE_LOOKUP;
+    }
+
+    return null;
+  }
 }

@@ -15,8 +15,8 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GraphQLIntrospectionProjectViewNestingRulesProvider implements ProjectViewNestingRulesProvider {
 
-    @Override
-    public void addFileNestingRules(@NotNull Consumer consumer) {
-        consumer.addNestingRule(".json", ".json.graphql");
-    }
+  @Override
+  public void addFileNestingRules(@NotNull Consumer consumer) {
+    consumer.addNestingRule(".json", ".json.graphql");
+  }
 }

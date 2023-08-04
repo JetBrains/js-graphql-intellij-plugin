@@ -28,12 +28,12 @@ import static java.lang.String.format;
 @Internal
 public class OperationTypesMustBeObjects extends BaseError {
 
-    public OperationTypesMustBeObjects(OperationTypeDefinition op) {
-        super(op, format("The operation type '%s' should have an object type as its definition", op.getName()));
-    }
+  public OperationTypesMustBeObjects(OperationTypeDefinition op) {
+    super(op, format("The operation type '%s' should have an object type as its definition", op.getName()));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLUnexpectedTypeInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLUnexpectedTypeInspection.class;
+  }
 }

@@ -32,19 +32,19 @@ import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.simplePri
 public class VariableDefaultValuesOfCorrectType extends AbstractRule {
 
 
-    public VariableDefaultValuesOfCorrectType(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
-        super(validationContext, validationErrorCollector);
-    }
+  public VariableDefaultValuesOfCorrectType(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
+    super(validationContext, validationErrorCollector);
+  }
 
 
-    @Override
-    public void checkVariableDefinition(VariableDefinition variableDefinition) {
-        GraphQLInputType inputType = getValidationContext().getInputType();
-        if (inputType == null) return;
-        if (variableDefinition.getDefaultValue() != null
-                && !getValidationUtil().isValidLiteralValue(variableDefinition.getDefaultValue(), inputType, getValidationContext().getSchema())) {
-            String message = String.format("Bad default value %s for type %s", variableDefinition.getDefaultValue(), simplePrint(inputType));
-            addError(ValidationErrorType.BadValueForDefaultArg, variableDefinition.getSourceLocation(), message);
-        }
+  @Override
+  public void checkVariableDefinition(VariableDefinition variableDefinition) {
+    GraphQLInputType inputType = getValidationContext().getInputType();
+    if (inputType == null) return;
+    if (variableDefinition.getDefaultValue() != null
+        && !getValidationUtil().isValidLiteralValue(variableDefinition.getDefaultValue(), inputType, getValidationContext().getSchema())) {
+      String message = String.format("Bad default value %s for type %s", variableDefinition.getDefaultValue(), simplePrint(inputType));
+      addError(ValidationErrorType.BadValueForDefaultArg, variableDefinition.getSourceLocation(), message);
     }
+  }
 }

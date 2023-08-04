@@ -55,231 +55,233 @@ import javax.swing.tree.TreeSelectionModel
  * Tool window panel that shows the status of the GraphQL schemas discovered in the project.
  */
 class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
-    private val connection: MessageBusConnection = project.messageBus.connect(this)
-    private val schemaModificationTracker = GraphQLSchemaContentTracker.getInstance(project)
+  private val connection: MessageBusConnection = project.messageBus.connect(this)
+  private val schemaModificationTracker = GraphQLSchemaContentTracker.getInstance(project)
 
-    private lateinit var structure: GraphQLSchemaTreeStructure
-    private lateinit var model: StructureTreeModel<GraphQLSchemaTreeStructure>
-    private lateinit var tree: SimpleTree
+  private lateinit var structure: GraphQLSchemaTreeStructure
+  private lateinit var model: StructureTreeModel<GraphQLSchemaTreeStructure>
+  private lateinit var tree: SimpleTree
 
-    private val updateAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
+  private val updateAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
 
-    private val isInitialized = AtomicBoolean()
+  private val isInitialized = AtomicBoolean()
 
-    init {
-        layout = BorderLayout()
+  init {
+    layout = BorderLayout()
 
-        createTree()
-        add(createToolPanel(), BorderLayout.WEST)
-        add(createTreePanel(), BorderLayout.CENTER)
-    }
+    createTree()
+    add(createToolPanel(), BorderLayout.WEST)
+    add(createTreePanel(), BorderLayout.CENTER)
+  }
 
-    override fun dispose() {
-        // disposed by tool window
-    }
+  override fun dispose() {
+    // disposed by tool window
+  }
 
-    private fun createTreePanel(): Component {
-        structure = GraphQLSchemaTreeStructure(project)
-        model = StructureTreeModel(structure, this)
+  private fun createTreePanel(): Component {
+    structure = GraphQLSchemaTreeStructure(project)
+    model = StructureTreeModel(structure, this)
 
-        val asyncModel = AsyncTreeModel(model, this)
-        asyncModel.addTreeModelListener(AutoExpandSimpleNodeListener(tree))
-        tree.model = asyncModel
+    val asyncModel = AsyncTreeModel(model, this)
+    asyncModel.addTreeModelListener(AutoExpandSimpleNodeListener(tree))
+    tree.model = asyncModel
 
-        connection.subscribe(GraphQLSchemaContentChangeListener.TOPIC, object : GraphQLSchemaContentChangeListener {
-            override fun onSchemaChanged() {
-                updateTree()
+    connection.subscribe(GraphQLSchemaContentChangeListener.TOPIC, object : GraphQLSchemaContentChangeListener {
+      override fun onSchemaChanged() {
+        updateTree()
+      }
+    })
+
+    connection.subscribe(GraphQLConfigListener.TOPIC, object : GraphQLConfigListener {
+      override fun onConfigurationChanged() {
+        updateTree()
+      }
+    })
+
+    // update tree in response to indexing changes
+    connection.subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
+      override fun enteredDumbMode() {
+        updateTree()
+      }
+
+      override fun exitDumbMode() {
+        updateTree()
+      }
+    })
+
+    // "bold" the schema node that matches the edited file
+    connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
+      override fun selectionChanged(event: FileEditorManagerEvent) {
+        if (event.newFile == null) return
+
+        NonUrgentExecutor.getInstance().execute {
+          val paths = mutableSetOf<TreePath>()
+          var pathToExpand: TreePath? = null
+          TreeUtil.promiseVisit(tree) {
+            val userObject = TreeUtil.getLastUserObject(it)
+            if (userObject is GraphQLConfigSchemaNode) {
+              paths.add(it)
+              if (userObject.representsFile(event.newFile)) {
+                pathToExpand = it
+              }
             }
-        })
-
-        connection.subscribe(GraphQLConfigListener.TOPIC, object : GraphQLConfigListener {
-            override fun onConfigurationChanged() {
-                updateTree()
-            }
-        })
-
-        // update tree in response to indexing changes
-        connection.subscribe(DumbService.DUMB_MODE, object : DumbService.DumbModeListener {
-            override fun enteredDumbMode() {
-                updateTree()
-            }
-
-            override fun exitDumbMode() {
-                updateTree()
-            }
-        })
-
-        // "bold" the schema node that matches the edited file
-        connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-            override fun selectionChanged(event: FileEditorManagerEvent) {
-                if (event.newFile == null) return
-
-                NonUrgentExecutor.getInstance().execute {
-                    val paths = mutableSetOf<TreePath>()
-                    var pathToExpand: TreePath? = null
-                    TreeUtil.promiseVisit(tree) {
-                        val userObject = TreeUtil.getLastUserObject(it)
-                        if (userObject is GraphQLConfigSchemaNode) {
-                            paths.add(it)
-                            if (userObject.representsFile(event.newFile)) {
-                                pathToExpand = it
-                            }
-                        }
-                        TreeVisitor.Action.CONTINUE
-                    }.onSuccess {
-                        paths.forEach {
-                            model.invalidate(it, false)
-                        }
-
-                        if (pathToExpand != null) {
-                            tree.expandPath(pathToExpand)
-                        }
-                    }
-                }
-            }
-        })
-
-        connection.subscribe(ProfileChangeAdapter.TOPIC, object : ProfileChangeAdapter {
-            override fun profileChanged(profile: InspectionProfile) {
-                updateTree()
-            }
-        })
-
-        return JBScrollPane(tree).apply { border = IdeBorderFactory.createBorder(SideBorder.LEFT) }
-    }
-
-    private fun createTree() {
-        tree = object : SimpleTree() {
-            // tree implementation which only show selection when focused to prevent selection flash during updates (editor changes)
-            override fun isRowSelected(i: Int): Boolean {
-                return hasFocus() && super.isRowSelected(i)
+            TreeVisitor.Action.CONTINUE
+          }.onSuccess {
+            paths.forEach {
+              model.invalidate(it, false)
             }
 
-            override fun isPathSelected(treePath: TreePath): Boolean {
-                return hasFocus() && super.isPathSelected(treePath)
+            if (pathToExpand != null) {
+              tree.expandPath(pathToExpand)
             }
+          }
         }
-        tree.emptyText.setText(GraphQLBundle.message("graphql.tool.window.discovery.not.completed"))
-        tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
-        tree.isRootVisible = false
-        tree.showsRootHandles = true
-        tree.isLargeModel = true
+      }
+    })
 
-        TreeUtil.installActions(tree)
-        TreeSpeedSearch(tree)
+    connection.subscribe(ProfileChangeAdapter.TOPIC, object : ProfileChangeAdapter {
+      override fun profileChanged(profile: InspectionProfile) {
+        updateTree()
+      }
+    })
 
-        tree.addMouseListener(object : PopupHandler() {
-            override fun invokePopup(comp: Component?, x: Int, y: Int) {
-                tree.getClosestPathForLocation(x, y)
-                    ?.let { tree.getNodeFor(it) as? GraphQLSchemaContextMenuNode }
-                    ?.handleContextMenu(comp, x, y)
-            }
-        })
+    return JBScrollPane(tree).apply { border = IdeBorderFactory.createBorder(SideBorder.LEFT) }
+  }
+
+  private fun createTree() {
+    tree = object : SimpleTree() {
+      // tree implementation which only show selection when focused to prevent selection flash during updates (editor changes)
+      override fun isRowSelected(i: Int): Boolean {
+        return hasFocus() && super.isRowSelected(i)
+      }
+
+      override fun isPathSelected(treePath: TreePath): Boolean {
+        return hasFocus() && super.isPathSelected(treePath)
+      }
     }
+    tree.emptyText.setText(GraphQLBundle.message("graphql.tool.window.discovery.not.completed"))
+    tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+    tree.isRootVisible = false
+    tree.showsRootHandles = true
+    tree.isLargeModel = true
 
-    private fun createToolPanel(): Component {
-        val actionManager = ActionManager.getInstance()
-        val group = DefaultActionGroup()
+    TreeUtil.installActions(tree)
+    TreeSpeedSearch(tree)
 
-        group.add(object : AnAction(
-            "Add Schema Configuration",
-            "Adds a new GraphQL configuration file",
-            AllIcons.General.Add
-        ) {
-            override fun actionPerformed(e: AnActionEvent) {
-                val dialog = TreeDirectoryChooserDialog(project, "Select GraphQL Schema Base Directory")
-                if (dialog.showAndGet()) {
-                    val selectedDirectory = dialog.selectedDirectory
-                    if (selectedDirectory != null) {
-                        val configFactory = GraphQLConfigFactory.getInstance(project)
-                        configFactory.createAndOpenConfigFile(selectedDirectory, true)
-                    }
-                }
-            }
-        })
+    tree.addMouseListener(object : PopupHandler() {
+      override fun invokePopup(comp: Component?, x: Int, y: Int) {
+        tree.getClosestPathForLocation(x, y)
+          ?.let { tree.getNodeFor(it) as? GraphQLSchemaContextMenuNode }
+          ?.handleContextMenu(comp, x, y)
+      }
+    })
+  }
 
-        group.add(object : AnAction(
-            "Edit Selected Schema Configuration",
-            "Opens the GraphQL config file for the selected schema",
-            AllIcons.General.Settings
-        ) {
-            override fun actionPerformed(e: AnActionEvent) {
-                val selectedSchemaNode = selectedSchemaNode
-                if (selectedSchemaNode != null) {
-                    val configFile = selectedSchemaNode.configFile
-                    if (configFile != null) {
-                        FileEditorManager.getInstance(project).openFile(configFile, true)
-                    }
-                }
-            }
+  private fun createToolPanel(): Component {
+    val actionManager = ActionManager.getInstance()
+    val group = DefaultActionGroup()
 
-            override fun update(e: AnActionEvent) {
-                e.presentation.isEnabled = selectedSchemaNode != null
-            }
-
-            override fun getActionUpdateThread(): ActionUpdateThread {
-                return ActionUpdateThread.EDT
-            }
-
-            private val selectedSchemaNode: GraphQLConfigSchemaNode?
-                get() {
-                    var node = tree.selectedNode
-                    while (node != null) {
-                        if (node is GraphQLConfigSchemaNode) {
-                            return node
-                        }
-                        node = node.parent
-                    }
-                    return null
-                }
-        })
-
-        actionManager.getAction(GraphQLRestartSchemaDiscoveryAction.ACTION_ID)?.let {
-            group.add(it)
+    group.add(object : AnAction(
+      "Add Schema Configuration",
+      "Adds a new GraphQL configuration file",
+      AllIcons.General.Add
+    ) {
+      override fun actionPerformed(e: AnActionEvent) {
+        val dialog = TreeDirectoryChooserDialog(project, "Select GraphQL Schema Base Directory")
+        if (dialog.showAndGet()) {
+          val selectedDirectory = dialog.selectedDirectory
+          if (selectedDirectory != null) {
+            val configFactory = GraphQLConfigFactory.getInstance(project)
+            configFactory.createAndOpenConfigFile(selectedDirectory, true)
+          }
         }
+      }
+    })
 
-        group.add(object : AnAction(
-            "Help",
-            "Open the GraphQL plugin documentation",
-            AllIcons.Actions.Help
-        ) {
-            override fun actionPerformed(e: AnActionEvent) {
-                BrowserUtil.browse("https://github.com/JetBrains/js-graphql-intellij-plugin")
+    group.add(object : AnAction(
+      "Edit Selected Schema Configuration",
+      "Opens the GraphQL config file for the selected schema",
+      AllIcons.General.Settings
+    ) {
+      override fun actionPerformed(e: AnActionEvent) {
+        val selectedSchemaNode = selectedSchemaNode
+        if (selectedSchemaNode != null) {
+          val configFile = selectedSchemaNode.configFile
+          if (configFile != null) {
+            FileEditorManager.getInstance(project).openFile(configFile, true)
+          }
+        }
+      }
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = selectedSchemaNode != null
+      }
+
+      override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.EDT
+      }
+
+      private val selectedSchemaNode: GraphQLConfigSchemaNode?
+        get() {
+          var node = tree.selectedNode
+          while (node != null) {
+            if (node is GraphQLConfigSchemaNode) {
+              return node
             }
-        })
+            node = node.parent
+          }
+          return null
+        }
+    })
 
-        val actionsManager = CommonActionsManager.getInstance()
-        val treeExpander = DefaultTreeExpander(tree);
-        group.addSeparator()
-        group.add(actionsManager.createExpandAllAction(treeExpander, tree));
-        group.add(actionsManager.createCollapseAllAction(treeExpander, tree));
-
-        val toolbar =
-            actionManager.createActionToolbar(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_TOOLBAR, group, false)
-        toolbar.targetComponent = this
-        return toolbar.component
+    actionManager.getAction(GraphQLRestartSchemaDiscoveryAction.ACTION_ID)?.let {
+      group.add(it)
     }
 
-    private fun updateTree() {
-        val startVersion = schemaModificationTracker.modificationCount
+    group.add(object : AnAction(
+      "Help",
+      "Open the GraphQL plugin documentation",
+      AllIcons.Actions.Help
+    ) {
+      override fun actionPerformed(e: AnActionEvent) {
+        BrowserUtil.browse("https://github.com/JetBrains/js-graphql-intellij-plugin")
+      }
+    })
 
-        updateAlarm.cancelAllRequests()
-        updateAlarm.addRequest({
-            // run the schema discovery on a pooled to prevent blocking of the UI thread by asking the nodes for heir child nodes
-            // the schema caches will be ready when the UI thread then needs to show the tree nodes
-            if (project.isDisposed) {
-                return@addRequest
-            }
+    val actionsManager = CommonActionsManager.getInstance()
+    val treeExpander = DefaultTreeExpander(tree);
+    group.addSeparator()
+    group.add(actionsManager.createExpandAllAction(treeExpander, tree));
+    group.add(actionsManager.createCollapseAllAction(treeExpander, tree));
 
-            try {
-                val currentVersion = schemaModificationTracker.modificationCount
-                if (isInitialized.compareAndSet(false, true) || startVersion == currentVersion) {
-                    model.invalidate()
-                }
-            } catch (ignored: IndexNotReadyException) {
-                // allowed to happen here -- retry will run later
-            } catch (ignored: ProcessCanceledException) {
-            }
-        }, 750, ModalityState.stateForComponent(this))
-    }
+    val toolbar =
+      actionManager.createActionToolbar(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_TOOLBAR, group, false)
+    toolbar.targetComponent = this
+    return toolbar.component
+  }
+
+  private fun updateTree() {
+    val startVersion = schemaModificationTracker.modificationCount
+
+    updateAlarm.cancelAllRequests()
+    updateAlarm.addRequest({
+                             // run the schema discovery on a pooled to prevent blocking of the UI thread by asking the nodes for heir child nodes
+                             // the schema caches will be ready when the UI thread then needs to show the tree nodes
+                             if (project.isDisposed) {
+                               return@addRequest
+                             }
+
+                             try {
+                               val currentVersion = schemaModificationTracker.modificationCount
+                               if (isInitialized.compareAndSet(false, true) || startVersion == currentVersion) {
+                                 model.invalidate()
+                               }
+                             }
+                             catch (ignored: IndexNotReadyException) {
+                               // allowed to happen here -- retry will run later
+                             }
+                             catch (ignored: ProcessCanceledException) {
+                             }
+                           }, 750, ModalityState.stateForComponent(this))
+  }
 }

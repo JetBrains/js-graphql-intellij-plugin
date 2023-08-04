@@ -27,19 +27,19 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
  */
 @PublicApi
 public class DelegatingSubscription implements Subscription {
-    private final Subscription upstreamSubscription;
+  private final Subscription upstreamSubscription;
 
-    public DelegatingSubscription(Subscription upstreamSubscription) {
-        this.upstreamSubscription = assertNotNull(upstreamSubscription);
-    }
+  public DelegatingSubscription(Subscription upstreamSubscription) {
+    this.upstreamSubscription = assertNotNull(upstreamSubscription);
+  }
 
-    @Override
-    public void request(long n) {
-        upstreamSubscription.request(n);
-    }
+  @Override
+  public void request(long n) {
+    upstreamSubscription.request(n);
+  }
 
-    @Override
-    public void cancel() {
-        upstreamSubscription.cancel();
-    }
+  @Override
+  public void cancel() {
+    upstreamSubscription.cancel();
+  }
 }

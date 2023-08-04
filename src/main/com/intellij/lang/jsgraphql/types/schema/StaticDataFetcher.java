@@ -28,15 +28,14 @@ import com.intellij.lang.jsgraphql.types.TrivialDataFetcher;
 public class StaticDataFetcher implements DataFetcher, TrivialDataFetcher {
 
 
-    private final Object value;
+  private final Object value;
 
-    public StaticDataFetcher(Object value) {
-        this.value = value;
-    }
+  public StaticDataFetcher(Object value) {
+    this.value = value;
+  }
 
-    @Override
-    public Object get(DataFetchingEnvironment environment) {
-        return value;
-    }
-
+  @Override
+  public Object get(DataFetchingEnvironment environment) {
+    return value;
+  }
 }

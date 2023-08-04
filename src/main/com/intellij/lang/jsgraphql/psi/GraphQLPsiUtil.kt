@@ -20,88 +20,88 @@ import com.intellij.util.SmartList
 
 
 fun findContainingTypeNameIdentifier(psiElement: PsiElement?): PsiElement? {
-    if (psiElement == null) {
-        return null
-    }
-    val typeOwner = PsiTreeUtil.getParentOfType(
-        psiElement,
-        GraphQLNamedTypeDefinition::class.java,
-        GraphQLNamedTypeExtension::class.java
-    )
+  if (psiElement == null) {
+    return null
+  }
+  val typeOwner = PsiTreeUtil.getParentOfType(
+    psiElement,
+    GraphQLNamedTypeDefinition::class.java,
+    GraphQLNamedTypeExtension::class.java
+  )
 
-    return when (typeOwner) {
-        is GraphQLNamedTypeDefinition -> typeOwner.typeNameDefinition?.nameIdentifier
-        is GraphQLNamedTypeExtension -> typeOwner.typeName?.nameIdentifier
-        else -> null
-    }
+  return when (typeOwner) {
+    is GraphQLNamedTypeDefinition -> typeOwner.typeNameDefinition?.nameIdentifier
+    is GraphQLNamedTypeExtension -> typeOwner.typeName?.nameIdentifier
+    else -> null
+  }
 }
 
 fun findContainingTypeName(psiElement: PsiElement?): String? =
-    findContainingTypeNameIdentifier(psiElement)?.text
+  findContainingTypeNameIdentifier(psiElement)?.text
 
 fun getOriginalVirtualFile(psiFile: PsiFile?): VirtualFile? {
-    if (psiFile == null || !psiFile.isValid) {
-        return null
+  if (psiFile == null || !psiFile.isValid) {
+    return null
+  }
+  var file = psiFile.virtualFile
+  if (file == null) {
+    val originalFile = psiFile.originalFile
+    if (originalFile !== psiFile && originalFile.isValid) {
+      file = originalFile.virtualFile
     }
-    var file = psiFile.virtualFile
-    if (file == null) {
-        val originalFile = psiFile.originalFile
-        if (originalFile !== psiFile && originalFile.isValid) {
-            file = originalFile.virtualFile
-        }
-    }
-    return file
+  }
+  return file
 }
 
 fun getPhysicalVirtualFile(virtualFile: VirtualFile?): VirtualFile? {
-    var result = virtualFile ?: return null
-    if (result is LightVirtualFile) {
-        val originalFile = result.originalFile
-        if (originalFile != null) {
-            result = originalFile
-        }
+  var result = virtualFile ?: return null
+  if (result is LightVirtualFile) {
+    val originalFile = result.originalFile
+    if (originalFile != null) {
+      result = originalFile
     }
-    if (result is VirtualFileWindow) {
-        // injected virtual files
-        result = (result as VirtualFileWindow).delegate
-    }
-    return result
+  }
+  if (result is VirtualFileWindow) {
+    // injected virtual files
+    result = (result as VirtualFileWindow).delegate
+  }
+  return result
 }
 
 fun getPhysicalVirtualFile(psiFile: PsiFile?): VirtualFile? {
-    return getPhysicalVirtualFile(getOriginalVirtualFile(psiFile))
+  return getPhysicalVirtualFile(getOriginalVirtualFile(psiFile))
 }
 
 /**
  * Gets the virtual file system path of a PSI file
  */
 fun getPhysicalFileName(psiFile: PsiFile): String {
-    val virtualFile = getPhysicalVirtualFile(psiFile)
-    return virtualFile?.path ?: psiFile.name
+  val virtualFile = getPhysicalVirtualFile(psiFile)
+  return virtualFile?.path ?: psiFile.name
 }
 
 fun getLeadingFileComments(file: PsiFile): List<PsiComment> {
-    val comments: MutableList<PsiComment> = SmartList()
-    var child = file.firstChild
-    if (child is PsiWhiteSpace) {
-        child = PsiTreeUtil.skipWhitespacesForward(child)
-    }
-    while (child is PsiComment) {
-        comments.add(child)
-        child = PsiTreeUtil.skipWhitespacesForward(child)
-    }
-    return comments
+  val comments: MutableList<PsiComment> = SmartList()
+  var child = file.firstChild
+  if (child is PsiWhiteSpace) {
+    child = PsiTreeUtil.skipWhitespacesForward(child)
+  }
+  while (child is PsiComment) {
+    comments.add(child)
+    child = PsiTreeUtil.skipWhitespacesForward(child)
+  }
+  return comments
 }
 
 fun skipDescription(element: PsiElement): PsiElement {
-    if (element is GraphQLDescriptionAware) {
-        val description = element.description
-        if (description != null) {
-            val target = PsiTreeUtil.skipWhitespacesForward(description)
-            if (target != null) {
-                return target
-            }
-        }
+  if (element is GraphQLDescriptionAware) {
+    val description = element.description
+    if (description != null) {
+      val target = PsiTreeUtil.skipWhitespacesForward(description)
+      if (target != null) {
+        return target
+      }
     }
-    return element
+  }
+  return element
 }

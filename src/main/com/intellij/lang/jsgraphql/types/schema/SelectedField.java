@@ -28,74 +28,74 @@ import java.util.Map;
  */
 @PublicApi
 public interface SelectedField {
-    /**
-     * @return the simple name of the selected field
-     */
-    String getName();
+  /**
+   * @return the simple name of the selected field
+   */
+  String getName();
 
-    /**
-     * The selected field has a simple qualified name which is the path of field names to it.
-     * For example `payments/amount`.
-     *
-     * @return the simple qualified name of the selected field
-     */
-    String getQualifiedName();
+  /**
+   * The selected field has a simple qualified name which is the path of field names to it.
+   * For example `payments/amount`.
+   *
+   * @return the simple qualified name of the selected field
+   */
+  String getQualifiedName();
 
-    /**
-     * The selected field has a more complex type qualified name which is the path of field names to it
-     * as well as the object type of the parent.  For example `Invoice.payments/Payment.amount`
-     *
-     * @return the fully qualified name of the selected field
-     */
-    String getFullyQualifiedName();
+  /**
+   * The selected field has a more complex type qualified name which is the path of field names to it
+   * as well as the object type of the parent.  For example `Invoice.payments/Payment.amount`
+   *
+   * @return the fully qualified name of the selected field
+   */
+  String getFullyQualifiedName();
 
-    /**
-     * @return the containing object type of this selected field
-     */
-    GraphQLObjectType getObjectType();
+  /**
+   * @return the containing object type of this selected field
+   */
+  GraphQLObjectType getObjectType();
 
-    /**
-     * @return the field runtime definition
-     */
-    GraphQLFieldDefinition getFieldDefinition();
+  /**
+   * @return the field runtime definition
+   */
+  GraphQLFieldDefinition getFieldDefinition();
 
-    /**
-     * @return a map of the arguments to this selected field
-     */
-    Map<String, Object> getArguments();
+  /**
+   * @return a map of the arguments to this selected field
+   */
+  Map<String, Object> getArguments();
 
-    /**
-     * @return the level of the selected field within the query
-     */
-    int getLevel();
+  /**
+   * @return the level of the selected field within the query
+   */
+  int getLevel();
 
-    /**
-     * @return whether the field is conditionally present.
-     */
-    boolean isConditional();
+  /**
+   * @return whether the field is conditionally present.
+   */
+  boolean isConditional();
 
-    /**
-     * @return the alias of the selected field or null if not alias was used
-     */
-    String getAlias();
+  /**
+   * @return the alias of the selected field or null if not alias was used
+   */
+  String getAlias();
 
-    /**
-     * The result key is either the field query alias OR the field name in that preference order
-     *
-     * @return the result key of the selected field
-     */
-    String getResultKey();
+  /**
+   * The result key is either the field query alias OR the field name in that preference order
+   *
+   * @return the result key of the selected field
+   */
+  String getResultKey();
 
-    /**
-     * This will return the parent of the selected field OR null if there is no single parent, it that field
-     * was a top level field OR the parent was a non concrete field.
-     *
-     * @return the fields selected parent or null if there is not one
-     */
-    SelectedField getParentField();
+  /**
+   * This will return the parent of the selected field OR null if there is no single parent, it that field
+   * was a top level field OR the parent was a non concrete field.
+   *
+   * @return the fields selected parent or null if there is not one
+   */
+  SelectedField getParentField();
 
-    /**
-     * @return a sub selection set (if it has any)
-     */
-    DataFetchingFieldSelectionSet getSelectionSet();
+  /**
+   * @return a sub selection set (if it has any)
+   */
+  DataFetchingFieldSelectionSet getSelectionSet();
 }

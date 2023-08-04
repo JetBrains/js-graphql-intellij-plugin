@@ -27,102 +27,106 @@ import java.util.List;
 
 public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
 
-    protected static final List<Class<? extends LocalInspectionTool>> ourGeneralInspections = Lists.newArrayList(
-        GraphQLUnresolvedReferenceInspection.class
-    );
+  protected static final List<Class<? extends LocalInspectionTool>> ourGeneralInspections = Lists.newArrayList(
+    GraphQLUnresolvedReferenceInspection.class
+  );
 
-    // fake inspections for graphql-java validation
-    protected static final List<Class<? extends LocalInspectionTool>> ourSchemaInspections = Lists.newArrayList(
-        GraphQLSchemaValidationInspection.class,
-        GraphQLTypeRedefinitionInspection.class,
-        GraphQLUnexpectedTypeInspection.class,
-        GraphQLMemberRedefinitionInspection.class,
-        GraphQLIllegalNameInspection.class,
-        GraphQLDuplicateArgumentInspection.class,
-        GraphQLEmptyTypeInspection.class,
-        GraphQLInterfaceImplementationInspection.class,
-        GraphQLDuplicateDirectiveInspection.class,
-        GraphQLMissingTypeInspection.class,
-        GraphQLIllegalDirectiveArgumentInspection.class,
-        GraphQLInvalidDirectiveLocationInspection.class
-    );
+  // fake inspections for graphql-java validation
+  protected static final List<Class<? extends LocalInspectionTool>> ourSchemaInspections = Lists.newArrayList(
+    GraphQLSchemaValidationInspection.class,
+    GraphQLTypeRedefinitionInspection.class,
+    GraphQLUnexpectedTypeInspection.class,
+    GraphQLMemberRedefinitionInspection.class,
+    GraphQLIllegalNameInspection.class,
+    GraphQLDuplicateArgumentInspection.class,
+    GraphQLEmptyTypeInspection.class,
+    GraphQLInterfaceImplementationInspection.class,
+    GraphQLDuplicateDirectiveInspection.class,
+    GraphQLMissingTypeInspection.class,
+    GraphQLIllegalDirectiveArgumentInspection.class,
+    GraphQLInvalidDirectiveLocationInspection.class
+  );
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
 
-        GraphQLLibraryManager.LIBRARIES_ENABLED = true;
-        GraphQLLibraryManager.getInstance(getProject()).notifyLibrariesChanged();
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-        Disposer.register(getTestRootDisposable(), () -> {
-            GraphQLLibraryManager.LIBRARIES_ENABLED = false;
-        });
+    GraphQLLibraryManager.LIBRARIES_ENABLED = true;
+    GraphQLLibraryManager.getInstance(getProject()).notifyLibrariesChanged();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    Disposer.register(getTestRootDisposable(), () -> {
+      GraphQLLibraryManager.LIBRARIES_ENABLED = false;
+    });
+  }
+
+  @Override
+  protected final String getTestDataPath() {
+    return GraphQLTestUtils.getTestDataPath(getBasePath());
+  }
+
+  protected void reloadConfiguration() {
+    ApplicationManager.getApplication().assertIsDispatchThread();
+    GraphQLConfigProvider.getInstance(getProject()).scheduleConfigurationReload();
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+  }
+
+  protected void copyProject() {
+    myFixture.copyDirectoryToProject(getTestName(true), "");
+    reloadConfiguration();
+  }
+
+  protected void doHighlightingTest() {
+    doHighlightingTest("graphql");
+  }
+
+  protected void doHighlightingTest(@NotNull String ext) {
+    myFixture.configureByFile(getTestName(false) + "." + ext);
+    myFixture.checkHighlighting();
+  }
+
+  protected final void enableAllInspections() {
+    myFixture.enableInspections(ourGeneralInspections);
+    myFixture.enableInspections(ourSchemaInspections);
+  }
+
+  @NotNull
+  protected String readFileAsString(@NotNull VirtualFile file) {
+    try {
+      return StringUtil.convertLineSeparators(VfsUtil.loadText(file));
     }
-
-    @Override
-    protected final String getTestDataPath() {
-        return GraphQLTestUtils.getTestDataPath(getBasePath());
+    catch (IOException e) {
+      throw new RuntimeException(e);
     }
+  }
 
-    protected void reloadConfiguration() {
-        ApplicationManager.getApplication().assertIsDispatchThread();
-        GraphQLConfigProvider.getInstance(getProject()).scheduleConfigurationReload();
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+  protected void assertNamedElement(@Nullable PsiElement element,
+                                    @NotNull Class<? extends PsiElement> expectedClass,
+                                    @NotNull String expectedName) {
+    assertInstanceOf(element, expectedClass);
+
+    PsiNamedElement namedElement;
+    if (element instanceof GraphQLNamedTypeDefinition) {
+      namedElement = ((GraphQLNamedTypeDefinition)element).getTypeNameDefinition();
     }
-
-    protected void copyProject() {
-        myFixture.copyDirectoryToProject(getTestName(true), "");
-        reloadConfiguration();
+    else if (element instanceof GraphQLNamedTypeExtension) {
+      namedElement = ((GraphQLNamedTypeExtension)element).getTypeName();
     }
-
-    protected void doHighlightingTest() {
-        doHighlightingTest("graphql");
+    else if (element instanceof GraphQLDirectiveDefinition) {
+      // for some reason elements which are supposed to implement PsiNamedElement don't implement it
+      // GraphQLIdentifier interface also doesn't, so we need this explicit downcast to the GraphQLIdentifierImpl
+      namedElement = ((GraphQLIdentifierImpl)((GraphQLDirectiveDefinition)element).getNameIdentifier());
     }
-
-    protected void doHighlightingTest(@NotNull String ext) {
-        myFixture.configureByFile(getTestName(false) + "." + ext);
-        myFixture.checkHighlighting();
+    else {
+      assertInstanceOf(element, PsiNamedElement.class);
+      namedElement = (PsiNamedElement)element;
     }
+    assertNotNull(namedElement);
+    assertEquals(expectedName, namedElement.getName());
+  }
 
-    protected final void enableAllInspections() {
-        myFixture.enableInspections(ourGeneralInspections);
-        myFixture.enableInspections(ourSchemaInspections);
-    }
-
-    @NotNull
-    protected String readFileAsString(@NotNull VirtualFile file) {
-        try {
-            return StringUtil.convertLineSeparators(VfsUtil.loadText(file));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    protected void assertNamedElement(@Nullable PsiElement element,
-                                      @NotNull Class<? extends PsiElement> expectedClass,
-                                      @NotNull String expectedName) {
-        assertInstanceOf(element, expectedClass);
-
-        PsiNamedElement namedElement;
-        if (element instanceof GraphQLNamedTypeDefinition) {
-            namedElement = ((GraphQLNamedTypeDefinition) element).getTypeNameDefinition();
-        } else if (element instanceof GraphQLNamedTypeExtension) {
-            namedElement = ((GraphQLNamedTypeExtension) element).getTypeName();
-        } else if (element instanceof GraphQLDirectiveDefinition) {
-            // for some reason elements which are supposed to implement PsiNamedElement don't implement it
-            // GraphQLIdentifier interface also doesn't, so we need this explicit downcast to the GraphQLIdentifierImpl
-            namedElement = ((GraphQLIdentifierImpl) ((GraphQLDirectiveDefinition) element).getNameIdentifier());
-        } else {
-            assertInstanceOf(element, PsiNamedElement.class);
-            namedElement = (PsiNamedElement) element;
-        }
-        assertNotNull(namedElement);
-        assertEquals(expectedName, namedElement.getName());
-    }
-
-    protected void assertContainingDefinition(@Nullable PsiElement element,
-                                              @NotNull Class<? extends PsiElement> expectedClass,
-                                              @NotNull String expectedName) {
-        assertNamedElement(GraphQLResolveUtil.findContainingDefinition(element), expectedClass, expectedName);
-    }
+  protected void assertContainingDefinition(@Nullable PsiElement element,
+                                            @NotNull Class<? extends PsiElement> expectedClass,
+                                            @NotNull String expectedName) {
+    assertNamedElement(GraphQLResolveUtil.findContainingDefinition(element), expectedClass, expectedName);
+  }
 }

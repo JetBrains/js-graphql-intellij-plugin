@@ -9,13 +9,13 @@ import org.jetbrains.annotations.Nullable;
 import static java.lang.String.format;
 
 public class DirectiveNonRepeatableError extends BaseError {
-    public DirectiveNonRepeatableError(@NotNull Directive directive) {
-        super(directive,
-            format("The directive '%s' should be defined as repeatable if its repeated on an SDL element", directive.getName()));
-    }
+  public DirectiveNonRepeatableError(@NotNull Directive directive) {
+    super(directive,
+          format("The directive '%s' should be defined as repeatable if its repeated on an SDL element", directive.getName()));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLDuplicateDirectiveInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLDuplicateDirectiveInspection.class;
+  }
 }

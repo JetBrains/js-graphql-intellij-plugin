@@ -35,73 +35,78 @@ import static com.intellij.lang.jsgraphql.types.scalar.CoercingUtil.typeName;
 @Internal
 public class GraphqlLongCoercing implements Coercing<Long, Long> {
 
-    private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
-    private static final BigInteger LONG_MIN = BigInteger.valueOf(Long.MIN_VALUE);
+  private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
+  private static final BigInteger LONG_MIN = BigInteger.valueOf(Long.MIN_VALUE);
 
-    private Long convertImpl(Object input) {
-        if (input instanceof Long) {
-            return (Long) input;
-        } else if (isNumberIsh(input)) {
-            BigDecimal value;
-            try {
-                value = new BigDecimal(input.toString());
-            } catch (NumberFormatException e) {
-                return null;
-            }
-            try {
-                return value.longValueExact();
-            } catch (ArithmeticException e) {
-                return null;
-            }
-        } else {
-            return null;
-        }
-
+  private Long convertImpl(Object input) {
+    if (input instanceof Long) {
+      return (Long)input;
     }
-
-    @Override
-    public Long serialize(Object input) {
-        Long result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingSerializeException(
-                    "Expected type 'Long' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+    else if (isNumberIsh(input)) {
+      BigDecimal value;
+      try {
+        value = new BigDecimal(input.toString());
+      }
+      catch (NumberFormatException e) {
+        return null;
+      }
+      try {
+        return value.longValueExact();
+      }
+      catch (ArithmeticException e) {
+        return null;
+      }
     }
-
-    @Override
-    public Long parseValue(Object input) {
-        Long result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingParseValueException(
-                    "Expected type 'Long' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+    else {
+      return null;
     }
+  }
 
-    @Override
-    public Long parseLiteral(Object input) {
-        if (input instanceof StringValue) {
-            try {
-                return Long.parseLong(((StringValue) input).getValue());
-            } catch (NumberFormatException e) {
-                throw new CoercingParseLiteralException(
-                        "Expected value to be a Long but it was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'"
-                );
-            }
-        } else if (input instanceof IntValue) {
-            BigInteger value = ((IntValue) input).getValue();
-            if (value.compareTo(LONG_MIN) < 0 || value.compareTo(LONG_MAX) > 0) {
-                throw new CoercingParseLiteralException(
-                        "Expected value to be in the Long range but it was '" + value + "'"
-                );
-            }
-            return value.longValue();
-        }
+  @Override
+  public Long serialize(Object input) {
+    Long result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingSerializeException(
+        "Expected type 'Long' but was '" + typeName(input) + "'."
+      );
+    }
+    return result;
+  }
+
+  @Override
+  public Long parseValue(Object input) {
+    Long result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingParseValueException(
+        "Expected type 'Long' but was '" + typeName(input) + "'."
+      );
+    }
+    return result;
+  }
+
+  @Override
+  public Long parseLiteral(Object input) {
+    if (input instanceof StringValue) {
+      try {
+        return Long.parseLong(((StringValue)input).getValue());
+      }
+      catch (NumberFormatException e) {
         throw new CoercingParseLiteralException(
-                "Expected type 'Int' or 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
+          "Expected value to be a Long but it was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'"
         );
+      }
     }
+    else if (input instanceof IntValue) {
+      BigInteger value = ((IntValue)input).getValue();
+      if (value.compareTo(LONG_MIN) < 0 || value.compareTo(LONG_MAX) > 0) {
+        throw new CoercingParseLiteralException(
+          "Expected value to be in the Long range but it was '" + value + "'"
+        );
+      }
+      return value.longValue();
+    }
+    throw new CoercingParseLiteralException(
+      "Expected type 'Int' or 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
+    );
+  }
 }

@@ -26,67 +26,70 @@ import java.awt.event.InputEvent
  * Tree node for an error in a GraphQL schema
  */
 class GraphQLSchemaErrorNode(parent: SimpleNode?, private val error: GraphQLError) : CachingSimpleNode(parent) {
-    init {
-        myName = error.message
+  init {
+    myName = error.message
 
-        val location = location
-        if (location != null) {
-            val tooltip = getTooltip(location)
-            if (tooltip != null) {
-                templatePresentation.tooltip = tooltip
-            }
-        } else if (error is GraphQLUnexpectedSchemaError) {
-            templatePresentation.locationString = " - double click to open stack trace"
-        }
-
-        setIconFromError(error)
+    val location = location
+    if (location != null) {
+      val tooltip = getTooltip(location)
+      if (tooltip != null) {
+        templatePresentation.tooltip = tooltip
+      }
+    }
+    else if (error is GraphQLUnexpectedSchemaError) {
+      templatePresentation.locationString = " - double click to open stack trace"
     }
 
-    private fun setIconFromError(error: GraphQLError) {
-        var icon = HighlightDisplayLevel.ERROR.icon
-        val node = error.node
-        if (project != null && error.inspectionClass != null && node != null) {
-            val element = node.element
-            if (element != null) {
-                icon = GraphQLInspection.getHighlightDisplayLevel(error.inspectionClass!!, element).icon
-            }
-        }
-        setIcon(icon)
+    setIconFromError(error)
+  }
+
+  private fun setIconFromError(error: GraphQLError) {
+    var icon = HighlightDisplayLevel.ERROR.icon
+    val node = error.node
+    if (project != null && error.inspectionClass != null && node != null) {
+      val element = node.element
+      if (element != null) {
+        icon = GraphQLInspection.getHighlightDisplayLevel(error.inspectionClass!!, element).icon
+      }
+    }
+    setIcon(icon)
+  }
+
+  override fun handleDoubleClickOrEnter(tree: SimpleTree, inputEvent: InputEvent) {
+    val location = location
+    if (location != null && location.sourceName != null) {
+      openSourceLocation(myProject, location, false)
+    }
+    else if (error is GraphQLUnexpectedSchemaError) {
+      val stackTrace = ExceptionUtil.getThrowableText(error.exception)
+      val file = PsiFileFactory.getInstance(myProject)
+        .createFileFromText("graphql-error.txt", PlainTextLanguage.INSTANCE, stackTrace)
+      OpenFileDescriptor(myProject, file.virtualFile).navigate(true)
+    }
+  }
+
+  public override fun buildChildren(): Array<SimpleNode> {
+    return NO_CHILDREN
+  }
+
+  override fun isAlwaysLeaf(): Boolean {
+    return true
+  }
+
+  private val location: SourceLocation?
+    get() {
+      val locations = error.locations
+      return if (locations != null && locations.isNotEmpty()) locations[0] else null
     }
 
-    override fun handleDoubleClickOrEnter(tree: SimpleTree, inputEvent: InputEvent) {
-        val location = location
-        if (location != null && location.sourceName != null) {
-            openSourceLocation(myProject, location, false)
-        } else if (error is GraphQLUnexpectedSchemaError) {
-            val stackTrace = ExceptionUtil.getThrowableText(error.exception)
-            val file = PsiFileFactory.getInstance(myProject)
-                .createFileFromText("graphql-error.txt", PlainTextLanguage.INSTANCE, stackTrace)
-            OpenFileDescriptor(myProject, file.virtualFile).navigate(true)
-        }
+  companion object {
+    private fun getTooltip(location: SourceLocation): String? {
+      return if (location.sourceName == null || location.line == -1 || location.column == -1) {
+        null
+      }
+      else {
+        location.sourceName + ":" + location.line + ":" + location.column
+      }
     }
-
-    public override fun buildChildren(): Array<SimpleNode> {
-        return NO_CHILDREN
-    }
-
-    override fun isAlwaysLeaf(): Boolean {
-        return true
-    }
-
-    private val location: SourceLocation?
-        get() {
-            val locations = error.locations
-            return if (locations != null && locations.isNotEmpty()) locations[0] else null
-        }
-
-    companion object {
-        private fun getTooltip(location: SourceLocation): String? {
-            return if (location.sourceName == null || location.line == -1 || location.column == -1) {
-                null
-            } else {
-                location.sourceName + ":" + location.line + ":" + location.column
-            }
-        }
-    }
+  }
 }

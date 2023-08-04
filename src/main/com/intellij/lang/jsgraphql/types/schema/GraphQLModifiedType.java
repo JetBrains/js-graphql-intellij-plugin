@@ -29,5 +29,5 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 @PublicApi
 public interface GraphQLModifiedType extends GraphQLType {
 
-    GraphQLType getWrappedType();
+  GraphQLType getWrappedType();
 }

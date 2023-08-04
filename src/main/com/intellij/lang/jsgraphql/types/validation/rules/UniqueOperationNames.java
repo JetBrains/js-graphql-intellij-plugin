@@ -34,30 +34,31 @@ import java.util.Set;
 @Internal
 public class UniqueOperationNames extends AbstractRule {
 
-    private Set<String> operationNames = new LinkedHashSet<>();
+  private Set<String> operationNames = new LinkedHashSet<>();
 
-    public UniqueOperationNames(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
-        super(validationContext, validationErrorCollector);
+  public UniqueOperationNames(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
+    super(validationContext, validationErrorCollector);
+  }
+
+  @Override
+  public void checkOperationDefinition(OperationDefinition operationDefinition) {
+    super.checkOperationDefinition(operationDefinition);
+    String name = operationDefinition.getName();
+
+    // skip validation for anonymous operations
+    if (name == null) {
+      return;
     }
 
-    @Override
-    public void checkOperationDefinition(OperationDefinition operationDefinition) {
-        super.checkOperationDefinition(operationDefinition);
-        String name = operationDefinition.getName();
-
-        // skip validation for anonymous operations
-        if (name == null) {
-            return;
-        }
-
-        if (operationNames.contains(name)) {
-            addError(ValidationErrorType.DuplicateOperationName, operationDefinition.getSourceLocation(), duplicateOperationNameMessage(name));
-        } else {
-            operationNames.add(name);
-        }
+    if (operationNames.contains(name)) {
+      addError(ValidationErrorType.DuplicateOperationName, operationDefinition.getSourceLocation(), duplicateOperationNameMessage(name));
     }
-
-    static String duplicateOperationNameMessage(String definitionName) {
-        return String.format("There can be only one operation named '%s'", definitionName);
+    else {
+      operationNames.add(name);
     }
+  }
+
+  static String duplicateOperationNameMessage(String definitionName) {
+    return String.format("There can be only one operation named '%s'", definitionName);
+  }
 }

@@ -25,13 +25,13 @@ import java.util.Set;
 @Internal
 public class SchemaValidationErrorCollector {
 
-    private final LinkedHashSet<SchemaValidationError> errors = new LinkedHashSet<>();
+  private final LinkedHashSet<SchemaValidationError> errors = new LinkedHashSet<>();
 
-    public void addError(SchemaValidationError validationError) {
-        this.errors.add(validationError);
-    }
+  public void addError(SchemaValidationError validationError) {
+    this.errors.add(validationError);
+  }
 
-    public Set<SchemaValidationError> getErrors() {
-        return errors;
-    }
+  public Set<SchemaValidationError> getErrors() {
+    return errors;
+  }
 }

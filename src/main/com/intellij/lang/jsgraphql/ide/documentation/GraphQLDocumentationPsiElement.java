@@ -17,49 +17,49 @@ import javax.swing.*;
 
 class GraphQLDocumentationPsiElement extends FakePsiElement {
 
-    private final PsiElement context;
-    private String type;
-    private JSGraphQLDocItemPresentation itemPresentation;
+  private final PsiElement context;
+  private String type;
+  private JSGraphQLDocItemPresentation itemPresentation;
 
-    public GraphQLDocumentationPsiElement(PsiElement context, String link) {
-        this.context = context;
-        this.type = StringUtils.substringAfterLast(link, "/");
+  public GraphQLDocumentationPsiElement(PsiElement context, String link) {
+    this.context = context;
+    this.type = StringUtils.substringAfterLast(link, "/");
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  @Override
+  public ItemPresentation getPresentation() {
+    if (itemPresentation == null) {
+      itemPresentation = new JSGraphQLDocItemPresentation();
     }
+    return itemPresentation;
+  }
 
-    public String getType() {
-        return type;
-    }
+  @Override
+  public PsiElement getParent() {
+    return context;
+  }
 
+  private class JSGraphQLDocItemPresentation implements ItemPresentation {
+    @Nullable
     @Override
-    public ItemPresentation getPresentation() {
-        if(itemPresentation == null) {
-            itemPresentation = new JSGraphQLDocItemPresentation();
-        }
-        return itemPresentation;
+    public String getPresentableText() {
+      return type;
     }
 
+    @Nullable
     @Override
-    public PsiElement getParent() {
-        return context;
+    public String getLocationString() {
+      return null;
     }
 
-    private class JSGraphQLDocItemPresentation implements ItemPresentation {
-        @Nullable
-        @Override
-        public String getPresentableText() {
-            return type;
-        }
-
-        @Nullable
-        @Override
-        public String getLocationString() {
-            return null;
-        }
-
-        @Nullable
-        @Override
-        public Icon getIcon(boolean unused) {
-            return null;
-        }
+    @Nullable
+    @Override
+    public Icon getIcon(boolean unused) {
+      return null;
     }
+  }
 }

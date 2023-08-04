@@ -7,10 +7,10 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.indexing.IndexableSetContributor
 
 class GraphQLIntrospectionIndexableSetContributor : IndexableSetContributor() {
-    override fun getAdditionalRootsToIndex(): Set<VirtualFile> {
-        return listOf(GraphQLGeneratedSourcesManager.generatedSdlDirPath, GraphQLRemoteSchemasRegistry.remoteSchemasDirPath)
-            .mapNotNull { LocalFileSystem.getInstance().findFileByPath(it) }
-            .filter { it.isValid }
-            .toSet()
-    }
+  override fun getAdditionalRootsToIndex(): Set<VirtualFile> {
+    return listOf(GraphQLGeneratedSourcesManager.generatedSdlDirPath, GraphQLRemoteSchemasRegistry.remoteSchemasDirPath)
+      .mapNotNull { LocalFileSystem.getInstance().findFileByPath(it) }
+      .filter { it.isValid }
+      .toSet()
+  }
 }

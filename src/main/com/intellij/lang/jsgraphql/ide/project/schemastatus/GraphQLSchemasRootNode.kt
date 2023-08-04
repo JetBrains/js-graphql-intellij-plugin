@@ -18,28 +18,29 @@ import com.intellij.ui.treeStructure.SimpleNode
  * Has a child node for each schema, and if no schemas have been configured a single node representing the default project-wide schema.
  */
 class GraphQLSchemasRootNode(project: Project?) : SimpleNode(project) {
-    override fun getChildren(): Array<SimpleNode> {
-        return try {
-            val provider = getInstance(myProject)
-            if (DumbService.getInstance(myProject).isDumb || !provider.isInitialized) {
-                // empty the tree view during indexing and until the config has been initialized
-                return NO_CHILDREN
-            }
-            val children = mutableListOf<SimpleNode>()
-            for (config in provider.getAllConfigs()) {
-                children.add(GraphQLConfigSchemaNode(myProject, this, config, null))
-            }
-            if (children.isEmpty()) {
-                children.add(GraphQLDefaultSchemaNode(myProject, this))
-            }
-            children.sortBy { it.name }
-            children.toTypedArray()
-        } catch (e: IndexNotReadyException) {
-            NO_CHILDREN
-        }
+  override fun getChildren(): Array<SimpleNode> {
+    return try {
+      val provider = getInstance(myProject)
+      if (DumbService.getInstance(myProject).isDumb || !provider.isInitialized) {
+        // empty the tree view during indexing and until the config has been initialized
+        return NO_CHILDREN
+      }
+      val children = mutableListOf<SimpleNode>()
+      for (config in provider.getAllConfigs()) {
+        children.add(GraphQLConfigSchemaNode(myProject, this, config, null))
+      }
+      if (children.isEmpty()) {
+        children.add(GraphQLDefaultSchemaNode(myProject, this))
+      }
+      children.sortBy { it.name }
+      children.toTypedArray()
     }
+    catch (e: IndexNotReadyException) {
+      NO_CHILDREN
+    }
+  }
 
-    override fun isAutoExpandNode(): Boolean {
-        return true
-    }
+  override fun isAutoExpandNode(): Boolean {
+    return true
+  }
 }

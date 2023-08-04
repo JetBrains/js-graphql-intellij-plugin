@@ -29,7 +29,7 @@ import java.util.List;
 @PublicApi
 public interface GraphQLInputFieldsContainer extends GraphQLNamedType {
 
-    GraphQLInputObjectField getFieldDefinition(String name);
+  GraphQLInputObjectField getFieldDefinition(String name);
 
-    List<GraphQLInputObjectField> getFieldDefinitions();
+  List<GraphQLInputObjectField> getFieldDefinitions();
 }

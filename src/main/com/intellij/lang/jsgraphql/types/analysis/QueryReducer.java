@@ -30,13 +30,12 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 @FunctionalInterface
 public interface QueryReducer<T> {
 
-    /**
-     * Called each time a field is visited.
-     *
-     * @param fieldEnvironment the environment to this call
-     * @param acc              the previous result
-     *
-     * @return the new result
-     */
-    T reduceField(QueryVisitorFieldEnvironment fieldEnvironment, T acc);
+  /**
+   * Called each time a field is visited.
+   *
+   * @param fieldEnvironment the environment to this call
+   * @param acc              the previous result
+   * @return the new result
+   */
+  T reduceField(QueryVisitorFieldEnvironment fieldEnvironment, T acc);
 }

@@ -30,13 +30,13 @@ import java.util.Map;
 @Internal
 public interface IntrospectionDataFetchingEnvironment {
 
-    <T> T getSource();
+  <T> T getSource();
 
-    Map<String, Object> getArguments();
+  Map<String, Object> getArguments();
 
-    GraphQLSchema getGraphQLSchema();
+  GraphQLSchema getGraphQLSchema();
 
-    <T> T getArgument(String name);
+  <T> T getArgument(String name);
 
-    GraphQLType getParentType();
+  GraphQLType getParentType();
 }

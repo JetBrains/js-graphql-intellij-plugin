@@ -13,54 +13,54 @@ import com.intellij.testFramework.ParsingTestCase;
 
 public class GraphQLParserTest extends ParsingTestCase {
 
-    public GraphQLParserTest() {
-        super("", "graphql", new GraphQLParserDefinition());
-    }
+  public GraphQLParserTest() {
+    super("", "graphql", new GraphQLParserDefinition());
+  }
 
-    public void testParsingTestData() {
-        doTest(true);
-    }
+  public void testParsingTestData() {
+    doTest(true);
+  }
 
-    public void testDirectives() {
-        doTest(true, true);
-    }
+  public void testDirectives() {
+    doTest(true, true);
+  }
 
-    public void testSchemaDescriptions() {
-        doTest(true, true);
-    }
+  public void testSchemaDescriptions() {
+    doTest(true, true);
+  }
 
-    public void testSingleLineDescriptions() {
-        doTest(true, true);
-    }
+  public void testSingleLineDescriptions() {
+    doTest(true, true);
+  }
 
-    public void testMultilineDescriptions() {
-        doTest(true, true);
-    }
+  public void testMultilineDescriptions() {
+    doTest(true, true);
+  }
 
-    public void testExtendSchema() {
-        doTest(true, true);
-    }
+  public void testExtendSchema() {
+    doTest(true, true);
+  }
 
-    public void testEmoji() {
-        doTest(true, true);
-    }
+  public void testEmoji() {
+    doTest(true, true);
+  }
 
-    public void testKeywordsAsIdentifiers() {
-        doTest(true, true);
-    }
+  public void testKeywordsAsIdentifiers() {
+    doTest(true, true);
+  }
 
-    @Override
-    protected String getTestDataPath() {
-        return GraphQLTestUtils.getTestDataPath("parser");
-    }
+  @Override
+  protected String getTestDataPath() {
+    return GraphQLTestUtils.getTestDataPath("parser");
+  }
 
-    @Override
-    protected boolean skipSpaces() {
-        return false;
-    }
+  @Override
+  protected boolean skipSpaces() {
+    return false;
+  }
 
-    @Override
-    protected boolean includeRanges() {
-        return true;
-    }
+  @Override
+  protected boolean includeRanges() {
+    return true;
+  }
 }

@@ -35,126 +35,127 @@ import javax.swing.tree.TreeSelectionModel
  * Directory picker for where to place a GraphQL schema configuration file.
  */
 class TreeDirectoryChooserDialog(private val project: Project, title: String?) : DialogWrapper(project, true) {
-    private val disposable = Disposer.newDisposable()
+  private val disposable = Disposer.newDisposable()
 
-    private lateinit var tree: Tree
+  private lateinit var tree: Tree
 
-    private var selectedFile: VirtualFile? = null
+  private var selectedFile: VirtualFile? = null
 
-    init {
-        setTitle(title)
-        init()
-        invokeLater { handleSelectionChanged() }
+  init {
+    setTitle(title)
+    init()
+    invokeLater { handleSelectionChanged() }
+  }
+
+  override fun createCenterPanel(): JComponent {
+    val treeStructure: ProjectAbstractTreeStructureBase = object : AbstractProjectTreeStructure(project) {
+      override fun isFlattenPackages(): Boolean {
+        return false
+      }
+
+      override fun isShowMembers(): Boolean {
+        return false
+      }
+
+      override fun isHideEmptyMiddlePackages(): Boolean {
+        return true
+      }
+
+      override fun isAbbreviatePackageNames(): Boolean {
+        return false
+      }
+
+      override fun isShowLibraryContents(): Boolean {
+        return false
+      }
+
+      override fun isShowModules(): Boolean {
+        return false
+      }
+
+      override fun getProviders(): List<TreeStructureProvider>? {
+        return null
+      }
     }
 
-    override fun createCenterPanel(): JComponent {
-        val treeStructure: ProjectAbstractTreeStructureBase = object : AbstractProjectTreeStructure(project) {
-            override fun isFlattenPackages(): Boolean {
-                return false
-            }
+    val model = StructureTreeModel(treeStructure, disposable)
 
-            override fun isShowMembers(): Boolean {
-                return false
-            }
+    tree = Tree(AsyncTreeModel(model, disposable))
+    tree.isRootVisible = false
+    tree.expandRow(0)
+    tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+    tree.cellRenderer = NodeRenderer()
 
-            override fun isHideEmptyMiddlePackages(): Boolean {
-                return true
-            }
+    val scrollPane = ScrollPaneFactory.createScrollPane(tree)
+    scrollPane.preferredSize = JBUI.size(500, 300)
 
-            override fun isAbbreviatePackageNames(): Boolean {
-                return false
-            }
-
-            override fun isShowLibraryContents(): Boolean {
-                return false
-            }
-
-            override fun isShowModules(): Boolean {
-                return false
-            }
-
-            override fun getProviders(): List<TreeStructureProvider>? {
-                return null
-            }
+    tree.addKeyListener(object : KeyAdapter() {
+      override fun keyPressed(e: KeyEvent) {
+        if (KeyEvent.VK_ENTER == e.keyCode) {
+          doOKAction()
         }
+      }
+    })
 
-        val model = StructureTreeModel(treeStructure, disposable)
-
-        tree = Tree(AsyncTreeModel(model, disposable))
-        tree.isRootVisible = false
-        tree.expandRow(0)
-        tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
-        tree.cellRenderer = NodeRenderer()
-
-        val scrollPane = ScrollPaneFactory.createScrollPane(tree)
-        scrollPane.preferredSize = JBUI.size(500, 300)
-
-        tree.addKeyListener(object : KeyAdapter() {
-            override fun keyPressed(e: KeyEvent) {
-                if (KeyEvent.VK_ENTER == e.keyCode) {
-                    doOKAction()
-                }
-            }
-        })
-
-        object : DoubleClickListener() {
-            override fun onDoubleClick(e: MouseEvent): Boolean {
-                val path = tree.getPathForLocation(e.x, e.y)
-                if (path != null && tree.isPathSelected(path)) {
-                    doOKAction()
-                    return true
-                }
-                return false
-            }
-        }.installOn(tree)
-
-        tree.addTreeSelectionListener { handleSelectionChanged() }
-        TreeSpeedSearch(tree)
-        return scrollPane
-    }
-
-    private fun handleSelectionChanged() {
-        val selection = calcSelectedClass()
-        isOKActionEnabled = selection != null
-    }
-
-    override fun doOKAction() {
-        selectedFile = calcSelectedClass()
-        if (selectedFile == null) return
-        super.doOKAction()
-    }
-
-    override fun doCancelAction() {
-        selectedFile = null
-        super.doCancelAction()
-    }
-
-    val selectedDirectory: VirtualFile?
-        get() {
-            val file = selectedFile
-            return if (file != null) {
-                if (file.isDirectory) file else file.parent
-            } else null
+    object : DoubleClickListener() {
+      override fun onDoubleClick(e: MouseEvent): Boolean {
+        val path = tree.getPathForLocation(e.x, e.y)
+        if (path != null && tree.isPathSelected(path)) {
+          doOKAction()
+          return true
         }
+        return false
+      }
+    }.installOn(tree)
 
-    private fun calcSelectedClass(): VirtualFile? {
-        val path = tree.selectionPath ?: return null
-        val node = path.lastPathComponent as DefaultMutableTreeNode
-        val userObject = node.userObject as? ProjectViewNode<*> ?: return null
-        return userObject.virtualFile
+    tree.addTreeSelectionListener { handleSelectionChanged() }
+    TreeSpeedSearch(tree)
+    return scrollPane
+  }
+
+  private fun handleSelectionChanged() {
+    val selection = calcSelectedClass()
+    isOKActionEnabled = selection != null
+  }
+
+  override fun doOKAction() {
+    selectedFile = calcSelectedClass()
+    if (selectedFile == null) return
+    super.doOKAction()
+  }
+
+  override fun doCancelAction() {
+    selectedFile = null
+    super.doCancelAction()
+  }
+
+  val selectedDirectory: VirtualFile?
+    get() {
+      val file = selectedFile
+      return if (file != null) {
+        if (file.isDirectory) file else file.parent
+      }
+      else null
     }
 
-    public override fun dispose() {
-        Disposer.dispose(disposable)
+  private fun calcSelectedClass(): VirtualFile? {
+    val path = tree.selectionPath ?: return null
+    val node = path.lastPathComponent as DefaultMutableTreeNode
+    val userObject = node.userObject as? ProjectViewNode<*> ?: return null
+    return userObject.virtualFile
+  }
 
-        super.dispose()
-    }
+  public override fun dispose() {
+    Disposer.dispose(disposable)
 
-    override fun getDimensionServiceKey(): String {
-        return "#com.intellij.ide.util.TreeDirectoryChooserDialog"
-    }
+    super.dispose()
+  }
 
-    override fun getPreferredFocusedComponent(): JComponent {
-        return tree
-    }
+  override fun getDimensionServiceKey(): String {
+    return "#com.intellij.ide.util.TreeDirectoryChooserDialog"
+  }
+
+  override fun getPreferredFocusedComponent(): JComponent {
+    return tree
+  }
 }

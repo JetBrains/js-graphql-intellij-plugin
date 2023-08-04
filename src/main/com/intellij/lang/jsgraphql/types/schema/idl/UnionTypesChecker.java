@@ -29,8 +29,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
-
 /**
  * UnionType check, details in https://spec.graphql.org/June2018/#sec-Type-System.
  * <pre>
@@ -44,57 +42,55 @@ import static java.lang.String.format;
  */
 @Internal
 class UnionTypesChecker {
-    private static final Map<Class<? extends UnionTypeDefinition>, String> TYPE_OF_MAP = new HashMap<>();
+  private static final Map<Class<? extends UnionTypeDefinition>, String> TYPE_OF_MAP = new HashMap<>();
 
-    static {
-        TYPE_OF_MAP.put(UnionTypeDefinition.class, "union");
-        TYPE_OF_MAP.put(UnionTypeExtensionDefinition.class, "union extension");
+  static {
+    TYPE_OF_MAP.put(UnionTypeDefinition.class, "union");
+    TYPE_OF_MAP.put(UnionTypeExtensionDefinition.class, "union extension");
+  }
+
+  void checkUnionType(List<GraphQLError> errors, TypeDefinitionRegistry typeRegistry) {
+    List<UnionTypeDefinition> unionTypes = typeRegistry.getTypes(UnionTypeDefinition.class);
+    List<UnionTypeExtensionDefinition> unionTypeExtensions = typeRegistry.getTypes(UnionTypeExtensionDefinition.class);
+
+    //noinspection RedundantCast
+    TypeDefinitionRegistry.fromSourceNodes(
+      Stream.of(unionTypes.stream(), unionTypeExtensions.stream())
+        .flatMap(Function.identity()),
+      UnionTypeDefinition.class
+    ).forEach(type -> checkUnionType(typeRegistry, ((UnionTypeDefinition)type), errors));
+  }
+
+  private void checkUnionType(TypeDefinitionRegistry typeRegistry, UnionTypeDefinition unionTypeDefinition, List<GraphQLError> errors) {
+    assertTypeName(unionTypeDefinition, errors);
+
+    List<Type> memberTypes = unionTypeDefinition.getMemberTypes();
+    if (memberTypes == null || memberTypes.size() == 0) {
+      errors.add(new EmptyUnionTypeError(unionTypeDefinition));
+      return;
     }
 
+    Set<String> typeNames = new LinkedHashSet<>();
+    for (Type memberType : memberTypes) {
+      String memberTypeName = ((TypeName)memberType).getName();
+      Optional<TypeDefinition> memberTypeDefinition = typeRegistry.getType(memberTypeName);
 
-    void checkUnionType(List<GraphQLError> errors, TypeDefinitionRegistry typeRegistry) {
-        List<UnionTypeDefinition> unionTypes = typeRegistry.getTypes(UnionTypeDefinition.class);
-        List<UnionTypeExtensionDefinition> unionTypeExtensions = typeRegistry.getTypes(UnionTypeExtensionDefinition.class);
+      if (memberTypeDefinition.isEmpty() || !(memberTypeDefinition.get() instanceof ObjectTypeDefinition)) {
+        errors.add(new UnionMemberNotAnObjectTypeError(unionTypeDefinition, ((TypeName)memberType)));
+        continue;
+      }
 
-        //noinspection RedundantCast
-        TypeDefinitionRegistry.fromSourceNodes(
-            Stream.of(unionTypes.stream(), unionTypeExtensions.stream())
-                .flatMap(Function.identity()),
-            UnionTypeDefinition.class
-        ).forEach(type -> checkUnionType(typeRegistry, ((UnionTypeDefinition) type), errors));
+      if (typeNames.contains(memberTypeName)) {
+        errors.add(new UnionMemberNotUniqueError(unionTypeDefinition, (TypeName)memberType));
+        continue;
+      }
+      typeNames.add(memberTypeName);
     }
+  }
 
-    private void checkUnionType(TypeDefinitionRegistry typeRegistry, UnionTypeDefinition unionTypeDefinition, List<GraphQLError> errors) {
-        assertTypeName(unionTypeDefinition, errors);
-
-        List<Type> memberTypes = unionTypeDefinition.getMemberTypes();
-        if (memberTypes == null || memberTypes.size() == 0) {
-            errors.add(new EmptyUnionTypeError(unionTypeDefinition));
-            return;
-        }
-
-        Set<String> typeNames = new LinkedHashSet<>();
-        for (Type memberType : memberTypes) {
-            String memberTypeName = ((TypeName) memberType).getName();
-            Optional<TypeDefinition> memberTypeDefinition = typeRegistry.getType(memberTypeName);
-
-            if (memberTypeDefinition.isEmpty() || !(memberTypeDefinition.get() instanceof ObjectTypeDefinition)) {
-                errors.add(new UnionMemberNotAnObjectTypeError(unionTypeDefinition, ((TypeName) memberType)));
-                continue;
-            }
-
-            if (typeNames.contains(memberTypeName)) {
-                errors.add(new UnionMemberNotUniqueError(unionTypeDefinition, (TypeName) memberType));
-                continue;
-            }
-            typeNames.add(memberTypeName);
-        }
+  private void assertTypeName(UnionTypeDefinition unionTypeDefinition, List<GraphQLError> errors) {
+    if (unionTypeDefinition.getName().length() >= 2 && unionTypeDefinition.getName().startsWith("__")) {
+      errors.add((new IllegalNameError(unionTypeDefinition)));
     }
-
-    private void assertTypeName(UnionTypeDefinition unionTypeDefinition, List<GraphQLError> errors) {
-        if (unionTypeDefinition.getName().length() >= 2 && unionTypeDefinition.getName().startsWith("__")) {
-            errors.add((new IllegalNameError(unionTypeDefinition)));
-        }
-    }
-
+  }
 }

@@ -41,181 +41,182 @@ import static com.intellij.lang.jsgraphql.types.language.NodeChildrenContainer.n
 @PublicApi
 public class SelectionSet extends AbstractNode<SelectionSet> {
 
-    private final ImmutableList<Selection> selections;
+  private final ImmutableList<Selection> selections;
 
-    public static final String CHILD_SELECTIONS = "selections";
+  public static final String CHILD_SELECTIONS = "selections";
 
-    @Internal
-    protected SelectionSet(Collection<? extends Selection> selections,
-                           SourceLocation sourceLocation,
-                           List<Comment> comments,
-                           IgnoredChars ignoredChars,
-                           Map<String, String> additionalData,
-                           @Nullable PsiElement element,
-                           @Nullable List<? extends Node> sourceNodes) {
-        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        this.selections = ImmutableList.copyOf(selections);
+  @Internal
+  protected SelectionSet(Collection<? extends Selection> selections,
+                         SourceLocation sourceLocation,
+                         List<Comment> comments,
+                         IgnoredChars ignoredChars,
+                         Map<String, String> additionalData,
+                         @Nullable PsiElement element,
+                         @Nullable List<? extends Node> sourceNodes) {
+    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    this.selections = ImmutableList.copyOf(selections);
+  }
+
+  /**
+   * alternative to using a Builder for convenience
+   *
+   * @param selections the list of selection in this selection set
+   */
+  public SelectionSet(Collection<? extends Selection> selections) {
+    this(selections, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+  }
+
+  public List<Selection> getSelections() {
+    return selections;
+  }
+
+  /**
+   * Returns a list of selections of the specific type.  It uses {@link Class#isAssignableFrom(Class)} for the test
+   *
+   * @param selectionClass the selection class
+   * @param <T>            the type of selection
+   * @return a list of selections of that class or empty list
+   */
+  public <T extends Selection> List<T> getSelectionsOfType(Class<T> selectionClass) {
+    return selections.stream()
+      .filter(d -> selectionClass.isAssignableFrom(d.getClass()))
+      .map(selectionClass::cast)
+      .collect(ImmutableList.toImmutableList());
+  }
+
+  @Override
+  public List<Node> getChildren() {
+    return ImmutableList.copyOf(selections);
+  }
+
+  @Override
+  public NodeChildrenContainer getNamedChildren() {
+    return newNodeChildrenContainer()
+      .children(CHILD_SELECTIONS, selections)
+      .build();
+  }
+
+  @Override
+  public SelectionSet withNewChildren(NodeChildrenContainer newChildren) {
+    return transform(builder -> builder
+      .selections(newChildren.getChildren(CHILD_SELECTIONS))
+    );
+  }
+
+  @Override
+  public boolean isEqualTo(Node o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    /**
-     * alternative to using a Builder for convenience
-     *
-     * @param selections the list of selection in this selection set
-     */
-    public SelectionSet(Collection<? extends Selection> selections) {
-        this(selections, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    return true;
+  }
+
+  @Override
+  public SelectionSet deepCopy() {
+    return new SelectionSet(deepCopy(selections), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(),
+                            getSourceNodes());
+  }
+
+  @Override
+  public String toString() {
+    return "SelectionSet{" +
+           "selections=" + selections +
+           '}';
+  }
+
+  @Override
+  public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
+    return visitor.visitSelectionSet(this, context);
+  }
+
+  public static Builder newSelectionSet() {
+    return new Builder();
+  }
+
+  public static Builder newSelectionSet(Collection<? extends Selection> selections) {
+    return new Builder().selections(selections);
+  }
+
+  public SelectionSet transform(Consumer<Builder> builderConsumer) {
+    Builder builder = new Builder(this);
+    builderConsumer.accept(builder);
+    return builder.build();
+  }
+
+  public static final class Builder implements NodeBuilder {
+
+    private ImmutableList<Selection> selections = emptyList();
+    private SourceLocation sourceLocation;
+    private ImmutableList<Comment> comments = emptyList();
+    private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
+    private Map<String, String> additionalData = new LinkedHashMap<>();
+    private @Nullable PsiElement element;
+    private @Nullable List<? extends Node> sourceNodes;
+
+    private Builder() {
     }
 
-    public List<Selection> getSelections() {
-        return selections;
+    private Builder(SelectionSet existing) {
+      this.sourceLocation = existing.getSourceLocation();
+      this.comments = ImmutableList.copyOf(existing.getComments());
+      this.selections = ImmutableList.copyOf(existing.getSelections());
+      this.ignoredChars = existing.getIgnoredChars();
+      this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+      this.element = existing.getElement();
+      this.sourceNodes = existing.getSourceNodes();
     }
 
-    /**
-     * Returns a list of selections of the specific type.  It uses {@link Class#isAssignableFrom(Class)} for the test
-     *
-     * @param selectionClass the selection class
-     * @param <T>            the type of selection
-     * @return a list of selections of that class or empty list
-     */
-    public <T extends Selection> List<T> getSelectionsOfType(Class<T> selectionClass) {
-        return selections.stream()
-            .filter(d -> selectionClass.isAssignableFrom(d.getClass()))
-            .map(selectionClass::cast)
-            .collect(ImmutableList.toImmutableList());
+    public Builder selections(Collection<? extends Selection> selections) {
+      this.selections = ImmutableList.copyOf(selections);
+      return this;
     }
 
-    @Override
-    public List<Node> getChildren() {
-        return ImmutableList.copyOf(selections);
+    public Builder selection(Selection selection) {
+      this.selections = ImmutableKit.addToList(selections, selection);
+      return this;
     }
 
-    @Override
-    public NodeChildrenContainer getNamedChildren() {
-        return newNodeChildrenContainer()
-            .children(CHILD_SELECTIONS, selections)
-            .build();
+    public Builder sourceLocation(SourceLocation sourceLocation) {
+      this.sourceLocation = sourceLocation;
+      return this;
     }
 
-    @Override
-    public SelectionSet withNewChildren(NodeChildrenContainer newChildren) {
-        return transform(builder -> builder
-            .selections(newChildren.getChildren(CHILD_SELECTIONS))
-        );
+    public Builder comments(List<Comment> comments) {
+      this.comments = ImmutableList.copyOf(comments);
+      return this;
     }
 
-    @Override
-    public boolean isEqualTo(Node o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        return true;
+    public Builder ignoredChars(IgnoredChars ignoredChars) {
+      this.ignoredChars = ignoredChars;
+      return this;
     }
 
-    @Override
-    public SelectionSet deepCopy() {
-        return new SelectionSet(deepCopy(selections), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
+    public Builder additionalData(Map<String, String> additionalData) {
+      this.additionalData = assertNotNull(additionalData);
+      return this;
     }
 
-    @Override
-    public String toString() {
-        return "SelectionSet{" +
-            "selections=" + selections +
-            '}';
+    public Builder additionalData(String key, String value) {
+      this.additionalData.put(key, value);
+      return this;
     }
 
-    @Override
-    public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
-        return visitor.visitSelectionSet(this, context);
+    public Builder element(@Nullable PsiElement element) {
+      this.element = element;
+      return this;
     }
 
-    public static Builder newSelectionSet() {
-        return new Builder();
+    public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+      this.sourceNodes = sourceNodes;
+      return this;
     }
 
-    public static Builder newSelectionSet(Collection<? extends Selection> selections) {
-        return new Builder().selections(selections);
+    public SelectionSet build() {
+      return new SelectionSet(selections, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
     }
-
-    public SelectionSet transform(Consumer<Builder> builderConsumer) {
-        Builder builder = new Builder(this);
-        builderConsumer.accept(builder);
-        return builder.build();
-    }
-
-    public static final class Builder implements NodeBuilder {
-
-        private ImmutableList<Selection> selections = emptyList();
-        private SourceLocation sourceLocation;
-        private ImmutableList<Comment> comments = emptyList();
-        private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
-        private Map<String, String> additionalData = new LinkedHashMap<>();
-        private @Nullable PsiElement element;
-        private @Nullable List<? extends Node> sourceNodes;
-
-        private Builder() {
-        }
-
-        private Builder(SelectionSet existing) {
-            this.sourceLocation = existing.getSourceLocation();
-            this.comments = ImmutableList.copyOf(existing.getComments());
-            this.selections = ImmutableList.copyOf(existing.getSelections());
-            this.ignoredChars = existing.getIgnoredChars();
-            this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-            this.element = existing.getElement();
-            this.sourceNodes = existing.getSourceNodes();
-        }
-
-        public Builder selections(Collection<? extends Selection> selections) {
-            this.selections = ImmutableList.copyOf(selections);
-            return this;
-        }
-
-        public Builder selection(Selection selection) {
-            this.selections = ImmutableKit.addToList(selections, selection);
-            return this;
-        }
-
-        public Builder sourceLocation(SourceLocation sourceLocation) {
-            this.sourceLocation = sourceLocation;
-            return this;
-        }
-
-        public Builder comments(List<Comment> comments) {
-            this.comments = ImmutableList.copyOf(comments);
-            return this;
-        }
-
-        public Builder ignoredChars(IgnoredChars ignoredChars) {
-            this.ignoredChars = ignoredChars;
-            return this;
-        }
-
-        public Builder additionalData(Map<String, String> additionalData) {
-            this.additionalData = assertNotNull(additionalData);
-            return this;
-        }
-
-        public Builder additionalData(String key, String value) {
-            this.additionalData.put(key, value);
-            return this;
-        }
-
-        public Builder element(@Nullable PsiElement element) {
-            this.element = element;
-            return this;
-        }
-
-        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
-            this.sourceNodes = sourceNodes;
-            return this;
-        }
-
-        public SelectionSet build() {
-            return new SelectionSet(selections, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        }
-    }
+  }
 }

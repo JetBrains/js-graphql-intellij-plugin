@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLTypeNameMixin extends GraphQLNamedElementImpl implements GraphQLTypeName {
-    public GraphQLTypeNameMixin(@NotNull ASTNode node) {
-        super(node);
-    }
+  public GraphQLTypeNameMixin(@NotNull ASTNode node) {
+    super(node);
+  }
 }

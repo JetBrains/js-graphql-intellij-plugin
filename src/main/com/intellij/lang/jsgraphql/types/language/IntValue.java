@@ -41,158 +41,157 @@ import static com.intellij.lang.jsgraphql.types.language.NodeUtil.assertNewChild
 @PublicApi
 public class IntValue extends AbstractNode<IntValue> implements ScalarValue<IntValue> {
 
-    private final BigInteger value;
+  private final BigInteger value;
 
-    @Internal
-    protected IntValue(BigInteger value,
-                       SourceLocation sourceLocation,
-                       List<Comment> comments,
-                       IgnoredChars ignoredChars,
-                       Map<String, String> additionalData,
-                       @Nullable PsiElement element,
-                       @Nullable List<? extends Node> sourceNodes) {
-        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        this.value = value;
+  @Internal
+  protected IntValue(BigInteger value,
+                     SourceLocation sourceLocation,
+                     List<Comment> comments,
+                     IgnoredChars ignoredChars,
+                     Map<String, String> additionalData,
+                     @Nullable PsiElement element,
+                     @Nullable List<? extends Node> sourceNodes) {
+    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    this.value = value;
+  }
+
+  /**
+   * alternative to using a Builder for convenience
+   *
+   * @param value of the Int
+   */
+  public IntValue(BigInteger value) {
+    this(value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+  }
+
+  public BigInteger getValue() {
+    return value;
+  }
+
+  @Override
+  public List<Node> getChildren() {
+    return emptyList();
+  }
+
+  @Override
+  public NodeChildrenContainer getNamedChildren() {
+    return newNodeChildrenContainer().build();
+  }
+
+  @Override
+  public IntValue withNewChildren(NodeChildrenContainer newChildren) {
+    assertNewChildrenAreEmpty(newChildren);
+    return this;
+  }
+
+  @Override
+  public boolean isEqualTo(Node o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    /**
-     * alternative to using a Builder for convenience
-     *
-     * @param value of the Int
-     */
-    public IntValue(BigInteger value) {
-        this(value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    IntValue that = (IntValue)o;
+
+    return !(value != null ? !value.equals(that.value) : that.value != null);
+  }
+
+  @Override
+  public IntValue deepCopy() {
+    return new IntValue(value, getSourceLocation(), getComments(), IgnoredChars.EMPTY, getAdditionalData(), getElement(), getSourceNodes());
+  }
+
+  @Override
+  public String toString() {
+    return "IntValue{" +
+           "value=" + value +
+           '}';
+  }
+
+  @Override
+  public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
+    return visitor.visitIntValue(this, context);
+  }
+
+  public static Builder newIntValue() {
+    return new Builder();
+  }
+
+  public static Builder newIntValue(BigInteger value) {
+    return new Builder().value(value);
+  }
+
+  public IntValue transform(Consumer<Builder> builderConsumer) {
+    Builder builder = new Builder(this);
+    builderConsumer.accept(builder);
+    return builder.build();
+  }
+
+  public static final class Builder implements NodeBuilder {
+    private SourceLocation sourceLocation;
+    private BigInteger value;
+    private ImmutableList<Comment> comments = emptyList();
+    private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
+    private Map<String, String> additionalData = new LinkedHashMap<>();
+    private @Nullable PsiElement element;
+    private @Nullable List<? extends Node> sourceNodes;
+
+    private Builder() {
     }
 
-    public BigInteger getValue() {
-        return value;
+    private Builder(IntValue existing) {
+      this.sourceLocation = existing.getSourceLocation();
+      this.comments = ImmutableList.copyOf(existing.getComments());
+      this.value = existing.getValue();
+      this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+      this.element = existing.getElement();
+      this.sourceNodes = existing.getSourceNodes();
     }
 
-    @Override
-    public List<Node> getChildren() {
-        return emptyList();
+    public Builder sourceLocation(SourceLocation sourceLocation) {
+      this.sourceLocation = sourceLocation;
+      return this;
     }
 
-    @Override
-    public NodeChildrenContainer getNamedChildren() {
-        return newNodeChildrenContainer().build();
+    public Builder value(BigInteger value) {
+      this.value = value;
+      return this;
     }
 
-    @Override
-    public IntValue withNewChildren(NodeChildrenContainer newChildren) {
-        assertNewChildrenAreEmpty(newChildren);
-        return this;
+    public Builder comments(List<Comment> comments) {
+      this.comments = ImmutableList.copyOf(comments);
+      return this;
     }
 
-    @Override
-    public boolean isEqualTo(Node o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        IntValue that = (IntValue) o;
-
-        return !(value != null ? !value.equals(that.value) : that.value != null);
-
+    public Builder ignoredChars(IgnoredChars ignoredChars) {
+      this.ignoredChars = ignoredChars;
+      return this;
     }
 
-    @Override
-    public IntValue deepCopy() {
-        return new IntValue(value, getSourceLocation(), getComments(), IgnoredChars.EMPTY, getAdditionalData(), getElement(), getSourceNodes());
+    public Builder additionalData(Map<String, String> additionalData) {
+      this.additionalData = assertNotNull(additionalData);
+      return this;
     }
 
-    @Override
-    public String toString() {
-        return "IntValue{" +
-            "value=" + value +
-            '}';
+    public Builder additionalData(String key, String value) {
+      this.additionalData.put(key, value);
+      return this;
     }
 
-    @Override
-    public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
-        return visitor.visitIntValue(this, context);
+    public Builder element(@Nullable PsiElement element) {
+      this.element = element;
+      return this;
     }
 
-    public static Builder newIntValue() {
-        return new Builder();
+    public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+      this.sourceNodes = sourceNodes;
+      return this;
     }
 
-    public static Builder newIntValue(BigInteger value) {
-        return new Builder().value(value);
+    public IntValue build() {
+      return new IntValue(value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
     }
-
-    public IntValue transform(Consumer<Builder> builderConsumer) {
-        Builder builder = new Builder(this);
-        builderConsumer.accept(builder);
-        return builder.build();
-    }
-
-    public static final class Builder implements NodeBuilder {
-        private SourceLocation sourceLocation;
-        private BigInteger value;
-        private ImmutableList<Comment> comments = emptyList();
-        private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
-        private Map<String, String> additionalData = new LinkedHashMap<>();
-        private @Nullable PsiElement element;
-        private @Nullable List<? extends Node> sourceNodes;
-
-        private Builder() {
-        }
-
-        private Builder(IntValue existing) {
-            this.sourceLocation = existing.getSourceLocation();
-            this.comments = ImmutableList.copyOf(existing.getComments());
-            this.value = existing.getValue();
-            this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-            this.element = existing.getElement();
-            this.sourceNodes = existing.getSourceNodes();
-        }
-
-        public Builder sourceLocation(SourceLocation sourceLocation) {
-            this.sourceLocation = sourceLocation;
-            return this;
-        }
-
-        public Builder value(BigInteger value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder comments(List<Comment> comments) {
-            this.comments = ImmutableList.copyOf(comments);
-            return this;
-        }
-
-        public Builder ignoredChars(IgnoredChars ignoredChars) {
-            this.ignoredChars = ignoredChars;
-            return this;
-        }
-
-        public Builder additionalData(Map<String, String> additionalData) {
-            this.additionalData = assertNotNull(additionalData);
-            return this;
-        }
-
-        public Builder additionalData(String key, String value) {
-            this.additionalData.put(key, value);
-            return this;
-        }
-
-        public Builder element(@Nullable PsiElement element) {
-            this.element = element;
-            return this;
-        }
-
-        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
-            this.sourceNodes = sourceNodes;
-            return this;
-        }
-
-        public IntValue build() {
-            return new IntValue(value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        }
-    }
+  }
 }

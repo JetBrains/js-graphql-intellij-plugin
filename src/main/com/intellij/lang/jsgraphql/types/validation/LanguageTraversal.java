@@ -27,35 +27,36 @@ import java.util.List;
 @Internal
 public class LanguageTraversal {
 
-    private final List<Node> path;
+  private final List<Node> path;
 
-    public LanguageTraversal() {
-        path = new ArrayList<>();
+  public LanguageTraversal() {
+    path = new ArrayList<>();
+  }
+
+  public LanguageTraversal(List<Node> basePath) {
+    if (basePath != null) {
+      path = basePath;
     }
-
-    public LanguageTraversal(List<Node> basePath) {
-        if (basePath != null) {
-            path = basePath;
-        } else {
-            path = new ArrayList<>();
-        }
+    else {
+      path = new ArrayList<>();
     }
+  }
 
-    public void traverse(Node root, DocumentVisitor documentVisitor) {
-        traverseImpl(root, documentVisitor, path);
+  public void traverse(Node root, DocumentVisitor documentVisitor) {
+    traverseImpl(root, documentVisitor, path);
+  }
+
+
+  private void traverseImpl(Node<?> root, DocumentVisitor documentVisitor, List<Node> path) {
+    documentVisitor.enter(root, path);
+    path.add(root);
+    List<Node> children = root.getChildren();
+    for (Node child : children) {
+      if (child != null) {
+        traverseImpl(child, documentVisitor, path);
+      }
     }
-
-
-    private void traverseImpl(Node<?> root, DocumentVisitor documentVisitor, List<Node> path) {
-        documentVisitor.enter(root, path);
-        path.add(root);
-        List<Node> children = root.getChildren();
-        for (Node child : children) {
-            if (child != null) {
-                traverseImpl(child, documentVisitor, path);
-            }
-        }
-        path.remove(path.size() - 1);
-        documentVisitor.leave(root, path);
-    }
+    path.remove(path.size() - 1);
+    documentVisitor.leave(root, path);
+  }
 }

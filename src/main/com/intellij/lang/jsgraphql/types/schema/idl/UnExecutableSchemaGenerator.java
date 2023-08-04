@@ -29,29 +29,30 @@ import static com.intellij.lang.jsgraphql.types.schema.idl.EchoingWiringFactory.
 @Internal
 public class UnExecutableSchemaGenerator {
 
-    /*
-     * Creates just enough runtime wiring to allow a schema to be built but which CANT
-     * be sensibly executed
-     */
-    public static GraphQLSchema makeUnExecutableSchema(TypeDefinitionRegistry registry) {
-        RuntimeWiring runtimeWiring = EchoingWiringFactory.newEchoingWiring(wiring -> {
-            Map<String, ScalarTypeDefinition> scalars = registry.scalars();
-            scalars.forEach((name, v) -> {
-                if (!ScalarInfo.isGraphqlSpecifiedScalar(name)) {
-                    wiring.scalar(fakeScalar(name));
-                } else {
-                    // we can provide a PSI based scalar definition from Specification.graphql library,
-                    // so we need to ensure it has a valid coercing assigned for type checking
-                    GraphQLScalarType scalarType = GraphQLScalarType.newScalar()
-                        .name(name)
-                        .description(name)
-                        .coercing(ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_MAP.get(name).getCoercing())
-                        .build();
-                    wiring.scalar(scalarType);
-                }
-            });
-        });
+  /*
+   * Creates just enough runtime wiring to allow a schema to be built but which CANT
+   * be sensibly executed
+   */
+  public static GraphQLSchema makeUnExecutableSchema(TypeDefinitionRegistry registry) {
+    RuntimeWiring runtimeWiring = EchoingWiringFactory.newEchoingWiring(wiring -> {
+      Map<String, ScalarTypeDefinition> scalars = registry.scalars();
+      scalars.forEach((name, v) -> {
+        if (!ScalarInfo.isGraphqlSpecifiedScalar(name)) {
+          wiring.scalar(fakeScalar(name));
+        }
+        else {
+          // we can provide a PSI based scalar definition from Specification.graphql library,
+          // so we need to ensure it has a valid coercing assigned for type checking
+          GraphQLScalarType scalarType = GraphQLScalarType.newScalar()
+            .name(name)
+            .description(name)
+            .coercing(ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS_MAP.get(name).getCoercing())
+            .build();
+          wiring.scalar(scalarType);
+        }
+      });
+    });
 
-        return new SchemaGenerator().makeExecutableSchema(registry, runtimeWiring);
-    }
+    return new SchemaGenerator().makeExecutableSchema(registry, runtimeWiring);
+  }
 }

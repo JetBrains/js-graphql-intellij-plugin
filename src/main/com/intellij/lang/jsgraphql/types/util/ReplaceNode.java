@@ -26,13 +26,13 @@ import com.intellij.lang.jsgraphql.types.Internal;
 @Internal
 public class ReplaceNode {
 
-    private final Object newNode;
+  private final Object newNode;
 
-    public ReplaceNode(Object newNode) {
-        this.newNode = newNode;
-    }
+  public ReplaceNode(Object newNode) {
+    this.newNode = newNode;
+  }
 
-    public Object getNewNode() {
-        return newNode;
-    }
+  public Object getNewNode() {
+    return newNode;
+  }
 }

@@ -9,16 +9,16 @@ import com.intellij.openapi.vfs.VirtualFileManager
 
 @Service(Service.Level.PROJECT)
 class GraphQLScopeDependency : ModificationTracker {
-    companion object {
-        @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLScopeDependency>()
-    }
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLScopeDependency>()
+  }
 
-    private val modificationTracker = CompositeModificationTracker(VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
+  private val modificationTracker = CompositeModificationTracker(VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS)
 
-    override fun getModificationCount(): Long = modificationTracker.modificationCount
+  override fun getModificationCount(): Long = modificationTracker.modificationCount
 
-    fun update() {
-        modificationTracker.incModificationCount()
-    }
+  fun update() {
+    modificationTracker.incModificationCount()
+  }
 }

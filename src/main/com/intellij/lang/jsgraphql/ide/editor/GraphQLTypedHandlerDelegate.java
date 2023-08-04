@@ -12,27 +12,27 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 public class GraphQLTypedHandlerDelegate extends TypedHandlerDelegate {
-    @Override
-    public @NotNull Result checkAutoPopup(char charTyped, @NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
-        if (!(file instanceof GraphQLFile)) {
-            return super.checkAutoPopup(charTyped, project, editor, file);
-        }
-
-        AutoPopupController autoPopupController = AutoPopupController.getInstance(project);
-        if (charTyped == '@' || charTyped == '$' || charTyped == '[' || charTyped == '(') {
-            autoPopupController.autoPopupMemberLookup(editor, null);
-            return Result.STOP;
-        }
-
-        if (charTyped == '{') {
-            PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
-            PsiElement parent = element != null ? element.getParent() : null;
-            if (parent instanceof GraphQLArguments || parent instanceof GraphQLObjectValue) {
-                autoPopupController.autoPopupMemberLookup(editor, null);
-                return Result.STOP;
-            }
-        }
-
-        return super.checkAutoPopup(charTyped, project, editor, file);
+  @Override
+  public @NotNull Result checkAutoPopup(char charTyped, @NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+    if (!(file instanceof GraphQLFile)) {
+      return super.checkAutoPopup(charTyped, project, editor, file);
     }
+
+    AutoPopupController autoPopupController = AutoPopupController.getInstance(project);
+    if (charTyped == '@' || charTyped == '$' || charTyped == '[' || charTyped == '(') {
+      autoPopupController.autoPopupMemberLookup(editor, null);
+      return Result.STOP;
+    }
+
+    if (charTyped == '{') {
+      PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
+      PsiElement parent = element != null ? element.getParent() : null;
+      if (parent instanceof GraphQLArguments || parent instanceof GraphQLObjectValue) {
+        autoPopupController.autoPopupMemberLookup(editor, null);
+        return Result.STOP;
+      }
+    }
+
+    return super.checkAutoPopup(charTyped, project, editor, file);
+  }
 }

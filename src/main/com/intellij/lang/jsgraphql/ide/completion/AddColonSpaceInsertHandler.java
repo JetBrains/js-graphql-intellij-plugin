@@ -43,7 +43,8 @@ public class AddColonSpaceInsertHandler implements InsertHandler<LookupElement> 
       if (!isCharAtColon(editor)) {
         EditorModificationUtil.insertStringAtCaret(editor, ": ");
         PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
-      } else {
+      }
+      else {
         editor.getCaretModel().moveToOffset(editor.getCaretModel().getOffset() + 2);
       }
       if (myTriggerAutoPopup) {

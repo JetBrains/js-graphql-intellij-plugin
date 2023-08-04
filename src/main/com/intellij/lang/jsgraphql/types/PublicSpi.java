@@ -27,9 +27,9 @@ import static java.lang.annotation.ElementType.*;
 /**
  * This represents code that the graphql-java project considers public SPI and has an imperative to be stable within
  * major releases.
- *
+ * <p>
  * The guarantee  is for callers of code with this annotation as well as derivations that inherit / implement this code.
- *
+ * <p>
  * New methods will not be added (without using default methods say) that would nominally breaks SPI implementations
  * within a major release.
  */

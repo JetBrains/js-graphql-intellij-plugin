@@ -35,37 +35,37 @@ import java.util.Set;
 @Internal
 public class NoUnusedVariables extends AbstractRule {
 
-    private final List<VariableDefinition> variableDefinitions = new ArrayList<>();
-    private final Set<String> usedVariables = new LinkedHashSet<>();
+  private final List<VariableDefinition> variableDefinitions = new ArrayList<>();
+  private final Set<String> usedVariables = new LinkedHashSet<>();
 
-    public NoUnusedVariables(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
-        super(validationContext, validationErrorCollector);
-        setVisitFragmentSpreads(true);
-    }
+  public NoUnusedVariables(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
+    super(validationContext, validationErrorCollector);
+    setVisitFragmentSpreads(true);
+  }
 
-    @Override
-    public void leaveOperationDefinition(OperationDefinition operationDefinition) {
-        for (VariableDefinition variableDefinition : variableDefinitions) {
-            if (!usedVariables.contains(variableDefinition.getName())) {
-                String message = String.format("Unused variable %s", variableDefinition.getName());
-                addError(ValidationErrorType.UnusedVariable, variableDefinition.getSourceLocation(), message);
-            }
-        }
+  @Override
+  public void leaveOperationDefinition(OperationDefinition operationDefinition) {
+    for (VariableDefinition variableDefinition : variableDefinitions) {
+      if (!usedVariables.contains(variableDefinition.getName())) {
+        String message = String.format("Unused variable %s", variableDefinition.getName());
+        addError(ValidationErrorType.UnusedVariable, variableDefinition.getSourceLocation(), message);
+      }
     }
+  }
 
-    @Override
-    public void checkOperationDefinition(OperationDefinition operationDefinition) {
-        usedVariables.clear();
-        variableDefinitions.clear();
-    }
+  @Override
+  public void checkOperationDefinition(OperationDefinition operationDefinition) {
+    usedVariables.clear();
+    variableDefinitions.clear();
+  }
 
-    @Override
-    public void checkVariableDefinition(VariableDefinition variableDefinition) {
-        variableDefinitions.add(variableDefinition);
-    }
+  @Override
+  public void checkVariableDefinition(VariableDefinition variableDefinition) {
+    variableDefinitions.add(variableDefinition);
+  }
 
-    @Override
-    public void checkVariable(VariableReference variableReference) {
-        usedVariables.add(variableReference.getName());
-    }
+  @Override
+  public void checkVariable(VariableReference variableReference) {
+    usedVariables.add(variableReference.getName());
+  }
 }

@@ -11,30 +11,30 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphQLFederationResolveTest extends GraphQLResolveTestCaseBase {
 
-    @Override
-    protected @NotNull String getBasePath() {
-        return "/frameworks/federation/resolve";
-    }
+  @Override
+  protected @NotNull String getBasePath() {
+    return "/frameworks/federation/resolve";
+  }
 
-    public void testQueryExtensionsService() {
-        GraphQLTestUtils.withLibrary(getProject(), GraphQLLibraryTypes.FEDERATION, () -> {
-            PsiElement target = doResolveAsTextTest(GraphQLFieldDefinition.class, "_service");
-            assertContainingDefinition(target, GraphQLObjectTypeExtensionDefinition.class, "Query");
-        }, getTestRootDisposable());
-    }
+  public void testQueryExtensionsService() {
+    GraphQLTestUtils.withLibrary(getProject(), GraphQLLibraryTypes.FEDERATION, () -> {
+      PsiElement target = doResolveAsTextTest(GraphQLFieldDefinition.class, "_service");
+      assertContainingDefinition(target, GraphQLObjectTypeExtensionDefinition.class, "Query");
+    }, getTestRootDisposable());
+  }
 
-    public void testQueryExtensionsServiceField() {
-        GraphQLTestUtils.withLibrary(getProject(), GraphQLLibraryTypes.FEDERATION, () -> {
-            PsiElement target = doResolveAsTextTest(GraphQLFieldDefinition.class, "sdl");
-            assertContainingDefinition(target, GraphQLObjectTypeDefinition.class, "_Service");
-        }, getTestRootDisposable());
-    }
+  public void testQueryExtensionsServiceField() {
+    GraphQLTestUtils.withLibrary(getProject(), GraphQLLibraryTypes.FEDERATION, () -> {
+      PsiElement target = doResolveAsTextTest(GraphQLFieldDefinition.class, "sdl");
+      assertContainingDefinition(target, GraphQLObjectTypeDefinition.class, "_Service");
+    }, getTestRootDisposable());
+  }
 
-    public void testQueryExtensionsOnlyOnRootLevel() {
-        GraphQLTestUtils.withLibrary(getProject(), GraphQLLibraryTypes.FEDERATION, this::doHighlightingTest, getTestRootDisposable());
-    }
+  public void testQueryExtensionsOnlyOnRootLevel() {
+    GraphQLTestUtils.withLibrary(getProject(), GraphQLLibraryTypes.FEDERATION, this::doHighlightingTest, getTestRootDisposable());
+  }
 
-    public void testNotResolvedIfDisabled() {
-        doHighlightingTest();
-    }
+  public void testNotResolvedIfDisabled() {
+    doHighlightingTest();
+  }
 }

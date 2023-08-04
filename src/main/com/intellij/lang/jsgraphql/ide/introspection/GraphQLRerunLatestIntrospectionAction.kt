@@ -14,32 +14,32 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class GraphQLRerunLatestIntrospectionAction : AnAction(
-    GraphQLBundle.message("graphql.action.rerun.latest.introspection.title"),
-    GraphQLBundle.message("graphql.action.rerun.latest.introspection.desc"),
-    AllIcons.Actions.Rerun,
+  GraphQLBundle.message("graphql.action.rerun.latest.introspection.title"),
+  GraphQLBundle.message("graphql.action.rerun.latest.introspection.desc"),
+  AllIcons.Actions.Rerun,
 ) {
-    companion object {
-        const val ACTION_ID = "GraphQLRerunLatestIntrospection"
-    }
+  companion object {
+    const val ACTION_ID = "GraphQLRerunLatestIntrospection"
+  }
 
-    override fun update(e: AnActionEvent) {
-        val project = e.project ?: return
-        var enabled = false
-        val latestIntrospection = GraphQLIntrospectionService.getInstance(project).latestIntrospection
-        if (latestIntrospection != null) {
-            enabled = true
-            e.presentation.text =
-                GraphQLBundle.message("graphql.action.rerun.latest.introspection.schema.title", latestIntrospection.endpoint.displayName)
-        }
-        e.presentation.isEnabled = enabled
+  override fun update(e: AnActionEvent) {
+    val project = e.project ?: return
+    var enabled = false
+    val latestIntrospection = GraphQLIntrospectionService.getInstance(project).latestIntrospection
+    if (latestIntrospection != null) {
+      enabled = true
+      e.presentation.text =
+        GraphQLBundle.message("graphql.action.rerun.latest.introspection.schema.title", latestIntrospection.endpoint.displayName)
     }
+    e.presentation.isEnabled = enabled
+  }
 
-    override fun getActionUpdateThread(): ActionUpdateThread {
-        return ActionUpdateThread.BGT
-    }
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
+  }
 
-    override fun actionPerformed(e: AnActionEvent) {
-        val project = e.project ?: return
-        GraphQLIntrospectionService.getInstance(project).latestIntrospection?.runnable?.run()
-    }
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    GraphQLIntrospectionService.getInstance(project).latestIntrospection?.runnable?.run()
+  }
 }

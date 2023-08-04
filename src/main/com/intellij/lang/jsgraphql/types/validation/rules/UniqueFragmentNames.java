@@ -32,29 +32,30 @@ import java.util.Set;
 public class UniqueFragmentNames extends AbstractRule {
 
 
-    private Set<String> fragmentNames = new LinkedHashSet<>();
+  private Set<String> fragmentNames = new LinkedHashSet<>();
 
 
-    public UniqueFragmentNames(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
-        super(validationContext, validationErrorCollector);
+  public UniqueFragmentNames(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
+    super(validationContext, validationErrorCollector);
+  }
+
+  @Override
+  public void checkFragmentDefinition(FragmentDefinition fragmentDefinition) {
+    String name = fragmentDefinition.getName();
+    if (name == null) {
+      return;
     }
 
-    @Override
-    public void checkFragmentDefinition(FragmentDefinition fragmentDefinition) {
-        String name = fragmentDefinition.getName();
-        if (name == null) {
-            return;
-        }
-
-        if (fragmentNames.contains(name)) {
-            addError(ValidationErrorType.DuplicateFragmentName, fragmentDefinition.getSourceLocation(), duplicateFragmentName(name));
-        } else {
-            fragmentNames.add(name);
-        }
+    if (fragmentNames.contains(name)) {
+      addError(ValidationErrorType.DuplicateFragmentName, fragmentDefinition.getSourceLocation(), duplicateFragmentName(name));
     }
-
-    @VisibleForTesting
-    static String duplicateFragmentName(String fragmentName) {
-        return String.format("There can be only one fragment named '%s'", fragmentName);
+    else {
+      fragmentNames.add(name);
     }
+  }
+
+  @VisibleForTesting
+  static String duplicateFragmentName(String fragmentName) {
+    return String.format("There can be only one fragment named '%s'", fragmentName);
+  }
 }

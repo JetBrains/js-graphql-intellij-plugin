@@ -25,12 +25,12 @@ import org.jetbrains.annotations.Nullable;
 @Internal
 public class QueryOperationMissingError extends BaseError {
 
-    public QueryOperationMissingError() {
-        super(null, "A schema should have a 'query' operation defined");
-    }
+  public QueryOperationMissingError() {
+    super(null, "A schema should have a 'query' operation defined");
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLMissingTypeInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLMissingTypeInspection.class;
+  }
 }

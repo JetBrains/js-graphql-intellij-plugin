@@ -34,138 +34,143 @@ private val EXTENSIONS = setOf("js", "ts", "cjs")
 
 class GraphQLJavaScriptConfigLoader : GraphQLConfigCustomLoader {
 
-    private val marker = "___GRAPHQL_LOADER___"
+  private val marker = "___GRAPHQL_LOADER___"
 
-    private val interpreterNotificationShown = AtomicBoolean()
+  private val interpreterNotificationShown = AtomicBoolean()
 
-    override fun accepts(file: VirtualFile): Boolean {
-        return file.extension in EXTENSIONS
+  override fun accepts(file: VirtualFile): Boolean {
+    return file.extension in EXTENSIONS
+  }
+
+  override fun load(project: Project, file: VirtualFile): Map<*, *>? {
+    val interpreter = getInterpreter(project)
+    if (interpreter == null) {
+      if (interpreterNotificationShown.compareAndSet(false, true)) {
+        val notification = Notification(
+          GRAPHQL_NOTIFICATION_GROUP_ID,
+          GraphQLBundle.message("graphql.config.error.title"),
+          GraphQLBundle.message("graphql.config.evaluation.interpreter.not.found.error", file.name),
+          NotificationType.WARNING
+        ).addAction(NodeSettingsConfigurable.createConfigureInterpreterAction(project, null))
+        Notifications.Bus.notify(notification)
+      }
+
+      throw RuntimeException(GraphQLBundle.message("graphql.config.node.interpreter.error"))
     }
 
-    override fun load(project: Project, file: VirtualFile): Map<*, *>? {
-        val interpreter = getInterpreter(project)
-        if (interpreter == null) {
-            if (interpreterNotificationShown.compareAndSet(false, true)) {
-                val notification = Notification(
-                    GRAPHQL_NOTIFICATION_GROUP_ID,
-                    GraphQLBundle.message("graphql.config.error.title"),
-                    GraphQLBundle.message("graphql.config.evaluation.interpreter.not.found.error", file.name),
-                    NotificationType.WARNING
-                ).addAction(NodeSettingsConfigurable.createConfigureInterpreterAction(project, null))
-                Notifications.Bus.notify(notification)
-            }
+    val (_, run) = run(project, interpreter, file)
+    val stdout = run.stdout.trim()
+    val stderr = run.stderr.trim()
 
-            throw RuntimeException(GraphQLBundle.message("graphql.config.node.interpreter.error"))
-        }
+    if (run.exitCode == 0) {
+      LOG.debug { "Evaluated ${file.path} config: stdout=$stdout\nstderr=$stderr" }
+      val lastNewLine = stdout.lastIndexOf(marker)
+      val startIndex = lastNewLine + marker.length + 1
+      val result = if (lastNewLine >= 0 && stdout.length >= startIndex) stdout.substring(startIndex) else stdout
+      if (result.isBlank() && stderr.isNotEmpty()) {
+        completeExceptionally(file, run)
+      }
 
-        val (_, run) = run(project, interpreter, file)
-        val stdout = run.stdout.trim()
-        val stderr = run.stderr.trim()
-
-        if (run.exitCode == 0) {
-            LOG.debug { "Evaluated ${file.path} config: stdout=$stdout\nstderr=$stderr" }
-            val lastNewLine = stdout.lastIndexOf(marker)
-            val startIndex = lastNewLine + marker.length + 1
-            val result = if (lastNewLine >= 0 && stdout.length >= startIndex) stdout.substring(startIndex) else stdout
-            if (result.isBlank() && stderr.isNotEmpty()) {
-                completeExceptionally(file, run)
-            }
-
-            try {
-                return parseJsonResult(result)
-            } catch (e: Exception) {
-                LOG.warn("${e.message}\nstdout: ${stdout}\nstderr: $stderr", e)
-                throw RuntimeException(GraphQLBundle.message("graphql.config.evaluation.error"), e)
-            }
-        } else {
-            completeExceptionally(file, run)
-        }
+      try {
+        return parseJsonResult(result)
+      }
+      catch (e: Exception) {
+        LOG.warn("${e.message}\nstdout: ${stdout}\nstderr: $stderr", e)
+        throw RuntimeException(GraphQLBundle.message("graphql.config.evaluation.error"), e)
+      }
     }
+    else {
+      completeExceptionally(file, run)
+    }
+  }
 
-    private fun completeExceptionally(file: VirtualFile, run: ProcessOutput): Nothing {
-        LOG.warn(
-            """
+  private fun completeExceptionally(file: VirtualFile, run: ProcessOutput): Nothing {
+    LOG.warn(
+      """
             Failed to evaluate ${file.path} config. Exit code: ${run.exitCode}${if (run.isTimeout) ", timed out" else ""}
             stdout: ${run.stdout}
             stderr: ${run.stderr}
             """.trimIndent()
-        )
+    )
 
-        val errorDetails = run.stderr.trim()
-        if (errorDetails.isNotEmpty()) {
-            throw RuntimeException(GraphQLBundle.message("graphql.config.evaluation.error"), Throwable(run.stderr))
-        } else {
-            throw RuntimeException(GraphQLBundle.message("graphql.config.evaluation.error"))
-        }
+    val errorDetails = run.stderr.trim()
+    if (errorDetails.isNotEmpty()) {
+      throw RuntimeException(GraphQLBundle.message("graphql.config.evaluation.error"), Throwable(run.stderr))
+    }
+    else {
+      throw RuntimeException(GraphQLBundle.message("graphql.config.evaluation.error"))
+    }
+  }
+
+  private fun parseJsonResult(result: String): Map<*, *>? {
+    return Gson().fromJson(result, Map::class.java)
+  }
+
+  private fun run(
+    project: Project,
+    interpreter: NodeJsInterpreter,
+    file: VirtualFile,
+  ): Pair<NodeTargetRun, ProcessOutput> {
+    val packageJson = findPackageJson(file)
+    val workingDir = file.parent
+    val isESM = if (packageJson != null) PackageJsonData.getOrCreate(packageJson).isModuleType else false
+    val targetRun = createTargetRun(interpreter, project, workingDir.path)
+    LOG.info("Loading ${file.path} config")
+    configureCommandLine(targetRun, file.path, isESM)
+    val processHandler = targetRun.startProcessEx().processHandler
+    val processOutput = CapturingProcessRunner(processHandler).runProcess(TIMEOUT, true)
+    return Pair(targetRun, processOutput)
+  }
+
+  private fun createTargetRun(interpreter: NodeJsInterpreter, project: Project, workingDir: String): NodeTargetRun {
+    val targetRun = NodeTargetRun(interpreter, project, null, NodeTargetRun.createOptions(ThreeState.NO, emptyList()))
+    targetRun.commandLineBuilder.setWorkingDirectory(targetRun.path(workingDir))
+    targetRun.commandLineBuilder.addEnvironmentVariable("NODE_ENV", "development")
+    return targetRun
+  }
+
+  private fun configureCommandLine(
+    targetRun: NodeTargetRun,
+    path: String,
+    isESM: Boolean,
+  ) {
+    val filePath = "./${PathUtil.getFileName(path)}"
+
+    val commandLine = targetRun.commandLineBuilder
+    if (isESM) {
+      commandLine.addParameter("--input-type")
+      commandLine.addParameter("module")
     }
 
-    private fun parseJsonResult(result: String): Map<*, *>? {
-        return Gson().fromJson(result, Map::class.java)
+    if (TypeScriptUtil.isTypeScriptFile(path)) {
+      if (isESM) {
+        commandLine.addParameter("--loader")
+        commandLine.addParameter("ts-node/esm")
+      }
+      else {
+        commandLine.addParameter("-r")
+        commandLine.addParameter("ts-node/register")
+      }
     }
 
-    private fun run(
-        project: Project,
-        interpreter: NodeJsInterpreter,
-        file: VirtualFile,
-    ): Pair<NodeTargetRun, ProcessOutput> {
-        val packageJson = findPackageJson(file)
-        val workingDir = file.parent
-        val isESM = if (packageJson != null) PackageJsonData.getOrCreate(packageJson).isModuleType else false
-        val targetRun = createTargetRun(interpreter, project, workingDir.path)
-        LOG.info("Loading ${file.path} config")
-        configureCommandLine(targetRun, file.path, isESM)
-        val processHandler = targetRun.startProcessEx().processHandler
-        val processOutput = CapturingProcessRunner(processHandler).runProcess(TIMEOUT, true)
-        return Pair(targetRun, processOutput)
-    }
-
-    private fun createTargetRun(interpreter: NodeJsInterpreter, project: Project, workingDir: String): NodeTargetRun {
-        val targetRun = NodeTargetRun(interpreter, project, null, NodeTargetRun.createOptions(ThreeState.NO, emptyList()))
-        targetRun.commandLineBuilder.setWorkingDirectory(targetRun.path(workingDir))
-        targetRun.commandLineBuilder.addEnvironmentVariable("NODE_ENV", "development")
-        return targetRun
-    }
-
-    private fun configureCommandLine(
-        targetRun: NodeTargetRun,
-        path: String,
-        isESM: Boolean,
-    ) {
-        val filePath = "./${PathUtil.getFileName(path)}"
-
-        val commandLine = targetRun.commandLineBuilder
-        if (isESM) {
-            commandLine.addParameter("--input-type")
-            commandLine.addParameter("module")
-        }
-
-        if (TypeScriptUtil.isTypeScriptFile(path)) {
-            if (isESM) {
-                commandLine.addParameter("--loader")
-                commandLine.addParameter("ts-node/esm")
-            } else {
-                commandLine.addParameter("-r")
-                commandLine.addParameter("ts-node/register")
-            }
-        }
-
-        val runnable = if (isESM) {
-            //language=JavaScript
-            """
+    val runnable = if (isESM) {
+      //language=JavaScript
+      """
             import(modulePath).then(config => printConfig(config)).catch(err => console.error(err));
             """.trimIndent()
-        } else {
-            //language=JavaScript
-            """
+    }
+    else {
+      //language=JavaScript
+      """
             var config = require(modulePath);
             printConfig(config);
             """.trimIndent()
-        }
+    }
 
-        commandLine.addParameter("-e")
-        //language=JavaScript
-        commandLine.addParameter(
-            """
+    commandLine.addParameter("-e")
+    //language=JavaScript
+    commandLine.addParameter(
+      """
             function printConfig(config) {
               if (config.default !== undefined) config = config.default;
 
@@ -177,22 +182,22 @@ class GraphQLJavaScriptConfigLoader : GraphQLConfigCustomLoader {
             var modulePath = '${StringUtil.escapeBackSlashes(filePath)}';
             $runnable
             """.trimIndent().trim()
-        )
-    }
+    )
+  }
 
-    private fun getInterpreter(project: Project): NodeJsInterpreter? {
-        val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter
-        return if (interpreter != null && interpreter.validate(project) == null) interpreter else null
-    }
+  private fun getInterpreter(project: Project): NodeJsInterpreter? {
+    val interpreter = NodeJsInterpreterManager.getInstance(project).interpreter
+    return if (interpreter != null && interpreter.validate(project) == null) interpreter else null
+  }
 
-    private fun findPackageJson(from: VirtualFile?): VirtualFile? {
-        if (from == null) {
-            return null
-        }
-        var packageJson = PackageJsonUtil.findUpPackageJson(from)
-        while (packageJson != null && JSLibraryUtil.hasDirectoryInPath(packageJson, JSLibraryUtil.NODE_MODULES, null)) {
-            packageJson = PackageJsonUtil.findUpPackageJson(packageJson.parent.parent)
-        }
-        return packageJson
+  private fun findPackageJson(from: VirtualFile?): VirtualFile? {
+    if (from == null) {
+      return null
     }
+    var packageJson = PackageJsonUtil.findUpPackageJson(from)
+    while (packageJson != null && JSLibraryUtil.hasDirectoryInPath(packageJson, JSLibraryUtil.NODE_MODULES, null)) {
+      packageJson = PackageJsonUtil.findUpPackageJson(packageJson.parent.parent)
+    }
+    return packageJson
+  }
 }

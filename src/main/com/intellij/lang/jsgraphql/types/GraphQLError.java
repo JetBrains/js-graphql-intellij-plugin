@@ -44,62 +44,61 @@ import java.util.Map;
 @PublicApi
 public interface GraphQLError extends Serializable {
 
-    /**
-     * @return a description of the error intended for the developer as a guide to understand and correct the error
-     */
-    String getMessage();
+  /**
+   * @return a description of the error intended for the developer as a guide to understand and correct the error
+   */
+  String getMessage();
 
-    /**
-     * @return the location(s) within the GraphQL document at which the error occurred. Each {@link SourceLocation}
-     * describes the beginning of an associated syntax element
-     */
-    List<SourceLocation> getLocations();
+  /**
+   * @return the location(s) within the GraphQL document at which the error occurred. Each {@link SourceLocation}
+   * describes the beginning of an associated syntax element
+   */
+  List<SourceLocation> getLocations();
 
-    /**
-     * @return an object classifying this error
-     */
-    ErrorClassification getErrorType();
+  /**
+   * @return an object classifying this error
+   */
+  ErrorClassification getErrorType();
 
-    /**
-     * The graphql spec says that the (optional) path field of any error should be a list
-     * of path entries - http://facebook.github.io/graphql/#sec-Errors
-     *
-     * @return the path in list format
-     */
-    default List<Object> getPath() {
-        return null;
-    }
+  /**
+   * The graphql spec says that the (optional) path field of any error should be a list
+   * of path entries - http://facebook.github.io/graphql/#sec-Errors
+   *
+   * @return the path in list format
+   */
+  default List<Object> getPath() {
+    return null;
+  }
 
-    /**
-     * The graphql specification says that result of a call should be a map that follows certain rules on what items
-     * should be present.  Certain JSON serializers may or may interpret the error to spec, so this method
-     * is provided to produce a map that strictly follows the specification.
-     * <p>
-     * See : <a href="http://facebook.github.io/graphql/#sec-Errors">http://facebook.github.io/graphql/#sec-Errors</a>
-     *
-     * @return a map of the error that strictly follows the specification
-     */
-    default Map<String, Object> toSpecification() {
-        return GraphqlErrorHelper.toSpecification(this);
-    }
+  /**
+   * The graphql specification says that result of a call should be a map that follows certain rules on what items
+   * should be present.  Certain JSON serializers may or may interpret the error to spec, so this method
+   * is provided to produce a map that strictly follows the specification.
+   * <p>
+   * See : <a href="http://facebook.github.io/graphql/#sec-Errors">http://facebook.github.io/graphql/#sec-Errors</a>
+   *
+   * @return a map of the error that strictly follows the specification
+   */
+  default Map<String, Object> toSpecification() {
+    return GraphqlErrorHelper.toSpecification(this);
+  }
 
-    /**
-     * @return a map of error extensions or null if there are none
-     */
-    default Map<String, Object> getExtensions() {
-        return null;
-    }
+  /**
+   * @return a map of error extensions or null if there are none
+   */
+  default Map<String, Object> getExtensions() {
+    return null;
+  }
 
-    default @Nullable Node getNode() {
-        return null;
-    }
+  default @Nullable Node getNode() {
+    return null;
+  }
 
-    default @NotNull List<Node> getReferences() {
-        return Collections.emptyList();
-    }
+  default @NotNull List<Node> getReferences() {
+    return Collections.emptyList();
+  }
 
-    default @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLSchemaValidationInspection.class;
-    }
-
+  default @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLSchemaValidationInspection.class;
+  }
 }

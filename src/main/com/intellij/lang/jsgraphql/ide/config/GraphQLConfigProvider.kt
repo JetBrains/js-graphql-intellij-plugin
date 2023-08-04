@@ -60,452 +60,460 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Service(Service.Level.PROJECT)
 class GraphQLConfigProvider(private val project: Project) : Disposable, ModificationTracker, GraphQLConfigEnvironmentListener {
-    companion object {
-        private val LOG = logger<GraphQLConfigProvider>()
+  companion object {
+    private val LOG = logger<GraphQLConfigProvider>()
 
-        private val CONFIG_CLOSEST =
-            Key.create<CachedValue<GraphQLConfigSearchResult?>>("graphql.config.closest")
-        private val CONFIG_OVERRIDE_FILE_KEY =
-            Key.create<CachedValue<GraphQLConfigOverride?>>("graphql.config.override.file")
-        private val CONFIG_OVERRIDE_PATH_KEY =
-            Key.create<CachedValue<GraphQLConfigOverridePath?>>("graphql.config.override.path")
+    private val CONFIG_CLOSEST =
+      Key.create<CachedValue<GraphQLConfigSearchResult?>>("graphql.config.closest")
+    private val CONFIG_OVERRIDE_FILE_KEY =
+      Key.create<CachedValue<GraphQLConfigOverride?>>("graphql.config.override.file")
+    private val CONFIG_OVERRIDE_PATH_KEY =
+      Key.create<CachedValue<GraphQLConfigOverridePath?>>("graphql.config.override.path")
 
-        private const val CONFIG_RELOAD_DELAY = 500
+    private const val CONFIG_RELOAD_DELAY = 500
 
-        @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLConfigProvider>()
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLConfigProvider>()
+  }
+
+  init {
+    GraphQLFileTypeContributor.EP_NAME.addChangeListener({ invalidate() }, this)
+    GraphQLInjectedLanguage.EP_NAME.addChangeListener({ invalidate() }, this)
+    GraphQLConfigContributor.EP_NAME.addChangeListener({ invalidate() }, this)
+
+    project.messageBus.connect(this).subscribe(GraphQLConfigEnvironmentListener.TOPIC, this)
+  }
+
+  private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
+  private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
+  private val scopeDependency = GraphQLScopeDependency.getInstance(project)
+
+  private val reloadConfigAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+
+  // need to trigger invalidation of dependent caches regardless of whether any changes are detected or not
+  private val pendingInvalidation = AtomicBoolean(false)
+
+  @Volatile
+  private var initialized = false
+
+  /**
+   * Use this service as a dependency for tracking content changes in configuration files.
+   * Note, that calculations which depends on the scope structure should probably depend on
+   * [GraphQLScopeDependency] instead, which tracks this service state and some more stuff,
+   * which could affect resolve and type evaluation.
+   */
+  private val modificationTracker = SimpleModificationTracker()
+
+  private val configData: MutableMap<VirtualFile, ConfigEntry> = ConcurrentHashMap()
+
+  // NB: this is directory -> config mapping, because a physical config file may not exist
+  private val contributedConfigs: AtomicReference<Map<VirtualFile, GraphQLConfig>> = AtomicReference(emptyMap())
+
+  private val configFiles: CachedValue<Set<VirtualFile>> = CachedValuesManager.getManager(project).createCachedValue {
+    CachedValueProvider.Result.create(
+      queryAllConfigFiles(),
+      VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
+      ProjectRootManager.getInstance(project)
+    )
+  }
+
+  private val configFileInDirectory: CachedValue<ConcurrentMap<VirtualFile, Optional<VirtualFile>>> =
+    CachedValuesManager.getManager(project).createCachedValue {
+      CachedValueProvider.Result.create(ConcurrentHashMap(), scopeDependency)
     }
 
-    init {
-        GraphQLFileTypeContributor.EP_NAME.addChangeListener({ invalidate() }, this)
-        GraphQLInjectedLanguage.EP_NAME.addChangeListener({ invalidate() }, this)
-        GraphQLConfigContributor.EP_NAME.addChangeListener({ invalidate() }, this)
-
-        project.messageBus.connect(this).subscribe(GraphQLConfigEnvironmentListener.TOPIC, this)
+  private val configsInParentDirectories: CachedValue<ConcurrentMap<VirtualFile, Optional<GraphQLConfig>>> =
+    CachedValuesManager.getManager(project).createCachedValue {
+      CachedValueProvider.Result.create(ConcurrentHashMap(), scopeDependency)
     }
 
-    private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
-    private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
-    private val scopeDependency = GraphQLScopeDependency.getInstance(project)
-
-    private val reloadConfigAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
-
-    // need to trigger invalidation of dependent caches regardless of whether any changes are detected or not
-    private val pendingInvalidation = AtomicBoolean(false)
-
-    @Volatile
-    private var initialized = false
-
-    /**
-     * Use this service as a dependency for tracking content changes in configuration files.
-     * Note, that calculations which depends on the scope structure should probably depend on
-     * [GraphQLScopeDependency] instead, which tracks this service state and some more stuff,
-     * which could affect resolve and type evaluation.
-     */
-    private val modificationTracker = SimpleModificationTracker()
-
-    private val configData: MutableMap<VirtualFile, ConfigEntry> = ConcurrentHashMap()
-
-    // NB: this is directory -> config mapping, because a physical config file may not exist
-    private val contributedConfigs: AtomicReference<Map<VirtualFile, GraphQLConfig>> = AtomicReference(emptyMap())
-
-    private val configFiles: CachedValue<Set<VirtualFile>> = CachedValuesManager.getManager(project).createCachedValue {
-        CachedValueProvider.Result.create(
-            queryAllConfigFiles(),
-            VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS,
-            ProjectRootManager.getInstance(project)
-        )
+  @RequiresReadLock
+  fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? {
+    // shouldn't try resolving for the config file itself
+    if (isConfigFile(context)) {
+      return null
     }
 
-    private val configFileInDirectory: CachedValue<ConcurrentMap<VirtualFile, Optional<VirtualFile>>> =
-        CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(ConcurrentHashMap(), scopeDependency)
-        }
-
-    private val configsInParentDirectories: CachedValue<ConcurrentMap<VirtualFile, Optional<GraphQLConfig>>> =
-        CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(ConcurrentHashMap(), scopeDependency)
-        }
-
-    @RequiresReadLock
-    fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? {
-        // shouldn't try resolving for the config file itself
-        if (isConfigFile(context)) {
-            return null
-        }
-
-        val searchResult = findConfig(context)
-        return when {
-            searchResult == null -> null
-            searchResult.projectName != null -> searchResult.config.findProject(searchResult.projectName)
-            else -> searchResult.config.match(context)
-        }
+    val searchResult = findConfig(context)
+    return when {
+      searchResult == null -> null
+      searchResult.projectName != null -> searchResult.config.findProject(searchResult.projectName)
+      else -> searchResult.config.match(context)
     }
+  }
 
-    @RequiresReadLock
-    fun resolveProjectConfig(virtualFile: VirtualFile): GraphQLProjectConfig? =
-        PsiManager.getInstance(project).findFile(virtualFile)?.let { resolveProjectConfig(it) }
+  @RequiresReadLock
+  fun resolveProjectConfig(virtualFile: VirtualFile): GraphQLProjectConfig? =
+    PsiManager.getInstance(project).findFile(virtualFile)?.let { resolveProjectConfig(it) }
 
-    fun getForConfigFile(file: VirtualFile?): GraphQLConfig? {
-        return when {
-            file == null -> null
-            file.isDirectory -> contributedConfigs.get()[file]
-            else -> configData[file]?.config
-        }
+  fun getForConfigFile(file: VirtualFile?): GraphQLConfig? {
+    return when {
+      file == null -> null
+      file.isDirectory -> contributedConfigs.get()[file]
+      else -> configData[file]?.config
     }
+  }
 
-    fun isCachedConfigOutdated(file: VirtualFile?): Boolean {
-        if (file == null) return false
-        val entry = configData[file] ?: return false
-        return runReadAction { file.timeStamp != entry.timeStamp || FileDocumentManager.getInstance().isFileModified(file) }
+  fun isCachedConfigOutdated(file: VirtualFile?): Boolean {
+    if (file == null) return false
+    val entry = configData[file] ?: return false
+    return runReadAction { file.timeStamp != entry.timeStamp || FileDocumentManager.getInstance().isFileModified(file) }
+  }
+
+  @JvmOverloads
+  fun getAllConfigs(includeContributed: Boolean = true): List<GraphQLConfig> {
+    val configs = configData.mapNotNull { it.value.config }
+    return if (includeContributed) configs + contributedConfigs.get().values else configs
+  }
+
+  fun getConfigEvaluationState(file: VirtualFile): ConfigEvaluationState? {
+    val entry = configData[file] ?: return null
+    return ConfigEvaluationState(entry.status, entry.error)
+  }
+
+  val isInitialized
+    get() = initialized
+
+  val hasExplicitConfiguration
+    get() = configData.isNotEmpty()
+
+  private fun findOverriddenConfig(file: PsiFile): GraphQLConfigOverride? {
+    return CachedValuesManager.getCachedValue(file, CONFIG_OVERRIDE_FILE_KEY) {
+      CachedValueProvider.Result.create(findOverriddenConfigImpl(file), file, scopeDependency)
     }
+  }
 
-    @JvmOverloads
-    fun getAllConfigs(includeContributed: Boolean = true): List<GraphQLConfig> {
-        val configs = configData.mapNotNull { it.value.config }
-        return if (includeContributed) configs + contributedConfigs.get().values else configs
-    }
-
-    fun getConfigEvaluationState(file: VirtualFile): ConfigEvaluationState? {
-        val entry = configData[file] ?: return null
-        return ConfigEvaluationState(entry.status, entry.error)
-    }
-
-    val isInitialized
-        get() = initialized
-
-    val hasExplicitConfiguration
-        get() = configData.isNotEmpty()
-
-    private fun findOverriddenConfig(file: PsiFile): GraphQLConfigOverride? {
-        return CachedValuesManager.getCachedValue(file, CONFIG_OVERRIDE_FILE_KEY) {
-            CachedValueProvider.Result.create(findOverriddenConfigImpl(file), file, scopeDependency)
-        }
-    }
-
-    private fun findOverriddenConfigImpl(file: PsiFile): GraphQLConfigOverride? {
-        if (file is GraphQLFile && ScratchUtil.isScratch(file.virtualFile)) {
-            val override = getContentDependentOverridePath(file)
-            if (override != null) {
-                val virtualFile = findFileByPath(override.path)
-                if (virtualFile != null) {
-                    return if (virtualFile.isDirectory) {
-                        findConfigFileInDirectory(virtualFile)?.let {
-                            GraphQLConfigOverride(it, override.project)
-                        }
-                    } else {
-                        GraphQLConfigOverride(virtualFile, override.project)
-                    }
-                }
+  private fun findOverriddenConfigImpl(file: PsiFile): GraphQLConfigOverride? {
+    if (file is GraphQLFile && ScratchUtil.isScratch(file.virtualFile)) {
+      val override = getContentDependentOverridePath(file)
+      if (override != null) {
+        val virtualFile = findFileByPath(override.path)
+        if (virtualFile != null) {
+          return if (virtualFile.isDirectory) {
+            findConfigFileInDirectory(virtualFile)?.let {
+              GraphQLConfigOverride(it, override.project)
             }
-
-            return project.guessProjectDir()
-                ?.let { findConfigFileInDirectory(it) }
-                ?.let { GraphQLConfigOverride(it, null) }
+          }
+          else {
+            GraphQLConfigOverride(virtualFile, override.project)
+          }
         }
+      }
 
-        return null
+      return project.guessProjectDir()
+        ?.let { findConfigFileInDirectory(it) }
+        ?.let { GraphQLConfigOverride(it, null) }
     }
 
-    private fun findFileByPath(path: String): VirtualFile? {
-        if (ApplicationManager.getApplication().isUnitTestMode) {
-            return TempFileSystem.getInstance().findFileByPath(path)
-        }
+    return null
+  }
 
-        return LocalFileSystem.getInstance().findFileByPath(path)
+  private fun findFileByPath(path: String): VirtualFile? {
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      return TempFileSystem.getInstance().findFileByPath(path)
     }
 
-    private fun getContentDependentOverridePath(file: PsiFile): GraphQLConfigOverridePath? {
-        if (file !is GraphQLFile) {
-            return null
-        }
+    return LocalFileSystem.getInstance().findFileByPath(path)
+  }
 
-        return CachedValuesManager.getCachedValue(file, CONFIG_OVERRIDE_PATH_KEY) {
-            val start = file.firstChild?.let { if (it is PsiWhiteSpace) PsiTreeUtil.skipWhitespacesForward(it) else it }
-            val override =
-                generateSequence(start) { prev ->
-                    PsiTreeUtil.skipWhitespacesForward(prev)?.takeIf { it is PsiComment }
-                }
-                    .mapNotNull { parseOverrideConfigComment(it.text) }
-                    .firstOrNull()
-
-            CachedValueProvider.Result.create(override, file)
-        }
+  private fun getContentDependentOverridePath(file: PsiFile): GraphQLConfigOverridePath? {
+    if (file !is GraphQLFile) {
+      return null
     }
 
-    @RequiresReadLock
-    fun findConfig(context: PsiFile): GraphQLConfigSearchResult? {
-        return CachedValuesManager.getCachedValue(context, CONFIG_CLOSEST) {
-            val overriddenConfig = findOverriddenConfig(context)
-            if (overriddenConfig != null) {
-                val config = getForConfigFile(overriddenConfig.file)
-                if (config != null) {
-                    return@getCachedValue CachedValueProvider.Result.create(
-                        GraphQLConfigSearchResult(config, overriddenConfig.projectName ?: GraphQLConfig.DEFAULT_PROJECT),
-                        scopeDependency,
-                    )
-                }
-            }
-
-            var from: VirtualFile? = getPhysicalVirtualFile(context)
-
-            val sourceFile = generatedSourcesManager.getSourceFile(from) ?: remoteSchemasRegistry.getSourceFile(from)
-            if (sourceFile != null) {
-                from = sourceFile
-            }
-
-            CachedValueProvider.Result.create(
-                findConfigInParents(from)?.let { GraphQLConfigSearchResult(it) },
-                scopeDependency,
-            )
+    return CachedValuesManager.getCachedValue(file, CONFIG_OVERRIDE_PATH_KEY) {
+      val start = file.firstChild?.let { if (it is PsiWhiteSpace) PsiTreeUtil.skipWhitespacesForward(it) else it }
+      val override =
+        generateSequence(start) { prev ->
+          PsiTreeUtil.skipWhitespacesForward(prev)?.takeIf { it is PsiComment }
         }
+          .mapNotNull { parseOverrideConfigComment(it.text) }
+          .firstOrNull()
+
+      CachedValueProvider.Result.create(override, file)
+    }
+  }
+
+  @RequiresReadLock
+  fun findConfig(context: PsiFile): GraphQLConfigSearchResult? {
+    return CachedValuesManager.getCachedValue(context, CONFIG_CLOSEST) {
+      val overriddenConfig = findOverriddenConfig(context)
+      if (overriddenConfig != null) {
+        val config = getForConfigFile(overriddenConfig.file)
+        if (config != null) {
+          return@getCachedValue CachedValueProvider.Result.create(
+            GraphQLConfigSearchResult(config, overriddenConfig.projectName ?: GraphQLConfig.DEFAULT_PROJECT),
+            scopeDependency,
+          )
+        }
+      }
+
+      var from: VirtualFile? = getPhysicalVirtualFile(context)
+
+      val sourceFile = generatedSourcesManager.getSourceFile(from) ?: remoteSchemasRegistry.getSourceFile(from)
+      if (sourceFile != null) {
+        from = sourceFile
+      }
+
+      CachedValueProvider.Result.create(
+        findConfigInParents(from)?.let { GraphQLConfigSearchResult(it) },
+        scopeDependency,
+      )
+    }
+  }
+
+  private fun findConfigInParents(file: VirtualFile?): GraphQLConfig? {
+    if (file == null || ScratchUtil.isScratch(file)) return null
+
+    val cache = configsInParentDirectories.value
+    val prev = cache[file]
+    if (prev != null) {
+      return prev.orElse(null)
     }
 
-    private fun findConfigInParents(file: VirtualFile?): GraphQLConfig? {
-        if (file == null || ScratchUtil.isScratch(file)) return null
+    val contributedConfigsSnapshot = contributedConfigs.get()
 
-        val cache = configsInParentDirectories.value
-        val prev = cache[file]
-        if (prev != null) {
-            return prev.orElse(null)
+    var config: GraphQLConfig? = null
+    var fallback: GraphQLConfig? = null
+
+    GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, file) { dir ->
+      val candidate = contributedConfigsSnapshot[dir]
+      if (fallback == null && candidate != null) {
+        fallback = candidate
+      }
+
+      val configFile = findConfigFileInDirectory(dir)
+      if (configFile != null) {
+        if (shouldSkipConfig(configFile)) {
+          true
         }
-
-        val contributedConfigsSnapshot = contributedConfigs.get()
-
-        var config: GraphQLConfig? = null
-        var fallback: GraphQLConfig? = null
-
-        GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, file) { dir ->
-            val candidate = contributedConfigsSnapshot[dir]
-            if (fallback == null && candidate != null) {
-                fallback = candidate
-            }
-
-            val configFile = findConfigFileInDirectory(dir)
-            if (configFile != null) {
-                if (shouldSkipConfig(configFile)) {
-                    true
-                } else {
-                    config = getForConfigFile(configFile)
-                    false
-                }
-            } else {
-                true
-            }
+        else {
+          config = getForConfigFile(configFile)
+          false
         }
-
-        if (config == null) {
-            config = fallback
-        }
-
-        val result = Optional.ofNullable(config)
-        return (cache.putIfAbsent(file, result) ?: result).orElse(null)
+      }
+      else {
+        true
+      }
     }
 
-    private fun shouldSkipConfig(candidate: VirtualFile): Boolean {
-        if (candidate.name !in OPTIONAL_CONFIG_NAMES) {
-            return false
-        }
-
-        val configEntry = configData[candidate] ?: return true
-        return configEntry.status != GraphQLConfigEvaluationStatus.SUCCESS
+    if (config == null) {
+      config = fallback
     }
 
-    @RequiresReadLock
-    fun findConfigFileInDirectory(dir: VirtualFile): VirtualFile? {
-        if (!dir.isDirectory) return null
+    val result = Optional.ofNullable(config)
+    return (cache.putIfAbsent(file, result) ?: result).orElse(null)
+  }
 
-        val cache = configFileInDirectory.value
-        val prev = cache[dir]
-        if (prev != null) {
-            return prev.orElse(null)
-        }
-        val candidates = dir.children.filter { it.name in CONFIG_NAMES }.associateBy { it.name }
-        val result = CONFIG_NAMES.find { it in candidates }?.let { candidates[it] }.let { Optional.ofNullable(it) }
-        return (cache.putIfAbsent(dir, result) ?: result).orElse(null)
+  private fun shouldSkipConfig(candidate: VirtualFile): Boolean {
+    if (candidate.name !in OPTIONAL_CONFIG_NAMES) {
+      return false
     }
 
-    @JvmOverloads
-    fun invalidate(configFile: VirtualFile? = null) {
-        if (project.isDisposed) return
+    val configEntry = configData[candidate] ?: return true
+    return configEntry.status != GraphQLConfigEvaluationStatus.SUCCESS
+  }
 
-        if (configFile != null) {
-            configData[configFile]?.invalidated?.set(true)
-        } else {
-            initialized = false
-            configData.clear()
-            contributedConfigs.set(emptyMap())
-        }
+  @RequiresReadLock
+  fun findConfigFileInDirectory(dir: VirtualFile): VirtualFile? {
+    if (!dir.isDirectory) return null
 
-        pendingInvalidation.set(true)
+    val cache = configFileInDirectory.value
+    val prev = cache[dir]
+    if (prev != null) {
+      return prev.orElse(null)
+    }
+    val candidates = dir.children.filter { it.name in CONFIG_NAMES }.associateBy { it.name }
+    val result = CONFIG_NAMES.find { it in candidates }?.let { candidates[it] }.let { Optional.ofNullable(it) }
+    return (cache.putIfAbsent(dir, result) ?: result).orElse(null)
+  }
+
+  @JvmOverloads
+  fun invalidate(configFile: VirtualFile? = null) {
+    if (project.isDisposed) return
+
+    if (configFile != null) {
+      configData[configFile]?.invalidated?.set(true)
+    }
+    else {
+      initialized = false
+      configData.clear()
+      contributedConfigs.set(emptyMap())
+    }
+
+    pendingInvalidation.set(true)
+    scheduleConfigurationReload()
+  }
+
+  fun scheduleConfigurationReload() {
+    if (project.isDisposed) return
+
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      DumbService.getInstance(project).smartInvokeLater { reload() }
+    }
+    else {
+      reloadConfigAlarm.cancelAllRequests()
+      reloadConfigAlarm.addRequest({
+                                     BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::reload)
+                                   }, CONFIG_RELOAD_DELAY)
+    }
+  }
+
+  private fun reload() {
+    if (project.isDisposed) return
+    ProgressManager.checkCanceled()
+
+    val discoveredConfigFiles = configFiles.value
+    saveModifiedDocuments(discoveredConfigFiles)
+
+    val loader = GraphQLConfigLoader.getInstance(project)
+    val explicitInvalidation = pendingInvalidation.getAndSet(false)
+    var hasChanged = configData.keys.removeIf { !it.isValid || it !in discoveredConfigFiles }
+
+    for (file in discoveredConfigFiles) {
+      ProgressManager.checkCanceled()
+      val dir = file.parent.takeIf { it.isValid && it.isDirectory }
+      if (!file.isValid || dir == null) {
+        continue
+      }
+
+      val timeStamp = file.timeStamp
+      val cached = configData[file]
+      if (cached != null && cached.timeStamp == timeStamp && !cached.invalidated.getAndSet(false)) {
+        continue
+      }
+
+      val result = loader.load(file)
+      val entry = ConfigEntry(
+        GraphQLConfig(project, dir, file, result.data ?: GraphQLRawConfig.EMPTY),
+        timeStamp,
+        result.status,
+        result.error,
+      )
+
+      if (cached == null) {
+        configData.putIfAbsent(file, entry)
+      }
+      else {
+        configData.replace(file, cached, entry)
+      }
+
+      hasChanged = true
+    }
+
+    if (pollConfigContributors(explicitInvalidation)) {
+      hasChanged = true
+    }
+
+    if (hasChanged || explicitInvalidation || !initialized) {
+      notifyConfigurationChanged()
+    }
+  }
+
+  private fun pollConfigContributors(explicitInvalidation: Boolean): Boolean {
+    val prevSnapshot = contributedConfigs.get()
+    val prevContributed = prevSnapshot.values.toSet()
+    val updatedContributed =
+      GraphQLConfigContributor.EP_NAME.extensionList.flatMap { it.contributeConfigs(project) }.toSet()
+
+    if (prevContributed.isEmpty() && updatedContributed.isEmpty()) {
+      return false
+    }
+
+    return if (prevContributed != updatedContributed || explicitInvalidation) {
+      if (contributedConfigs.compareAndSet(prevSnapshot, updatedContributed.associateBy { it.dir })) {
+        LOG.info("contributed configs changed")
+        LOG.debug { "contributed configs: new=$updatedContributed, previous=$prevContributed" }
+        true
+      }
+      else {
+        // concurrent modification, let's try again later
         scheduleConfigurationReload()
+        false
+      }
     }
-
-    fun scheduleConfigurationReload() {
-        if (project.isDisposed) return
-
-        if (ApplicationManager.getApplication().isUnitTestMode) {
-            DumbService.getInstance(project).smartInvokeLater { reload() }
-        } else {
-            reloadConfigAlarm.cancelAllRequests()
-            reloadConfigAlarm.addRequest({
-                BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::reload)
-            }, CONFIG_RELOAD_DELAY)
-        }
+    else {
+      false
     }
+  }
 
-    private fun reload() {
-        if (project.isDisposed) return
-        ProgressManager.checkCanceled()
+  override fun onEnvironmentChanged() {
+    configData.values
+      .asSequence()
+      .mapNotNull { it.config }
+      .flatMap { it.getProjects().values }
+      .filter { it.environment.variables.isNotEmpty() }
+      .mapTo(mutableSetOf()) { it.file ?: it.dir }
+      .forEach {
+        invalidate(it)
+      }
+  }
 
-        val discoveredConfigFiles = configFiles.value
-        saveModifiedDocuments(discoveredConfigFiles)
+  private fun notifyConfigurationChanged() {
+    invokeLater(ModalityState.defaultModalityState()) {
+      if (project.isDisposed) return@invokeLater
 
-        val loader = GraphQLConfigLoader.getInstance(project)
-        val explicitInvalidation = pendingInvalidation.getAndSet(false)
-        var hasChanged = configData.keys.removeIf { !it.isValid || it !in discoveredConfigFiles }
+      initialized = true
 
-        for (file in discoveredConfigFiles) {
-            ProgressManager.checkCanceled()
-            val dir = file.parent.takeIf { it.isValid && it.isDirectory }
-            if (!file.isValid || dir == null) {
-                continue
-            }
+      modificationTracker.incModificationCount()
+      scopeDependency.update()
+      PsiManager.getInstance(project).dropPsiCaches()
 
-            val timeStamp = file.timeStamp
-            val cached = configData[file]
-            if (cached != null && cached.timeStamp == timeStamp && !cached.invalidated.getAndSet(false)) {
-                continue
-            }
+      DaemonCodeAnalyzer.getInstance(project).restart()
+      project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()
+    }
+  }
 
-            val result = loader.load(file)
-            val entry = ConfigEntry(
-                GraphQLConfig(project, dir, file, result.data ?: GraphQLRawConfig.EMPTY),
-                timeStamp,
-                result.status,
-                result.error,
-            )
-
-            if (cached == null) {
-                configData.putIfAbsent(file, entry)
-            } else {
-                configData.replace(file, cached, entry)
-            }
-
-            hasChanged = true
+  @RequiresBackgroundThread
+  private fun saveModifiedDocuments(files: Collection<VirtualFile>) {
+    if (files.isEmpty()) return
+    val fileDocumentManager = FileDocumentManager.getInstance()
+    val anyFileModified = runReadAction { files.any { fileDocumentManager.isFileModified(it) } }
+    if (anyFileModified) {
+      ApplicationManager.getApplication().invokeAndWait {
+        val documents = runReadAction {
+          files.filter { it.isValid }.mapNotNull { fileDocumentManager.getDocument(it) }
         }
 
-        if (pollConfigContributors(explicitInvalidation)) {
-            hasChanged = true
+        documents.forEach {
+          ProgressManager.checkCanceled()
+          fileDocumentManager.saveDocument(it)
         }
-
-        if (hasChanged || explicitInvalidation || !initialized) {
-            notifyConfigurationChanged()
-        }
+      }
     }
+  }
 
-    private fun pollConfigContributors(explicitInvalidation: Boolean): Boolean {
-        val prevSnapshot = contributedConfigs.get()
-        val prevContributed = prevSnapshot.values.toSet()
-        val updatedContributed =
-            GraphQLConfigContributor.EP_NAME.extensionList.flatMap { it.contributeConfigs(project) }.toSet()
-
-        if (prevContributed.isEmpty() && updatedContributed.isEmpty()) {
-            return false
-        }
-
-        return if (prevContributed != updatedContributed || explicitInvalidation) {
-            if (contributedConfigs.compareAndSet(prevSnapshot, updatedContributed.associateBy { it.dir })) {
-                LOG.info("contributed configs changed")
-                LOG.debug { "contributed configs: new=$updatedContributed, previous=$prevContributed" }
-                true
-            } else {
-                // concurrent modification, let's try again later
-                scheduleConfigurationReload()
-                false
-            }
-        } else {
-            false
-        }
+  /**
+   * Cached inside of [configFiles], do not use directly.
+   */
+  @RequiresBackgroundThread
+  private fun queryAllConfigFiles(): Set<VirtualFile> =
+    ReadAction.nonBlocking<Set<VirtualFile>> {
+      val processor = CommonProcessors.CollectUniquesProcessor<VirtualFile>()
+      FilenameIndex.processFilesByNames(
+        CONFIG_NAMES, true, GlobalSearchScope.projectScope(project), null, processor
+      )
+      processor.results.toSet()
     }
+      .inSmartMode(project)
+      .expireWith(this)
+      .executeSynchronously()
 
-    override fun onEnvironmentChanged() {
-        configData.values
-            .asSequence()
-            .mapNotNull { it.config }
-            .flatMap { it.getProjects().values }
-            .filter { it.environment.variables.isNotEmpty() }
-            .mapTo(mutableSetOf()) { it.file ?: it.dir }
-            .forEach {
-                invalidate(it)
-            }
-    }
+  private class ConfigEntry(
+    val config: GraphQLConfig? = null,
+    val timeStamp: Long = -1,
+    val status: GraphQLConfigEvaluationStatus,
+    val error: Throwable? = null,
+  ) {
+    val invalidated: AtomicBoolean = AtomicBoolean(false)
+  }
 
-    private fun notifyConfigurationChanged() {
-        invokeLater(ModalityState.defaultModalityState()) {
-            if (project.isDisposed) return@invokeLater
+  override fun getModificationCount(): Long = modificationTracker.modificationCount
 
-            initialized = true
+  override fun dispose() {
+  }
 
-            modificationTracker.incModificationCount()
-            scopeDependency.update()
-            PsiManager.getInstance(project).dropPsiCaches()
-
-            DaemonCodeAnalyzer.getInstance(project).restart()
-            project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()
-        }
-    }
-
-    @RequiresBackgroundThread
-    private fun saveModifiedDocuments(files: Collection<VirtualFile>) {
-        if (files.isEmpty()) return
-        val fileDocumentManager = FileDocumentManager.getInstance()
-        val anyFileModified = runReadAction { files.any { fileDocumentManager.isFileModified(it) } }
-        if (anyFileModified) {
-            ApplicationManager.getApplication().invokeAndWait {
-                val documents = runReadAction {
-                    files.filter { it.isValid }.mapNotNull { fileDocumentManager.getDocument(it) }
-                }
-
-                documents.forEach {
-                    ProgressManager.checkCanceled()
-                    fileDocumentManager.saveDocument(it)
-                }
-            }
-        }
-    }
-
-    /**
-     * Cached inside of [configFiles], do not use directly.
-     */
-    @RequiresBackgroundThread
-    private fun queryAllConfigFiles(): Set<VirtualFile> =
-        ReadAction.nonBlocking<Set<VirtualFile>> {
-            val processor = CommonProcessors.CollectUniquesProcessor<VirtualFile>()
-            FilenameIndex.processFilesByNames(
-                CONFIG_NAMES, true, GlobalSearchScope.projectScope(project), null, processor
-            )
-            processor.results.toSet()
-        }
-            .inSmartMode(project)
-            .expireWith(this)
-            .executeSynchronously()
-
-    private class ConfigEntry(
-        val config: GraphQLConfig? = null,
-        val timeStamp: Long = -1,
-        val status: GraphQLConfigEvaluationStatus,
-        val error: Throwable? = null,
-    ) {
-        val invalidated: AtomicBoolean = AtomicBoolean(false)
-    }
-
-    override fun getModificationCount(): Long = modificationTracker.modificationCount
-
-    override fun dispose() {
-    }
-
-    data class ConfigEvaluationState(val status: GraphQLConfigEvaluationStatus, val error: Throwable?)
+  data class ConfigEvaluationState(val status: GraphQLConfigEvaluationStatus, val error: Throwable?)
 }
 
 class GraphQLConfigSearchResult(val config: GraphQLConfig, val projectName: String? = null)

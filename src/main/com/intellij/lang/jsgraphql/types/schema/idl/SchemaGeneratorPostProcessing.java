@@ -27,12 +27,11 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 @PublicSpi
 public interface SchemaGeneratorPostProcessing {
 
-    /**
-     * Called to transform the schema from its built state into something else
-     *
-     * @param originalSchema the original built schema
-     *
-     * @return a non null schema
-     */
-    GraphQLSchema process(GraphQLSchema originalSchema);
+  /**
+   * Called to transform the schema from its built state into something else
+   *
+   * @param originalSchema the original built schema
+   * @return a non null schema
+   */
+  GraphQLSchema process(GraphQLSchema originalSchema);
 }

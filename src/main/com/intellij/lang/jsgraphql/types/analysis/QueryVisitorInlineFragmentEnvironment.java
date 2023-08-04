@@ -26,12 +26,12 @@ import com.intellij.lang.jsgraphql.types.util.TraverserContext;
 @PublicApi
 public interface QueryVisitorInlineFragmentEnvironment {
 
-    /**
-     * @return the graphql schema in play
-     */
-    GraphQLSchema getSchema();
+  /**
+   * @return the graphql schema in play
+   */
+  GraphQLSchema getSchema();
 
-    InlineFragment getInlineFragment();
+  InlineFragment getInlineFragment();
 
-    TraverserContext<Node> getTraverserContext();
+  TraverserContext<Node> getTraverserContext();
 }

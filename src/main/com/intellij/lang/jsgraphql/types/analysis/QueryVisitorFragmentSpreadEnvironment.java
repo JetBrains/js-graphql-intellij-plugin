@@ -27,14 +27,14 @@ import com.intellij.lang.jsgraphql.types.util.TraverserContext;
 @PublicApi
 public interface QueryVisitorFragmentSpreadEnvironment {
 
-    /**
-     * @return the graphql schema in play
-     */
-    GraphQLSchema getSchema();
+  /**
+   * @return the graphql schema in play
+   */
+  GraphQLSchema getSchema();
 
-    FragmentSpread getFragmentSpread();
+  FragmentSpread getFragmentSpread();
 
-    FragmentDefinition getFragmentDefinition();
+  FragmentDefinition getFragmentDefinition();
 
-    TraverserContext<Node> getTraverserContext();
+  TraverserContext<Node> getTraverserContext();
 }

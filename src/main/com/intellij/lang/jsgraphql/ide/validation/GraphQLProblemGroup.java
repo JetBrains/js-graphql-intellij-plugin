@@ -5,14 +5,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GraphQLProblemGroup implements ProblemGroup {
-    private final String myName;
+  private final String myName;
 
-    public GraphQLProblemGroup(@NotNull String name) {
-        myName = name;
-    }
+  public GraphQLProblemGroup(@NotNull String name) {
+    myName = name;
+  }
 
-    @Override
-    public @Nullable String getProblemName() {
-        return myName;
-    }
+  @Override
+  public @Nullable String getProblemName() {
+    return myName;
+  }
 }

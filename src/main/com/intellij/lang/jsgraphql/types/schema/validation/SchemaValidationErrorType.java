@@ -22,12 +22,11 @@ import com.intellij.lang.jsgraphql.types.Internal;
 @Internal
 public enum SchemaValidationErrorType {
 
-    UnbrokenInputCycle,
-    ObjectDoesNotImplementItsInterfaces,
-    ImplementingTypeLackOfFieldError,
-    InputObjectTypeLackOfFieldError,
-    EnumLackOfValueError,
-    InvalidCustomizedNameError,
-    NonNullWrapNonNullError,
-
+  UnbrokenInputCycle,
+  ObjectDoesNotImplementItsInterfaces,
+  ImplementingTypeLackOfFieldError,
+  InputObjectTypeLackOfFieldError,
+  EnumLackOfValueError,
+  InvalidCustomizedNameError,
+  NonNullWrapNonNullError,
 }

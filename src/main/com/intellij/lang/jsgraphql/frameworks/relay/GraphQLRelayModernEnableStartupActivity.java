@@ -35,50 +35,52 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class GraphQLRelayModernEnableStartupActivity implements StartupActivity {
 
-    private static final Logger LOG = Logger.getInstance(GraphQLRelayModernEnableStartupActivity.class);
-    private final AtomicBoolean isDisplayed = new AtomicBoolean();
+  private static final Logger LOG = Logger.getInstance(GraphQLRelayModernEnableStartupActivity.class);
+  private final AtomicBoolean isDisplayed = new AtomicBoolean();
 
-    @Override
-    public void runActivity(@NotNull Project project) {
-        ReadAction.nonBlocking(() -> {
-            final GraphQLSettings settings = GraphQLSettings.getSettings(project);
-            if (isDisplayed.get() || settings.isRelaySupportEnabled()) {
-                // already enabled Relay Modern
-                return;
-            }
-            try {
-                final GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
-                for (VirtualFile virtualFile : FilenameIndex.getVirtualFilesByName(project, "package.json", true, scope)) {
-                    ProgressManager.checkCanceled();
-                    if (!virtualFile.isDirectory() && virtualFile.isInLocalFileSystem()) {
-                        try (InputStream inputStream = virtualFile.getInputStream()) {
-                            final String packageJson = IOUtils.toString(inputStream, virtualFile.getCharset());
-                            if (packageJson.contains("\"react-relay\"") || packageJson.contains("\"relay-compiler\"")) {
-                                final Notification enableRelayModern = new Notification(
-                                    GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
-                                    "Relay Modern project detected",
-                                    "<a href=\"enable\">Enable Relay Modern</a> GraphQL tooling",
-                                    NotificationType.INFORMATION,
-                                    (notification, event) -> {
-                                        settings.setRelaySupportEnabled(true);
-                                        ApplicationManager.getApplication().saveSettings();
-                                        notification.expire();
-                                        GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged();
-                                    });
-                                enableRelayModern.setImportant(true);
-                                if (isDisplayed.compareAndSet(false, true)) {
-                                    Notifications.Bus.notify(enableRelayModern);
-                                }
-                                break;
-                            }
-                        }
-                    }
+  @Override
+  public void runActivity(@NotNull Project project) {
+    ReadAction.nonBlocking(() -> {
+      final GraphQLSettings settings = GraphQLSettings.getSettings(project);
+      if (isDisplayed.get() || settings.isRelaySupportEnabled()) {
+        // already enabled Relay Modern
+        return;
+      }
+      try {
+        final GlobalSearchScope scope = GlobalSearchScope.projectScope(project);
+        for (VirtualFile virtualFile : FilenameIndex.getVirtualFilesByName(project, "package.json", true, scope)) {
+          ProgressManager.checkCanceled();
+          if (!virtualFile.isDirectory() && virtualFile.isInLocalFileSystem()) {
+            try (InputStream inputStream = virtualFile.getInputStream()) {
+              final String packageJson = IOUtils.toString(inputStream, virtualFile.getCharset());
+              if (packageJson.contains("\"react-relay\"") || packageJson.contains("\"relay-compiler\"")) {
+                final Notification enableRelayModern = new Notification(
+                  GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
+                  "Relay Modern project detected",
+                  "<a href=\"enable\">Enable Relay Modern</a> GraphQL tooling",
+                  NotificationType.INFORMATION,
+                  (notification, event) -> {
+                    settings.setRelaySupportEnabled(true);
+                    ApplicationManager.getApplication().saveSettings();
+                    notification.expire();
+                    GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged();
+                  });
+                enableRelayModern.setImportant(true);
+                if (isDisplayed.compareAndSet(false, true)) {
+                  Notifications.Bus.notify(enableRelayModern);
                 }
-            } catch (ProcessCanceledException e) {
-                throw e;
-            } catch (Exception e) {
-                LOG.error("Unable to detect Relay Modern", e);
+                break;
+              }
             }
-        }).inSmartMode(project).submit(NonUrgentExecutor.getInstance());
-    }
+          }
+        }
+      }
+      catch (ProcessCanceledException e) {
+        throw e;
+      }
+      catch (Exception e) {
+        LOG.error("Unable to detect Relay Modern", e);
+      }
+    }).inSmartMode(project).submit(NonUrgentExecutor.getInstance());
+  }
 }

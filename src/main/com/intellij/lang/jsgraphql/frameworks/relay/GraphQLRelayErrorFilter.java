@@ -23,27 +23,27 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GraphQLRelayErrorFilter implements GraphQLErrorFilter {
 
-    @Override
-    public boolean isInspectionSuppressed(@NotNull Project project,
-                                          @NotNull String toolId,
-                                          @NotNull PsiElement element) {
-        if (!toolId.equals(GraphQLUnresolvedReferenceInspection.SHORT_NAME)) return false;
+  @Override
+  public boolean isInspectionSuppressed(@NotNull Project project,
+                                        @NotNull String toolId,
+                                        @NotNull PsiElement element) {
+    if (!toolId.equals(GraphQLUnresolvedReferenceInspection.SHORT_NAME)) return false;
 
-        if (!GraphQLLibraryTypes.RELAY.isEnabled(project)) {
-            return false;
-        }
-
-        final GraphQLArguments graphQLArguments = PsiTreeUtil.getParentOfType(element, GraphQLArguments.class);
-        if (graphQLArguments != null) {
-            final GraphQLDirective directive = PsiTreeUtil.getParentOfType(element, GraphQLDirective.class);
-            if (directive != null) {
-                final String directiveName = directive.getName();
-                // ignore errors inside on the dynamically named arguments to @argumentDefinitions and @arguments
-                // since the SDL can express this dynamic aspect
-                return GraphQLRelayKnownTypes.ARGUMENT_DEFINITIONS_DIRECTIVE.equals(directiveName) ||
-                    GraphQLRelayKnownTypes.ARGUMENTS_DIRECTIVE.equals(directiveName);
-            }
-        }
-        return false;
+    if (!GraphQLLibraryTypes.RELAY.isEnabled(project)) {
+      return false;
     }
+
+    final GraphQLArguments graphQLArguments = PsiTreeUtil.getParentOfType(element, GraphQLArguments.class);
+    if (graphQLArguments != null) {
+      final GraphQLDirective directive = PsiTreeUtil.getParentOfType(element, GraphQLDirective.class);
+      if (directive != null) {
+        final String directiveName = directive.getName();
+        // ignore errors inside on the dynamically named arguments to @argumentDefinitions and @arguments
+        // since the SDL can express this dynamic aspect
+        return GraphQLRelayKnownTypes.ARGUMENT_DEFINITIONS_DIRECTIVE.equals(directiveName) ||
+               GraphQLRelayKnownTypes.ARGUMENTS_DIRECTIVE.equals(directiveName);
+      }
+    }
+    return false;
+  }
 }

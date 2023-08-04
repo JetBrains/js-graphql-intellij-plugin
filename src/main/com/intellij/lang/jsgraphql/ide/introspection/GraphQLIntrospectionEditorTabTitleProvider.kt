@@ -17,24 +17,24 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 class GraphQLIntrospectionEditorTabTitleProvider : EditorTabTitleProvider {
-    override fun getEditorTabTitle(project: Project, file: VirtualFile): String? {
-        val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
-        if (generatedSourcesManager.isGeneratedFile(file)) {
-            return generatedSourcesManager.getSourceFile(file)
-                ?.let { UniqueVFilePathBuilder.getInstance().getUniqueVirtualFilePath(project, it) }
-                ?.let { "GraphQL Schema ($it)" }
-        }
-        val schemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
-        if (schemasRegistry.isRemoteSchemaFile(file)) {
-            val config = GraphQLConfigProvider.getInstance(project)
-                .getForConfigFile(schemasRegistry.getSourceFile(file)) ?: return null
-
-            return config.getProjects().values
-                .asSequence()
-                .flatMap { it.schema }
-                .find { it.isRemote && FileUtil.pathsEqual(it.outputPath, file.path) }
-                ?.let { "GraphQL Schema (${it.url})" }
-        }
-        return null
+  override fun getEditorTabTitle(project: Project, file: VirtualFile): String? {
+    val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
+    if (generatedSourcesManager.isGeneratedFile(file)) {
+      return generatedSourcesManager.getSourceFile(file)
+        ?.let { UniqueVFilePathBuilder.getInstance().getUniqueVirtualFilePath(project, it) }
+        ?.let { "GraphQL Schema ($it)" }
     }
+    val schemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
+    if (schemasRegistry.isRemoteSchemaFile(file)) {
+      val config = GraphQLConfigProvider.getInstance(project)
+                     .getForConfigFile(schemasRegistry.getSourceFile(file)) ?: return null
+
+      return config.getProjects().values
+        .asSequence()
+        .flatMap { it.schema }
+        .find { it.isRemote && FileUtil.pathsEqual(it.outputPath, file.path) }
+        ?.let { "GraphQL Schema (${it.url})" }
+    }
+    return null
+  }
 }

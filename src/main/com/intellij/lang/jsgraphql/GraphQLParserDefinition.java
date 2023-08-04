@@ -25,51 +25,51 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphQLParserDefinition implements ParserDefinition {
 
-    public static final Key<Boolean> GRAPHQL_ACTIVATED = Key.create("graphql.activated");
+  public static final Key<Boolean> GRAPHQL_ACTIVATED = Key.create("graphql.activated");
 
-    public static final IFileElementType FILE = new IFileElementType("GRAPHQL", GraphQLLanguage.INSTANCE);
+  public static final IFileElementType FILE = new IFileElementType("GRAPHQL", GraphQLLanguage.INSTANCE);
 
-    @NotNull
-    @Override
-    public Lexer createLexer(Project project) {
-        return new GraphQLLexerAdapter();
-    }
+  @NotNull
+  @Override
+  public Lexer createLexer(Project project) {
+    return new GraphQLLexerAdapter();
+  }
 
-    @NotNull
-    public TokenSet getWhitespaceTokens() {
-        return GraphQLExtendedElementTypes.WHITE_SPACES;
-    }
+  @NotNull
+  public TokenSet getWhitespaceTokens() {
+    return GraphQLExtendedElementTypes.WHITE_SPACES;
+  }
 
-    @NotNull
-    public TokenSet getCommentTokens() {
-        return GraphQLExtendedElementTypes.COMMENTS;
-    }
+  @NotNull
+  public TokenSet getCommentTokens() {
+    return GraphQLExtendedElementTypes.COMMENTS;
+  }
 
-    @NotNull
-    public TokenSet getStringLiteralElements() {
-        return GraphQLExtendedElementTypes.STRING_LITERALS;
-    }
+  @NotNull
+  public TokenSet getStringLiteralElements() {
+    return GraphQLExtendedElementTypes.STRING_LITERALS;
+  }
 
-    @NotNull
-    public PsiParser createParser(final Project project) {
-        return new GraphQLParser();
-    }
+  @NotNull
+  public PsiParser createParser(final Project project) {
+    return new GraphQLParser();
+  }
 
-    @Override
-    public @NotNull IFileElementType getFileNodeType() {
-        return FILE;
-    }
+  @Override
+  public @NotNull IFileElementType getFileNodeType() {
+    return FILE;
+  }
 
-    public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
-        return new GraphQLFile(viewProvider);
-    }
+  public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
+    return new GraphQLFile(viewProvider);
+  }
 
-    public @NotNull SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
-        return SpaceRequirements.MAY;
-    }
+  public @NotNull SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
+    return SpaceRequirements.MAY;
+  }
 
-    @NotNull
-    public PsiElement createElement(ASTNode node) {
-        return GraphQLElementTypes.Factory.createElement(node);
-    }
+  @NotNull
+  public PsiElement createElement(ASTNode node) {
+    return GraphQLElementTypes.Factory.createElement(node);
+  }
 }

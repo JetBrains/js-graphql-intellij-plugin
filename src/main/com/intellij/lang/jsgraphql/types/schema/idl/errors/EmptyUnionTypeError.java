@@ -25,12 +25,12 @@ import org.jetbrains.annotations.Nullable;
 import static java.lang.String.format;
 
 public class EmptyUnionTypeError extends BaseError {
-    public EmptyUnionTypeError(UnionTypeDefinition definition) {
-        super(definition, format("Union type '%s' must include one or more member types.", definition.getName()));
-    }
+  public EmptyUnionTypeError(UnionTypeDefinition definition) {
+    super(definition, format("Union type '%s' must include one or more member types.", definition.getName()));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLEmptyTypeInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLEmptyTypeInspection.class;
+  }
 }

@@ -14,125 +14,128 @@ import com.intellij.lang.jsgraphql.schema.GraphQLRegistryProvider.Companion.getI
 import junit.framework.TestCase
 
 class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
-    override fun getBasePath() = "/schema/types"
+  override fun getBasePath() = "/schema/types"
 
-    override fun setUp() {
-        super.setUp()
+  override fun setUp() {
+    super.setUp()
 
-        myFixture.copyDirectoryToProject(getTestName(true), "")
-        reloadConfiguration()
-        enableAllInspections()
+    myFixture.copyDirectoryToProject(getTestName(true), "")
+    reloadConfiguration()
+    enableAllInspections()
+  }
+
+  fun testMultipleSchemasLegacy() {
+    // an explicit test for empty schema config
+    doTest(
+      "schema-one/query-one.graphql",
+      listOf("fieldOne", "__typename"),
+      listOf("FragOne1", "FragOne2"),
+      listOf("Query", "SchemaOneType", "SchemaOneAdditional"),
+    )
+
+    // explicit includes and excludes
+    doTest(
+      "schema-two/query-two.graphql",
+      listOf("fieldTwo", "__typename"),
+      listOf("FragTwoIncluded"),
+      listOf("Query", "TwoIncludedType", "TwoAdditionalType")
+    )
+
+    // only `schemaPath` includes all documents implicitly
+    doTest(
+      "schema-three/query1.graphql",
+      listOf("one", "two", "__typename"),
+      listOf("ThreeOneFragment", "ThreeTwoFragment", "ThreeImplicitlyIncludedFragment"),
+      listOf("Query", "Three1", "Three2")
+    )
+
+    // existing `includes` enables "strict" mode, so only matching types and documents are used
+    doTest(
+      "schema-four/query.graphql",
+      listOf("four", "additional", "__typename"),
+      listOf("FourFragment", "FourFragment1"),
+      listOf("Query", "FourType", "FourType1")
+    )
+  }
+
+  fun testExcludeLegacy() {
+    val fileName = "Types3.graphql"
+    doTestTypeDefinitions(fileName, listOf("TheOnlyType"))
+    doTestFragmentDefinitions(fileName, listOf("TheOnlyFragment"))
+  }
+
+  fun testFragmentsInInjections() {
+    doTest(
+      "src/query2.js",
+      listOf("FragmentOne", "FragmentTwo", "FragmentThree", "FragmentFour", "FragmentInSchema", "FragmentTested", "on"),
+      listOf("FragmentOne", "FragmentTwo", "FragmentThree", "FragmentFour", "FragmentInSchema", "FragmentTested"),
+      listOf("Query", "User")
+    )
+
+    doTestHighlighting("src/query1.js", "src/index.html")
+  }
+
+  fun testSchemaInJson() {
+    val file = "client/query.graphql"
+    doTestCompletion(file, listOf("localField", "Activity", "Character", "GenreCollection"), false)
+    doTestTypeDefinitions(file, listOf("LocalType", "ThreadCommentLikeNotification", "ActivityMessageNotification", "ModAction"), false)
+    doTestHighlighting("client/highlight.graphql")
+  }
+
+  private fun doTest(
+    fileName: String,
+    expectedCompletions: List<String>,
+    expectedFragments: List<String>,
+    expectedTypes: List<String>,
+    strict: Boolean = true
+  ) {
+    doTestCompletion(fileName, expectedCompletions, strict)
+    doTestFragmentDefinitions(fileName, expectedFragments, strict)
+    doTestTypeDefinitions(fileName, expectedTypes, strict)
+  }
+
+  private fun doTestCompletion(fileName: String, expectedCompletions: List<String>, strict: Boolean = true) {
+    myFixture.configureFromTempProjectFile(fileName)
+    myFixture.complete(CompletionType.BASIC, 1)
+    val completions = myFixture.lookupElementStrings ?: emptyList()
+    if (strict) {
+      assertSameElements(completions, expectedCompletions)
     }
-
-    fun testMultipleSchemasLegacy() {
-        // an explicit test for empty schema config
-        doTest(
-            "schema-one/query-one.graphql",
-            listOf("fieldOne", "__typename"),
-            listOf("FragOne1", "FragOne2"),
-            listOf("Query", "SchemaOneType", "SchemaOneAdditional"),
-        )
-
-        // explicit includes and excludes
-        doTest(
-            "schema-two/query-two.graphql",
-            listOf("fieldTwo", "__typename"),
-            listOf("FragTwoIncluded"),
-            listOf("Query", "TwoIncludedType", "TwoAdditionalType")
-        )
-
-        // only `schemaPath` includes all documents implicitly
-        doTest(
-            "schema-three/query1.graphql",
-            listOf("one", "two", "__typename"),
-            listOf("ThreeOneFragment", "ThreeTwoFragment", "ThreeImplicitlyIncludedFragment"),
-            listOf("Query", "Three1", "Three2")
-        )
-
-        // existing `includes` enables "strict" mode, so only matching types and documents are used
-        doTest(
-            "schema-four/query.graphql",
-            listOf("four", "additional", "__typename"),
-            listOf("FourFragment", "FourFragment1"),
-            listOf("Query", "FourType", "FourType1")
-        )
+    else {
+      assertContainsElements(completions, expectedCompletions)
     }
+  }
 
-    fun testExcludeLegacy() {
-        val fileName = "Types3.graphql"
-        doTestTypeDefinitions(fileName, listOf("TheOnlyType"))
-        doTestFragmentDefinitions(fileName, listOf("TheOnlyFragment"))
+  private fun doTestFragmentDefinitions(fileName: String, expectedFragments: List<String>, strict: Boolean = true) {
+    val file = myFixture.configureFromTempProjectFile(fileName)!!
+    val fragments = GraphQLPsiSearchHelper.getInstance(project).findFragmentDefinitions(file).map { it.name }
+    if (strict) {
+      assertSameElements(fragments, expectedFragments)
     }
-
-    fun testFragmentsInInjections() {
-        doTest(
-            "src/query2.js",
-            listOf("FragmentOne", "FragmentTwo", "FragmentThree", "FragmentFour", "FragmentInSchema", "FragmentTested", "on"),
-            listOf("FragmentOne", "FragmentTwo", "FragmentThree", "FragmentFour", "FragmentInSchema", "FragmentTested"),
-            listOf("Query", "User")
-        )
-
-        doTestHighlighting("src/query1.js", "src/index.html")
+    else {
+      assertContainsElements(fragments, expectedFragments)
     }
+  }
 
-    fun testSchemaInJson() {
-        val file = "client/query.graphql"
-        doTestCompletion(file, listOf("localField", "Activity", "Character", "GenreCollection"), false)
-        doTestTypeDefinitions(file, listOf("LocalType", "ThreadCommentLikeNotification", "ActivityMessageNotification", "ModAction"), false)
-        doTestHighlighting("client/highlight.graphql")
+  private fun doTestTypeDefinitions(fileName: String, expectedTypes: List<String>, strict: Boolean = true) {
+    val psiFile = myFixture.configureFromTempProjectFile(fileName)
+    TestCase.assertNotNull(psiFile)
+    val registry = getInstance(project).getRegistryInfo(psiFile).typeDefinitionRegistry
+    val types = registry.types().values
+      .map { it.name }
+      .filter { !GraphQLKnownTypes.isIntrospectionType(it) }
+    if (strict) {
+      assertSameElements(types, expectedTypes)
     }
+    else {
+      assertContainsElements(types, expectedTypes)
+    }
+  }
 
-    private fun doTest(
-        fileName: String,
-        expectedCompletions: List<String>,
-        expectedFragments: List<String>,
-        expectedTypes: List<String>,
-        strict: Boolean = true
-    ) {
-        doTestCompletion(fileName, expectedCompletions, strict)
-        doTestFragmentDefinitions(fileName, expectedFragments, strict)
-        doTestTypeDefinitions(fileName, expectedTypes, strict)
+  private fun doTestHighlighting(vararg files: String) {
+    files.forEach {
+      myFixture.configureFromTempProjectFile(it)
+      myFixture.checkHighlighting()
     }
-
-    private fun doTestCompletion(fileName: String, expectedCompletions: List<String>, strict: Boolean = true) {
-        myFixture.configureFromTempProjectFile(fileName)
-        myFixture.complete(CompletionType.BASIC, 1)
-        val completions = myFixture.lookupElementStrings ?: emptyList()
-        if (strict) {
-            assertSameElements(completions, expectedCompletions)
-        } else {
-            assertContainsElements(completions, expectedCompletions)
-        }
-    }
-
-    private fun doTestFragmentDefinitions(fileName: String, expectedFragments: List<String>, strict: Boolean = true) {
-        val file = myFixture.configureFromTempProjectFile(fileName)!!
-        val fragments = GraphQLPsiSearchHelper.getInstance(project).findFragmentDefinitions(file).map { it.name }
-        if (strict) {
-            assertSameElements(fragments, expectedFragments)
-        } else {
-            assertContainsElements(fragments, expectedFragments)
-        }
-    }
-
-    private fun doTestTypeDefinitions(fileName: String, expectedTypes: List<String>, strict: Boolean = true) {
-        val psiFile = myFixture.configureFromTempProjectFile(fileName)
-        TestCase.assertNotNull(psiFile)
-        val registry = getInstance(project).getRegistryInfo(psiFile).typeDefinitionRegistry
-        val types = registry.types().values
-            .map { it.name }
-            .filter { !GraphQLKnownTypes.isIntrospectionType(it) }
-        if (strict) {
-            assertSameElements(types, expectedTypes)
-        } else {
-            assertContainsElements(types, expectedTypes)
-        }
-    }
-
-    private fun doTestHighlighting(vararg files: String) {
-        files.forEach {
-            myFixture.configureFromTempProjectFile(it)
-            myFixture.checkHighlighting()
-        }
-    }
+  }
 }

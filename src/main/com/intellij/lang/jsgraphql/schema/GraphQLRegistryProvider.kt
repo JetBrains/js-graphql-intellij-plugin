@@ -28,57 +28,57 @@ import java.util.concurrent.ConcurrentMap
 @Service(Service.Level.PROJECT)
 class GraphQLRegistryProvider(project: Project) {
 
-    companion object {
-        private val LOG = logger<GraphQLRegistryProvider>()
+  companion object {
+    private val LOG = logger<GraphQLRegistryProvider>()
 
-        @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLRegistryProvider>()
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLRegistryProvider>()
+  }
+
+  private val psiManager = PsiManager.getInstance(project)
+  private val scopeProvider = GraphQLScopeProvider.getInstance(project)
+  private val psiSearchHelper = GraphQLPsiSearchHelper.getInstance(project)
+
+  private val scopeToRegistryCache: CachedValue<ConcurrentMap<GlobalSearchScope, GraphQLRegistryInfo>> =
+    CachedValuesManager.getManager(project).createCachedValue {
+      CachedValueProvider.Result.create(
+        ContainerUtil.createConcurrentSoftMap(),
+        GraphQLSchemaContentTracker.getInstance(project),
+      )
     }
 
-    private val psiManager = PsiManager.getInstance(project)
-    private val scopeProvider = GraphQLScopeProvider.getInstance(project)
-    private val psiSearchHelper = GraphQLPsiSearchHelper.getInstance(project)
+  /**
+   * @param context pass null for a global scope
+   * @return registry for provided scope
+   */
+  fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
+    return getRegistryInfo(scopeProvider.getResolveScope(context, true))
+  }
 
-    private val scopeToRegistryCache: CachedValue<ConcurrentMap<GlobalSearchScope, GraphQLRegistryInfo>> =
-        CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(
-                ContainerUtil.createConcurrentSoftMap(),
-                GraphQLSchemaContentTracker.getInstance(project),
-            )
-        }
+  fun getRegistryInfo(schemaScope: GlobalSearchScope): GraphQLRegistryInfo {
+    return scopeToRegistryCache.value.computeIfAbsent(schemaScope) {
+      val errors: MutableList<GraphQLException> = mutableListOf()
+      val processor = GraphQLSchemaDocumentProcessor()
 
-    /**
-     * @param context pass null for a global scope
-     * @return registry for provided scope
-     */
-    fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
-        return getRegistryInfo(scopeProvider.getResolveScope(context, true))
+      // GraphQL files
+      FileTypeIndex.processFiles(
+        GraphQLFileType.INSTANCE,
+        {
+          val psiFile = psiManager.findFile(it)
+          if (psiFile != null) {
+            processor.process(psiFile)
+          }
+          true
+        },
+        GlobalSearchScope.getScopeRestrictedByFileTypes(schemaScope, GraphQLFileType.INSTANCE)
+      )
+
+      // Injected GraphQL
+      psiSearchHelper.processInjectedGraphQLFiles(schemaScope, processor)
+
+      val registry = processor.compositeRegistry.buildTypeDefinitionRegistry()
+      GraphQLRegistryInfo(registry, errors)
     }
-
-    fun getRegistryInfo(schemaScope: GlobalSearchScope): GraphQLRegistryInfo {
-        return scopeToRegistryCache.value.computeIfAbsent(schemaScope) {
-            val errors: MutableList<GraphQLException> = mutableListOf()
-            val processor = GraphQLSchemaDocumentProcessor()
-
-            // GraphQL files
-            FileTypeIndex.processFiles(
-                GraphQLFileType.INSTANCE,
-                {
-                    val psiFile = psiManager.findFile(it)
-                    if (psiFile != null) {
-                        processor.process(psiFile)
-                    }
-                    true
-                },
-                GlobalSearchScope.getScopeRestrictedByFileTypes(schemaScope, GraphQLFileType.INSTANCE)
-            )
-
-            // Injected GraphQL
-            psiSearchHelper.processInjectedGraphQLFiles(schemaScope, processor)
-
-            val registry = processor.compositeRegistry.buildTypeDefinitionRegistry()
-            GraphQLRegistryInfo(registry, errors)
-        }
-    }
+  }
 }
 

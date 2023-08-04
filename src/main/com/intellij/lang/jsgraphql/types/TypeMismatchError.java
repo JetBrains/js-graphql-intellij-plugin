@@ -32,78 +32,81 @@ import static java.lang.String.format;
 @PublicApi
 public class TypeMismatchError implements GraphQLError {
 
-    private final String message;
-    private final List<Object> path;
-    private final GraphQLType expectedType;
+  private final String message;
+  private final List<Object> path;
+  private final GraphQLType expectedType;
 
-    public TypeMismatchError(ResultPath path, GraphQLType expectedType) {
-        this.path = assertNotNull(path).toList();
-        this.expectedType = assertNotNull(expectedType);
-        this.message = mkMessage(path, expectedType);
+  public TypeMismatchError(ResultPath path, GraphQLType expectedType) {
+    this.path = assertNotNull(path).toList();
+    this.expectedType = assertNotNull(expectedType);
+    this.message = mkMessage(path, expectedType);
+  }
+
+  private String mkMessage(ResultPath path, GraphQLType expectedType) {
+    String expectedTypeKind = GraphQLTypeToTypeKindMapping.getTypeKindFromGraphQLType(expectedType).name();
+    return format("Can't resolve value (%s) : type mismatch error, expected type %s", path, expectedTypeKind);
+  }
+
+  static class GraphQLTypeToTypeKindMapping {
+
+    private static final Map<Class<? extends GraphQLType>, Introspection.TypeKind> registry =
+      new LinkedHashMap<Class<? extends GraphQLType>, Introspection.TypeKind>() {{
+        put(GraphQLEnumType.class, Introspection.TypeKind.ENUM);
+        put(GraphQLList.class, Introspection.TypeKind.LIST);
+        put(GraphQLObjectType.class, Introspection.TypeKind.OBJECT);
+        put(GraphQLScalarType.class, Introspection.TypeKind.SCALAR);
+        put(GraphQLInputObjectType.class, Introspection.TypeKind.INPUT_OBJECT);
+        put(GraphQLInterfaceType.class, Introspection.TypeKind.INTERFACE);
+        put(GraphQLNonNull.class, Introspection.TypeKind.NON_NULL);
+        put(GraphQLUnionType.class, Introspection.TypeKind.UNION);
+      }};
+
+    private GraphQLTypeToTypeKindMapping() {
     }
 
-    private String mkMessage(ResultPath path, GraphQLType expectedType) {
-        String expectedTypeKind = GraphQLTypeToTypeKindMapping.getTypeKindFromGraphQLType(expectedType).name();
-        return format("Can't resolve value (%s) : type mismatch error, expected type %s", path, expectedTypeKind);
+    public static Introspection.TypeKind getTypeKindFromGraphQLType(GraphQLType type) {
+      return registry.containsKey(type.getClass())
+             ? registry.get(type.getClass())
+             : Assert.assertShouldNeverHappen("Unknown kind of type: " + type);
     }
+  }
 
-    static class GraphQLTypeToTypeKindMapping {
+  @Override
+  public String getMessage() {
+    return message;
+  }
 
-        private static final Map<Class<? extends GraphQLType>, Introspection.TypeKind> registry = new LinkedHashMap<Class<? extends GraphQLType>, Introspection.TypeKind>() {{
-            put(GraphQLEnumType.class, Introspection.TypeKind.ENUM);
-            put(GraphQLList.class, Introspection.TypeKind.LIST);
-            put(GraphQLObjectType.class, Introspection.TypeKind.OBJECT);
-            put(GraphQLScalarType.class, Introspection.TypeKind.SCALAR);
-            put(GraphQLInputObjectType.class, Introspection.TypeKind.INPUT_OBJECT);
-            put(GraphQLInterfaceType.class, Introspection.TypeKind.INTERFACE);
-            put(GraphQLNonNull.class, Introspection.TypeKind.NON_NULL);
-            put(GraphQLUnionType.class, Introspection.TypeKind.UNION);
-        }};
+  @Override
+  public List<SourceLocation> getLocations() {
+    return null;
+  }
 
-        private GraphQLTypeToTypeKindMapping() {
-        }
+  @Override
+  public ErrorType getErrorType() {
+    return ErrorType.DataFetchingException;
+  }
 
-        public static Introspection.TypeKind getTypeKindFromGraphQLType(GraphQLType type) {
-            return registry.containsKey(type.getClass()) ? registry.get(type.getClass()) : Assert.assertShouldNeverHappen("Unknown kind of type: " + type);
-        }
-    }
+  @Override
+  public List<Object> getPath() {
+    return path;
+  }
 
-    @Override
-    public String getMessage() {
-        return message;
-    }
+  @Override
+  public String toString() {
+    return "TypeMismatchError{" +
+           "path=" + path +
+           ", expectedType=" + expectedType +
+           '}';
+  }
 
-    @Override
-    public List<SourceLocation> getLocations() {
-        return null;
-    }
+  @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+  @Override
+  public boolean equals(Object o) {
+    return GraphqlErrorHelper.equals(this, o);
+  }
 
-    @Override
-    public ErrorType getErrorType() {
-        return ErrorType.DataFetchingException;
-    }
-
-    @Override
-    public List<Object> getPath() {
-        return path;
-    }
-
-    @Override
-    public String toString() {
-        return "TypeMismatchError{" +
-                "path=" + path +
-                ", expectedType=" + expectedType +
-                '}';
-    }
-
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-    @Override
-    public boolean equals(Object o) {
-        return GraphqlErrorHelper.equals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return GraphqlErrorHelper.hashCode(this);
-    }
+  @Override
+  public int hashCode() {
+    return GraphqlErrorHelper.hashCode(this);
+  }
 }

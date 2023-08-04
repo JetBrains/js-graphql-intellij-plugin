@@ -13,25 +13,26 @@ import com.intellij.psi.PsiElement
 import org.apache.commons.lang.StringUtils
 
 class GraphQLJavaScriptInjectedLanguage : GraphQLInjectedLanguage {
-    override fun accepts(host: PsiElement): Boolean {
-        return host is JSElement
-    }
+  override fun accepts(host: PsiElement): Boolean {
+    return host is JSElement
+  }
 
-    override fun isLanguageInjectionTarget(host: PsiElement?): Boolean {
-        return GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(host)
-    }
+  override fun isLanguageInjectionTarget(host: PsiElement?): Boolean {
+    return GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(host)
+  }
 
-    override fun escapeHostElements(rawText: String?): String? {
-        return if (rawText != null && rawText.contains("\\`")) {
-            // replace escaped backticks in template literals with a whitespace and the backtick to preserve token
-            // positions for error mappings etc.
-            StringUtils.replace(rawText, "\\`", " `")
-        } else {
-            rawText
-        }
+  override fun escapeHostElements(rawText: String?): String? {
+    return if (rawText != null && rawText.contains("\\`")) {
+      // replace escaped backticks in template literals with a whitespace and the backtick to preserve token
+      // positions for error mappings etc.
+      StringUtils.replace(rawText, "\\`", " `")
     }
+    else {
+      rawText
+    }
+  }
 
-    override fun getInjectedTextForIndexing(host: PsiElement): String {
-        return StringUtils.strip(host.text, "` \t\n")
-    }
+  override fun getInjectedTextForIndexing(host: PsiElement): String {
+    return StringUtils.strip(host.text, "` \t\n")
+  }
 }

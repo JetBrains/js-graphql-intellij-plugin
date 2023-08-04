@@ -25,26 +25,25 @@ import java.util.Map;
 @PublicApi
 public class DiffSet {
 
-    private final Map<String, Object> introspectionOld;
-    private final Map<String, Object> introspectionNew;
+  private final Map<String, Object> introspectionOld;
+  private final Map<String, Object> introspectionNew;
 
-    public DiffSet(Map<String, Object> introspectionOld, Map<String, Object> introspectionNew) {
-        this.introspectionOld = introspectionOld;
-        this.introspectionNew = introspectionNew;
-    }
+  public DiffSet(Map<String, Object> introspectionOld, Map<String, Object> introspectionNew) {
+    this.introspectionOld = introspectionOld;
+    this.introspectionNew = introspectionNew;
+  }
 
-    /**
-     * @return the old API as an introspection result
-     */
-    public Map<String, Object> getOld() {
-        return introspectionOld;
-    }
+  /**
+   * @return the old API as an introspection result
+   */
+  public Map<String, Object> getOld() {
+    return introspectionOld;
+  }
 
-    /**
-     * @return the new API as an introspection result
-     */
-    public Map<String, Object> getNew() {
-        return introspectionNew;
-    }
-
+  /**
+   * @return the new API as an introspection result
+   */
+  public Map<String, Object> getNew() {
+    return introspectionNew;
+  }
 }

@@ -8,14 +8,14 @@ import com.intellij.spellchecker.tokenizer.Tokenizer;
 import org.jetbrains.annotations.NotNull;
 
 public class GraphQLSpellcheckingStrategy extends SpellcheckingStrategy {
-    @Override
-    public @NotNull Tokenizer getTokenizer(PsiElement element) {
-        if (element.getParent() instanceof PsiNameIdentifierOwner) {
-            return EMPTY_TOKENIZER;
-        }
-        if (element instanceof GraphQLStringLiteral) {
-            return TEXT_TOKENIZER;
-        }
-        return super.getTokenizer(element);
+  @Override
+  public @NotNull Tokenizer getTokenizer(PsiElement element) {
+    if (element.getParent() instanceof PsiNameIdentifierOwner) {
+      return EMPTY_TOKENIZER;
     }
+    if (element instanceof GraphQLStringLiteral) {
+      return TEXT_TOKENIZER;
+    }
+    return super.getTokenizer(element);
+  }
 }

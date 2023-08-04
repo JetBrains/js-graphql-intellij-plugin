@@ -30,21 +30,22 @@ import static java.lang.String.format;
 
 @Internal
 public class InterfaceFieldArgumentRedefinitionError extends BaseError {
-    public InterfaceFieldArgumentRedefinitionError(String typeOfType,
-                                                   ImplementingTypeDefinition typeDefinition,
-                                                   InterfaceTypeDefinition interfaceTypeDef,
-                                                   FieldDefinition objectFieldDef,
-                                                   String objectArgStr,
-                                                   String interfaceArgStr,
-                                                   InputValueDefinition interfaceArgDef,
-                                                   InputValueDefinition objectArgDef) {
-        super(objectArgDef, format("The %s type '%s' has tried to redefine '%s' argument '%s' defined via interface '%s' from '%s' to '%s'",
-            typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceArgDef.getName(), interfaceTypeDef.getName(), interfaceArgStr, objectArgStr));
-        addReferences(interfaceArgDef);
-    }
+  public InterfaceFieldArgumentRedefinitionError(String typeOfType,
+                                                 ImplementingTypeDefinition typeDefinition,
+                                                 InterfaceTypeDefinition interfaceTypeDef,
+                                                 FieldDefinition objectFieldDef,
+                                                 String objectArgStr,
+                                                 String interfaceArgStr,
+                                                 InputValueDefinition interfaceArgDef,
+                                                 InputValueDefinition objectArgDef) {
+    super(objectArgDef, format("The %s type '%s' has tried to redefine '%s' argument '%s' defined via interface '%s' from '%s' to '%s'",
+                               typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceArgDef.getName(),
+                               interfaceTypeDef.getName(), interfaceArgStr, objectArgStr));
+    addReferences(interfaceArgDef);
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLInterfaceImplementationInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLInterfaceImplementationInspection.class;
+  }
 }

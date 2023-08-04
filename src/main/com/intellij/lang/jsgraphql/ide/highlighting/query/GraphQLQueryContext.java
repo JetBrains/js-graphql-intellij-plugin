@@ -9,11 +9,11 @@ package com.intellij.lang.jsgraphql.ide.highlighting.query;
 
 public class GraphQLQueryContext {
 
-    public String query;
-    public Runnable onError;
+  public String query;
+  public Runnable onError;
 
-    public GraphQLQueryContext(String query, Runnable onError) {
-        this.query = query;
-        this.onError = onError;
-    }
+  public GraphQLQueryContext(String query, Runnable onError) {
+    this.query = query;
+    this.onError = onError;
+  }
 }

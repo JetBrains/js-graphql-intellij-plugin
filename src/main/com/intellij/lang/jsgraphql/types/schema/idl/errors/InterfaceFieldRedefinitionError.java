@@ -29,20 +29,21 @@ import static java.lang.String.format;
 
 @Internal
 public class InterfaceFieldRedefinitionError extends BaseError {
-    public InterfaceFieldRedefinitionError(String typeOfType,
-                                           ImplementingTypeDefinition typeDefinition,
-                                           InterfaceTypeDefinition interfaceTypeDef,
-                                           FieldDefinition objectFieldDef,
-                                           String objectFieldType,
-                                           String interfaceFieldType,
-                                           FieldDefinition interfaceFieldDef) {
-        super(typeDefinition, format("The %s type '%s' has tried to redefine field '%s' defined via interface '%s' from '%s' to '%s'",
-            typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceTypeDef.getName(), interfaceFieldType, objectFieldType));
-        addReferences(interfaceFieldDef);
-    }
+  public InterfaceFieldRedefinitionError(String typeOfType,
+                                         ImplementingTypeDefinition typeDefinition,
+                                         InterfaceTypeDefinition interfaceTypeDef,
+                                         FieldDefinition objectFieldDef,
+                                         String objectFieldType,
+                                         String interfaceFieldType,
+                                         FieldDefinition interfaceFieldDef) {
+    super(typeDefinition, format("The %s type '%s' has tried to redefine field '%s' defined via interface '%s' from '%s' to '%s'",
+                                 typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceTypeDef.getName(),
+                                 interfaceFieldType, objectFieldType));
+    addReferences(interfaceFieldDef);
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLInterfaceImplementationInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLInterfaceImplementationInspection.class;
+  }
 }

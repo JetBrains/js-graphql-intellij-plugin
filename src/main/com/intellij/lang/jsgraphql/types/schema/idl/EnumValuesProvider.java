@@ -27,11 +27,9 @@ import com.intellij.lang.jsgraphql.types.PublicSpi;
 @PublicSpi
 public interface EnumValuesProvider {
 
-    /**
-     * @param name an Enum value
-     *
-     * @return not null
-     */
-    Object getValue(String name);
-
+  /**
+   * @param name an Enum value
+   * @return not null
+   */
+  Object getValue(String name);
 }

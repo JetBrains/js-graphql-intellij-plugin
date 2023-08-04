@@ -39,106 +39,110 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 
 class GraphQLOpenConfigAction : AnAction(
-    GraphQLBundle.messagePointer("graphql.action.open.config.file.title"),
-    AllIcons.General.Settings
+  GraphQLBundle.messagePointer("graphql.action.open.config.file.title"),
+  AllIcons.General.Settings
 ) {
-    override fun actionPerformed(e: AnActionEvent) {
-        val project = e.getData(CommonDataKeys.PROJECT)
-        val psiFile = e.getData(CommonDataKeys.PSI_FILE) ?: return
-        val virtualFile = getPhysicalVirtualFile(psiFile)
-        if (project == null || virtualFile == null) {
-            return
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.getData(CommonDataKeys.PROJECT)
+    val psiFile = e.getData(CommonDataKeys.PSI_FILE) ?: return
+    val virtualFile = getPhysicalVirtualFile(psiFile)
+    if (project == null || virtualFile == null) {
+      return
+    }
+    val provider = GraphQLConfigProvider.getInstance(project)
+    val config = provider.resolveProjectConfig(psiFile)
+    // look for the closest one as a fallback for cases when a file is excluded
+    // and not matched by the `resolveConfig` call
+    val configFile = config?.file ?: provider.findConfig(psiFile)?.config?.file
+    if (configFile != null) {
+      val fileEditorManager = FileEditorManager.getInstance(project)
+      fileEditorManager.openFile(configFile, true, true)
+    }
+    else if (config != null) {
+      // TODO: create and show in-memory config
+    }
+    else {
+      // no config associated, ask to create one
+      val notification = Notification(
+        GRAPHQL_NOTIFICATION_GROUP_ID,
+        GraphQLBundle.message("graphql.notification.config.not.found.title"),
+        GraphQLBundle.message("graphql.notification.config.not.found.body"),
+        NotificationType.INFORMATION
+      )
+      notification.addAction(
+        NotificationAction.createSimpleExpiring(GraphQLBundle.message("graphql.notification.config.not.found.create.action")) {
+          createConfig(project, psiFile)
         }
-        val provider = GraphQLConfigProvider.getInstance(project)
-        val config = provider.resolveProjectConfig(psiFile)
-        // look for the closest one as a fallback for cases when a file is excluded
-        // and not matched by the `resolveConfig` call
-        val configFile = config?.file ?: provider.findConfig(psiFile)?.config?.file
-        if (configFile != null) {
-            val fileEditorManager = FileEditorManager.getInstance(project)
-            fileEditorManager.openFile(configFile, true, true)
-        } else if (config != null) {
-            // TODO: create and show in-memory config
-        } else {
-            // no config associated, ask to create one
-            val notification = Notification(
-                GRAPHQL_NOTIFICATION_GROUP_ID,
-                GraphQLBundle.message("graphql.notification.config.not.found.title"),
-                GraphQLBundle.message("graphql.notification.config.not.found.body"),
-                NotificationType.INFORMATION
-            )
-            notification.addAction(
-                NotificationAction.createSimpleExpiring(GraphQLBundle.message("graphql.notification.config.not.found.create.action")) {
-                    createConfig(project, psiFile)
-                }
-            )
-            Notifications.Bus.notify(notification, project)
-        }
+      )
+      Notifications.Bus.notify(notification, project)
+    }
+  }
+
+  private fun createConfig(project: Project, psiFile: PsiFile) {
+    val virtualFile = getPhysicalVirtualFile(psiFile) ?: return
+    val configDirectoryCandidates = getParentDirsUpToContentRoots(project, virtualFile)
+    val configFactory = GraphQLConfigFactory.getInstance(project)
+    if (configDirectoryCandidates.size == 1) {
+      configFactory.createAndOpenConfigFile(configDirectoryCandidates.first(), true)
+    }
+    else {
+      val dialog = GraphQLConfigDirectoryDialog(project, configDirectoryCandidates)
+      if (dialog.showAndGet()) {
+        dialog.selectedDirectory?.let { configFactory.createAndOpenConfigFile(it, true) }
+      }
+    }
+  }
+
+  internal class GraphQLConfigDirectoryDialog(project: Project, candidates: Collection<VirtualFile>) :
+    DialogWrapper(project) {
+
+    private val psiDirectoryFactory = PsiDirectoryFactory.getInstance(project)
+
+    private val configDirectoryCandidates: List<PsiDirectory> = candidates.map { psiDirectoryFactory.createDirectory(it) }
+
+    private val comboBox = ComboBox(CollectionComboBoxModel(configDirectoryCandidates)).apply {
+      renderer = DefaultPsiElementCellRenderer()
+      setMinimumAndPreferredWidth(450)
+      if (itemCount > 0) {
+        selectedIndex = 0
+      }
     }
 
-    private fun createConfig(project: Project, psiFile: PsiFile) {
-        val virtualFile = getPhysicalVirtualFile(psiFile) ?: return
-        val configDirectoryCandidates = getParentDirsUpToContentRoots(project, virtualFile)
-        val configFactory = GraphQLConfigFactory.getInstance(project)
-        if (configDirectoryCandidates.size == 1) {
-            configFactory.createAndOpenConfigFile(configDirectoryCandidates.first(), true)
-        } else {
-            val dialog = GraphQLConfigDirectoryDialog(project, configDirectoryCandidates)
-            if (dialog.showAndGet()) {
-                dialog.selectedDirectory?.let { configFactory.createAndOpenConfigFile(it, true) }
-            }
-        }
+    init {
+      title = "Select GraphQL Configuration Folder"
+      init()
+      comboBox.requestFocus()
     }
 
-    internal class GraphQLConfigDirectoryDialog(project: Project, candidates: Collection<VirtualFile>) :
-        DialogWrapper(project) {
-
-        private val psiDirectoryFactory = PsiDirectoryFactory.getInstance(project)
-
-        private val configDirectoryCandidates: List<PsiDirectory> = candidates.map { psiDirectoryFactory.createDirectory(it) }
-
-        private val comboBox = ComboBox(CollectionComboBoxModel(configDirectoryCandidates)).apply {
-            renderer = DefaultPsiElementCellRenderer()
-            setMinimumAndPreferredWidth(450)
-            if (itemCount > 0) {
-                selectedIndex = 0
-            }
-        }
-
-        init {
-            title = "Select GraphQL Configuration Folder"
-            init()
-            comboBox.requestFocus()
-        }
-
-        override fun getPreferredFocusedComponent(): JComponent? {
-            return comboBox
-        }
-
-        override fun createCenterPanel(): JComponent? {
-            val panel = NonOpaquePanel()
-            panel.add(comboBox, BorderLayout.NORTH)
-            return panel
-        }
-
-        val selectedDirectory: VirtualFile?
-            get() {
-                val selectedItem = comboBox.selectedItem as? PsiDirectory
-                return selectedItem?.virtualFile
-            }
+    override fun getPreferredFocusedComponent(): JComponent? {
+      return comboBox
     }
 
-    private fun getParentDirsUpToContentRoots(
-        project: Project,
-        virtualFile: VirtualFile,
-    ): Collection<VirtualFile> {
-        return if (GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
-            project.guessProjectDir()?.let { listOf(it) } ?: emptyList()
-        } else {
-            val directoriesProcessor =
-                CommonProcessors.CollectProcessor<VirtualFile>()
-            GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, virtualFile, directoriesProcessor)
-            directoriesProcessor.results
-        }
+    override fun createCenterPanel(): JComponent? {
+      val panel = NonOpaquePanel()
+      panel.add(comboBox, BorderLayout.NORTH)
+      return panel
     }
+
+    val selectedDirectory: VirtualFile?
+      get() {
+        val selectedItem = comboBox.selectedItem as? PsiDirectory
+        return selectedItem?.virtualFile
+      }
+  }
+
+  private fun getParentDirsUpToContentRoots(
+    project: Project,
+    virtualFile: VirtualFile,
+  ): Collection<VirtualFile> {
+    return if (GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
+      project.guessProjectDir()?.let { listOf(it) } ?: emptyList()
+    }
+    else {
+      val directoriesProcessor =
+        CommonProcessors.CollectProcessor<VirtualFile>()
+      GraphQLResolveUtil.processDirectoriesUpToContentRoot(project, virtualFile, directoriesProcessor)
+      directoriesProcessor.results
+    }
+  }
 }

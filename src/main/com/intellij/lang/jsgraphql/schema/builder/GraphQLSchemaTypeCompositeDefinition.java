@@ -7,29 +7,32 @@ import com.intellij.lang.jsgraphql.types.language.SchemaExtensionDefinition;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 
 public class GraphQLSchemaTypeCompositeDefinition
-    extends GraphQLExtendableCompositeDefinition<SchemaDefinition, SchemaExtensionDefinition> {
+  extends GraphQLExtendableCompositeDefinition<SchemaDefinition, SchemaExtensionDefinition> {
 
-    @NotNull
-    @Override
-    protected SchemaDefinition mergeDefinitions() {
-        List<Directive> directives = new ArrayList<>();
-        Map<String, OperationTypeDefinition> operationTypeDefinitions = new LinkedHashMap<>();
+  @NotNull
+  @Override
+  protected SchemaDefinition mergeDefinitions() {
+    List<Directive> directives = new ArrayList<>();
+    Map<String, OperationTypeDefinition> operationTypeDefinitions = new LinkedHashMap<>();
 
-        for (SchemaDefinition definition : myDefinitions) {
-            directives.addAll(definition.getDirectives());
-            mergeNodes(operationTypeDefinitions, mapNamedNodesByKey(definition.getOperationTypeDefinitions()));
-        }
-
-        SchemaDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
-        return definition.transform(builder -> builder
-            .directives(directives)
-            .operationTypeDefinitions(toList(operationTypeDefinitions))
-            .sourceNodes(myDefinitions)
-        );
+    for (SchemaDefinition definition : myDefinitions) {
+      directives.addAll(definition.getDirectives());
+      mergeNodes(operationTypeDefinitions, mapNamedNodesByKey(definition.getOperationTypeDefinitions()));
     }
+
+    SchemaDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+    return definition.transform(builder -> builder
+      .directives(directives)
+      .operationTypeDefinitions(toList(operationTypeDefinitions))
+      .sourceNodes(myDefinitions)
+    );
+  }
 }

@@ -5,12 +5,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphQLVisitor extends GraphQLVisitorBase {
 
-    public void visitGraphQLFile(@NotNull GraphQLFile file) {
-        visitFile(file);
-    }
+  public void visitGraphQLFile(@NotNull GraphQLFile file) {
+    visitFile(file);
+  }
 
-    @Override
-    public void visitElement(@NotNull GraphQLElement o) {
-        visitElement(((PsiElement) o));
-    }
+  @Override
+  public void visitElement(@NotNull GraphQLElement o) {
+    visitElement(((PsiElement)o));
+  }
 }

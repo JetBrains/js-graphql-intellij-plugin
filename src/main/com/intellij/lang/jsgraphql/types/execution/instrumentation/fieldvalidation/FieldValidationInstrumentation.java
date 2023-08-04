@@ -41,24 +41,24 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 @PublicApi
 public class FieldValidationInstrumentation extends SimpleInstrumentation {
 
-    private final FieldValidation fieldValidation;
+  private final FieldValidation fieldValidation;
 
-    /**
-     * Your field validation will be called before query execution
-     *
-     * @param fieldValidation the field validation to call
-     */
-    public FieldValidationInstrumentation(FieldValidation fieldValidation) {
-        this.fieldValidation = assertNotNull(fieldValidation);
+  /**
+   * Your field validation will be called before query execution
+   *
+   * @param fieldValidation the field validation to call
+   */
+  public FieldValidationInstrumentation(FieldValidation fieldValidation) {
+    this.fieldValidation = assertNotNull(fieldValidation);
+  }
+
+  @Override
+  public InstrumentationContext<ExecutionResult> beginExecuteOperation(InstrumentationExecuteOperationParameters parameters) {
+
+    List<GraphQLError> errors = FieldValidationSupport.validateFieldsAndArguments(fieldValidation, parameters.getExecutionContext());
+    if (errors != null && !errors.isEmpty()) {
+      throw new AbortExecutionException(errors);
     }
-
-    @Override
-    public InstrumentationContext<ExecutionResult> beginExecuteOperation(InstrumentationExecuteOperationParameters parameters) {
-
-        List<GraphQLError> errors = FieldValidationSupport.validateFieldsAndArguments(fieldValidation, parameters.getExecutionContext());
-        if (errors != null && !errors.isEmpty()) {
-            throw new AbortExecutionException(errors);
-        }
-        return super.beginExecuteOperation(parameters);
-    }
+    return super.beginExecuteOperation(parameters);
+  }
 }

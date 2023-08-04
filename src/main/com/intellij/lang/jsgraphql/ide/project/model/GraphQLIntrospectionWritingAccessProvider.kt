@@ -8,14 +8,14 @@ import com.intellij.openapi.vfs.WritingAccessProvider
 
 class GraphQLIntrospectionWritingAccessProvider(project: Project) : WritingAccessProvider() {
 
-    private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
-    private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
+  private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
+  private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
 
-    override fun requestWriting(files: Collection<VirtualFile>): Collection<VirtualFile> {
-        return files.filter { generatedSourcesManager.isGeneratedFile(it) || remoteSchemasRegistry.isRemoteSchemaFile(it) }
-    }
+  override fun requestWriting(files: Collection<VirtualFile>): Collection<VirtualFile> {
+    return files.filter { generatedSourcesManager.isGeneratedFile(it) || remoteSchemasRegistry.isRemoteSchemaFile(it) }
+  }
 
-    override fun isPotentiallyWritable(file: VirtualFile): Boolean {
-        return !generatedSourcesManager.isGeneratedFile(file) && !remoteSchemasRegistry.isRemoteSchemaFile(file)
-    }
+  override fun isPotentiallyWritable(file: VirtualFile): Boolean {
+    return !generatedSourcesManager.isGeneratedFile(file) && !remoteSchemasRegistry.isRemoteSchemaFile(file)
+  }
 }

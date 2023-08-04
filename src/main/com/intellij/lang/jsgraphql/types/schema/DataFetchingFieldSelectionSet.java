@@ -113,108 +113,100 @@ import java.util.Map;
 @PublicApi
 public interface DataFetchingFieldSelectionSet {
 
-    /**
-     * This will return true if the field selection set matches a specified "glob" pattern matching ie
-     * the glob pattern matching supported by {@link java.nio.file.FileSystem#getPathMatcher}.
-     * <p>
-     * This will allow you to use '*', '**' and '?' as special matching characters such that "invoice/customer*" would
-     * match an invoice field with child fields that start with 'customer'.
-     *
-     * @param fieldGlobPattern the glob pattern to match fields against
-     *
-     * @return true if the selection set contains these fields
-     *
-     * @see java.nio.file.FileSystem#getPathMatcher(String)
-     */
-    boolean contains(String fieldGlobPattern);
+  /**
+   * This will return true if the field selection set matches a specified "glob" pattern matching ie
+   * the glob pattern matching supported by {@link java.nio.file.FileSystem#getPathMatcher}.
+   * <p>
+   * This will allow you to use '*', '**' and '?' as special matching characters such that "invoice/customer*" would
+   * match an invoice field with child fields that start with 'customer'.
+   *
+   * @param fieldGlobPattern the glob pattern to match fields against
+   * @return true if the selection set contains these fields
+   * @see java.nio.file.FileSystem#getPathMatcher(String)
+   */
+  boolean contains(String fieldGlobPattern);
 
-    /**
-     * This will return true if the field selection set matches any of the specified "glob" pattern matches ie
-     * the glob pattern matching supported by {@link java.nio.file.FileSystem#getPathMatcher}.
-     * <p>
-     * This will allow you to use '*', '**' and '?' as special matching characters such that "invoice/customer*" would
-     * match an invoice field with child fields that start with 'customer'.
-     *
-     * @param fieldGlobPattern  the glob pattern to match fields against
-     * @param fieldGlobPatterns optionally more glob pattern to match fields against
-     *
-     * @return true if the selection set contains any of these these fields
-     *
-     * @see java.nio.file.FileSystem#getPathMatcher(String)
-     */
-    boolean containsAnyOf(String fieldGlobPattern, String... fieldGlobPatterns);
+  /**
+   * This will return true if the field selection set matches any of the specified "glob" pattern matches ie
+   * the glob pattern matching supported by {@link java.nio.file.FileSystem#getPathMatcher}.
+   * <p>
+   * This will allow you to use '*', '**' and '?' as special matching characters such that "invoice/customer*" would
+   * match an invoice field with child fields that start with 'customer'.
+   *
+   * @param fieldGlobPattern  the glob pattern to match fields against
+   * @param fieldGlobPatterns optionally more glob pattern to match fields against
+   * @return true if the selection set contains any of these these fields
+   * @see java.nio.file.FileSystem#getPathMatcher(String)
+   */
+  boolean containsAnyOf(String fieldGlobPattern, String... fieldGlobPatterns);
 
-    /**
-     * This will return true if the field selection set matches all of the specified "glob" pattern matches ie
-     * the glob pattern matching supported by {@link java.nio.file.FileSystem#getPathMatcher}.
-     * <p>
-     * This will allow you to use '*', '**' and '?' as special matching characters such that "invoice/customer*" would
-     * match an invoice field with child fields that start with 'customer'.
-     *
-     * @param fieldGlobPattern  the glob pattern to match fields against
-     * @param fieldGlobPatterns optionally more glob pattern to match fields against
-     *
-     * @return true if the selection set contains all of these these fields
-     *
-     * @see java.nio.file.FileSystem#getPathMatcher(String)
-     */
-    boolean containsAllOf(String fieldGlobPattern, String... fieldGlobPatterns);
+  /**
+   * This will return true if the field selection set matches all of the specified "glob" pattern matches ie
+   * the glob pattern matching supported by {@link java.nio.file.FileSystem#getPathMatcher}.
+   * <p>
+   * This will allow you to use '*', '**' and '?' as special matching characters such that "invoice/customer*" would
+   * match an invoice field with child fields that start with 'customer'.
+   *
+   * @param fieldGlobPattern  the glob pattern to match fields against
+   * @param fieldGlobPatterns optionally more glob pattern to match fields against
+   * @return true if the selection set contains all of these these fields
+   * @see java.nio.file.FileSystem#getPathMatcher(String)
+   */
+  boolean containsAllOf(String fieldGlobPattern, String... fieldGlobPatterns);
 
-    /**
-     * This will return all selected fields.
-     * <p>
-     * The fields are guaranteed to be in pre-order as they appear in the query.
-     *
-     * @return a list of all selected fields or empty list if none match
-     */
-    List<SelectedField> getFields();
+  /**
+   * This will return all selected fields.
+   * <p>
+   * The fields are guaranteed to be in pre-order as they appear in the query.
+   *
+   * @return a list of all selected fields or empty list if none match
+   */
+  List<SelectedField> getFields();
 
-    /**
-     * This will return all selected fields that are immediate child fields
-     * of the field being fetched.
-     * <p>
-     * The fields are guaranteed to be in pre-order as they appear in the query.
-     *
-     * @return a list of all selected immediate child fields or empty list if none match
-     */
-    List<SelectedField> getImmediateFields();
+  /**
+   * This will return all selected fields that are immediate child fields
+   * of the field being fetched.
+   * <p>
+   * The fields are guaranteed to be in pre-order as they appear in the query.
+   *
+   * @return a list of all selected immediate child fields or empty list if none match
+   */
+  List<SelectedField> getImmediateFields();
 
-    /**
-     * This will return a list of selected fields that match a specified "glob" pattern matching ie
-     * the glob pattern matching supported by {@link java.nio.file.FileSystem#getPathMatcher}.
-     * <p>
-     * This will allow you to use '*', '**' and '?' as special matching characters such that "invoice/customer*" would
-     * match an invoice field with child fields that start with 'customer'.
-     * <p>
-     * The fields are guaranteed to be in pre-order as they appear in the query.
-     *
-     * @param fieldGlobPattern  the glob pattern to match fields against
-     * @param fieldGlobPatterns optionally more glob pattern to match fields against
-     *
-     * @return a list of selected fields or empty list if none match
-     */
-    List<SelectedField> getFields(String fieldGlobPattern, String... fieldGlobPatterns);
+  /**
+   * This will return a list of selected fields that match a specified "glob" pattern matching ie
+   * the glob pattern matching supported by {@link java.nio.file.FileSystem#getPathMatcher}.
+   * <p>
+   * This will allow you to use '*', '**' and '?' as special matching characters such that "invoice/customer*" would
+   * match an invoice field with child fields that start with 'customer'.
+   * <p>
+   * The fields are guaranteed to be in pre-order as they appear in the query.
+   *
+   * @param fieldGlobPattern  the glob pattern to match fields against
+   * @param fieldGlobPatterns optionally more glob pattern to match fields against
+   * @return a list of selected fields or empty list if none match
+   */
+  List<SelectedField> getFields(String fieldGlobPattern, String... fieldGlobPatterns);
 
-    /**
-     * The result key of a selected field represents what the graphql return value will be.  The same {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}
-     * may lead to a field being asked for multiple times (with differing arguments) if field aliases are used.  This method
-     * helps you get all possible field invocations grouped by their result key.  The arguments are guaranteed to be the same if
-     * the result key is the same, otherwise the query would not have validated correctly.
-     *
-     * @return a map of selected fields grouped by result key or an empty map if none match
-     */
-    Map<String, List<SelectedField>> getFieldsGroupedByResultKey();
+  /**
+   * The result key of a selected field represents what the graphql return value will be.  The same {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}
+   * may lead to a field being asked for multiple times (with differing arguments) if field aliases are used.  This method
+   * helps you get all possible field invocations grouped by their result key.  The arguments are guaranteed to be the same if
+   * the result key is the same, otherwise the query would not have validated correctly.
+   *
+   * @return a map of selected fields grouped by result key or an empty map if none match
+   */
+  Map<String, List<SelectedField>> getFieldsGroupedByResultKey();
 
-    /**
-     * The result key of a selected field represents what the graphql return value will be.  The same {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}
-     * may lead to a field being asked for multiple times (with differing arguments) if field aliases are used.  This method
-     * helps you get all possible field invocations grouped by their result key.  The arguments are guaranteed to be the same if
-     * the result key is the same, otherwise the query would not have validated correctly.
-     *
-     * @param fieldGlobPattern  the glob pattern to match fields against
-     * @param fieldGlobPatterns optionally more glob pattern to match fields against
-     *
-     * @return a map of selected fields grouped by result key or an empty map if none match
-     */
-    Map<String, List<SelectedField>> getFieldsGroupedByResultKey(String fieldGlobPattern, String... fieldGlobPatterns);
+  /**
+   * The result key of a selected field represents what the graphql return value will be.  The same {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}
+   * may lead to a field being asked for multiple times (with differing arguments) if field aliases are used.  This method
+   * helps you get all possible field invocations grouped by their result key.  The arguments are guaranteed to be the same if
+   * the result key is the same, otherwise the query would not have validated correctly.
+   *
+   * @param fieldGlobPattern  the glob pattern to match fields against
+   * @param fieldGlobPatterns optionally more glob pattern to match fields against
+   * @return a map of selected fields grouped by result key or an empty map if none match
+   */
+  Map<String, List<SelectedField>> getFieldsGroupedByResultKey(String fieldGlobPattern, String... fieldGlobPatterns);
 }

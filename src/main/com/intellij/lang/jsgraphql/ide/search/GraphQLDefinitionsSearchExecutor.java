@@ -22,40 +22,47 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GraphQLDefinitionsSearchExecutor implements QueryExecutor<PsiElement, PsiElement> {
 
-    @Override
-    public boolean execute(@NotNull PsiElement queryParameters, @NotNull Processor<? super PsiElement> consumer) {
-        ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> GraphQLDefinitionsSearchExecutor.doExecute(queryParameters, consumer));
-        return true;
-    }
+  @Override
+  public boolean execute(@NotNull PsiElement queryParameters, @NotNull Processor<? super PsiElement> consumer) {
+    ApplicationManager.getApplication()
+      .runReadAction((Computable<Boolean>)() -> GraphQLDefinitionsSearchExecutor.doExecute(queryParameters, consumer));
+    return true;
+  }
 
-    private static boolean doExecute(PsiElement sourceElement, final Processor<? super PsiElement> consumer) {
+  private static boolean doExecute(PsiElement sourceElement, final Processor<? super PsiElement> consumer) {
 
-        if (sourceElement instanceof GraphQLIdentifier && sourceElement.getParent() instanceof GraphQLTypeNameDefinition) {
-            final GraphQLInterfaceTypeDefinition interfaceTypeDefinition = PsiTreeUtil.getParentOfType(sourceElement, GraphQLInterfaceTypeDefinition.class);
-            if (interfaceTypeDefinition != null) {
-                GraphQLPsiSearchHelper.getInstance(sourceElement.getProject()).processNamedElements(sourceElement, sourceElement.getText(), namedElement -> {
-                    ProgressManager.checkCanceled();
-                    if (namedElement instanceof GraphQLIdentifier && PsiTreeUtil.getParentOfType(namedElement, GraphQLImplementsInterfaces.class) != null) {
-                        final GraphQLTypeSystemDefinition typeSystemDefinition = PsiTreeUtil.getParentOfType(namedElement, GraphQLObjectTypeDefinition.class, GraphQLObjectTypeExtensionDefinition.class);
-                        if (typeSystemDefinition instanceof GraphQLObjectTypeDefinition) {
-                            final GraphQLTypeNameDefinition typeNameDefinition = ((GraphQLObjectTypeDefinition) typeSystemDefinition).getTypeNameDefinition();
-                            if (typeNameDefinition != null) {
-                                consumer.process(typeNameDefinition.getNameIdentifier());
-                            }
-                        } else if (typeSystemDefinition instanceof GraphQLObjectTypeExtensionDefinition) {
-                            final GraphQLTypeName typeName = ((GraphQLObjectTypeExtensionDefinition) typeSystemDefinition).getTypeName();
-                            if (typeName != null) {
-                                consumer.process(typeName.getNameIdentifier());
-                            }
-                        }
-                    }
-                    // continue looking for all implementing types
-                    return true;
-                });
+    if (sourceElement instanceof GraphQLIdentifier && sourceElement.getParent() instanceof GraphQLTypeNameDefinition) {
+      final GraphQLInterfaceTypeDefinition interfaceTypeDefinition =
+        PsiTreeUtil.getParentOfType(sourceElement, GraphQLInterfaceTypeDefinition.class);
+      if (interfaceTypeDefinition != null) {
+        GraphQLPsiSearchHelper.getInstance(sourceElement.getProject())
+          .processNamedElements(sourceElement, sourceElement.getText(), namedElement -> {
+            ProgressManager.checkCanceled();
+            if (namedElement instanceof GraphQLIdentifier &&
+                PsiTreeUtil.getParentOfType(namedElement, GraphQLImplementsInterfaces.class) != null) {
+              final GraphQLTypeSystemDefinition typeSystemDefinition =
+                PsiTreeUtil.getParentOfType(namedElement, GraphQLObjectTypeDefinition.class, GraphQLObjectTypeExtensionDefinition.class);
+              if (typeSystemDefinition instanceof GraphQLObjectTypeDefinition) {
+                final GraphQLTypeNameDefinition typeNameDefinition =
+                  ((GraphQLObjectTypeDefinition)typeSystemDefinition).getTypeNameDefinition();
+                if (typeNameDefinition != null) {
+                  consumer.process(typeNameDefinition.getNameIdentifier());
+                }
+              }
+              else if (typeSystemDefinition instanceof GraphQLObjectTypeExtensionDefinition) {
+                final GraphQLTypeName typeName = ((GraphQLObjectTypeExtensionDefinition)typeSystemDefinition).getTypeName();
+                if (typeName != null) {
+                  consumer.process(typeName.getNameIdentifier());
+                }
+              }
             }
-        }
-
-        // execute result
-        return true;
+            // continue looking for all implementing types
+            return true;
+          });
+      }
     }
+
+    // execute result
+    return true;
+  }
 }

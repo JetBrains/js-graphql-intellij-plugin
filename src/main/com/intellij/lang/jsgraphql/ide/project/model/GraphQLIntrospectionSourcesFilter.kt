@@ -7,7 +7,7 @@ import com.intellij.openapi.roots.GeneratedSourcesFilter
 import com.intellij.openapi.vfs.VirtualFile
 
 class GraphQLIntrospectionSourcesFilter : GeneratedSourcesFilter() {
-    override fun isGeneratedSource(file: VirtualFile, project: Project): Boolean =
-        GraphQLGeneratedSourcesManager.getInstance(project).isGeneratedFile(file) ||
-            GraphQLRemoteSchemasRegistry.getInstance(project).isRemoteSchemaFile(file)
+  override fun isGeneratedSource(file: VirtualFile, project: Project): Boolean =
+    GraphQLGeneratedSourcesManager.getInstance(project).isGeneratedFile(file) ||
+    GraphQLRemoteSchemasRegistry.getInstance(project).isRemoteSchemaFile(file)
 }

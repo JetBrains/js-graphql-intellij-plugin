@@ -29,27 +29,27 @@ import java.util.function.Supplier;
 @Internal
 public class InterThreadMemoizedSupplier<T> implements Supplier<T> {
 
-    private final Supplier<T> delegate;
-    private volatile boolean initialized;
-    private T value;
+  private final Supplier<T> delegate;
+  private volatile boolean initialized;
+  private T value;
 
-    public InterThreadMemoizedSupplier(Supplier<T> delegate) {
-        this.delegate = delegate;
-    }
+  public InterThreadMemoizedSupplier(Supplier<T> delegate) {
+    this.delegate = delegate;
+  }
 
 
-    @Override
-    public T get() {
-        if (!initialized) {
-            synchronized (this) {
-                if (initialized) {
-                    return value;
-                }
-                value = delegate.get();
-                initialized = true;
-                return value;
-            }
+  @Override
+  public T get() {
+    if (!initialized) {
+      synchronized (this) {
+        if (initialized) {
+          return value;
         }
+        value = delegate.get();
+        initialized = true;
         return value;
+      }
     }
+    return value;
+  }
 }

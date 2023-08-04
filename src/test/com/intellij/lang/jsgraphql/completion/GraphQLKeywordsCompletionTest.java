@@ -14,90 +14,90 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphQLKeywordsCompletionTest extends GraphQLCompletionTestCaseBase {
 
-    @Override
-    protected @NotNull String getBasePath() {
-        return "/completion/keywords";
-    }
+  @Override
+  protected @NotNull String getBasePath() {
+    return "/completion/keywords";
+  }
 
-    public void testTopLevelKeywords() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
-            "input", "interface", "mutation", "query", "scalar",
-            "schema", "subscription", "type", "union");
-        checkResult(lookupElements, "input");
-    }
+  public void testTopLevelKeywords() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
+                       "input", "interface", "mutation", "query", "scalar",
+                       "schema", "subscription", "type", "union");
+    checkResult(lookupElements, "input");
+  }
 
-    public void testTopLevelKeywordsOnlyAtLineStart() {
-        LookupElement[] lookupElements = doTest();
-        checkDoesNotContain(lookupElements, "directive", "enum", "extend", "fragment",
-            "input", "interface", "mutation", "query", "scalar",
-            "schema", "subscription", "type", "union");
-    }
+  public void testTopLevelKeywordsOnlyAtLineStart() {
+    LookupElement[] lookupElements = doTest();
+    checkDoesNotContain(lookupElements, "directive", "enum", "extend", "fragment",
+                        "input", "interface", "mutation", "query", "scalar",
+                        "schema", "subscription", "type", "union");
+  }
 
-    public void testTopLevelKeywordsAfterComment() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
-            "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union");
-    }
+  public void testTopLevelKeywordsAfterComment() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
+                       "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union");
+  }
 
-    public void testExtendKeywords() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "enum", "input", "interface", "scalar", "schema", "type", "union");
-    }
+  public void testExtendKeywords() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "enum", "input", "interface", "scalar", "schema", "type", "union");
+  }
 
-    public void testDirectiveKeywords() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "on", "repeatable");
-        checkResult(lookupElements, "repeatable");
-    }
+  public void testDirectiveKeywords() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "on", "repeatable");
+    checkResult(lookupElements, "repeatable");
+  }
 
-    public void testDirectiveKeywords1() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "on");
-    }
+  public void testDirectiveKeywords1() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "on");
+  }
 
-    public void testImplementsKeyword1() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "implements");
-        checkResult(lookupElements, "implements");
-    }
+  public void testImplementsKeyword1() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "implements");
+    checkResult(lookupElements, "implements");
+  }
 
-    public void testImplementsKeyword2() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "implements");
-        checkResult(lookupElements, "implements");
-    }
+  public void testImplementsKeyword2() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "implements");
+    checkResult(lookupElements, "implements");
+  }
 
-    public void testImplementsKeywordExtendType() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "implements");
-    }
+  public void testImplementsKeywordExtendType() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "implements");
+  }
 
-    public void testImplementsKeywordInterface() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "implements");
-    }
+  public void testImplementsKeywordInterface() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "implements");
+  }
 
-    public void testImplementsKeywordExtendInterface() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "implements");
-    }
+  public void testImplementsKeywordExtendInterface() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "implements");
+  }
 
-    public void testSchemaOperationNames() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "mutation", "subscription");
-        checkResult(lookupElements, "mutation");
-    }
+  public void testSchemaOperationNames() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "mutation", "subscription");
+    checkResult(lookupElements, "mutation");
+  }
 
-    public void testFragmentInlineOnKeyword() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "on");
-        checkResult(lookupElements, "on");
-    }
+  public void testFragmentInlineOnKeyword() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "on");
+    checkResult(lookupElements, "on");
+  }
 
-    public void testFragmentInlineOnKeywordWithSpace() {
-        LookupElement[] lookupElements = doTest();
-        checkEqualsOrdered(lookupElements, "on");
-        checkResult(lookupElements, "on");
-    }
+  public void testFragmentInlineOnKeywordWithSpace() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "on");
+    checkResult(lookupElements, "on");
+  }
 }

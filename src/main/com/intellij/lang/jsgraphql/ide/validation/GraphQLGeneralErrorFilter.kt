@@ -15,29 +15,29 @@ import com.intellij.psi.util.PsiTreeUtil
 
 class GraphQLGeneralErrorFilter : GraphQLErrorFilter {
 
-    override fun isGraphQLErrorSuppressed(
-        project: Project,
-        error: GraphQLError,
-        element: PsiElement?,
-    ): Boolean {
-        val namedNode = error.node as? NamedNode<*>
+  override fun isGraphQLErrorSuppressed(
+    project: Project,
+    error: GraphQLError,
+    element: PsiElement?,
+  ): Boolean {
+    val namedNode = error.node as? NamedNode<*>
 
-        if (error is QueryOperationMissingError) {
-            return true
-        }
-
-        if (error is TypeExtensionMissingBaseTypeError && namedNode?.name == GraphQLKnownTypes.QUERY_TYPE) {
-            val roots = GraphQLLibraryManager.getInstance(project).libraryRoots.map { it.path }.toSet()
-            return namedNode.sourceLocation?.sourceName in roots
-        }
-
-        if (error is ValidationError && error.validationErrorType == ValidationErrorType.MisplacedDirective) {
-            // graphql-java KnownDirectives rule only recognizes executable directive locations, so ignore
-            // the error if we're inside a type definition
-            return PsiTreeUtil.getParentOfType(element, GraphQLTypeSystemDefinition::class.java) != null
-        }
-
-        return false
+    if (error is QueryOperationMissingError) {
+      return true
     }
+
+    if (error is TypeExtensionMissingBaseTypeError && namedNode?.name == GraphQLKnownTypes.QUERY_TYPE) {
+      val roots = GraphQLLibraryManager.getInstance(project).libraryRoots.map { it.path }.toSet()
+      return namedNode.sourceLocation?.sourceName in roots
+    }
+
+    if (error is ValidationError && error.validationErrorType == ValidationErrorType.MisplacedDirective) {
+      // graphql-java KnownDirectives rule only recognizes executable directive locations, so ignore
+      // the error if we're inside a type definition
+      return PsiTreeUtil.getParentOfType(element, GraphQLTypeSystemDefinition::class.java) != null
+    }
+
+    return false
+  }
 
 }

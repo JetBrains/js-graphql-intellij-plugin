@@ -30,19 +30,19 @@ import java.util.Map;
 @PublicApi
 public interface QueryVisitorFieldArgumentEnvironment {
 
-    GraphQLSchema getSchema();
+  GraphQLSchema getSchema();
 
-    GraphQLFieldDefinition getFieldDefinition();
+  GraphQLFieldDefinition getFieldDefinition();
 
-    GraphQLArgument getGraphQLArgument();
+  GraphQLArgument getGraphQLArgument();
 
-    Argument getArgument();
+  Argument getArgument();
 
-    Object getArgumentValue();
+  Object getArgumentValue();
 
-    Map<String, Object> getVariables();
+  Map<String, Object> getVariables();
 
-    QueryVisitorFieldEnvironment getParentEnvironment();
+  QueryVisitorFieldEnvironment getParentEnvironment();
 
-    TraverserContext<Node> getTraverserContext();
+  TraverserContext<Node> getTraverserContext();
 }

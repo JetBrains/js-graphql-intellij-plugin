@@ -40,162 +40,163 @@ import static com.intellij.lang.jsgraphql.types.language.NodeChildrenContainer.n
 @PublicApi
 public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayValue> {
 
-    public static final String CHILD_VALUES = "values";
-    private final ImmutableList<Value> values;
+  public static final String CHILD_VALUES = "values";
+  private final ImmutableList<Value> values;
 
-    @Internal
-    protected ArrayValue(List<Value> values,
-                         SourceLocation sourceLocation,
-                         List<Comment> comments,
-                         IgnoredChars ignoredChars,
-                         Map<String, String> additionalData,
-                         @Nullable PsiElement element,
-                         @Nullable List<? extends Node> sourceNodes) {
-        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        this.values = ImmutableList.copyOf(values);
+  @Internal
+  protected ArrayValue(List<Value> values,
+                       SourceLocation sourceLocation,
+                       List<Comment> comments,
+                       IgnoredChars ignoredChars,
+                       Map<String, String> additionalData,
+                       @Nullable PsiElement element,
+                       @Nullable List<? extends Node> sourceNodes) {
+    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    this.values = ImmutableList.copyOf(values);
+  }
+
+  /**
+   * alternative to using a Builder for convenience
+   *
+   * @param values of the array
+   */
+  public ArrayValue(List<Value> values) {
+    this(values, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+  }
+
+  public static Builder newArrayValue() {
+    return new Builder();
+  }
+
+  public List<Value> getValues() {
+    return values;
+  }
+
+  @Override
+  public List<Node> getChildren() {
+    return ImmutableList.copyOf(values);
+  }
+
+  @Override
+  public NodeChildrenContainer getNamedChildren() {
+    return newNodeChildrenContainer()
+      .children(CHILD_VALUES, values)
+      .build();
+  }
+
+  @Override
+  public ArrayValue withNewChildren(NodeChildrenContainer newChildren) {
+    return transform(builder -> builder
+      .values(newChildren.getChildren(CHILD_VALUES))
+    );
+  }
+
+  @Override
+  public boolean isEqualTo(Node o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    /**
-     * alternative to using a Builder for convenience
-     *
-     * @param values of the array
-     */
-    public ArrayValue(List<Value> values) {
-        this(values, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return "ArrayValue{" +
+           "values=" + values +
+           '}';
+  }
+
+  @Override
+  public ArrayValue deepCopy() {
+    return new ArrayValue(deepCopy(values), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(),
+                          getSourceNodes());
+  }
+
+  @Override
+  public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
+    return visitor.visitArrayValue(this, context);
+  }
+
+  public ArrayValue transform(Consumer<Builder> builderConsumer) {
+    Builder builder = new Builder(this);
+    builderConsumer.accept(builder);
+    return builder.build();
+  }
+
+  public static final class Builder implements NodeBuilder {
+    private SourceLocation sourceLocation;
+    private ImmutableList<Value> values = emptyList();
+    private ImmutableList<Comment> comments = emptyList();
+    private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
+    private Map<String, String> additionalData = new LinkedHashMap<>();
+    private @Nullable PsiElement element;
+    private @Nullable List<? extends Node> sourceNodes;
+
+    private Builder() {
     }
 
-    public static Builder newArrayValue() {
-        return new Builder();
+    private Builder(ArrayValue existing) {
+      this.sourceLocation = existing.getSourceLocation();
+      this.comments = ImmutableList.copyOf(existing.getComments());
+      this.values = ImmutableList.copyOf(existing.getValues());
+      this.ignoredChars = existing.getIgnoredChars();
+      this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+      this.element = existing.getElement();
+      this.sourceNodes = existing.getSourceNodes();
     }
 
-    public List<Value> getValues() {
-        return values;
+    public Builder sourceLocation(SourceLocation sourceLocation) {
+      this.sourceLocation = sourceLocation;
+      return this;
     }
 
-    @Override
-    public List<Node> getChildren() {
-        return ImmutableList.copyOf(values);
+    public Builder values(List<Value> values) {
+      this.values = ImmutableList.copyOf(values);
+      return this;
     }
 
-    @Override
-    public NodeChildrenContainer getNamedChildren() {
-        return newNodeChildrenContainer()
-            .children(CHILD_VALUES, values)
-            .build();
+    public Builder value(Value value) {
+      this.values = ImmutableKit.addToList(this.values, value);
+      return this;
     }
 
-    @Override
-    public ArrayValue withNewChildren(NodeChildrenContainer newChildren) {
-        return transform(builder -> builder
-            .values(newChildren.getChildren(CHILD_VALUES))
-        );
+    public Builder comments(List<Comment> comments) {
+      this.comments = ImmutableList.copyOf(comments);
+      return this;
     }
 
-    @Override
-    public boolean isEqualTo(Node o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        return true;
+    public Builder ignoredChars(IgnoredChars ignoredChars) {
+      this.ignoredChars = ignoredChars;
+      return this;
     }
 
-    @Override
-    public String toString() {
-        return "ArrayValue{" +
-            "values=" + values +
-            '}';
+
+    public Builder additionalData(Map<String, String> additionalData) {
+      this.additionalData = assertNotNull(additionalData);
+      return this;
     }
 
-    @Override
-    public ArrayValue deepCopy() {
-        return new ArrayValue(deepCopy(values), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
+    public Builder additionalData(String key, String value) {
+      this.additionalData.put(key, value);
+      return this;
     }
 
-    @Override
-    public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
-        return visitor.visitArrayValue(this, context);
+    public Builder element(@Nullable PsiElement element) {
+      this.element = element;
+      return this;
     }
 
-    public ArrayValue transform(Consumer<Builder> builderConsumer) {
-        Builder builder = new Builder(this);
-        builderConsumer.accept(builder);
-        return builder.build();
+    public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+      this.sourceNodes = sourceNodes;
+      return this;
     }
 
-    public static final class Builder implements NodeBuilder {
-        private SourceLocation sourceLocation;
-        private ImmutableList<Value> values = emptyList();
-        private ImmutableList<Comment> comments = emptyList();
-        private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
-        private Map<String, String> additionalData = new LinkedHashMap<>();
-        private @Nullable PsiElement element;
-        private @Nullable List<? extends Node> sourceNodes;
-
-        private Builder() {
-        }
-
-        private Builder(ArrayValue existing) {
-            this.sourceLocation = existing.getSourceLocation();
-            this.comments = ImmutableList.copyOf(existing.getComments());
-            this.values = ImmutableList.copyOf(existing.getValues());
-            this.ignoredChars = existing.getIgnoredChars();
-            this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-            this.element = existing.getElement();
-            this.sourceNodes = existing.getSourceNodes();
-        }
-
-        public Builder sourceLocation(SourceLocation sourceLocation) {
-            this.sourceLocation = sourceLocation;
-            return this;
-        }
-
-        public Builder values(List<Value> values) {
-            this.values = ImmutableList.copyOf(values);
-            return this;
-        }
-
-        public Builder value(Value value) {
-            this.values = ImmutableKit.addToList(this.values, value);
-            return this;
-        }
-
-        public Builder comments(List<Comment> comments) {
-            this.comments = ImmutableList.copyOf(comments);
-            return this;
-        }
-
-        public Builder ignoredChars(IgnoredChars ignoredChars) {
-            this.ignoredChars = ignoredChars;
-            return this;
-        }
-
-
-        public Builder additionalData(Map<String, String> additionalData) {
-            this.additionalData = assertNotNull(additionalData);
-            return this;
-        }
-
-        public Builder additionalData(String key, String value) {
-            this.additionalData.put(key, value);
-            return this;
-        }
-
-        public Builder element(@Nullable PsiElement element) {
-            this.element = element;
-            return this;
-        }
-
-        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
-            this.sourceNodes = sourceNodes;
-            return this;
-        }
-
-        public ArrayValue build() {
-            return new ArrayValue(values, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        }
+    public ArrayValue build() {
+      return new ArrayValue(values, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
     }
+  }
 }

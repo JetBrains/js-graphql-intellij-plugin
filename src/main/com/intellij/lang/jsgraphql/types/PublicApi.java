@@ -27,7 +27,7 @@ import static java.lang.annotation.ElementType.*;
 /**
  * This represents code that the graphql-java project considers public API and has an imperative to be stable within
  * major releases.
- *
+ * <p>
  * The guarantee  is for code calling classes and interfaces with this annotation, not derived from them.  New methods
  * maybe be added which would break derivations but not callers.
  */

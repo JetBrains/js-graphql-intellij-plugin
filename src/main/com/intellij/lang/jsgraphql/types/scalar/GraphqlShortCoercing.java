@@ -34,65 +34,68 @@ import static com.intellij.lang.jsgraphql.types.scalar.CoercingUtil.typeName;
 @Internal
 public class GraphqlShortCoercing implements Coercing<Short, Short> {
 
-    private static final BigInteger SHORT_MAX = BigInteger.valueOf(Short.MAX_VALUE);
-    private static final BigInteger SHORT_MIN = BigInteger.valueOf(Short.MIN_VALUE);
+  private static final BigInteger SHORT_MAX = BigInteger.valueOf(Short.MAX_VALUE);
+  private static final BigInteger SHORT_MIN = BigInteger.valueOf(Short.MIN_VALUE);
 
-    private Short convertImpl(Object input) {
-        if (input instanceof Short) {
-            return (Short) input;
-        } else if (isNumberIsh(input)) {
-            BigDecimal value;
-            try {
-                value = new BigDecimal(input.toString());
-            } catch (NumberFormatException e) {
-                return null;
-            }
-            try {
-                return value.shortValueExact();
-            } catch (ArithmeticException e) {
-                return null;
-            }
-        } else {
-            return null;
-        }
-
+  private Short convertImpl(Object input) {
+    if (input instanceof Short) {
+      return (Short)input;
     }
-
-    @Override
-    public Short serialize(Object input) {
-        Short result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingSerializeException(
-                    "Expected type 'Short' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+    else if (isNumberIsh(input)) {
+      BigDecimal value;
+      try {
+        value = new BigDecimal(input.toString());
+      }
+      catch (NumberFormatException e) {
+        return null;
+      }
+      try {
+        return value.shortValueExact();
+      }
+      catch (ArithmeticException e) {
+        return null;
+      }
     }
-
-    @Override
-    public Short parseValue(Object input) {
-        Short result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingParseValueException(
-                    "Expected type 'Short' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+    else {
+      return null;
     }
+  }
 
-    @Override
-    public Short parseLiteral(Object input) {
-        if (!(input instanceof IntValue)) {
-            throw new CoercingParseLiteralException(
-                    "Expected type 'Int' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
-            );
-        }
-        BigInteger value = ((IntValue) input).getValue();
-        if (value.compareTo(SHORT_MIN) < 0 || value.compareTo(SHORT_MAX) > 0) {
-            throw new CoercingParseLiteralException(
-                    "Expected value to be in the Short range but it was '" + value + "'"
-            );
-        }
-        return value.shortValue();
+  @Override
+  public Short serialize(Object input) {
+    Short result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingSerializeException(
+        "Expected type 'Short' but was '" + typeName(input) + "'."
+      );
     }
+    return result;
+  }
+
+  @Override
+  public Short parseValue(Object input) {
+    Short result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingParseValueException(
+        "Expected type 'Short' but was '" + typeName(input) + "'."
+      );
+    }
+    return result;
+  }
+
+  @Override
+  public Short parseLiteral(Object input) {
+    if (!(input instanceof IntValue)) {
+      throw new CoercingParseLiteralException(
+        "Expected type 'Int' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
+      );
+    }
+    BigInteger value = ((IntValue)input).getValue();
+    if (value.compareTo(SHORT_MIN) < 0 || value.compareTo(SHORT_MAX) > 0) {
+      throw new CoercingParseLiteralException(
+        "Expected value to be in the Short range but it was '" + value + "'"
+      );
+    }
+    return value.shortValue();
+  }
 }

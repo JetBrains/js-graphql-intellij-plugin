@@ -25,31 +25,29 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 @PublicApi
 public class DataLoaderDispatcherInstrumentationOptions {
 
-    private final boolean includeStatistics;
+  private final boolean includeStatistics;
 
-    private DataLoaderDispatcherInstrumentationOptions(boolean includeStatistics) {
-        this.includeStatistics = includeStatistics;
-    }
+  private DataLoaderDispatcherInstrumentationOptions(boolean includeStatistics) {
+    this.includeStatistics = includeStatistics;
+  }
 
-    public static DataLoaderDispatcherInstrumentationOptions newOptions() {
-        return new DataLoaderDispatcherInstrumentationOptions(false);
-    }
+  public static DataLoaderDispatcherInstrumentationOptions newOptions() {
+    return new DataLoaderDispatcherInstrumentationOptions(false);
+  }
 
-    /**
-     * This will toggle the ability to include java-dataloader statistics into the extensions
-     * output of your query
-     *
-     * @param flag the switch to follow
-     *
-     * @return a new options object
-     */
-    public DataLoaderDispatcherInstrumentationOptions includeStatistics(boolean flag) {
-        return new DataLoaderDispatcherInstrumentationOptions(flag);
-    }
+  /**
+   * This will toggle the ability to include java-dataloader statistics into the extensions
+   * output of your query
+   *
+   * @param flag the switch to follow
+   * @return a new options object
+   */
+  public DataLoaderDispatcherInstrumentationOptions includeStatistics(boolean flag) {
+    return new DataLoaderDispatcherInstrumentationOptions(flag);
+  }
 
 
-    public boolean isIncludeStatistics() {
-        return includeStatistics;
-    }
-
+  public boolean isIncludeStatistics() {
+    return includeStatistics;
+  }
 }

@@ -43,237 +43,253 @@ import static java.util.stream.Collectors.*;
 @Internal
 class ArgValueOfAllowedTypeChecker {
 
-    private static final Logger LOG = Logger.getInstance(ArgValueOfAllowedTypeChecker.class);
+  private static final Logger LOG = Logger.getInstance(ArgValueOfAllowedTypeChecker.class);
 
-    private final Directive directive;
-    private final Node<?> element;
-    private final String elementName;
-    private final Argument argument;
-    private final TypeDefinitionRegistry typeRegistry;
-    private final RuntimeWiring runtimeWiring;
+  private final Directive directive;
+  private final Node<?> element;
+  private final String elementName;
+  private final Argument argument;
+  private final TypeDefinitionRegistry typeRegistry;
+  private final RuntimeWiring runtimeWiring;
 
-    ArgValueOfAllowedTypeChecker(final Directive directive,
-                                 final Node<?> element,
-                                 final String elementName,
-                                 final Argument argument,
-                                 final TypeDefinitionRegistry typeRegistry,
-                                 final RuntimeWiring runtimeWiring) {
-        this.directive = directive;
-        this.element = element;
-        this.elementName = elementName;
-        this.argument = argument;
-        this.typeRegistry = typeRegistry;
-        this.runtimeWiring = runtimeWiring;
+  ArgValueOfAllowedTypeChecker(final Directive directive,
+                               final Node<?> element,
+                               final String elementName,
+                               final Argument argument,
+                               final TypeDefinitionRegistry typeRegistry,
+                               final RuntimeWiring runtimeWiring) {
+    this.directive = directive;
+    this.element = element;
+    this.elementName = elementName;
+    this.argument = argument;
+    this.typeRegistry = typeRegistry;
+    this.runtimeWiring = runtimeWiring;
+  }
+
+  /**
+   * Recursively inspects an argument value given an allowed type.
+   * Given the (invalid) SDL below:
+   * <p>
+   * directive @myDirective(arg: [[String]] ) on FIELD_DEFINITION
+   * <p>
+   * query {
+   * f: String @myDirective(arg: ["A String"])
+   * }
+   * <p>
+   * it will first check that the `myDirective.arg` type is an array
+   * and fail when finding "A String" as it expected a nested array ([[String]]).
+   *
+   * @param errors         validation error collector
+   * @param instanceValue  directive argument value
+   * @param allowedArgType directive definition argument allowed type
+   */
+  void checkArgValueMatchesAllowedType(List<GraphQLError> errors, Value<?> instanceValue, Type<?> allowedArgType) {
+    if (allowedArgType instanceof TypeName) {
+      checkArgValueMatchesAllowedTypeName(errors, instanceValue, allowedArgType);
+    }
+    else if (allowedArgType instanceof ListType) {
+      checkArgValueMatchesAllowedListType(errors, instanceValue, (ListType)allowedArgType);
+    }
+    else if (allowedArgType instanceof NonNullType) {
+      checkArgValueMatchesAllowedNonNullType(errors, instanceValue, (NonNullType)allowedArgType);
+    }
+    else {
+      LOG.warn(String.format("Unsupported Type '%s' was added. ", allowedArgType));
+    }
+  }
+
+  private void addValidationError(List<GraphQLError> errors, String message, Object... args) {
+    errors.add(
+      new DirectiveIllegalArgumentTypeError(element, elementName, directive.getName(), argument.getName(), String.format(message, args)));
+  }
+
+  private void checkArgValueMatchesAllowedTypeName(List<GraphQLError> errors, Value<?> instanceValue, Type<?> allowedArgType) {
+    if (instanceValue instanceof NullValue) {
+      return;
     }
 
-    /**
-     * Recursively inspects an argument value given an allowed type.
-     * Given the (invalid) SDL below:
-     * <p>
-     * directive @myDirective(arg: [[String]] ) on FIELD_DEFINITION
-     * <p>
-     * query {
-     * f: String @myDirective(arg: ["A String"])
-     * }
-     * <p>
-     * it will first check that the `myDirective.arg` type is an array
-     * and fail when finding "A String" as it expected a nested array ([[String]]).
-     *
-     * @param errors         validation error collector
-     * @param instanceValue  directive argument value
-     * @param allowedArgType directive definition argument allowed type
-     */
-    void checkArgValueMatchesAllowedType(List<GraphQLError> errors, Value<?> instanceValue, Type<?> allowedArgType) {
-        if (allowedArgType instanceof TypeName) {
-            checkArgValueMatchesAllowedTypeName(errors, instanceValue, allowedArgType);
-        } else if (allowedArgType instanceof ListType) {
-            checkArgValueMatchesAllowedListType(errors, instanceValue, (ListType) allowedArgType);
-        } else if (allowedArgType instanceof NonNullType) {
-            checkArgValueMatchesAllowedNonNullType(errors, instanceValue, (NonNullType) allowedArgType);
-        } else {
-            LOG.warn(String.format("Unsupported Type '%s' was added. ", allowedArgType));
-        }
+    String allowedTypeName = ((TypeName)allowedArgType).getName();
+    TypeDefinition<?> allowedTypeDefinition = typeRegistry.getType(allowedTypeName).orElse(null);
+    if (allowedTypeDefinition == null) return;
+
+    if (allowedTypeDefinition instanceof ScalarTypeDefinition) {
+      checkArgValueMatchesAllowedScalar(errors, instanceValue, allowedTypeName);
+    }
+    else if (allowedTypeDefinition instanceof EnumTypeDefinition) {
+      checkArgValueMatchesAllowedEnum(errors, instanceValue, (EnumTypeDefinition)allowedTypeDefinition);
+    }
+    else if (allowedTypeDefinition instanceof InputObjectTypeDefinition) {
+      checkArgValueMatchesAllowedInputType(errors, instanceValue, (InputObjectTypeDefinition)allowedTypeDefinition);
+    }
+    else {
+      LOG.warn(String.format("'%s' must be an input type. It is %s instead. ", allowedTypeName, allowedTypeDefinition.getClass()));
+    }
+  }
+
+  private void checkArgValueMatchesAllowedInputType(List<GraphQLError> errors,
+                                                    @Nullable Value<?> instanceValue,
+                                                    InputObjectTypeDefinition allowedTypeDefinition) {
+    if (!(instanceValue instanceof ObjectValue)) {
+      if (instanceValue != null) {
+        addValidationError(errors, EXPECTED_OBJECT_MESSAGE, instanceValue.getClass().getSimpleName());
+      }
+      return;
     }
 
-    private void addValidationError(List<GraphQLError> errors, String message, Object... args) {
-        errors.add(new DirectiveIllegalArgumentTypeError(element, elementName, directive.getName(), argument.getName(), String.format(message, args)));
+    ObjectValue objectValue = ((ObjectValue)instanceValue);
+    // duck typing validation, if it looks like the definition
+    // then it must be the same type as the definition
+
+    List<ObjectField> fields = objectValue.getObjectFields();
+    List<InputObjectTypeExtensionDefinition> inputObjExt =
+      typeRegistry.inputObjectTypeExtensions().getOrDefault(allowedTypeDefinition.getName(), emptyList());
+    Stream<InputValueDefinition> inputObjExtValues = inputObjExt.stream().flatMap(inputObj -> inputObj.getInputValueDefinitions().stream());
+    List<InputValueDefinition> inputValueDefinitions =
+      Stream.concat(allowedTypeDefinition.getInputValueDefinitions().stream(), inputObjExtValues).toList();
+
+    // check for duplicated fields
+    Map<String, Long> fieldsToOccurrenceMap = fields.stream().map(ObjectField::getName)
+      .collect(groupingBy(Function.identity(), counting()));
+
+    if (fieldsToOccurrenceMap.values().stream().anyMatch(count -> count > 1)) {
+      addValidationError(errors, DUPLICATED_KEYS_MESSAGE, fieldsToOccurrenceMap.entrySet().stream()
+        .filter(entry -> entry.getValue() > 1)
+        .map(Map.Entry::getKey)
+        .collect(joining(",")));
+      return;
     }
 
-    private void checkArgValueMatchesAllowedTypeName(List<GraphQLError> errors, Value<?> instanceValue, Type<?> allowedArgType) {
-        if (instanceValue instanceof NullValue) {
-            return;
-        }
+    // check for unknown fields
+    Map<String, InputValueDefinition> nameToInputValueDefMap = inputValueDefinitions.stream()
+      .collect(toMap(InputValueDefinition::getName, inputValueDef -> inputValueDef));
 
-        String allowedTypeName = ((TypeName) allowedArgType).getName();
-        TypeDefinition<?> allowedTypeDefinition = typeRegistry.getType(allowedTypeName).orElse(null);
-        if (allowedTypeDefinition == null) return;
+    List<ObjectField> unknownFields = ContainerUtil.filter(fields, field -> !nameToInputValueDefMap.containsKey(field.getName()));
 
-        if (allowedTypeDefinition instanceof ScalarTypeDefinition) {
-            checkArgValueMatchesAllowedScalar(errors, instanceValue, allowedTypeName);
-        } else if (allowedTypeDefinition instanceof EnumTypeDefinition) {
-            checkArgValueMatchesAllowedEnum(errors, instanceValue, (EnumTypeDefinition) allowedTypeDefinition);
-        } else if (allowedTypeDefinition instanceof InputObjectTypeDefinition) {
-            checkArgValueMatchesAllowedInputType(errors, instanceValue, (InputObjectTypeDefinition) allowedTypeDefinition);
-        } else {
-            LOG.warn(String.format("'%s' must be an input type. It is %s instead. ", allowedTypeName, allowedTypeDefinition.getClass()));
-        }
+    if (!unknownFields.isEmpty()) {
+      addValidationError(errors, UNKNOWN_FIELDS_MESSAGE,
+                         unknownFields.stream()
+                           .map(ObjectField::getName)
+                           .collect(joining(",")),
+                         allowedTypeDefinition.getName());
+      return;
     }
 
-    private void checkArgValueMatchesAllowedInputType(List<GraphQLError> errors,
-                                                      @Nullable Value<?> instanceValue,
-                                                      InputObjectTypeDefinition allowedTypeDefinition) {
-        if (!(instanceValue instanceof ObjectValue)) {
-            if (instanceValue != null) {
-                addValidationError(errors, EXPECTED_OBJECT_MESSAGE, instanceValue.getClass().getSimpleName());
-            }
-            return;
-        }
+    // fields to map for easy access
+    Map<String, ObjectField> nameToFieldsMap = fields.stream()
+      .collect(toMap(ObjectField::getName, objectField -> objectField));
+    // check each single field with its definition
+    inputValueDefinitions.forEach(allowedValueDef -> {
+      ObjectField objectField = nameToFieldsMap.get(allowedValueDef.getName());
+      checkArgInputObjectValueFieldMatchesAllowedDefinition(errors, objectField, allowedValueDef);
+    });
+  }
 
-        ObjectValue objectValue = ((ObjectValue) instanceValue);
-        // duck typing validation, if it looks like the definition
-        // then it must be the same type as the definition
-
-        List<ObjectField> fields = objectValue.getObjectFields();
-        List<InputObjectTypeExtensionDefinition> inputObjExt = typeRegistry.inputObjectTypeExtensions().getOrDefault(allowedTypeDefinition.getName(), emptyList());
-        Stream<InputValueDefinition> inputObjExtValues = inputObjExt.stream().flatMap(inputObj -> inputObj.getInputValueDefinitions().stream());
-        List<InputValueDefinition> inputValueDefinitions = Stream.concat(allowedTypeDefinition.getInputValueDefinitions().stream(), inputObjExtValues).toList();
-
-        // check for duplicated fields
-        Map<String, Long> fieldsToOccurrenceMap = fields.stream().map(ObjectField::getName)
-                .collect(groupingBy(Function.identity(), counting()));
-
-        if (fieldsToOccurrenceMap.values().stream().anyMatch(count -> count > 1)) {
-            addValidationError(errors, DUPLICATED_KEYS_MESSAGE, fieldsToOccurrenceMap.entrySet().stream()
-                    .filter(entry -> entry.getValue() > 1)
-                    .map(Map.Entry::getKey)
-                    .collect(joining(",")));
-            return;
-        }
-
-        // check for unknown fields
-        Map<String, InputValueDefinition> nameToInputValueDefMap = inputValueDefinitions.stream()
-                .collect(toMap(InputValueDefinition::getName, inputValueDef -> inputValueDef));
-
-      List<ObjectField> unknownFields = ContainerUtil.filter(fields, field -> !nameToInputValueDefMap.containsKey(field.getName()));
-
-        if (!unknownFields.isEmpty()) {
-            addValidationError(errors, UNKNOWN_FIELDS_MESSAGE,
-                    unknownFields.stream()
-                            .map(ObjectField::getName)
-                            .collect(joining(",")),
-                    allowedTypeDefinition.getName());
-            return;
-        }
-
-        // fields to map for easy access
-        Map<String, ObjectField> nameToFieldsMap = fields.stream()
-                .collect(toMap(ObjectField::getName, objectField -> objectField));
-        // check each single field with its definition
-        inputValueDefinitions.forEach(allowedValueDef -> {
-            ObjectField objectField = nameToFieldsMap.get(allowedValueDef.getName());
-            checkArgInputObjectValueFieldMatchesAllowedDefinition(errors, objectField, allowedValueDef);
-        });
+  private void checkArgValueMatchesAllowedEnum(List<GraphQLError> errors,
+                                               @Nullable Value<?> instanceValue,
+                                               EnumTypeDefinition allowedTypeDefinition) {
+    if (!(instanceValue instanceof EnumValue)) {
+      if (instanceValue != null) {
+        addValidationError(errors, EXPECTED_ENUM_MESSAGE, instanceValue.getClass().getSimpleName());
+      }
+      return;
     }
 
-    private void checkArgValueMatchesAllowedEnum(List<GraphQLError> errors, @Nullable Value<?> instanceValue, EnumTypeDefinition allowedTypeDefinition) {
-        if (!(instanceValue instanceof EnumValue)) {
-            if (instanceValue != null) {
-                addValidationError(errors, EXPECTED_ENUM_MESSAGE, instanceValue.getClass().getSimpleName());
-            }
-            return;
-        }
+    EnumValue enumValue = ((EnumValue)instanceValue);
 
-        EnumValue enumValue = ((EnumValue) instanceValue);
+    List<EnumTypeExtensionDefinition> enumExtensions =
+      typeRegistry.enumTypeExtensions().getOrDefault(allowedTypeDefinition.getName(), emptyList());
+    Stream<EnumValueDefinition> enumExtStream = enumExtensions.stream().flatMap(enumExt -> enumExt.getEnumValueDefinitions().stream());
+    List<EnumValueDefinition> enumValueDefinitions =
+      Stream.concat(allowedTypeDefinition.getEnumValueDefinitions().stream(), enumExtStream).toList();
 
-        List<EnumTypeExtensionDefinition> enumExtensions = typeRegistry.enumTypeExtensions().getOrDefault(allowedTypeDefinition.getName(), emptyList());
-        Stream<EnumValueDefinition> enumExtStream = enumExtensions.stream().flatMap(enumExt -> enumExt.getEnumValueDefinitions().stream());
-        List<EnumValueDefinition> enumValueDefinitions = Stream.concat(allowedTypeDefinition.getEnumValueDefinitions().stream(), enumExtStream).toList();
+    boolean noneMatchAllowedEnumValue = enumValueDefinitions.stream()
+      .noneMatch(enumAllowedValue -> enumAllowedValue.getName().equals(enumValue.getName()));
 
-        boolean noneMatchAllowedEnumValue = enumValueDefinitions.stream()
-                .noneMatch(enumAllowedValue -> enumAllowedValue.getName().equals(enumValue.getName()));
+    if (noneMatchAllowedEnumValue) {
+      addValidationError(errors, MUST_BE_VALID_ENUM_VALUE_MESSAGE, enumValue.getName(), enumValueDefinitions.stream()
+        .map(EnumValueDefinition::getName)
+        .collect(joining(",")));
+    }
+  }
 
-        if (noneMatchAllowedEnumValue) {
-            addValidationError(errors, MUST_BE_VALID_ENUM_VALUE_MESSAGE, enumValue.getName(), enumValueDefinitions.stream()
-                    .map(EnumValueDefinition::getName)
-                    .collect(joining(",")));
-        }
+  private void checkArgValueMatchesAllowedScalar(List<GraphQLError> errors, Value<?> instanceValue, String allowedTypeName) {
+    if (instanceValue instanceof ArrayValue
+        || instanceValue instanceof EnumValue
+        || instanceValue instanceof ObjectValue) {
+      addValidationError(errors, EXPECTED_SCALAR_MESSAGE, instanceValue.getClass().getSimpleName());
+      return;
     }
 
-    private void checkArgValueMatchesAllowedScalar(List<GraphQLError> errors, Value<?> instanceValue, String allowedTypeName) {
-        if (instanceValue instanceof ArrayValue
-                || instanceValue instanceof EnumValue
-                || instanceValue instanceof ObjectValue) {
-            addValidationError(errors, EXPECTED_SCALAR_MESSAGE, instanceValue.getClass().getSimpleName());
-            return;
-        }
+    GraphQLScalarType scalarType = runtimeWiring.getScalars().get(allowedTypeName);
+    // scalarType will always be present as
+    // scalar implementation validation has been performed earlier
+    if (!isArgumentValueScalarLiteral(scalarType, instanceValue)) {
+      addValidationError(errors, NOT_A_VALID_SCALAR_LITERAL_MESSAGE, allowedTypeName);
+    }
+  }
 
-        GraphQLScalarType scalarType = runtimeWiring.getScalars().get(allowedTypeName);
-        // scalarType will always be present as
-        // scalar implementation validation has been performed earlier
-        if (!isArgumentValueScalarLiteral(scalarType, instanceValue)) {
-            addValidationError(errors, NOT_A_VALID_SCALAR_LITERAL_MESSAGE, allowedTypeName);
-        }
+  private void checkArgInputObjectValueFieldMatchesAllowedDefinition(List<GraphQLError> errors,
+                                                                     ObjectField objectField,
+                                                                     InputValueDefinition allowedValueDef) {
+
+    if (objectField != null) {
+      checkArgValueMatchesAllowedType(errors, objectField.getValue(), allowedValueDef.getType());
+      return;
     }
 
-    private void checkArgInputObjectValueFieldMatchesAllowedDefinition(List<GraphQLError> errors, ObjectField objectField, InputValueDefinition allowedValueDef) {
-
-        if (objectField != null) {
-            checkArgValueMatchesAllowedType(errors, objectField.getValue(), allowedValueDef.getType());
-            return;
-        }
-
-        // check if field definition is required and has no default value
-        if (allowedValueDef.getType() instanceof NonNullType && allowedValueDef.getDefaultValue() == null) {
-            addValidationError(errors, MISSING_REQUIRED_FIELD_MESSAGE, allowedValueDef.getName());
-        }
-
-        // other cases are
-        // - field definition is marked as non-null but has a default value, so the default value can be used
-        // - field definition is nullable hence null can be used
+    // check if field definition is required and has no default value
+    if (allowedValueDef.getType() instanceof NonNullType && allowedValueDef.getDefaultValue() == null) {
+      addValidationError(errors, MISSING_REQUIRED_FIELD_MESSAGE, allowedValueDef.getName());
     }
 
-    private void checkArgValueMatchesAllowedNonNullType(List<GraphQLError> errors, Value<?> instanceValue, NonNullType allowedArgType) {
-        if (instanceValue instanceof NullValue) {
-            addValidationError(errors, EXPECTED_NON_NULL_MESSAGE);
-            return;
-        }
+    // other cases are
+    // - field definition is marked as non-null but has a default value, so the default value can be used
+    // - field definition is nullable hence null can be used
+  }
 
-        Type<?> unwrappedAllowedType = allowedArgType.getType();
-        checkArgValueMatchesAllowedType(errors, instanceValue, unwrappedAllowedType);
+  private void checkArgValueMatchesAllowedNonNullType(List<GraphQLError> errors, Value<?> instanceValue, NonNullType allowedArgType) {
+    if (instanceValue instanceof NullValue) {
+      addValidationError(errors, EXPECTED_NON_NULL_MESSAGE);
+      return;
     }
 
-    private void checkArgValueMatchesAllowedListType(List<GraphQLError> errors, Value<?> instanceValue, ListType allowedArgType) {
-        if (instanceValue instanceof NullValue) {
-            return;
-        }
+    Type<?> unwrappedAllowedType = allowedArgType.getType();
+    checkArgValueMatchesAllowedType(errors, instanceValue, unwrappedAllowedType);
+  }
 
-        Type<?> unwrappedAllowedType = allowedArgType.getType();
-        if (!(instanceValue instanceof ArrayValue)) {
-            checkArgValueMatchesAllowedType(errors, instanceValue, unwrappedAllowedType);
-            return;
-        }
-
-        ArrayValue arrayValue = ((ArrayValue) instanceValue);
-        boolean isUnwrappedList = unwrappedAllowedType instanceof ListType;
-
-        // validate each instance value in the list, all instances must match for the list to match
-        arrayValue.getValues().forEach(value -> {
-            // restrictive check for sub-arrays
-            if (isUnwrappedList && !(value instanceof ArrayValue)) {
-                addValidationError(errors, EXPECTED_LIST_MESSAGE, value.getClass().getSimpleName());
-            }
-            checkArgValueMatchesAllowedType(errors, value, unwrappedAllowedType);
-        });
+  private void checkArgValueMatchesAllowedListType(List<GraphQLError> errors, Value<?> instanceValue, ListType allowedArgType) {
+    if (instanceValue instanceof NullValue) {
+      return;
     }
 
-    private boolean isArgumentValueScalarLiteral(GraphQLScalarType scalarType, Value<?> instanceValue) {
-        if (instanceValue == null) return false;
-
-        try {
-            scalarType.getCoercing().parseLiteral(instanceValue);
-            return true;
-        } catch (CoercingParseLiteralException ex) {
-            return false;
-        }
+    Type<?> unwrappedAllowedType = allowedArgType.getType();
+    if (!(instanceValue instanceof ArrayValue)) {
+      checkArgValueMatchesAllowedType(errors, instanceValue, unwrappedAllowedType);
+      return;
     }
+
+    ArrayValue arrayValue = ((ArrayValue)instanceValue);
+    boolean isUnwrappedList = unwrappedAllowedType instanceof ListType;
+
+    // validate each instance value in the list, all instances must match for the list to match
+    arrayValue.getValues().forEach(value -> {
+      // restrictive check for sub-arrays
+      if (isUnwrappedList && !(value instanceof ArrayValue)) {
+        addValidationError(errors, EXPECTED_LIST_MESSAGE, value.getClass().getSimpleName());
+      }
+      checkArgValueMatchesAllowedType(errors, value, unwrappedAllowedType);
+    });
+  }
+
+  private boolean isArgumentValueScalarLiteral(GraphQLScalarType scalarType, Value<?> instanceValue) {
+    if (instanceValue == null) return false;
+
+    try {
+      scalarType.getCoercing().parseLiteral(instanceValue);
+      return true;
+    }
+    catch (CoercingParseLiteralException ex) {
+      return false;
+    }
+  }
 }

@@ -34,78 +34,70 @@ import java.util.Map;
  * Input coercion is taking a value that came in from requests variables or hard coded query literals and coercing them into a
  * Java object value that is acceptable to the scalar type.  Again using the DateTime example, the input coercion would try to
  * parse an ISO date time object or throw an exception if it cant.
- *
+ * <p>
  * See http://facebook.github.io/graphql/#sec-Scalars
  */
 @PublicSpi
 public interface Coercing<I, O> {
 
-    /**
-     * Called to convert a Java object result of a DataFetcher to a valid runtime value for the scalar type.
-     * <p>
-     * Note : Throw {@link com.intellij.lang.jsgraphql.types.schema.CoercingSerializeException} if there is fundamental
-     * problem during serialisation, don't return null to indicate failure.
-     * <p>
-     * Note : You should not allow {@link RuntimeException}s to come out of your serialize method, but rather
-     * catch them and fire them as {@link com.intellij.lang.jsgraphql.types.schema.CoercingSerializeException} instead as per the method contract.
-     *
-     * @param dataFetcherResult is never null
-     *
-     * @return a serialized value which may be null.
-     *
-     * @throws com.intellij.lang.jsgraphql.types.schema.CoercingSerializeException if value input can't be serialized
-     */
-    O serialize(Object dataFetcherResult) throws CoercingSerializeException;
+  /**
+   * Called to convert a Java object result of a DataFetcher to a valid runtime value for the scalar type.
+   * <p>
+   * Note : Throw {@link com.intellij.lang.jsgraphql.types.schema.CoercingSerializeException} if there is fundamental
+   * problem during serialisation, don't return null to indicate failure.
+   * <p>
+   * Note : You should not allow {@link RuntimeException}s to come out of your serialize method, but rather
+   * catch them and fire them as {@link com.intellij.lang.jsgraphql.types.schema.CoercingSerializeException} instead as per the method contract.
+   *
+   * @param dataFetcherResult is never null
+   * @return a serialized value which may be null.
+   * @throws com.intellij.lang.jsgraphql.types.schema.CoercingSerializeException if value input can't be serialized
+   */
+  O serialize(Object dataFetcherResult) throws CoercingSerializeException;
 
-    /**
-     * Called to resolve an input from a query variable into a Java object acceptable for the scalar type.
-     * <p>
-     * Note : You should not allow {@link RuntimeException}s to come out of your parseValue method, but rather
-     * catch them and fire them as {@link com.intellij.lang.jsgraphql.types.schema.CoercingParseValueException} instead as per the method contract.
-     *
-     * @param input is never null
-     *
-     * @return a parsed value which is never null
-     *
-     * @throws com.intellij.lang.jsgraphql.types.schema.CoercingParseValueException if value input can't be parsed
-     */
-    I parseValue(Object input) throws CoercingParseValueException;
+  /**
+   * Called to resolve an input from a query variable into a Java object acceptable for the scalar type.
+   * <p>
+   * Note : You should not allow {@link RuntimeException}s to come out of your parseValue method, but rather
+   * catch them and fire them as {@link com.intellij.lang.jsgraphql.types.schema.CoercingParseValueException} instead as per the method contract.
+   *
+   * @param input is never null
+   * @return a parsed value which is never null
+   * @throws com.intellij.lang.jsgraphql.types.schema.CoercingParseValueException if value input can't be parsed
+   */
+  I parseValue(Object input) throws CoercingParseValueException;
 
-    /**
-     * Called during query validation to convert a query input AST node into a Java object acceptable for the scalar type.  The input
-     * object will be an instance of {@link com.intellij.lang.jsgraphql.types.language.Value}.
-     * <p>
-     * Note : You should not allow {@link RuntimeException}s to come out of your parseLiteral method, but rather
-     * catch them and fire them as {@link com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException} instead as per the method contract.
-     *
-     * @param input is never null
-     *
-     * @return a parsed value which is never null
-     *
-     * @throws com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException if input literal can't be parsed
-     */
-    I parseLiteral(Object input) throws CoercingParseLiteralException;
+  /**
+   * Called during query validation to convert a query input AST node into a Java object acceptable for the scalar type.  The input
+   * object will be an instance of {@link com.intellij.lang.jsgraphql.types.language.Value}.
+   * <p>
+   * Note : You should not allow {@link RuntimeException}s to come out of your parseLiteral method, but rather
+   * catch them and fire them as {@link com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException} instead as per the method contract.
+   *
+   * @param input is never null
+   * @return a parsed value which is never null
+   * @throws com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException if input literal can't be parsed
+   */
+  I parseLiteral(Object input) throws CoercingParseLiteralException;
 
-    /**
-     * Called during query execution to convert a query input AST node into a Java object acceptable for the scalar type.  The input
-     * object will be an instance of {@link com.intellij.lang.jsgraphql.types.language.Value}.
-     * <p>
-     * Note : You should not allow {@link RuntimeException}s to come out of your parseLiteral method, but rather
-     * catch them and fire them as {@link com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException} instead as per the method contract.
-     * <p>
-     * Many scalar types don't need to implement this method because they don't take AST {@link com.intellij.lang.jsgraphql.types.language.VariableReference}
-     * objects and convert them into actual values.  But for those scalar types that want to do this, then this
-     * method should be implemented.
-     *
-     * @param input     is never null
-     * @param variables the resolved variables passed to the query
-     *
-     * @return a parsed value which is never null
-     *
-     * @throws com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException if input literal can't be parsed
-     */
-    @SuppressWarnings("unused")
-    default I parseLiteral(Object input, Map<String, Object> variables) throws CoercingParseLiteralException {
-        return parseLiteral(input);
-    }
+  /**
+   * Called during query execution to convert a query input AST node into a Java object acceptable for the scalar type.  The input
+   * object will be an instance of {@link com.intellij.lang.jsgraphql.types.language.Value}.
+   * <p>
+   * Note : You should not allow {@link RuntimeException}s to come out of your parseLiteral method, but rather
+   * catch them and fire them as {@link com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException} instead as per the method contract.
+   * <p>
+   * Many scalar types don't need to implement this method because they don't take AST {@link com.intellij.lang.jsgraphql.types.language.VariableReference}
+   * objects and convert them into actual values.  But for those scalar types that want to do this, then this
+   * method should be implemented.
+   *
+   * @param input     is never null
+   * @param variables the resolved variables passed to the query
+   * @return a parsed value which is never null
+   * @throws com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException if input literal can't be parsed
+   */
+  @SuppressWarnings("unused")
+  default I parseLiteral(Object input, Map<String, Object> variables) throws CoercingParseLiteralException {
+    return parseLiteral(input);
+  }
 }

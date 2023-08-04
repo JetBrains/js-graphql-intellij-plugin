@@ -30,34 +30,34 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil;
 @Internal
 class QueryTraversalContext {
 
-    // never used for scalars/enums, always a possibly wrapped composite type
-    private final GraphQLOutputType outputType;
-    private final QueryVisitorFieldEnvironment environment;
-    private final SelectionSetContainer selectionSetContainer;
+  // never used for scalars/enums, always a possibly wrapped composite type
+  private final GraphQLOutputType outputType;
+  private final QueryVisitorFieldEnvironment environment;
+  private final SelectionSetContainer selectionSetContainer;
 
-    QueryTraversalContext(GraphQLOutputType outputType,
-                          QueryVisitorFieldEnvironment environment,
-                          SelectionSetContainer selectionSetContainer) {
-        this.outputType = outputType;
-        this.environment = environment;
-        this.selectionSetContainer = selectionSetContainer;
-    }
+  QueryTraversalContext(GraphQLOutputType outputType,
+                        QueryVisitorFieldEnvironment environment,
+                        SelectionSetContainer selectionSetContainer) {
+    this.outputType = outputType;
+    this.environment = environment;
+    this.selectionSetContainer = selectionSetContainer;
+  }
 
-    public GraphQLOutputType getOutputType() {
-        return outputType;
-    }
+  public GraphQLOutputType getOutputType() {
+    return outputType;
+  }
 
-    public GraphQLCompositeType getUnwrappedOutputType() {
-        return (GraphQLCompositeType) GraphQLTypeUtil.unwrapAll(outputType);
-    }
+  public GraphQLCompositeType getUnwrappedOutputType() {
+    return (GraphQLCompositeType)GraphQLTypeUtil.unwrapAll(outputType);
+  }
 
 
-    public QueryVisitorFieldEnvironment getEnvironment() {
-        return environment;
-    }
+  public QueryVisitorFieldEnvironment getEnvironment() {
+    return environment;
+  }
 
-    public SelectionSetContainer getSelectionSetContainer() {
+  public SelectionSetContainer getSelectionSetContainer() {
 
-        return selectionSetContainer;
-    }
+    return selectionSetContainer;
+  }
 }

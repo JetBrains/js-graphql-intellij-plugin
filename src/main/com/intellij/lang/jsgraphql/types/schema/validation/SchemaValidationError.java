@@ -33,60 +33,60 @@ import java.util.Collections;
 @Internal
 public class SchemaValidationError extends BaseError {
 
-    private final SchemaValidationErrorType errorType;
-    private final String description;
+  private final SchemaValidationErrorType errorType;
+  private final String description;
 
-    public SchemaValidationError(@NotNull SchemaValidationErrorType errorType, @NotNull String description, @Nullable Node node) {
-        this(errorType, description, node, Collections.emptyList());
+  public SchemaValidationError(@NotNull SchemaValidationErrorType errorType, @NotNull String description, @Nullable Node node) {
+    this(errorType, description, node, Collections.emptyList());
+  }
+
+  public SchemaValidationError(@NotNull SchemaValidationErrorType errorType,
+                               @NotNull String description,
+                               @Nullable Node node,
+                               @NotNull Collection<? extends Node> references) {
+    super(node, description);
+    this.errorType = errorType;
+    this.description = description;
+
+    if (!references.isEmpty()) {
+      addReferences(references.toArray(Node.EMPTY_ARRAY));
     }
+  }
 
-    public SchemaValidationError(@NotNull SchemaValidationErrorType errorType,
-                                 @NotNull String description,
-                                 @Nullable Node node,
-                                 @NotNull Collection<? extends Node> references) {
-        super(node, description);
-        this.errorType = errorType;
-        this.description = description;
+  public SchemaValidationErrorType getValidationErrorType() {
+    return errorType;
+  }
 
-        if (!references.isEmpty()) {
-            addReferences(references.toArray(Node.EMPTY_ARRAY));
-        }
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = 1;
+    result = 31 * result + errorType.hashCode();
+    result = 31 * result + description.hashCode();
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
     }
-
-    public SchemaValidationErrorType getValidationErrorType() {
-        return errorType;
+    if (!(other instanceof SchemaValidationError that)) {
+      return false;
     }
+    return this.errorType.equals(that.errorType) && this.description.equals(that.description);
+  }
 
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = 1;
-        result = 31 * result + errorType.hashCode();
-        result = 31 * result + description.hashCode();
-        return result;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-        if (!(other instanceof SchemaValidationError that)) {
-            return false;
-        }
-        return this.errorType.equals(that.errorType) && this.description.equals(that.description);
-    }
-
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return switch (errorType) {
-            case InvalidCustomizedNameError -> GraphQLIllegalNameInspection.class;
-            case EnumLackOfValueError, InputObjectTypeLackOfFieldError, ImplementingTypeLackOfFieldError -> GraphQLEmptyTypeInspection.class;
-            case ObjectDoesNotImplementItsInterfaces -> GraphQLInterfaceImplementationInspection.class;
-            default -> super.getInspectionClass();
-        };
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return switch (errorType) {
+      case InvalidCustomizedNameError -> GraphQLIllegalNameInspection.class;
+      case EnumLackOfValueError, InputObjectTypeLackOfFieldError, ImplementingTypeLackOfFieldError -> GraphQLEmptyTypeInspection.class;
+      case ObjectDoesNotImplementItsInterfaces -> GraphQLInterfaceImplementationInspection.class;
+      default -> super.getInspectionClass();
+    };
+  }
 }

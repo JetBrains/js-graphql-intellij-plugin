@@ -42,30 +42,29 @@ import java.util.Map;
 @PublicApi
 public interface QueryDirectives {
 
-    /**
-     * This will return a map of the directives that are immediately on a merged field
-     *
-     * @return a map of all the directives immediately on this merged field
-     */
-    Map<String, List<GraphQLDirective>> getImmediateDirectivesByName();
+  /**
+   * This will return a map of the directives that are immediately on a merged field
+   *
+   * @return a map of all the directives immediately on this merged field
+   */
+  Map<String, List<GraphQLDirective>> getImmediateDirectivesByName();
 
 
-    /**
-     * This will return a list of the named directives that are immediately on this merged field.
-     *
-     * Read above for why this is a list of directives and not just one
-     *
-     * @param directiveName the named directive
-     *
-     * @return a list of the named directives that are immediately on this merged field
-     */
-    List<GraphQLDirective> getImmediateDirective(String directiveName);
+  /**
+   * This will return a list of the named directives that are immediately on this merged field.
+   * <p>
+   * Read above for why this is a list of directives and not just one
+   *
+   * @param directiveName the named directive
+   * @return a list of the named directives that are immediately on this merged field
+   */
+  List<GraphQLDirective> getImmediateDirective(String directiveName);
 
-    /**
-     * This will return a map of the {@link com.intellij.lang.jsgraphql.types.language.Field}s inside a {@link com.intellij.lang.jsgraphql.types.execution.MergedField}
-     * and the immediate directives that are on each specific field
-     *
-     * @return a map of all directives on each field inside this
-     */
-    Map<Field, List<GraphQLDirective>> getImmediateDirectivesByField();
+  /**
+   * This will return a map of the {@link com.intellij.lang.jsgraphql.types.language.Field}s inside a {@link com.intellij.lang.jsgraphql.types.execution.MergedField}
+   * and the immediate directives that are on each specific field
+   *
+   * @return a map of all directives on each field inside this
+   */
+  Map<Field, List<GraphQLDirective>> getImmediateDirectivesByField();
 }

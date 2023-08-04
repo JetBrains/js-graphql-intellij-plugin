@@ -39,92 +39,92 @@ import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
 @PublicApi
 public abstract class AbstractNode<T extends Node> implements Node<T> {
 
-    private final SourceLocation sourceLocation;
-    private final ImmutableList<Comment> comments;
-    private final IgnoredChars ignoredChars;
-    private final ImmutableMap<String, String> additionalData;
+  private final SourceLocation sourceLocation;
+  private final ImmutableList<Comment> comments;
+  private final IgnoredChars ignoredChars;
+  private final ImmutableMap<String, String> additionalData;
 
-    private final @Nullable PsiElement myElement;
-    private final @NotNull List<Node> mySourceNodes;
+  private final @Nullable PsiElement myElement;
+  private final @NotNull List<Node> mySourceNodes;
 
-    public AbstractNode(SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars) {
-        this(sourceLocation, comments, ignoredChars, Collections.emptyMap(), null, Collections.emptyList());
+  public AbstractNode(SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars) {
+    this(sourceLocation, comments, ignoredChars, Collections.emptyMap(), null, Collections.emptyList());
+  }
+
+  public AbstractNode(SourceLocation sourceLocation,
+                      List<Comment> comments,
+                      IgnoredChars ignoredChars,
+                      Map<String, String> additionalData,
+                      @Nullable PsiElement element,
+                      @Nullable List<? extends Node> sourceNodes) {
+    Assert.assertNotNull(comments, () -> "comments can't be null");
+    Assert.assertNotNull(ignoredChars, () -> "ignoredChars can't be null");
+    Assert.assertNotNull(additionalData, () -> "additionalData can't be null");
+
+    this.sourceLocation = sourceLocation;
+    this.additionalData = ImmutableMap.copyOf(additionalData);
+    this.comments = ImmutableList.copyOf(comments);
+    this.ignoredChars = ignoredChars;
+
+    myElement = element;
+    mySourceNodes = sourceNodes == null ? Collections.emptyList() : ImmutableList.copyOf(sourceNodes);
+  }
+
+  @Override
+  public SourceLocation getSourceLocation() {
+    return sourceLocation;
+  }
+
+  @Override
+  public List<Comment> getComments() {
+    return comments;
+  }
+
+  @Override
+  public IgnoredChars getIgnoredChars() {
+    return ignoredChars;
+  }
+
+
+  public Map<String, String> getAdditionalData() {
+    return additionalData;
+  }
+
+  @SuppressWarnings("unchecked")
+  protected <V extends Node> V deepCopy(V nullableObj) {
+    if (nullableObj == null) {
+      return null;
+    }
+    return (V)nullableObj.deepCopy();
+  }
+
+  @SuppressWarnings("unchecked")
+  protected <V extends Node> List<V> deepCopy(List<? extends Node> list) {
+    if (list == null) {
+      return null;
+    }
+    return map(list, n -> (V)n.deepCopy());
+  }
+
+  @Override
+  public @Nullable PsiElement getElement() {
+    if (myElement != null) {
+      return myElement;
     }
 
-    public AbstractNode(SourceLocation sourceLocation,
-                        List<Comment> comments,
-                        IgnoredChars ignoredChars,
-                        Map<String, String> additionalData,
-                        @Nullable PsiElement element,
-                        @Nullable List<? extends Node> sourceNodes) {
-        Assert.assertNotNull(comments, () -> "comments can't be null");
-        Assert.assertNotNull(ignoredChars, () -> "ignoredChars can't be null");
-        Assert.assertNotNull(additionalData, () -> "additionalData can't be null");
+    Node node = ContainerUtil.getFirstItem(getSourceNodes());
+    return node != null ? node.getElement() : null;
+  }
 
-        this.sourceLocation = sourceLocation;
-        this.additionalData = ImmutableMap.copyOf(additionalData);
-        this.comments = ImmutableList.copyOf(comments);
-        this.ignoredChars = ignoredChars;
+  @Override
+  public @NotNull List<PsiElement> getElements() {
+    Stream<PsiElement> nodesStream = getSourceNodes().stream().map(Node::getElement);
+    return Stream.concat(nodesStream, Stream.of(myElement))
+      .filter(Objects::nonNull).distinct().collect(Collectors.toList());
+  }
 
-        myElement = element;
-        mySourceNodes = sourceNodes == null ? Collections.emptyList() : ImmutableList.copyOf(sourceNodes);
-    }
-
-    @Override
-    public SourceLocation getSourceLocation() {
-        return sourceLocation;
-    }
-
-    @Override
-    public List<Comment> getComments() {
-        return comments;
-    }
-
-    @Override
-    public IgnoredChars getIgnoredChars() {
-        return ignoredChars;
-    }
-
-
-    public Map<String, String> getAdditionalData() {
-        return additionalData;
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <V extends Node> V deepCopy(V nullableObj) {
-        if (nullableObj == null) {
-            return null;
-        }
-        return (V) nullableObj.deepCopy();
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <V extends Node> List<V> deepCopy(List<? extends Node> list) {
-        if (list == null) {
-            return null;
-        }
-        return map(list, n -> (V) n.deepCopy());
-    }
-
-    @Override
-    public @Nullable PsiElement getElement() {
-        if (myElement != null) {
-            return myElement;
-        }
-
-        Node node = ContainerUtil.getFirstItem(getSourceNodes());
-        return node != null ? node.getElement() : null;
-    }
-
-    @Override
-    public @NotNull List<PsiElement> getElements() {
-        Stream<PsiElement> nodesStream = getSourceNodes().stream().map(Node::getElement);
-        return Stream.concat(nodesStream, Stream.of(myElement))
-            .filter(Objects::nonNull).distinct().collect(Collectors.toList());
-    }
-
-    @Override
-    public @NotNull List<Node> getSourceNodes() {
-        return mySourceNodes;
-    }
+  @Override
+  public @NotNull List<Node> getSourceNodes() {
+    return mySourceNodes;
+  }
 }

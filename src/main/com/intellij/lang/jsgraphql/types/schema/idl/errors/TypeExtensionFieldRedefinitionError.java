@@ -17,8 +17,8 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.AbstractNode;
 import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
@@ -31,26 +31,30 @@ import static java.lang.String.format;
 @Internal
 public class TypeExtensionFieldRedefinitionError extends BaseError {
 
-    public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition, FieldDefinition fieldDefinition, FieldDefinition redefinedField) {
-        super(typeDefinition,
-                formatMessage(typeDefinition, fieldDefinition.getName(), fieldDefinition));
-        addReferences(redefinedField);
-    }
+  public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition,
+                                             FieldDefinition fieldDefinition,
+                                             FieldDefinition redefinedField) {
+    super(typeDefinition,
+          formatMessage(typeDefinition, fieldDefinition.getName(), fieldDefinition));
+    addReferences(redefinedField);
+  }
 
-    public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition, InputValueDefinition fieldDefinition, InputValueDefinition redefinedField) {
-        super(typeDefinition,
-                formatMessage(typeDefinition, fieldDefinition.getName(), fieldDefinition));
-        addReferences(redefinedField);
-    }
+  public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition,
+                                             InputValueDefinition fieldDefinition,
+                                             InputValueDefinition redefinedField) {
+    super(typeDefinition,
+          formatMessage(typeDefinition, fieldDefinition.getName(), fieldDefinition));
+    addReferences(redefinedField);
+  }
 
-    private static String formatMessage(TypeDefinition typeDefinition, String fieldName, AbstractNode<?> fieldDefinition) {
-        return format("'%s' extension type tried to redefine field '%s'",
-                typeDefinition.getName(), fieldName
-        );
-    }
+  private static String formatMessage(TypeDefinition typeDefinition, String fieldName, AbstractNode<?> fieldDefinition) {
+    return format("'%s' extension type tried to redefine field '%s'",
+                  typeDefinition.getName(), fieldName
+    );
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLMemberRedefinitionInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLMemberRedefinitionInspection.class;
+  }
 }

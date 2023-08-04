@@ -6,11 +6,11 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public final class GraphQLPluginDisposable implements Disposable {
-    public static @NotNull Disposable getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, GraphQLPluginDisposable.class);
-    }
+  public static @NotNull Disposable getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, GraphQLPluginDisposable.class);
+  }
 
-    @Override
-    public void dispose() {
-    }
+  @Override
+  public void dispose() {
+  }
 }

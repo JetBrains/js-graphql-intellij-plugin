@@ -33,66 +33,68 @@ import java.util.concurrent.ConcurrentMap
 @Service(Service.Level.PROJECT)
 class GraphQLSchemaProvider(project: Project) {
 
-    companion object {
-        @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLSchemaProvider>()
+  companion object {
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLSchemaProvider>()
 
-        private val LOG = logger<GraphQLSchemaProvider>()
+    private val LOG = logger<GraphQLSchemaProvider>()
+  }
+
+  // can throw PCE, so we need to postpone initialization not to break the plugin class loading
+  private val emptySchema = lazy {
+    GraphQLSchema.newSchema().query(GraphQLObjectType.newObject().name("Query").build()).build()
+  }
+
+  private val registryProvider = GraphQLRegistryProvider.getInstance(project)
+  private val scopeProvider = GraphQLScopeProvider.getInstance(project)
+
+  private val scopeToSchemaCache: CachedValue<ConcurrentMap<GlobalSearchScope, GraphQLSchemaInfo>> =
+    CachedValuesManager.getManager(project).createCachedValue {
+      CachedValueProvider.Result.create(
+        ContainerUtil.createConcurrentSoftMap(),
+        GraphQLSchemaContentTracker.getInstance(project),
+      )
     }
 
-    // can throw PCE, so we need to postpone initialization not to break the plugin class loading
-    private val emptySchema = lazy {
-        GraphQLSchema.newSchema().query(GraphQLObjectType.newObject().name("Query").build()).build()
+  @RequiresReadLock
+  fun getSchemaInfo(context: PsiElement?): GraphQLSchemaInfo {
+    return getSchemaInfo(scopeProvider.getResolveScope(context, true))
+  }
+
+  @RequiresReadLock
+  fun getSchemaInfo(scope: GlobalSearchScope): GraphQLSchemaInfo {
+    return scopeToSchemaCache.value.computeIfAbsent(scope) {
+      val registryWithErrors = registryProvider.getRegistryInfo(scope)
+
+      try {
+        val schema =
+          UnExecutableSchemaGenerator.makeUnExecutableSchema(registryWithErrors.typeDefinitionRegistry)
+        val validationErrors = SchemaValidator().validateSchema(schema)
+        val errors = if (validationErrors.isEmpty())
+          emptyList()
+        else
+          listOf<GraphQLException>(InvalidSchemaException(validationErrors))
+        GraphQLSchemaInfo(schema, errors, registryWithErrors)
+      }
+      catch (e: ProcessCanceledException) {
+        throw e
+      }
+      catch (e: Exception) {
+        LOG.error("Schema build error: ", e) // should never happen
+
+        GraphQLSchemaInfo(
+          emptySchema.value,
+          Lists.newArrayList(if (e is GraphQLException) e else GraphQLException(e)),
+          registryWithErrors
+        )
+      }
     }
+  }
 
-    private val registryProvider = GraphQLRegistryProvider.getInstance(project)
-    private val scopeProvider = GraphQLScopeProvider.getInstance(project)
-
-    private val scopeToSchemaCache: CachedValue<ConcurrentMap<GlobalSearchScope, GraphQLSchemaInfo>> =
-        CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(
-                ContainerUtil.createConcurrentSoftMap(),
-                GraphQLSchemaContentTracker.getInstance(project),
-            )
-        }
-
-    @RequiresReadLock
-    fun getSchemaInfo(context: PsiElement?): GraphQLSchemaInfo {
-        return getSchemaInfo(scopeProvider.getResolveScope(context, true))
-    }
-
-    @RequiresReadLock
-    fun getSchemaInfo(scope: GlobalSearchScope): GraphQLSchemaInfo {
-        return scopeToSchemaCache.value.computeIfAbsent(scope) {
-            val registryWithErrors = registryProvider.getRegistryInfo(scope)
-
-            try {
-                val schema =
-                    UnExecutableSchemaGenerator.makeUnExecutableSchema(registryWithErrors.typeDefinitionRegistry)
-                val validationErrors = SchemaValidator().validateSchema(schema)
-                val errors = if (validationErrors.isEmpty())
-                    emptyList()
-                else
-                    listOf<GraphQLException>(InvalidSchemaException(validationErrors))
-                GraphQLSchemaInfo(schema, errors, registryWithErrors)
-            } catch (e: ProcessCanceledException) {
-                throw e
-            } catch (e: Exception) {
-                LOG.error("Schema build error: ", e) // should never happen
-
-                GraphQLSchemaInfo(
-                    emptySchema.value,
-                    Lists.newArrayList(if (e is GraphQLException) e else GraphQLException(e)),
-                    registryWithErrors
-                )
-            }
-        }
-    }
-
-    @Deprecated("use GraphQLRegistryProvider.getRegistryInfo() instead")
-    @ScheduledForRemoval
-    @RequiresReadLock
-    fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
-        return registryProvider.getRegistryInfo(context)
-    }
+  @Deprecated("use GraphQLRegistryProvider.getRegistryInfo() instead")
+  @ScheduledForRemoval
+  @RequiresReadLock
+  fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
+    return registryProvider.getRegistryInfo(context)
+  }
 }

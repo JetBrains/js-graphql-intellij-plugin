@@ -9,30 +9,30 @@ import junit.framework.TestCase
 
 class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
 
-    @Throws(Exception::class)
-    override fun setUp() {
-        super.setUp()
-        enableAllInspections()
-    }
+  @Throws(Exception::class)
+  override fun setUp() {
+    super.setUp()
+    enableAllInspections()
+  }
 
-    override fun getBasePath() = "/frameworks/federation/validation"
+  override fun getBasePath() = "/frameworks/federation/validation"
 
-    fun testQueryValidation() {
-        withLibrary(project, GraphQLLibraryTypes.FEDERATION, {
-            doHighlightingTest()
+  fun testQueryValidation() {
+    withLibrary(project, GraphQLLibraryTypes.FEDERATION, {
+      doHighlightingTest()
 
-            val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(myFixture.file)
-            TestCase.assertNotNull(schemaInfo)
-            assertEmpty(schemaInfo.getErrors(project))
-        }, testRootDisposable)
-    }
+      val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(myFixture.file)
+      TestCase.assertNotNull(schemaInfo)
+      assertEmpty(schemaInfo.getErrors(project))
+    }, testRootDisposable)
+  }
 
-    fun testEmptySchemaValidation() {
-        withLibrary(project, GraphQLLibraryTypes.FEDERATION, {
-            val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
-            val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(globalScope)
-            TestCase.assertNotNull(schemaInfo)
-            assertEmpty(schemaInfo.getErrors(project))
-        }, testRootDisposable)
-    }
+  fun testEmptySchemaValidation() {
+    withLibrary(project, GraphQLLibraryTypes.FEDERATION, {
+      val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
+      val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(globalScope)
+      TestCase.assertNotNull(schemaInfo)
+      assertEmpty(schemaInfo.getErrors(project))
+    }, testRootDisposable)
+  }
 }

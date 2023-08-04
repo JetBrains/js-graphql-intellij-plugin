@@ -26,19 +26,19 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
  */
 @PublicApi
 public class InstrumentationCreateStateParameters {
-    private final GraphQLSchema schema;
-    private final ExecutionInput executionInput;
+  private final GraphQLSchema schema;
+  private final ExecutionInput executionInput;
 
-    public InstrumentationCreateStateParameters(GraphQLSchema schema, ExecutionInput executionInput) {
-        this.schema = schema;
-        this.executionInput = executionInput;
-    }
+  public InstrumentationCreateStateParameters(GraphQLSchema schema, ExecutionInput executionInput) {
+    this.schema = schema;
+    this.executionInput = executionInput;
+  }
 
-    public GraphQLSchema getSchema() {
-        return schema;
-    }
+  public GraphQLSchema getSchema() {
+    return schema;
+  }
 
-    public ExecutionInput getExecutionInput() {
-        return executionInput;
-    }
+  public ExecutionInput getExecutionInput() {
+    return executionInput;
+  }
 }

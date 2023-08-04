@@ -33,25 +33,25 @@ import java.util.List;
 @Internal
 public class SchemaProblem extends GraphQLException {
 
-    private final List<GraphQLError> errors;
+  private final List<GraphQLError> errors;
 
-    public SchemaProblem(List<GraphQLError> errors) {
-        this.errors = new ArrayList<>(errors);
-    }
+  public SchemaProblem(List<GraphQLError> errors) {
+    this.errors = new ArrayList<>(errors);
+  }
 
-    @Override
-    public String getMessage() {
-        return "errors=" + errors;
-    }
+  @Override
+  public String getMessage() {
+    return "errors=" + errors;
+  }
 
-    public List<GraphQLError> getErrors() {
-        return errors;
-    }
+  public List<GraphQLError> getErrors() {
+    return errors;
+  }
 
-    @Override
-    public String toString() {
-        return "SchemaProblem{" +
-                "errors=" + errors +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "SchemaProblem{" +
+           "errors=" + errors +
+           '}';
+  }
 }

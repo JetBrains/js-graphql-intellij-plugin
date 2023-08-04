@@ -24,37 +24,37 @@ import java.util.function.Function;
  */
 public class GraphQLCachingReference extends PsiReferenceBase<GraphQLReferenceMixin> {
 
-    private final Function<GraphQLReferenceMixin, PsiElement> innerResolver;
+  private final Function<GraphQLReferenceMixin, PsiElement> innerResolver;
 
-    public GraphQLCachingReference(@NotNull GraphQLReferenceMixin element, Function<GraphQLReferenceMixin, PsiElement> innerResolver) {
-        super(element);
-        this.innerResolver = innerResolver;
-    }
+  public GraphQLCachingReference(@NotNull GraphQLReferenceMixin element, Function<GraphQLReferenceMixin, PsiElement> innerResolver) {
+    super(element);
+    this.innerResolver = innerResolver;
+  }
+
+  @Nullable
+  @Override
+  public PsiElement resolve() {
+    return ResolveCache.getInstance(getElement().getProject())
+      .resolveWithCaching(this, GraphQLCachingReference.MyResolver.INSTANCE, false, false);
+  }
+
+  @Nullable
+  private PsiElement resolveInner() {
+    return innerResolver.apply(myElement);
+  }
+
+  @NotNull
+  @Override
+  public Object[] getVariants() {
+    return ArrayUtil.EMPTY_OBJECT_ARRAY;
+  }
+
+  private static class MyResolver implements ResolveCache.Resolver {
+    private static final GraphQLCachingReference.MyResolver INSTANCE = new GraphQLCachingReference.MyResolver();
 
     @Nullable
-    @Override
-    public PsiElement resolve() {
-        return ResolveCache.getInstance(getElement().getProject()).resolveWithCaching(this, GraphQLCachingReference.MyResolver.INSTANCE, false, false);
+    public PsiElement resolve(@NotNull PsiReference ref, boolean incompleteCode) {
+      return ((GraphQLCachingReference)ref).resolveInner();
     }
-
-    @Nullable
-    private PsiElement resolveInner() {
-        return innerResolver.apply(myElement);
-    }
-
-    @NotNull
-    @Override
-    public Object[] getVariants() {
-        return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    }
-
-    private static class MyResolver implements ResolveCache.Resolver {
-        private static final GraphQLCachingReference.MyResolver INSTANCE = new GraphQLCachingReference.MyResolver();
-
-        @Nullable
-        public PsiElement resolve(@NotNull PsiReference ref, boolean incompleteCode) {
-            return ((GraphQLCachingReference) ref).resolveInner();
-        }
-    }
-
+  }
 }

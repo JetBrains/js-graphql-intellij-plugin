@@ -33,47 +33,42 @@ import java.util.List;
 @PublicApi
 public interface GraphqlFieldVisibility {
 
-    /**
-     * Called to get the list of fields from an object type or interface
-     *
-     * @param fieldsContainer the type in play
-     *
-     * @return a non null list of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}s
-     */
-    List<GraphQLFieldDefinition> getFieldDefinitions(GraphQLFieldsContainer fieldsContainer);
+  /**
+   * Called to get the list of fields from an object type or interface
+   *
+   * @param fieldsContainer the type in play
+   * @return a non null list of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition}s
+   */
+  List<GraphQLFieldDefinition> getFieldDefinitions(GraphQLFieldsContainer fieldsContainer);
 
-    /**
-     * Called to get a named field from an object type or interface
-     *
-     * @param fieldsContainer the type in play
-     * @param fieldName       the name of the desired field
-     *
-     * @return a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition} or null if its not visible
-     */
-    GraphQLFieldDefinition getFieldDefinition(GraphQLFieldsContainer fieldsContainer, String fieldName);
+  /**
+   * Called to get a named field from an object type or interface
+   *
+   * @param fieldsContainer the type in play
+   * @param fieldName       the name of the desired field
+   * @return a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition} or null if its not visible
+   */
+  GraphQLFieldDefinition getFieldDefinition(GraphQLFieldsContainer fieldsContainer, String fieldName);
 
 
-    /**
-     * Called to get the list of fields from an input object type
-     *
-     * @param fieldsContainer the type in play
-     *
-     * @return a non null list of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField}s
-     */
-    default List<GraphQLInputObjectField> getFieldDefinitions(GraphQLInputFieldsContainer fieldsContainer) {
-        return fieldsContainer.getFieldDefinitions();
-    }
+  /**
+   * Called to get the list of fields from an input object type
+   *
+   * @param fieldsContainer the type in play
+   * @return a non null list of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField}s
+   */
+  default List<GraphQLInputObjectField> getFieldDefinitions(GraphQLInputFieldsContainer fieldsContainer) {
+    return fieldsContainer.getFieldDefinitions();
+  }
 
-    /**
-     * Called to get a named field from an input object type
-     *
-     * @param fieldsContainer the type in play
-     * @param fieldName       the name of the desired field
-     *
-     * @return a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField} or null if its not visible
-     */
-    default GraphQLInputObjectField getFieldDefinition(GraphQLInputFieldsContainer fieldsContainer, String fieldName) {
-        return fieldsContainer.getFieldDefinition(fieldName);
-    }
-
+  /**
+   * Called to get a named field from an input object type
+   *
+   * @param fieldsContainer the type in play
+   * @param fieldName       the name of the desired field
+   * @return a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField} or null if its not visible
+   */
+  default GraphQLInputObjectField getFieldDefinition(GraphQLInputFieldsContainer fieldsContainer, String fieldName) {
+    return fieldsContainer.getFieldDefinition(fieldName);
+  }
 }

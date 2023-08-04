@@ -38,42 +38,40 @@ import static java.util.Collections.emptyList;
 @PublicApi
 public interface DirectivesContainer<T extends DirectivesContainer> extends Node<T> {
 
-    /**
-     * This will return a list of all the directives that have been put on {@link com.intellij.lang.jsgraphql.types.language.Node} as a flat list, which may contain repeatable
-     * and non repeatable directives.
-     *
-     * @return a list of all the directives associated with this Node
-     */
-    List<Directive> getDirectives();
+  /**
+   * This will return a list of all the directives that have been put on {@link com.intellij.lang.jsgraphql.types.language.Node} as a flat list, which may contain repeatable
+   * and non repeatable directives.
+   *
+   * @return a list of all the directives associated with this Node
+   */
+  List<Directive> getDirectives();
 
-    /**
-     * This will return a Map of the all directives that are associated with a {@link com.intellij.lang.jsgraphql.types.language.Node}, including both repeatable and non repeatable directives.
-     *
-     * @return a map of all directives by directive name
-     */
-    default Map<String, List<Directive>> getDirectivesByName() {
-        return ImmutableMap.copyOf(allDirectivesByName(getDirectives()));
-    }
+  /**
+   * This will return a Map of the all directives that are associated with a {@link com.intellij.lang.jsgraphql.types.language.Node}, including both repeatable and non repeatable directives.
+   *
+   * @return a map of all directives by directive name
+   */
+  default Map<String, List<Directive>> getDirectivesByName() {
+    return ImmutableMap.copyOf(allDirectivesByName(getDirectives()));
+  }
 
-    /**
-     * Returns all of the directives with the provided name, including repeatable and non repeatable directives.
-     *
-     * @param directiveName the name of the directives to retrieve
-     *
-     * @return the directives or empty list if there is not one with that name
-     */
-    default List<Directive> getDirectives(String directiveName) {
-        return getDirectivesByName().getOrDefault(directiveName, emptyList());
-    }
+  /**
+   * Returns all of the directives with the provided name, including repeatable and non repeatable directives.
+   *
+   * @param directiveName the name of the directives to retrieve
+   * @return the directives or empty list if there is not one with that name
+   */
+  default List<Directive> getDirectives(String directiveName) {
+    return getDirectivesByName().getOrDefault(directiveName, emptyList());
+  }
 
-    /**
-     * This returns true if the AST node contains one or more directives by the specified name
-     *
-     * @param directiveName the name ot check
-     *
-     * @return true if the AST node contains one or more directives by the specified name
-     */
-    default boolean hasDirective(String directiveName) {
-        return !getDirectives(directiveName).isEmpty();
-    }
+  /**
+   * This returns true if the AST node contains one or more directives by the specified name
+   *
+   * @param directiveName the name ot check
+   * @return true if the AST node contains one or more directives by the specified name
+   */
+  default boolean hasDirective(String directiveName) {
+    return !getDirectives(directiveName).isEmpty();
+  }
 }

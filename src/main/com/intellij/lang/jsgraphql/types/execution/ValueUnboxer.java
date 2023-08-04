@@ -27,18 +27,18 @@ import com.intellij.lang.jsgraphql.types.PublicSpi;
 @PublicSpi
 public interface ValueUnboxer {
 
-    /**
-     * The default value unboxer handles JDK classes such as {@link java.util.Optional} and {@link java.util.OptionalInt} etc..
-     */
-    ValueUnboxer DEFAULT = new DefaultValueUnboxer();
+  /**
+   * The default value unboxer handles JDK classes such as {@link java.util.Optional} and {@link java.util.OptionalInt} etc..
+   */
+  ValueUnboxer DEFAULT = new DefaultValueUnboxer();
 
-    /**
-     * Unboxes 'object' if it is boxed in an {@link java.util.Optional } like
-     * type that this unboxer can handle. Otherwise returns its input
-     * unmodified
-     *
-     * @param object to unbox
-     * @return unboxed object, or original if cannot unbox
-     */
-    Object unbox(final Object object);
+  /**
+   * Unboxes 'object' if it is boxed in an {@link java.util.Optional } like
+   * type that this unboxer can handle. Otherwise returns its input
+   * unmodified
+   *
+   * @param object to unbox
+   * @return unboxed object, or original if cannot unbox
+   */
+  Object unbox(final Object object);
 }

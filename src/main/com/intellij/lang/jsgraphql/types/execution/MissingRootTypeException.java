@@ -31,20 +31,20 @@ import java.util.List;
  */
 @PublicApi
 public class MissingRootTypeException extends GraphQLException implements GraphQLError {
-    private List<SourceLocation> sourceLocations;
+  private List<SourceLocation> sourceLocations;
 
-    public MissingRootTypeException(String message, SourceLocation sourceLocation) {
-        super(message);
-        this.sourceLocations = sourceLocation == null ? null : Collections.singletonList(sourceLocation);
-    }
+  public MissingRootTypeException(String message, SourceLocation sourceLocation) {
+    super(message);
+    this.sourceLocations = sourceLocation == null ? null : Collections.singletonList(sourceLocation);
+  }
 
-    @Override
-    public List<SourceLocation> getLocations() {
-        return sourceLocations;
-    }
+  @Override
+  public List<SourceLocation> getLocations() {
+    return sourceLocations;
+  }
 
-    @Override
-    public ErrorType getErrorType() {
-        return ErrorType.OperationNotSupported;
-    }
+  @Override
+  public ErrorType getErrorType() {
+    return ErrorType.OperationNotSupported;
+  }
 }

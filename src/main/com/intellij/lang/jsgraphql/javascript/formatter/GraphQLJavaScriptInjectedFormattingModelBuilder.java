@@ -26,53 +26,60 @@ import java.util.Collection;
 
 class GraphQLJavaScriptInjectedFormattingModelBuilder implements CustomFormattingModelBuilder {
 
-    private static final Key<Boolean> WANT_DEFAULT_FORMATTER_KEY = Key.create("GraphQLJavaScriptInjectedFormattingModelBuilder.wantDefault");
+  private static final Key<Boolean> WANT_DEFAULT_FORMATTER_KEY = Key.create("GraphQLJavaScriptInjectedFormattingModelBuilder.wantDefault");
 
-    @Override
-    public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
-        PsiElement element = formattingContext.getPsiElement();
-        CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
-        if (element instanceof JSFile || element.getContainingFile() instanceof JSFile) {
-            final JSFile file = (JSFile) (element instanceof JSFile ? element : element.getContainingFile());
-            file.putUserData(WANT_DEFAULT_FORMATTER_KEY, true);
-            try {
-                final FormattingModelBuilder formattingModelBuilder = LanguageFormatting.INSTANCE.forContext(file.getLanguage(), element);
-                if (formattingModelBuilder != null) {
-                    final FormattingModel model = formattingModelBuilder.createModel(formattingContext);
-                    final Block rootBlock = model.getRootBlock();
-                    return new DelegatingFormattingModel(model, new GraphQLJavaScriptBlockWrapper(rootBlock, null, element.getNode(), rootBlock.getWrap(), rootBlock.getAlignment(), createSpaceBuilder(settings, element), settings));
-                }
-            } finally {
-                file.putUserData(WANT_DEFAULT_FORMATTER_KEY, null);
-            }
+  @Override
+  public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
+    PsiElement element = formattingContext.getPsiElement();
+    CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
+    if (element instanceof JSFile || element.getContainingFile() instanceof JSFile) {
+      final JSFile file = (JSFile)(element instanceof JSFile ? element : element.getContainingFile());
+      file.putUserData(WANT_DEFAULT_FORMATTER_KEY, true);
+      try {
+        final FormattingModelBuilder formattingModelBuilder = LanguageFormatting.INSTANCE.forContext(file.getLanguage(), element);
+        if (formattingModelBuilder != null) {
+          final FormattingModel model = formattingModelBuilder.createModel(formattingContext);
+          final Block rootBlock = model.getRootBlock();
+          return new DelegatingFormattingModel(model,
+                                               new GraphQLJavaScriptBlockWrapper(rootBlock, null, element.getNode(), rootBlock.getWrap(),
+                                                                                 rootBlock.getAlignment(),
+                                                                                 createSpaceBuilder(settings, element), settings));
         }
-        throw new IllegalArgumentException("Unsupported element '" + element + "'. It must be an element in a JSFile with its own default formatter to support injected GraphQL formatting");
+      }
+      finally {
+        file.putUserData(WANT_DEFAULT_FORMATTER_KEY, null);
+      }
     }
+    throw new IllegalArgumentException("Unsupported element '" +
+                                       element +
+                                       "'. It must be an element in a JSFile with its own default formatter to support injected GraphQL formatting");
+  }
 
-    private static SpacingBuilder createSpaceBuilder(CodeStyleSettings settings, PsiElement element) {
-        return new SpacingBuilder(settings, element.getLanguage());
-    }
+  private static SpacingBuilder createSpaceBuilder(CodeStyleSettings settings, PsiElement element) {
+    return new SpacingBuilder(settings, element.getLanguage());
+  }
 
-    @Nullable
-    @Override
-    public TextRange getRangeAffectingIndent(PsiFile file, int offset, ASTNode elementAtOffset) {
-        return null;
-    }
+  @Nullable
+  @Override
+  public TextRange getRangeAffectingIndent(PsiFile file, int offset, ASTNode elementAtOffset) {
+    return null;
+  }
 
-    @Override
-    public boolean isEngagedToFormat(PsiElement context) {
-        if (context instanceof JSFile) {
-            if (Boolean.TRUE.equals(context.getUserData(WANT_DEFAULT_FORMATTER_KEY))) {
-                // we're looking up the default formatter at the moment
-                return false;
-            }
-            Collection<JSStringTemplateExpression> templateExpressions = PsiTreeUtil.findChildrenOfType(context, JSStringTemplateExpression.class);
-            for (JSStringTemplateExpression templateExpression : templateExpressions) {
-                if (GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(templateExpression)) {
-                    return true;
-                }
-            }
-        }
+  @Override
+  public boolean isEngagedToFormat(PsiElement context) {
+    if (context instanceof JSFile) {
+      if (Boolean.TRUE.equals(context.getUserData(WANT_DEFAULT_FORMATTER_KEY))) {
+        // we're looking up the default formatter at the moment
         return false;
+      }
+      Collection<JSStringTemplateExpression> templateExpressions =
+        PsiTreeUtil.findChildrenOfType(context, JSStringTemplateExpression.class);
+      for (JSStringTemplateExpression templateExpression : templateExpressions) {
+        if (GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(templateExpression)) {
+          return true;
+        }
+      }
     }
+    return false;
+  }
 }

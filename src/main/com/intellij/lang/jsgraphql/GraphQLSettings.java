@@ -23,119 +23,119 @@ import org.jetbrains.annotations.Nullable;
 @State(name = "GraphQLSettings", storages = {@Storage("graphql-settings.xml")})
 public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings.GraphQLSettingsState> {
 
-    private final Project myProject;
+  private final Project myProject;
 
-    private final SimpleModificationTracker myModificationTracker = new SimpleModificationTracker();
-    private GraphQLSettingsState myState = new GraphQLSettingsState();
+  private final SimpleModificationTracker myModificationTracker = new SimpleModificationTracker();
+  private GraphQLSettingsState myState = new GraphQLSettingsState();
 
-    public GraphQLSettings(@NotNull Project project) {
-        myProject = project;
-    }
+  public GraphQLSettings(@NotNull Project project) {
+    myProject = project;
+  }
 
-    public static GraphQLSettings getSettings(Project project) {
-        return ServiceManager.getService(project, GraphQLSettings.class);
-    }
+  public static GraphQLSettings getSettings(Project project) {
+    return ServiceManager.getService(project, GraphQLSettings.class);
+  }
 
-    @Nullable
-    @Override
-    public GraphQLSettings.GraphQLSettingsState getState() {
-        return myState;
-    }
+  @Nullable
+  @Override
+  public GraphQLSettings.GraphQLSettingsState getState() {
+    return myState;
+  }
 
-    @Override
-    public void loadState(@NotNull GraphQLSettings.GraphQLSettingsState state) {
-        myState = state;
-        settingsChanged();
-    }
+  @Override
+  public void loadState(@NotNull GraphQLSettings.GraphQLSettingsState state) {
+    myState = state;
+    settingsChanged();
+  }
 
-    public ModificationTracker getModificationTracker() {
-        return myModificationTracker;
-    }
+  public ModificationTracker getModificationTracker() {
+    return myModificationTracker;
+  }
 
-    private void settingsChanged() {
-        myModificationTracker.incModificationCount();
-    }
+  private void settingsChanged() {
+    myModificationTracker.incModificationCount();
+  }
 
-    /* Introspection */
+  /* Introspection */
 
-    public String getIntrospectionQuery() {
-        return myState.introspectionQuery;
-    }
+  public String getIntrospectionQuery() {
+    return myState.introspectionQuery;
+  }
 
-    public void setIntrospectionQuery(String introspectionQuery) {
-        myState.introspectionQuery = introspectionQuery;
-        settingsChanged();
-    }
+  public void setIntrospectionQuery(String introspectionQuery) {
+    myState.introspectionQuery = introspectionQuery;
+    settingsChanged();
+  }
 
-    public boolean isEnableIntrospectionDefaultValues() {
-        return myState.enableIntrospectionDefaultValues;
-    }
+  public boolean isEnableIntrospectionDefaultValues() {
+    return myState.enableIntrospectionDefaultValues;
+  }
 
-    public void setEnableIntrospectionDefaultValues(boolean enableIntrospectionDefaultValues) {
-        myState.enableIntrospectionDefaultValues = enableIntrospectionDefaultValues;
-        settingsChanged();
-    }
+  public void setEnableIntrospectionDefaultValues(boolean enableIntrospectionDefaultValues) {
+    myState.enableIntrospectionDefaultValues = enableIntrospectionDefaultValues;
+    settingsChanged();
+  }
 
-    public boolean isEnableIntrospectionRepeatableDirectives() {
-        return myState.enableIntrospectionRepeatableDirectives;
-    }
+  public boolean isEnableIntrospectionRepeatableDirectives() {
+    return myState.enableIntrospectionRepeatableDirectives;
+  }
 
-    public void setEnableIntrospectionRepeatableDirectives(boolean enableIntrospectionRepeatableDirectives) {
-        myState.enableIntrospectionRepeatableDirectives = enableIntrospectionRepeatableDirectives;
-        settingsChanged();
-    }
+  public void setEnableIntrospectionRepeatableDirectives(boolean enableIntrospectionRepeatableDirectives) {
+    myState.enableIntrospectionRepeatableDirectives = enableIntrospectionRepeatableDirectives;
+    settingsChanged();
+  }
 
-    public boolean isOpenEditorWithIntrospectionResult() {
-        return myState.openEditorWithIntrospectionResult;
-    }
+  public boolean isOpenEditorWithIntrospectionResult() {
+    return myState.openEditorWithIntrospectionResult;
+  }
 
-    public void setOpenEditorWithIntrospectionResult(boolean openEditorWithIntrospectionResult) {
-        myState.openEditorWithIntrospectionResult = openEditorWithIntrospectionResult;
-        settingsChanged();
-    }
+  public void setOpenEditorWithIntrospectionResult(boolean openEditorWithIntrospectionResult) {
+    myState.openEditorWithIntrospectionResult = openEditorWithIntrospectionResult;
+    settingsChanged();
+  }
 
-    /* Frameworks */
+  /* Frameworks */
 
-    public boolean isRelaySupportEnabled() {
-        return myState.enableRelayModernFrameworkSupport;
-    }
+  public boolean isRelaySupportEnabled() {
+    return myState.enableRelayModernFrameworkSupport;
+  }
 
-    public void setRelaySupportEnabled(boolean enableRelayModernFrameworkSupport) {
-        myState.enableRelayModernFrameworkSupport = enableRelayModernFrameworkSupport;
-        settingsChanged();
-    }
+  public void setRelaySupportEnabled(boolean enableRelayModernFrameworkSupport) {
+    myState.enableRelayModernFrameworkSupport = enableRelayModernFrameworkSupport;
+    settingsChanged();
+  }
 
-    public boolean isFederationSupportEnabled() {
-        return myState.enableFederationSupport;
-    }
+  public boolean isFederationSupportEnabled() {
+    return myState.enableFederationSupport;
+  }
 
-    public void setFederationSupportEnabled(boolean enableFederationSupport) {
-        myState.enableFederationSupport = enableFederationSupport;
-        settingsChanged();
-    }
+  public void setFederationSupportEnabled(boolean enableFederationSupport) {
+    myState.enableFederationSupport = enableFederationSupport;
+    settingsChanged();
+  }
 
-    public boolean isApolloKotlinSupportEnabled() {
-        return myState.enableApolloKotlinSupport;
-    }
+  public boolean isApolloKotlinSupportEnabled() {
+    return myState.enableApolloKotlinSupport;
+  }
 
-    public void setApolloKotlinSupportEnabled(boolean enableApolloKotlinSupport) {
-        myState.enableApolloKotlinSupport = enableApolloKotlinSupport;
-        settingsChanged();
-    }
+  public void setApolloKotlinSupportEnabled(boolean enableApolloKotlinSupport) {
+    myState.enableApolloKotlinSupport = enableApolloKotlinSupport;
+    settingsChanged();
+  }
 
-    /**
-     * The state class that is persisted as XML
-     * NOTE!!!: 1. Class must be static, and 2. Fields must be public for settings serialization to work
-     */
-    public static class GraphQLSettingsState {
-        public String introspectionQuery = "";
-        public boolean enableIntrospectionDefaultValues = true;
-        public boolean enableIntrospectionRepeatableDirectives = false;
-        public boolean openEditorWithIntrospectionResult = true;
+  /**
+   * The state class that is persisted as XML
+   * NOTE!!!: 1. Class must be static, and 2. Fields must be public for settings serialization to work
+   */
+  public static class GraphQLSettingsState {
+    public String introspectionQuery = "";
+    public boolean enableIntrospectionDefaultValues = true;
+    public boolean enableIntrospectionRepeatableDirectives = false;
+    public boolean openEditorWithIntrospectionResult = true;
 
-        public boolean enableRelayModernFrameworkSupport;
-        public boolean enableFederationSupport = false;
-        public boolean enableApolloKotlinSupport = false;
-    }
+    public boolean enableRelayModernFrameworkSupport;
+    public boolean enableFederationSupport = false;
+    public boolean enableApolloKotlinSupport = false;
+  }
 }
 

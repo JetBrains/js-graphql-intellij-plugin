@@ -29,95 +29,95 @@ import java.util.Collections;
  */
 public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Boolean> {
 
-    public static final ID<String, Boolean> NAME = ID.create("GraphQLFragmentNameIndex");
+  public static final ID<String, Boolean> NAME = ID.create("GraphQLFragmentNameIndex");
 
-    public static final String HAS_FRAGMENTS = "fragments";
-    public static final int VERSION = 1;
+  public static final String HAS_FRAGMENTS = "fragments";
+  public static final int VERSION = 1;
 
-    private final DataIndexer<String, Boolean, FileContent> myDataIndexer;
+  private final DataIndexer<String, Boolean, FileContent> myDataIndexer;
 
-    public GraphQLFragmentNameIndex() {
-        myDataIndexer = inputData -> {
+  public GraphQLFragmentNameIndex() {
+    myDataIndexer = inputData -> {
 
-            final Ref<Boolean> hasFragments = Ref.create(false);
+      final Ref<Boolean> hasFragments = Ref.create(false);
 
-            final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
-            identifierVisitor.set(new PsiRecursiveElementVisitor() {
-                @Override
-                public void visitElement(@NotNull PsiElement element) {
-                    if (hasFragments.get()) {
-                        // done
-                        return;
-                    }
-                    if (element instanceof GraphQLDefinition) {
-                        if (element instanceof GraphQLFragmentDefinition) {
-                            hasFragments.set(true);
-                        }
-                        return; // no need to visit deeper than definitions since fragments are top level
-                    } else if (element instanceof PsiLanguageInjectionHost) {
-                        GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
-                        if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
-                            final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
-                            final String graphqlBuffer = StringUtils.strip(element.getText(), "` \t\n");
-                            final PsiFile graphqlInjectedPsiFile = psiFileFactory
-                                .createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
-                            graphqlInjectedPsiFile.accept(identifierVisitor.get());
-                            return;
-                        }
-                    }
-                    super.visitElement(element);
-                }
-            });
-
-            inputData.getPsiFile().accept(identifierVisitor.get());
-
-            if (hasFragments.get()) {
-                return Collections.singletonMap(HAS_FRAGMENTS, true);
-            } else {
-                return Collections.emptyMap();
+      final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
+      identifierVisitor.set(new PsiRecursiveElementVisitor() {
+        @Override
+        public void visitElement(@NotNull PsiElement element) {
+          if (hasFragments.get()) {
+            // done
+            return;
+          }
+          if (element instanceof GraphQLDefinition) {
+            if (element instanceof GraphQLFragmentDefinition) {
+              hasFragments.set(true);
             }
+            return; // no need to visit deeper than definitions since fragments are top level
+          }
+          else if (element instanceof PsiLanguageInjectionHost) {
+            GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
+            if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
+              final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
+              final String graphqlBuffer = StringUtils.strip(element.getText(), "` \t\n");
+              final PsiFile graphqlInjectedPsiFile = psiFileFactory
+                .createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
+              graphqlInjectedPsiFile.accept(identifierVisitor.get());
+              return;
+            }
+          }
+          super.visitElement(element);
+        }
+      });
 
-        };
-    }
+      inputData.getPsiFile().accept(identifierVisitor.get());
 
-    @NotNull
-    @Override
-    public ID<String, Boolean> getName() {
-        return NAME;
-    }
+      if (hasFragments.get()) {
+        return Collections.singletonMap(HAS_FRAGMENTS, true);
+      }
+      else {
+        return Collections.emptyMap();
+      }
+    };
+  }
 
-    @NotNull
-    @Override
-    public DataIndexer<String, Boolean, FileContent> getIndexer() {
-        return myDataIndexer;
-    }
+  @NotNull
+  @Override
+  public ID<String, Boolean> getName() {
+    return NAME;
+  }
 
-    @NotNull
-    @Override
-    public KeyDescriptor<String> getKeyDescriptor() {
-        return new EnumeratorStringDescriptor();
-    }
+  @NotNull
+  @Override
+  public DataIndexer<String, Boolean, FileContent> getIndexer() {
+    return myDataIndexer;
+  }
 
-    @NotNull
-    @Override
-    public DataExternalizer<Boolean> getValueExternalizer() {
-        return BooleanDataDescriptor.INSTANCE;
-    }
+  @NotNull
+  @Override
+  public KeyDescriptor<String> getKeyDescriptor() {
+    return new EnumeratorStringDescriptor();
+  }
 
-    @Override
-    public int getVersion() {
-        return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
-    }
+  @NotNull
+  @Override
+  public DataExternalizer<Boolean> getValueExternalizer() {
+    return BooleanDataDescriptor.INSTANCE;
+  }
 
-    @NotNull
-    @Override
-    public FileBasedIndex.InputFilter getInputFilter() {
-        return file -> GraphQLFileTypesProvider.getService().isAcceptedFile(file);
-    }
+  @Override
+  public int getVersion() {
+    return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
+  }
 
-    @Override
-    public boolean dependsOnFileContent() {
-        return true;
-    }
+  @NotNull
+  @Override
+  public FileBasedIndex.InputFilter getInputFilter() {
+    return file -> GraphQLFileTypesProvider.getService().isAcceptedFile(file);
+  }
 
+  @Override
+  public boolean dependsOnFileContent() {
+    return true;
+  }
 }

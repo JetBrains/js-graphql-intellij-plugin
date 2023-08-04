@@ -22,18 +22,18 @@ import com.intellij.openapi.startup.StartupActivity
  * Starts up the UI Service during project startup
  */
 class GraphQLStartupActivity : StartupActivity.Background {
-    override fun runActivity(project: Project) {
-        // init mandatory services
-        GraphQLSchemaContentTracker.getInstance(project)
-        GraphQLConfigWatcher.getInstance(project)
-        GraphQLGeneratedSourcesUpdater.getInstance(project)
-        GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
-        GraphQLConfigEnvironment.getInstance(project)
+  override fun runActivity(project: Project) {
+    // init mandatory services
+    GraphQLSchemaContentTracker.getInstance(project)
+    GraphQLConfigWatcher.getInstance(project)
+    GraphQLGeneratedSourcesUpdater.getInstance(project)
+    GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
+    GraphQLConfigEnvironment.getInstance(project)
 
-        if (!ApplicationManager.getApplication().isUnitTestMode) {
-            GraphQLUIProjectService.getService(project)
-            GraphQLQueryContextCaretListener.getInstance(project).listen()
-        }
+    if (!ApplicationManager.getApplication().isUnitTestMode) {
+      GraphQLUIProjectService.getService(project)
+      GraphQLQueryContextCaretListener.getInstance(project).listen()
     }
+  }
 
 }

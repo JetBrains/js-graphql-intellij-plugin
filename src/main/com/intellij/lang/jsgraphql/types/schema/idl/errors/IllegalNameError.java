@@ -26,12 +26,12 @@ import org.jetbrains.annotations.Nullable;
 
 @Internal
 public class IllegalNameError extends BaseError {
-    public IllegalNameError(@NotNull NamedNode namedNode) {
-        super(namedNode, String.format("'%s' must not begin with '__', which is reserved by GraphQL introspection.", namedNode.getName()));
-    }
+  public IllegalNameError(@NotNull NamedNode namedNode) {
+    super(namedNode, String.format("'%s' must not begin with '__', which is reserved by GraphQL introspection.", namedNode.getName()));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLIllegalNameInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLIllegalNameInspection.class;
+  }
 }

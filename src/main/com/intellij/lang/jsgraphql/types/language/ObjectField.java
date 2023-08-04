@@ -39,179 +39,179 @@ import static com.intellij.lang.jsgraphql.types.language.NodeChildrenContainer.n
 @PublicApi
 public class ObjectField extends AbstractNode<ObjectField> implements NamedNode<ObjectField> {
 
-    private final String name;
-    private final Value value;
+  private final String name;
+  private final Value value;
 
-    public static final String CHILD_VALUE = "value";
+  public static final String CHILD_VALUE = "value";
 
-    @Internal
-    protected ObjectField(String name,
-                          Value value,
-                          SourceLocation sourceLocation,
-                          List<Comment> comments,
-                          IgnoredChars ignoredChars,
-                          Map<String, String> additionalData,
-                          @Nullable PsiElement element,
-                          @Nullable List<? extends Node> sourceNodes) {
-        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        this.name = name;
-        this.value = value;
+  @Internal
+  protected ObjectField(String name,
+                        Value value,
+                        SourceLocation sourceLocation,
+                        List<Comment> comments,
+                        IgnoredChars ignoredChars,
+                        Map<String, String> additionalData,
+                        @Nullable PsiElement element,
+                        @Nullable List<? extends Node> sourceNodes) {
+    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    this.name = name;
+    this.value = value;
+  }
+
+  /**
+   * alternative to using a Builder for convenience
+   *
+   * @param name  of the field
+   * @param value of the field
+   */
+  public ObjectField(String name, Value value) {
+    this(name, value, null, emptyList(), IgnoredChars.EMPTY, ImmutableKit.emptyMap(), null, null);
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  public Value getValue() {
+    return value;
+  }
+
+  @Override
+  public List<Node> getChildren() {
+    return ImmutableList.of(value);
+  }
+
+  @Override
+  public NodeChildrenContainer getNamedChildren() {
+    return newNodeChildrenContainer()
+      .child(CHILD_VALUE, value)
+      .build();
+  }
+
+  @Override
+  public ObjectField withNewChildren(NodeChildrenContainer newChildren) {
+    return transform(builder -> builder
+      .value(newChildren.getChildOrNull(CHILD_VALUE))
+    );
+  }
+
+  @Override
+  public boolean isEqualTo(Node o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    /**
-     * alternative to using a Builder for convenience
-     *
-     * @param name  of the field
-     * @param value of the field
-     */
-    public ObjectField(String name, Value value) {
-        this(name, value, null, emptyList(), IgnoredChars.EMPTY, ImmutableKit.emptyMap(), null, null);
+    ObjectField that = (ObjectField)o;
+
+    return !(name != null ? !name.equals(that.name) : that.name != null);
+  }
+
+  @Override
+  public ObjectField deepCopy() {
+    return new ObjectField(name, deepCopy(this.value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(),
+                           getElement(), getSourceNodes());
+  }
+
+  @Override
+  public String toString() {
+    return "ObjectField{" +
+           "name='" + name + '\'' +
+           ", value=" + value +
+           '}';
+  }
+
+  @Override
+  public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
+    return visitor.visitObjectField(this, context);
+  }
+
+  public static Builder newObjectField() {
+    return new Builder();
+  }
+
+  public ObjectField transform(Consumer<Builder> builderConsumer) {
+    Builder builder = new Builder(this);
+    builderConsumer.accept(builder);
+    return builder.build();
+  }
+
+  public static final class Builder implements NodeBuilder {
+    private SourceLocation sourceLocation;
+    private String name;
+    private ImmutableList<Comment> comments = emptyList();
+    private Value value;
+    private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
+    private Map<String, String> additionalData = new LinkedHashMap<>();
+    private @Nullable PsiElement element;
+    private @Nullable List<? extends Node> sourceNodes;
+
+    private Builder() {
     }
 
-    @Override
-    public String getName() {
-        return name;
+
+    private Builder(ObjectField existing) {
+      this.sourceLocation = existing.getSourceLocation();
+      this.comments = ImmutableList.copyOf(existing.getComments());
+      this.name = existing.getName();
+      this.value = existing.getValue();
+      this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+      this.element = existing.getElement();
+      this.sourceNodes = existing.getSourceNodes();
     }
 
-    public Value getValue() {
-        return value;
+
+    public Builder sourceLocation(SourceLocation sourceLocation) {
+      this.sourceLocation = sourceLocation;
+      return this;
     }
 
-    @Override
-    public List<Node> getChildren() {
-        return ImmutableList.of(value);
+    public Builder name(String name) {
+      this.name = name;
+      return this;
     }
 
-    @Override
-    public NodeChildrenContainer getNamedChildren() {
-        return newNodeChildrenContainer()
-            .child(CHILD_VALUE, value)
-            .build();
+    public Builder comments(List<Comment> comments) {
+      this.comments = ImmutableList.copyOf(comments);
+      return this;
     }
 
-    @Override
-    public ObjectField withNewChildren(NodeChildrenContainer newChildren) {
-        return transform(builder -> builder
-            .value(newChildren.getChildOrNull(CHILD_VALUE))
-        );
+    public Builder value(Value value) {
+      this.value = value;
+      return this;
     }
 
-    @Override
-    public boolean isEqualTo(Node o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ObjectField that = (ObjectField) o;
-
-        return !(name != null ? !name.equals(that.name) : that.name != null);
-
+    public Builder ignoredChars(IgnoredChars ignoredChars) {
+      this.ignoredChars = ignoredChars;
+      return this;
     }
 
-    @Override
-    public ObjectField deepCopy() {
-        return new ObjectField(name, deepCopy(this.value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
+    public Builder additionalData(Map<String, String> additionalData) {
+      this.additionalData = assertNotNull(additionalData);
+      return this;
     }
 
-    @Override
-    public String toString() {
-        return "ObjectField{" +
-            "name='" + name + '\'' +
-            ", value=" + value +
-            '}';
+    public Builder additionalData(String key, String value) {
+      this.additionalData.put(key, value);
+      return this;
     }
 
-    @Override
-    public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
-        return visitor.visitObjectField(this, context);
+    public Builder element(@Nullable PsiElement element) {
+      this.element = element;
+      return this;
     }
 
-    public static Builder newObjectField() {
-        return new Builder();
+    public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+      this.sourceNodes = sourceNodes;
+      return this;
     }
 
-    public ObjectField transform(Consumer<Builder> builderConsumer) {
-        Builder builder = new Builder(this);
-        builderConsumer.accept(builder);
-        return builder.build();
+
+    public ObjectField build() {
+      return new ObjectField(name, value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
     }
-
-    public static final class Builder implements NodeBuilder {
-        private SourceLocation sourceLocation;
-        private String name;
-        private ImmutableList<Comment> comments = emptyList();
-        private Value value;
-        private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
-        private Map<String, String> additionalData = new LinkedHashMap<>();
-        private @Nullable PsiElement element;
-        private @Nullable List<? extends Node> sourceNodes;
-
-        private Builder() {
-        }
-
-
-        private Builder(ObjectField existing) {
-            this.sourceLocation = existing.getSourceLocation();
-            this.comments = ImmutableList.copyOf(existing.getComments());
-            this.name = existing.getName();
-            this.value = existing.getValue();
-            this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-            this.element = existing.getElement();
-            this.sourceNodes = existing.getSourceNodes();
-        }
-
-
-        public Builder sourceLocation(SourceLocation sourceLocation) {
-            this.sourceLocation = sourceLocation;
-            return this;
-        }
-
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public Builder comments(List<Comment> comments) {
-            this.comments = ImmutableList.copyOf(comments);
-            return this;
-        }
-
-        public Builder value(Value value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder ignoredChars(IgnoredChars ignoredChars) {
-            this.ignoredChars = ignoredChars;
-            return this;
-        }
-
-        public Builder additionalData(Map<String, String> additionalData) {
-            this.additionalData = assertNotNull(additionalData);
-            return this;
-        }
-
-        public Builder additionalData(String key, String value) {
-            this.additionalData.put(key, value);
-            return this;
-        }
-
-        public Builder element(@Nullable PsiElement element) {
-            this.element = element;
-            return this;
-        }
-
-        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
-            this.sourceNodes = sourceNodes;
-            return this;
-        }
-
-
-        public ObjectField build() {
-            return new ObjectField(name, value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        }
-    }
+  }
 }

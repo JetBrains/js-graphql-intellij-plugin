@@ -8,18 +8,18 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 class GraphQLRestartSchemaDiscoveryAction : AnAction(
-    GraphQLBundle.message("graphql.action.restart.schema.discovery.title"),
-    GraphQLBundle.message("graphql.action.restart.schema.discovery.desc"),
-    AllIcons.Actions.Restart,
+  GraphQLBundle.message("graphql.action.restart.schema.discovery.title"),
+  GraphQLBundle.message("graphql.action.restart.schema.discovery.desc"),
+  AllIcons.Actions.Restart,
 ) {
-    companion object {
-        const val ACTION_ID = "GraphQLRestartSchemaDiscovery"
-    }
+  companion object {
+    const val ACTION_ID = "GraphQLRestartSchemaDiscovery"
+  }
 
-    override fun actionPerformed(e: AnActionEvent) {
-        val project = e.project ?: return
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
 
-        GraphQLConfigProvider.getInstance(project).invalidate()
-        GraphQLGeneratedSourcesManager.getInstance(project).reset()
-    }
+    GraphQLConfigProvider.getInstance(project).invalidate()
+    GraphQLGeneratedSourcesManager.getInstance(project).reset()
+  }
 }

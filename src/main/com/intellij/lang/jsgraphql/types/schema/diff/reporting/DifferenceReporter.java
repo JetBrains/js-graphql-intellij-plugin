@@ -26,15 +26,15 @@ import com.intellij.lang.jsgraphql.types.schema.diff.DiffEvent;
 @PublicSpi
 public interface DifferenceReporter {
 
-    /**
-     * Called to report a difference
-     *
-     * @param differenceEvent the event describing the difference
-     */
-    void report(DiffEvent differenceEvent);
+  /**
+   * Called to report a difference
+   *
+   * @param differenceEvent the event describing the difference
+   */
+  void report(DiffEvent differenceEvent);
 
-    /**
-     * Called when the difference operation if finished
-     */
-    void onEnd();
+  /**
+   * Called when the difference operation if finished
+   */
+  void onEnd();
 }

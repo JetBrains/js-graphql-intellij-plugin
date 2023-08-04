@@ -20,31 +20,31 @@ import com.intellij.ui.treeStructure.SimpleNode
  * Tree node that represents the default project schema when no config files exist
  */
 class GraphQLDefaultSchemaNode(project: Project, parent: GraphQLSchemasRootNode) : CachingSimpleNode(project, parent) {
-    private val schemaInfo: GraphQLSchemaInfo
+  private val schemaInfo: GraphQLSchemaInfo
 
-    init {
-        myName = "Default project-wide schema"
-        presentation.locationString = project.presentableUrl
-        presentation.setIcon(GraphQLIcons.Files.GraphQLSchema)
+  init {
+    myName = "Default project-wide schema"
+    presentation.locationString = project.presentableUrl
+    presentation.setIcon(GraphQLIcons.Files.GraphQLSchema)
 
-        schemaInfo = runReadAction {
-            val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
-            GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(globalScope)
-        }
+    schemaInfo = runReadAction {
+      val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
+      GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(globalScope)
     }
+  }
 
-    public override fun buildChildren(): Array<SimpleNode> {
-        val children: MutableList<SimpleNode> = mutableListOf(GraphQLSchemaContentNode(this, schemaInfo))
-        children.add(GraphQLSchemaErrorsListNode(this, schemaInfo))
-        children.add(GraphQLSchemaEndpointsListNode(this, null))
-        return children.toTypedArray()
-    }
+  public override fun buildChildren(): Array<SimpleNode> {
+    val children: MutableList<SimpleNode> = mutableListOf(GraphQLSchemaContentNode(this, schemaInfo))
+    children.add(GraphQLSchemaErrorsListNode(this, schemaInfo))
+    children.add(GraphQLSchemaEndpointsListNode(this, null))
+    return children.toTypedArray()
+  }
 
-    override fun isAutoExpandNode(): Boolean {
-        return true
-    }
+  override fun isAutoExpandNode(): Boolean {
+    return true
+  }
 
-    override fun getEqualityObjects(): Array<Any> {
-        return arrayOf("Default schema", schemaInfo)
-    }
+  override fun getEqualityObjects(): Array<Any> {
+    return arrayOf("Default schema", schemaInfo)
+  }
 }

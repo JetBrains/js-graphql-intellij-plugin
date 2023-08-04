@@ -37,32 +37,32 @@ import static java.lang.String.format;
  */
 @PublicApi
 public class NonNullableValueCoercedAsNullException extends GraphQLException implements GraphQLError {
-    private List<SourceLocation> sourceLocations;
+  private List<SourceLocation> sourceLocations;
 
-    public NonNullableValueCoercedAsNullException(VariableDefinition variableDefinition, GraphQLType graphQLType) {
-        super(format("Variable '%s' has coerced Null value for NonNull type '%s'",
-                variableDefinition.getName(), GraphQLTypeUtil.simplePrint(graphQLType)));
-        this.sourceLocations = Collections.singletonList(variableDefinition.getSourceLocation());
-    }
+  public NonNullableValueCoercedAsNullException(VariableDefinition variableDefinition, GraphQLType graphQLType) {
+    super(format("Variable '%s' has coerced Null value for NonNull type '%s'",
+                 variableDefinition.getName(), GraphQLTypeUtil.simplePrint(graphQLType)));
+    this.sourceLocations = Collections.singletonList(variableDefinition.getSourceLocation());
+  }
 
-    public NonNullableValueCoercedAsNullException(VariableDefinition variableDefinition, String fieldName, GraphQLType graphQLType) {
-        super(format("Field '%s' of variable '%s' has coerced Null value for NonNull type '%s'",
-                fieldName, variableDefinition.getName(), GraphQLTypeUtil.simplePrint(graphQLType)));
-        this.sourceLocations = Collections.singletonList(variableDefinition.getSourceLocation());
-    }
+  public NonNullableValueCoercedAsNullException(VariableDefinition variableDefinition, String fieldName, GraphQLType graphQLType) {
+    super(format("Field '%s' of variable '%s' has coerced Null value for NonNull type '%s'",
+                 fieldName, variableDefinition.getName(), GraphQLTypeUtil.simplePrint(graphQLType)));
+    this.sourceLocations = Collections.singletonList(variableDefinition.getSourceLocation());
+  }
 
-    public NonNullableValueCoercedAsNullException(GraphQLInputObjectField inputTypeField) {
-        super(format("Input field '%s' has coerced Null value for NonNull type '%s'",
-                inputTypeField.getName(), GraphQLTypeUtil.simplePrint(inputTypeField.getType())));
-    }
+  public NonNullableValueCoercedAsNullException(GraphQLInputObjectField inputTypeField) {
+    super(format("Input field '%s' has coerced Null value for NonNull type '%s'",
+                 inputTypeField.getName(), GraphQLTypeUtil.simplePrint(inputTypeField.getType())));
+  }
 
-    @Override
-    public List<SourceLocation> getLocations() {
-        return sourceLocations;
-    }
+  @Override
+  public List<SourceLocation> getLocations() {
+    return sourceLocations;
+  }
 
-    @Override
-    public ErrorType getErrorType() {
-        return ErrorType.ValidationError;
-    }
+  @Override
+  public ErrorType getErrorType() {
+    return ErrorType.ValidationError;
+  }
 }

@@ -17,53 +17,53 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class GraphQLRemoteSchemasRegistry(private val project: Project) {
-    companion object {
-        private const val GRAPHQL_REMOTE_DIR = "remote"
+  companion object {
+    private const val GRAPHQL_REMOTE_DIR = "remote"
 
-        @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLRemoteSchemasRegistry>()
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLRemoteSchemasRegistry>()
 
-        @JvmStatic
-        val remoteSchemasDirPath: String
-            get() = FileUtil.join(PathManager.getConfigPath(), GRAPHQL_CACHE_DIR_NAME, GRAPHQL_REMOTE_DIR)
+    @JvmStatic
+    val remoteSchemasDirPath: String
+      get() = FileUtil.join(PathManager.getConfigPath(), GRAPHQL_CACHE_DIR_NAME, GRAPHQL_REMOTE_DIR)
 
-        private fun isInRemoteSchemasRoot(file: VirtualFile?) =
-            file != null &&
-                file.fileType == GraphQLFileType.INSTANCE &&
-                file.parent?.name == GRAPHQL_REMOTE_DIR &&
-                FileUtil.isAncestor(remoteSchemasDirPath, file.path, true)
+    private fun isInRemoteSchemasRoot(file: VirtualFile?) =
+      file != null &&
+      file.fileType == GraphQLFileType.INSTANCE &&
+      file.parent?.name == GRAPHQL_REMOTE_DIR &&
+      FileUtil.isAncestor(remoteSchemasDirPath, file.path, true)
+  }
+
+  private val associations = ConcurrentHashMap<String, String>()
+
+  fun associate(filePath: String, configPath: String) {
+    associations[FileUtil.toSystemIndependentName(filePath)] = FileUtil.toSystemIndependentName(configPath)
+  }
+
+  fun getSourcePath(file: VirtualFile?): String? {
+    return file?.let { associations[it.path] }
+  }
+
+  fun getSourcePath(filePath: String): String? {
+    return associations[FileUtil.toSystemIndependentName(filePath)]
+  }
+
+  fun getSourceFile(file: VirtualFile?): VirtualFile? {
+    return file
+      ?.let { getSourcePath(it) }
+      ?.let { runReadAction { LocalFileSystem.getInstance().findFileByPath(it) } }
+  }
+
+  fun isRemoteSchemaFile(virtualFile: VirtualFile?): Boolean {
+    if (getSourcePath(virtualFile) != null) {
+      return true
     }
+    return isInRemoteSchemasRoot(virtualFile)
+  }
 
-    private val associations = ConcurrentHashMap<String, String>()
-
-    fun associate(filePath: String, configPath: String) {
-        associations[FileUtil.toSystemIndependentName(filePath)] = FileUtil.toSystemIndependentName(configPath)
-    }
-
-    fun getSourcePath(file: VirtualFile?): String? {
-        return file?.let { associations[it.path] }
-    }
-
-    fun getSourcePath(filePath: String): String? {
-        return associations[FileUtil.toSystemIndependentName(filePath)]
-    }
-
-    fun getSourceFile(file: VirtualFile?): VirtualFile? {
-        return file
-            ?.let { getSourcePath(it) }
-            ?.let { runReadAction { LocalFileSystem.getInstance().findFileByPath(it) } }
-    }
-
-    fun isRemoteSchemaFile(virtualFile: VirtualFile?): Boolean {
-        if (getSourcePath(virtualFile) != null) {
-            return true
-        }
-        return isInRemoteSchemasRoot(virtualFile)
-    }
-
-    fun createRemoteIntrospectionScope(): GlobalSearchScope {
-        val dir = LocalFileSystem.getInstance().findFileByPath(remoteSchemasDirPath)
-            ?: return GlobalSearchScope.EMPTY_SCOPE
-        return GlobalSearchScopes.directoryScope(project, dir, false)
-    }
+  fun createRemoteIntrospectionScope(): GlobalSearchScope {
+    val dir = LocalFileSystem.getInstance().findFileByPath(remoteSchemasDirPath)
+              ?: return GlobalSearchScope.EMPTY_SCOPE
+    return GlobalSearchScopes.directoryScope(project, dir, false)
+  }
 }

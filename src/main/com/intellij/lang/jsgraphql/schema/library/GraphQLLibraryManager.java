@@ -33,139 +33,142 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public final class GraphQLLibraryManager {
-    private final static Logger LOG = Logger.getInstance(GraphQLLibraryManager.class);
-    private static final String DEFINITIONS_RESOURCE_DIR = "definitions";
-    private static final GraphQLLibrary EMPTY_LIBRARY =
-        new GraphQLLibrary(new GraphQLLibraryDescriptor("EMPTY"), new LightVirtualFile());
+  private final static Logger LOG = Logger.getInstance(GraphQLLibraryManager.class);
+  private static final String DEFINITIONS_RESOURCE_DIR = "definitions";
+  private static final GraphQLLibrary EMPTY_LIBRARY =
+    new GraphQLLibrary(new GraphQLLibraryDescriptor("EMPTY"), new LightVirtualFile());
 
-    @VisibleForTesting
-    public static volatile boolean LIBRARIES_ENABLED = false;
+  @VisibleForTesting
+  public static volatile boolean LIBRARIES_ENABLED = false;
 
-    private static final Map<GraphQLLibraryDescriptor, String> ourDefinitionResourcePaths = Map.of(
-        GraphQLLibraryTypes.SPECIFICATION, "Specification.graphql",
-        GraphQLLibraryTypes.RELAY, "Relay.graphql",
-        GraphQLLibraryTypes.FEDERATION, "Federation.graphql",
-        GraphQLLibraryTypes.APOLLO_KOTLIN, "ApolloKotlin.graphql"
-    );
+  private static final Map<GraphQLLibraryDescriptor, String> ourDefinitionResourcePaths = Map.of(
+    GraphQLLibraryTypes.SPECIFICATION, "Specification.graphql",
+    GraphQLLibraryTypes.RELAY, "Relay.graphql",
+    GraphQLLibraryTypes.FEDERATION, "Federation.graphql",
+    GraphQLLibraryTypes.APOLLO_KOTLIN, "ApolloKotlin.graphql"
+  );
 
-    private final Project myProject;
-    private final Map<GraphQLLibraryDescriptor, GraphQLLibrary> myLibraries = new ConcurrentHashMap<>();
-    private final AtomicBoolean myLibrariesChangeTriggered = new AtomicBoolean();
-    private final AtomicBoolean myAsyncRefreshRequested = new AtomicBoolean();
+  private final Project myProject;
+  private final Map<GraphQLLibraryDescriptor, GraphQLLibrary> myLibraries = new ConcurrentHashMap<>();
+  private final AtomicBoolean myLibrariesChangeTriggered = new AtomicBoolean();
+  private final AtomicBoolean myAsyncRefreshRequested = new AtomicBoolean();
 
-    private final ClearableLazyValue<Set<VirtualFile>> myKnownLibraryRoots = ClearableLazyValue.createAtomic(() ->
-        getAllLibraries()
-            .stream()
-            .flatMap(library -> library.getSourceRoots().stream())
-            .collect(Collectors.toSet())
-    );
+  private final ClearableLazyValue<Set<VirtualFile>> myKnownLibraryRoots = ClearableLazyValue.createAtomic(() ->
+                                                                                                             getAllLibraries()
+                                                                                                               .stream()
+                                                                                                               .flatMap(
+                                                                                                                 library -> library.getSourceRoots()
+                                                                                                                   .stream())
+                                                                                                               .collect(Collectors.toSet())
+  );
 
-    public GraphQLLibraryManager(@NotNull Project project) {
-        myProject = project;
+  public GraphQLLibraryManager(@NotNull Project project) {
+    myProject = project;
+  }
+
+  public static GraphQLLibraryManager getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, GraphQLLibraryManager.class);
+  }
+
+  @Nullable
+  public GraphQLLibrary getOrCreateLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor) {
+    if (ApplicationManager.getApplication().isUnitTestMode() && !LIBRARIES_ENABLED) {
+      return null;
     }
 
-    public static GraphQLLibraryManager getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, GraphQLLibraryManager.class);
-    }
-
-    @Nullable
-    public GraphQLLibrary getOrCreateLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor) {
-        if (ApplicationManager.getApplication().isUnitTestMode() && !LIBRARIES_ENABLED) {
-            return null;
+    GraphQLLibrary library = myLibraries.computeIfAbsent(libraryDescriptor, __ -> {
+      VirtualFile root = resolveLibraryRoot(libraryDescriptor);
+      if (root == null) {
+        LOG.warn("Unresolved library root: " + libraryDescriptor.getIdentifier());
+        // try only once during a session
+        if (myAsyncRefreshRequested.compareAndSet(false, true)) {
+          tryRefreshAndLoadAsync();
         }
+        return EMPTY_LIBRARY;
+      }
+      return new GraphQLLibrary(libraryDescriptor, root);
+    });
 
-        GraphQLLibrary library = myLibraries.computeIfAbsent(libraryDescriptor, __ -> {
-            VirtualFile root = resolveLibraryRoot(libraryDescriptor);
-            if (root == null) {
-                LOG.warn("Unresolved library root: " + libraryDescriptor.getIdentifier());
-                // try only once during a session
-                if (myAsyncRefreshRequested.compareAndSet(false, true)) {
-                    tryRefreshAndLoadAsync();
-                }
-                return EMPTY_LIBRARY;
-            }
-            return new GraphQLLibrary(libraryDescriptor, root);
-        });
+    return library == EMPTY_LIBRARY ? null : library;
+  }
 
-        return library == EMPTY_LIBRARY ? null : library;
-    }
+  private void tryRefreshAndLoadAsync() {
+    ApplicationManager.getApplication().invokeLater(() -> WriteAction.run(() -> {
+      URL definitionsDirUrl = getClass().getClassLoader().getResource(DEFINITIONS_RESOURCE_DIR);
+      if (definitionsDirUrl == null) return;
+      Pair<String, String> urlParts = URLUtil.splitJarUrl(definitionsDirUrl.getFile());
+      if (urlParts == null) return;
+      String jarPath = PathUtil.toSystemIndependentName(urlParts.first);
+      VirtualFile jarLocalFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(jarPath);
+      if (jarLocalFile == null) return;
+      VirtualFile jarFile = JarFileSystem.getInstance().refreshAndFindFileByPath(jarPath + URLUtil.JAR_SEPARATOR);
+      if (jarFile == null) return;
+      VirtualFile definitionsDir = VfsUtil.refreshAndFindChild(jarFile, DEFINITIONS_RESOURCE_DIR);
+      if (definitionsDir == null || !definitionsDir.isDirectory()) return;
 
-    private void tryRefreshAndLoadAsync() {
-        ApplicationManager.getApplication().invokeLater(() -> WriteAction.run(() -> {
-            URL definitionsDirUrl = getClass().getClassLoader().getResource(DEFINITIONS_RESOURCE_DIR);
-            if (definitionsDirUrl == null) return;
-            Pair<String, String> urlParts = URLUtil.splitJarUrl(definitionsDirUrl.getFile());
-            if (urlParts == null) return;
-            String jarPath = PathUtil.toSystemIndependentName(urlParts.first);
-            VirtualFile jarLocalFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(jarPath);
-            if (jarLocalFile == null) return;
-            VirtualFile jarFile = JarFileSystem.getInstance().refreshAndFindFileByPath(jarPath + URLUtil.JAR_SEPARATOR);
-            if (jarFile == null) return;
-            VirtualFile definitionsDir = VfsUtil.refreshAndFindChild(jarFile, DEFINITIONS_RESOURCE_DIR);
-            if (definitionsDir == null || !definitionsDir.isDirectory()) return;
-
-            for (GraphQLLibraryDescriptor libraryDescriptor : ourDefinitionResourcePaths.keySet()) {
-                VirtualFile libraryRoot = resolveLibraryRoot(libraryDescriptor);
-                if (libraryRoot != null) {
-                    myLibraries.put(libraryDescriptor, new GraphQLLibrary(libraryDescriptor, libraryRoot));
-                    notifyLibrariesChanged();
-                }
-            }
-        }), ModalityState.NON_MODAL, myProject.getDisposed());
-    }
-
-    @NotNull
-    public Collection<SyntheticLibrary> getAllLibraries() {
-        return ourDefinitionResourcePaths
-            .keySet().stream()
-            .map(this::getOrCreateLibrary)
-            .filter(Objects::nonNull)
-            .filter(l -> l.getLibraryDescriptor().isEnabled(myProject))
-            .collect(Collectors.toList());
-    }
-
-    @Nullable
-    private VirtualFile resolveLibraryRoot(@NotNull GraphQLLibraryDescriptor descriptor) {
-        String resourceName = ourDefinitionResourcePaths.get(descriptor);
-        if (resourceName == null) {
-            LOG.error("No resource files found for library: " + descriptor);
-            return null;
+      for (GraphQLLibraryDescriptor libraryDescriptor : ourDefinitionResourcePaths.keySet()) {
+        VirtualFile libraryRoot = resolveLibraryRoot(libraryDescriptor);
+        if (libraryRoot != null) {
+          myLibraries.put(libraryDescriptor, new GraphQLLibrary(libraryDescriptor, libraryRoot));
+          notifyLibrariesChanged();
         }
-        URL resource = getClass().getClassLoader().getResource(DEFINITIONS_RESOURCE_DIR + "/" + resourceName);
-        if (resource == null) {
-            LOG.error("Resource not found: " + resourceName);
-            return null;
+      }
+    }), ModalityState.NON_MODAL, myProject.getDisposed());
+  }
+
+  @NotNull
+  public Collection<SyntheticLibrary> getAllLibraries() {
+    return ourDefinitionResourcePaths
+      .keySet().stream()
+      .map(this::getOrCreateLibrary)
+      .filter(Objects::nonNull)
+      .filter(l -> l.getLibraryDescriptor().isEnabled(myProject))
+      .collect(Collectors.toList());
+  }
+
+  @Nullable
+  private VirtualFile resolveLibraryRoot(@NotNull GraphQLLibraryDescriptor descriptor) {
+    String resourceName = ourDefinitionResourcePaths.get(descriptor);
+    if (resourceName == null) {
+      LOG.error("No resource files found for library: " + descriptor);
+      return null;
+    }
+    URL resource = getClass().getClassLoader().getResource(DEFINITIONS_RESOURCE_DIR + "/" + resourceName);
+    if (resource == null) {
+      LOG.error("Resource not found: " + resourceName);
+      return null;
+    }
+    VirtualFile root = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.convertFromUrl(resource));
+    return root != null && root.isValid() ? root : null;
+  }
+
+  public boolean isLibraryRoot(@NotNull VirtualFile file) {
+    return myKnownLibraryRoots.getValue().contains(file);
+  }
+
+  @NotNull
+  public Set<VirtualFile> getLibraryRoots() {
+    return myKnownLibraryRoots.getValue();
+  }
+
+  public void notifyLibrariesChanged() {
+    if (myLibrariesChangeTriggered.compareAndSet(false, true)) {
+      DumbService.getInstance(myProject).smartInvokeLater(() -> {
+        try {
+          WriteAction.run(() -> {
+            LOG.info("GraphQL libraries changed");
+
+            myKnownLibraryRoots.drop();
+            PsiManager.getInstance(myProject).dropPsiCaches();
+            ProjectRootManagerEx.getInstanceEx(myProject).makeRootsChange(EmptyRunnable.getInstance(), false, true);
+            DaemonCodeAnalyzer.getInstance(myProject).restart();
+            EditorNotifications.getInstance(myProject).updateAllNotifications();
+          });
         }
-        VirtualFile root = VirtualFileManager.getInstance().findFileByUrl(VfsUtilCore.convertFromUrl(resource));
-        return root != null && root.isValid() ? root : null;
-    }
-
-    public boolean isLibraryRoot(@NotNull VirtualFile file) {
-        return myKnownLibraryRoots.getValue().contains(file);
-    }
-
-    @NotNull
-    public Set<VirtualFile> getLibraryRoots() {
-        return myKnownLibraryRoots.getValue();
-    }
-
-    public void notifyLibrariesChanged() {
-        if (myLibrariesChangeTriggered.compareAndSet(false, true)) {
-            DumbService.getInstance(myProject).smartInvokeLater(() -> {
-                try {
-                    WriteAction.run(() -> {
-                        LOG.info("GraphQL libraries changed");
-
-                        myKnownLibraryRoots.drop();
-                        PsiManager.getInstance(myProject).dropPsiCaches();
-                        ProjectRootManagerEx.getInstanceEx(myProject).makeRootsChange(EmptyRunnable.getInstance(), false, true);
-                        DaemonCodeAnalyzer.getInstance(myProject).restart();
-                        EditorNotifications.getInstance(myProject).updateAllNotifications();
-                    });
-                } finally {
-                    myLibrariesChangeTriggered.set(false);
-                }
-            }, ModalityState.NON_MODAL);
+        finally {
+          myLibrariesChangeTriggered.set(false);
         }
+      }, ModalityState.NON_MODAL);
     }
+  }
 }

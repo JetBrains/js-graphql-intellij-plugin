@@ -5,7 +5,7 @@ import com.intellij.ui.treeStructure.SimpleTreeStructure
 
 class GraphQLSchemaTreeStructure(project: Project) : SimpleTreeStructure() {
 
-    private val root = GraphQLSchemasRootNode(project)
+  private val root = GraphQLSchemasRootNode(project)
 
-    override fun getRootElement() = root
+  override fun getRootElement() = root
 }

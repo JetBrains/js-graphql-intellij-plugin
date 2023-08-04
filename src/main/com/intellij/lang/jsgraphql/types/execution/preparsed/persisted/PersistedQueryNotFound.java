@@ -28,30 +28,30 @@ import java.util.Map;
  */
 @PublicApi
 public class PersistedQueryNotFound extends RuntimeException implements ErrorClassification {
-    private final Object persistedQueryId;
+  private final Object persistedQueryId;
 
-    public PersistedQueryNotFound(Object persistedQueryId) {
-        this.persistedQueryId = persistedQueryId;
-    }
+  public PersistedQueryNotFound(Object persistedQueryId) {
+    this.persistedQueryId = persistedQueryId;
+  }
 
-    @Override
-    public String getMessage() {
-        return "PersistedQueryNotFound";
-    }
+  @Override
+  public String getMessage() {
+    return "PersistedQueryNotFound";
+  }
 
-    public Object getPersistedQueryId() {
-        return persistedQueryId;
-    }
+  public Object getPersistedQueryId() {
+    return persistedQueryId;
+  }
 
-    @Override
-    public String toString() {
-        return "PersistedQueryNotFound";
-    }
+  @Override
+  public String toString() {
+    return "PersistedQueryNotFound";
+  }
 
-    public Map<String, Object> getExtensions() {
-        LinkedHashMap<String, Object> extensions = new LinkedHashMap<>();
-        extensions.put("persistedQueryId", persistedQueryId);
-        extensions.put("generatedBy", "graphql-java");
-        return extensions;
-    }
+  public Map<String, Object> getExtensions() {
+    LinkedHashMap<String, Object> extensions = new LinkedHashMap<>();
+    extensions.put("persistedQueryId", persistedQueryId);
+    extensions.put("generatedBy", "graphql-java");
+    return extensions;
+  }
 }

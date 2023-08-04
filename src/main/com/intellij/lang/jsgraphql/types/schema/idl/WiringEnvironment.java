@@ -23,13 +23,13 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 @PublicApi
 abstract class WiringEnvironment {
 
-    private final TypeDefinitionRegistry registry;
+  private final TypeDefinitionRegistry registry;
 
-    WiringEnvironment(TypeDefinitionRegistry registry) {
-        this.registry = registry;
-    }
+  WiringEnvironment(TypeDefinitionRegistry registry) {
+    this.registry = registry;
+  }
 
-    public TypeDefinitionRegistry getRegistry() {
-        return registry;
-    }
+  public TypeDefinitionRegistry getRegistry() {
+    return registry;
+  }
 }

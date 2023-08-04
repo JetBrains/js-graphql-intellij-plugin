@@ -30,58 +30,60 @@ import java.util.function.Consumer
 @Service(Service.Level.PROJECT)
 class GraphQLConfigFactory(private val project: Project) {
 
-    companion object {
-        const val PREFERRED_CONFIG = GRAPHQL_CONFIG_YML
+  companion object {
+    const val PREFERRED_CONFIG = GRAPHQL_CONFIG_YML
 
-        @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLConfigFactory>()
-    }
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLConfigFactory>()
+  }
 
-    @JvmOverloads
-    fun createAndOpenConfigFile(
-        configBaseDir: VirtualFile,
-        openEditor: Boolean,
-        outputStreamConsumer: Consumer<OutputStream> = Consumer { outputStream: OutputStream ->
-            try {
-                javaClass.classLoader.getResourceAsStream("META-INF/$PREFERRED_CONFIG")?.use { inputStream ->
-                    IOUtils.copy(inputStream, outputStream)
-                }
-            } catch (e: IOException) {
-                throw RuntimeException(e)
-            }
-        },
-    ) {
-        invokeLater {
-            WriteCommandAction.runWriteCommandAction(
-                project,
-                GraphQLBundle.message("graphql.action.create.config.file.command"),
-                null,
-                {
-                    try {
-                        val configFile = configBaseDir.createChildData(this, PREFERRED_CONFIG)
-                        configFile.getOutputStream(this).use { stream -> outputStreamConsumer.accept(stream) }
-                        val psiFile = PsiManager.getInstance(project).findFile(configFile)
-                        if (psiFile != null) {
-                            CodeStyleManager.getInstance(project).reformat(psiFile)
-                        }
-                        if (openEditor) {
-                            FileEditorManager.getInstance(project).openFile(configFile, true, true)
-                        }
-                        invokeLater {
-                            ApplicationManager.getApplication().saveAll()
-                        }
-                    } catch (e: IOException) {
-                        Notifications.Bus.notify(
-                            Notification(
-                                GRAPHQL_NOTIFICATION_GROUP_ID,
-                                "Unable to create $PREFERRED_CONFIG",
-                                "Unable to create file '$PREFERRED_CONFIG' in directory '${configBaseDir.path}': ${e.message}",
-                                NotificationType.ERROR
-                            )
-                        )
-                    }
-                }
-            )
+  @JvmOverloads
+  fun createAndOpenConfigFile(
+    configBaseDir: VirtualFile,
+    openEditor: Boolean,
+    outputStreamConsumer: Consumer<OutputStream> = Consumer { outputStream: OutputStream ->
+      try {
+        javaClass.classLoader.getResourceAsStream("META-INF/$PREFERRED_CONFIG")?.use { inputStream ->
+          IOUtils.copy(inputStream, outputStream)
         }
+      }
+      catch (e: IOException) {
+        throw RuntimeException(e)
+      }
+    },
+  ) {
+    invokeLater {
+      WriteCommandAction.runWriteCommandAction(
+        project,
+        GraphQLBundle.message("graphql.action.create.config.file.command"),
+        null,
+        {
+          try {
+            val configFile = configBaseDir.createChildData(this, PREFERRED_CONFIG)
+            configFile.getOutputStream(this).use { stream -> outputStreamConsumer.accept(stream) }
+            val psiFile = PsiManager.getInstance(project).findFile(configFile)
+            if (psiFile != null) {
+              CodeStyleManager.getInstance(project).reformat(psiFile)
+            }
+            if (openEditor) {
+              FileEditorManager.getInstance(project).openFile(configFile, true, true)
+            }
+            invokeLater {
+              ApplicationManager.getApplication().saveAll()
+            }
+          }
+          catch (e: IOException) {
+            Notifications.Bus.notify(
+              Notification(
+                GRAPHQL_NOTIFICATION_GROUP_ID,
+                "Unable to create $PREFERRED_CONFIG",
+                "Unable to create file '$PREFERRED_CONFIG' in directory '${configBaseDir.path}': ${e.message}",
+                NotificationType.ERROR
+              )
+            )
+          }
+        }
+      )
     }
+  }
 }

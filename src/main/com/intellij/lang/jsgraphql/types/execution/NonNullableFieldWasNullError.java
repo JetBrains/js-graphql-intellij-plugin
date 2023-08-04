@@ -33,50 +33,50 @@ import java.util.List;
 @Internal
 public class NonNullableFieldWasNullError implements GraphQLError {
 
-    private final String message;
-    private final List<Object> path;
+  private final String message;
+  private final List<Object> path;
 
-    public NonNullableFieldWasNullError(NonNullableFieldWasNullException exception) {
-        this.message = exception.getMessage();
-        this.path = exception.getPath().toList();
-    }
+  public NonNullableFieldWasNullError(NonNullableFieldWasNullException exception) {
+    this.message = exception.getMessage();
+    this.path = exception.getPath().toList();
+  }
 
-    @Override
-    public String getMessage() {
-        return message;
-    }
+  @Override
+  public String getMessage() {
+    return message;
+  }
 
-    @Override
-    public List<Object> getPath() {
-        return path;
-    }
+  @Override
+  public List<Object> getPath() {
+    return path;
+  }
 
-    @Override
-    public List<SourceLocation> getLocations() {
-        return null;
-    }
+  @Override
+  public List<SourceLocation> getLocations() {
+    return null;
+  }
 
-    @Override
-    public ErrorType getErrorType() {
-        return ErrorType.NullValueInNonNullableField;
-    }
+  @Override
+  public ErrorType getErrorType() {
+    return ErrorType.NullValueInNonNullableField;
+  }
 
-    @Override
-    public String toString() {
-        return "NonNullableFieldWasNullError{" +
-                "message='" + message + '\'' +
-                ", path=" + path +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "NonNullableFieldWasNullError{" +
+           "message='" + message + '\'' +
+           ", path=" + path +
+           '}';
+  }
 
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-    @Override
-    public boolean equals(Object o) {
-        return GraphqlErrorHelper.equals(this, o);
-    }
+  @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+  @Override
+  public boolean equals(Object o) {
+    return GraphqlErrorHelper.equals(this, o);
+  }
 
-    @Override
-    public int hashCode() {
-        return GraphqlErrorHelper.hashCode(this);
-    }
+  @Override
+  public int hashCode() {
+    return GraphqlErrorHelper.hashCode(this);
+  }
 }

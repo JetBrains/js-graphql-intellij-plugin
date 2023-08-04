@@ -25,9 +25,9 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 @Internal
 public interface SchemaValidationRule {
 
-    void check(GraphQLFieldDefinition fieldDef, SchemaValidationErrorCollector validationErrorCollector);
+  void check(GraphQLFieldDefinition fieldDef, SchemaValidationErrorCollector validationErrorCollector);
 
-    void check(GraphQLType type, SchemaValidationErrorCollector validationErrorCollector);
+  void check(GraphQLType type, SchemaValidationErrorCollector validationErrorCollector);
 
-    void check(GraphQLSchema graphQLSchema, SchemaValidationErrorCollector validationErrorCollector);
+  void check(GraphQLSchema graphQLSchema, SchemaValidationErrorCollector validationErrorCollector);
 }

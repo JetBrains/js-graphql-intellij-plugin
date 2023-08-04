@@ -35,29 +35,30 @@ import java.util.List;
 @PublicApi
 public class SchemaParser {
 
-    /**
-     * special method to build directly a TypeDefinitionRegistry from a Document
-     * useful for Introspection =&gt; IDL (Document) =&gt; TypeDefinitionRegistry
-     *
-     * @param document containing type definitions
-     * @return the TypeDefinitionRegistry containing all type definitions from the document
-     * @throws SchemaProblem if an error occurs
-     */
-    public TypeDefinitionRegistry buildRegistry(Document document) {
-        List<GraphQLError> errors = new ArrayList<>();
-        TypeDefinitionRegistry typeRegistry = new TypeDefinitionRegistry();
-        List<Definition> definitions = document.getDefinitions();
-        for (Definition definition : definitions) {
-            if (definition instanceof SDLDefinition) {
-                typeRegistry.add((SDLDefinition) definition);
-            } else {
-                errors.add(new NonSDLDefinitionError(definition));
-            }
-        }
-
-        if (errors.size() > 0) {
-            typeRegistry.addError(new SchemaProblem(errors));
-        }
-        return typeRegistry;
+  /**
+   * special method to build directly a TypeDefinitionRegistry from a Document
+   * useful for Introspection =&gt; IDL (Document) =&gt; TypeDefinitionRegistry
+   *
+   * @param document containing type definitions
+   * @return the TypeDefinitionRegistry containing all type definitions from the document
+   * @throws SchemaProblem if an error occurs
+   */
+  public TypeDefinitionRegistry buildRegistry(Document document) {
+    List<GraphQLError> errors = new ArrayList<>();
+    TypeDefinitionRegistry typeRegistry = new TypeDefinitionRegistry();
+    List<Definition> definitions = document.getDefinitions();
+    for (Definition definition : definitions) {
+      if (definition instanceof SDLDefinition) {
+        typeRegistry.add((SDLDefinition)definition);
+      }
+      else {
+        errors.add(new NonSDLDefinitionError(definition));
+      }
     }
+
+    if (errors.size() > 0) {
+      typeRegistry.addError(new SchemaProblem(errors));
+    }
+    return typeRegistry;
+  }
 }

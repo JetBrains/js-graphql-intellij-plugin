@@ -34,94 +34,92 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 @Internal
 public abstract class ExecutionResultNode {
 
-    private final ExecutionStepInfo executionStepInfo;
-    private final ResolvedValue resolvedValue;
-    private final NonNullableFieldWasNullException nonNullableFieldWasNullException;
-    private final ImmutableList<ExecutionResultNode> children;
-    private final ImmutableList<GraphQLError> errors;
+  private final ExecutionStepInfo executionStepInfo;
+  private final ResolvedValue resolvedValue;
+  private final NonNullableFieldWasNullException nonNullableFieldWasNullException;
+  private final ImmutableList<ExecutionResultNode> children;
+  private final ImmutableList<GraphQLError> errors;
 
-    /*
-     * we are trusting here the the children list is not modified on the outside (no defensive copy)
-     */
-    protected ExecutionResultNode(ExecutionStepInfo executionStepInfo,
-                                  ResolvedValue resolvedValue,
-                                  NonNullableFieldWasNullException nonNullableFieldWasNullException,
-                                  List<ExecutionResultNode> children,
-                                  List<GraphQLError> errors) {
-        this.resolvedValue = resolvedValue;
-        this.executionStepInfo = executionStepInfo;
-        this.nonNullableFieldWasNullException = nonNullableFieldWasNullException;
-        this.children = ImmutableList.copyOf(assertNotNull(children));
-        children.forEach(Assert::assertNotNull);
-        this.errors = ImmutableList.copyOf(errors);
-    }
+  /*
+   * we are trusting here the the children list is not modified on the outside (no defensive copy)
+   */
+  protected ExecutionResultNode(ExecutionStepInfo executionStepInfo,
+                                ResolvedValue resolvedValue,
+                                NonNullableFieldWasNullException nonNullableFieldWasNullException,
+                                List<ExecutionResultNode> children,
+                                List<GraphQLError> errors) {
+    this.resolvedValue = resolvedValue;
+    this.executionStepInfo = executionStepInfo;
+    this.nonNullableFieldWasNullException = nonNullableFieldWasNullException;
+    this.children = ImmutableList.copyOf(assertNotNull(children));
+    children.forEach(Assert::assertNotNull);
+    this.errors = ImmutableList.copyOf(errors);
+  }
 
-    public List<GraphQLError> getErrors() {
-        return new ArrayList<>(errors);
-    }
+  public List<GraphQLError> getErrors() {
+    return new ArrayList<>(errors);
+  }
 
-    /*
-     * can be null for the RootExecutionResultNode
-     */
-    public ResolvedValue getResolvedValue() {
-        return resolvedValue;
-    }
+  /*
+   * can be null for the RootExecutionResultNode
+   */
+  public ResolvedValue getResolvedValue() {
+    return resolvedValue;
+  }
 
-    public MergedField getMergedField() {
-        return executionStepInfo.getField();
-    }
+  public MergedField getMergedField() {
+    return executionStepInfo.getField();
+  }
 
-    public ExecutionStepInfo getExecutionStepInfo() {
-        return executionStepInfo;
-    }
+  public ExecutionStepInfo getExecutionStepInfo() {
+    return executionStepInfo;
+  }
 
-    public NonNullableFieldWasNullException getNonNullableFieldWasNullException() {
-        return nonNullableFieldWasNullException;
-    }
+  public NonNullableFieldWasNullException getNonNullableFieldWasNullException() {
+    return nonNullableFieldWasNullException;
+  }
 
-    public List<ExecutionResultNode> getChildren() {
-        return this.children;
-    }
+  public List<ExecutionResultNode> getChildren() {
+    return this.children;
+  }
 
-    public Optional<NonNullableFieldWasNullException> getChildNonNullableException() {
-        return children.stream()
-                .map(ExecutionResultNode::getNonNullableFieldWasNullException)
-                .filter(exception -> exception != null)
-                .findFirst();
-    }
+  public Optional<NonNullableFieldWasNullException> getChildNonNullableException() {
+    return children.stream()
+      .map(ExecutionResultNode::getNonNullableFieldWasNullException)
+      .filter(exception -> exception != null)
+      .findFirst();
+  }
 
-    /**
-     * Creates a new ExecutionResultNode of the same specific type with the new set of result children
-     *
-     * @param children the new children for this result node
-     *
-     * @return a new ExecutionResultNode with the new result children
-     */
-    public abstract ExecutionResultNode withNewChildren(List<ExecutionResultNode> children);
+  /**
+   * Creates a new ExecutionResultNode of the same specific type with the new set of result children
+   *
+   * @param children the new children for this result node
+   * @return a new ExecutionResultNode with the new result children
+   */
+  public abstract ExecutionResultNode withNewChildren(List<ExecutionResultNode> children);
 
-    public abstract ExecutionResultNode withNewResolvedValue(ResolvedValue resolvedValue);
+  public abstract ExecutionResultNode withNewResolvedValue(ResolvedValue resolvedValue);
 
-    public abstract ExecutionResultNode withNewExecutionStepInfo(ExecutionStepInfo executionStepInfo);
-
-
-    /**
-     * Creates a new ExecutionResultNode of the same specific type with the new error collection
-     *
-     * @param errors the new errors for this result node
-     *
-     * @return a new ExecutionResultNode with the new errors
-     */
-    public abstract ExecutionResultNode withNewErrors(List<GraphQLError> errors);
+  public abstract ExecutionResultNode withNewExecutionStepInfo(ExecutionStepInfo executionStepInfo);
 
 
-    @Override
-    public String toString() {
-        return "ExecutionResultNode{" +
-                "executionStepInfo=" + executionStepInfo +
-                ", resolvedValue=" + resolvedValue +
-                ", nonNullableFieldWasNullException=" + nonNullableFieldWasNullException +
-                ", children=" + children +
-                ", errors=" + errors +
-                '}';
-    }
+  /**
+   * Creates a new ExecutionResultNode of the same specific type with the new error collection
+   *
+   * @param errors the new errors for this result node
+   * @return a new ExecutionResultNode with the new errors
+   */
+  public abstract ExecutionResultNode withNewErrors(List<GraphQLError> errors);
+
+
+  @Override
+  public String toString() {
+    return "ExecutionResultNode{" +
+           "executionStepInfo=" + executionStepInfo +
+           ", resolvedValue=" + resolvedValue +
+           ", nonNullableFieldWasNullException=" + nonNullableFieldWasNullException +
+           ", children=" + children +
+           ", errors=" + errors +
+           '}';
+  }
 }

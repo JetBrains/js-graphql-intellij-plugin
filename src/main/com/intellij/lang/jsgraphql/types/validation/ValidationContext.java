@@ -31,75 +31,75 @@ import java.util.Map;
 @Internal
 public class ValidationContext {
 
-    private final GraphQLSchema schema;
-    private final Document document;
+  private final GraphQLSchema schema;
+  private final Document document;
 
-    private final TraversalContext traversalContext;
-    private final Map<String, FragmentDefinition> fragmentDefinitionMap = new LinkedHashMap<>();
+  private final TraversalContext traversalContext;
+  private final Map<String, FragmentDefinition> fragmentDefinitionMap = new LinkedHashMap<>();
 
 
-    public ValidationContext(GraphQLSchema schema, Document document) {
-        this.schema = schema;
-        this.document = document;
-        this.traversalContext = new TraversalContext(schema);
-        buildFragmentMap();
+  public ValidationContext(GraphQLSchema schema, Document document) {
+    this.schema = schema;
+    this.document = document;
+    this.traversalContext = new TraversalContext(schema);
+    buildFragmentMap();
+  }
+
+  private void buildFragmentMap() {
+    for (Definition definition : document.getDefinitions()) {
+      if (!(definition instanceof FragmentDefinition)) continue;
+      FragmentDefinition fragmentDefinition = (FragmentDefinition)definition;
+      fragmentDefinitionMap.put(fragmentDefinition.getName(), fragmentDefinition);
     }
+  }
 
-    private void buildFragmentMap() {
-        for (Definition definition : document.getDefinitions()) {
-            if (!(definition instanceof FragmentDefinition)) continue;
-            FragmentDefinition fragmentDefinition = (FragmentDefinition) definition;
-            fragmentDefinitionMap.put(fragmentDefinition.getName(), fragmentDefinition);
-        }
-    }
+  public TraversalContext getTraversalContext() {
+    return traversalContext;
+  }
 
-    public TraversalContext getTraversalContext() {
-        return traversalContext;
-    }
+  public GraphQLSchema getSchema() {
+    return schema;
+  }
 
-    public GraphQLSchema getSchema() {
-        return schema;
-    }
+  public Document getDocument() {
+    return document;
+  }
 
-    public Document getDocument() {
-        return document;
-    }
+  public FragmentDefinition getFragment(String name) {
+    return fragmentDefinitionMap.get(name);
+  }
 
-    public FragmentDefinition getFragment(String name) {
-        return fragmentDefinitionMap.get(name);
-    }
+  public GraphQLCompositeType getParentType() {
+    return traversalContext.getParentType();
+  }
 
-    public GraphQLCompositeType getParentType() {
-        return traversalContext.getParentType();
-    }
+  public GraphQLInputType getInputType() {
+    return traversalContext.getInputType();
+  }
 
-    public GraphQLInputType getInputType() {
-        return traversalContext.getInputType();
-    }
+  public GraphQLFieldDefinition getFieldDef() {
+    return traversalContext.getFieldDef();
+  }
 
-    public GraphQLFieldDefinition getFieldDef() {
-        return traversalContext.getFieldDef();
-    }
+  public GraphQLDirective getDirective() {
+    return traversalContext.getDirective();
+  }
 
-    public GraphQLDirective getDirective() {
-        return traversalContext.getDirective();
-    }
+  public GraphQLArgument getArgument() {
+    return traversalContext.getArgument();
+  }
 
-    public GraphQLArgument getArgument() {
-        return traversalContext.getArgument();
-    }
-
-    public GraphQLOutputType getOutputType() {
-        return traversalContext.getOutputType();
-    }
+  public GraphQLOutputType getOutputType() {
+    return traversalContext.getOutputType();
+  }
 
 
-    public List<String> getQueryPath() {
-        return traversalContext.getQueryPath();
-    }
+  public List<String> getQueryPath() {
+    return traversalContext.getQueryPath();
+  }
 
-    @Override
-    public String toString() {
-        return "ValidationContext{" + getQueryPath() + "}";
-    }
+  @Override
+  public String toString() {
+    return "ValidationContext{" + getQueryPath() + "}";
+  }
 }

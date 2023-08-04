@@ -28,54 +28,56 @@ import java.util.Objects;
 @Internal
 public class QueryVisitorFragmentDefinitionEnvironmentImpl implements QueryVisitorFragmentDefinitionEnvironment {
 
-    private final FragmentDefinition fragmentDefinition;
-    private final TraverserContext<Node> traverserContext;
-    private final GraphQLSchema schema;
+  private final FragmentDefinition fragmentDefinition;
+  private final TraverserContext<Node> traverserContext;
+  private final GraphQLSchema schema;
 
 
-    public QueryVisitorFragmentDefinitionEnvironmentImpl(FragmentDefinition fragmentDefinition, TraverserContext<Node> traverserContext, GraphQLSchema schema) {
-        this.fragmentDefinition = fragmentDefinition;
-        this.traverserContext = traverserContext;
-        this.schema = schema;
+  public QueryVisitorFragmentDefinitionEnvironmentImpl(FragmentDefinition fragmentDefinition,
+                                                       TraverserContext<Node> traverserContext,
+                                                       GraphQLSchema schema) {
+    this.fragmentDefinition = fragmentDefinition;
+    this.traverserContext = traverserContext;
+    this.schema = schema;
+  }
+
+  @Override
+  public GraphQLSchema getSchema() {
+    return schema;
+  }
+
+  @Override
+  public FragmentDefinition getFragmentDefinition() {
+    return fragmentDefinition;
+  }
+
+  @Override
+  public TraverserContext<Node> getTraverserContext() {
+    return traverserContext;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
-
-    @Override
-    public GraphQLSchema getSchema() {
-        return schema;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
+    QueryVisitorFragmentDefinitionEnvironmentImpl that = (QueryVisitorFragmentDefinitionEnvironmentImpl)o;
+    return Objects.equals(fragmentDefinition, that.fragmentDefinition);
+  }
 
-    @Override
-    public FragmentDefinition getFragmentDefinition() {
-        return fragmentDefinition;
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(fragmentDefinition);
+  }
 
-    @Override
-    public TraverserContext<Node> getTraverserContext() {
-        return traverserContext;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        QueryVisitorFragmentDefinitionEnvironmentImpl that = (QueryVisitorFragmentDefinitionEnvironmentImpl) o;
-        return Objects.equals(fragmentDefinition, that.fragmentDefinition);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(fragmentDefinition);
-    }
-
-    @Override
-    public String toString() {
-        return "QueryVisitorFragmentDefinitionEnvironmentImpl{" +
-                "fragmentDefinition=" + fragmentDefinition +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "QueryVisitorFragmentDefinitionEnvironmentImpl{" +
+           "fragmentDefinition=" + fragmentDefinition +
+           '}';
+  }
 }
 

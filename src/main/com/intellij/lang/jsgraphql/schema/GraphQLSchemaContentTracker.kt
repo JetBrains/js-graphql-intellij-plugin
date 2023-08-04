@@ -40,134 +40,135 @@ import com.intellij.util.Alarm
 @Service(Service.Level.PROJECT)
 class GraphQLSchemaContentTracker(private val project: Project) : Disposable, ModificationTracker {
 
-    companion object {
-        private val LOG = logger<GraphQLSchemaContentTracker>()
+  companion object {
+    private val LOG = logger<GraphQLSchemaContentTracker>()
 
 
-        private const val EVENT_PUBLISH_TIMEOUT = 500
+    private const val EVENT_PUBLISH_TIMEOUT = 500
 
-        @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLSchemaContentTracker>()
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLSchemaContentTracker>()
+  }
+
+  private val notifyChangedAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
+  private val modificationTracker = CompositeModificationTracker(GraphQLScopeDependency.getInstance(project))
+
+  init {
+    PsiManager.getInstance(project).addPsiTreeChangeListener(PsiChangeListener(), this)
+  }
+
+  fun schemaChanged() {
+    LOG.debug("GraphQL schema cache invalidated", if (LOG.isTraceEnabled) Throwable() else null)
+
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      invokeLater { notifySchemaContentChanged() }
     }
-
-    private val notifyChangedAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
-    private val modificationTracker = CompositeModificationTracker(GraphQLScopeDependency.getInstance(project))
-
-    init {
-        PsiManager.getInstance(project).addPsiTreeChangeListener(PsiChangeListener(), this)
+    else {
+      notifyChangedAlarm.cancelAllRequests()
+      notifyChangedAlarm.addRequest(::notifySchemaContentChanged, EVENT_PUBLISH_TIMEOUT)
     }
+  }
 
-    fun schemaChanged() {
-        LOG.debug("GraphQL schema cache invalidated", if (LOG.isTraceEnabled) Throwable() else null)
+  private fun notifySchemaContentChanged() {
+    modificationTracker.incModificationCount()
+    project.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
+    DaemonCodeAnalyzer.getInstance(project).restart()
+  }
 
-        if (ApplicationManager.getApplication().isUnitTestMode) {
-            invokeLater { notifySchemaContentChanged() }
-        } else {
-            notifyChangedAlarm.cancelAllRequests()
-            notifyChangedAlarm.addRequest(::notifySchemaContentChanged, EVENT_PUBLISH_TIMEOUT)
+  override fun getModificationCount(): Long {
+    return modificationTracker.modificationCount
+  }
+
+  override fun dispose() {}
+
+  /**
+   * always consider the schema changed when editing an endpoint file
+   * change in injection target
+   * ignore the generic event which fires for all other cases above
+   * if it's not the generic case, children have been replaced, e.g. using the commenter
+   */
+  private inner class PsiChangeListener : PsiTreeChangeAdapter() {
+    private fun checkForSchemaChange(event: PsiTreeChangeEvent) {
+      if (project.isDisposed) {
+        return
+      }
+
+      if (event.file is GraphQLFile) {
+        if (affectsGraphQLSchema(event)) {
+          schemaChanged()
         }
+      }
+
+      // TODO: check if it works as expected, looks like event.parent is not enough
+      if (event.parent is PsiLanguageInjectionHost) {
+        val injectionHelper = GraphQLInjectedLanguage.forElement(event.parent)
+        if (injectionHelper != null && injectionHelper.isLanguageInjectionTarget(event.parent)) {
+          // change in injection target
+          schemaChanged()
+        }
+      }
     }
 
-    private fun notifySchemaContentChanged() {
-        modificationTracker.incModificationCount()
-        project.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
-        DaemonCodeAnalyzer.getInstance(project).restart()
+    override fun propertyChanged(event: PsiTreeChangeEvent) {
+      checkForSchemaChange(event)
     }
 
-    override fun getModificationCount(): Long {
-        return modificationTracker.modificationCount
+    override fun childAdded(event: PsiTreeChangeEvent) {
+      checkForSchemaChange(event)
     }
 
-    override fun dispose() {}
+    override fun childRemoved(event: PsiTreeChangeEvent) {
+      checkForSchemaChange(event)
+    }
+
+    override fun childMoved(event: PsiTreeChangeEvent) {
+      checkForSchemaChange(event)
+    }
+
+    override fun childReplaced(event: PsiTreeChangeEvent) {
+      checkForSchemaChange(event)
+    }
+
+    override fun childrenChanged(event: PsiTreeChangeEvent) {
+      if (event is PsiTreeChangeEventImpl) {
+        if (!event.isGenericChange) {
+          // ignore the generic event which fires for all other cases above
+          // if it's not the generic case, children have been replaced, e.g. using the commenter
+          checkForSchemaChange(event)
+        }
+      }
+    }
 
     /**
-     * always consider the schema changed when editing an endpoint file
-     * change in injection target
-     * ignore the generic event which fires for all other cases above
-     * if it's not the generic case, children have been replaced, e.g. using the commenter
+     * Evaluates whether the change event can affect the associated GraphQL schema
+     *
+     * @param event the event that occurred
+     * @return true if the change can affect the declared schema
      */
-    private inner class PsiChangeListener : PsiTreeChangeAdapter() {
-        private fun checkForSchemaChange(event: PsiTreeChangeEvent) {
-            if (project.isDisposed) {
-                return
-            }
-
-            if (event.file is GraphQLFile) {
-                if (affectsGraphQLSchema(event)) {
-                    schemaChanged()
-                }
-            }
-
-            // TODO: check if it works as expected, looks like event.parent is not enough
-            if (event.parent is PsiLanguageInjectionHost) {
-                val injectionHelper = GraphQLInjectedLanguage.forElement(event.parent)
-                if (injectionHelper != null && injectionHelper.isLanguageInjectionTarget(event.parent)) {
-                    // change in injection target
-                    schemaChanged()
-                }
-            }
+    private fun affectsGraphQLSchema(event: PsiTreeChangeEvent): Boolean {
+      if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName || PsiTreeChangeEvent.PROP_DIRECTORY_NAME == event.propertyName) {
+        // renamed and moves are likely to affect schema blobs etc.
+        return true
+      }
+      val elements = sequenceOf(event.parent, event.child, event.newChild, event.oldChild)
+      for (element in elements) {
+        if (element == null) {
+          continue
         }
 
-        override fun propertyChanged(event: PsiTreeChangeEvent) {
-            checkForSchemaChange(event)
+        val containingDeclaration = PsiTreeUtil.findFirstParent(element) {
+          it is GraphQLOperationDefinition ||
+          it is GraphQLFragmentDefinition ||
+          it is GraphQLTemplateDefinition
         }
 
-        override fun childAdded(event: PsiTreeChangeEvent) {
-            checkForSchemaChange(event)
+        if (containingDeclaration != null) {
+          // edits inside query, mutation, subscription, fragment etc. don't affect the schema
+          return false
         }
-
-        override fun childRemoved(event: PsiTreeChangeEvent) {
-            checkForSchemaChange(event)
-        }
-
-        override fun childMoved(event: PsiTreeChangeEvent) {
-            checkForSchemaChange(event)
-        }
-
-        override fun childReplaced(event: PsiTreeChangeEvent) {
-            checkForSchemaChange(event)
-        }
-
-        override fun childrenChanged(event: PsiTreeChangeEvent) {
-            if (event is PsiTreeChangeEventImpl) {
-                if (!event.isGenericChange) {
-                    // ignore the generic event which fires for all other cases above
-                    // if it's not the generic case, children have been replaced, e.g. using the commenter
-                    checkForSchemaChange(event)
-                }
-            }
-        }
-
-        /**
-         * Evaluates whether the change event can affect the associated GraphQL schema
-         *
-         * @param event the event that occurred
-         * @return true if the change can affect the declared schema
-         */
-        private fun affectsGraphQLSchema(event: PsiTreeChangeEvent): Boolean {
-            if (PsiTreeChangeEvent.PROP_FILE_NAME == event.propertyName || PsiTreeChangeEvent.PROP_DIRECTORY_NAME == event.propertyName) {
-                // renamed and moves are likely to affect schema blobs etc.
-                return true
-            }
-            val elements = sequenceOf(event.parent, event.child, event.newChild, event.oldChild)
-            for (element in elements) {
-                if (element == null) {
-                    continue
-                }
-
-                val containingDeclaration = PsiTreeUtil.findFirstParent(element) {
-                    it is GraphQLOperationDefinition ||
-                        it is GraphQLFragmentDefinition ||
-                        it is GraphQLTemplateDefinition
-                }
-
-                if (containingDeclaration != null) {
-                    // edits inside query, mutation, subscription, fragment etc. don't affect the schema
-                    return false
-                }
-            }
-            // fallback to assume the schema can be affected by the edit
-            return true
-        }
+      }
+      // fallback to assume the schema can be affected by the edit
+      return true
     }
+  }
 }

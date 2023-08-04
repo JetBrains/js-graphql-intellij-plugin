@@ -30,13 +30,13 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLInputValueDefinition;
 @PublicApi
 public interface QueryVisitorFieldArgumentInputValue {
 
-    QueryVisitorFieldArgumentInputValue getParent();
+  QueryVisitorFieldArgumentInputValue getParent();
 
-    GraphQLInputValueDefinition getInputValueDefinition();
+  GraphQLInputValueDefinition getInputValueDefinition();
 
-    String getName();
+  String getName();
 
-    GraphQLInputType getInputType();
+  GraphQLInputType getInputType();
 
-    Value getValue();
+  Value getValue();
 }

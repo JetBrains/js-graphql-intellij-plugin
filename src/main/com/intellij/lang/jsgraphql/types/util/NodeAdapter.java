@@ -31,10 +31,9 @@ import java.util.Map;
 @PublicApi
 public interface NodeAdapter<T> {
 
-    Map<String, List<T>> getNamedChildren(T node);
+  Map<String, List<T>> getNamedChildren(T node);
 
-    T withNewChildren(T node, Map<String, List<T>> newChildren);
+  T withNewChildren(T node, Map<String, List<T>> newChildren);
 
-    T removeChild(T node, NodeLocation location);
-
+  T removeChild(T node, NodeLocation location);
 }

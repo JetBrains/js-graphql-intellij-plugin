@@ -29,127 +29,132 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Service(Service.Level.PROJECT)
 class GraphQLConfigGlobMatcher(project: Project) {
-    companion object {
-        private val LOG = logger<GraphQLConfigGlobMatcher>()
+  companion object {
+    private val LOG = logger<GraphQLConfigGlobMatcher>()
 
-        @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLConfigGlobMatcher>()
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLConfigGlobMatcher>()
 
-        private val MATCH_ALL_REGEX = Regex("\\*\\*/")
-        private val GROUP_REGEX = Regex("[{}]")
+    private val MATCH_ALL_REGEX = Regex("\\*\\*/")
+    private val GROUP_REGEX = Regex("[{}]")
+  }
+
+  private val matchResults: CachedValue<MutableMap<Pair<String, String>, Boolean>> =
+    CachedValuesManager.getManager(project).createCachedValue {
+      CachedValueProvider.Result.create(
+        ConcurrentHashMap(),
+        VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
+      )
     }
 
-    private val matchResults: CachedValue<MutableMap<Pair<String, String>, Boolean>> =
-        CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(
-                ConcurrentHashMap(),
-                VirtualFileManager.VFS_STRUCTURE_MODIFICATIONS
-            )
-        }
+  private val matchers: MutableMap<String, PathMatcher> = ConcurrentHashMap()
 
-    private val matchers: MutableMap<String, PathMatcher> = ConcurrentHashMap()
+  fun matches(file: VirtualFile, pattern: String, context: VirtualFile): Boolean {
+    val path = if (isAbsolutePattern(pattern)) {
+      file.path
+    }
+    else {
+      VfsUtil.findRelativePath(context, file, File.separatorChar)
+    }?.let { FileUtil.toCanonicalPath(it) }
 
-    fun matches(file: VirtualFile, pattern: String, context: VirtualFile): Boolean {
-        val path = if (isAbsolutePattern(pattern)) {
-            file.path
-        } else {
-            VfsUtil.findRelativePath(context, file, File.separatorChar)
-        }?.let { FileUtil.toCanonicalPath(it) }
+    val glob = FileUtil.toCanonicalPath(pattern)
+    return matches(path, glob).also {
+      LOG.trace { "path=${file.path}, pattern=${pattern}, context=${context.path}, result=${it}" }
+    }
+  }
 
-        val glob = FileUtil.toCanonicalPath(pattern)
-        return matches(path, glob).also {
-            LOG.trace { "path=${file.path}, pattern=${pattern}, context=${context.path}, result=${it}" }
-        }
+  private fun isAbsolutePattern(string: String): Boolean {
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      return string.startsWith("/")
     }
 
-    private fun isAbsolutePattern(string: String): Boolean {
-        if (ApplicationManager.getApplication().isUnitTestMode) {
-            return string.startsWith("/")
-        }
+    return FileUtil.isAbsolute(string)
+  }
 
-        return FileUtil.isAbsolute(string)
+  private fun matches(path: String?, glob: String?): Boolean {
+    if (path.isNullOrBlank() || glob.isNullOrBlank()) {
+      return false
     }
 
-    private fun matches(path: String?, glob: String?): Boolean {
-        if (path.isNullOrBlank() || glob.isNullOrBlank()) {
-            return false
-        }
+    return matchResults.value.computeIfAbsent(path to glob) { (path, glob) ->
+      try {
+        getOrCreateMatcher(glob).matches(Path.of(path))
+      }
+      catch (e: Exception) {
+        LOG.warn("path=$path, glob=$glob", e)
+        false
+      }
+    }
+  }
 
-        return matchResults.value.computeIfAbsent(path to glob) { (path, glob) ->
-            try {
-                getOrCreateMatcher(glob).matches(Path.of(path))
-            } catch (e: Exception) {
-                LOG.warn("path=$path, glob=$glob", e)
-                false
-            }
-        }
+  private fun getOrCreateMatcher(glob: String): PathMatcher {
+    val cached = matchers[glob]
+    if (cached != null) {
+      return cached
     }
 
-    private fun getOrCreateMatcher(glob: String): PathMatcher {
-        val cached = matchers[glob]
-        if (cached != null) {
-            return cached
-        }
+    val expandedGlobs = expandGlob(glob)
+    val patterns = buildPatterns(expandedGlobs)
+    val matcher = buildMatcher(patterns)
+    return matchers.putIfAbsent(glob, matcher) ?: matcher
+  }
 
-        val expandedGlobs = expandGlob(glob)
-        val patterns = buildPatterns(expandedGlobs)
-        val matcher = buildMatcher(patterns)
-        return matchers.putIfAbsent(glob, matcher) ?: matcher
+  private fun expandGlob(glob: String): Collection<String> {
+    return buildSet {
+      add(glob)
+
+      // `**` in java is treated like one or more,
+      // so a glob like `**/__tests__/**/*` wouldn't match either
+      // `./__tests__/nested/file.graphql` or `./some/nested/__tests__/file.graphql`
+      MATCH_ALL_REGEX.findAll(glob).forEach {
+        add(glob.replaceRange(it.range, ""))
+      }
+
+      // the same glob `**/__tests__/**/*` wouldn't match `./__tests__/file.graphql`
+      add(glob.replace("**/", ""))
+    }.filter { it.isNotBlank() }
+  }
+
+  private fun buildPatterns(patterns: Collection<String>): Collection<String> {
+    if (patterns.size <= 1) {
+      return patterns
     }
 
-    private fun expandGlob(glob: String): Collection<String> {
-        return buildSet {
-            add(glob)
+    val result = mutableListOf<String>()
+    val union = mutableListOf<String>()
 
-            // `**` in java is treated like one or more,
-            // so a glob like `**/__tests__/**/*` wouldn't match either
-            // `./__tests__/nested/file.graphql` or `./some/nested/__tests__/file.graphql`
-            MATCH_ALL_REGEX.findAll(glob).forEach {
-                add(glob.replaceRange(it.range, ""))
-            }
-
-            // the same glob `**/__tests__/**/*` wouldn't match `./__tests__/file.graphql`
-            add(glob.replace("**/", ""))
-        }.filter { it.isNotBlank() }
+    patterns.forEach {
+      // nested groups are not allowed, so we need a separate matcher,
+      // e.g. `glob:{file.{graphql,js,css},**/file.{graphql,js,css}}` is invalid
+      if (it.contains(GROUP_REGEX)) {
+        result.add(it)
+      }
+      else {
+        union.add(it)
+      }
     }
 
-    private fun buildPatterns(patterns: Collection<String>): Collection<String> {
-        if (patterns.size <= 1) {
-            return patterns
-        }
-
-        val result = mutableListOf<String>()
-        val union = mutableListOf<String>()
-
-        patterns.forEach {
-            // nested groups are not allowed, so we need a separate matcher,
-            // e.g. `glob:{file.{graphql,js,css},**/file.{graphql,js,css}}` is invalid
-            if (it.contains(GROUP_REGEX)) {
-                result.add(it)
-            } else {
-                union.add(it)
-            }
-        }
-
-        if (union.size > 1) {
-            result.add(union.joinToString(separator = ",", prefix = "{", postfix = "}"))
-        } else if (union.size == 1) {
-            result.add(union.first())
-        }
-
-        return result
+    if (union.size > 1) {
+      result.add(union.joinToString(separator = ",", prefix = "{", postfix = "}"))
+    }
+    else if (union.size == 1) {
+      result.add(union.first())
     }
 
-    private fun buildMatcher(patterns: Collection<String>): PathMatcher {
-        val matchers = patterns.mapNotNull {
-            try {
-                FileSystems.getDefault().getPathMatcher("glob:$it")
-            } catch (e: Exception) {
-                LOG.warn("buildMatcher: pattern=$it", e)
-                null
-            }
-        }
+    return result
+  }
 
-        return PathMatcher { path: Path -> matchers.any { it.matches(path) } }
+  private fun buildMatcher(patterns: Collection<String>): PathMatcher {
+    val matchers = patterns.mapNotNull {
+      try {
+        FileSystems.getDefault().getPathMatcher("glob:$it")
+      }
+      catch (e: Exception) {
+        LOG.warn("buildMatcher: pattern=$it", e)
+        null
+      }
     }
+
+    return PathMatcher { path: Path -> matchers.any { it.matches(path) } }
+  }
 }

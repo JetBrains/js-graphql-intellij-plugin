@@ -29,14 +29,14 @@ import static java.lang.String.format;
 @Internal
 public class TypeExtensionDirectiveRedefinitionError extends BaseError {
 
-    public TypeExtensionDirectiveRedefinitionError(TypeDefinition typeExtensionDefinition, Directive directive) {
-        super(typeExtensionDefinition,
-            format("The extension '%s' type has redefined the directive called '%s'",
-                typeExtensionDefinition.getName(), directive.getName()));
-    }
+  public TypeExtensionDirectiveRedefinitionError(TypeDefinition typeExtensionDefinition, Directive directive) {
+    super(typeExtensionDefinition,
+          format("The extension '%s' type has redefined the directive called '%s'",
+                 typeExtensionDefinition.getName(), directive.getName()));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLDuplicateDirectiveInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLDuplicateDirectiveInspection.class;
+  }
 }

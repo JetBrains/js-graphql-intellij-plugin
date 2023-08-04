@@ -36,69 +36,74 @@ import static com.intellij.lang.jsgraphql.types.scalar.CoercingUtil.typeName;
 @Internal
 public class GraphqlBigIntegerCoercing implements Coercing<BigInteger, BigInteger> {
 
-    private BigInteger convertImpl(Object input) {
-        if (isNumberIsh(input)) {
-            BigDecimal value;
-            try {
-                value = new BigDecimal(input.toString());
-            } catch (NumberFormatException e) {
-                return null;
-            }
-            try {
-                return value.toBigIntegerExact();
-            } catch (ArithmeticException e) {
-                return null;
-            }
-        }
+  private BigInteger convertImpl(Object input) {
+    if (isNumberIsh(input)) {
+      BigDecimal value;
+      try {
+        value = new BigDecimal(input.toString());
+      }
+      catch (NumberFormatException e) {
         return null;
-
+      }
+      try {
+        return value.toBigIntegerExact();
+      }
+      catch (ArithmeticException e) {
+        return null;
+      }
     }
+    return null;
+  }
 
-    @Override
-    public BigInteger serialize(Object input) {
-        BigInteger result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingSerializeException(
-                    "Expected type 'BigInteger' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+  @Override
+  public BigInteger serialize(Object input) {
+    BigInteger result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingSerializeException(
+        "Expected type 'BigInteger' but was '" + typeName(input) + "'."
+      );
     }
+    return result;
+  }
 
-    @Override
-    public BigInteger parseValue(Object input) {
-        BigInteger result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingParseValueException(
-                    "Expected type 'BigInteger' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+  @Override
+  public BigInteger parseValue(Object input) {
+    BigInteger result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingParseValueException(
+        "Expected type 'BigInteger' but was '" + typeName(input) + "'."
+      );
     }
+    return result;
+  }
 
-    @Override
-    public BigInteger parseLiteral(Object input) {
-        if (input instanceof StringValue) {
-            try {
-                return new BigDecimal(((StringValue) input).getValue()).toBigIntegerExact();
-            } catch (NumberFormatException | ArithmeticException e) {
-                throw new CoercingParseLiteralException(
-                        "Unable to turn input into a 'BigInteger'"
-                );
-            }
-        } else if (input instanceof IntValue) {
-            return ((IntValue) input).getValue();
-        } else if (input instanceof FloatValue) {
-            try {
-                return ((FloatValue) input).getValue().toBigIntegerExact();
-            } catch (ArithmeticException e) {
-                throw new CoercingParseLiteralException(
-                        "Unable to turn input into a 'BigInteger'"
-                );
-            }
-        }
+  @Override
+  public BigInteger parseLiteral(Object input) {
+    if (input instanceof StringValue) {
+      try {
+        return new BigDecimal(((StringValue)input).getValue()).toBigIntegerExact();
+      }
+      catch (NumberFormatException | ArithmeticException e) {
         throw new CoercingParseLiteralException(
-                "Expected type 'Int', 'String' or 'Float' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
+          "Unable to turn input into a 'BigInteger'"
         );
+      }
     }
+    else if (input instanceof IntValue) {
+      return ((IntValue)input).getValue();
+    }
+    else if (input instanceof FloatValue) {
+      try {
+        return ((FloatValue)input).getValue().toBigIntegerExact();
+      }
+      catch (ArithmeticException e) {
+        throw new CoercingParseLiteralException(
+          "Unable to turn input into a 'BigInteger'"
+        );
+      }
+    }
+    throw new CoercingParseLiteralException(
+      "Expected type 'Int', 'String' or 'Float' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
+    );
+  }
 }

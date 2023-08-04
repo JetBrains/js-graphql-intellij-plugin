@@ -31,24 +31,24 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
  */
 @Internal
 class IntraThreadMemoizedSupplier<T> implements Supplier<T> {
-    private final static Object SENTINEL = new Object() {
-    };
+  private final static Object SENTINEL = new Object() {
+  };
 
-    @SuppressWarnings("unchecked")
-    private T value = (T) SENTINEL;
-    private final Supplier<T> delegate;
+  @SuppressWarnings("unchecked")
+  private T value = (T)SENTINEL;
+  private final Supplier<T> delegate;
 
-    IntraThreadMemoizedSupplier(Supplier<T> delegate) {
-        this.delegate = assertNotNull(delegate);
+  IntraThreadMemoizedSupplier(Supplier<T> delegate) {
+    this.delegate = assertNotNull(delegate);
+  }
+
+  @Override
+  public T get() {
+    T t = value;
+    if (t == SENTINEL) {
+      t = delegate.get();
+      value = t;
     }
-
-    @Override
-    public T get() {
-        T t = value;
-        if (t == SENTINEL) {
-            t = delegate.get();
-            value = t;
-        }
-        return t;
-    }
+    return t;
+  }
 }

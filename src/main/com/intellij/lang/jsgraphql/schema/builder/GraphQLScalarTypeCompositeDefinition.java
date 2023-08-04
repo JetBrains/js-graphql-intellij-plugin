@@ -10,22 +10,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GraphQLScalarTypeCompositeDefinition
-    extends GraphQLExtendableCompositeDefinition<ScalarTypeDefinition, ScalarTypeExtensionDefinition> {
+  extends GraphQLExtendableCompositeDefinition<ScalarTypeDefinition, ScalarTypeExtensionDefinition> {
 
-    @NotNull
-    @Override
-    protected ScalarTypeDefinition mergeDefinitions() {
-        List<Directive> directives = new ArrayList<>();
+  @NotNull
+  @Override
+  protected ScalarTypeDefinition mergeDefinitions() {
+    List<Directive> directives = new ArrayList<>();
 
-        for (ScalarTypeDefinition definition : myDefinitions) {
-            directives.addAll(definition.getDirectives());
-        }
-
-        ScalarTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
-        return definition.transform(builder ->
-            builder
-                .directives(directives)
-                .sourceNodes(myDefinitions)
-        );
+    for (ScalarTypeDefinition definition : myDefinitions) {
+      directives.addAll(definition.getDirectives());
     }
+
+    ScalarTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+    return definition.transform(builder ->
+                                  builder
+                                    .directives(directives)
+                                    .sourceNodes(myDefinitions)
+    );
+  }
 }

@@ -34,55 +34,57 @@ import static com.intellij.lang.jsgraphql.types.scalar.CoercingUtil.typeName;
 @Internal
 public class GraphqlFloatCoercing implements Coercing<Double, Double> {
 
-    private Double convertImpl(Object input) {
-        if (isNumberIsh(input)) {
-            BigDecimal value;
-            try {
-                value = new BigDecimal(input.toString());
-            } catch (NumberFormatException e) {
-                return null;
-            }
-            return value.doubleValue();
-        } else {
-            return null;
-        }
-
+  private Double convertImpl(Object input) {
+    if (isNumberIsh(input)) {
+      BigDecimal value;
+      try {
+        value = new BigDecimal(input.toString());
+      }
+      catch (NumberFormatException e) {
+        return null;
+      }
+      return value.doubleValue();
     }
-
-    @Override
-    public Double serialize(Object input) {
-        Double result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingSerializeException(
-                    "Expected type 'Float' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
-
+    else {
+      return null;
     }
+  }
 
-    @Override
-    public Double parseValue(Object input) {
-        Double result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingParseValueException(
-                    "Expected type 'Float' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+  @Override
+  public Double serialize(Object input) {
+    Double result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingSerializeException(
+        "Expected type 'Float' but was '" + typeName(input) + "'."
+      );
     }
+    return result;
+  }
 
-    @Override
-    public Double parseLiteral(Object input) {
-        if (input instanceof IntValue) {
-            return ((IntValue) input).getValue().doubleValue();
-        } else if (input instanceof FloatValue) {
-            return ((FloatValue) input).getValue().doubleValue();
-        } else {
-            throw new CoercingParseLiteralException(
-                    "Expected type 'Int' or 'Float' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
-            );
-        }
+  @Override
+  public Double parseValue(Object input) {
+    Double result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingParseValueException(
+        "Expected type 'Float' but was '" + typeName(input) + "'."
+      );
     }
+    return result;
+  }
+
+  @Override
+  public Double parseLiteral(Object input) {
+    if (input instanceof IntValue) {
+      return ((IntValue)input).getValue().doubleValue();
+    }
+    else if (input instanceof FloatValue) {
+      return ((FloatValue)input).getValue().doubleValue();
+    }
+    else {
+      throw new CoercingParseLiteralException(
+        "Expected type 'Int' or 'Float' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
+      );
+    }
+  }
 }
 

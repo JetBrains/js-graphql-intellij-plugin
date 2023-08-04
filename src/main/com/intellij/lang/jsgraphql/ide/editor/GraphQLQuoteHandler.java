@@ -14,16 +14,15 @@ import com.intellij.openapi.editor.highlighter.HighlighterIterator;
 
 public class GraphQLQuoteHandler extends SimpleTokenSetQuoteHandler {
 
-    public GraphQLQuoteHandler() {
-        super(GraphQLExtendedElementTypes.SINGLE_QUOTES);
-    }
+  public GraphQLQuoteHandler() {
+    super(GraphQLExtendedElementTypes.SINGLE_QUOTES);
+  }
 
-    public boolean isOpeningQuote(final HighlighterIterator iterator, final int offset) {
-        return iterator.getTokenType() == GraphQLElementTypes.OPEN_QUOTE;
-    }
+  public boolean isOpeningQuote(final HighlighterIterator iterator, final int offset) {
+    return iterator.getTokenType() == GraphQLElementTypes.OPEN_QUOTE;
+  }
 
-    public boolean isClosingQuote(final HighlighterIterator iterator, final int offset) {
-        return iterator.getTokenType() == GraphQLElementTypes.CLOSING_QUOTE;
-    }
-
+  public boolean isClosingQuote(final HighlighterIterator iterator, final int offset) {
+    return iterator.getTokenType() == GraphQLElementTypes.CLOSING_QUOTE;
+  }
 }

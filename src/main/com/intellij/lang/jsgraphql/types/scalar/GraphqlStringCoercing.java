@@ -25,23 +25,23 @@ import com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException;
 
 @Internal
 public class GraphqlStringCoercing implements Coercing<String, String> {
-    @Override
-    public String serialize(Object input) {
-        return input.toString();
-    }
+  @Override
+  public String serialize(Object input) {
+    return input.toString();
+  }
 
-    @Override
-    public String parseValue(Object input) {
-        return serialize(input);
-    }
+  @Override
+  public String parseValue(Object input) {
+    return serialize(input);
+  }
 
-    @Override
-    public String parseLiteral(Object input) {
-        if (!(input instanceof StringValue)) {
-            throw new CoercingParseLiteralException(
-                    "Expected type 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
-            );
-        }
-        return ((StringValue) input).getValue();
+  @Override
+  public String parseLiteral(Object input) {
+    if (!(input instanceof StringValue)) {
+      throw new CoercingParseLiteralException(
+        "Expected type 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
+      );
     }
+    return ((StringValue)input).getValue();
+  }
 }

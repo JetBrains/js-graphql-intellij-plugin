@@ -30,19 +30,20 @@ import static java.lang.String.format;
 
 @Internal
 public class InterfaceFieldArgumentNotOptionalError extends BaseError {
-    public InterfaceFieldArgumentNotOptionalError(String typeOfType,
-                                                  ImplementingTypeDefinition typeDefinition,
-                                                  InterfaceTypeDefinition interfaceTypeDef,
-                                                  FieldDefinition objectFieldDef,
-                                                  InputValueDefinition objectArgDef,
-                                                  FieldDefinition interfaceFieldDef) {
-        super(objectArgDef, format("The %s type '%s' field '%s' defines an additional non-optional argument '%s' which is not allowed because field is also defined in interface '%s'.",
-            typeOfType, typeDefinition.getName(), objectFieldDef.getName(), objectArgDef.getName(), interfaceTypeDef.getName()));
-        addReferences(interfaceFieldDef);
-    }
+  public InterfaceFieldArgumentNotOptionalError(String typeOfType,
+                                                ImplementingTypeDefinition typeDefinition,
+                                                InterfaceTypeDefinition interfaceTypeDef,
+                                                FieldDefinition objectFieldDef,
+                                                InputValueDefinition objectArgDef,
+                                                FieldDefinition interfaceFieldDef) {
+    super(objectArgDef, format(
+      "The %s type '%s' field '%s' defines an additional non-optional argument '%s' which is not allowed because field is also defined in interface '%s'.",
+      typeOfType, typeDefinition.getName(), objectFieldDef.getName(), objectArgDef.getName(), interfaceTypeDef.getName()));
+    addReferences(interfaceFieldDef);
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLInterfaceImplementationInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLInterfaceImplementationInspection.class;
+  }
 }

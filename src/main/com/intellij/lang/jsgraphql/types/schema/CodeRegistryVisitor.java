@@ -30,43 +30,43 @@ import static com.intellij.lang.jsgraphql.types.util.TraversalControl.CONTINUE;
  */
 @Internal
 class CodeRegistryVisitor extends GraphQLTypeVisitorStub {
-    private final GraphQLCodeRegistry.Builder codeRegistry;
+  private final GraphQLCodeRegistry.Builder codeRegistry;
 
-    CodeRegistryVisitor(GraphQLCodeRegistry.Builder codeRegistry) {
-        this.codeRegistry = codeRegistry;
+  CodeRegistryVisitor(GraphQLCodeRegistry.Builder codeRegistry) {
+    this.codeRegistry = codeRegistry;
+  }
+
+  @Override
+  public TraversalControl visitGraphQLFieldDefinition(GraphQLFieldDefinition node, TraverserContext<GraphQLSchemaElement> context) {
+    GraphQLFieldsContainer parentContainerType = (GraphQLFieldsContainer)context.getParentContext().thisNode();
+    DataFetcher<?> dataFetcher = node.getDataFetcher();
+    if (dataFetcher != null) {
+      FieldCoordinates coordinates = coordinates(parentContainerType, node);
+      codeRegistry.dataFetcherIfAbsent(coordinates, dataFetcher);
     }
 
-    @Override
-    public TraversalControl visitGraphQLFieldDefinition(GraphQLFieldDefinition node, TraverserContext<GraphQLSchemaElement> context) {
-        GraphQLFieldsContainer parentContainerType = (GraphQLFieldsContainer) context.getParentContext().thisNode();
-        DataFetcher<?> dataFetcher = node.getDataFetcher();
-        if (dataFetcher != null) {
-            FieldCoordinates coordinates = coordinates(parentContainerType, node);
-            codeRegistry.dataFetcherIfAbsent(coordinates, dataFetcher);
-        }
+    return CONTINUE;
+  }
 
-        return CONTINUE;
+  @Override
+  public TraversalControl visitGraphQLInterfaceType(GraphQLInterfaceType node, TraverserContext<GraphQLSchemaElement> context) {
+    TypeResolver typeResolver = node.getTypeResolver();
+    if (typeResolver != null) {
+      codeRegistry.typeResolverIfAbsent(node, typeResolver);
     }
+    assertTrue(codeRegistry.getTypeResolver(node) != null,
+               () -> String.format("You MUST provide a type resolver for the interface type '%s'", node.getName()));
+    return CONTINUE;
+  }
 
-    @Override
-    public TraversalControl visitGraphQLInterfaceType(GraphQLInterfaceType node, TraverserContext<GraphQLSchemaElement> context) {
-        TypeResolver typeResolver = node.getTypeResolver();
-        if (typeResolver != null) {
-            codeRegistry.typeResolverIfAbsent(node, typeResolver);
-        }
-        assertTrue(codeRegistry.getTypeResolver(node) != null,
-                () -> String.format("You MUST provide a type resolver for the interface type '%s'",node.getName()));
-        return CONTINUE;
+  @Override
+  public TraversalControl visitGraphQLUnionType(GraphQLUnionType node, TraverserContext<GraphQLSchemaElement> context) {
+    TypeResolver typeResolver = node.getTypeResolver();
+    if (typeResolver != null) {
+      codeRegistry.typeResolverIfAbsent(node, typeResolver);
     }
-
-    @Override
-    public TraversalControl visitGraphQLUnionType(GraphQLUnionType node, TraverserContext<GraphQLSchemaElement> context) {
-        TypeResolver typeResolver = node.getTypeResolver();
-        if (typeResolver != null) {
-            codeRegistry.typeResolverIfAbsent(node, typeResolver);
-        }
-        assertTrue(codeRegistry.getTypeResolver(node) != null,
-                () -> String.format("You MUST provide a type resolver for the union type '%s'", node.getName()));
-        return CONTINUE;
-    }
+    assertTrue(codeRegistry.getTypeResolver(node) != null,
+               () -> String.format("You MUST provide a type resolver for the union type '%s'", node.getName()));
+    return CONTINUE;
+  }
 }

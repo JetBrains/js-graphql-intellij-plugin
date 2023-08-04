@@ -17,29 +17,29 @@ import com.intellij.lang.jsgraphql.types.schema.validation.InvalidSchemaExceptio
 import com.intellij.openapi.project.Project
 
 class GraphQLSchemaInfo(
-    val schema: GraphQLSchema,
-    private val additionalErrors: List<GraphQLException>,
-    val registryInfo: GraphQLRegistryInfo,
+  val schema: GraphQLSchema,
+  private val additionalErrors: List<GraphQLException>,
+  val registryInfo: GraphQLRegistryInfo,
 ) {
-    fun getErrors(project: Project): List<GraphQLError> {
-        val rawErrors: MutableList<GraphQLException> = Lists.newArrayList(additionalErrors)
-        rawErrors.addAll(registryInfo.errors)
-        rawErrors.addAll(schema.errors)
+  fun getErrors(project: Project): List<GraphQLError> {
+    val rawErrors: MutableList<GraphQLException> = Lists.newArrayList(additionalErrors)
+    rawErrors.addAll(registryInfo.errors)
+    rawErrors.addAll(schema.errors)
 
-        val errors = mutableListOf<GraphQLError>()
-        for (exception in rawErrors) {
-            when (exception) {
-                is SchemaProblem -> errors.addAll(exception.errors)
-                is GraphQLError -> errors.add(exception as GraphQLError)
-                is InvalidSchemaException -> errors.addAll(exception.errors)
-                else -> errors.add(GraphQLUnexpectedSchemaError(exception))
-            }
-        }
-
-        return errors.filter { error: GraphQLError ->
-            GraphQLErrorFilter.EP_NAME.extensionList.none { filter: GraphQLErrorFilter ->
-                filter.isGraphQLErrorSuppressed(project, error, null)
-            }
-        }
+    val errors = mutableListOf<GraphQLError>()
+    for (exception in rawErrors) {
+      when (exception) {
+        is SchemaProblem -> errors.addAll(exception.errors)
+        is GraphQLError -> errors.add(exception as GraphQLError)
+        is InvalidSchemaException -> errors.addAll(exception.errors)
+        else -> errors.add(GraphQLUnexpectedSchemaError(exception))
+      }
     }
+
+    return errors.filter { error: GraphQLError ->
+      GraphQLErrorFilter.EP_NAME.extensionList.none { filter: GraphQLErrorFilter ->
+        filter.isGraphQLErrorSuppressed(project, error, null)
+      }
+    }
+  }
 }

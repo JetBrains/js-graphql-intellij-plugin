@@ -31,47 +31,49 @@ import java.util.function.Supplier;
  */
 @PublicApi
 public class InstrumentationFieldParameters {
-    private final ExecutionContext executionContext;
-    private final Supplier<ExecutionStepInfo> executionStepInfo;
-    private final InstrumentationState instrumentationState;
+  private final ExecutionContext executionContext;
+  private final Supplier<ExecutionStepInfo> executionStepInfo;
+  private final InstrumentationState instrumentationState;
 
-    public InstrumentationFieldParameters(ExecutionContext executionContext, Supplier<ExecutionStepInfo> executionStepInfo) {
-        this(executionContext, executionStepInfo, executionContext.getInstrumentationState());
-    }
+  public InstrumentationFieldParameters(ExecutionContext executionContext, Supplier<ExecutionStepInfo> executionStepInfo) {
+    this(executionContext, executionStepInfo, executionContext.getInstrumentationState());
+  }
 
-    InstrumentationFieldParameters(ExecutionContext executionContext, Supplier<ExecutionStepInfo> executionStepInfo, InstrumentationState instrumentationState) {
-        this.executionContext = executionContext;
-        this.executionStepInfo = executionStepInfo;
-        this.instrumentationState = instrumentationState;
-    }
+  InstrumentationFieldParameters(ExecutionContext executionContext,
+                                 Supplier<ExecutionStepInfo> executionStepInfo,
+                                 InstrumentationState instrumentationState) {
+    this.executionContext = executionContext;
+    this.executionStepInfo = executionStepInfo;
+    this.instrumentationState = instrumentationState;
+  }
 
-    /**
-     * Returns a cloned parameters object with the new state
-     *
-     * @param instrumentationState the new state for this parameters object
-     * @return a new parameters object with the new state
-     */
-    public InstrumentationFieldParameters withNewState(InstrumentationState instrumentationState) {
-        return new InstrumentationFieldParameters(
-                this.executionContext, this.executionStepInfo, instrumentationState);
-    }
+  /**
+   * Returns a cloned parameters object with the new state
+   *
+   * @param instrumentationState the new state for this parameters object
+   * @return a new parameters object with the new state
+   */
+  public InstrumentationFieldParameters withNewState(InstrumentationState instrumentationState) {
+    return new InstrumentationFieldParameters(
+      this.executionContext, this.executionStepInfo, instrumentationState);
+  }
 
 
-    public ExecutionContext getExecutionContext() {
-        return executionContext;
-    }
+  public ExecutionContext getExecutionContext() {
+    return executionContext;
+  }
 
-    public GraphQLFieldDefinition getField() {
-        return executionStepInfo.get().getFieldDefinition();
-    }
+  public GraphQLFieldDefinition getField() {
+    return executionStepInfo.get().getFieldDefinition();
+  }
 
-    public ExecutionStepInfo getExecutionStepInfo() {
-        return executionStepInfo.get();
-    }
+  public ExecutionStepInfo getExecutionStepInfo() {
+    return executionStepInfo.get();
+  }
 
-    @SuppressWarnings("TypeParameterUnusedInFormals")
-    public <T extends InstrumentationState> T getInstrumentationState() {
-        //noinspection unchecked
-        return (T) instrumentationState;
-    }
+  @SuppressWarnings("TypeParameterUnusedInFormals")
+  public <T extends InstrumentationState> T getInstrumentationState() {
+    //noinspection unchecked
+    return (T)instrumentationState;
+  }
 }

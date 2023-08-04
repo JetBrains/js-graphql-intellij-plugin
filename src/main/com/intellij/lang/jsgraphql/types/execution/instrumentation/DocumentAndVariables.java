@@ -28,48 +28,48 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 
 @PublicApi
 public class DocumentAndVariables {
-    private final Document document;
-    private final ImmutableMapWithNullValues<String, Object> variables;
+  private final Document document;
+  private final ImmutableMapWithNullValues<String, Object> variables;
 
-    private DocumentAndVariables(Document document, Map<String, Object> variables) {
-        this.document = assertNotNull(document);
-        this.variables = ImmutableMapWithNullValues.copyOf(assertNotNull(variables));
+  private DocumentAndVariables(Document document, Map<String, Object> variables) {
+    this.document = assertNotNull(document);
+    this.variables = ImmutableMapWithNullValues.copyOf(assertNotNull(variables));
+  }
+
+  public Document getDocument() {
+    return document;
+  }
+
+  public Map<String, Object> getVariables() {
+    return variables;
+  }
+
+  public DocumentAndVariables transform(Consumer<Builder> builderConsumer) {
+    Builder builder = new Builder().document(this.document).variables(this.variables);
+    builderConsumer.accept(builder);
+    return builder.build();
+  }
+
+  public static Builder newDocumentAndVariables() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    private Document document;
+    private Map<String, Object> variables;
+
+    public Builder document(Document document) {
+      this.document = document;
+      return this;
     }
 
-    public Document getDocument() {
-        return document;
+    public Builder variables(Map<String, Object> variables) {
+      this.variables = variables;
+      return this;
     }
 
-    public Map<String, Object> getVariables() {
-        return variables;
+    public DocumentAndVariables build() {
+      return new DocumentAndVariables(document, variables);
     }
-
-    public DocumentAndVariables transform(Consumer<Builder> builderConsumer) {
-        Builder builder = new Builder().document(this.document).variables(this.variables);
-        builderConsumer.accept(builder);
-        return builder.build();
-    }
-
-    public static Builder newDocumentAndVariables() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private Document document;
-        private Map<String, Object> variables;
-
-        public Builder document(Document document) {
-            this.document = document;
-            return this;
-        }
-
-        public Builder variables(Map<String, Object> variables) {
-            this.variables = variables;
-            return this;
-        }
-
-        public DocumentAndVariables build() {
-            return new DocumentAndVariables(document, variables);
-        }
-    }
+  }
 }

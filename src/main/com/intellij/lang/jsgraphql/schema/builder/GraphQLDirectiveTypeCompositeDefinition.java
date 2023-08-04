@@ -6,11 +6,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphQLDirectiveTypeCompositeDefinition extends GraphQLCompositeDefinition<DirectiveDefinition> {
 
-    @NotNull
-    @Override
-    protected DirectiveDefinition mergeDefinitions() {
-        DirectiveDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
-        return definition.transform(builder -> builder.sourceNodes(myDefinitions));
-    }
-
+  @NotNull
+  @Override
+  protected DirectiveDefinition mergeDefinitions() {
+    DirectiveDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+    return definition.transform(builder -> builder.sourceNodes(myDefinitions));
+  }
 }

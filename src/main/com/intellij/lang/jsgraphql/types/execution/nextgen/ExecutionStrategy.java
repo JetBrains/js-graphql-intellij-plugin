@@ -26,6 +26,5 @@ import java.util.concurrent.CompletableFuture;
 @Internal
 public interface ExecutionStrategy {
 
-    CompletableFuture<ExecutionResult> execute(ExecutionContext context);
-
+  CompletableFuture<ExecutionResult> execute(ExecutionContext context);
 }

@@ -8,15 +8,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface GraphQLErrorFilter {
-    ExtensionPointName<GraphQLErrorFilter> EP_NAME = new ExtensionPointName<>("com.intellij.lang.jsgraphql.errorFilter");
+  ExtensionPointName<GraphQLErrorFilter> EP_NAME = new ExtensionPointName<>("com.intellij.lang.jsgraphql.errorFilter");
 
-    default boolean isGraphQLErrorSuppressed(@NotNull Project project, @NotNull GraphQLError error, @Nullable PsiElement element) {
-        return false;
-    }
+  default boolean isGraphQLErrorSuppressed(@NotNull Project project, @NotNull GraphQLError error, @Nullable PsiElement element) {
+    return false;
+  }
 
-    default boolean isInspectionSuppressed(@NotNull Project project,
-                                           @NotNull String toolId,
-                                           @NotNull PsiElement element) {
-        return false;
-    }
+  default boolean isInspectionSuppressed(@NotNull Project project,
+                                         @NotNull String toolId,
+                                         @NotNull PsiElement element) {
+    return false;
+  }
 }

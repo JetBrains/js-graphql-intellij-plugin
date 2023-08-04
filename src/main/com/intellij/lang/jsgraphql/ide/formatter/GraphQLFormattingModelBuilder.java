@@ -15,17 +15,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class GraphQLFormattingModelBuilder implements FormattingModelBuilder {
-    @Override
-    public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
-        return FormattingModelProvider.createFormattingModelForPsiFile(
-            formattingContext.getContainingFile(),
-            new GraphQLBlock(formattingContext.getNode(), Wrap.createWrap(WrapType.NONE, false), null),
-            formattingContext.getCodeStyleSettings());
-    }
+  @Override
+  public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
+    return FormattingModelProvider.createFormattingModelForPsiFile(
+      formattingContext.getContainingFile(),
+      new GraphQLBlock(formattingContext.getNode(), Wrap.createWrap(WrapType.NONE, false), null),
+      formattingContext.getCodeStyleSettings());
+  }
 
-    @Nullable
-    @Override
-    public TextRange getRangeAffectingIndent(PsiFile file, int offset, ASTNode elementAtOffset) {
-        return null;
-    }
+  @Nullable
+  @Override
+  public TextRange getRangeAffectingIndent(PsiFile file, int offset, ASTNode elementAtOffset) {
+    return null;
+  }
 }

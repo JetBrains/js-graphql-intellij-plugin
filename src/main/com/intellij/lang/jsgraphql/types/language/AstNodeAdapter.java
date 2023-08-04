@@ -30,26 +30,25 @@ import java.util.Map;
 @PublicApi
 public class AstNodeAdapter implements NodeAdapter<Node> {
 
-    public static final AstNodeAdapter AST_NODE_ADAPTER = new AstNodeAdapter();
+  public static final AstNodeAdapter AST_NODE_ADAPTER = new AstNodeAdapter();
 
-    private AstNodeAdapter() {
+  private AstNodeAdapter() {
 
-    }
+  }
 
-    @Override
-    public Map<String, List<Node>> getNamedChildren(Node node) {
-        return node.getNamedChildren().getChildren();
-    }
+  @Override
+  public Map<String, List<Node>> getNamedChildren(Node node) {
+    return node.getNamedChildren().getChildren();
+  }
 
-    @Override
-    public Node withNewChildren(Node node, Map<String, List<Node>> newChildren) {
-        NodeChildrenContainer nodeChildrenContainer = NodeChildrenContainer.newNodeChildrenContainer(newChildren).build();
-        return node.withNewChildren(nodeChildrenContainer);
-    }
+  @Override
+  public Node withNewChildren(Node node, Map<String, List<Node>> newChildren) {
+    NodeChildrenContainer nodeChildrenContainer = NodeChildrenContainer.newNodeChildrenContainer(newChildren).build();
+    return node.withNewChildren(nodeChildrenContainer);
+  }
 
-    @Override
-    public Node removeChild(Node node, NodeLocation location) {
-        return NodeUtil.removeChild(node, location);
-    }
-
+  @Override
+  public Node removeChild(Node node, NodeLocation location) {
+    return NodeUtil.removeChild(node, location);
+  }
 }

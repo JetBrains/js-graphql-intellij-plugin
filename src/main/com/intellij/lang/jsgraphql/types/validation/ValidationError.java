@@ -37,160 +37,160 @@ import java.util.Map;
 @PublicApi
 public class ValidationError implements GraphQLError {
 
-    private final String message;
-    private final List<SourceLocation> locations = new ArrayList<>();
-    private final String description;
-    private final ValidationErrorType validationErrorType;
-    private final List<String> queryPath;
-    private final Map<String, Object> extensions;
-    private final Node node;
-    private final Class<? extends GraphQLInspection> inspectionClass;
+  private final String message;
+  private final List<SourceLocation> locations = new ArrayList<>();
+  private final String description;
+  private final ValidationErrorType validationErrorType;
+  private final List<String> queryPath;
+  private final Map<String, Object> extensions;
+  private final Node node;
+  private final Class<? extends GraphQLInspection> inspectionClass;
 
-    private ValidationError(Builder builder) {
-        this.validationErrorType = builder.validationErrorType;
-        if (builder.sourceLocations != null) {
-            this.locations.addAll(builder.sourceLocations);
-        }
-        this.description = builder.description;
-        this.message = mkMessage(builder.validationErrorType, builder.description, builder.queryPath);
-        this.queryPath = builder.queryPath;
-        this.extensions = builder.extensions;
-        this.node = builder.node;
-        this.inspectionClass = builder.inspectionClass;
+  private ValidationError(Builder builder) {
+    this.validationErrorType = builder.validationErrorType;
+    if (builder.sourceLocations != null) {
+      this.locations.addAll(builder.sourceLocations);
+    }
+    this.description = builder.description;
+    this.message = mkMessage(builder.validationErrorType, builder.description, builder.queryPath);
+    this.queryPath = builder.queryPath;
+    this.extensions = builder.extensions;
+    this.node = builder.node;
+    this.inspectionClass = builder.inspectionClass;
+  }
+
+  private String mkMessage(ValidationErrorType validationErrorType, String description, List<String> queryPath) {
+    return String.format("Validation error of type %s: %s%s", validationErrorType, description, toPath(queryPath));
+  }
+
+  private String toPath(List<String> queryPath) {
+    if (queryPath == null) {
+      return "";
+    }
+    return String.format(" @ '%s'", String.join("/", queryPath));
+  }
+
+  public ValidationErrorType getValidationErrorType() {
+    return validationErrorType;
+  }
+
+  @Override
+  public String getMessage() {
+    return message;
+  }
+
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  public List<SourceLocation> getLocations() {
+    return locations;
+  }
+
+  @Override
+  public ErrorType getErrorType() {
+    return ErrorType.ValidationError;
+  }
+
+  public List<String> getQueryPath() {
+    return queryPath;
+  }
+
+  @Override
+  public Map<String, Object> getExtensions() {
+    return extensions;
+  }
+
+  @Override
+  public @Nullable Node getNode() {
+    return this.node;
+  }
+
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return ObjectUtils.coalesce(inspectionClass, GraphQLError.super.getInspectionClass());
+  }
+
+  @Override
+  public String toString() {
+    return "ValidationError{" +
+           "validationErrorType=" + validationErrorType +
+           ", queryPath=" + queryPath +
+           ", message=" + message +
+           ", locations=" + locations +
+           ", description='" + description + '\'' +
+           '}';
+  }
+
+  @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+  @Override
+  public boolean equals(Object o) {
+    return GraphqlErrorHelper.equals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return GraphqlErrorHelper.hashCode(this);
+  }
+
+
+  public static Builder newValidationError() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    private List<SourceLocation> sourceLocations;
+    private Map<String, Object> extensions;
+    private String description;
+    private ValidationErrorType validationErrorType;
+    private List<String> queryPath;
+    private Node node;
+    private Class<? extends GraphQLInspection> inspectionClass;
+
+
+    public Builder validationErrorType(ValidationErrorType validationErrorType) {
+      this.validationErrorType = validationErrorType;
+      return this;
     }
 
-    private String mkMessage(ValidationErrorType validationErrorType, String description, List<String> queryPath) {
-        return String.format("Validation error of type %s: %s%s", validationErrorType, description, toPath(queryPath));
+    public Builder description(String description) {
+      this.description = description;
+      return this;
     }
 
-    private String toPath(List<String> queryPath) {
-        if (queryPath == null) {
-            return "";
-        }
-        return String.format(" @ '%s'", String.join("/", queryPath));
+    public Builder queryPath(List<String> queryPath) {
+      this.queryPath = queryPath;
+      return this;
     }
 
-    public ValidationErrorType getValidationErrorType() {
-        return validationErrorType;
+    public Builder sourceLocation(SourceLocation sourceLocation) {
+      this.sourceLocations = sourceLocation == null ? null : Collections.singletonList(sourceLocation);
+      return this;
     }
 
-    @Override
-    public String getMessage() {
-        return message;
+    public Builder sourceLocations(List<SourceLocation> sourceLocations) {
+      this.sourceLocations = sourceLocations;
+      return this;
     }
 
-    public String getDescription() {
-        return description;
+    public Builder extensions(Map<String, Object> extensions) {
+      this.extensions = extensions;
+      return this;
     }
 
-    @Override
-    public List<SourceLocation> getLocations() {
-        return locations;
+    public Builder node(@Nullable Node node) {
+      this.node = node;
+      return this;
     }
 
-    @Override
-    public ErrorType getErrorType() {
-        return ErrorType.ValidationError;
+    public Builder inspectionClass(@NotNull Class<? extends GraphQLInspection> inspectionClass) {
+      this.inspectionClass = inspectionClass;
+      return this;
     }
 
-    public List<String> getQueryPath() {
-        return queryPath;
+    public ValidationError build() {
+      return new ValidationError(this);
     }
-
-    @Override
-    public Map<String, Object> getExtensions() {
-        return extensions;
-    }
-
-    @Override
-    public @Nullable Node getNode() {
-        return this.node;
-    }
-
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return ObjectUtils.coalesce(inspectionClass, GraphQLError.super.getInspectionClass());
-    }
-
-    @Override
-    public String toString() {
-        return "ValidationError{" +
-            "validationErrorType=" + validationErrorType +
-            ", queryPath=" + queryPath +
-            ", message=" + message +
-            ", locations=" + locations +
-            ", description='" + description + '\'' +
-            '}';
-    }
-
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-    @Override
-    public boolean equals(Object o) {
-        return GraphqlErrorHelper.equals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return GraphqlErrorHelper.hashCode(this);
-    }
-
-
-    public static Builder newValidationError() {
-        return new Builder();
-    }
-
-    public static class Builder {
-        private List<SourceLocation> sourceLocations;
-        private Map<String, Object> extensions;
-        private String description;
-        private ValidationErrorType validationErrorType;
-        private List<String> queryPath;
-        private Node node;
-        private Class<? extends GraphQLInspection> inspectionClass;
-
-
-        public Builder validationErrorType(ValidationErrorType validationErrorType) {
-            this.validationErrorType = validationErrorType;
-            return this;
-        }
-
-        public Builder description(String description) {
-            this.description = description;
-            return this;
-        }
-
-        public Builder queryPath(List<String> queryPath) {
-            this.queryPath = queryPath;
-            return this;
-        }
-
-        public Builder sourceLocation(SourceLocation sourceLocation) {
-            this.sourceLocations = sourceLocation == null ? null : Collections.singletonList(sourceLocation);
-            return this;
-        }
-
-        public Builder sourceLocations(List<SourceLocation> sourceLocations) {
-            this.sourceLocations = sourceLocations;
-            return this;
-        }
-
-        public Builder extensions(Map<String, Object> extensions) {
-            this.extensions = extensions;
-            return this;
-        }
-
-        public Builder node(@Nullable Node node) {
-            this.node = node;
-            return this;
-        }
-
-        public Builder inspectionClass(@NotNull Class<? extends GraphQLInspection> inspectionClass) {
-            this.inspectionClass = inspectionClass;
-            return this;
-        }
-
-        public ValidationError build() {
-            return new ValidationError(this);
-        }
-    }
+  }
 }

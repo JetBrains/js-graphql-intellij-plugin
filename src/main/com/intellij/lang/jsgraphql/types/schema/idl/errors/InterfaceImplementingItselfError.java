@@ -27,13 +27,13 @@ import static java.lang.String.format;
 
 @Internal
 public class InterfaceImplementingItselfError extends BaseError {
-    public InterfaceImplementingItselfError(String typeOfType, ImplementingTypeDefinition typeDefinition) {
-        super(typeDefinition, format("The %s type '%s' cannot implement itself",
-            typeOfType, typeDefinition.getName()));
-    }
+  public InterfaceImplementingItselfError(String typeOfType, ImplementingTypeDefinition typeDefinition) {
+    super(typeDefinition, format("The %s type '%s' cannot implement itself",
+                                 typeOfType, typeDefinition.getName()));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLInterfaceImplementationInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLInterfaceImplementationInspection.class;
+  }
 }

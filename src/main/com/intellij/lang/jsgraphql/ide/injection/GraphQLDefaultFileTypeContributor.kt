@@ -6,11 +6,11 @@ import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.openapi.fileTypes.FileType
 
 class GraphQLDefaultFileTypeContributor : GraphQLFileTypeContributor {
-    override fun getFileTypes(): Collection<FileType> {
-        return setOf(
-            GraphQLFileType.INSTANCE,
-            JsonFileType.INSTANCE,
-            HtmlFileType.INSTANCE,
-        )
-    }
+  override fun getFileTypes(): Collection<FileType> {
+    return setOf(
+      GraphQLFileType.INSTANCE,
+      JsonFileType.INSTANCE,
+      HtmlFileType.INSTANCE,
+    )
+  }
 }

@@ -10,40 +10,41 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiModificationTracker
 
 open class GraphQLConfigScope(
-    project: Project,
-    baseScope: GlobalSearchScope,
-    protected val projectConfig: GraphQLProjectConfig,
+  project: Project,
+  baseScope: GlobalSearchScope,
+  protected val projectConfig: GraphQLProjectConfig,
 ) : DelegatingGlobalSearchScope(baseScope, projectConfig) {
 
-    private val psiManager = PsiManager.getInstance(project)
-    private val configProvider = GraphQLConfigProvider.getInstance(project)
+  private val psiManager = PsiManager.getInstance(project)
+  private val configProvider = GraphQLConfigProvider.getInstance(project)
 
-    private val matchingFiles =
-        GraphQLFileMatcherCache.newInstance(project, PsiModificationTracker.MODIFICATION_COUNT)
+  private val matchingFiles =
+    GraphQLFileMatcherCache.newInstance(project, PsiModificationTracker.MODIFICATION_COUNT)
 
-    final override fun contains(file: VirtualFile): Boolean {
-        if (!super.contains(file)) {
-            return false
-        }
-
-        return matchingFiles.value.match(file, ::match)
+  final override fun contains(file: VirtualFile): Boolean {
+    if (!super.contains(file)) {
+      return false
     }
 
-    protected open fun match(file: VirtualFile): Boolean {
-        val psiFile = psiManager.findFile(file) ?: return false
-        val matchingConfig = configProvider.resolveProjectConfig(psiFile) ?: return false
-        if (projectConfig == matchingConfig) {
-            return true
-        }
-        if (projectConfig.rootConfig != matchingConfig.rootConfig) {
-            return false
-        }
-        // a resolved config could be just a first one matching or even a fallback,
-        // so to support shared files between projects we need to match them manually
-        return if (projectConfig.rootConfig.requiresSchemaStrictMatch(file)) {
-            projectConfig.matchesSchema(psiFile)
-        } else {
-            projectConfig.matches(psiFile)
-        }
+    return matchingFiles.value.match(file, ::match)
+  }
+
+  protected open fun match(file: VirtualFile): Boolean {
+    val psiFile = psiManager.findFile(file) ?: return false
+    val matchingConfig = configProvider.resolveProjectConfig(psiFile) ?: return false
+    if (projectConfig == matchingConfig) {
+      return true
     }
+    if (projectConfig.rootConfig != matchingConfig.rootConfig) {
+      return false
+    }
+    // a resolved config could be just a first one matching or even a fallback,
+    // so to support shared files between projects we need to match them manually
+    return if (projectConfig.rootConfig.requiresSchemaStrictMatch(file)) {
+      projectConfig.matchesSchema(psiFile)
+    }
+    else {
+      projectConfig.matches(psiFile)
+    }
+  }
 }

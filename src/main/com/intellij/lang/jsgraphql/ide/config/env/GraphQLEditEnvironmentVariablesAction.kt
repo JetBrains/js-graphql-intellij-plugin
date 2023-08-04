@@ -8,56 +8,60 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.openapi.actionSystem.*
 
 class GraphQLEditEnvironmentVariablesAction : AnAction(
-    GraphQLBundle.messagePointer("graphql.action.edit.environment.variables.title"),
-    AllIcons.Actions.Properties,
+  GraphQLBundle.messagePointer("graphql.action.edit.environment.variables.title"),
+  AllIcons.Actions.Properties,
 ) {
-    companion object {
-        const val ACTION_ID = "GraphQLEditEnvironmentVariables"
+  companion object {
+    const val ACTION_ID = "GraphQLEditEnvironmentVariables"
+  }
+
+  override fun update(e: AnActionEvent) {
+    val project = e.project ?: return
+    val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
+    val provider = GraphQLConfigProvider.getInstance(project)
+    val inToolbar = e.place == ActionPlaces.EDITOR_TOOLBAR
+
+    val environment = if (virtualFile.name in CONFIG_NAMES) {
+      provider.getForConfigFile(virtualFile)?.environment
+    }
+    else if (GraphQLFileType.isGraphQLFile(project, virtualFile) && inToolbar) {
+      provider.resolveProjectConfig(virtualFile)?.rootConfig?.environment
+    }
+    else {
+      null
     }
 
-    override fun update(e: AnActionEvent) {
-        val project = e.project ?: return
-        val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-        val provider = GraphQLConfigProvider.getInstance(project)
-        val inToolbar = e.place == ActionPlaces.EDITOR_TOOLBAR
+    val isEnabled = environment?.hasVariables ?: false
+    val isVisible = environment != null
 
-        val environment = if (virtualFile.name in CONFIG_NAMES) {
-            provider.getForConfigFile(virtualFile)?.environment
-        } else if (GraphQLFileType.isGraphQLFile(project, virtualFile) && inToolbar) {
-            provider.resolveProjectConfig(virtualFile)?.rootConfig?.environment
-        } else {
-            null
-        }
-
-        val isEnabled = environment?.hasVariables ?: false
-        val isVisible = environment != null
-
-        val title = if (inToolbar) {
-            GraphQLBundle.message("graphql.action.edit.environment.variables.toolbar.title")
-        } else {
-            GraphQLBundle.message("graphql.action.edit.environment.variables.title")
-        }
-
-        e.presentation.text = title
-        e.presentation.isEnabled = isEnabled
-        e.presentation.isVisible = isVisible
+    val title = if (inToolbar) {
+      GraphQLBundle.message("graphql.action.edit.environment.variables.toolbar.title")
+    }
+    else {
+      GraphQLBundle.message("graphql.action.edit.environment.variables.title")
     }
 
-    override fun getActionUpdateThread(): ActionUpdateThread {
-        return ActionUpdateThread.BGT
+    e.presentation.text = title
+    e.presentation.isEnabled = isEnabled
+    e.presentation.isVisible = isVisible
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
+    val provider = GraphQLConfigProvider.getInstance(project)
+
+    val environment = if (virtualFile.name in CONFIG_NAMES) {
+      provider.getForConfigFile(virtualFile)?.environment
     }
+                      else {
+      provider.resolveProjectConfig(virtualFile)?.rootConfig?.environment
+    } ?: return
 
-    override fun actionPerformed(e: AnActionEvent) {
-        val project = e.project ?: return
-        val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-        val provider = GraphQLConfigProvider.getInstance(project)
-
-        val environment = if (virtualFile.name in CONFIG_NAMES) {
-            provider.getForConfigFile(virtualFile)?.environment
-        } else {
-            provider.resolveProjectConfig(virtualFile)?.rootConfig?.environment
-        } ?: return
-
-        GraphQLEnvironmentVariablesDialog(project, environment, virtualFile, false).show()
-    }
+    GraphQLEnvironmentVariablesDialog(project, environment, virtualFile, false).show()
+  }
 }

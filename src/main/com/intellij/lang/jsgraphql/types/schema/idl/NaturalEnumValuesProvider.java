@@ -27,15 +27,15 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 public class NaturalEnumValuesProvider<T extends Enum<T>> implements EnumValuesProvider {
 
 
-    private final Class<T> enumType;
+  private final Class<T> enumType;
 
-    public NaturalEnumValuesProvider(Class<T> enumType) {
-        Assert.assertNotNull(enumType, () -> "enumType can't be null");
-        this.enumType = enumType;
-    }
+  public NaturalEnumValuesProvider(Class<T> enumType) {
+    Assert.assertNotNull(enumType, () -> "enumType can't be null");
+    this.enumType = enumType;
+  }
 
-    @Override
-    public T getValue(String name) {
-        return Enum.valueOf(enumType, name);
-    }
+  @Override
+  public T getValue(String name) {
+    return Enum.valueOf(enumType, name);
+  }
 }

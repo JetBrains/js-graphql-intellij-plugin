@@ -19,34 +19,37 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implements GraphQLField, GraphQLTypeScopeProvider {
-    public GraphQLFieldMixin(@NotNull ASTNode node) {
-        super(node);
-    }
+  public GraphQLFieldMixin(@NotNull ASTNode node) {
+    super(node);
+  }
 
-    @Override
-    public GraphQLType getTypeScope() {
-        final String fieldName = this.getName();
-        if (fieldName != null) {
-            // the type scope for a field is the output type of the field, given the name of the field and its parent
-            final GraphQLTypeScopeProvider parentTypeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLTypeScopeProvider.class);
-            if (parentTypeScopeProvider != null) {
-                GraphQLType parentType = parentTypeScopeProvider.getTypeScope();
-                if (parentType != null) {
-                    // found a parent operation, field, or fragment
-                    parentType = GraphQLSchemaUtil.getUnmodifiedType(parentType); // unwrap list, non-null since we want a specific field
-                    if (parentType instanceof GraphQLFieldsContainer) {
-                        final com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer) parentType).getFieldDefinition(fieldName);
-                        if (fieldDefinition != null) {
-                            return fieldDefinition.getType();
-                        } else if (fieldName.equals(GraphQLConstants.Schema.__TYPE)) {
-                            return Introspection.__Type;
-                        } else if (fieldName.equals(GraphQLConstants.Schema.__SCHEMA)) {
-                            return Introspection.__Schema;
-                        }
-                    }
-                }
+  @Override
+  public GraphQLType getTypeScope() {
+    final String fieldName = this.getName();
+    if (fieldName != null) {
+      // the type scope for a field is the output type of the field, given the name of the field and its parent
+      final GraphQLTypeScopeProvider parentTypeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLTypeScopeProvider.class);
+      if (parentTypeScopeProvider != null) {
+        GraphQLType parentType = parentTypeScopeProvider.getTypeScope();
+        if (parentType != null) {
+          // found a parent operation, field, or fragment
+          parentType = GraphQLSchemaUtil.getUnmodifiedType(parentType); // unwrap list, non-null since we want a specific field
+          if (parentType instanceof GraphQLFieldsContainer) {
+            final com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition =
+              ((GraphQLFieldsContainer)parentType).getFieldDefinition(fieldName);
+            if (fieldDefinition != null) {
+              return fieldDefinition.getType();
             }
+            else if (fieldName.equals(GraphQLConstants.Schema.__TYPE)) {
+              return Introspection.__Type;
+            }
+            else if (fieldName.equals(GraphQLConstants.Schema.__SCHEMA)) {
+              return Introspection.__Schema;
+            }
+          }
         }
-        return null;
+      }
     }
+    return null;
+  }
 }

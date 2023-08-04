@@ -11,27 +11,27 @@ import com.intellij.psi.search.DelegatingGlobalSearchScope
 private const val META_INF_DIR = "META-INF/schema"
 
 class GraphQLMetaInfSchemaSearchScope(project: Project) :
-    DelegatingGlobalSearchScope(getScopeRestrictedByFileTypes(allScope(project), GraphQLFileType.INSTANCE)) {
+  DelegatingGlobalSearchScope(getScopeRestrictedByFileTypes(allScope(project), GraphQLFileType.INSTANCE)) {
 
-    private val index: ProjectFileIndex = ProjectRootManager.getInstance(project).fileIndex
+  private val index: ProjectFileIndex = ProjectRootManager.getInstance(project).fileIndex
 
-    override fun contains(file: VirtualFile): Boolean {
-        return super.contains(file)
-            && index.isInLibrary(file)
-            && index.isInLibraryClasses(file)
-            && file.parent != null
-            && file.parent.path.endsWith(META_INF_DIR)
-    }
+  override fun contains(file: VirtualFile): Boolean {
+    return super.contains(file)
+           && index.isInLibrary(file)
+           && index.isInLibraryClasses(file)
+           && file.parent != null
+           && file.parent.path.endsWith(META_INF_DIR)
+  }
 
-    override fun isSearchInModuleContent(aModule: Module): Boolean {
-        return false
-    }
+  override fun isSearchInModuleContent(aModule: Module): Boolean {
+    return false
+  }
 
-    override fun isSearchInLibraries(): Boolean {
-        return true
-    }
+  override fun isSearchInLibraries(): Boolean {
+    return true
+  }
 
-    override fun toString(): String {
-        return "META-INF/schema files in Libraries in ($myBaseScope)"
-    }
+  override fun toString(): String {
+    return "META-INF/schema files in Libraries in ($myBaseScope)"
+  }
 }

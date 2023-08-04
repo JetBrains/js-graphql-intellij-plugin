@@ -14,16 +14,16 @@ import org.jetbrains.annotations.Nullable;
 
 public interface GraphQLCommentBasedInjectionHelper {
 
-    @Nullable
-    static GraphQLCommentBasedInjectionHelper getInstance() {
-        return ApplicationManager.getApplication().getService(GraphQLCommentBasedInjectionHelper.class);
-    }
+  @Nullable
+  static GraphQLCommentBasedInjectionHelper getInstance() {
+    return ApplicationManager.getApplication().getService(GraphQLCommentBasedInjectionHelper.class);
+  }
 
-    /**
-     * Gets whether the specified host element has a GraphQL injection based a language=GraphQL comment
-     *
-     * @param host the host to check
-     * @return <code>true</code> if the host has an active GraphQL injection, <code>false</code> otherwise
-     */
-    boolean isGraphQLInjectedUsingComment(@NotNull PsiElement host);
+  /**
+   * Gets whether the specified host element has a GraphQL injection based a language=GraphQL comment
+   *
+   * @param host the host to check
+   * @return <code>true</code> if the host has an active GraphQL injection, <code>false</code> otherwise
+   */
+  boolean isGraphQLInjectedUsingComment(@NotNull PsiElement host);
 }

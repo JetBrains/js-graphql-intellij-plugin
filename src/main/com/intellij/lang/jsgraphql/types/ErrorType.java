@@ -23,10 +23,10 @@ package com.intellij.lang.jsgraphql.types;
  */
 @PublicApi
 public enum ErrorType implements ErrorClassification {
-    InvalidSyntax,
-    ValidationError,
-    DataFetchingException,
-    NullValueInNonNullableField,
-    OperationNotSupported,
-    ExecutionAborted
+  InvalidSyntax,
+  ValidationError,
+  DataFetchingException,
+  NullValueInNonNullableField,
+  OperationNotSupported,
+  ExecutionAborted
 }

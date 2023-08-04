@@ -32,39 +32,45 @@ import java.util.OptionalLong;
 public class DefaultValueUnboxer implements ValueUnboxer {
 
 
-    @Override
-    public Object unbox(final Object object) {
-        return unboxValue(object);
+  @Override
+  public Object unbox(final Object object) {
+    return unboxValue(object);
+  }
+
+  @Internal // used by next-gen at the moment
+  public static Object unboxValue(Object result) {
+    if (result instanceof Optional) {
+      Optional optional = (Optional)result;
+      return optional.orElse(null);
+    }
+    else if (result instanceof OptionalInt) {
+      OptionalInt optional = (OptionalInt)result;
+      if (optional.isPresent()) {
+        return optional.getAsInt();
+      }
+      else {
+        return null;
+      }
+    }
+    else if (result instanceof OptionalDouble) {
+      OptionalDouble optional = (OptionalDouble)result;
+      if (optional.isPresent()) {
+        return optional.getAsDouble();
+      }
+      else {
+        return null;
+      }
+    }
+    else if (result instanceof OptionalLong) {
+      OptionalLong optional = (OptionalLong)result;
+      if (optional.isPresent()) {
+        return optional.getAsLong();
+      }
+      else {
+        return null;
+      }
     }
 
-    @Internal // used by next-gen at the moment
-    public static Object unboxValue(Object result) {
-        if (result instanceof Optional) {
-            Optional optional = (Optional) result;
-            return optional.orElse(null);
-        } else if (result instanceof OptionalInt) {
-            OptionalInt optional = (OptionalInt) result;
-            if (optional.isPresent()) {
-                return optional.getAsInt();
-            } else {
-                return null;
-            }
-        } else if (result instanceof OptionalDouble) {
-            OptionalDouble optional = (OptionalDouble) result;
-            if (optional.isPresent()) {
-                return optional.getAsDouble();
-            } else {
-                return null;
-            }
-        } else if (result instanceof OptionalLong) {
-            OptionalLong optional = (OptionalLong) result;
-            if (optional.isPresent()) {
-                return optional.getAsLong();
-            } else {
-                return null;
-            }
-        }
-
-        return result;
-    }
+    return result;
+  }
 }

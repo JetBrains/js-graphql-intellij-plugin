@@ -29,28 +29,30 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
  */
 @PublicApi
 public class InstrumentationValidationParameters extends InstrumentationExecutionParameters {
-    private final Document document;
+  private final Document document;
 
-    public InstrumentationValidationParameters(ExecutionInput executionInput, Document document, GraphQLSchema schema, InstrumentationState instrumentationState) {
-        super(executionInput, schema, instrumentationState);
-        this.document = document;
-    }
+  public InstrumentationValidationParameters(ExecutionInput executionInput,
+                                             Document document,
+                                             GraphQLSchema schema,
+                                             InstrumentationState instrumentationState) {
+    super(executionInput, schema, instrumentationState);
+    this.document = document;
+  }
 
-    /**
-     * Returns a cloned parameters object with the new state
-     *
-     * @param instrumentationState the new state for this parameters object
-     *
-     * @return a new parameters object with the new state
-     */
-    @Override
-    public InstrumentationValidationParameters withNewState(InstrumentationState instrumentationState) {
-        return new InstrumentationValidationParameters(
-                this.getExecutionInput(), document, getSchema(), instrumentationState);
-    }
+  /**
+   * Returns a cloned parameters object with the new state
+   *
+   * @param instrumentationState the new state for this parameters object
+   * @return a new parameters object with the new state
+   */
+  @Override
+  public InstrumentationValidationParameters withNewState(InstrumentationState instrumentationState) {
+    return new InstrumentationValidationParameters(
+      this.getExecutionInput(), document, getSchema(), instrumentationState);
+  }
 
 
-    public Document getDocument() {
-        return document;
-    }
+  public Document getDocument() {
+    return document;
+  }
 }

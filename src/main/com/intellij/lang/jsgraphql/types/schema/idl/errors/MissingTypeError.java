@@ -30,23 +30,23 @@ import static java.lang.String.format;
 @Internal
 public class MissingTypeError extends BaseError {
 
-    public MissingTypeError(String typeOfType, TypeDefinition typeDefinition, TypeName typeName) {
-        super(typeDefinition, format("The %s type '%s' is not present when resolving type '%s'",
-                typeOfType, typeName.getName(), typeDefinition.getName()));
-    }
+  public MissingTypeError(String typeOfType, TypeDefinition typeDefinition, TypeName typeName) {
+    super(typeDefinition, format("The %s type '%s' is not present when resolving type '%s'",
+                                 typeOfType, typeName.getName(), typeDefinition.getName()));
+  }
 
-    public MissingTypeError(String typeOfType, Node node, String name, TypeName typeName) {
-        super(node, format("The %s type '%s' is not present when resolving type '%s'",
-                typeOfType, typeName.getName(), name));
-    }
+  public MissingTypeError(String typeOfType, Node node, String name, TypeName typeName) {
+    super(node, format("The %s type '%s' is not present when resolving type '%s'",
+                       typeOfType, typeName.getName(), name));
+  }
 
-    public MissingTypeError(String typeOfType, Node node,String name) {
-        super(node, format("The %s type is not present when resolving type '%s'",
-                typeOfType, name));
-    }
+  public MissingTypeError(String typeOfType, Node node, String name) {
+    super(node, format("The %s type is not present when resolving type '%s'",
+                       typeOfType, name));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLMissingTypeInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLMissingTypeInspection.class;
+  }
 }

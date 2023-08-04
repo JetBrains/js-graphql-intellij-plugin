@@ -38,48 +38,46 @@ import static java.util.Collections.emptyList;
 @PublicApi
 public interface GraphQLDirectiveContainer extends GraphQLNamedSchemaElement {
 
-    /**
-     * This will return a list of all the directives that have been put on {@link com.intellij.lang.jsgraphql.types.schema.GraphQLNamedSchemaElement} as a flat list, which may contain repeatable
-     * and non repeatable directives.
-     *
-     * @return a list of all the directives associated with this named schema element
-     */
-    List<GraphQLDirective> getDirectives();
+  /**
+   * This will return a list of all the directives that have been put on {@link com.intellij.lang.jsgraphql.types.schema.GraphQLNamedSchemaElement} as a flat list, which may contain repeatable
+   * and non repeatable directives.
+   *
+   * @return a list of all the directives associated with this named schema element
+   */
+  List<GraphQLDirective> getDirectives();
 
-    /**
-     * This will return a Map of the non repeatable directives that are associated with a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLNamedSchemaElement}.  Any repeatable directives
-     * will be filtered out of this map.
-     *
-     * @return a map of non repeatable directives by directive name.
-     */
-    Map<String, GraphQLDirective> getDirectivesByName();
+  /**
+   * This will return a Map of the non repeatable directives that are associated with a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLNamedSchemaElement}.  Any repeatable directives
+   * will be filtered out of this map.
+   *
+   * @return a map of non repeatable directives by directive name.
+   */
+  Map<String, GraphQLDirective> getDirectivesByName();
 
-    /**
-     * This will return a Map of the all directives that are associated with a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLNamedSchemaElement}, including both
-     * repeatable and non repeatable directives.
-     *
-     * @return a map of all directives by directive name
-     */
-    Map<String, List<GraphQLDirective>> getAllDirectivesByName();
+  /**
+   * This will return a Map of the all directives that are associated with a {@link com.intellij.lang.jsgraphql.types.schema.GraphQLNamedSchemaElement}, including both
+   * repeatable and non repeatable directives.
+   *
+   * @return a map of all directives by directive name
+   */
+  Map<String, List<GraphQLDirective>> getAllDirectivesByName();
 
-    /**
-     * Returns a non repeatable directive with the provided name.  This will throw a {@link com.intellij.lang.jsgraphql.types.AssertException} if
-     * the directive is a repeatable directive that has more then one instance.
-     *
-     * @param directiveName the name of the directive to retrieve
-     *
-     * @return the directive or null if there is not one with that name
-     */
-    GraphQLDirective getDirective(String directiveName);
+  /**
+   * Returns a non repeatable directive with the provided name.  This will throw a {@link com.intellij.lang.jsgraphql.types.AssertException} if
+   * the directive is a repeatable directive that has more then one instance.
+   *
+   * @param directiveName the name of the directive to retrieve
+   * @return the directive or null if there is not one with that name
+   */
+  GraphQLDirective getDirective(String directiveName);
 
-    /**
-     * Returns all of the directives with the provided name, including repeatable and non repeatable directives.
-     *
-     * @param directiveName the name of the directives to retrieve
-     *
-     * @return the directives or empty list if there is not one with that name
-     */
-    default List<GraphQLDirective> getDirectives(String directiveName) {
-        return getAllDirectivesByName().getOrDefault(directiveName, emptyList());
-    }
+  /**
+   * Returns all of the directives with the provided name, including repeatable and non repeatable directives.
+   *
+   * @param directiveName the name of the directives to retrieve
+   * @return the directives or empty list if there is not one with that name
+   */
+  default List<GraphQLDirective> getDirectives(String directiveName) {
+    return getAllDirectivesByName().getOrDefault(directiveName, emptyList());
+  }
 }

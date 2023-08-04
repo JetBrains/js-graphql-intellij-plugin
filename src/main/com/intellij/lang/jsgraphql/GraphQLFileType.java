@@ -21,67 +21,67 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public class GraphQLFileType extends LanguageFileType {
-    public static final GraphQLFileType INSTANCE = new GraphQLFileType();
+  public static final GraphQLFileType INSTANCE = new GraphQLFileType();
 
-    private GraphQLFileType() {
-        super(GraphQLLanguage.INSTANCE);
+  private GraphQLFileType() {
+    super(GraphQLLanguage.INSTANCE);
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return GraphQLConstants.GraphQL;
+  }
+
+  @NotNull
+  @Override
+  public String getDescription() {
+    return getName();
+  }
+
+  @NotNull
+  @Override
+  public String getDefaultExtension() {
+    return "graphql";
+  }
+
+  @Nullable
+  @Override
+  public Icon getIcon() {
+    return GraphQLIcons.FILE;
+  }
+
+  /**
+   * Scratch virtual files don't return their actual file type, so we need to find the PsiFile to determine
+   * whether it's a GraphQL scratch file
+   *
+   * @return true if the scratch file contains a GraphQL PsiFile
+   */
+  public static boolean isGraphQLScratchFile(@NotNull Project project, @Nullable VirtualFile file) {
+    if (file == null) {
+      return false;
     }
-
-    @NotNull
-    @Override
-    public String getName() {
-        return GraphQLConstants.GraphQL;
-    }
-
-    @NotNull
-    @Override
-    public String getDescription() {
-        return getName();
-    }
-
-    @NotNull
-    @Override
-    public String getDefaultExtension() {
-        return "graphql";
-    }
-
-    @Nullable
-    @Override
-    public Icon getIcon() {
-        return GraphQLIcons.FILE;
-    }
-
-    /**
-     * Scratch virtual files don't return their actual file type, so we need to find the PsiFile to determine
-     * whether it's a GraphQL scratch file
-     *
-     * @return true if the scratch file contains a GraphQL PsiFile
-     */
-    public static boolean isGraphQLScratchFile(@NotNull Project project, @Nullable VirtualFile file) {
-        if (file == null) {
-            return false;
+    if (ScratchUtil.isScratch(file)) {
+      final PsiManager psiManager = PsiManager.getInstance(project);
+      try {
+        final PsiFile psiFile = psiManager.findFile(file);
+        if (psiFile != null && psiFile.getFileType() == GraphQLFileType.INSTANCE) {
+          return true;
         }
-        if (ScratchUtil.isScratch(file)) {
-            final PsiManager psiManager = PsiManager.getInstance(project);
-            try {
-                final PsiFile psiFile = psiManager.findFile(file);
-                if (psiFile != null && psiFile.getFileType() == GraphQLFileType.INSTANCE) {
-                    return true;
-                }
-            } catch (ProcessCanceledException e) {
-                // TODO: rethrow
-                // can be thrown from psiManager.findFile
-            }
-        }
-        return false;
+      }
+      catch (ProcessCanceledException e) {
+        // TODO: rethrow
+        // can be thrown from psiManager.findFile
+      }
+    }
+    return false;
+  }
+
+  public static boolean isGraphQLFile(@NotNull Project project, @Nullable VirtualFile virtualFile) {
+    if (virtualFile == null) {
+      return false;
     }
 
-    public static boolean isGraphQLFile(@NotNull Project project, @Nullable VirtualFile virtualFile) {
-        if (virtualFile == null) {
-            return false;
-        }
-
-        return virtualFile.getFileType() == GraphQLFileType.INSTANCE || GraphQLFileType.isGraphQLScratchFile(project, virtualFile);
-    }
-
+    return virtualFile.getFileType() == GraphQLFileType.INSTANCE || GraphQLFileType.isGraphQLScratchFile(project, virtualFile);
+  }
 }

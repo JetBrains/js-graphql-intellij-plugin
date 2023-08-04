@@ -14,20 +14,20 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
  */
 public class GraphQLIntrospectionTask {
 
-    private final GraphQLConfigEndpoint endpoint;
-    private final Runnable runnable;
+  private final GraphQLConfigEndpoint endpoint;
+  private final Runnable runnable;
 
-    public GraphQLIntrospectionTask(GraphQLConfigEndpoint endpoint, Runnable runnable) {
+  public GraphQLIntrospectionTask(GraphQLConfigEndpoint endpoint, Runnable runnable) {
 
-        this.endpoint = endpoint;
-        this.runnable = runnable;
-    }
+    this.endpoint = endpoint;
+    this.runnable = runnable;
+  }
 
-    public GraphQLConfigEndpoint getEndpoint() {
-        return endpoint;
-    }
+  public GraphQLConfigEndpoint getEndpoint() {
+    return endpoint;
+  }
 
-    public Runnable getRunnable() {
-        return runnable;
-    }
+  public Runnable getRunnable() {
+    return runnable;
+  }
 }

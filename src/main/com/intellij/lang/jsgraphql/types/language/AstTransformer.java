@@ -33,44 +33,42 @@ import static com.intellij.lang.jsgraphql.types.language.AstNodeAdapter.AST_NODE
 public class AstTransformer {
 
 
-    public Node transform(Node root, NodeVisitor nodeVisitor) {
-        assertNotNull(root);
-        assertNotNull(nodeVisitor);
+  public Node transform(Node root, NodeVisitor nodeVisitor) {
+    assertNotNull(root);
+    assertNotNull(nodeVisitor);
 
-        TraverserVisitor<Node> traverserVisitor = new TraverserVisitor<Node>() {
-            @Override
-            public TraversalControl enter(TraverserContext<Node> context) {
-                return context.thisNode().accept(context, nodeVisitor);
-            }
+    TraverserVisitor<Node> traverserVisitor = new TraverserVisitor<Node>() {
+      @Override
+      public TraversalControl enter(TraverserContext<Node> context) {
+        return context.thisNode().accept(context, nodeVisitor);
+      }
 
-            @Override
-            public TraversalControl leave(TraverserContext<Node> context) {
-                return TraversalControl.CONTINUE;
-            }
-        };
+      @Override
+      public TraversalControl leave(TraverserContext<Node> context) {
+        return TraversalControl.CONTINUE;
+      }
+    };
 
-        TreeTransformer<Node> treeTransformer = new TreeTransformer<>(AST_NODE_ADAPTER);
-        return treeTransformer.transform(root, traverserVisitor);
-    }
+    TreeTransformer<Node> treeTransformer = new TreeTransformer<>(AST_NODE_ADAPTER);
+    return treeTransformer.transform(root, traverserVisitor);
+  }
 
-    public Node transformParallel(Node root, NodeVisitor nodeVisitor) {
-        return transformParallel(root, nodeVisitor, ForkJoinPool.commonPool());
-    }
+  public Node transformParallel(Node root, NodeVisitor nodeVisitor) {
+    return transformParallel(root, nodeVisitor, ForkJoinPool.commonPool());
+  }
 
-    public Node transformParallel(Node root, NodeVisitor nodeVisitor, ForkJoinPool forkJoinPool) {
-        assertNotNull(root);
-        assertNotNull(nodeVisitor);
+  public Node transformParallel(Node root, NodeVisitor nodeVisitor, ForkJoinPool forkJoinPool) {
+    assertNotNull(root);
+    assertNotNull(nodeVisitor);
 
-        TraverserVisitor<Node> traverserVisitor = new TraverserVisitorStub<Node>() {
-            @Override
-            public TraversalControl enter(TraverserContext<Node> context) {
-                return context.thisNode().accept(context, nodeVisitor);
-            }
+    TraverserVisitor<Node> traverserVisitor = new TraverserVisitorStub<Node>() {
+      @Override
+      public TraversalControl enter(TraverserContext<Node> context) {
+        return context.thisNode().accept(context, nodeVisitor);
+      }
+    };
 
-        };
-
-        TreeParallelTransformer<Node> treeParallelTransformer = TreeParallelTransformer.parallelTransformer(AST_NODE_ADAPTER, forkJoinPool);
-        return treeParallelTransformer.transform(root, traverserVisitor);
-    }
-
+    TreeParallelTransformer<Node> treeParallelTransformer = TreeParallelTransformer.parallelTransformer(AST_NODE_ADAPTER, forkJoinPool);
+    return treeParallelTransformer.transform(root, traverserVisitor);
+  }
 }

@@ -10,16 +10,16 @@ import org.jetbrains.annotations.Nullable;
 import static java.lang.String.format;
 
 public class UnionMemberNotAnObjectTypeError extends BaseError {
-    public UnionMemberNotAnObjectTypeError(@NotNull UnionTypeDefinition definition, @NotNull TypeName memberType) {
-        super(definition, format(
-            "The member types of a Union type must all be Object base types. Member type '%s' in Union '%s' is invalid.",
-            memberType.getName(),
-            definition.getName()
-        ));
-    }
+  public UnionMemberNotAnObjectTypeError(@NotNull UnionTypeDefinition definition, @NotNull TypeName memberType) {
+    super(definition, format(
+      "The member types of a Union type must all be Object base types. Member type '%s' in Union '%s' is invalid.",
+      memberType.getName(),
+      definition.getName()
+    ));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLUnexpectedTypeInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLUnexpectedTypeInspection.class;
+  }
 }

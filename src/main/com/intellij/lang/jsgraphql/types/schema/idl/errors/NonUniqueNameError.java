@@ -28,28 +28,28 @@ import static java.lang.String.format;
 @Internal
 public class NonUniqueNameError extends BaseError {
 
-    public NonUniqueNameError(TypeDefinition typeDefinition, FieldDefinition fieldDefinition) {
-        super(typeDefinition, format("The type '%s' has declared a field with a non unique name '%s'",
-            typeDefinition.getName(), fieldDefinition.getName()));
-    }
+  public NonUniqueNameError(TypeDefinition typeDefinition, FieldDefinition fieldDefinition) {
+    super(typeDefinition, format("The type '%s' has declared a field with a non unique name '%s'",
+                                 typeDefinition.getName(), fieldDefinition.getName()));
+  }
 
-    public NonUniqueNameError(InputObjectTypeDefinition typeDefinition, InputValueDefinition inputValueDefinition) {
-        super(typeDefinition, format("The type '%s' has declared an input field with a non unique name '%s'",
-            typeDefinition.getName(), inputValueDefinition.getName()));
-    }
+  public NonUniqueNameError(InputObjectTypeDefinition typeDefinition, InputValueDefinition inputValueDefinition) {
+    super(typeDefinition, format("The type '%s' has declared an input field with a non unique name '%s'",
+                                 typeDefinition.getName(), inputValueDefinition.getName()));
+  }
 
-    public NonUniqueNameError(TypeDefinition typeDefinition, EnumValueDefinition enumValueDefinition) {
-        super(typeDefinition, format("The type '%s' has declared an enum value with a non unique name '%s'",
-            typeDefinition.getName(), enumValueDefinition.getName()));
-    }
+  public NonUniqueNameError(TypeDefinition typeDefinition, EnumValueDefinition enumValueDefinition) {
+    super(typeDefinition, format("The type '%s' has declared an enum value with a non unique name '%s'",
+                                 typeDefinition.getName(), enumValueDefinition.getName()));
+  }
 
-    public NonUniqueNameError(UnionTypeDefinition typeDefinition, String memberName) {
-        super(typeDefinition, format("The type '%s' has declared an union member with a non unique name '%s'",
-            typeDefinition.getName(), memberName));
-    }
+  public NonUniqueNameError(UnionTypeDefinition typeDefinition, String memberName) {
+    super(typeDefinition, format("The type '%s' has declared an union member with a non unique name '%s'",
+                                 typeDefinition.getName(), memberName));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLMemberRedefinitionInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLMemberRedefinitionInspection.class;
+  }
 }

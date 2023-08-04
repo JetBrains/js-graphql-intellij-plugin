@@ -7,8 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.psi;
 
-import com.intellij.lang.jsgraphql.psi.GraphQLDescription;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -16,6 +14,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface GraphQLDescriptionAware extends GraphQLElement {
 
-    @Nullable
-    GraphQLDescription getDescription();
+  @Nullable
+  GraphQLDescription getDescription();
 }

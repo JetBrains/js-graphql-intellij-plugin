@@ -11,14 +11,14 @@ import com.intellij.lang.jsgraphql.types.GraphQLException
 import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry
 
 class GraphQLRegistryInfo(
-    val typeDefinitionRegistry: TypeDefinitionRegistry,
-    private val additionalErrors: List<GraphQLException>,
+  val typeDefinitionRegistry: TypeDefinitionRegistry,
+  private val additionalErrors: List<GraphQLException>,
 ) {
-    val errors: List<GraphQLException>
-        get() {
-            val errors = mutableListOf<GraphQLException>()
-            errors.addAll(typeDefinitionRegistry.errors)
-            errors.addAll(additionalErrors)
-            return errors
-        }
+  val errors: List<GraphQLException>
+    get() {
+      val errors = mutableListOf<GraphQLException>()
+      errors.addAll(typeDefinitionRegistry.errors)
+      errors.addAll(additionalErrors)
+      return errors
+    }
 }

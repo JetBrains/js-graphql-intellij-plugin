@@ -27,18 +27,17 @@ import java.util.Map;
 @PublicApi
 public interface NodeBuilder {
 
-    NodeBuilder sourceLocation(SourceLocation sourceLocation);
+  NodeBuilder sourceLocation(SourceLocation sourceLocation);
 
-    NodeBuilder comments(List<Comment> comments);
+  NodeBuilder comments(List<Comment> comments);
 
-    NodeBuilder ignoredChars(IgnoredChars ignoredChars);
+  NodeBuilder ignoredChars(IgnoredChars ignoredChars);
 
-    NodeBuilder additionalData(Map<String, String> additionalData);
+  NodeBuilder additionalData(Map<String, String> additionalData);
 
-    NodeBuilder additionalData(String key, String value);
+  NodeBuilder additionalData(String key, String value);
 
-    NodeBuilder element(@Nullable PsiElement element);
+  NodeBuilder element(@Nullable PsiElement element);
 
-    NodeBuilder sourceNodes(@Nullable List<? extends Node> sourceNodes);
-
+  NodeBuilder sourceNodes(@Nullable List<? extends Node> sourceNodes);
 }

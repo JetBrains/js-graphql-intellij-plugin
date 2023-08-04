@@ -24,10 +24,12 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
@@ -38,180 +40,180 @@ import static java.util.Collections.emptyMap;
 @PublicApi
 public class Argument extends AbstractNode<Argument> implements NamedNode<Argument> {
 
-    public static final String CHILD_VALUE = "value";
-    private final String name;
-    private final Value value;
+  public static final String CHILD_VALUE = "value";
+  private final String name;
+  private final Value value;
 
-    @Internal
-    protected Argument(String name,
-                       Value value,
-                       SourceLocation sourceLocation,
-                       List<Comment> comments,
-                       IgnoredChars ignoredChars,
-                       Map<String, String> additionalData,
-                       @Nullable PsiElement element,
-                       @Nullable List<? extends Node> sourceNodes) {
-        super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        this.name = name;
-        this.value = value;
+  @Internal
+  protected Argument(String name,
+                     Value value,
+                     SourceLocation sourceLocation,
+                     List<Comment> comments,
+                     IgnoredChars ignoredChars,
+                     Map<String, String> additionalData,
+                     @Nullable PsiElement element,
+                     @Nullable List<? extends Node> sourceNodes) {
+    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    this.name = name;
+    this.value = value;
+  }
+
+  /**
+   * alternative to using a Builder for convenience
+   *
+   * @param name  of the argument
+   * @param value of the argument
+   */
+  public Argument(String name, Value value) {
+    this(name, value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+  }
+
+  public static Builder newArgument() {
+    return new Builder();
+  }
+
+  public static Builder newArgument(String name, Value value) {
+    return new Builder().name(name).value(value);
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  public Value getValue() {
+    return value;
+  }
+
+  @Override
+  public List<Node> getChildren() {
+    return value != null ? ImmutableList.of(value) : emptyList();
+  }
+
+  @Override
+  public NodeChildrenContainer getNamedChildren() {
+    return newNodeChildrenContainer()
+      .child(CHILD_VALUE, value)
+      .build();
+  }
+
+  @Override
+  public Argument withNewChildren(NodeChildrenContainer newChildren) {
+    return transform(builder -> builder
+      .value(newChildren.getChildOrNull(CHILD_VALUE))
+    );
+  }
+
+  @Override
+  public boolean isEqualTo(Node o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    /**
-     * alternative to using a Builder for convenience
-     *
-     * @param name  of the argument
-     * @param value of the argument
-     */
-    public Argument(String name, Value value) {
-        this(name, value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    Argument that = (Argument)o;
+
+    return Objects.equals(this.name, that.name);
+  }
+
+  @Override
+  public Argument deepCopy() {
+    return new Argument(name, deepCopy(value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(),
+                        getSourceNodes());
+  }
+
+  @Override
+  public String toString() {
+    return "Argument{" +
+           "name='" + name + '\'' +
+           ", value=" + value +
+           '}';
+  }
+
+  @Override
+  public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
+    return visitor.visitArgument(this, context);
+  }
+
+  public Argument transform(Consumer<Builder> builderConsumer) {
+    Builder builder = new Builder(this);
+    builderConsumer.accept(builder);
+    return builder.build();
+  }
+
+  public static final class Builder implements NodeBuilder {
+    private SourceLocation sourceLocation;
+    private ImmutableList<Comment> comments = emptyList();
+    private String name;
+    private Value value;
+    private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
+    private Map<String, String> additionalData = new LinkedHashMap<>();
+    private @Nullable PsiElement element;
+    private @Nullable List<? extends Node> sourceNodes;
+
+    private Builder() {
     }
 
-    public static Builder newArgument() {
-        return new Builder();
+    private Builder(Argument existing) {
+      this.sourceLocation = existing.getSourceLocation();
+      this.comments = ImmutableList.copyOf(existing.getComments());
+      this.name = existing.getName();
+      this.value = existing.getValue();
+      this.ignoredChars = existing.getIgnoredChars();
+      this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
+      this.element = existing.getElement();
+      this.sourceNodes = existing.getSourceNodes();
     }
 
-    public static Builder newArgument(String name, Value value) {
-        return new Builder().name(name).value(value);
+    public Builder sourceLocation(SourceLocation sourceLocation) {
+      this.sourceLocation = sourceLocation;
+      return this;
     }
 
-    @Override
-    public String getName() {
-        return name;
+    public Builder name(String name) {
+      this.name = name;
+      return this;
     }
 
-    public Value getValue() {
-        return value;
+    public Builder value(Value value) {
+      this.value = value;
+      return this;
     }
 
-    @Override
-    public List<Node> getChildren() {
-        return value != null ? ImmutableList.of(value) : emptyList();
+    public Builder comments(List<Comment> comments) {
+      this.comments = ImmutableList.copyOf(comments);
+      return this;
     }
 
-    @Override
-    public NodeChildrenContainer getNamedChildren() {
-        return newNodeChildrenContainer()
-            .child(CHILD_VALUE, value)
-            .build();
+    public Builder ignoredChars(IgnoredChars ignoredChars) {
+      this.ignoredChars = ignoredChars;
+      return this;
     }
 
-    @Override
-    public Argument withNewChildren(NodeChildrenContainer newChildren) {
-        return transform(builder -> builder
-            .value(newChildren.getChildOrNull(CHILD_VALUE))
-        );
+    public Builder additionalData(Map<String, String> additionalData) {
+      this.additionalData = assertNotNull(additionalData);
+      return this;
     }
 
-    @Override
-    public boolean isEqualTo(Node o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Argument that = (Argument) o;
-
-        return Objects.equals(this.name, that.name);
-
+    public Builder additionalData(String key, String value) {
+      this.additionalData.put(key, value);
+      return this;
     }
 
-    @Override
-    public Argument deepCopy() {
-        return new Argument(name, deepCopy(value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
+    public Builder element(@Nullable PsiElement element) {
+      this.element = element;
+      return this;
     }
 
-    @Override
-    public String toString() {
-        return "Argument{" +
-            "name='" + name + '\'' +
-            ", value=" + value +
-            '}';
+    public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
+      this.sourceNodes = sourceNodes;
+      return this;
     }
 
-    @Override
-    public TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor) {
-        return visitor.visitArgument(this, context);
+    public Argument build() {
+      return new Argument(name, value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
     }
-
-    public Argument transform(Consumer<Builder> builderConsumer) {
-        Builder builder = new Builder(this);
-        builderConsumer.accept(builder);
-        return builder.build();
-    }
-
-    public static final class Builder implements NodeBuilder {
-        private SourceLocation sourceLocation;
-        private ImmutableList<Comment> comments = emptyList();
-        private String name;
-        private Value value;
-        private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
-        private Map<String, String> additionalData = new LinkedHashMap<>();
-        private @Nullable PsiElement element;
-        private @Nullable List<? extends Node> sourceNodes;
-
-        private Builder() {
-        }
-
-        private Builder(Argument existing) {
-            this.sourceLocation = existing.getSourceLocation();
-            this.comments = ImmutableList.copyOf(existing.getComments());
-            this.name = existing.getName();
-            this.value = existing.getValue();
-            this.ignoredChars = existing.getIgnoredChars();
-            this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-            this.element = existing.getElement();
-            this.sourceNodes = existing.getSourceNodes();
-        }
-
-        public Builder sourceLocation(SourceLocation sourceLocation) {
-            this.sourceLocation = sourceLocation;
-            return this;
-        }
-
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public Builder value(Value value) {
-            this.value = value;
-            return this;
-        }
-
-        public Builder comments(List<Comment> comments) {
-            this.comments = ImmutableList.copyOf(comments);
-            return this;
-        }
-
-        public Builder ignoredChars(IgnoredChars ignoredChars) {
-            this.ignoredChars = ignoredChars;
-            return this;
-        }
-
-        public Builder additionalData(Map<String, String> additionalData) {
-            this.additionalData = assertNotNull(additionalData);
-            return this;
-        }
-
-        public Builder additionalData(String key, String value) {
-            this.additionalData.put(key, value);
-            return this;
-        }
-
-        public Builder element(@Nullable PsiElement element) {
-            this.element = element;
-            return this;
-        }
-
-        public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
-            this.sourceNodes = sourceNodes;
-            return this;
-        }
-
-        public Argument build() {
-            return new Argument(name, value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
-        }
-    }
+  }
 }

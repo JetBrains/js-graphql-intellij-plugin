@@ -23,91 +23,90 @@ import java.util.Set;
 
 public class GraphQLBlock extends AbstractBlock {
 
-    private List<Block> blocks = null;
+  private List<Block> blocks = null;
 
-    public static Set<IElementType> INDENT_PARENTS = Sets.newHashSet(
-            GraphQLElementTypes.SELECTION_SET,
-            GraphQLElementTypes.OPERATION_TYPE_DEFINITIONS,
-            GraphQLElementTypes.FIELDS_DEFINITION,
-            GraphQLElementTypes.ENUM_VALUE_DEFINITIONS,
-            GraphQLElementTypes.INPUT_OBJECT_VALUE_DEFINITIONS,
-            GraphQLElementTypes.VARIABLE_DEFINITIONS,
-            GraphQLElementTypes.ARGUMENTS,
-            GraphQLElementTypes.ARGUMENTS_DEFINITION,
-            GraphQLElementTypes.ARRAY_VALUE,
-            GraphQLElementTypes.OBJECT_VALUE,
-            GraphQLElementTypes.DIRECTIVE_LOCATIONS,
-            GraphQLElementTypes.UNION_MEMBERS
-    );
+  public static Set<IElementType> INDENT_PARENTS = Sets.newHashSet(
+    GraphQLElementTypes.SELECTION_SET,
+    GraphQLElementTypes.OPERATION_TYPE_DEFINITIONS,
+    GraphQLElementTypes.FIELDS_DEFINITION,
+    GraphQLElementTypes.ENUM_VALUE_DEFINITIONS,
+    GraphQLElementTypes.INPUT_OBJECT_VALUE_DEFINITIONS,
+    GraphQLElementTypes.VARIABLE_DEFINITIONS,
+    GraphQLElementTypes.ARGUMENTS,
+    GraphQLElementTypes.ARGUMENTS_DEFINITION,
+    GraphQLElementTypes.ARRAY_VALUE,
+    GraphQLElementTypes.OBJECT_VALUE,
+    GraphQLElementTypes.DIRECTIVE_LOCATIONS,
+    GraphQLElementTypes.UNION_MEMBERS
+  );
 
-    private static final Set<IElementType> NO_INDENT_ELEMENT_TYPES = Sets.newHashSet(
-            GraphQLElementTypes.BRACE_R,
-            GraphQLElementTypes.BRACE_L,
-            GraphQLElementTypes.BRACKET_R,
-            GraphQLElementTypes.BRACKET_L,
-            GraphQLElementTypes.PAREN_L,
-            GraphQLElementTypes.PAREN_R
-    );
+  private static final Set<IElementType> NO_INDENT_ELEMENT_TYPES = Sets.newHashSet(
+    GraphQLElementTypes.BRACE_R,
+    GraphQLElementTypes.BRACE_L,
+    GraphQLElementTypes.BRACKET_R,
+    GraphQLElementTypes.BRACKET_L,
+    GraphQLElementTypes.PAREN_L,
+    GraphQLElementTypes.PAREN_R
+  );
 
-    public GraphQLBlock(@NotNull ASTNode node, @Nullable Wrap wrap, @Nullable Alignment alignment) {
-        super(node, wrap, alignment);
-    }
+  public GraphQLBlock(@NotNull ASTNode node, @Nullable Wrap wrap, @Nullable Alignment alignment) {
+    super(node, wrap, alignment);
+  }
 
-    @Override
-    protected List<Block> buildChildren() {
-        if (blocks == null) {
-            blocks = ContainerUtil.mapNotNull(myNode.getChildren(null), node -> {
-                if(node.getTextLength() == 0) {
-                    return null;
-                }
-                if(node.getElementType() == TokenType.WHITE_SPACE) {
-                    if(node.getText().contains(",")) {
-                        // non-significant comma, but not empty text according to IDEA
-                        return new GraphQLBlock(node, null, null);
-                    }
-                    return null;
-                }
-                return new GraphQLBlock(node, null, null);
-            });
+  @Override
+  protected List<Block> buildChildren() {
+    if (blocks == null) {
+      blocks = ContainerUtil.mapNotNull(myNode.getChildren(null), node -> {
+        if (node.getTextLength() == 0) {
+          return null;
         }
-        return blocks;
-    }
-
-    @Override
-    public Indent getIndent() {
-        if (NO_INDENT_ELEMENT_TYPES.contains(myNode.getElementType())) {
-            return Indent.getNoneIndent();
+        if (node.getElementType() == TokenType.WHITE_SPACE) {
+          if (node.getText().contains(",")) {
+            // non-significant comma, but not empty text according to IDEA
+            return new GraphQLBlock(node, null, null);
+          }
+          return null;
         }
-        final ASTNode treeParent = myNode.getTreeParent();
-        if (treeParent != null) {
-            if (INDENT_PARENTS.contains(treeParent.getElementType())) {
-                return Indent.getNormalIndent();
-            }
-        }
-        return Indent.getNoneIndent();
+        return new GraphQLBlock(node, null, null);
+      });
     }
+    return blocks;
+  }
 
-    @Nullable
-    @Override
-    protected Indent getChildIndent() {
-        final IElementType elementType = myNode.getElementType();
-        if(elementType == GraphQLElementTypes.BRACE_R) {
-            return Indent.getNoneIndent();
-        }
-        if (INDENT_PARENTS.contains(elementType)) {
-            return Indent.getNormalIndent();
-        }
-        return Indent.getNoneIndent();
+  @Override
+  public Indent getIndent() {
+    if (NO_INDENT_ELEMENT_TYPES.contains(myNode.getElementType())) {
+      return Indent.getNoneIndent();
     }
-
-    @Nullable
-    @Override
-    public Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
-        return null;
+    final ASTNode treeParent = myNode.getTreeParent();
+    if (treeParent != null) {
+      if (INDENT_PARENTS.contains(treeParent.getElementType())) {
+        return Indent.getNormalIndent();
+      }
     }
+    return Indent.getNoneIndent();
+  }
 
-    public boolean isLeaf() {
-        return myNode.getFirstChildNode() == null;
+  @Nullable
+  @Override
+  protected Indent getChildIndent() {
+    final IElementType elementType = myNode.getElementType();
+    if (elementType == GraphQLElementTypes.BRACE_R) {
+      return Indent.getNoneIndent();
     }
+    if (INDENT_PARENTS.contains(elementType)) {
+      return Indent.getNormalIndent();
+    }
+    return Indent.getNoneIndent();
+  }
 
+  @Nullable
+  @Override
+  public Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
+    return null;
+  }
+
+  public boolean isLeaf() {
+    return myNode.getFirstChildNode() == null;
+  }
 }

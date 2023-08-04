@@ -26,42 +26,42 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GraphQLQueryContextCaretListener implements Disposable {
 
-    static final Key<Integer> CARET_OFFSET = Key.create("JSGraphQL.QueryContext.CaretOffset");
+  static final Key<Integer> CARET_OFFSET = Key.create("JSGraphQL.QueryContext.CaretOffset");
 
-    private final Project myProject;
+  private final Project myProject;
 
-    public GraphQLQueryContextCaretListener(@NotNull Project project) {
-        myProject = project;
+  public GraphQLQueryContextCaretListener(@NotNull Project project) {
+    myProject = project;
+  }
+
+  public static GraphQLQueryContextCaretListener getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, GraphQLQueryContextCaretListener.class);
+  }
+
+  public void listen() {
+    if (ApplicationManager.getApplication().isHeadlessEnvironment()) {
+      return;
     }
 
-    public static GraphQLQueryContextCaretListener getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, GraphQLQueryContextCaretListener.class);
-    }
-
-    public void listen() {
-        if (ApplicationManager.getApplication().isHeadlessEnvironment()) {
-            return;
+    final EditorEventMulticaster eventMulticaster = EditorFactory.getInstance().getEventMulticaster();
+    final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
+    eventMulticaster.addCaretListener(new CaretListener() {
+      @Override
+      public void caretPositionChanged(@NotNull CaretEvent e) {
+        if (myProject.isDisposed() || myProject != e.getEditor().getProject()) {
+          return;
         }
 
-        final EditorEventMulticaster eventMulticaster = EditorFactory.getInstance().getEventMulticaster();
-        final PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
-        eventMulticaster.addCaretListener(new CaretListener() {
-            @Override
-            public void caretPositionChanged(@NotNull CaretEvent e) {
-                if (myProject.isDisposed() || myProject != e.getEditor().getProject()) {
-                    return;
-                }
+        final PsiFile psiFile = psiDocumentManager.getPsiFile(e.getEditor().getDocument());
+        if (psiFile instanceof GraphQLFile) {
+          int offset = e.getEditor().logicalPositionToOffset(e.getNewPosition());
+          psiFile.putUserData(CARET_OFFSET, offset);
+        }
+      }
+    }, this);
+  }
 
-                final PsiFile psiFile = psiDocumentManager.getPsiFile(e.getEditor().getDocument());
-                if (psiFile instanceof GraphQLFile) {
-                    int offset = e.getEditor().logicalPositionToOffset(e.getNewPosition());
-                    psiFile.putUserData(CARET_OFFSET, offset);
-                }
-            }
-        }, this);
-    }
-
-    @Override
-    public void dispose() {
-    }
+  @Override
+  public void dispose() {
+  }
 }

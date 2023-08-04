@@ -29,13 +29,13 @@ import static java.lang.String.format;
 @Internal
 public class MissingInterfaceTypeError extends BaseError {
 
-    public MissingInterfaceTypeError(String typeOfType, TypeDefinition typeDefinition, TypeName typeName) {
-        super(typeDefinition, format("The %s type '%s' is not present when resolving type '%s'",
-            typeOfType, typeName.getName(), typeDefinition.getName()));
-    }
+  public MissingInterfaceTypeError(String typeOfType, TypeDefinition typeDefinition, TypeName typeName) {
+    super(typeDefinition, format("The %s type '%s' is not present when resolving type '%s'",
+                                 typeOfType, typeName.getName(), typeDefinition.getName()));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLMissingTypeInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLMissingTypeInspection.class;
+  }
 }

@@ -26,8 +26,8 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 @PublicApi
 public interface NamedNode<T extends NamedNode> extends Node<T> {
 
-    /**
-     * @return the name of this node
-     */
-    String getName();
+  /**
+   * @return the name of this node
+   */
+  String getName();
 }

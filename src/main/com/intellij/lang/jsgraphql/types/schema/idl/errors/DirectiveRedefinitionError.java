@@ -17,8 +17,8 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLTypeRedefinitionInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLTypeRedefinitionInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.DirectiveDefinition;
 import org.jetbrains.annotations.Nullable;
@@ -28,16 +28,16 @@ import static java.lang.String.format;
 @Internal
 public class DirectiveRedefinitionError extends BaseError {
 
-    public DirectiveRedefinitionError(DirectiveDefinition newEntry, DirectiveDefinition oldEntry) {
-        super(oldEntry,
-            format("'%s' type tried to redefine existing directive '%s' type",
-                newEntry.getName(), oldEntry.getName()
-            ));
-        addReferences(newEntry);
-    }
+  public DirectiveRedefinitionError(DirectiveDefinition newEntry, DirectiveDefinition oldEntry) {
+    super(oldEntry,
+          format("'%s' type tried to redefine existing directive '%s' type",
+                 newEntry.getName(), oldEntry.getName()
+          ));
+    addReferences(newEntry);
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLTypeRedefinitionInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLTypeRedefinitionInspection.class;
+  }
 }

@@ -19,29 +19,29 @@ import java.util.List;
  */
 public class GraphQLUnexpectedSchemaError implements GraphQLError {
 
-    private Exception exception;
+  private Exception exception;
 
-    public GraphQLUnexpectedSchemaError(Exception exception) {
-        this.exception = exception;
-    }
+  public GraphQLUnexpectedSchemaError(Exception exception) {
+    this.exception = exception;
+  }
 
-    public Exception getException() {
-        return exception;
-    }
+  public Exception getException() {
+    return exception;
+  }
 
-    @Override
-    public String getMessage() {
-        // strip out graphql-java internals part of the exception message given that the schema can actually be broken/invalid as the editor changes
-        return exception.getMessage().replace("Internal error: should never happen: ", "");
-    }
+  @Override
+  public String getMessage() {
+    // strip out graphql-java internals part of the exception message given that the schema can actually be broken/invalid as the editor changes
+    return exception.getMessage().replace("Internal error: should never happen: ", "");
+  }
 
-    @Override
-    public List<SourceLocation> getLocations() {
-        return Collections.emptyList();
-    }
+  @Override
+  public List<SourceLocation> getLocations() {
+    return Collections.emptyList();
+  }
 
-    @Override
-    public ErrorType getErrorType() {
-        return ErrorType.ValidationError;
-    }
+  @Override
+  public ErrorType getErrorType() {
+    return ErrorType.ValidationError;
+  }
 }

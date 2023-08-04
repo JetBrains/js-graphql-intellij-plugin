@@ -24,91 +24,93 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import java.io.IOException
 
 class GraphQLMigrateLegacyConfigAction : AnAction(GraphQLBundle.message("graphql.action.migrate.config.title")) {
-    companion object {
-        const val ACTION_ID = "GraphQLMigrateLegacyConfig"
+  companion object {
+    const val ACTION_ID = "GraphQLMigrateLegacyConfig"
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
+  }
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.isVisible = e.getData(CommonDataKeys.VIRTUAL_FILE)?.name == GRAPHQLCONFIG
+  }
+
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
+    val sourceFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
+    if (sourceFile.name != GRAPHQLCONFIG) return
+    val dir = sourceFile.parent.takeIf { it.isValid && it.isDirectory } ?: return
+
+    val result = GraphQLConfigLoader.getInstance(project).load(sourceFile)
+    if (result.status == GraphQLConfigEvaluationStatus.ERROR) {
+      Notifications.Bus.notify(
+        Notification(
+          GRAPHQL_NOTIFICATION_GROUP_ID,
+          GraphQLBundle.message("graphql.notification.configuration.error"),
+          GraphQLBundle.message("graphql.notification.invalid.config.file"),
+          NotificationType.ERROR,
+        )
+      )
+      return
     }
 
-    override fun getActionUpdateThread(): ActionUpdateThread {
-        return ActionUpdateThread.BGT
+    val source = result.data?.let { GraphQLConfigPrinter.toYml(it) }.orEmpty()
+    val text = source.replace(Regex("\\$\\{env:([ \\w]+)}")) { match ->
+      match.groupValues[1].trim().let { "\${$it}" }
     }
 
-    override fun update(e: AnActionEvent) {
-        e.presentation.isVisible = e.getData(CommonDataKeys.VIRTUAL_FILE)?.name == GRAPHQLCONFIG
-    }
+    WriteCommandAction.runWriteCommandAction(project, GraphQLBundle.message("graphql.action.migrate.config.title"), null, {
+      val newFile = try {
+        val created = dir.createChildData(this, GraphQLConfigFactory.PREFERRED_CONFIG)
+        VfsUtil.saveText(created, text)
+        created.refresh(false, false)
+        created
+      }
+      catch (e: IOException) {
+        Notifications.Bus.notify(
+          Notification(
+            GRAPHQL_NOTIFICATION_GROUP_ID,
+            GraphQLBundle.message("graphql.notification.error.title"),
+            GraphQLBundle.message(
+              "graphql.notification.unable.to.create.file",
+              GraphQLConfigFactory.PREFERRED_CONFIG,
+              dir.path,
+              formatExceptionMessage(e)
+            ),
+            NotificationType.ERROR,
+          )
+        )
+        return@runWriteCommandAction
+      }
 
-    override fun actionPerformed(e: AnActionEvent) {
-        val project = e.project ?: return
-        val sourceFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-        if (sourceFile.name != GRAPHQLCONFIG) return
-        val dir = sourceFile.parent.takeIf { it.isValid && it.isDirectory } ?: return
+      try {
+        sourceFile.delete(this)
+      }
+      catch (e: IOException) {
+        Notifications.Bus.notify(
+          Notification(
+            GRAPHQL_NOTIFICATION_GROUP_ID,
+            GraphQLBundle.message("graphql.notification.error.title"),
+            GraphQLBundle.message(
+              "graphql.notification.unable.to.delete.file",
+              sourceFile.name,
+              dir.path,
+              formatExceptionMessage(e)
+            ),
+            NotificationType.ERROR,
+          )
+        )
+      }
 
-        val result = GraphQLConfigLoader.getInstance(project).load(sourceFile)
-        if (result.status == GraphQLConfigEvaluationStatus.ERROR) {
-            Notifications.Bus.notify(
-                Notification(
-                    GRAPHQL_NOTIFICATION_GROUP_ID,
-                    GraphQLBundle.message("graphql.notification.configuration.error"),
-                    GraphQLBundle.message("graphql.notification.invalid.config.file"),
-                    NotificationType.ERROR,
-                )
-            )
-            return
-        }
+      val fileDocumentManager = FileDocumentManager.getInstance()
+      val psiDocumentManager = PsiDocumentManager.getInstance(project)
+      val document = fileDocumentManager.getDocument(newFile) ?: return@runWriteCommandAction
+      val psiFile = psiDocumentManager.getPsiFile(document) ?: return@runWriteCommandAction
+      psiDocumentManager.commitDocument(document)
+      CodeStyleManager.getInstance(project).reformat(psiFile)
 
-        val source = result.data?.let { GraphQLConfigPrinter.toYml(it) }.orEmpty()
-        val text = source.replace(Regex("\\$\\{env:([ \\w]+)}")) { match ->
-            match.groupValues[1].trim().let { "\${$it}" }
-        }
-
-        WriteCommandAction.runWriteCommandAction(project, GraphQLBundle.message("graphql.action.migrate.config.title"), null, {
-            val newFile = try {
-                val created = dir.createChildData(this, GraphQLConfigFactory.PREFERRED_CONFIG)
-                VfsUtil.saveText(created, text)
-                created.refresh(false, false)
-                created
-            } catch (e: IOException) {
-                Notifications.Bus.notify(
-                    Notification(
-                        GRAPHQL_NOTIFICATION_GROUP_ID,
-                        GraphQLBundle.message("graphql.notification.error.title"),
-                        GraphQLBundle.message(
-                            "graphql.notification.unable.to.create.file",
-                            GraphQLConfigFactory.PREFERRED_CONFIG,
-                            dir.path,
-                            formatExceptionMessage(e)
-                        ),
-                        NotificationType.ERROR,
-                    )
-                )
-                return@runWriteCommandAction
-            }
-
-            try {
-                sourceFile.delete(this)
-            } catch (e: IOException) {
-                Notifications.Bus.notify(
-                    Notification(
-                        GRAPHQL_NOTIFICATION_GROUP_ID,
-                        GraphQLBundle.message("graphql.notification.error.title"),
-                        GraphQLBundle.message(
-                            "graphql.notification.unable.to.delete.file",
-                            sourceFile.name,
-                            dir.path,
-                            formatExceptionMessage(e)
-                        ),
-                        NotificationType.ERROR,
-                    )
-                )
-            }
-
-            val fileDocumentManager = FileDocumentManager.getInstance()
-            val psiDocumentManager = PsiDocumentManager.getInstance(project)
-            val document = fileDocumentManager.getDocument(newFile) ?: return@runWriteCommandAction
-            val psiFile = psiDocumentManager.getPsiFile(document) ?: return@runWriteCommandAction
-            psiDocumentManager.commitDocument(document)
-            CodeStyleManager.getInstance(project).reformat(psiFile)
-
-            FileEditorManager.getInstance(project).openFile(newFile, true)
-        })
-    }
+      FileEditorManager.getInstance(project).openFile(newFile, true)
+    })
+  }
 }

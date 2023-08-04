@@ -11,32 +11,32 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiElement
 
 interface GraphQLInjectedLanguage {
-    companion object {
-        @JvmField
-        val EP_NAME =
-            ExtensionPointName.create<GraphQLInjectedLanguage>("com.intellij.lang.jsgraphql.injectedLanguage")
+  companion object {
+    @JvmField
+    val EP_NAME =
+      ExtensionPointName.create<GraphQLInjectedLanguage>("com.intellij.lang.jsgraphql.injectedLanguage")
 
-        @JvmStatic
-        fun forElement(host: PsiElement): GraphQLInjectedLanguage? {
-            return EP_NAME.findFirstSafe { it.accepts(host) }
-        }
+    @JvmStatic
+    fun forElement(host: PsiElement): GraphQLInjectedLanguage? {
+      return EP_NAME.findFirstSafe { it.accepts(host) }
     }
+  }
 
-    fun accepts(host: PsiElement): Boolean
+  fun accepts(host: PsiElement): Boolean
 
-    /**
-     * Gets whether the specified host is a target for GraphQL Injection.
-     */
-    fun isLanguageInjectionTarget(host: PsiElement?): Boolean
+  /**
+   * Gets whether the specified host is a target for GraphQL Injection.
+   */
+  fun isLanguageInjectionTarget(host: PsiElement?): Boolean
 
-    /**
-     * Inline-replaces the use of escaped string quotes which delimit GraphQL injections, e.g. an escaped backtick '\`'.
-     * in JavaScript tagged template literals, such that the injected GraphQL text represents valid GraphQL.
-     *
-     * @param rawText the raw injected GraphQL text to escape
-     * @return the text with injection-delimiting escaped while preserving text length and token positions, e.g. '\`' becomes ' `'
-     */
-    fun escapeHostElements(rawText: String?): String?
+  /**
+   * Inline-replaces the use of escaped string quotes which delimit GraphQL injections, e.g. an escaped backtick '\`'.
+   * in JavaScript tagged template literals, such that the injected GraphQL text represents valid GraphQL.
+   *
+   * @param rawText the raw injected GraphQL text to escape
+   * @return the text with injection-delimiting escaped while preserving text length and token positions, e.g. '\`' becomes ' `'
+   */
+  fun escapeHostElements(rawText: String?): String?
 
-    fun getInjectedTextForIndexing(host: PsiElement): String?
+  fun getInjectedTextForIndexing(host: PsiElement): String?
 }

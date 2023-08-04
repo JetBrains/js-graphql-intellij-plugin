@@ -37,125 +37,127 @@ import java.util.Set;
 @PublicApi
 public class SchemaGenerator {
 
-    private static final Logger LOG = Logger.getInstance(SchemaGenerator.class);
+  private static final Logger LOG = Logger.getInstance(SchemaGenerator.class);
 
-    /**
-     * These options control how the schema generation works
-     */
-    public static class Options {
+  /**
+   * These options control how the schema generation works
+   */
+  public static class Options {
 
-        Options() {
-        }
-
-        public static Options defaultOptions() {
-            return new Options();
-        }
+    Options() {
     }
 
-    private final SchemaTypeChecker typeChecker = new SchemaTypeChecker();
-    private final SchemaGeneratorHelper schemaGeneratorHelper = new SchemaGeneratorHelper();
+    public static Options defaultOptions() {
+      return new Options();
+    }
+  }
 
-    public SchemaGenerator() {
+  private final SchemaTypeChecker typeChecker = new SchemaTypeChecker();
+  private final SchemaGeneratorHelper schemaGeneratorHelper = new SchemaGeneratorHelper();
+
+  public SchemaGenerator() {
+  }
+
+  /**
+   * This will take a {@link TypeDefinitionRegistry} and a {@link RuntimeWiring} and put them together to create a executable schema
+   *
+   * @param typeRegistry type registry
+   * @param wiring       this can be built using {@link RuntimeWiring#newRuntimeWiring()}
+   * @return an executable schema
+   * @throws SchemaProblem if there are problems in assembling a schema such as missing type resolvers or no operations defined
+   */
+  public GraphQLSchema makeExecutableSchema(TypeDefinitionRegistry typeRegistry, RuntimeWiring wiring)
+    throws SchemaProblem {
+    return makeExecutableSchema(Options.defaultOptions(), typeRegistry, wiring);
+  }
+
+  /**
+   * This will take a {@link TypeDefinitionRegistry} and a {@link RuntimeWiring} and put them together to create a executable schema
+   * controlled by the provided options.
+   *
+   * @param options      the controlling options
+   * @param typeRegistry type registry
+   * @param wiring       this can be built using {@link RuntimeWiring#newRuntimeWiring()}
+   * @return an executable schema
+   * @throws SchemaProblem if there are problems in assembling a schema such as missing type resolvers or no operations defined
+   */
+  public GraphQLSchema makeExecutableSchema(Options options,
+                                            TypeDefinitionRegistry typeRegistry,
+                                            RuntimeWiring wiring) throws SchemaProblem {
+
+    TypeDefinitionRegistry typeRegistryCopy = new TypeDefinitionRegistry();
+    typeRegistryCopy.merge(typeRegistry);
+
+    schemaGeneratorHelper.addDirectivesIncludedByDefault(typeRegistryCopy);
+
+    List<GraphQLError> errors = typeChecker.checkTypeRegistry(typeRegistryCopy, wiring);
+
+    Map<String, OperationTypeDefinition> operationTypeDefinitions = SchemaExtensionsChecker.gatherOperationDefs(typeRegistry);
+
+    GraphQLSchema schema;
+    try {
+      schema = makeExecutableSchemaImpl(typeRegistryCopy, wiring, operationTypeDefinitions);
+    }
+    catch (ProcessCanceledException e) {
+      throw e;
+    }
+    catch (Exception e) {
+      LOG.error("Schema build error: ", e); // we should prevent any thrown exceptions during schema build
+      schema = GraphQLSchema.newSchema()
+        .query(GraphQLObjectType.newObject().name("Query").build()).build();
     }
 
-    /**
-     * This will take a {@link TypeDefinitionRegistry} and a {@link RuntimeWiring} and put them together to create a executable schema
-     *
-     * @param typeRegistry type registry
-     * @param wiring       this can be built using {@link RuntimeWiring#newRuntimeWiring()}
-     * @return an executable schema
-     * @throws SchemaProblem if there are problems in assembling a schema such as missing type resolvers or no operations defined
-     */
-    public GraphQLSchema makeExecutableSchema(TypeDefinitionRegistry typeRegistry, RuntimeWiring wiring)
-        throws SchemaProblem {
-        return makeExecutableSchema(Options.defaultOptions(), typeRegistry, wiring);
+    if (!errors.isEmpty()) {
+      schema.addError(new SchemaProblem(errors));
     }
+    return schema;
+  }
 
-    /**
-     * This will take a {@link TypeDefinitionRegistry} and a {@link RuntimeWiring} and put them together to create a executable schema
-     * controlled by the provided options.
-     *
-     * @param options      the controlling options
-     * @param typeRegistry type registry
-     * @param wiring       this can be built using {@link RuntimeWiring#newRuntimeWiring()}
-     * @return an executable schema
-     * @throws SchemaProblem if there are problems in assembling a schema such as missing type resolvers or no operations defined
-     */
-    public GraphQLSchema makeExecutableSchema(Options options,
-                                              TypeDefinitionRegistry typeRegistry,
-                                              RuntimeWiring wiring) throws SchemaProblem {
+  private GraphQLSchema makeExecutableSchemaImpl(TypeDefinitionRegistry typeRegistry,
+                                                 RuntimeWiring wiring,
+                                                 Map<String, OperationTypeDefinition> operationTypeDefinitions) {
+    SchemaGeneratorHelper.BuildContext buildCtx = new SchemaGeneratorHelper.BuildContext(typeRegistry, wiring,
+                                                                                         operationTypeDefinitions);
 
-        TypeDefinitionRegistry typeRegistryCopy = new TypeDefinitionRegistry();
-        typeRegistryCopy.merge(typeRegistry);
+    GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
 
-        schemaGeneratorHelper.addDirectivesIncludedByDefault(typeRegistryCopy);
+    Set<GraphQLDirective> additionalDirectives = schemaGeneratorHelper.buildAdditionalDirectives(buildCtx);
+    schemaBuilder.additionalDirectives(additionalDirectives);
 
-        List<GraphQLError> errors = typeChecker.checkTypeRegistry(typeRegistryCopy, wiring);
+    schemaGeneratorHelper.buildSchemaDirectivesAndExtensions(buildCtx, schemaBuilder);
 
-        Map<String, OperationTypeDefinition> operationTypeDefinitions = SchemaExtensionsChecker.gatherOperationDefs(typeRegistry);
+    schemaGeneratorHelper.buildOperations(buildCtx, schemaBuilder);
 
-        GraphQLSchema schema;
-        try {
-            schema = makeExecutableSchemaImpl(typeRegistryCopy, wiring, operationTypeDefinitions);
-        } catch (ProcessCanceledException e) {
-            throw e;
-        } catch (Exception e) {
-            LOG.error("Schema build error: ", e); // we should prevent any thrown exceptions during schema build
-            schema = GraphQLSchema.newSchema()
-                .query(GraphQLObjectType.newObject().name("Query").build()).build();
-        }
+    Set<GraphQLType> additionalTypes = schemaGeneratorHelper.buildAdditionalTypes(buildCtx);
+    schemaBuilder.additionalTypes(additionalTypes);
 
-        if (!errors.isEmpty()) {
-            schema.addError(new SchemaProblem(errors));
-        }
-        return schema;
+    buildCtx.getCodeRegistry().fieldVisibility(buildCtx.getWiring().getFieldVisibility());
+
+    GraphQLCodeRegistry codeRegistry = buildCtx.getCodeRegistry().build();
+    schemaBuilder.codeRegistry(codeRegistry);
+
+    buildCtx.getTypeRegistry().schemaDefinition().ifPresent(schemaDefinition -> {
+      String description = schemaGeneratorHelper.buildDescription(schemaDefinition,
+                                                                  schemaDefinition.getDescription());
+      schemaBuilder.description(description);
+    });
+    GraphQLSchema graphQLSchema = schemaBuilder.build();
+
+    List<SchemaGeneratorPostProcessing> schemaTransformers = new ArrayList<>();
+    // handle directive wiring AFTER the schema has been built and hence type references are resolved at callback time
+    schemaTransformers.add(
+      new SchemaDirectiveWiringSchemaGeneratorPostProcessing(buildCtx.getTypeRegistry(), buildCtx.getWiring(),
+                                                             buildCtx.getCodeRegistry())
+    );
+    schemaTransformers.addAll(buildCtx.getWiring().getSchemaGeneratorPostProcessings());
+
+    for (SchemaGeneratorPostProcessing postProcessing : schemaTransformers) {
+      graphQLSchema = postProcessing.process(graphQLSchema);
     }
-
-    private GraphQLSchema makeExecutableSchemaImpl(TypeDefinitionRegistry typeRegistry,
-                                                   RuntimeWiring wiring,
-                                                   Map<String, OperationTypeDefinition> operationTypeDefinitions) {
-        SchemaGeneratorHelper.BuildContext buildCtx = new SchemaGeneratorHelper.BuildContext(typeRegistry, wiring,
-            operationTypeDefinitions);
-
-        GraphQLSchema.Builder schemaBuilder = GraphQLSchema.newSchema();
-
-        Set<GraphQLDirective> additionalDirectives = schemaGeneratorHelper.buildAdditionalDirectives(buildCtx);
-        schemaBuilder.additionalDirectives(additionalDirectives);
-
-        schemaGeneratorHelper.buildSchemaDirectivesAndExtensions(buildCtx, schemaBuilder);
-
-        schemaGeneratorHelper.buildOperations(buildCtx, schemaBuilder);
-
-        Set<GraphQLType> additionalTypes = schemaGeneratorHelper.buildAdditionalTypes(buildCtx);
-        schemaBuilder.additionalTypes(additionalTypes);
-
-        buildCtx.getCodeRegistry().fieldVisibility(buildCtx.getWiring().getFieldVisibility());
-
-        GraphQLCodeRegistry codeRegistry = buildCtx.getCodeRegistry().build();
-        schemaBuilder.codeRegistry(codeRegistry);
-
-        buildCtx.getTypeRegistry().schemaDefinition().ifPresent(schemaDefinition -> {
-            String description = schemaGeneratorHelper.buildDescription(schemaDefinition,
-                schemaDefinition.getDescription());
-            schemaBuilder.description(description);
-        });
-        GraphQLSchema graphQLSchema = schemaBuilder.build();
-
-        List<SchemaGeneratorPostProcessing> schemaTransformers = new ArrayList<>();
-        // handle directive wiring AFTER the schema has been built and hence type references are resolved at callback time
-        schemaTransformers.add(
-            new SchemaDirectiveWiringSchemaGeneratorPostProcessing(buildCtx.getTypeRegistry(), buildCtx.getWiring(),
-                buildCtx.getCodeRegistry())
-        );
-        schemaTransformers.addAll(buildCtx.getWiring().getSchemaGeneratorPostProcessings());
-
-        for (SchemaGeneratorPostProcessing postProcessing : schemaTransformers) {
-            graphQLSchema = postProcessing.process(graphQLSchema);
-        }
-        List<GraphQLError> buildErrors = buildCtx.getErrors();
-        if (!buildErrors.isEmpty()) {
-            graphQLSchema.addError(new SchemaProblem(buildErrors));
-        }
-        return graphQLSchema;
+    List<GraphQLError> buildErrors = buildCtx.getErrors();
+    if (!buildErrors.isEmpty()) {
+      graphQLSchema.addError(new SchemaProblem(buildErrors));
     }
+    return graphQLSchema;
+  }
 }

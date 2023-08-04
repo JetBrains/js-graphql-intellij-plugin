@@ -31,15 +31,15 @@ import java.util.List;
 @PublicApi
 public interface GraphQLFieldsContainer extends GraphQLCompositeType {
 
-    GraphQLFieldDefinition getFieldDefinition(String name);
+  GraphQLFieldDefinition getFieldDefinition(String name);
 
-    List<GraphQLFieldDefinition> getFieldDefinitions();
+  List<GraphQLFieldDefinition> getFieldDefinitions();
 
-    default GraphQLFieldDefinition getField(String name) {
-        return getFieldDefinition(name);
-    }
+  default GraphQLFieldDefinition getField(String name) {
+    return getFieldDefinition(name);
+  }
 
-    default List<GraphQLFieldDefinition> getFields() {
-        return getFieldDefinitions();
-    }
+  default List<GraphQLFieldDefinition> getFields() {
+    return getFieldDefinitions();
+  }
 }

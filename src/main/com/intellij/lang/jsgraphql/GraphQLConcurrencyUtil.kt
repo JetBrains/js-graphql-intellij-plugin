@@ -12,26 +12,27 @@ import java.util.concurrent.Executor
 fun inEdt(modalityState: ModalityState? = null) = Executor { runnable -> runInEdt(modalityState) { runnable.run() } }
 
 fun inWriteAction(modalityState: ModalityState? = null) = Executor { runnable ->
-    runInEdt(modalityState) {
-        ApplicationManager.getApplication().runWriteAction(runnable)
-    }
+  runInEdt(modalityState) {
+    ApplicationManager.getApplication().runWriteAction(runnable)
+  }
 }
 
 fun isCancellation(error: Throwable?): Boolean {
-    if (error is ExecutionException) {
-        return error.cause?.let(::isCancellation) ?: false
-    }
+  if (error is ExecutionException) {
+    return error.cause?.let(::isCancellation) ?: false
+  }
 
-    return error is ProcessCanceledException
-        || error is CancellationException
-        || error is InterruptedException
+  return error is ProcessCanceledException
+         || error is CancellationException
+         || error is InterruptedException
 }
 
 fun executeOnPooledThread(runnable: () -> Unit) {
-    val app = ApplicationManager.getApplication()
-    if (app.isUnitTestMode) {
-        invokeLater(ModalityState.defaultModalityState(), runnable)
-    } else {
-        app.executeOnPooledThread(runnable)
-    }
+  val app = ApplicationManager.getApplication()
+  if (app.isUnitTestMode) {
+    invokeLater(ModalityState.defaultModalityState(), runnable)
+  }
+  else {
+    app.executeOnPooledThread(runnable)
+  }
 }

@@ -28,15 +28,15 @@ import static java.lang.String.format;
 @Internal
 public class DirectiveUnknownArgumentError extends BaseError {
 
-    public DirectiveUnknownArgumentError(Node element, String elementName, String directiveName, String argumentName) {
-        super(element,
-            format("'%s' use an unknown argument '%s' on directive '%s'",
-                elementName, argumentName, directiveName
-            ));
-    }
+  public DirectiveUnknownArgumentError(Node element, String elementName, String directiveName, String argumentName) {
+    super(element,
+          format("'%s' use an unknown argument '%s' on directive '%s'",
+                 elementName, argumentName, directiveName
+          ));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLIllegalDirectiveArgumentInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLIllegalDirectiveArgumentInspection.class;
+  }
 }

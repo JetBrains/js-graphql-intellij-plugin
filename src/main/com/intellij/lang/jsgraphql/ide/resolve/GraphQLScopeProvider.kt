@@ -22,88 +22,88 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 @Service(Service.Level.PROJECT)
 class GraphQLScopeProvider(private val project: Project) {
 
-    companion object {
-        private val NON_STRICT_SCOPE_KEY =
-            Key.create<CachedValue<GlobalSearchScope>>("graphql.non.strict.scope")
-        private val STRICT_SCOPE_KEY =
-            Key.create<CachedValue<GlobalSearchScope>>("graphql.strict.scope")
+  companion object {
+    private val NON_STRICT_SCOPE_KEY =
+      Key.create<CachedValue<GlobalSearchScope>>("graphql.non.strict.scope")
+    private val STRICT_SCOPE_KEY =
+      Key.create<CachedValue<GlobalSearchScope>>("graphql.strict.scope")
 
-        @JvmStatic
-        fun getInstance(project: Project) = project.service<GraphQLScopeProvider>()
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLScopeProvider>()
 
-        @JvmStatic
-        fun createScope(project: Project, customScope: GlobalSearchScope?): GlobalSearchScope {
-            var scope = customScope ?: GlobalSearchScope.projectScope(project)
+    @JvmStatic
+    fun createScope(project: Project, customScope: GlobalSearchScope?): GlobalSearchScope {
+      var scope = customScope ?: GlobalSearchScope.projectScope(project)
 
-            // these scopes are used unconditionally, both for global and config filtered scopes
-            scope = scope
-                .union(createExternalDefinitionsLibraryScope(project))
-                .union(GraphQLMetaInfSchemaSearchScope(project))
+      // these scopes are used unconditionally, both for global and config filtered scopes
+      scope = scope
+        .union(createExternalDefinitionsLibraryScope(project))
+        .union(GraphQLMetaInfSchemaSearchScope(project))
 
-            return GraphQLRestrictedFileTypesScope(scope)
-        }
-
-        private fun createExternalDefinitionsLibraryScope(project: Project): GlobalSearchScope {
-            val roots = GraphQLLibraryRootsProvider.getLibraries(project)
-                .asSequence()
-                .flatMap { it.sourceRoots }
-                .toSet()
-
-            return GlobalSearchScope.filesWithLibrariesScope(project, roots)
-        }
-
-        fun isResolvedInNonStrictScope(element: PsiElement?): Boolean {
-            val context = if (element is GraphQLIdentifier) element.parent else element
-            return context is GraphQLFragmentSpread || context is GraphQLFragmentDefinition
-        }
+      return GraphQLRestrictedFileTypesScope(scope)
     }
 
-    private val configProvider = GraphQLConfigProvider.getInstance(project)
-    private val scopeDependency = GraphQLScopeDependency.getInstance(project)
+    private fun createExternalDefinitionsLibraryScope(project: Project): GlobalSearchScope {
+      val roots = GraphQLLibraryRootsProvider.getLibraries(project)
+        .asSequence()
+        .flatMap { it.sourceRoots }
+        .toSet()
 
-    private val globalScopeCache: CachedValue<GlobalSearchScope> =
-        CachedValuesManager.getManager(project).createCachedValue {
-            CachedValueProvider.Result.create(createScope(project, null), scopeDependency)
-        }
-
-    val globalScope: GlobalSearchScope
-        get() = globalScopeCache.value
-
-    @RequiresReadLock
-    fun getResolveScope(element: PsiElement?): GlobalSearchScope {
-        return getResolveScope(element, !isResolvedInNonStrictScope(element))
+      return GlobalSearchScope.filesWithLibrariesScope(project, roots)
     }
 
-    @RequiresReadLock
-    fun getResolveScope(element: PsiElement?, isStrict: Boolean): GlobalSearchScope {
-        if (element == null) {
-            return GlobalSearchScope.EMPTY_SCOPE
-        }
+    fun isResolvedInNonStrictScope(element: PsiElement?): Boolean {
+      val context = if (element is GraphQLIdentifier) element.parent else element
+      return context is GraphQLFragmentSpread || context is GraphQLFragmentDefinition
+    }
+  }
 
-        return if (isStrict)
-            getOrCreateScope(element, STRICT_SCOPE_KEY)
-        else
-            getOrCreateScope(element, NON_STRICT_SCOPE_KEY)
+  private val configProvider = GraphQLConfigProvider.getInstance(project)
+  private val scopeDependency = GraphQLScopeDependency.getInstance(project)
+
+  private val globalScopeCache: CachedValue<GlobalSearchScope> =
+    CachedValuesManager.getManager(project).createCachedValue {
+      CachedValueProvider.Result.create(createScope(project, null), scopeDependency)
     }
 
-    private fun getOrCreateScope(
-        element: PsiElement,
-        key: Key<CachedValue<GlobalSearchScope>>
-    ): GlobalSearchScope {
-        val file = element.containingFile.originalFile
+  val globalScope: GlobalSearchScope
+    get() = globalScopeCache.value
 
-        return CachedValuesManager.getCachedValue(file, key) {
-            val projectConfig = configProvider.resolveProjectConfig(file)
-            var scope: GlobalSearchScope =
-                projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
-                    ?: globalScope.takeUnless { configProvider.hasExplicitConfiguration }
-                    ?: createScope(project, GlobalSearchScope.fileScope(file))
+  @RequiresReadLock
+  fun getResolveScope(element: PsiElement?): GlobalSearchScope {
+    return getResolveScope(element, !isResolvedInNonStrictScope(element))
+  }
 
-            if (ScratchUtil.isScratch(file.virtualFile)) {
-                scope = scope.union(GlobalSearchScope.fileScope(file))
-            }
-
-            CachedValueProvider.Result.create(scope, file, scopeDependency)
-        }
+  @RequiresReadLock
+  fun getResolveScope(element: PsiElement?, isStrict: Boolean): GlobalSearchScope {
+    if (element == null) {
+      return GlobalSearchScope.EMPTY_SCOPE
     }
+
+    return if (isStrict)
+      getOrCreateScope(element, STRICT_SCOPE_KEY)
+    else
+      getOrCreateScope(element, NON_STRICT_SCOPE_KEY)
+  }
+
+  private fun getOrCreateScope(
+    element: PsiElement,
+    key: Key<CachedValue<GlobalSearchScope>>
+  ): GlobalSearchScope {
+    val file = element.containingFile.originalFile
+
+    return CachedValuesManager.getCachedValue(file, key) {
+      val projectConfig = configProvider.resolveProjectConfig(file)
+      var scope: GlobalSearchScope =
+        projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
+        ?: globalScope.takeUnless { configProvider.hasExplicitConfiguration }
+        ?: createScope(project, GlobalSearchScope.fileScope(file))
+
+      if (ScratchUtil.isScratch(file.virtualFile)) {
+        scope = scope.union(GlobalSearchScope.fileScope(file))
+      }
+
+      CachedValueProvider.Result.create(scope, file, scopeDependency)
+    }
+  }
 }

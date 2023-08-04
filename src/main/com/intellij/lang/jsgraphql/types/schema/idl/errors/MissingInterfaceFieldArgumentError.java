@@ -13,18 +13,19 @@ import static java.lang.String.format;
 
 @Internal
 public class MissingInterfaceFieldArgumentError extends BaseError {
-    public MissingInterfaceFieldArgumentError(String typeOfType,
-                                              ImplementingTypeDefinition typeDefinition,
-                                              InterfaceTypeDefinition interfaceTypeDef,
-                                              FieldDefinition objectFieldDef,
-                                              InputValueDefinition interfaceArgDef) {
-        super(objectFieldDef, format("The %s type '%s' field '%s' is missing the argument '%s' specified via interface '%s'",
-            typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceArgDef.getName(), interfaceTypeDef.getName()));
-        addReferences(interfaceArgDef);
-    }
+  public MissingInterfaceFieldArgumentError(String typeOfType,
+                                            ImplementingTypeDefinition typeDefinition,
+                                            InterfaceTypeDefinition interfaceTypeDef,
+                                            FieldDefinition objectFieldDef,
+                                            InputValueDefinition interfaceArgDef) {
+    super(objectFieldDef, format("The %s type '%s' field '%s' is missing the argument '%s' specified via interface '%s'",
+                                 typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceArgDef.getName(),
+                                 interfaceTypeDef.getName()));
+    addReferences(interfaceArgDef);
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLInterfaceImplementationInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLInterfaceImplementationInspection.class;
+  }
 }

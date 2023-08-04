@@ -23,55 +23,53 @@ import com.intellij.lang.jsgraphql.types.schema.diff.DiffLevel;
 
 import java.io.PrintStream;
 
-import static java.lang.String.format;
-
 /**
  * A reporter that prints its output to a PrintStream
  */
 @PublicApi
 public class PrintStreamReporter implements DifferenceReporter {
 
-    int breakageCount = 0;
-    int dangerCount = 0;
-    final PrintStream out;
+  int breakageCount = 0;
+  int dangerCount = 0;
+  final PrintStream out;
 
-    public PrintStreamReporter() {
-        this(System.out);
+  public PrintStreamReporter() {
+    this(System.out);
+  }
+
+  public PrintStreamReporter(PrintStream out) {
+    this.out = out;
+  }
+
+  @Override
+  public void report(DiffEvent differenceEvent) {
+    if (differenceEvent.getLevel() == DiffLevel.BREAKING) {
+      breakageCount++;
+    }
+    if (differenceEvent.getLevel() == DiffLevel.DANGEROUS) {
+      dangerCount++;
     }
 
-    public PrintStreamReporter(PrintStream out) {
-        this.out = out;
-    }
+    printEvent(differenceEvent);
+  }
 
-    @Override
-    public void report(DiffEvent differenceEvent) {
-        if (differenceEvent.getLevel() == DiffLevel.BREAKING) {
-            breakageCount++;
-        }
-        if (differenceEvent.getLevel() == DiffLevel.DANGEROUS) {
-            dangerCount++;
-        }
-
-        printEvent(differenceEvent);
+  private void printEvent(DiffEvent event) {
+    String indent = event.getLevel() == DiffLevel.INFO ? "\t" : "";
+    String level = event.getLevel() == DiffLevel.INFO ? "info" : event.getLevel().toString();
+    String objectName = event.getTypeName();
+    if (event.getFieldName() != null) {
+      objectName = objectName + "." + event.getFieldName();
     }
+    out.printf(
+      "%s%s - '%s' : '%s' : %s%n",
+      indent, level, event.getTypeKind(), objectName, event.getReasonMsg());
+  }
 
-    private void printEvent(DiffEvent event) {
-        String indent = event.getLevel() == DiffLevel.INFO ? "\t" : "";
-        String level = event.getLevel() == DiffLevel.INFO ? "info" : event.getLevel().toString();
-        String objectName = event.getTypeName();
-        if (event.getFieldName() != null) {
-            objectName = objectName + "." + event.getFieldName();
-        }
-        out.printf(
-            "%s%s - '%s' : '%s' : %s%n",
-                indent, level, event.getTypeKind(), objectName, event.getReasonMsg());
-    }
-
-    @Override
-    public void onEnd() {
-        out.println("\n");
-        out.printf("%d errors%n", breakageCount);
-        out.printf("%d warnings%n", dangerCount);
-        out.println("\n");
-    }
+  @Override
+  public void onEnd() {
+    out.println("\n");
+    out.printf("%d errors%n", breakageCount);
+    out.printf("%d warnings%n", dangerCount);
+    out.println("\n");
+  }
 }

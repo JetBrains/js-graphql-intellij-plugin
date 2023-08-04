@@ -23,15 +23,15 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GraphQLIdentifierManipulator extends AbstractElementManipulator<GraphQLIdentifierImpl> {
 
-    @Override
-    public GraphQLIdentifierImpl handleContentChange(@NotNull GraphQLIdentifierImpl element, @NotNull TextRange range, String newContent) throws IncorrectOperationException {
-        // replace the NAME leaf element inside the identifier
-        final LeafElement renamedLeaf = Factory.createSingleLeafElement(GraphQLElementTypes.NAME, newContent, null, element.getManager());
-        final PsiElement renamedPsiElement = SourceTreeToPsiMap.treeElementToPsi(renamedLeaf);
-        if (renamedPsiElement != null) {
-            element.getFirstChild().replace(renamedPsiElement);
-        }
-        return element;
-
+  @Override
+  public GraphQLIdentifierImpl handleContentChange(@NotNull GraphQLIdentifierImpl element, @NotNull TextRange range, String newContent)
+    throws IncorrectOperationException {
+    // replace the NAME leaf element inside the identifier
+    final LeafElement renamedLeaf = Factory.createSingleLeafElement(GraphQLElementTypes.NAME, newContent, null, element.getManager());
+    final PsiElement renamedPsiElement = SourceTreeToPsiMap.treeElementToPsi(renamedLeaf);
+    if (renamedPsiElement != null) {
+      element.getFirstChild().replace(renamedPsiElement);
     }
+    return element;
+  }
 }

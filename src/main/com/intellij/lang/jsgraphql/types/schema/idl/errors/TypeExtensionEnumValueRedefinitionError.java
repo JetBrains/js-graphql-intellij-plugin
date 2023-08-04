@@ -17,8 +17,8 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
-import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
@@ -29,18 +29,18 @@ import static java.lang.String.format;
 @Internal
 public class TypeExtensionEnumValueRedefinitionError extends BaseError {
 
-    public TypeExtensionEnumValueRedefinitionError(TypeDefinition typeDefinition,
-                                                   EnumValueDefinition enumValueDefinition,
-                                                   EnumValueDefinition redefinedValue) {
-        super(typeDefinition,
-                format("'%s' extension type tried to redefine enum value '%s'",
-                        typeDefinition.getName(), enumValueDefinition.getName()
-                ));
-        addReferences(redefinedValue);
-    }
+  public TypeExtensionEnumValueRedefinitionError(TypeDefinition typeDefinition,
+                                                 EnumValueDefinition enumValueDefinition,
+                                                 EnumValueDefinition redefinedValue) {
+    super(typeDefinition,
+          format("'%s' extension type tried to redefine enum value '%s'",
+                 typeDefinition.getName(), enumValueDefinition.getName()
+          ));
+    addReferences(redefinedValue);
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLMemberRedefinitionInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLMemberRedefinitionInspection.class;
+  }
 }

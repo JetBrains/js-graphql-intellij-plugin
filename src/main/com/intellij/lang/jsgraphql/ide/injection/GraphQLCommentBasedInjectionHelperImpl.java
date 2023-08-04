@@ -17,12 +17,12 @@ import org.jetbrains.annotations.NotNull;
  */
 public class GraphQLCommentBasedInjectionHelperImpl implements GraphQLCommentBasedInjectionHelper {
 
-    @Override
-    public boolean isGraphQLInjectedUsingComment(@NotNull PsiElement host) {
-        final InjectorUtils.CommentInjectionData injectionData = InjectorUtils.findCommentInjectionData(host, true, null);
-        if (injectionData == null) {
-            return false;
-        }
-        return GraphQLLanguage.INSTANCE.getID().equals(injectionData.getInjectedLanguageId());
+  @Override
+  public boolean isGraphQLInjectedUsingComment(@NotNull PsiElement host) {
+    final InjectorUtils.CommentInjectionData injectionData = InjectorUtils.findCommentInjectionData(host, true, null);
+    if (injectionData == null) {
+      return false;
     }
+    return GraphQLLanguage.INSTANCE.getID().equals(injectionData.getInjectedLanguageId());
+  }
 }

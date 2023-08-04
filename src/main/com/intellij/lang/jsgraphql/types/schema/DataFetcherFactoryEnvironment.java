@@ -25,33 +25,33 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
  */
 @PublicApi
 public class DataFetcherFactoryEnvironment {
-    private final GraphQLFieldDefinition fieldDefinition;
+  private final GraphQLFieldDefinition fieldDefinition;
 
-    DataFetcherFactoryEnvironment(GraphQLFieldDefinition fieldDefinition) {
-        this.fieldDefinition = fieldDefinition;
+  DataFetcherFactoryEnvironment(GraphQLFieldDefinition fieldDefinition) {
+    this.fieldDefinition = fieldDefinition;
+  }
+
+  /**
+   * @return the field that needs a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
+   */
+  public GraphQLFieldDefinition getFieldDefinition() {
+    return fieldDefinition;
+  }
+
+  public static Builder newDataFetchingFactoryEnvironment() {
+    return new Builder();
+  }
+
+  static class Builder {
+    GraphQLFieldDefinition fieldDefinition;
+
+    public Builder fieldDefinition(GraphQLFieldDefinition fieldDefinition) {
+      this.fieldDefinition = fieldDefinition;
+      return this;
     }
 
-    /**
-     * @return the field that needs a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher}
-     */
-    public GraphQLFieldDefinition getFieldDefinition() {
-        return fieldDefinition;
+    public DataFetcherFactoryEnvironment build() {
+      return new DataFetcherFactoryEnvironment(fieldDefinition);
     }
-
-    public static Builder newDataFetchingFactoryEnvironment() {
-        return new Builder();
-    }
-
-    static class Builder {
-        GraphQLFieldDefinition fieldDefinition;
-
-        public Builder fieldDefinition(GraphQLFieldDefinition fieldDefinition) {
-            this.fieldDefinition = fieldDefinition;
-            return this;
-        }
-
-        public DataFetcherFactoryEnvironment build() {
-            return new DataFetcherFactoryEnvironment(fieldDefinition);
-        }
-    }
+  }
 }

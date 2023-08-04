@@ -28,15 +28,15 @@ import static java.lang.String.format;
 @Internal
 public class TypeExtensionMissingBaseTypeError extends BaseError {
 
-    public TypeExtensionMissingBaseTypeError(TypeDefinition typeExtensionDefinition) {
-        super(typeExtensionDefinition,
-            format("The extension '%s' type is missing its base underlying type",
-                typeExtensionDefinition.getName()
-            ));
-    }
+  public TypeExtensionMissingBaseTypeError(TypeDefinition typeExtensionDefinition) {
+    super(typeExtensionDefinition,
+          format("The extension '%s' type is missing its base underlying type",
+                 typeExtensionDefinition.getName()
+          ));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLMissingTypeInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLMissingTypeInspection.class;
+  }
 }

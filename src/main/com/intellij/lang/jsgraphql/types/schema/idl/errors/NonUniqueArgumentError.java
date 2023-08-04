@@ -28,28 +28,28 @@ import static java.lang.String.format;
 @Internal
 public class NonUniqueArgumentError extends BaseError {
 
-    public NonUniqueArgumentError(TypeDefinition typeDefinition, FieldDefinition fieldDefinition, String argumentName) {
-        super(typeDefinition, format("The type '%s' with field '%s' has declared an argument with a non unique name '%s'",
-            typeDefinition.getName(), fieldDefinition.getName(), argumentName));
-    }
+  public NonUniqueArgumentError(TypeDefinition typeDefinition, FieldDefinition fieldDefinition, String argumentName) {
+    super(typeDefinition, format("The type '%s' with field '%s' has declared an argument with a non unique name '%s'",
+                                 typeDefinition.getName(), fieldDefinition.getName(), argumentName));
+  }
 
-    public NonUniqueArgumentError(TypeDefinition typeDefinition, InputValueDefinition inputValueDefinition, String argumentName) {
-        super(typeDefinition, format("The type '%s' with input value '%s' has declared an argument with a non unique name '%s'",
-            typeDefinition.getName(), inputValueDefinition.getName(), argumentName));
-    }
+  public NonUniqueArgumentError(TypeDefinition typeDefinition, InputValueDefinition inputValueDefinition, String argumentName) {
+    super(typeDefinition, format("The type '%s' with input value '%s' has declared an argument with a non unique name '%s'",
+                                 typeDefinition.getName(), inputValueDefinition.getName(), argumentName));
+  }
 
-    public NonUniqueArgumentError(TypeDefinition typeDefinition, EnumValueDefinition enumValueDefinition, String argumentName) {
-        super(typeDefinition, format("The '%s' type with enum value '%s' has declared an argument with a non unique name '%s'",
-            typeDefinition.getName(), enumValueDefinition.getName(), argumentName));
-    }
+  public NonUniqueArgumentError(TypeDefinition typeDefinition, EnumValueDefinition enumValueDefinition, String argumentName) {
+    super(typeDefinition, format("The '%s' type with enum value '%s' has declared an argument with a non unique name '%s'",
+                                 typeDefinition.getName(), enumValueDefinition.getName(), argumentName));
+  }
 
-    public NonUniqueArgumentError(DirectiveDefinition typeDefinition, InputValueDefinition inputValueDefinition) {
-        super(typeDefinition, format("The directive definition '%s' has declared an argument with a non unique name '%s'",
-            typeDefinition.getName(), inputValueDefinition.getName()));
-    }
+  public NonUniqueArgumentError(DirectiveDefinition typeDefinition, InputValueDefinition inputValueDefinition) {
+    super(typeDefinition, format("The directive definition '%s' has declared an argument with a non unique name '%s'",
+                                 typeDefinition.getName(), inputValueDefinition.getName()));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLDuplicateArgumentInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLDuplicateArgumentInspection.class;
+  }
 }

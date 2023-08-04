@@ -20,86 +20,87 @@ import javax.swing.JComponent
 private const val CONFIGURABLE_ID = "settings.jsgraphql"
 
 class GraphQLSettingsConfigurable(private val project: Project) :
-    BoundSearchableConfigurable(GraphQLConstants.GraphQL, CONFIGURABLE_ID, CONFIGURABLE_ID) {
+  BoundSearchableConfigurable(GraphQLConstants.GraphQL, CONFIGURABLE_ID, CONFIGURABLE_ID) {
 
-    private val settings = GraphQLSettings.getSettings(project)
-    private var shouldUpdateLibraries = false
+  private val settings = GraphQLSettings.getSettings(project)
+  private var shouldUpdateLibraries = false
 
-    override fun apply() {
-        shouldUpdateLibraries = false // updated in the super.apply()
+  override fun apply() {
+    shouldUpdateLibraries = false // updated in the super.apply()
 
-        super.apply()
+    super.apply()
 
-        if (shouldUpdateLibraries) {
-            GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged()
-        } else {
-            ApplicationManager.getApplication().invokeLater({
-                DaemonCodeAnalyzer.getInstance(project).restart()
-                EditorNotifications.getInstance(project).updateAllNotifications()
-            }, project.disposed)
-        }
+    if (shouldUpdateLibraries) {
+      GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged()
     }
+    else {
+      ApplicationManager.getApplication().invokeLater({
+                                                        DaemonCodeAnalyzer.getInstance(project).restart()
+                                                        EditorNotifications.getInstance(project).updateAllNotifications()
+                                                      }, project.disposed)
+    }
+  }
 
-    override fun createPanel(): DialogPanel {
-        return panel {
-            group(message("graphql.settings.introspection")) {
-                row(message("graphql.settings.introspection.query.label") + ":") {
-                    expandableTextField()
-                        .bindText(settings::getIntrospectionQuery, settings::setIntrospectionQuery)
-                        .horizontalAlign(HorizontalAlign.FILL)
-                        .applyToComponent {
-                            emptyText.text = message("graphql.settings.introspection.query.empty.text")
-                            toolTipText = message("graphql.settings.introspection.query.tooltip")
-                        }
-                }
-                row {
-                    checkBox(message("graphql.settings.introspection.default.values.label"))
-                        .bindSelected(
-                            settings::isEnableIntrospectionDefaultValues,
-                            settings::setEnableIntrospectionDefaultValues
-                        )
-                        .applyToComponent {
-                            toolTipText = message("graphql.settings.introspection.default.values.tooltip")
-                        }
-                }
-                row {
-                    checkBox(message("graphql.settings.introspection.repeatable.directives.label"))
-                        .bindSelected(
-                            settings::isEnableIntrospectionRepeatableDirectives,
-                            settings::setEnableIntrospectionRepeatableDirectives
-                        )
-                        .applyToComponent {
-                            toolTipText = message("graphql.settings.introspection.repeatable.directives.tooltip")
-                        }
-                }
-                row {
-                    checkBox(message("graphql.settings.introspection.open.editor.label"))
-                        .bindSelected(
-                            settings::isOpenEditorWithIntrospectionResult,
-                            settings::setOpenEditorWithIntrospectionResult
-                        )
-                }
-            }
-            group(message("graphql.settings.frameworks")) {
-                row {
-                    checkBox(message("graphql.library.relay"))
-                        .bindSelected(settings::isRelaySupportEnabled, settings::setRelaySupportEnabled)
-                        .applyToComponent { toolTipText = message("graphql.settings.frameworks.relay.tooltip") }
-                        .updateLibraries()
-                }
-                row {
-                    checkBox(message("graphql.library.federation"))
-                        .bindSelected(settings::isFederationSupportEnabled, settings::setFederationSupportEnabled)
-                        .updateLibraries()
-                }
-                row {
-                    checkBox(message("graphql.library.apollokotlin"))
-                        .bindSelected(settings::isApolloKotlinSupportEnabled, settings::setApolloKotlinSupportEnabled)
-                        .updateLibraries()
-                }
+  override fun createPanel(): DialogPanel {
+    return panel {
+      group(message("graphql.settings.introspection")) {
+        row(message("graphql.settings.introspection.query.label") + ":") {
+          expandableTextField()
+            .bindText(settings::getIntrospectionQuery, settings::setIntrospectionQuery)
+            .horizontalAlign(HorizontalAlign.FILL)
+            .applyToComponent {
+              emptyText.text = message("graphql.settings.introspection.query.empty.text")
+              toolTipText = message("graphql.settings.introspection.query.tooltip")
             }
         }
+        row {
+          checkBox(message("graphql.settings.introspection.default.values.label"))
+            .bindSelected(
+              settings::isEnableIntrospectionDefaultValues,
+              settings::setEnableIntrospectionDefaultValues
+            )
+            .applyToComponent {
+              toolTipText = message("graphql.settings.introspection.default.values.tooltip")
+            }
+        }
+        row {
+          checkBox(message("graphql.settings.introspection.repeatable.directives.label"))
+            .bindSelected(
+              settings::isEnableIntrospectionRepeatableDirectives,
+              settings::setEnableIntrospectionRepeatableDirectives
+            )
+            .applyToComponent {
+              toolTipText = message("graphql.settings.introspection.repeatable.directives.tooltip")
+            }
+        }
+        row {
+          checkBox(message("graphql.settings.introspection.open.editor.label"))
+            .bindSelected(
+              settings::isOpenEditorWithIntrospectionResult,
+              settings::setOpenEditorWithIntrospectionResult
+            )
+        }
+      }
+      group(message("graphql.settings.frameworks")) {
+        row {
+          checkBox(message("graphql.library.relay"))
+            .bindSelected(settings::isRelaySupportEnabled, settings::setRelaySupportEnabled)
+            .applyToComponent { toolTipText = message("graphql.settings.frameworks.relay.tooltip") }
+            .updateLibraries()
+        }
+        row {
+          checkBox(message("graphql.library.federation"))
+            .bindSelected(settings::isFederationSupportEnabled, settings::setFederationSupportEnabled)
+            .updateLibraries()
+        }
+        row {
+          checkBox(message("graphql.library.apollokotlin"))
+            .bindSelected(settings::isApolloKotlinSupportEnabled, settings::setApolloKotlinSupportEnabled)
+            .updateLibraries()
+        }
+      }
     }
+  }
 
-    private fun <T : JComponent> Cell<T>.updateLibraries(): Cell<T> = onApply { shouldUpdateLibraries = true }
+  private fun <T : JComponent> Cell<T>.updateLibraries(): Cell<T> = onApply { shouldUpdateLibraries = true }
 }

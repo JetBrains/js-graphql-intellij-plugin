@@ -32,42 +32,41 @@ import java.util.Map;
 @PublicApi
 public interface QueryVisitorFieldEnvironment {
 
-    /**
-     * @return the graphql schema in play
-     */
-    GraphQLSchema getSchema();
+  /**
+   * @return the graphql schema in play
+   */
+  GraphQLSchema getSchema();
 
-    /**
-     * @return true if the current field is __typename
-     */
-    boolean isTypeNameIntrospectionField();
+  /**
+   * @return true if the current field is __typename
+   */
+  boolean isTypeNameIntrospectionField();
 
-    /**
-     * @return the current Field
-     */
-    Field getField();
+  /**
+   * @return the current Field
+   */
+  Field getField();
 
-    GraphQLFieldDefinition getFieldDefinition();
+  GraphQLFieldDefinition getFieldDefinition();
 
-    /**
-     * @return the parent output type of the current field.
-     */
-    GraphQLOutputType getParentType();
+  /**
+   * @return the parent output type of the current field.
+   */
+  GraphQLOutputType getParentType();
 
-    /**
-     * @return the unmodified fields container fot the current type. This is the unwrapped version of {@link #getParentType()}
-     * It is either {@link com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType} or {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType}. because these
-     * are the only {@link GraphQLFieldsContainer}
-     *
-     * @throws IllegalStateException if the current field is __typename see {@link #isTypeNameIntrospectionField()}
-     */
-    GraphQLFieldsContainer getFieldsContainer();
+  /**
+   * @return the unmodified fields container fot the current type. This is the unwrapped version of {@link #getParentType()}
+   * It is either {@link com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType} or {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType}. because these
+   * are the only {@link GraphQLFieldsContainer}
+   * @throws IllegalStateException if the current field is __typename see {@link #isTypeNameIntrospectionField()}
+   */
+  GraphQLFieldsContainer getFieldsContainer();
 
-    QueryVisitorFieldEnvironment getParentEnvironment();
+  QueryVisitorFieldEnvironment getParentEnvironment();
 
-    Map<String, Object> getArguments();
+  Map<String, Object> getArguments();
 
-    SelectionSetContainer getSelectionSetContainer();
+  SelectionSetContainer getSelectionSetContainer();
 
-    TraverserContext<Node> getTraverserContext();
+  TraverserContext<Node> getTraverserContext();
 }

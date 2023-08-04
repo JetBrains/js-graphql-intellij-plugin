@@ -28,120 +28,120 @@ import java.awt.event.MouseEvent
 import javax.swing.SwingConstants
 
 class GraphQLToolWindow : ToolWindowFactory, DumbAware {
-    override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        createSchemasPanel(project, toolWindow)
-        createToolWindowResultEditor(project, toolWindow)
+  override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+    createSchemasPanel(project, toolWindow)
+    createToolWindowResultEditor(project, toolWindow)
+  }
+
+  private fun createSchemasPanel(project: Project, toolWindow: ToolWindow) {
+    val schemasPanel = GraphQLSchemasPanel(project)
+    val contentManager = toolWindow.contentManager
+    val schemasContent = contentManager.factory
+      .createContent(schemasPanel, CONTENT_SCHEMAS_AND_PROJECT_STRUCTURE_CONTENT, false)
+    schemasContent.isCloseable = false
+    contentManager.addContent(schemasContent)
+  }
+
+  private fun createToolWindowResultEditor(project: Project, toolWindow: ToolWindow) {
+    val virtualFile = LightVirtualFile("GraphQL.result.json", JsonFileType.INSTANCE, "")
+    val fileEditor =
+      PsiAwareTextEditorProvider().createEditor(project, virtualFile) as? TextEditor ?: return
+    val editor = fileEditor.editor
+    val editorEx = editor as EditorEx
+
+    // set read-only mode
+    editorEx.isViewer = true
+    editorEx.settings.isShowIntentionBulb = false
+    editor.getSettings().additionalLinesCount = 0
+    editor.getSettings().isCaretRowShown = false
+    editor.getSettings().isBlinkCaret = false
+
+    val header = GraphQLQueryResultHeaderComponent(project)
+    // finally, set the header as permanent such that it's restored after searches
+    editor.setHeaderComponent(header)
+    editorEx.permanentHeaderComponent = header
+
+    val contentManager = toolWindow.contentManager
+    val content = contentManager.factory
+      .createContent(fileEditor.component, CONTENT_QUERY_RESULT_CONTENT, true)
+    content.isCloseable = false
+    content.setShouldDisposeContent(false) // fileEditor will dispose the component itself
+    content.setDisposer(fileEditor)
+    content.putUserData(QUERY_RESULT_EDITOR_KEY, fileEditor)
+    contentManager.addContent(content)
+  }
+
+  class GraphQLQueryResultHeaderComponent(project: Project) : EditorHeaderComponent() {
+    val statusLabel = JBLabel().apply {
+      isVisible = false
+      iconTextGap = 0
     }
 
-    private fun createSchemasPanel(project: Project, toolWindow: ToolWindow) {
-        val schemasPanel = GraphQLSchemasPanel(project)
-        val contentManager = toolWindow.contentManager
-        val schemasContent = contentManager.factory
-            .createContent(schemasPanel, CONTENT_SCHEMAS_AND_PROJECT_STRUCTURE_CONTENT, false)
-        schemasContent.isCloseable = false
-        contentManager.addContent(schemasContent)
+    val resultLabel: JBLabel = JBLabel("", null, SwingConstants.LEFT).apply {
+      border = JBUI.Borders.empty(4, 6)
+      cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+      isVisible = false
     }
 
-    private fun createToolWindowResultEditor(project: Project, toolWindow: ToolWindow) {
-        val virtualFile = LightVirtualFile("GraphQL.result.json", JsonFileType.INSTANCE, "")
-        val fileEditor =
-            PsiAwareTextEditorProvider().createEditor(project, virtualFile) as? TextEditor ?: return
-        val editor = fileEditor.editor
-        val editorEx = editor as EditorEx
+    init {
+      add(statusLabel, BorderLayout.WEST)
+      add(resultLabel, BorderLayout.CENTER)
 
-        // set read-only mode
-        editorEx.isViewer = true
-        editorEx.settings.isShowIntentionBulb = false
-        editor.getSettings().additionalLinesCount = 0
-        editor.getSettings().isCaretRowShown = false
-        editor.getSettings().isBlinkCaret = false
-
-        val header = GraphQLQueryResultHeaderComponent(project)
-        // finally, set the header as permanent such that it's restored after searches
-        editor.setHeaderComponent(header)
-        editorEx.permanentHeaderComponent = header
-
-        val contentManager = toolWindow.contentManager
-        val content = contentManager.factory
-            .createContent(fileEditor.component, CONTENT_QUERY_RESULT_CONTENT, true)
-        content.isCloseable = false
-        content.setShouldDisposeContent(false) // fileEditor will dispose the component itself
-        content.setDisposer(fileEditor)
-        content.putUserData(QUERY_RESULT_EDITOR_KEY, fileEditor)
-        contentManager.addContent(content)
-    }
-
-    class GraphQLQueryResultHeaderComponent(project: Project) : EditorHeaderComponent() {
-        val statusLabel = JBLabel().apply {
-            isVisible = false
-            iconTextGap = 0
-        }
-
-        val resultLabel: JBLabel = JBLabel("", null, SwingConstants.LEFT).apply {
-            border = JBUI.Borders.empty(4, 6)
-            cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-            isVisible = false
-        }
-
-        init {
-            add(statusLabel, BorderLayout.WEST)
-            add(resultLabel, BorderLayout.CENTER)
-
-            resultLabel.addMouseListener(object : MouseAdapter() {
-                override fun mouseClicked(e: MouseEvent) {
-                    val fileUrl = resultLabel.getClientProperty(FILE_URL_PROPERTY) as? String
-                    if (fileUrl != null) {
-                        val queryFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl)
-                        if (queryFile != null) {
-                            val fileEditorManager = FileEditorManager.getInstance(project)
-                            fileEditorManager.openFile(queryFile, true, true)
-                        }
-                    }
-                }
-            })
-        }
-    }
-
-    companion object {
-        const val GRAPHQL_TOOL_WINDOW = GraphQLConstants.GraphQL
-        const val CONTENT_QUERY_RESULT_CONTENT = "Query Result"
-        const val CONTENT_SCHEMAS_AND_PROJECT_STRUCTURE_CONTENT = "Schemas and Project Structure"
-
-        const val GRAPHQL_TOOL_WINDOW_TOOLBAR = "GraphQLToolWindowToolbar"
-        const val GRAPHQL_TOOL_WINDOW_POPUP = "GraphQLToolWindowPopup"
-
-        const val FILE_URL_PROPERTY = "fileUrl"
-
-        private val QUERY_RESULT_EDITOR_KEY = Key.create<TextEditor>("graphql.query.result.editor")
-
-        @JvmStatic
-        fun getQueryResultEditor(project: Project): TextEditor? {
-            ApplicationManager.getApplication().assertIsDispatchThread()
-            val content = getQueryResultContent(project) ?: return null
-            return content.getUserData(QUERY_RESULT_EDITOR_KEY)
-        }
-
-        private fun getQueryResultContent(project: Project): Content? {
-            val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GRAPHQL_TOOL_WINDOW) ?: return null
-            return toolWindow.contentManager.findContent(CONTENT_QUERY_RESULT_CONTENT)
-        }
-
-        @JvmStatic
-        fun getQueryResultHeader(textEditor: TextEditor): GraphQLQueryResultHeaderComponent? {
-            return textEditor.editor.headerComponent as? GraphQLQueryResultHeaderComponent
-        }
-
-        @JvmStatic
-        fun showQueryResultEditor(project: Project) {
-            runInEdt {
-                val toolWindow =
-                    ToolWindowManager.getInstance(project).getToolWindow(GRAPHQL_TOOL_WINDOW) ?: return@runInEdt
-                val content =
-                    toolWindow.contentManager.findContent(CONTENT_QUERY_RESULT_CONTENT) ?: return@runInEdt
-                toolWindow.show { toolWindow.contentManager.setSelectedContent(content) }
-                val textEditor = content.getUserData(QUERY_RESULT_EDITOR_KEY)
-                textEditor?.editor?.scrollingModel?.scrollVertically(0)
+      resultLabel.addMouseListener(object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          val fileUrl = resultLabel.getClientProperty(FILE_URL_PROPERTY) as? String
+          if (fileUrl != null) {
+            val queryFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl)
+            if (queryFile != null) {
+              val fileEditorManager = FileEditorManager.getInstance(project)
+              fileEditorManager.openFile(queryFile, true, true)
             }
+          }
         }
+      })
     }
+  }
+
+  companion object {
+    const val GRAPHQL_TOOL_WINDOW = GraphQLConstants.GraphQL
+    const val CONTENT_QUERY_RESULT_CONTENT = "Query Result"
+    const val CONTENT_SCHEMAS_AND_PROJECT_STRUCTURE_CONTENT = "Schemas and Project Structure"
+
+    const val GRAPHQL_TOOL_WINDOW_TOOLBAR = "GraphQLToolWindowToolbar"
+    const val GRAPHQL_TOOL_WINDOW_POPUP = "GraphQLToolWindowPopup"
+
+    const val FILE_URL_PROPERTY = "fileUrl"
+
+    private val QUERY_RESULT_EDITOR_KEY = Key.create<TextEditor>("graphql.query.result.editor")
+
+    @JvmStatic
+    fun getQueryResultEditor(project: Project): TextEditor? {
+      ApplicationManager.getApplication().assertIsDispatchThread()
+      val content = getQueryResultContent(project) ?: return null
+      return content.getUserData(QUERY_RESULT_EDITOR_KEY)
+    }
+
+    private fun getQueryResultContent(project: Project): Content? {
+      val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(GRAPHQL_TOOL_WINDOW) ?: return null
+      return toolWindow.contentManager.findContent(CONTENT_QUERY_RESULT_CONTENT)
+    }
+
+    @JvmStatic
+    fun getQueryResultHeader(textEditor: TextEditor): GraphQLQueryResultHeaderComponent? {
+      return textEditor.editor.headerComponent as? GraphQLQueryResultHeaderComponent
+    }
+
+    @JvmStatic
+    fun showQueryResultEditor(project: Project) {
+      runInEdt {
+        val toolWindow =
+          ToolWindowManager.getInstance(project).getToolWindow(GRAPHQL_TOOL_WINDOW) ?: return@runInEdt
+        val content =
+          toolWindow.contentManager.findContent(CONTENT_QUERY_RESULT_CONTENT) ?: return@runInEdt
+        toolWindow.show { toolWindow.contentManager.setSelectedContent(content) }
+        val textEditor = content.getUserData(QUERY_RESULT_EDITOR_KEY)
+        textEditor?.editor?.scrollingModel?.scrollVertically(0)
+      }
+    }
+  }
 }

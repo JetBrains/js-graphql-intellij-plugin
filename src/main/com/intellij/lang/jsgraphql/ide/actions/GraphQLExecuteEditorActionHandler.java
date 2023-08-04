@@ -7,8 +7,8 @@
  */
 package com.intellij.lang.jsgraphql.ide.actions;
 
-import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Caret;
 import com.intellij.openapi.editor.Editor;
@@ -24,29 +24,28 @@ import org.jetbrains.annotations.Nullable;
  */
 public class GraphQLExecuteEditorActionHandler extends EditorActionHandler {
 
-    private final EditorActionHandler myDelegate;
+  private final EditorActionHandler myDelegate;
 
-    public GraphQLExecuteEditorActionHandler(EditorActionHandler delegate) {
-        myDelegate = delegate;
+  public GraphQLExecuteEditorActionHandler(EditorActionHandler delegate) {
+    myDelegate = delegate;
+  }
+
+  @Override
+  protected void doExecute(@NotNull Editor editor, @Nullable Caret caret, DataContext dataContext) {
+    PsiFile file = dataContext.getData(LangDataKeys.PSI_FILE);
+    if (file instanceof GraphQLFile || isQueryVariablesFile(dataContext)) {
+      final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(GraphQLExecuteEditorAction.ACTION_ID);
+      final AnActionEvent actionEvent = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_TOOLBAR,
+                                                                           executeGraphQLAction.getTemplatePresentation(), dataContext);
+      executeGraphQLAction.actionPerformed(actionEvent);
+      return;
     }
+    myDelegate.execute(editor, caret, dataContext);
+  }
 
-    @Override
-    protected void doExecute(@NotNull Editor editor, @Nullable Caret caret, DataContext dataContext) {
-        PsiFile file = dataContext.getData(LangDataKeys.PSI_FILE);
-        if (file instanceof GraphQLFile || isQueryVariablesFile(dataContext)) {
-            final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(GraphQLExecuteEditorAction.ACTION_ID);
-            final AnActionEvent actionEvent = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_TOOLBAR,
-                executeGraphQLAction.getTemplatePresentation(), dataContext);
-            executeGraphQLAction.actionPerformed(actionEvent);
-            return;
-        }
-        myDelegate.execute(editor, caret, dataContext);
-    }
-
-    private boolean isQueryVariablesFile(DataContext dataContext) {
-        final VirtualFile virtualFile = dataContext.getData(CommonDataKeys.VIRTUAL_FILE);
-        return virtualFile != null && Boolean.TRUE.equals(
-            virtualFile.getUserData(GraphQLUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE));
-    }
-
+  private boolean isQueryVariablesFile(DataContext dataContext) {
+    final VirtualFile virtualFile = dataContext.getData(CommonDataKeys.VIRTUAL_FILE);
+    return virtualFile != null && Boolean.TRUE.equals(
+      virtualFile.getUserData(GraphQLUIProjectService.IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE));
+  }
 }

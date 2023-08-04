@@ -29,7 +29,7 @@ import java.util.Map;
  * This contains all of the field and their arguments for a given query.  The method
  * {@link #getFieldsByPath()} will be where most of the useful validation information is
  * contained.  It also gives you a helper to make validation error messages.
- *
+ * <p>
  * One thing to note is that because queries can have repeating fragments, the same
  * logical field can appear multiple times with different input values.  That is
  * why {@link #getFieldsByPath()} returns a list of fields and their arguments.
@@ -40,39 +40,37 @@ import java.util.Map;
 @PublicApi
 public interface FieldValidationEnvironment {
 
-    /**
-     * @return the schema in play
-     */
-    ExecutionContext getExecutionContext();
+  /**
+   * @return the schema in play
+   */
+  ExecutionContext getExecutionContext();
 
-    /**
-     * @return a list of {@link FieldAndArguments}
-     */
-    List<FieldAndArguments> getFields();
+  /**
+   * @return a list of {@link FieldAndArguments}
+   */
+  List<FieldAndArguments> getFields();
 
-    /**
-     * @return a map of field paths to {@link FieldAndArguments}
-     */
-    Map<ResultPath, List<FieldAndArguments>> getFieldsByPath();
+  /**
+   * @return a map of field paths to {@link FieldAndArguments}
+   */
+  Map<ResultPath, List<FieldAndArguments>> getFieldsByPath();
 
-    /**
-     * This helper method allows you to make error messages to be passed back out in case of validation failure.  Note you
-     * don't NOT have to use this helper.  Any implementation of {@link GraphQLError} is valid
-     *
-     * @param msg the error message
-     *
-     * @return a graphql error
-     */
-    GraphQLError mkError(String msg);
+  /**
+   * This helper method allows you to make error messages to be passed back out in case of validation failure.  Note you
+   * don't NOT have to use this helper.  Any implementation of {@link GraphQLError} is valid
+   *
+   * @param msg the error message
+   * @return a graphql error
+   */
+  GraphQLError mkError(String msg);
 
-    /**
-     * This helper method allows you to make error messages to be passed back out in case of validation failure.  Note you
-     * don't NOT have to use this helper.  Any implementation of {@link GraphQLError} is valid
-     *
-     * @param msg               the error message
-     * @param fieldAndArguments the field in error
-     *
-     * @return a graphql error
-     */
-    GraphQLError mkError(String msg, FieldAndArguments fieldAndArguments);
+  /**
+   * This helper method allows you to make error messages to be passed back out in case of validation failure.  Note you
+   * don't NOT have to use this helper.  Any implementation of {@link GraphQLError} is valid
+   *
+   * @param msg               the error message
+   * @param fieldAndArguments the field in error
+   * @return a graphql error
+   */
+  GraphQLError mkError(String msg, FieldAndArguments fieldAndArguments);
 }

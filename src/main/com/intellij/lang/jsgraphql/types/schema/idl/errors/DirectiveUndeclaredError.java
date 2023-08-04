@@ -28,15 +28,15 @@ import static java.lang.String.format;
 @Internal
 public class DirectiveUndeclaredError extends BaseError {
 
-    public DirectiveUndeclaredError(Node element, String elementName, String directiveName) {
-        super(element,
-                format("'%s' tried to use an undeclared directive '%s'",
-                        elementName, directiveName
-                ));
-    }
+  public DirectiveUndeclaredError(Node element, String elementName, String directiveName) {
+    super(element,
+          format("'%s' tried to use an undeclared directive '%s'",
+                 elementName, directiveName
+          ));
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLMissingTypeInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLMissingTypeInspection.class;
+  }
 }

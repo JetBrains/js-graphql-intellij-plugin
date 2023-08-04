@@ -28,14 +28,12 @@ import com.intellij.lang.jsgraphql.types.TypeResolutionEnvironment;
 @PublicSpi
 public interface TypeResolver {
 
-    /**
-     * This call back is invoked passing in a context object to allow you to know what type to use
-     * dynamically during runtime for {@link GraphQLInterfaceType}s and {@link GraphQLUnionType}s
-     *
-     * @param env the runtime environment
-     *
-     * @return a graphql object type to use based on examining the environment
-     */
-    GraphQLObjectType getType(TypeResolutionEnvironment env);
-
+  /**
+   * This call back is invoked passing in a context object to allow you to know what type to use
+   * dynamically during runtime for {@link GraphQLInterfaceType}s and {@link GraphQLUnionType}s
+   *
+   * @param env the runtime environment
+   * @return a graphql object type to use based on examining the environment
+   */
+  GraphQLObjectType getType(TypeResolutionEnvironment env);
 }

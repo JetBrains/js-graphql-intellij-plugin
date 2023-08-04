@@ -45,79 +45,79 @@ import static com.intellij.lang.jsgraphql.types.execution.instrumentation.Simple
 @PublicApi
 public class TracingInstrumentation extends SimpleInstrumentation {
 
-    public static class Options {
-        private final boolean includeTrivialDataFetchers;
+  public static class Options {
+    private final boolean includeTrivialDataFetchers;
 
-        private Options(boolean includeTrivialDataFetchers) {
-            this.includeTrivialDataFetchers = includeTrivialDataFetchers;
-        }
-
-        public boolean isIncludeTrivialDataFetchers() {
-            return includeTrivialDataFetchers;
-        }
-
-        /**
-         * By default trivial data fetchers (those that simple pull data from an object into field) are included
-         * in tracing but you can control this behavior.
-         *
-         * @param flag the flag on whether to trace trivial data fetchers
-         *
-         * @return a new options object
-         */
-        public Options includeTrivialDataFetchers(boolean flag) {
-            return new Options(flag);
-        }
-
-        public static Options newOptions() {
-            return new Options(true);
-        }
-
+    private Options(boolean includeTrivialDataFetchers) {
+      this.includeTrivialDataFetchers = includeTrivialDataFetchers;
     }
 
-    public TracingInstrumentation() {
-        this(Options.newOptions());
+    public boolean isIncludeTrivialDataFetchers() {
+      return includeTrivialDataFetchers;
     }
 
-    public TracingInstrumentation(Options options) {
-        this.options = options;
+    /**
+     * By default trivial data fetchers (those that simple pull data from an object into field) are included
+     * in tracing but you can control this behavior.
+     *
+     * @param flag the flag on whether to trace trivial data fetchers
+     * @return a new options object
+     */
+    public Options includeTrivialDataFetchers(boolean flag) {
+      return new Options(flag);
     }
 
-    private final Options options;
-
-    @Override
-    public InstrumentationState createState() {
-        return new TracingSupport(options.includeTrivialDataFetchers);
+    public static Options newOptions() {
+      return new Options(true);
     }
+  }
 
-    @Override
-    public CompletableFuture<ExecutionResult> instrumentExecutionResult(ExecutionResult executionResult, InstrumentationExecutionParameters parameters) {
-        Map<Object, Object> currentExt = executionResult.getExtensions();
+  public TracingInstrumentation() {
+    this(Options.newOptions());
+  }
 
-        TracingSupport tracingSupport = parameters.getInstrumentationState();
-        Map<Object, Object> withTracingExt = new LinkedHashMap<>(currentExt == null ? Collections.emptyMap() : currentExt);
-        withTracingExt.put("tracing", tracingSupport.snapshotTracingData());
+  public TracingInstrumentation(Options options) {
+    this.options = options;
+  }
 
-        return CompletableFuture.completedFuture(new ExecutionResultImpl(executionResult.getData(), executionResult.getErrors(), withTracingExt));
-    }
+  private final Options options;
 
-    @Override
-    public InstrumentationContext<Object> beginFieldFetch(InstrumentationFieldFetchParameters parameters) {
-        TracingSupport tracingSupport = parameters.getInstrumentationState();
-        TracingSupport.TracingContext ctx = tracingSupport.beginField(parameters.getEnvironment(), parameters.isTrivialDataFetcher());
-        return whenCompleted((result, t) -> ctx.onEnd());
-    }
+  @Override
+  public InstrumentationState createState() {
+    return new TracingSupport(options.includeTrivialDataFetchers);
+  }
 
-    @Override
-    public InstrumentationContext<Document> beginParse(InstrumentationExecutionParameters parameters) {
-        TracingSupport tracingSupport = parameters.getInstrumentationState();
-        TracingSupport.TracingContext ctx = tracingSupport.beginParse();
-        return whenCompleted((result, t) -> ctx.onEnd());
-    }
+  @Override
+  public CompletableFuture<ExecutionResult> instrumentExecutionResult(ExecutionResult executionResult,
+                                                                      InstrumentationExecutionParameters parameters) {
+    Map<Object, Object> currentExt = executionResult.getExtensions();
 
-    @Override
-    public InstrumentationContext<List<ValidationError>> beginValidation(InstrumentationValidationParameters parameters) {
-        TracingSupport tracingSupport = parameters.getInstrumentationState();
-        TracingSupport.TracingContext ctx = tracingSupport.beginValidation();
-        return whenCompleted((result, t) -> ctx.onEnd());
-    }
+    TracingSupport tracingSupport = parameters.getInstrumentationState();
+    Map<Object, Object> withTracingExt = new LinkedHashMap<>(currentExt == null ? Collections.emptyMap() : currentExt);
+    withTracingExt.put("tracing", tracingSupport.snapshotTracingData());
+
+    return CompletableFuture.completedFuture(
+      new ExecutionResultImpl(executionResult.getData(), executionResult.getErrors(), withTracingExt));
+  }
+
+  @Override
+  public InstrumentationContext<Object> beginFieldFetch(InstrumentationFieldFetchParameters parameters) {
+    TracingSupport tracingSupport = parameters.getInstrumentationState();
+    TracingSupport.TracingContext ctx = tracingSupport.beginField(parameters.getEnvironment(), parameters.isTrivialDataFetcher());
+    return whenCompleted((result, t) -> ctx.onEnd());
+  }
+
+  @Override
+  public InstrumentationContext<Document> beginParse(InstrumentationExecutionParameters parameters) {
+    TracingSupport tracingSupport = parameters.getInstrumentationState();
+    TracingSupport.TracingContext ctx = tracingSupport.beginParse();
+    return whenCompleted((result, t) -> ctx.onEnd());
+  }
+
+  @Override
+  public InstrumentationContext<List<ValidationError>> beginValidation(InstrumentationValidationParameters parameters) {
+    TracingSupport tracingSupport = parameters.getInstrumentationState();
+    TracingSupport.TracingContext ctx = tracingSupport.beginValidation();
+    return whenCompleted((result, t) -> ctx.onEnd());
+  }
 }

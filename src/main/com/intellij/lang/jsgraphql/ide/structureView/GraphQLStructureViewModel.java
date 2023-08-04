@@ -21,51 +21,51 @@ import org.jetbrains.annotations.NotNull;
 
 public class GraphQLStructureViewModel extends TextEditorBasedStructureViewModel implements StructureViewModel.ElementInfoProvider {
 
-    private final GraphQLStructureViewTreeElement root;
+  private final GraphQLStructureViewTreeElement root;
 
-    public GraphQLStructureViewModel(PsiElement root, Editor editor) {
-        super(editor, root.getContainingFile());
-        this.root = new GraphQLStructureViewTreeElement(root, root);
-    }
+  public GraphQLStructureViewModel(PsiElement root, Editor editor) {
+    super(editor, root.getContainingFile());
+    this.root = new GraphQLStructureViewTreeElement(root, root);
+  }
 
-    @Override
-    public boolean isAlwaysShowsPlus(StructureViewTreeElement element) {
-        return false;
-    }
+  @Override
+  public boolean isAlwaysShowsPlus(StructureViewTreeElement element) {
+    return false;
+  }
 
-    @Override
-    public boolean isAlwaysLeaf(StructureViewTreeElement element) {
-        if (element instanceof GraphQLStructureViewTreeElement) {
-            GraphQLStructureViewTreeElement treeElement = (GraphQLStructureViewTreeElement) element;
-            if (treeElement.childrenBase instanceof LeafPsiElement) {
-                return true;
-            }
-            if (treeElement.childrenBase instanceof GraphQLField) {
-                final PsiElement[] children = treeElement.childrenBase.getChildren();
-                if (children.length == 0) {
-                    // field with no sub selections, but we have to check if there's attributes
-                    final PsiElement nextVisible = PsiTreeUtil.nextVisibleLeaf(treeElement.childrenBase);
-                    if (nextVisible != null && nextVisible.getNode().getElementType() == GraphQLElementTypes.PAREN_L) {
-                        return false;
-                    }
-                    return true;
-                }
-                if (children.length == 1 && children[0] instanceof LeafPsiElement) {
-                    return true;
-                }
-            }
+  @Override
+  public boolean isAlwaysLeaf(StructureViewTreeElement element) {
+    if (element instanceof GraphQLStructureViewTreeElement) {
+      GraphQLStructureViewTreeElement treeElement = (GraphQLStructureViewTreeElement)element;
+      if (treeElement.childrenBase instanceof LeafPsiElement) {
+        return true;
+      }
+      if (treeElement.childrenBase instanceof GraphQLField) {
+        final PsiElement[] children = treeElement.childrenBase.getChildren();
+        if (children.length == 0) {
+          // field with no sub selections, but we have to check if there's attributes
+          final PsiElement nextVisible = PsiTreeUtil.nextVisibleLeaf(treeElement.childrenBase);
+          if (nextVisible != null && nextVisible.getNode().getElementType() == GraphQLElementTypes.PAREN_L) {
+            return false;
+          }
+          return true;
         }
-        return false;
+        if (children.length == 1 && children[0] instanceof LeafPsiElement) {
+          return true;
+        }
+      }
     }
+    return false;
+  }
 
-    @Override
-    protected boolean isSuitable(PsiElement element) {
-        return element instanceof GraphQLElement;
-    }
+  @Override
+  protected boolean isSuitable(PsiElement element) {
+    return element instanceof GraphQLElement;
+  }
 
-    @NotNull
-    @Override
-    public StructureViewTreeElement getRoot() {
-        return root;
-    }
+  @NotNull
+  @Override
+  public StructureViewTreeElement getRoot() {
+    return root;
+  }
 }

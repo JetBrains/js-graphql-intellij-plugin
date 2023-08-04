@@ -17,41 +17,41 @@ import com.intellij.ui.treeStructure.SimpleNode
  * Tree node with children for each error in a GraphQL schema
  */
 class GraphQLSchemaErrorsListNode(parent: SimpleNode, private val schemaInfo: GraphQLSchemaInfo) :
-    CachingSimpleNode(parent) {
+  CachingSimpleNode(parent) {
 
-    init {
-        myName = "Schema errors"
-        icon = AllIcons.Nodes.Folder
+  init {
+    myName = "Schema errors"
+    icon = AllIcons.Nodes.Folder
+  }
+
+  public override fun buildChildren(): Array<SimpleNode> {
+    val children = mutableListOf<SimpleNode>()
+    for (error in schemaInfo.getErrors(myProject)) {
+      val node = error.node
+      if (project != null && error.inspectionClass != null &&
+          !GraphQLInspection.isToolEnabled(project, error.inspectionClass!!, node?.file)
+      ) {
+        continue
+      }
+      children.add(GraphQLSchemaErrorNode(this, error))
     }
-
-    public override fun buildChildren(): Array<SimpleNode> {
-        val children = mutableListOf<SimpleNode>()
-        for (error in schemaInfo.getErrors(myProject)) {
-            val node = error.node
-            if (project != null && error.inspectionClass != null &&
-                !GraphQLInspection.isToolEnabled(project, error.inspectionClass!!, node?.file)
-            ) {
-                continue
-            }
-            children.add(GraphQLSchemaErrorNode(this, error))
+    if (children.isEmpty()) {
+      val noErrors: SimpleNode = object : SimpleNode(this) {
+        override fun getChildren(): Array<SimpleNode> {
+          return NO_CHILDREN
         }
-        if (children.isEmpty()) {
-            val noErrors: SimpleNode = object : SimpleNode(this) {
-                override fun getChildren(): Array<SimpleNode> {
-                    return NO_CHILDREN
-                }
 
-                override fun getName(): String {
-                    return "No errors found"
-                }
-            }
-            noErrors.icon = AllIcons.General.InspectionsOK
-            children.add(noErrors)
+        override fun getName(): String {
+          return "No errors found"
         }
-        return children.toTypedArray()
+      }
+      noErrors.icon = AllIcons.General.InspectionsOK
+      children.add(noErrors)
     }
+    return children.toTypedArray()
+  }
 
-    override fun isAutoExpandNode(): Boolean {
-        return true
-    }
+  override fun isAutoExpandNode(): Boolean {
+    return true
+  }
 }

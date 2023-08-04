@@ -23,14 +23,14 @@ import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
 @PublicApi
 public class InterfaceWiringEnvironment extends WiringEnvironment {
 
-    private final InterfaceTypeDefinition interfaceTypeDefinition;
+  private final InterfaceTypeDefinition interfaceTypeDefinition;
 
-    InterfaceWiringEnvironment(TypeDefinitionRegistry registry, InterfaceTypeDefinition interfaceTypeDefinition) {
-        super(registry);
-        this.interfaceTypeDefinition = interfaceTypeDefinition;
-    }
+  InterfaceWiringEnvironment(TypeDefinitionRegistry registry, InterfaceTypeDefinition interfaceTypeDefinition) {
+    super(registry);
+    this.interfaceTypeDefinition = interfaceTypeDefinition;
+  }
 
-    public InterfaceTypeDefinition getInterfaceTypeDefinition() {
-        return interfaceTypeDefinition;
-    }
+  public InterfaceTypeDefinition getInterfaceTypeDefinition() {
+    return interfaceTypeDefinition;
+  }
 }

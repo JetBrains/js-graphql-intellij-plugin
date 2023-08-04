@@ -31,90 +31,94 @@ fun getTestDataPath(path: String): String {
 }
 
 fun withSettings(
-    project: Project,
-    consumer: Consumer<GraphQLSettings>,
-    disposable: Disposable,
+  project: Project,
+  consumer: Consumer<GraphQLSettings>,
+  disposable: Disposable,
 ) {
-    withSettings(project, consumer, null, disposable)
+  withSettings(project, consumer, null, disposable)
 }
 
 fun withSettings(
-    project: Project,
-    consumer: Consumer<GraphQLSettings>,
-    onDispose: Runnable?,
-    disposable: Disposable,
+  project: Project,
+  consumer: Consumer<GraphQLSettings>,
+  onDispose: Runnable?,
+  disposable: Disposable,
 ) {
-    val settings = GraphQLSettings.getSettings(project)
-    val previousState = settings.state!!
-    Disposer.register(disposable) {
-        settings.loadState(previousState)
-        onDispose?.run()
-    }
-    val tempState = GraphQLSettingsState()
-    settings.loadState(tempState)
-    consumer.accept(settings)
+  val settings = GraphQLSettings.getSettings(project)
+  val previousState = settings.state!!
+  Disposer.register(disposable) {
+    settings.loadState(previousState)
+    onDispose?.run()
+  }
+  val tempState = GraphQLSettingsState()
+  settings.loadState(tempState)
+  consumer.accept(settings)
 }
 
 fun withLibrary(
-    project: Project,
-    libraryDescriptor: GraphQLLibraryDescriptor,
-    testCase: Runnable,
-    disposable: Disposable,
+  project: Project,
+  libraryDescriptor: GraphQLLibraryDescriptor,
+  testCase: Runnable,
+  disposable: Disposable,
 ) {
-    withSettings(project, { settings: GraphQLSettings ->
-        if (libraryDescriptor === GraphQLLibraryTypes.RELAY) {
-            settings.isRelaySupportEnabled = true
-        } else if (libraryDescriptor === GraphQLLibraryTypes.FEDERATION) {
-            settings.isFederationSupportEnabled = true
-        } else if (libraryDescriptor === GraphQLLibraryTypes.APOLLO_KOTLIN) {
-            settings.isApolloKotlinSupportEnabled = true
-        } else {
-            throw IllegalArgumentException("Unexpected library: $libraryDescriptor")
-        }
-        updateLibraries(project)
-        testCase.run()
-    }, { updateLibraries(project) }, disposable)
+  withSettings(project, { settings: GraphQLSettings ->
+    if (libraryDescriptor === GraphQLLibraryTypes.RELAY) {
+      settings.isRelaySupportEnabled = true
+    }
+    else if (libraryDescriptor === GraphQLLibraryTypes.FEDERATION) {
+      settings.isFederationSupportEnabled = true
+    }
+    else if (libraryDescriptor === GraphQLLibraryTypes.APOLLO_KOTLIN) {
+      settings.isApolloKotlinSupportEnabled = true
+    }
+    else {
+      throw IllegalArgumentException("Unexpected library: $libraryDescriptor")
+    }
+    updateLibraries(project)
+    testCase.run()
+  }, { updateLibraries(project) }, disposable)
 }
 
 private fun updateLibraries(project: Project) {
-    GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged()
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 }
 
 fun withCustomEnv(project: Project, env: Map<String, String?>, runnable: Runnable) {
-    val before = GraphQLConfigEnvironment.getEnvVariable
-    GraphQLConfigEnvironment.getEnvVariable = Function { env[it] }
-    try {
-        GraphQLConfigEnvironment.getInstance(project).notifyEnvironmentChanged()
-        PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-        runnable.run()
-    } finally {
-        GraphQLConfigEnvironment.getEnvVariable = before
-    }
+  val before = GraphQLConfigEnvironment.getEnvVariable
+  GraphQLConfigEnvironment.getEnvVariable = Function { env[it] }
+  try {
+    GraphQLConfigEnvironment.getInstance(project).notifyEnvironmentChanged()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runnable.run()
+  }
+  finally {
+    GraphQLConfigEnvironment.getEnvVariable = before
+  }
 }
 
 @RequiresEdt
 fun createTestScratchFile(
-    fixture: CodeInsightTestFixture,
-    path: String,
-    projectName: String?,
-    query: String?,
+  fixture: CodeInsightTestFixture,
+  path: String,
+  projectName: String?,
+  query: String?,
 ): VirtualFile? {
-    return createTestScratchFile(fixture, createOverrideConfigComment(path, projectName), query)
+  return createTestScratchFile(fixture, createOverrideConfigComment(path, projectName), query)
 }
 
 fun createTestScratchFile(
-    fixture: CodeInsightTestFixture,
-    comment: String,
-    query: String?,
+  fixture: CodeInsightTestFixture,
+  comment: String,
+  query: String?,
 ): VirtualFile? {
-    val text = "$comment\n\n${query.orEmpty()}"
+  val text = "$comment\n\n${query.orEmpty()}"
 
-    return ScratchRootType.getInstance()
-        .createScratchFile(fixture.project, "scratch.graphql", GraphQLLanguage.INSTANCE, text)
-        ?.also { file ->
-            Disposer.register(fixture.testRootDisposable) {
-                ApplicationManager.getApplication().runWriteAction { file.delete(null) }
-            }
-        }
+  return ScratchRootType.getInstance()
+    .createScratchFile(fixture.project, "scratch.graphql", GraphQLLanguage.INSTANCE, text)
+    ?.also { file ->
+      Disposer.register(fixture.testRootDisposable) {
+        ApplicationManager.getApplication().runWriteAction { file.delete(null) }
+      }
+    }
 }

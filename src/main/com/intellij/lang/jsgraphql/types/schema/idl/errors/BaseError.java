@@ -32,62 +32,62 @@ import java.util.List;
 @SuppressWarnings("rawtypes")
 @Internal
 public class BaseError extends GraphQLException implements GraphQLError {
-    protected static final SourceLocation EMPTY = new SourceLocation(-1, -1);
+  protected static final SourceLocation EMPTY = new SourceLocation(-1, -1);
 
-    private final Node node;
-    private final List<Node> myReferences = new ArrayList<>();
+  private final Node node;
+  private final List<Node> myReferences = new ArrayList<>();
 
-    public BaseError(@Nullable Node node, @Nullable String msg) {
-        super(StringUtil.trimEnd(StringUtil.notNullize(msg), "."));
-        this.node = node;
+  public BaseError(@Nullable Node node, @Nullable String msg) {
+    super(StringUtil.trimEnd(StringUtil.notNullize(msg), "."));
+    this.node = node;
+  }
+
+  public static String lineCol(Node node) {
+    SourceLocation sourceLocation = node.getSourceLocation() == null ? EMPTY : node.getSourceLocation();
+    return String.format("[@%d:%d]", sourceLocation.getLine(), sourceLocation.getColumn());
+  }
+
+  @Override
+  public List<SourceLocation> getLocations() {
+    return node == null || node.getSourceLocation() == null ?
+           Collections.singletonList(EMPTY) :
+           Collections.singletonList(node.getSourceLocation());
+  }
+
+  @Override
+  public ErrorType getErrorType() {
+    return ErrorType.ValidationError;
+  }
+
+  @Override
+  public String toString() {
+    return getMessage();
+  }
+
+
+  @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
+  @Override
+  public boolean equals(Object o) {
+    return GraphqlErrorHelper.equals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return GraphqlErrorHelper.hashCode(this);
+  }
+
+  @Override
+  public @Nullable Node getNode() {
+    return node;
+  }
+
+  protected void addReferences(Node @Nullable ... references) {
+    if (references != null) {
+      ContainerUtil.addAllNotNull(myReferences, references);
     }
+  }
 
-    public static String lineCol(Node node) {
-        SourceLocation sourceLocation = node.getSourceLocation() == null ? EMPTY : node.getSourceLocation();
-        return String.format("[@%d:%d]", sourceLocation.getLine(), sourceLocation.getColumn());
-    }
-
-    @Override
-    public List<SourceLocation> getLocations() {
-        return node == null || node.getSourceLocation() == null ?
-            Collections.singletonList(EMPTY) :
-            Collections.singletonList(node.getSourceLocation());
-    }
-
-    @Override
-    public ErrorType getErrorType() {
-        return ErrorType.ValidationError;
-    }
-
-    @Override
-    public String toString() {
-        return getMessage();
-    }
-
-
-    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
-    @Override
-    public boolean equals(Object o) {
-        return GraphqlErrorHelper.equals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return GraphqlErrorHelper.hashCode(this);
-    }
-
-    @Override
-    public @Nullable Node getNode() {
-        return node;
-    }
-
-    protected void addReferences(Node @Nullable ... references) {
-        if (references != null) {
-            ContainerUtil.addAllNotNull(myReferences, references);
-        }
-    }
-
-    public @NotNull List<Node> getReferences() {
-        return myReferences;
-    }
+  public @NotNull List<Node> getReferences() {
+    return myReferences;
+  }
 }

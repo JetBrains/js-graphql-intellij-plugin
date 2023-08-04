@@ -31,25 +31,25 @@ import java.util.List;
 @PublicApi
 public class DefaultGraphqlFieldVisibility implements GraphqlFieldVisibility {
 
-    public static final DefaultGraphqlFieldVisibility DEFAULT_FIELD_VISIBILITY = new DefaultGraphqlFieldVisibility();
+  public static final DefaultGraphqlFieldVisibility DEFAULT_FIELD_VISIBILITY = new DefaultGraphqlFieldVisibility();
 
-    @Override
-    public List<GraphQLFieldDefinition> getFieldDefinitions(GraphQLFieldsContainer fieldsContainer) {
-        return fieldsContainer.getFieldDefinitions();
-    }
+  @Override
+  public List<GraphQLFieldDefinition> getFieldDefinitions(GraphQLFieldsContainer fieldsContainer) {
+    return fieldsContainer.getFieldDefinitions();
+  }
 
-    @Override
-    public GraphQLFieldDefinition getFieldDefinition(GraphQLFieldsContainer fieldsContainer, String fieldName) {
-        return fieldsContainer.getFieldDefinition(fieldName);
-    }
+  @Override
+  public GraphQLFieldDefinition getFieldDefinition(GraphQLFieldsContainer fieldsContainer, String fieldName) {
+    return fieldsContainer.getFieldDefinition(fieldName);
+  }
 
-    @Override
-    public List<GraphQLInputObjectField> getFieldDefinitions(GraphQLInputFieldsContainer fieldsContainer) {
-        return fieldsContainer.getFieldDefinitions();
-    }
+  @Override
+  public List<GraphQLInputObjectField> getFieldDefinitions(GraphQLInputFieldsContainer fieldsContainer) {
+    return fieldsContainer.getFieldDefinitions();
+  }
 
-    @Override
-    public GraphQLInputObjectField getFieldDefinition(GraphQLInputFieldsContainer fieldsContainer, String fieldName) {
-        return fieldsContainer.getFieldDefinition(fieldName);
-    }
+  @Override
+  public GraphQLInputObjectField getFieldDefinition(GraphQLInputFieldsContainer fieldsContainer, String fieldName) {
+    return fieldsContainer.getFieldDefinition(fieldName);
+  }
 }

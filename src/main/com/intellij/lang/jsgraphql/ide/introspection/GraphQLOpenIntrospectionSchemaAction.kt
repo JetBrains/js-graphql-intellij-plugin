@@ -18,32 +18,32 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.LocalFileSystem
 
 class GraphQLOpenIntrospectionSchemaAction : AnAction(
-    GraphQLBundle.messagePointer("graphql.action.open.introspection.schema.title"),
-    AllIcons.Actions.MoveTo2,
+  GraphQLBundle.messagePointer("graphql.action.open.introspection.schema.title"),
+  AllIcons.Actions.MoveTo2,
 ) {
-    companion object {
-        const val ACTION_ID = "GraphQLOpenIntrospectionSchema"
-    }
+  companion object {
+    const val ACTION_ID = "GraphQLOpenIntrospectionSchema"
+  }
 
-    override fun update(e: AnActionEvent) {
-        val editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE) ?: return
-        val endpoint = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)?.selectedItem
-        e.presentation.isEnabled = endpoint != null && endpoint.schemaPointer?.outputPath != null
-    }
+  override fun update(e: AnActionEvent) {
+    val editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE) ?: return
+    val endpoint = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)?.selectedItem
+    e.presentation.isEnabled = endpoint != null && endpoint.schemaPointer?.outputPath != null
+  }
 
-    override fun getActionUpdateThread(): ActionUpdateThread {
-        return ActionUpdateThread.EDT
-    }
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.EDT
+  }
 
-    override fun actionPerformed(e: AnActionEvent) {
-        val project = e.project ?: return
+  override fun actionPerformed(e: AnActionEvent) {
+    val project = e.project ?: return
 
-        e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE)
-            ?.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)
-            ?.selectedItem
-            ?.schemaPointer
-            ?.outputPath
-            ?.let { LocalFileSystem.getInstance().findFileByPath(it) }
-            ?.let { FileEditorManager.getInstance(project).openFile(it, true) }
-    }
+    e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE)
+      ?.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)
+      ?.selectedItem
+      ?.schemaPointer
+      ?.outputPath
+      ?.let { LocalFileSystem.getInstance().findFileByPath(it) }
+      ?.let { FileEditorManager.getInstance(project).openFile(it, true) }
+  }
 }

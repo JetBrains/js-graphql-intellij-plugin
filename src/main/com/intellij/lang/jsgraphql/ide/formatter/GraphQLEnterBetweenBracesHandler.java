@@ -15,9 +15,8 @@ import com.intellij.codeInsight.editorActions.enter.EnterBetweenBracesDelegate;
  */
 public class GraphQLEnterBetweenBracesHandler extends EnterBetweenBracesDelegate {
 
-    @Override
-    protected boolean isBracePair(char c1, char c2) {
-        return super.isBracePair(c1, c2) || c1 == '[' && c2 == ']';
-    }
-
+  @Override
+  protected boolean isBracePair(char c1, char c2) {
+    return super.isBracePair(c1, c2) || c1 == '[' && c2 == ']';
+  }
 }

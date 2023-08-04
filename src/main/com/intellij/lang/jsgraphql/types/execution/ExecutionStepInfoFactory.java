@@ -29,37 +29,40 @@ import java.util.Map;
 public class ExecutionStepInfoFactory {
 
 
-    ValuesResolver valuesResolver = new ValuesResolver();
+  ValuesResolver valuesResolver = new ValuesResolver();
 
 
-    public ExecutionStepInfo newExecutionStepInfoForSubField(ExecutionContext executionContext, MergedField mergedField, ExecutionStepInfo parentInfo) {
-        GraphQLObjectType parentType = (GraphQLObjectType) parentInfo.getUnwrappedNonNullType();
-        GraphQLFieldDefinition fieldDefinition = Introspection.getFieldDef(executionContext.getGraphQLSchema(), parentType, mergedField.getName());
-        GraphQLOutputType fieldType = fieldDefinition.getType();
-        List<Argument> fieldArgs = mergedField.getArguments();
-        GraphQLCodeRegistry codeRegistry = executionContext.getGraphQLSchema().getCodeRegistry();
-        Map<String, Object> argumentValues = valuesResolver.getArgumentValues(codeRegistry, fieldDefinition.getArguments(), fieldArgs, executionContext.getVariables());
+  public ExecutionStepInfo newExecutionStepInfoForSubField(ExecutionContext executionContext,
+                                                           MergedField mergedField,
+                                                           ExecutionStepInfo parentInfo) {
+    GraphQLObjectType parentType = (GraphQLObjectType)parentInfo.getUnwrappedNonNullType();
+    GraphQLFieldDefinition fieldDefinition =
+      Introspection.getFieldDef(executionContext.getGraphQLSchema(), parentType, mergedField.getName());
+    GraphQLOutputType fieldType = fieldDefinition.getType();
+    List<Argument> fieldArgs = mergedField.getArguments();
+    GraphQLCodeRegistry codeRegistry = executionContext.getGraphQLSchema().getCodeRegistry();
+    Map<String, Object> argumentValues =
+      valuesResolver.getArgumentValues(codeRegistry, fieldDefinition.getArguments(), fieldArgs, executionContext.getVariables());
 
-        ResultPath newPath = parentInfo.getPath().segment(mergedField.getResultKey());
+    ResultPath newPath = parentInfo.getPath().segment(mergedField.getResultKey());
 
-        return parentInfo.transform(builder -> builder
-                .parentInfo(parentInfo)
-                .type(fieldType)
-                .fieldDefinition(fieldDefinition)
-                .fieldContainer(parentType)
-                .field(mergedField)
-                .path(newPath)
-                .arguments(argumentValues));
-    }
+    return parentInfo.transform(builder -> builder
+      .parentInfo(parentInfo)
+      .type(fieldType)
+      .fieldDefinition(fieldDefinition)
+      .fieldContainer(parentType)
+      .field(mergedField)
+      .path(newPath)
+      .arguments(argumentValues));
+  }
 
-    public ExecutionStepInfo newExecutionStepInfoForListElement(ExecutionStepInfo executionInfo, int index) {
-        GraphQLList fieldType = (GraphQLList) executionInfo.getUnwrappedNonNullType();
-        GraphQLOutputType typeInList = (GraphQLOutputType) fieldType.getWrappedType();
-        ResultPath indexedPath = executionInfo.getPath().segment(index);
-        return executionInfo.transform(builder -> builder
-                .parentInfo(executionInfo)
-                .type(typeInList)
-                .path(indexedPath));
-    }
-
+  public ExecutionStepInfo newExecutionStepInfoForListElement(ExecutionStepInfo executionInfo, int index) {
+    GraphQLList fieldType = (GraphQLList)executionInfo.getUnwrappedNonNullType();
+    GraphQLOutputType typeInList = (GraphQLOutputType)fieldType.getWrappedType();
+    ResultPath indexedPath = executionInfo.getPath().segment(index);
+    return executionInfo.transform(builder -> builder
+      .parentInfo(executionInfo)
+      .type(typeInList)
+      .path(indexedPath));
+  }
 }

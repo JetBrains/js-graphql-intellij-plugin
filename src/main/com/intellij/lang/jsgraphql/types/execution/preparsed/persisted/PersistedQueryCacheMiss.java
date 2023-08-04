@@ -29,12 +29,12 @@ import java.util.function.Function;
  */
 @PublicApi
 public interface PersistedQueryCacheMiss extends Function<String, PreparsedDocumentEntry> {
-    /**
-     * You give back the missing query text and graphql-java will compile and validate it.
-     *
-     * @param queryToBeParsedAndValidated the query text to be parsed and validated
-     * @return a parsed and validated query document ready for caching
-     */
-    @Override
-    PreparsedDocumentEntry apply(String queryToBeParsedAndValidated);
+  /**
+   * You give back the missing query text and graphql-java will compile and validate it.
+   *
+   * @param queryToBeParsedAndValidated the query text to be parsed and validated
+   * @return a parsed and validated query document ready for caching
+   */
+  @Override
+  PreparsedDocumentEntry apply(String queryToBeParsedAndValidated);
 }

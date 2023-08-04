@@ -34,36 +34,37 @@ import static com.intellij.lang.jsgraphql.types.execution.instrumentation.Simple
 @Internal
 public interface Instrumentation {
 
-    default InstrumentationState createState(InstrumentationCreateStateParameters parameters) {
-        return new InstrumentationState() {
-        };
-    }
+  default InstrumentationState createState(InstrumentationCreateStateParameters parameters) {
+    return new InstrumentationState() {
+    };
+  }
 
-    default ExecutionInput instrumentExecutionInput(ExecutionInput executionInput, InstrumentationExecutionParameters parameters) {
-        return executionInput;
-    }
+  default ExecutionInput instrumentExecutionInput(ExecutionInput executionInput, InstrumentationExecutionParameters parameters) {
+    return executionInput;
+  }
 
-    default DocumentAndVariables instrumentDocumentAndVariables(DocumentAndVariables documentAndVariables, InstrumentationExecutionParameters parameters) {
-        return documentAndVariables;
-    }
+  default DocumentAndVariables instrumentDocumentAndVariables(DocumentAndVariables documentAndVariables,
+                                                              InstrumentationExecutionParameters parameters) {
+    return documentAndVariables;
+  }
 
-    default GraphQLSchema instrumentSchema(GraphQLSchema graphQLSchema, InstrumentationExecutionParameters parameters) {
-        return graphQLSchema;
-    }
+  default GraphQLSchema instrumentSchema(GraphQLSchema graphQLSchema, InstrumentationExecutionParameters parameters) {
+    return graphQLSchema;
+  }
 
-    default ExecutionResult instrumentExecutionResult(ExecutionResult result, InstrumentationExecutionParameters parameters) {
-        return result;
-    }
+  default ExecutionResult instrumentExecutionResult(ExecutionResult result, InstrumentationExecutionParameters parameters) {
+    return result;
+  }
 
-    default InstrumentationContext<ExecutionResult> beginExecution(InstrumentationExecutionParameters parameters) {
-        return noOp();
-    }
+  default InstrumentationContext<ExecutionResult> beginExecution(InstrumentationExecutionParameters parameters) {
+    return noOp();
+  }
 
-    default InstrumentationContext<Document> beginParse(InstrumentationExecutionParameters parameters) {
-        return noOp();
-    }
+  default InstrumentationContext<Document> beginParse(InstrumentationExecutionParameters parameters) {
+    return noOp();
+  }
 
-    default InstrumentationContext<List<ValidationError>> beginValidation(InstrumentationValidationParameters parameters) {
-        return noOp();
-    }
+  default InstrumentationContext<List<ValidationError>> beginValidation(InstrumentationValidationParameters parameters) {
+    return noOp();
+  }
 }

@@ -15,38 +15,37 @@ import javax.swing.*;
 
 public final class GraphQLIcons {
 
-    public static final Icon FILE = GraphqlIcons.Graphql;
+  public static final Icon FILE = GraphqlIcons.Graphql;
 
-    public static final class Logos {
-        public static final Icon GraphQL = FILE;
-        public static final Icon Relay = GraphqlIcons.Relay;
-        public static final Icon Apollo = GraphqlIcons.Apollo;
-    }
+  public static final class Logos {
+    public static final Icon GraphQL = FILE;
+    public static final Icon Relay = GraphqlIcons.Relay;
+    public static final Icon Apollo = GraphqlIcons.Apollo;
+  }
 
-    public static final class Files {
-        public static final Icon GraphQL = FILE;
-        public static final Icon GraphQLConfig = GraphqlIcons.GraphqlConfig;
-        public static final Icon GraphQLSchema = GraphqlIcons.GraphqlSchema;
-        public static final Icon GraphQLScratch = new LayeredIcon(GraphQL, AllIcons.Actions.Scratch);
-    }
+  public static final class Files {
+    public static final Icon GraphQL = FILE;
+    public static final Icon GraphQLConfig = GraphqlIcons.GraphqlConfig;
+    public static final Icon GraphQLSchema = GraphqlIcons.GraphqlSchema;
+    public static final Icon GraphQLScratch = new LayeredIcon(GraphQL, AllIcons.Actions.Scratch);
+  }
 
-    public static final class UI {
-        public static final Icon GraphQLToolWindow = GraphqlIcons.GraphqlToolWindow;
-        public static final Icon GraphQLVariables = GraphqlIcons.Variable;
-        public static final Icon GraphQLNode = GraphqlIcons.GraphqlNode;
-    }
+  public static final class UI {
+    public static final Icon GraphQLToolWindow = GraphqlIcons.GraphqlToolWindow;
+    public static final Icon GraphQLVariables = GraphqlIcons.Variable;
+    public static final Icon GraphQLNode = GraphqlIcons.GraphqlNode;
+  }
 
-    public static final class Schema {
-        public static final Icon Field = GraphqlIcons.Field;
-        public static final Icon Scalar = GraphqlIcons.Scalar;
-        public static final Icon Enum = GraphqlIcons.Enum;
-        public static final Icon Type = GraphqlIcons.Type;
-        public static final Icon Interface = GraphqlIcons.Interface;
-        public static final Icon Query = GraphqlIcons.Query;
-        public static final Icon Attribute = GraphqlIcons.Attribute;
-        public static final Icon Subscription = GraphqlIcons.Subscription;
-        public static final Icon Mutation = GraphqlIcons.Mutation;
-        public static final Icon Fragment = GraphqlIcons.Fragment;
-    }
-
+  public static final class Schema {
+    public static final Icon Field = GraphqlIcons.Field;
+    public static final Icon Scalar = GraphqlIcons.Scalar;
+    public static final Icon Enum = GraphqlIcons.Enum;
+    public static final Icon Type = GraphqlIcons.Type;
+    public static final Icon Interface = GraphqlIcons.Interface;
+    public static final Icon Query = GraphqlIcons.Query;
+    public static final Icon Attribute = GraphqlIcons.Attribute;
+    public static final Icon Subscription = GraphqlIcons.Subscription;
+    public static final Icon Mutation = GraphqlIcons.Mutation;
+    public static final Icon Fragment = GraphqlIcons.Fragment;
+  }
 }

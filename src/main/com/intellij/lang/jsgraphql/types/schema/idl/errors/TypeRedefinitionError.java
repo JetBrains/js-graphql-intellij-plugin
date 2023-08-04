@@ -28,16 +28,16 @@ import static java.lang.String.format;
 @Internal
 public class TypeRedefinitionError extends BaseError {
 
-    public TypeRedefinitionError(TypeDefinition newEntry, TypeDefinition oldEntry) {
-        super(oldEntry,
-            format("'%s' type tried to redefine existing '%s' type",
-                newEntry.getName(), oldEntry.getName()
-            ));
-        addReferences(newEntry);
-    }
+  public TypeRedefinitionError(TypeDefinition newEntry, TypeDefinition oldEntry) {
+    super(oldEntry,
+          format("'%s' type tried to redefine existing '%s' type",
+                 newEntry.getName(), oldEntry.getName()
+          ));
+    addReferences(newEntry);
+  }
 
-    @Override
-    public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        return GraphQLTypeRedefinitionInspection.class;
-    }
+  @Override
+  public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
+    return GraphQLTypeRedefinitionInspection.class;
+  }
 }

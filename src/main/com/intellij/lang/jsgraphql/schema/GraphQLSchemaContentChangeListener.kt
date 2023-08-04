@@ -14,18 +14,18 @@ import com.intellij.util.messages.Topic
  */
 interface GraphQLSchemaContentChangeListener {
 
-    companion object {
-        @JvmField
-        @Topic.ProjectLevel
-        val TOPIC = Topic(
-            "GraphQL Schema Content Change Events",
-            GraphQLSchemaContentChangeListener::class.java,
-            Topic.BroadcastDirection.NONE
-        )
-    }
+  companion object {
+    @JvmField
+    @Topic.ProjectLevel
+    val TOPIC = Topic(
+      "GraphQL Schema Content Change Events",
+      GraphQLSchemaContentChangeListener::class.java,
+      Topic.BroadcastDirection.NONE
+    )
+  }
 
-    /**
-     * One or more GraphQL schema changes are likely based on changed to the PSI trees
-     */
-    fun onSchemaChanged()
+  /**
+   * One or more GraphQL schema changes are likely based on changed to the PSI trees
+   */
+  fun onSchemaChanged()
 }

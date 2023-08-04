@@ -7,22 +7,22 @@ import com.intellij.testFramework.UsefulTestCase
 
 class GraphQLFindUsagesTest : GraphQLTestCaseBase() {
 
-    override fun getBasePath(): String = "/findUsages"
+  override fun getBasePath(): String = "/findUsages"
 
-    override fun setUp() {
-        super.setUp()
-        copyProject()
-    }
+  override fun setUp() {
+    super.setUp()
+    copyProject()
+  }
 
-    fun testFragments() {
-        myFixture.configureFromTempProjectFile("${getTestName(true)}.graphql")
-        val usageInfos = myFixture.findUsages(myFixture.elementAtCaret)
+  fun testFragments() {
+    myFixture.configureFromTempProjectFile("${getTestName(true)}.graphql")
+    val usageInfos = myFixture.findUsages(myFixture.elementAtCaret)
 
-        UsefulTestCase.assertSize(3, usageInfos)
-        val containingDeclarationNames = usageInfos
-            .map { GraphQLResolveUtil.findContainingDefinition(it.element) }
-            .filterIsInstance<PsiNamedElement>()
-            .map { it.name }
-        assertSameElements(containingDeclarationNames, "Frag2", "Frag3", "Query1")
-    }
+    UsefulTestCase.assertSize(3, usageInfos)
+    val containingDeclarationNames = usageInfos
+      .map { GraphQLResolveUtil.findContainingDefinition(it.element) }
+      .filterIsInstance<PsiNamedElement>()
+      .map { it.name }
+    assertSameElements(containingDeclarationNames, "Frag2", "Frag3", "Query1")
+  }
 }

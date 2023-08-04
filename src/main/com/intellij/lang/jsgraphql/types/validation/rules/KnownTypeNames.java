@@ -29,15 +29,15 @@ import com.intellij.lang.jsgraphql.types.validation.ValidationErrorType;
 public class KnownTypeNames extends AbstractRule {
 
 
-    public KnownTypeNames(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
-        super(validationContext, validationErrorCollector);
-    }
+  public KnownTypeNames(ValidationContext validationContext, ValidationErrorCollector validationErrorCollector) {
+    super(validationContext, validationErrorCollector);
+  }
 
-    @Override
-    public void checkTypeName(TypeName typeName) {
-        if ((getValidationContext().getSchema().getType(typeName.getName())) == null) {
-            String message = String.format("Unknown type %s", typeName.getName());
-            addError(ValidationErrorType.UnknownType, typeName.getSourceLocation(), message);
-        }
+  @Override
+  public void checkTypeName(TypeName typeName) {
+    if ((getValidationContext().getSchema().getType(typeName.getName())) == null) {
+      String message = String.format("Unknown type %s", typeName.getName());
+      addError(ValidationErrorType.UnknownType, typeName.getSourceLocation(), message);
     }
+  }
 }

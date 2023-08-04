@@ -22,65 +22,66 @@ import org.jetbrains.annotations.Nullable;
 
 public class GraphQLLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
 
-    private static final String SAMPLE = """
-      query Hero($episode: Episode!, $withFriends: Boolean!) {
-          hero(episode: $episode) {
-              name
-              ...HeroDetails
-              acquaintances: friends @include(if: $withFriends) {
-                  name
-              }
-          }
-      }""";
-
-    @NotNull
-    @Override
-    public Language getLanguage() {
-        return GraphQLLanguage.INSTANCE;
-    }
-
-    @Nullable
-    @Override
-    public IndentOptionsEditor getIndentOptionsEditor() {
-        return new IndentOptionsEditor();
-    }
-
-    @Override
-    public String getCodeSample(@NotNull SettingsType settingsType) {
-        return SAMPLE;
-    }
-
-    @Override
-    public @NotNull CodeStyleConfigurable createConfigurable(@NotNull CodeStyleSettings baseSettings, @NotNull CodeStyleSettings modelSettings) {
-        return new GraphQLCodeStyleConfigurable(baseSettings, modelSettings);
-    }
-
-    @Override
-    public @Nullable String getConfigurableDisplayName() {
-        return GraphQLLanguage.INSTANCE.getDisplayName();
-    }
-
-    private static class GraphQLCodeStyleConfigurable extends CodeStyleAbstractConfigurable {
-
-        public GraphQLCodeStyleConfigurable(@NotNull CodeStyleSettings settings, CodeStyleSettings cloneSettings) {
-            super(settings, cloneSettings, GraphQLConstants.GraphQL);
+  private static final String SAMPLE = """
+    query Hero($episode: Episode!, $withFriends: Boolean!) {
+        hero(episode: $episode) {
+            name
+            ...HeroDetails
+            acquaintances: friends @include(if: $withFriends) {
+                name
+            }
         }
+    }""";
 
-        @Override
-        protected CodeStyleAbstractPanel createPanel(CodeStyleSettings settings) {
-            return new GraphQLCodeStylePanel(getCurrentSettings(), settings);
-        }
+  @NotNull
+  @Override
+  public Language getLanguage() {
+    return GraphQLLanguage.INSTANCE;
+  }
+
+  @Nullable
+  @Override
+  public IndentOptionsEditor getIndentOptionsEditor() {
+    return new IndentOptionsEditor();
+  }
+
+  @Override
+  public String getCodeSample(@NotNull SettingsType settingsType) {
+    return SAMPLE;
+  }
+
+  @Override
+  public @NotNull CodeStyleConfigurable createConfigurable(@NotNull CodeStyleSettings baseSettings,
+                                                           @NotNull CodeStyleSettings modelSettings) {
+    return new GraphQLCodeStyleConfigurable(baseSettings, modelSettings);
+  }
+
+  @Override
+  public @Nullable String getConfigurableDisplayName() {
+    return GraphQLLanguage.INSTANCE.getDisplayName();
+  }
+
+  private static class GraphQLCodeStyleConfigurable extends CodeStyleAbstractConfigurable {
+
+    public GraphQLCodeStyleConfigurable(@NotNull CodeStyleSettings settings, CodeStyleSettings cloneSettings) {
+      super(settings, cloneSettings, GraphQLConstants.GraphQL);
     }
 
-    private static class GraphQLCodeStylePanel extends TabbedLanguageCodeStylePanel {
-
-        protected GraphQLCodeStylePanel(CodeStyleSettings currentSettings, CodeStyleSettings settings) {
-            super(GraphQLLanguage.INSTANCE, currentSettings, settings);
-        }
-
-        @Override
-        protected void initTabs(CodeStyleSettings settings) {
-            addIndentOptionsTab(settings);
-        }
+    @Override
+    protected CodeStyleAbstractPanel createPanel(CodeStyleSettings settings) {
+      return new GraphQLCodeStylePanel(getCurrentSettings(), settings);
     }
+  }
+
+  private static class GraphQLCodeStylePanel extends TabbedLanguageCodeStylePanel {
+
+    protected GraphQLCodeStylePanel(CodeStyleSettings currentSettings, CodeStyleSettings settings) {
+      super(GraphQLLanguage.INSTANCE, currentSettings, settings);
+    }
+
+    @Override
+    protected void initTabs(CodeStyleSettings settings) {
+      addIndentOptionsTab(settings);
+    }
+  }
 }

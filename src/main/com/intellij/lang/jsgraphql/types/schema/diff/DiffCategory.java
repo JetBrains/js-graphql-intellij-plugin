@@ -24,32 +24,32 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
  */
 @PublicApi
 public enum DiffCategory {
-    /**
-     * The new API is missing something compared to the old API
-     */
-    MISSING,
-    /**
-     * The new API has become stricter for existing clients than the old API
-     */
-    STRICTER,
-    /**
-     * The new API has an invalid structure
-     */
-    INVALID,
-    /**
-     * The new API has added something not present in the old API
-     */
-    ADDITION,
-    /**
-     * The new API has changed something compared to the old API
-     */
-    DIFFERENT,
-    /**
-     * The new API has newly deprecated something
-     */
-    DEPRECATION_ADDED,
-    /**
-     * The new API has removed something previously deprecated in the old API
-     */
-    DEPRECATION_REMOVED,
+  /**
+   * The new API is missing something compared to the old API
+   */
+  MISSING,
+  /**
+   * The new API has become stricter for existing clients than the old API
+   */
+  STRICTER,
+  /**
+   * The new API has an invalid structure
+   */
+  INVALID,
+  /**
+   * The new API has added something not present in the old API
+   */
+  ADDITION,
+  /**
+   * The new API has changed something compared to the old API
+   */
+  DIFFERENT,
+  /**
+   * The new API has newly deprecated something
+   */
+  DEPRECATION_ADDED,
+  /**
+   * The new API has removed something previously deprecated in the old API
+   */
+  DEPRECATION_REMOVED,
 }

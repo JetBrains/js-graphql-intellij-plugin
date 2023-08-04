@@ -14,28 +14,28 @@ import com.intellij.openapi.vfs.VirtualFile
 
 @Service(Service.Level.APP)
 class GraphQLFileTypesProvider : Disposable {
-    companion object {
-        @JvmStatic
-        fun getService() = service<GraphQLFileTypesProvider>()
+  companion object {
+    @JvmStatic
+    fun getService() = service<GraphQLFileTypesProvider>()
+  }
+
+  private val myContributedFileTypes = ExtensionPointUtil.dropLazyValueOnChange(ClearableLazyValue.createAtomic {
+    GraphQLFileTypeContributor.getAllFileTypes()
+  }, GraphQLFileTypeContributor.EP_NAME, this)
+
+  fun isAcceptedFile(file: VirtualFile): Boolean {
+    val fileType = file.fileType
+    if (fileType in getContributedFileTypes()) {
+      return true
     }
 
-    private val myContributedFileTypes = ExtensionPointUtil.dropLazyValueOnChange(ClearableLazyValue.createAtomic {
-        GraphQLFileTypeContributor.getAllFileTypes()
-    }, GraphQLFileTypeContributor.EP_NAME, this)
+    return fileType.asSafely<LanguageFileType>()?.language?.isKindOf(HTMLLanguage.INSTANCE) ?: false
+  }
 
-    fun isAcceptedFile(file: VirtualFile): Boolean {
-        val fileType = file.fileType
-        if (fileType in getContributedFileTypes()) {
-            return true
-        }
+  fun getContributedFileTypes(): Collection<FileType> {
+    return myContributedFileTypes.value
+  }
 
-        return fileType.asSafely<LanguageFileType>()?.language?.isKindOf(HTMLLanguage.INSTANCE) ?: false
-    }
-
-    fun getContributedFileTypes(): Collection<FileType> {
-        return myContributedFileTypes.value
-    }
-
-    override fun dispose() {
-    }
+  override fun dispose() {
+  }
 }

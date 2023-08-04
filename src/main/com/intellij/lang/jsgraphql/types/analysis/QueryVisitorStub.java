@@ -23,18 +23,18 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 public class QueryVisitorStub implements QueryVisitor {
 
 
-    @Override
-    public void visitField(QueryVisitorFieldEnvironment queryVisitorFieldEnvironment) {
+  @Override
+  public void visitField(QueryVisitorFieldEnvironment queryVisitorFieldEnvironment) {
 
-    }
+  }
 
-    @Override
-    public void visitInlineFragment(QueryVisitorInlineFragmentEnvironment queryVisitorInlineFragmentEnvironment) {
+  @Override
+  public void visitInlineFragment(QueryVisitorInlineFragmentEnvironment queryVisitorInlineFragmentEnvironment) {
 
-    }
+  }
 
-    @Override
-    public void visitFragmentSpread(QueryVisitorFragmentSpreadEnvironment queryVisitorFragmentSpreadEnvironment) {
+  @Override
+  public void visitFragmentSpread(QueryVisitorFragmentSpreadEnvironment queryVisitorFragmentSpreadEnvironment) {
 
-    }
+  }
 }

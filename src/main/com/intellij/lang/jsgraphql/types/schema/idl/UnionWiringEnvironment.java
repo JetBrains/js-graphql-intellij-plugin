@@ -23,14 +23,14 @@ import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
 @PublicApi
 public class UnionWiringEnvironment extends WiringEnvironment {
 
-    private final UnionTypeDefinition unionTypeDefinition;
+  private final UnionTypeDefinition unionTypeDefinition;
 
-    UnionWiringEnvironment(TypeDefinitionRegistry registry, UnionTypeDefinition unionTypeDefinition) {
-        super(registry);
-        this.unionTypeDefinition = unionTypeDefinition;
-    }
+  UnionWiringEnvironment(TypeDefinitionRegistry registry, UnionTypeDefinition unionTypeDefinition) {
+    super(registry);
+    this.unionTypeDefinition = unionTypeDefinition;
+  }
 
-    public UnionTypeDefinition getUnionTypeDefinition() {
-        return unionTypeDefinition;
-    }
+  public UnionTypeDefinition getUnionTypeDefinition() {
+    return unionTypeDefinition;
+  }
 }

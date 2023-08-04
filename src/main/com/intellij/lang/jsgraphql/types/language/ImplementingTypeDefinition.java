@@ -30,7 +30,7 @@ import java.util.List;
 @PublicApi
 public interface ImplementingTypeDefinition<T extends TypeDefinition> extends TypeDefinition<T> {
 
-    List<Type> getImplements();
+  List<Type> getImplements();
 
-    List<FieldDefinition> getFieldDefinitions();
+  List<FieldDefinition> getFieldDefinitions();
 }

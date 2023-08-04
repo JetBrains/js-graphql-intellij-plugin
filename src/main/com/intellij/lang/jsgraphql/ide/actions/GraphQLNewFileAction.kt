@@ -18,30 +18,30 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDirectory
 
 class GraphQLNewFileAction : CreateFileFromTemplateAction(
-    GraphQLBundle.message("graphql.action.create.file.from.template.title"),
-    GraphQLBundle.message("graphql.action.create.file.from.template.desc"),
-    GraphQLIcons.Files.GraphQL
+  GraphQLBundle.message("graphql.action.create.file.from.template.title"),
+  GraphQLBundle.message("graphql.action.create.file.from.template.desc"),
+  GraphQLIcons.Files.GraphQL
 ), DumbAware {
 
-    override fun isAvailable(dataContext: DataContext): Boolean {
-        if (!super.isAvailable(dataContext)) {
-            return false
-        }
-        val module = LangDataKeys.MODULE.getData(dataContext)
-        return module != null
+  override fun isAvailable(dataContext: DataContext): Boolean {
+    if (!super.isAvailable(dataContext)) {
+      return false
     }
+    val module = LangDataKeys.MODULE.getData(dataContext)
+    return module != null
+  }
 
-    override fun getActionName(directory: PsiDirectory, newName: String, templateName: String): String {
-        return GraphQLBundle.message("graphql.action.create.file.from.template.name", newName)
-    }
+  override fun getActionName(directory: PsiDirectory, newName: String, templateName: String): String {
+    return GraphQLBundle.message("graphql.action.create.file.from.template.name", newName)
+  }
 
-    override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder) {
-        builder
-            .setTitle(GraphQLBundle.message("graphql.action.create.file.from.template.dialog.title"))
-            .addKind(
-                GraphQLBundle.message("graphql.action.create.file.from.template.dialog.kind"),
-                GraphQLIcons.Files.GraphQL,
-                "GraphQL File"
-            )
-    }
+  override fun buildDialog(project: Project, directory: PsiDirectory, builder: CreateFileFromTemplateDialog.Builder) {
+    builder
+      .setTitle(GraphQLBundle.message("graphql.action.create.file.from.template.dialog.title"))
+      .addKind(
+        GraphQLBundle.message("graphql.action.create.file.from.template.dialog.kind"),
+        GraphQLIcons.Files.GraphQL,
+        "GraphQL File"
+      )
+  }
 }

@@ -15,45 +15,45 @@ import java.util.Objects;
 
 public class GraphQLLibrary extends SyntheticLibrary implements ItemPresentation {
 
-    private final GraphQLLibraryDescriptor myLibraryDescriptor;
-    private final VirtualFile myFile;
+  private final GraphQLLibraryDescriptor myLibraryDescriptor;
+  private final VirtualFile myFile;
 
-    public GraphQLLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor,
-                          @NotNull VirtualFile file) {
-        myLibraryDescriptor = libraryDescriptor;
-        myFile = file;
-    }
+  public GraphQLLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor,
+                        @NotNull VirtualFile file) {
+    myLibraryDescriptor = libraryDescriptor;
+    myFile = file;
+  }
 
-    @NotNull
-    public GraphQLLibraryDescriptor getLibraryDescriptor() {
-        return myLibraryDescriptor;
-    }
+  @NotNull
+  public GraphQLLibraryDescriptor getLibraryDescriptor() {
+    return myLibraryDescriptor;
+  }
 
-    @Override
-    public @Nullable String getPresentableText() {
-        return String.format("%s %s", GraphQLBundle.message("graphql.library.prefix"), myLibraryDescriptor.getPresentableText());
-    }
+  @Override
+  public @Nullable String getPresentableText() {
+    return String.format("%s %s", GraphQLBundle.message("graphql.library.prefix"), myLibraryDescriptor.getPresentableText());
+  }
 
-    @Override
-    public @Nullable Icon getIcon(boolean unused) {
-        return GraphQLIcons.Logos.GraphQL;
-    }
+  @Override
+  public @Nullable Icon getIcon(boolean unused) {
+    return GraphQLIcons.Logos.GraphQL;
+  }
 
-    @Override
-    public @NotNull Collection<VirtualFile> getSourceRoots() {
-        return Collections.singleton(myFile);
-    }
+  @Override
+  public @NotNull Collection<VirtualFile> getSourceRoots() {
+    return Collections.singleton(myFile);
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        GraphQLLibrary that = (GraphQLLibrary) o;
-        return Objects.equals(myFile, that.myFile);
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    GraphQLLibrary that = (GraphQLLibrary)o;
+    return Objects.equals(myFile, that.myFile);
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(myFile);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(myFile);
+  }
 }

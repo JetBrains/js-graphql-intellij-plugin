@@ -30,52 +30,53 @@ import static com.intellij.lang.jsgraphql.types.scalar.CoercingUtil.typeName;
 @Internal
 public class GraphqlCharCoercing implements Coercing<Character, Character> {
 
-    private Character convertImpl(Object input) {
-        if (input instanceof String && ((String) input).length() == 1) {
-            return ((String) input).charAt(0);
-        } else if (input instanceof Character) {
-            return (Character) input;
-        } else {
-            return null;
-        }
-
+  private Character convertImpl(Object input) {
+    if (input instanceof String && ((String)input).length() == 1) {
+      return ((String)input).charAt(0);
     }
-
-    @Override
-    public Character serialize(Object input) {
-        Character result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingSerializeException(
-                    "Expected type 'Char' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+    else if (input instanceof Character) {
+      return (Character)input;
     }
-
-    @Override
-    public Character parseValue(Object input) {
-        Character result = convertImpl(input);
-        if (result == null) {
-            throw new CoercingParseValueException(
-                    "Expected type 'Char' but was '" + typeName(input) + "'."
-            );
-        }
-        return result;
+    else {
+      return null;
     }
+  }
 
-    @Override
-    public Character parseLiteral(Object input) {
-        if (!(input instanceof StringValue)) {
-            throw new CoercingParseLiteralException(
-                    "Expected type 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
-            );
-        }
-        String value = ((StringValue) input).getValue();
-        if (value.length() != 1) {
-            throw new CoercingParseLiteralException(
-                    "Empty string value provided."
-            );
-        }
-        return value.charAt(0);
+  @Override
+  public Character serialize(Object input) {
+    Character result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingSerializeException(
+        "Expected type 'Char' but was '" + typeName(input) + "'."
+      );
     }
+    return result;
+  }
+
+  @Override
+  public Character parseValue(Object input) {
+    Character result = convertImpl(input);
+    if (result == null) {
+      throw new CoercingParseValueException(
+        "Expected type 'Char' but was '" + typeName(input) + "'."
+      );
+    }
+    return result;
+  }
+
+  @Override
+  public Character parseLiteral(Object input) {
+    if (!(input instanceof StringValue)) {
+      throw new CoercingParseLiteralException(
+        "Expected type 'String' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
+      );
+    }
+    String value = ((StringValue)input).getValue();
+    if (value.length() != 1) {
+      throw new CoercingParseLiteralException(
+        "Empty string value provided."
+      );
+    }
+    return value.charAt(0);
+  }
 }

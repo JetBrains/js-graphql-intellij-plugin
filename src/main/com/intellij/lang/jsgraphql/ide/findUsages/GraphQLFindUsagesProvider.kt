@@ -19,36 +19,36 @@ import com.intellij.psi.PsiNamedElement
  * @see GraphQLNamedElement
  */
 class GraphQLFindUsagesProvider : FindUsagesProvider {
-    override fun getWordsScanner(): WordsScanner? {
-        return null
+  override fun getWordsScanner(): WordsScanner? {
+    return null
+  }
+
+  override fun canFindUsagesFor(psiElement: PsiElement): Boolean {
+    return psiElement.isValid && psiElement is GraphQLElement && psiElement is PsiNamedElement
+  }
+
+  override fun getHelpId(psiElement: PsiElement): String {
+    return "reference.dialogs.findUsages.other"
+  }
+
+  override fun getType(element: PsiElement): String {
+    if (element is GraphQLIdentifier) {
+      when (element.parent) {
+        is GraphQLTypeNameDefinition -> return "type"
+        is GraphQLFieldDefinition -> return "field"
+        is GraphQLInputValueDefinition -> return "argument"
+        is GraphQLFragmentDefinition -> return "fragment"
+        is GraphQLEnumValue -> return "enum value"
+        is GraphQLDirectiveDefinition -> return "directive"
+      }
     }
 
-    override fun canFindUsagesFor(psiElement: PsiElement): Boolean {
-        return psiElement.isValid && psiElement is GraphQLElement && psiElement is PsiNamedElement
-    }
+    return "unknown"
+  }
 
-    override fun getHelpId(psiElement: PsiElement): String {
-        return "reference.dialogs.findUsages.other"
-    }
+  override fun getDescriptiveName(element: PsiElement): String =
+    element.parent?.asSafely<PsiNamedElement>()?.name.orEmpty()
 
-    override fun getType(element: PsiElement): String {
-        if (element is GraphQLIdentifier) {
-            when (element.parent) {
-                is GraphQLTypeNameDefinition -> return "type"
-                is GraphQLFieldDefinition -> return "field"
-                is GraphQLInputValueDefinition -> return "argument"
-                is GraphQLFragmentDefinition -> return "fragment"
-                is GraphQLEnumValue -> return "enum value"
-                is GraphQLDirectiveDefinition -> return "directive"
-            }
-        }
-
-        return "unknown"
-    }
-
-    override fun getDescriptiveName(element: PsiElement): String =
-        element.parent?.asSafely<PsiNamedElement>()?.name.orEmpty()
-
-    override fun getNodeText(element: PsiElement, useFullName: Boolean): String =
-        element.parent.asSafely<PsiNamedElement>()?.name ?: element.text
+  override fun getNodeText(element: PsiElement, useFullName: Boolean): String =
+    element.parent.asSafely<PsiNamedElement>()?.name ?: element.text
 }

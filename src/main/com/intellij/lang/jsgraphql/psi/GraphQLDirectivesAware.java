@@ -7,8 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.psi;
 
-import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -18,7 +16,6 @@ import java.util.List;
  */
 public interface GraphQLDirectivesAware extends GraphQLElement {
 
-    @NotNull
-    List<GraphQLDirective> getDirectives();
-
+  @NotNull
+  List<GraphQLDirective> getDirectives();
 }

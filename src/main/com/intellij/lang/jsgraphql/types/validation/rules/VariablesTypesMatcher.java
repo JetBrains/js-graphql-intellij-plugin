@@ -29,39 +29,38 @@ import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
 @Internal
 public class VariablesTypesMatcher {
 
-    public boolean doesVariableTypesMatch(GraphQLType variableType, Value variableDefaultValue, GraphQLType expectedType) {
-        return checkType(effectiveType(variableType, variableDefaultValue), expectedType);
+  public boolean doesVariableTypesMatch(GraphQLType variableType, Value variableDefaultValue, GraphQLType expectedType) {
+    return checkType(effectiveType(variableType, variableDefaultValue), expectedType);
+  }
+
+  public GraphQLType effectiveType(GraphQLType variableType, Value defaultValue) {
+    if (defaultValue == null || defaultValue instanceof NullValue) {
+      return variableType;
+    }
+    if (isNonNull(variableType)) {
+      return variableType;
+    }
+    return nonNull(variableType);
+  }
+
+  @SuppressWarnings("SimplifiableIfStatement")
+  private boolean checkType(GraphQLType actualType, GraphQLType expectedType) {
+
+    if (isNonNull(expectedType)) {
+      if (isNonNull(actualType)) {
+        return checkType(unwrapOne(actualType), unwrapOne(expectedType));
+      }
+      return false;
     }
 
-    public GraphQLType effectiveType(GraphQLType variableType, Value defaultValue) {
-        if (defaultValue == null || defaultValue instanceof NullValue) {
-            return variableType;
-        }
-        if (isNonNull(variableType)) {
-            return variableType;
-        }
-        return nonNull(variableType);
+    if (isNonNull(actualType)) {
+      return checkType(unwrapOne(actualType), expectedType);
     }
 
-    @SuppressWarnings("SimplifiableIfStatement")
-    private boolean checkType(GraphQLType actualType, GraphQLType expectedType) {
 
-        if (isNonNull(expectedType)) {
-            if (isNonNull(actualType)) {
-                return checkType(unwrapOne(actualType), unwrapOne(expectedType));
-            }
-            return false;
-        }
-
-        if (isNonNull(actualType)) {
-            return checkType(unwrapOne(actualType), expectedType);
-        }
-
-
-        if (isList(actualType) && isList(expectedType)) {
-            return checkType(unwrapOne(actualType), unwrapOne(expectedType));
-        }
-        return actualType == expectedType;
+    if (isList(actualType) && isList(expectedType)) {
+      return checkType(unwrapOne(actualType), unwrapOne(expectedType));
     }
-
+    return actualType == expectedType;
+  }
 }

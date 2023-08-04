@@ -6,9 +6,9 @@ import com.intellij.openapi.vfs.VirtualFile
 
 
 data class GraphQLConfigPointer(val dir: VirtualFile?, val file: VirtualFile?, val projectName: String?) {
-    fun resolve(project: Project): GraphQLProjectConfig? {
-        val provider = GraphQLConfigProvider.getInstance(project)
-        val config = provider.getForConfigFile(file ?: dir)
-        return config?.findProject(projectName)
-    }
+  fun resolve(project: Project): GraphQLProjectConfig? {
+    val provider = GraphQLConfigProvider.getInstance(project)
+    val config = provider.getForConfigFile(file ?: dir)
+    return config?.findProject(projectName)
+  }
 }

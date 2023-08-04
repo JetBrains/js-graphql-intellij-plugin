@@ -14,33 +14,33 @@ import static com.intellij.codeInspection.SuppressionUtilCore.SUPPRESS_INSPECTIO
 
 public class GraphQLSuppressByCommentFix extends SuppressByCommentFix {
 
-    private final String myText;
+  private final String myText;
 
-    public GraphQLSuppressByCommentFix(@NotNull String toolId,
-                                       @NotNull Class<? extends PsiElement> suppressionHolderClass,
-                                       @NotNull String text) {
-        super(toolId, suppressionHolderClass);
-        myText = text;
-    }
+  public GraphQLSuppressByCommentFix(@NotNull String toolId,
+                                     @NotNull Class<? extends PsiElement> suppressionHolderClass,
+                                     @NotNull String text) {
+    super(toolId, suppressionHolderClass);
+    myText = text;
+  }
 
-    @Override
-    public @IntentionName @NotNull String getText() {
-        return myText;
-    }
+  @Override
+  public @IntentionName @NotNull String getText() {
+    return myText;
+  }
 
-    @Override
-    protected void createSuppression(@NotNull Project project,
-                                     @NotNull PsiElement element,
-                                     @NotNull PsiElement container) throws IncorrectOperationException {
-        PsiComment comment = createComment(project, element);
-        PsiElement parent = container.getParent();
-        PsiElement added = parent.addBefore(comment, container);
-        parent.addAfter(PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText("\n"), added);
-    }
+  @Override
+  protected void createSuppression(@NotNull Project project,
+                                   @NotNull PsiElement element,
+                                   @NotNull PsiElement container) throws IncorrectOperationException {
+    PsiComment comment = createComment(project, element);
+    PsiElement parent = container.getParent();
+    PsiElement added = parent.addBefore(comment, container);
+    parent.addAfter(PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText("\n"), added);
+  }
 
-    @NotNull
-    protected PsiComment createComment(@NotNull Project project, @NotNull PsiElement element) {
-        final String text = String.format(" %s %s", SUPPRESS_INSPECTIONS_TAG_NAME, myID);
-        return SuppressionUtil.createComment(project, text, getCommentLanguage(element));
-    }
+  @NotNull
+  protected PsiComment createComment(@NotNull Project project, @NotNull PsiElement element) {
+    final String text = String.format(" %s %s", SUPPRESS_INSPECTIONS_TAG_NAME, myID);
+    return SuppressionUtil.createComment(project, text, getCommentLanguage(element));
+  }
 }

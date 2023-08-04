@@ -18,22 +18,22 @@ import com.intellij.psi.search.SearchScope;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class GraphQLElementImpl extends ASTWrapperPsiElement implements GraphQLElement {
-    public GraphQLElementImpl(@NotNull ASTNode node) {
-        super(node);
-    }
+  public GraphQLElementImpl(@NotNull ASTNode node) {
+    super(node);
+  }
 
-    @Override
-    public @NotNull PsiElement getNavigationElement() {
-        return GraphQLPsiUtil.skipDescription(this);
-    }
+  @Override
+  public @NotNull PsiElement getNavigationElement() {
+    return GraphQLPsiUtil.skipDescription(this);
+  }
 
-    @Override
-    public @NotNull SearchScope getUseScope() {
-        return GraphQLScopeProvider.getInstance(getProject()).getResolveScope(this);
-    }
+  @Override
+  public @NotNull SearchScope getUseScope() {
+    return GraphQLScopeProvider.getInstance(getProject()).getResolveScope(this);
+  }
 
-    @Override
-    public @NotNull GlobalSearchScope getResolveScope() {
-        return GraphQLScopeProvider.getInstance(getProject()).getResolveScope(this);
-    }
+  @Override
+  public @NotNull GlobalSearchScope getResolveScope() {
+    return GraphQLScopeProvider.getInstance(getProject()).getResolveScope(this);
+  }
 }

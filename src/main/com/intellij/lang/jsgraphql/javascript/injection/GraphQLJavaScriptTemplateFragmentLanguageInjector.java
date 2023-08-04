@@ -25,54 +25,55 @@ import java.util.List;
 
 public class GraphQLJavaScriptTemplateFragmentLanguageInjector implements MultiHostInjector {
 
-    private static final List<Class<JSStringTemplateExpression>> INJECTION_CLASSES = Lists.newArrayList(JSStringTemplateExpression.class);
+  private static final List<Class<JSStringTemplateExpression>> INJECTION_CLASSES = Lists.newArrayList(JSStringTemplateExpression.class);
 
-    @Override
-    public void getLanguagesToInject(@NotNull MultiHostRegistrar registrar, @NotNull PsiElement context) {
-        if (!GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(context)) {
-            return;
-        }
-
-        final JSStringTemplateExpression template = (JSStringTemplateExpression) context;
-
-        final TextRange graphQlTextRange = GraphQLJavaScriptLanguageInjectionUtil.getGraphQLTextRange(template);
-        if (graphQlTextRange.isEmpty()) {
-            // all whitespace
-            return;
-        }
-
-        registrar.startInjecting(GraphQLLanguage.INSTANCE);
-
-        final StringBuilder sb = new StringBuilder();
-        final TextRange[] stringRanges = template.getStringRanges();
-        int stringIndex = 0;
-        boolean insideTemplate = false;
-        for (ASTNode astNode : template.getNode().getChildren(null)) {
-            if (astNode.getElementType() == JSTokenTypes.BACKQUOTE) {
-                insideTemplate = true;
-                continue;
-            }
-            if (astNode.getElementType() == JSTokenTypes.STRING_TEMPLATE_PART) {
-                registrar.addPlace(sb.toString(), "", template, stringRanges[stringIndex]);
-                stringIndex++;
-                sb.setLength(0);
-            } else if (insideTemplate) {
-                sb.append(astNode.getText());
-            }
-        }
-
-        registrar.doneInjecting();
-
-        // update graphql config notifications
-        final VirtualFile virtualFile = context.getContainingFile().getVirtualFile();
-        if (virtualFile != null && !ApplicationManager.getApplication().isUnitTestMode()) {
-            EditorNotifications.getInstance(context.getProject()).updateNotifications(virtualFile);
-        }
+  @Override
+  public void getLanguagesToInject(@NotNull MultiHostRegistrar registrar, @NotNull PsiElement context) {
+    if (!GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(context)) {
+      return;
     }
 
-    @NotNull
-    @Override
-    public List<? extends Class<? extends PsiElement>> elementsToInjectIn() {
-        return INJECTION_CLASSES;
+    final JSStringTemplateExpression template = (JSStringTemplateExpression)context;
+
+    final TextRange graphQlTextRange = GraphQLJavaScriptLanguageInjectionUtil.getGraphQLTextRange(template);
+    if (graphQlTextRange.isEmpty()) {
+      // all whitespace
+      return;
     }
+
+    registrar.startInjecting(GraphQLLanguage.INSTANCE);
+
+    final StringBuilder sb = new StringBuilder();
+    final TextRange[] stringRanges = template.getStringRanges();
+    int stringIndex = 0;
+    boolean insideTemplate = false;
+    for (ASTNode astNode : template.getNode().getChildren(null)) {
+      if (astNode.getElementType() == JSTokenTypes.BACKQUOTE) {
+        insideTemplate = true;
+        continue;
+      }
+      if (astNode.getElementType() == JSTokenTypes.STRING_TEMPLATE_PART) {
+        registrar.addPlace(sb.toString(), "", template, stringRanges[stringIndex]);
+        stringIndex++;
+        sb.setLength(0);
+      }
+      else if (insideTemplate) {
+        sb.append(astNode.getText());
+      }
+    }
+
+    registrar.doneInjecting();
+
+    // update graphql config notifications
+    final VirtualFile virtualFile = context.getContainingFile().getVirtualFile();
+    if (virtualFile != null && !ApplicationManager.getApplication().isUnitTestMode()) {
+      EditorNotifications.getInstance(context.getProject()).updateNotifications(virtualFile);
+    }
+  }
+
+  @NotNull
+  @Override
+  public List<? extends Class<? extends PsiElement>> elementsToInjectIn() {
+    return INJECTION_CLASSES;
+  }
 }

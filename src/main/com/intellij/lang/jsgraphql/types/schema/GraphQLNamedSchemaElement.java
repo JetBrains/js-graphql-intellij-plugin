@@ -26,16 +26,16 @@ import com.intellij.lang.jsgraphql.types.language.Node;
 @PublicApi
 public interface GraphQLNamedSchemaElement extends GraphQLSchemaElement {
 
-    String getName();
+  String getName();
 
-    String getDescription();
+  String getDescription();
 
-    /**
-     * The AST {@link Node} this schema element is based on. Is null if the GraphQLSchema
-     * is not based on a SDL document.
-     * Some elements also have additional extension Nodes. See for example {@link GraphQLObjectType#getExtensionDefinitions()}
-     *
-     * @return Node which this element is based on. Can be null.
-     */
-    Node getDefinition();
+  /**
+   * The AST {@link Node} this schema element is based on. Is null if the GraphQLSchema
+   * is not based on a SDL document.
+   * Some elements also have additional extension Nodes. See for example {@link GraphQLObjectType#getExtensionDefinitions()}
+   *
+   * @return Node which this element is based on. Can be null.
+   */
+  Node getDefinition();
 }

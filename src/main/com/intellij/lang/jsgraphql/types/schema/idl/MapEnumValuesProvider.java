@@ -26,15 +26,15 @@ import java.util.Map;
 public class MapEnumValuesProvider implements EnumValuesProvider {
 
 
-    private final Map<String, Object> values;
+  private final Map<String, Object> values;
 
-    public MapEnumValuesProvider(Map<String, Object> values) {
-        Assert.assertNotNull(values, () -> "values can't be null");
-        this.values = values;
-    }
+  public MapEnumValuesProvider(Map<String, Object> values) {
+    Assert.assertNotNull(values, () -> "values can't be null");
+    this.values = values;
+  }
 
-    @Override
-    public Object getValue(String name) {
-        return values.get(name);
-    }
+  @Override
+  public Object getValue(String name) {
+    return values.get(name);
+  }
 }

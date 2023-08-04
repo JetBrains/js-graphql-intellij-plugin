@@ -16,24 +16,24 @@ import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.psi.NavigatablePsiElement
 
 object GraphQLTreeNodeNavigationUtil {
-    @JvmStatic
-    fun openSourceLocation(myProject: Project, location: SourceLocation, followGeneratedFile: Boolean) {
-        if (location.isPsiBased) {
-            val element = location.element
-            if (element is NavigatablePsiElement && element.isValid()) {
-                element.navigate(true)
-                return
-            }
-        }
-
-        var sourceFile = StandardFileSystems.local().findFileByPath(location.sourceName) ?: return
-        if (sourceFile.fileType == JsonFileType.INSTANCE && followGeneratedFile) {
-            val generatedSource = GraphQLGeneratedSourcesManager.getInstance(myProject).requestGeneratedFile(sourceFile)
-            if (generatedSource != null) {
-                // open the SDL file and not the JSON introspection file it was based on
-                sourceFile = generatedSource
-            }
-        }
-        OpenFileDescriptor(myProject, sourceFile, location.line - 1, location.column - 1).navigate(true)
+  @JvmStatic
+  fun openSourceLocation(myProject: Project, location: SourceLocation, followGeneratedFile: Boolean) {
+    if (location.isPsiBased) {
+      val element = location.element
+      if (element is NavigatablePsiElement && element.isValid()) {
+        element.navigate(true)
+        return
+      }
     }
+
+    var sourceFile = StandardFileSystems.local().findFileByPath(location.sourceName) ?: return
+    if (sourceFile.fileType == JsonFileType.INSTANCE && followGeneratedFile) {
+      val generatedSource = GraphQLGeneratedSourcesManager.getInstance(myProject).requestGeneratedFile(sourceFile)
+      if (generatedSource != null) {
+        // open the SDL file and not the JSON introspection file it was based on
+        sourceFile = generatedSource
+      }
+    }
+    OpenFileDescriptor(myProject, sourceFile, location.line - 1, location.column - 1).navigate(true)
+  }
 }
