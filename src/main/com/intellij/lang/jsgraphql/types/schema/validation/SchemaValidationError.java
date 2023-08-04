@@ -74,26 +74,19 @@ public class SchemaValidationError extends BaseError {
         if (this == other) {
             return true;
         }
-        if (!(other instanceof SchemaValidationError)) {
+        if (!(other instanceof SchemaValidationError that)) {
             return false;
         }
-        SchemaValidationError that = (SchemaValidationError) other;
         return this.errorType.equals(that.errorType) && this.description.equals(that.description);
     }
 
     @Override
     public @Nullable Class<? extends GraphQLInspection> getInspectionClass() {
-        switch (errorType) {
-            case InvalidCustomizedNameError:
-                return GraphQLIllegalNameInspection.class;
-            case EnumLackOfValueError:
-            case InputObjectTypeLackOfFieldError:
-            case ImplementingTypeLackOfFieldError:
-                return GraphQLEmptyTypeInspection.class;
-            case ObjectDoesNotImplementItsInterfaces:
-                return GraphQLInterfaceImplementationInspection.class;
-        }
-
-        return super.getInspectionClass();
+        return switch (errorType) {
+            case InvalidCustomizedNameError -> GraphQLIllegalNameInspection.class;
+            case EnumLackOfValueError, InputObjectTypeLackOfFieldError, ImplementingTypeLackOfFieldError -> GraphQLEmptyTypeInspection.class;
+            case ObjectDoesNotImplementItsInterfaces -> GraphQLInterfaceImplementationInspection.class;
+            default -> super.getInspectionClass();
+        };
     }
 }

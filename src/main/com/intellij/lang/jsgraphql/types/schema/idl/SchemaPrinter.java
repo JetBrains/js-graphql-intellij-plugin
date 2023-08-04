@@ -440,7 +440,7 @@ public class SchemaPrinter {
                 List<GraphQLEnumValueDefinition> values = type.getValues()
                     .stream()
                     .sorted(comparator)
-                    .collect(toList());
+                    .toList();
                 if (values.size() > 0) {
                     out.format(" {\n");
                     for (GraphQLEnumValueDefinition enumValueDefinition : values) {
@@ -548,7 +548,7 @@ public class SchemaPrinter {
                 List<GraphQLNamedOutputType> types = type.getTypes()
                     .stream()
                     .sorted(comparator)
-                    .collect(toList());
+                    .toList();
                 for (int i = 0; i < types.size(); i++) {
                     GraphQLNamedOutputType objectType = types.get(i);
                     if (i > 0) {
@@ -992,9 +992,6 @@ public class SchemaPrinter {
     private void printComments(PrintWriter out, Object graphQLType, String prefix) {
 
         String descriptionText = getDescription(graphQLType);
-        if (isNullOrEmpty(descriptionText)) {
-            return;
-        }
 
         if (!isNullOrEmpty(descriptionText)) {
             List<String> lines = Arrays.asList(descriptionText.split("\n"));

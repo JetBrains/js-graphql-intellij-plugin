@@ -24,6 +24,7 @@ import com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -135,7 +136,7 @@ class ArgValueOfAllowedTypeChecker {
         List<ObjectField> fields = objectValue.getObjectFields();
         List<InputObjectTypeExtensionDefinition> inputObjExt = typeRegistry.inputObjectTypeExtensions().getOrDefault(allowedTypeDefinition.getName(), emptyList());
         Stream<InputValueDefinition> inputObjExtValues = inputObjExt.stream().flatMap(inputObj -> inputObj.getInputValueDefinitions().stream());
-        List<InputValueDefinition> inputValueDefinitions = Stream.concat(allowedTypeDefinition.getInputValueDefinitions().stream(), inputObjExtValues).collect(toList());
+        List<InputValueDefinition> inputValueDefinitions = Stream.concat(allowedTypeDefinition.getInputValueDefinitions().stream(), inputObjExtValues).toList();
 
         // check for duplicated fields
         Map<String, Long> fieldsToOccurrenceMap = fields.stream().map(ObjectField::getName)
@@ -153,9 +154,7 @@ class ArgValueOfAllowedTypeChecker {
         Map<String, InputValueDefinition> nameToInputValueDefMap = inputValueDefinitions.stream()
                 .collect(toMap(InputValueDefinition::getName, inputValueDef -> inputValueDef));
 
-        List<ObjectField> unknownFields = fields.stream()
-                .filter(field -> !nameToInputValueDefMap.containsKey(field.getName()))
-                .collect(toList());
+      List<ObjectField> unknownFields = ContainerUtil.filter(fields, field -> !nameToInputValueDefMap.containsKey(field.getName()));
 
         if (!unknownFields.isEmpty()) {
             addValidationError(errors, UNKNOWN_FIELDS_MESSAGE,
@@ -188,7 +187,7 @@ class ArgValueOfAllowedTypeChecker {
 
         List<EnumTypeExtensionDefinition> enumExtensions = typeRegistry.enumTypeExtensions().getOrDefault(allowedTypeDefinition.getName(), emptyList());
         Stream<EnumValueDefinition> enumExtStream = enumExtensions.stream().flatMap(enumExt -> enumExt.getEnumValueDefinitions().stream());
-        List<EnumValueDefinition> enumValueDefinitions = Stream.concat(allowedTypeDefinition.getEnumValueDefinitions().stream(), enumExtStream).collect(toList());
+        List<EnumValueDefinition> enumValueDefinitions = Stream.concat(allowedTypeDefinition.getEnumValueDefinitions().stream(), enumExtStream).toList();
 
         boolean noneMatchAllowedEnumValue = enumValueDefinitions.stream()
                 .noneMatch(enumAllowedValue -> enumAllowedValue.getName().equals(enumValue.getName()));

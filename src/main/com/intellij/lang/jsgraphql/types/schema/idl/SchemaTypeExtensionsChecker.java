@@ -171,7 +171,7 @@ class SchemaTypeExtensionsChecker {
                         memberTypes.forEach(
                                 memberType -> {
                                     Optional<ObjectTypeDefinition> unionTypeDefinition = typeRegistry.getType(memberType, ObjectTypeDefinition.class);
-                                    if (!unionTypeDefinition.isPresent()) {
+                                    if (unionTypeDefinition.isEmpty()) {
                                         errors.add(new MissingTypeError("union member", extension, memberType));
                                     }
                                 }
@@ -277,7 +277,7 @@ class SchemaTypeExtensionsChecker {
     private void checkTypeExtensionHasCorrespondingType(List<GraphQLError> errors, TypeDefinitionRegistry typeRegistry, String name, List<? extends TypeDefinition> extTypeList, Class<? extends TypeDefinition> targetClass) {
         TypeDefinition extensionDefinition = extTypeList.get(0);
         Optional<? extends TypeDefinition> typeDefinition = typeRegistry.getType(TypeName.newTypeName().name(name).build(), targetClass);
-        if (!typeDefinition.isPresent()) {
+        if (typeDefinition.isEmpty()) {
             errors.add(new TypeExtensionMissingBaseTypeError(extensionDefinition));
         }
     }

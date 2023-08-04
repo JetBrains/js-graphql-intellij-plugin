@@ -19,8 +19,7 @@ package com.intellij.lang.jsgraphql.types.schema;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Stack;
+import com.intellij.util.containers.Stack;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;

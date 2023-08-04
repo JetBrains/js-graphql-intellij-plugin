@@ -89,7 +89,7 @@ public interface TraverserContext<T> {
     /**
      * Returns parent context.
      * Effectively organizes Context objects in a linked list so
-     * by following {@link #getParentContext() } links one could obtain
+     * by following these links one could obtain
      * the current path as well as the variables {@link #getVar(Class) }
      * stored in every parent context.
      *

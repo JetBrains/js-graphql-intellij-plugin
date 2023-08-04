@@ -78,7 +78,7 @@ class UnionTypesChecker {
             String memberTypeName = ((TypeName) memberType).getName();
             Optional<TypeDefinition> memberTypeDefinition = typeRegistry.getType(memberTypeName);
 
-            if (!memberTypeDefinition.isPresent() || !(memberTypeDefinition.get() instanceof ObjectTypeDefinition)) {
+            if (memberTypeDefinition.isEmpty() || !(memberTypeDefinition.get() instanceof ObjectTypeDefinition)) {
                 errors.add(new UnionMemberNotAnObjectTypeError(unionTypeDefinition, ((TypeName) memberType)));
                 continue;
             }

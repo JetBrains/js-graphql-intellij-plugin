@@ -122,10 +122,11 @@ public class GraphQLTypeCollectingVisitor extends GraphQLTypeVisitorStub {
                 // object comparison here is deliberate
                 if (existingType != type) {
                     LOG.error(new AssertException(
-                        format("All types within a GraphQL schema must have unique names. No two provided types may have the same name.\n" +
-                                "No provided type may have a name which conflicts with any built in types (including Scalar and Introspection types).\n" +
-                                "You have redefined the type '%s' from being a '%s' to a '%s'",
-                            type.getName(), existingType.getClass().getSimpleName(), type.getClass().getSimpleName())));
+                        format("""
+                                 All types within a GraphQL schema must have unique names. No two provided types may have the same name.
+                                 No provided type may have a name which conflicts with any built in types (including Scalar and Introspection types).
+                                 You have redefined the type '%s' from being a '%s' to a '%s'""",
+                               type.getName(), existingType.getClass().getSimpleName(), type.getClass().getSimpleName())));
                 }
         }
     }

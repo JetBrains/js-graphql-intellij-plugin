@@ -86,12 +86,12 @@ public class ValidationUtil {
         if (type instanceof GraphQLScalarType) {
             Optional<GraphQLError> invalid = parseLiteral(value, ((GraphQLScalarType) type).getCoercing());
             invalid.ifPresent(graphQLError -> handleScalarError(value, (GraphQLScalarType) type, graphQLError));
-            return !invalid.isPresent();
+            return invalid.isEmpty();
         }
         if (type instanceof GraphQLEnumType) {
             Optional<GraphQLError> invalid = parseLiteralEnum(value, (GraphQLEnumType) type);
             invalid.ifPresent(graphQLError -> handleEnumError(value, (GraphQLEnumType) type, graphQLError));
-            return !invalid.isPresent();
+            return invalid.isEmpty();
         }
 
         if (isList(type)) {

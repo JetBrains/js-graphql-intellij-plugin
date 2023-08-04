@@ -86,10 +86,10 @@ public class SchemaExtensionsChecker {
 
         // ensure we have a "query" one
         Optional<OperationTypeDefinition> query = operationTypeDefinitions.stream().filter(op -> "query".equals(op.getName())).findFirst();
-        if (!query.isPresent()) {
+        if (query.isEmpty()) {
             // its ok if they have a type named Query
             Optional<TypeDefinition> queryType = typeRegistry.getType("Query");
-            if (!queryType.isPresent()) {
+            if (queryType.isEmpty()) {
                 errors.add(new QueryOperationMissingError());
             }
         }

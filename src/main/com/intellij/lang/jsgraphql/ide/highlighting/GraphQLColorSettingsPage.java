@@ -77,38 +77,39 @@ public class GraphQLColorSettingsPage implements ColorSettingsPage {
     @NotNull
     @Override
     public String getDemoText() {
-        return "# Comment\n" +
-            "\n" +
-            "query <operationDefinition>Hero</operationDefinition>(<variableDefinition>$episode</variableDefinition>: <typeName>Episode</typeName>!, <variableDefinition>$withFriends</variableDefinition>: <typeName>Boolean</typeName>!) {\n" +
-            "  <fieldName>hero</fieldName>(<argument>episode</argument>: <variable>$episode</variable>) {\n" +
-            "    <fieldName>name</fieldName>\n" +
-            "    ...<fragmentSpread>HeroDetails</fragmentSpread>\n" +
-            "    <fieldAlias>acquaintances</fieldAlias>: <fieldName>friends</fieldName> <directive>@include</directive>(<argument>if</argument>: <variable>$withFriends</variable>) {\n" +
-            "      <fieldName>name</fieldName>\n" +
-            "    }\n" +
-            "  }\n" +
-            "}\n" +
-            "\n" +
-            "fragment <fragmentDefinition>HeroDetails</fragmentDefinition> on <typeName>Character</typeName> {\n" +
-            "  <fieldName>name</fieldName>\n" +
-            "  ... on <typeName>Human</typeName> {\n" +
-            "    <fieldName>height</fieldName>(<argument>unit</argument>: <constant>METER</constant>)\n" +
-            "  }\n" +
-            "  ... on <typeName>Droid</typeName> {\n" +
-            "    <fieldName>primaryFunction</fieldName>\n" +
-            "  }\n" +
-            "}\n" +
-            "\n" +
-            "mutation <typeName>CreateUser</typeName> {\n" +
-            "    <fieldName>createUser</fieldName>(<argument>userInput</argument>: {\n" +
-            "        <objectField>name</objectField>: <string>\"John\"</string>\n" +
-            "        <objectField>friends</objectField>: [{ <objectField>name</objectField>: <string>\"Bob\"</string> }]\n" +
-            "    })\n" +
-            "}\n" +
-            "\n" +
-            "type <typeName>Mutation</typeName> {\n" +
-            "    <fieldName>createUser</fieldName>(<parameter>id</parameter>: <typeName>String</typeName>, <parameter>userInput</parameter>: <typeName>UserInput</typeName>): <typeName>ID</typeName>\n" +
-            "}";
+        return """
+          # Comment
+
+          query <operationDefinition>Hero</operationDefinition>(<variableDefinition>$episode</variableDefinition>: <typeName>Episode</typeName>!, <variableDefinition>$withFriends</variableDefinition>: <typeName>Boolean</typeName>!) {
+            <fieldName>hero</fieldName>(<argument>episode</argument>: <variable>$episode</variable>) {
+              <fieldName>name</fieldName>
+              ...<fragmentSpread>HeroDetails</fragmentSpread>
+              <fieldAlias>acquaintances</fieldAlias>: <fieldName>friends</fieldName> <directive>@include</directive>(<argument>if</argument>: <variable>$withFriends</variable>) {
+                <fieldName>name</fieldName>
+              }
+            }
+          }
+
+          fragment <fragmentDefinition>HeroDetails</fragmentDefinition> on <typeName>Character</typeName> {
+            <fieldName>name</fieldName>
+            ... on <typeName>Human</typeName> {
+              <fieldName>height</fieldName>(<argument>unit</argument>: <constant>METER</constant>)
+            }
+            ... on <typeName>Droid</typeName> {
+              <fieldName>primaryFunction</fieldName>
+            }
+          }
+
+          mutation <typeName>CreateUser</typeName> {
+              <fieldName>createUser</fieldName>(<argument>userInput</argument>: {
+                  <objectField>name</objectField>: <string>"John"</string>
+                  <objectField>friends</objectField>: [{ <objectField>name</objectField>: <string>"Bob"</string> }]
+              })
+          }
+
+          type <typeName>Mutation</typeName> {
+              <fieldName>createUser</fieldName>(<parameter>id</parameter>: <typeName>String</typeName>, <parameter>userInput</parameter>: <typeName>UserInput</typeName>): <typeName>ID</typeName>
+          }""";
     }
 
     @Nullable

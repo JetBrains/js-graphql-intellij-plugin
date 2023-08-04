@@ -22,6 +22,7 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.*;
+import com.intellij.util.containers.ContainerUtil;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -72,7 +73,7 @@ public class SchemaTypeChecker {
 
     private void checkForMissingTypes(List<GraphQLError> errors, TypeDefinitionRegistry typeRegistry) {
         // type extensions
-        List<ObjectTypeExtensionDefinition> typeExtensions = typeRegistry.objectTypeExtensions().values().stream().flatMap(Collection::stream).collect(toList());
+        List<ObjectTypeExtensionDefinition> typeExtensions = typeRegistry.objectTypeExtensions().values().stream().flatMap(Collection::stream).toList();
         typeExtensions.forEach(typeExtension -> {
 
             List<Type> implementsTypes = typeExtension.getImplements();
@@ -118,9 +119,7 @@ public class SchemaTypeChecker {
         List<InputObjectTypeDefinition> inputTypes = filterTo(typesMap, InputObjectTypeDefinition.class);
         inputTypes.forEach(inputType -> {
             List<InputValueDefinition> inputValueDefinitions = inputType.getInputValueDefinitions();
-            List<Type> inputValueTypes = inputValueDefinitions.stream()
-                    .map(InputValueDefinition::getType)
-                    .collect(toList());
+            List<Type> inputValueTypes = ContainerUtil.map(inputValueDefinitions, InputValueDefinition::getType);
 
             inputValueTypes.forEach(checkTypeExists("input value", typeRegistry, errors, inputType));
 
@@ -138,9 +137,7 @@ public class SchemaTypeChecker {
             checkNamedUniqueness(errors, arguments, InputValueDefinition::getName,
                     (name, arg) -> new NonUniqueArgumentError(directiveDefinition, arg));
 
-            List<Type> inputValueTypes = arguments.stream()
-                    .map(InputValueDefinition::getType)
-                    .collect(toList());
+            List<Type> inputValueTypes = ContainerUtil.map(arguments, InputValueDefinition::getType);
 
             inputValueTypes.forEach(
                     checkTypeExists(typeRegistry, errors, "directive definition", directiveDefinition, directiveDefinition.getName())
@@ -298,16 +295,13 @@ public class SchemaTypeChecker {
     }
 
     private void checkFieldTypesPresent(TypeDefinitionRegistry typeRegistry, List<GraphQLError> errors, TypeDefinition typeDefinition, List<FieldDefinition> fields) {
-        List<Type> fieldTypes = fields.stream().map(FieldDefinition::getType).collect(toList());
+        List<Type> fieldTypes = ContainerUtil.map(fields, FieldDefinition::getType);
         fieldTypes.forEach(checkTypeExists("field", typeRegistry, errors, typeDefinition));
 
         List<Type> fieldInputValues = fields.stream()
-                .map(f -> f.getInputValueDefinitions()
-                        .stream()
-                        .map(InputValueDefinition::getType)
-                        .collect(toList()))
+                .map(f -> ContainerUtil.map(f.getInputValueDefinitions(), InputValueDefinition::getType))
                 .flatMap(Collection::stream)
-                .collect(toList());
+                .toList();
 
         fieldInputValues.forEach(checkTypeExists("field input", typeRegistry, errors, typeDefinition));
     }
@@ -336,7 +330,7 @@ public class SchemaTypeChecker {
             TypeInfo typeInfo = TypeInfo.typeInfo(t);
             TypeName unwrapped = typeInfo.getTypeName();
             Optional<TypeDefinition> type = typeRegistry.getType(unwrapped);
-            if (!type.isPresent()) {
+            if (type.isEmpty()) {
                 errors.add(new MissingInterfaceTypeError("interface", typeDefinition, unwrapped));
             } else if (!(type.get() instanceof InterfaceTypeDefinition)) {
                 errors.add(new MissingInterfaceTypeError("interface", typeDefinition, unwrapped));

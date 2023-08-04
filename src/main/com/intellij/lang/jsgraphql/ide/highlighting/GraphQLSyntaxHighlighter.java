@@ -69,7 +69,7 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final TextAttributesKey[] PIPE_KEYS = new TextAttributesKey[]{PIPE};
   private static final TextAttributesKey[] AMP_KEYS = new TextAttributesKey[]{AMP};
   private static final TextAttributesKey[] BAD_CHARACTER_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
-  private static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
+  private static final TextAttributesKey[] EMPTY_KEYS = TextAttributesKey.EMPTY_ARRAY;
 
   @NotNull
   @Override

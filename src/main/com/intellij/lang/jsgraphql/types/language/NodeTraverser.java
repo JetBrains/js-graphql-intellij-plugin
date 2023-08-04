@@ -166,7 +166,7 @@ public class NodeTraverser {
     public static <T> T oneVisitWithResult(Node node, NodeVisitor nodeVisitor) {
         DefaultTraverserContext<Node> context = DefaultTraverserContext.simple(node);
         node.accept(context, nodeVisitor);
-        return (T) context.getNewAccumulate();
+        return context.getNewAccumulate();
     }
 
 }

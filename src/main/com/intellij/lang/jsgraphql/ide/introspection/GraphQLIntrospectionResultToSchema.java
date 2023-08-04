@@ -100,22 +100,15 @@ public class GraphQLIntrospectionResultToSchema {
         String kind = assertNotNull((String) type.get("kind"),
             () -> String.format("null object kind: %s", type));
 
-        switch (kind) {
-            case "INTERFACE":
-                return createInterface(type);
-            case "OBJECT":
-                return createObject(type);
-            case "UNION":
-                return createUnion(type);
-            case "ENUM":
-                return createEnum(type);
-            case "INPUT_OBJECT":
-                return createInputObject(type);
-            case "SCALAR":
-                return createScalar(type);
-            default:
-                return assertShouldNeverHappen("unexpected kind %s", kind);
-        }
+        return switch (kind) {
+            case "INTERFACE" -> createInterface(type);
+            case "OBJECT" -> createObject(type);
+            case "UNION" -> createUnion(type);
+            case "ENUM" -> createEnum(type);
+            case "INPUT_OBJECT" -> createInputObject(type);
+            case "SCALAR" -> createScalar(type);
+            default -> assertShouldNeverHappen("unexpected kind %s", kind);
+        };
     }
 
     @NotNull
@@ -289,22 +282,21 @@ public class GraphQLIntrospectionResultToSchema {
 
         String kind = (String) type.get("kind");
         switch (kind) {
-            case "INTERFACE":
-            case "OBJECT":
-            case "UNION":
-            case "ENUM":
-            case "INPUT_OBJECT":
-            case "SCALAR":
-                return TypeName.newTypeName().name((String) type.get("name")).build();
-            case "NON_NULL":
-                Type ofType = createTypeReference((Map<String, Object>) type.get("ofType"));
+            case "INTERFACE", "OBJECT", "UNION", "ENUM", "INPUT_OBJECT", "SCALAR" -> {
+                return TypeName.newTypeName().name((String)type.get("name")).build();
+            }
+            case "NON_NULL" -> {
+                Type ofType = createTypeReference((Map<String, Object>)type.get("ofType"));
                 if (ofType == null) return null;
                 return NonNullType.newNonNullType().type(ofType).build();
-            case "LIST":
+            }
+            case "LIST" -> {
                 return ListType.newListType()
-                    .type(createTypeReference((Map<String, Object>) type.get("ofType"))).build();
-            default:
+                  .type(createTypeReference((Map<String, Object>)type.get("ofType"))).build();
+            }
+            default -> {
                 return assertShouldNeverHappen("Unknown kind %s", kind);
+            }
         }
     }
 

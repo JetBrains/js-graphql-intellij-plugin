@@ -85,8 +85,8 @@ public abstract class ExecutionResultNode {
 
     public Optional<NonNullableFieldWasNullException> getChildNonNullableException() {
         return children.stream()
-                .filter(executionResultNode -> executionResultNode.getNonNullableFieldWasNullException() != null)
                 .map(ExecutionResultNode::getNonNullableFieldWasNullException)
+                .filter(exception -> exception != null)
                 .findFirst();
     }
 

@@ -274,7 +274,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
                         .filter(Caret::hasSelection)
                         .map(caret -> new TextRange(caret.getSelectionStart(), caret.getSelectionEnd()))
                         .sorted(Comparator.comparingInt(TextRange::getStartOffset))
-                        .collect(Collectors.toList());
+                        .toList();
 
                     for (int i = 0; i < editorLength; i++) {
                         final char c = editorBuffer.charAt(i);

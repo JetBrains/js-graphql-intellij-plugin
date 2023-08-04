@@ -1054,7 +1054,7 @@ public class SchemaGeneratorHelper {
         GraphQLOutputType subscription;
 
         Optional<OperationTypeDefinition> queryOperation = getOperationNamed("query", operationTypeDefs);
-        if (!queryOperation.isPresent()) {
+        if (queryOperation.isEmpty()) {
             Optional<TypeDefinition> queryTypeDef = typeRegistry.getType("Query");
             if (queryTypeDef.isPresent()) {
                 query = buildOutputType(buildCtx, TypeName.newTypeName().name(queryTypeDef.get().getName()).build()).orElse(null);
@@ -1065,7 +1065,7 @@ public class SchemaGeneratorHelper {
         schemaBuilder.query(ObjectUtils.tryCast(query, GraphQLObjectType.class));
 
         Optional<OperationTypeDefinition> mutationOperation = getOperationNamed("mutation", operationTypeDefs);
-        if (!mutationOperation.isPresent()) {
+        if (mutationOperation.isEmpty()) {
             Optional<TypeDefinition> mutationTypeDef = typeRegistry.getType("Mutation");
             if (mutationTypeDef.isPresent()) {
                 mutation = buildOutputType(buildCtx, TypeName.newTypeName().name(mutationTypeDef.get().getName()).build()).orElse(null);
@@ -1077,7 +1077,7 @@ public class SchemaGeneratorHelper {
         }
 
         Optional<OperationTypeDefinition> subscriptionOperation = getOperationNamed("subscription", operationTypeDefs);
-        if (!subscriptionOperation.isPresent()) {
+        if (subscriptionOperation.isEmpty()) {
             Optional<TypeDefinition> subscriptionTypeDef = typeRegistry.getType("Subscription");
             if (subscriptionTypeDef.isPresent()) {
                 subscription = buildOutputType(buildCtx, TypeName.newTypeName().name(subscriptionTypeDef.get().getName()).build()).orElse(null);

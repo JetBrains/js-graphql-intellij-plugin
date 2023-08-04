@@ -62,16 +62,16 @@ public class PrintStreamReporter implements DifferenceReporter {
         if (event.getFieldName() != null) {
             objectName = objectName + "." + event.getFieldName();
         }
-        out.println(format(
-                "%s%s - '%s' : '%s' : %s",
-                indent, level, event.getTypeKind(), objectName, event.getReasonMsg()));
+        out.printf(
+            "%s%s - '%s' : '%s' : %s%n",
+                indent, level, event.getTypeKind(), objectName, event.getReasonMsg());
     }
 
     @Override
     public void onEnd() {
         out.println("\n");
-        out.println(format("%d errors", breakageCount));
-        out.println(format("%d warnings", dangerCount));
+        out.printf("%d errors%n", breakageCount);
+        out.printf("%d warnings%n", dangerCount);
         out.println("\n");
     }
 }

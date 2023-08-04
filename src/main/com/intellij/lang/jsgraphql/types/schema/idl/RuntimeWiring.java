@@ -247,7 +247,7 @@ public class RuntimeWiring {
         public Builder type(TypeRuntimeWiring typeRuntimeWiring) {
             String typeName = typeRuntimeWiring.getTypeName();
             Map<String, DataFetcher> typeDataFetchers = dataFetchers.computeIfAbsent(typeName, k -> new LinkedHashMap<>());
-            typeRuntimeWiring.getFieldDataFetchers().forEach(typeDataFetchers::put);
+            typeDataFetchers.putAll(typeRuntimeWiring.getFieldDataFetchers());
 
             defaultDataFetchers.put(typeName, typeRuntimeWiring.getDefaultDataFetcher());
 

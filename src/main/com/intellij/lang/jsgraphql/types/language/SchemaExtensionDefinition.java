@@ -87,10 +87,10 @@ public class SchemaExtensionDefinition extends SchemaDefinition {
         private @Nullable PsiElement element;
         private @Nullable List<? extends Node> sourceNodes;
 
-        protected Builder() {
+        private Builder() {
         }
 
-        protected Builder(SchemaDefinition existing) {
+        private Builder(SchemaDefinition existing) {
             this.sourceLocation = existing.getSourceLocation();
             this.comments = ImmutableList.copyOf(existing.getComments());
             this.directives = ImmutableList.copyOf(existing.getDirectives());

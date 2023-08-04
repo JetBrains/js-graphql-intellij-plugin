@@ -162,7 +162,7 @@ public class TypeAndFieldRule implements SchemaValidationRule {
     private void assertTypeName(String typeName,
                                 Node definition,
                                 SchemaValidationErrorCollector validationErrorCollector) {
-        if (typeName.length() >= 2 && typeName.startsWith("__")) {
+        if (typeName.startsWith("__")) {
             SchemaValidationError schemaValidationError = new SchemaValidationError(
                 SchemaValidationErrorType.InvalidCustomizedNameError,
                 String.format("\"%s\" must not begin with \"__\", which is reserved by GraphQL introspection.", typeName),
@@ -175,7 +175,7 @@ public class TypeAndFieldRule implements SchemaValidationRule {
                                  String fieldName,
                                  Node inputObjectField,
                                  SchemaValidationErrorCollector errorCollector) {
-        if (fieldName.length() >= 2 && fieldName.startsWith("__")) {
+        if (fieldName.startsWith("__")) {
             SchemaValidationError schemaValidationError = new SchemaValidationError(
                 SchemaValidationErrorType.InvalidCustomizedNameError,
                 String.format("\"%s\" in \"%s\" must not begin with \"__\", which is reserved by GraphQL introspection.", fieldName, typeName),
@@ -189,7 +189,7 @@ public class TypeAndFieldRule implements SchemaValidationRule {
                                     String argumentName,
                                     Node argument,
                                     SchemaValidationErrorCollector errorCollector) {
-        if (argumentName.length() >= 2 && argumentName.startsWith("__")) {
+        if (argumentName.startsWith("__")) {
             SchemaValidationError schemaValidationError = new SchemaValidationError(
                 SchemaValidationErrorType.InvalidCustomizedNameError,
                 String.format("Argument name \"%s\" in \"%s-%s\" must not begin with \"__\", which is reserved by GraphQL introspection.", argumentName, typeName, fieldName),
@@ -202,7 +202,7 @@ public class TypeAndFieldRule implements SchemaValidationRule {
                                                String enumValueDefinitionName,
                                                Node definition,
                                                SchemaValidationErrorCollector errorCollector) {
-        if (enumValueDefinitionName.length() >= 2 && enumValueDefinitionName.startsWith("__")) {
+        if (enumValueDefinitionName.startsWith("__")) {
             SchemaValidationError schemaValidationError = new SchemaValidationError(
                 SchemaValidationErrorType.InvalidCustomizedNameError,
                 String.format("Enum value definition \"%s\" in \"%s\" must not begin with \"__\", which is reserved by GraphQL introspection.", enumValueDefinitionName, typeName),

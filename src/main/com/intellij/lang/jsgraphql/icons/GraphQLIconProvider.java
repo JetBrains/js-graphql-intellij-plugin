@@ -109,17 +109,13 @@ public class GraphQLIconProvider extends IconProvider {
         return null;
     }
 
-    private Icon getOperationIcon(GraphQLTypedOperationDefinition typedOperationDefinition) {
+    private static Icon getOperationIcon(GraphQLTypedOperationDefinition typedOperationDefinition) {
         final GraphQLOperationType operationType = typedOperationDefinition.getOperationType();
-        switch (operationType.getText()) {
-            case "query":
-                return GraphQLIcons.Schema.Query;
-            case "mutation":
-                return GraphQLIcons.Schema.Mutation;
-            case "subscription":
-                return GraphQLIcons.Schema.Subscription;
-            default:
-                return GraphQLIcons.Logos.GraphQL;
-        }
+        return switch (operationType.getText()) {
+            case "query" -> GraphQLIcons.Schema.Query;
+            case "mutation" -> GraphQLIcons.Schema.Mutation;
+            case "subscription" -> GraphQLIcons.Schema.Subscription;
+            default -> GraphQLIcons.Logos.GraphQL;
+        };
     }
 }

@@ -108,6 +108,4 @@ public interface Coercing<I, O> {
     default I parseLiteral(Object input, Map<String, Object> variables) throws CoercingParseLiteralException {
         return parseLiteral(input);
     }
-
-    ;
 }

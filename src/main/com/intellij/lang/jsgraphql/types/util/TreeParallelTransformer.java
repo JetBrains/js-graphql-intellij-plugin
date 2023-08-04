@@ -141,7 +141,7 @@ public class TreeParallelTransformer<T> {
             if (childZippers.size() > 0) {
                 NodeZipper<T> newNode = moveUp((T) currentContext.thisNode(), childZippers);
                 myZippers.add(newNode);
-                this.result = (T) newNode.getCurNode();
+                this.result = newNode.getCurNode();
             } else if (currentContext.isChanged()) {
                 NodeZipper<T> newNode = new NodeZipper(currentContext.thisNode(), currentContext.getBreadcrumbs(), nodeAdapter);
                 myZippers.add(newNode);
@@ -193,21 +193,19 @@ public class TreeParallelTransformer<T> {
                 String name = location.getName();
                 List<T> childList = new ArrayList<>(childrenMap.get(name));
                 switch (zipper.getModificationType()) {
-                    case REPLACE:
-                        childList.set(ix, zipper.getCurNode());
-                        break;
-                    case DELETE:
+                    case REPLACE -> childList.set(ix, zipper.getCurNode());
+                    case DELETE -> {
                         childList.remove(ix);
                         indexCorrection.put(name, ixDiff - 1);
-                        break;
-                    case INSERT_BEFORE:
+                    }
+                    case INSERT_BEFORE -> {
                         childList.add(ix, zipper.getCurNode());
                         indexCorrection.put(name, ixDiff + 1);
-                        break;
-                    case INSERT_AFTER:
+                    }
+                    case INSERT_AFTER -> {
                         childList.add(ix + 1, zipper.getCurNode());
                         indexCorrection.put(name, ixDiff + 1);
-                        break;
+                    }
                 }
                 childrenMap.put(name, childList);
             }

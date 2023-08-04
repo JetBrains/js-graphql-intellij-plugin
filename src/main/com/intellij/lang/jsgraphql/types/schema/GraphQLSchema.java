@@ -362,7 +362,7 @@ public class GraphQLSchema {
      * directives for all schema elements, whereas this is just for the schema
      * element itself
      *
-     * @return a list of directives
+     * @return a map of directives
      */
     public Map<String, GraphQLDirective> getSchemaDirectiveByName() {
         ProgressManager.checkCanceled();

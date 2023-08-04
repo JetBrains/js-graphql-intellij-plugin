@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.ide.actions
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.LangDataKeys
@@ -14,6 +15,10 @@ class GraphQLCreateConfigFileAction : AnAction(
     GraphQLBundle.message("graphql.action.create.config.file.desc"),
     GraphQLIcons.Files.GraphQLConfig
 ) {
+    override fun getActionUpdateThread(): ActionUpdateThread {
+        return ActionUpdateThread.BGT
+    }
+
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project
         if (project != null) {

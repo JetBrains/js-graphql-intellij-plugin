@@ -61,7 +61,7 @@ public class SchemaGenerator {
     /**
      * This will take a {@link TypeDefinitionRegistry} and a {@link RuntimeWiring} and put them together to create a executable schema
      *
-     * @param typeRegistry
+     * @param typeRegistry type registry
      * @param wiring       this can be built using {@link RuntimeWiring#newRuntimeWiring()}
      * @return an executable schema
      * @throws SchemaProblem if there are problems in assembling a schema such as missing type resolvers or no operations defined
@@ -76,7 +76,7 @@ public class SchemaGenerator {
      * controlled by the provided options.
      *
      * @param options      the controlling options
-     * @param typeRegistry
+     * @param typeRegistry type registry
      * @param wiring       this can be built using {@link RuntimeWiring#newRuntimeWiring()}
      * @return an executable schema
      * @throws SchemaProblem if there are problems in assembling a schema such as missing type resolvers or no operations defined

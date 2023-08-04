@@ -151,16 +151,12 @@ public class QueryTraverser {
     }
 
     private GraphQLObjectType getRootTypeFromOperation(OperationDefinition operationDefinition) {
-        switch (operationDefinition.getOperation()) {
-            case MUTATION:
-                return assertNotNull(schema.getMutationType());
-            case QUERY:
-                return assertNotNull(schema.getQueryType());
-            case SUBSCRIPTION:
-                return assertNotNull(schema.getSubscriptionType());
-            default:
-                return assertShouldNeverHappen();
-        }
+        return switch (operationDefinition.getOperation()) {
+            case MUTATION -> assertNotNull(schema.getMutationType());
+            case QUERY -> assertNotNull(schema.getQueryType());
+            case SUBSCRIPTION -> assertNotNull(schema.getSubscriptionType());
+            default -> assertShouldNeverHappen();
+        };
     }
 
     private List<Node> childrenOf(Node<?> node) {

@@ -9,10 +9,9 @@ package com.intellij.lang.jsgraphql;
 
 import com.intellij.lexer.FlexAdapter;
 
-import java.io.Reader;
 
 public class GraphQLLexerAdapter extends FlexAdapter {
   public GraphQLLexerAdapter() {
-    super(new GraphQLLexer((Reader) null));
+    super(new GraphQLLexer(null));
   }
 }

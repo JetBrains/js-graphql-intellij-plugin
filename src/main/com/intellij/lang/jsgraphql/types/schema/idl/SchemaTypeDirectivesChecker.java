@@ -129,7 +129,7 @@ class SchemaTypeDirectivesChecker {
     private void checkDirectives(DirectiveLocation expectedLocation, List<GraphQLError> errors, TypeDefinitionRegistry typeRegistry, Node<?> element, String elementName, List<Directive> directives) {
         directives.forEach(directive -> {
             Optional<DirectiveDefinition> directiveDefinition = typeRegistry.getDirectiveDefinition(directive.getName());
-            if (!directiveDefinition.isPresent()) {
+            if (directiveDefinition.isEmpty()) {
                 errors.add(new DirectiveUndeclaredError(element, elementName, directive.getName()));
             } else {
                 if (!inRightLocation(expectedLocation, directiveDefinition.get())) {
@@ -144,7 +144,7 @@ class SchemaTypeDirectivesChecker {
         List<String> names = directiveDefinition.getDirectiveLocations()
                 .stream().map(com.intellij.lang.jsgraphql.types.language.DirectiveLocation::getName)
                 .map(String::toUpperCase)
-                .collect(Collectors.toList());
+                .toList();
 
         return names.contains(expectedLocation.name().toUpperCase());
     }

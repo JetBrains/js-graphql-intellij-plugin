@@ -150,10 +150,10 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition> im
         private @Nullable List<? extends Node> sourceNodes;
 
 
-        protected Builder() {
+        private Builder() {
         }
 
-        protected Builder(SchemaDefinition existing) {
+        private Builder(SchemaDefinition existing) {
             this.sourceLocation = existing.getSourceLocation();
             this.comments = ImmutableList.copyOf(existing.getComments());
             this.directives = ImmutableList.copyOf(existing.getDirectives());

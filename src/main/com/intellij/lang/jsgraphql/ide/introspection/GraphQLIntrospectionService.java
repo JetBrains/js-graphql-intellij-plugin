@@ -113,7 +113,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         myProject = project;
 
         MessageBusConnection connection = project.getMessageBus().connect(this);
-        connection.subscribe(GraphQLConfigListener.TOPIC, (GraphQLConfigListener) () -> {
+        connection.subscribe(GraphQLConfigListener.TOPIC, () -> {
             latestIntrospection = null;
 
             if (myIntrospected.compareAndSet(false, true)) {

@@ -88,42 +88,40 @@ public class GraphQLSchemaAnnotator implements Annotator {
             }
 
             switch (validationErrorType) {
-                case DefaultForNonNullArgument:
-                case WrongType:
-                case SubSelectionRequired:
-                case SubSelectionNotAllowed:
-                case BadValueForDefaultArg:
-                case InlineFragmentTypeConditionInvalid:
-                case FragmentTypeConditionInvalid:
-                case UnknownArgument:
-                case NonInputTypeOnVariable:
-                case MissingFieldArgument:
-                case MissingDirectiveArgument:
-                case VariableTypeMismatch:
-                case MisplacedDirective:
-                case UndefinedVariable:
-                case UnusedVariable:
-                case FragmentCycle:
-                case FieldsConflict:
-                case InvalidFragmentType:
-                case LoneAnonymousOperationViolation:
-                case DuplicateFragmentName:
-                case DuplicateDirectiveName:
-                case DuplicateArgumentNames:
-                case DuplicateVariableName:
+                case DefaultForNonNullArgument,
+                    WrongType,
+                    SubSelectionRequired,
+                    SubSelectionNotAllowed,
+                    BadValueForDefaultArg,
+                    InlineFragmentTypeConditionInvalid,
+                    FragmentTypeConditionInvalid,
+                    UnknownArgument,
+                    NonInputTypeOnVariable,
+                    MissingFieldArgument,
+                    MissingDirectiveArgument,
+                    VariableTypeMismatch,
+                    MisplacedDirective,
+                    UndefinedVariable,
+                    UnusedVariable,
+                    FragmentCycle,
+                    FieldsConflict,
+                    InvalidFragmentType,
+                    LoneAnonymousOperationViolation,
+                    DuplicateFragmentName,
+                    DuplicateDirectiveName,
+                    DuplicateArgumentNames,
+                    DuplicateVariableName ->
                     processValidationError(annotationHolder, file, validationError);
-                    break;
-                case NonExecutableDefinition:
-                case UnknownType:
-                case UnusedFragment:
-                case DuplicateOperationName:
-                case NullValueForNonNullArgument:
-                case InvalidSyntax:
-                case FieldUndefined:
-                case UndefinedFragment:
-                case UnknownDirective:
-                    // ignore explicitly
-                    break;
+
+                case NonExecutableDefinition,
+                    UnknownType,
+                    UnusedFragment,
+                    DuplicateOperationName,
+                    NullValueForNonNullArgument,
+                    InvalidSyntax,
+                    FieldUndefined,
+                    UndefinedFragment,
+                    UnknownDirective -> {}
             }
         }
     }
@@ -178,7 +176,7 @@ public class GraphQLSchemaAnnotator implements Annotator {
             PsiElement context = containingFile.getContext();
             if (context != null) {
                 // injected file, so adjust the position
-                positionToOffset = positionToOffset - context.getTextOffset();
+                positionToOffset -= context.getTextOffset();
             }
             return containingFile.findElementAt(positionToOffset);
         });

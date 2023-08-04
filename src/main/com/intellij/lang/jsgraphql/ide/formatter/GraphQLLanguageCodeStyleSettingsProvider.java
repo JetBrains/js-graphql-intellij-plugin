@@ -22,15 +22,16 @@ import org.jetbrains.annotations.Nullable;
 
 public class GraphQLLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
 
-    private static final String SAMPLE = "query Hero($episode: Episode!, $withFriends: Boolean!) {\n" +
-        "    hero(episode: $episode) {\n" +
-        "        name\n" +
-        "        ...HeroDetails\n" +
-        "        acquaintances: friends @include(if: $withFriends) {\n" +
-        "            name\n" +
-        "        }\n" +
-        "    }\n" +
-        "}";
+    private static final String SAMPLE = """
+      query Hero($episode: Episode!, $withFriends: Boolean!) {
+          hero(episode: $episode) {
+              name
+              ...HeroDetails
+              acquaintances: friends @include(if: $withFriends) {
+                  name
+              }
+          }
+      }""";
 
     @NotNull
     @Override

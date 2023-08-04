@@ -106,11 +106,13 @@ public class NodeZipper<T> {
      * @return null if it is the root node and marked as deleted, otherwise never null
      */
     public T toRoot() {
-        if (breadcrumbs.size() == 0 && modificationType != ModificationType.DELETE) {
-            return this.curNode;
-        }
-        if (breadcrumbs.size() == 0 && modificationType == ModificationType.DELETE) {
-            return null;
+        if (breadcrumbs.isEmpty()) {
+            if (modificationType != ModificationType.DELETE) {
+                return this.curNode;
+            }
+            else {
+                return null;
+            }
         }
         T curNode = this.curNode;
 
@@ -121,18 +123,10 @@ public class NodeZipper<T> {
         String name = locationInParent.getName();
         List<T> childList = new ArrayList<>(childrenForParent.get(name));
         switch (modificationType) {
-            case REPLACE:
-                childList.set(ix, curNode);
-                break;
-            case DELETE:
-                childList.remove(ix);
-                break;
-            case INSERT_BEFORE:
-                childList.add(ix, curNode);
-                break;
-            case INSERT_AFTER:
-                childList.add(ix + 1, curNode);
-                break;
+            case REPLACE -> childList.set(ix, curNode);
+            case DELETE -> childList.remove(ix);
+            case INSERT_BEFORE -> childList.add(ix, curNode);
+            case INSERT_AFTER -> childList.add(ix + 1, curNode);
         }
         childrenForParent.put(name, childList);
         curNode = nodeAdapter.withNewChildren(firstBreadcrumb.getNode(), childrenForParent);

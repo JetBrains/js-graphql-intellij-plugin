@@ -331,12 +331,6 @@ public class SchemaTransformer {
         Set<GraphQLSchemaElement> notPermMarked = new LinkedHashSet<>(allNodes);
         Set<GraphQLSchemaElement> tempMarked = new LinkedHashSet<>();
         Set<GraphQLSchemaElement> permMarked = new LinkedHashSet<>();
-        /**
-         * Taken from: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
-         * while exists nodes without a permanent mark do
-         *     select an unmarked node n
-         *     visit(n)
-         */
         while (true) {
             Iterator<GraphQLSchemaElement> iterator = notPermMarked.iterator();
             if (!iterator.hasNext()) {
@@ -355,22 +349,6 @@ public class SchemaTransformer {
                        Set<GraphQLSchemaElement> notPermMarked,
                        List<GraphQLSchemaElement> result,
                        Map<GraphQLSchemaElement, List<GraphQLSchemaElement>> reverseDependencies) {
-        /**
-         * Taken from: https://en.wikipedia.org/wiki/Topological_sorting#Depth-first_search
-         * if n has a permanent mark then
-         *         return
-         *     if n has a temporary mark then
-         *         stop   (not a DAG)
-         *
-         *     mark n with a temporary mark
-         *
-         *     for each node m with an edge from n to m do
-         *         visit(m)
-         *
-         *     remove temporary mark from n
-         *     mark n with a permanent mark
-         *     add n to head of L
-         */
         if (permMarked.contains(n)) {
             return;
         }

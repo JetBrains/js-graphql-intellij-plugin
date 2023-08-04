@@ -118,8 +118,8 @@ public class ResultNodesUtil {
 
     public static Optional<NonNullableFieldWasNullException> getFirstNonNullableException(Collection<ExecutionResultNode> collection) {
         return collection.stream()
-                .filter(executionResultNode -> executionResultNode.getNonNullableFieldWasNullException() != null)
                 .map(ExecutionResultNode::getNonNullableFieldWasNullException)
+                .filter(exception -> exception != null)
                 .findFirst();
     }
 

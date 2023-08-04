@@ -58,7 +58,7 @@ public class CacheControl {
         PUBLIC, PRIVATE
     }
 
-    private class Hint {
+    private static class Hint {
         private final List<Object> path;
         private final Integer maxAge;
         private final Scope scope;

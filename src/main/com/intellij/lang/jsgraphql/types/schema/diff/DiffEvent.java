@@ -19,6 +19,7 @@ package com.intellij.lang.jsgraphql.types.schema.diff;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.TypeKind;
+import com.intellij.util.containers.ContainerUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -154,7 +155,7 @@ public class DiffEvent {
         }
 
         public Builder components(Object... args) {
-            components.addAll(Arrays.stream(args).map(String::valueOf).collect(toList()));
+            components.addAll(ContainerUtil.map(args, String::valueOf));
             return this;
         }
 

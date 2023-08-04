@@ -119,7 +119,7 @@ public class SchemaDiff {
                 opName));
 
         // must be new
-        if (!oldOpTypeDef.isPresent()) {
+        if (oldOpTypeDef.isEmpty()) {
             return;
         }
 
@@ -130,7 +130,7 @@ public class SchemaDiff {
             .reasonMsg("Examining operation '%s' ...", capitalize(opName))
             .build());
 
-        if (oldOpTypeDef.isPresent() && !newOpTypeDef.isPresent()) {
+        if (oldOpTypeDef.isPresent() && newOpTypeDef.isEmpty()) {
             ctx.report(DiffEvent.apiBreakage()
                 .category(DiffCategory.MISSING)
                 .typeName(capitalize(opName))
@@ -148,7 +148,7 @@ public class SchemaDiff {
         //
         // if we have no old op, then it must have been added (which is ok)
         Optional<TypeDefinition> oldTD = ctx.getOldTypeDef(oldType, TypeDefinition.class);
-        if (!oldTD.isPresent()) {
+        if (oldTD.isEmpty()) {
             return;
         }
         checkType(ctx, oldType, newOpTypeDefinition.getTypeName());
@@ -170,7 +170,7 @@ public class SchemaDiff {
         Optional<TypeDefinition> oldTD = ctx.getOldTypeDef(oldType, TypeDefinition.class);
         Optional<TypeDefinition> newTD = ctx.getNewTypeDef(newType, TypeDefinition.class);
 
-        if (!oldTD.isPresent()) {
+        if (oldTD.isEmpty()) {
             ctx.report(DiffEvent.apiInfo()
                 .typeName(typeName)
                 .reasonMsg("Type '%s' is missing", typeName)
@@ -186,7 +186,7 @@ public class SchemaDiff {
             .reasonMsg("Examining type '%s' ...", typeName)
             .build());
 
-        if (!newTD.isPresent()) {
+        if (newTD.isEmpty()) {
             ctx.report(DiffEvent.apiBreakage()
                 .category(DiffCategory.MISSING)
                 .typeName(typeName)
@@ -337,7 +337,7 @@ public class SchemaDiff {
                 .build());
 
 
-            if (!newField.isPresent()) {
+            if (newField.isEmpty()) {
                 DiffCategory category;
                 String message;
                 if (isDeprecated(oldField)) {
@@ -380,7 +380,7 @@ public class SchemaDiff {
             InputValueDefinition newField = newDefinitionMap.get(inputFieldName);
             Optional<InputValueDefinition> oldField = Optional.ofNullable(oldDefinitionMap.get(inputFieldName));
 
-            if (!oldField.isPresent()) {
+            if (oldField.isEmpty()) {
                 // new fields MUST not be mandatory
                 if (typeInfo(newField.getType()).isNonNull()) {
                     ctx.report(DiffEvent.apiBreakage()
@@ -407,7 +407,7 @@ public class SchemaDiff {
             EnumValueDefinition oldEnum = oldDefinitionMap.get(enumName);
             Optional<EnumValueDefinition> newEnum = Optional.ofNullable(newDefinitionMap.get(enumName));
 
-            if (!newEnum.isPresent()) {
+            if (newEnum.isEmpty()) {
                 DiffCategory category;
                 String message;
                 if (isDeprecated(oldEnum)) {
@@ -466,12 +466,12 @@ public class SchemaDiff {
         for (Map.Entry<String, Type> entry : oldImplementsMap.entrySet()) {
             Optional<InterfaceTypeDefinition> oldInterface = ctx.getOldTypeDef(entry.getValue(),
                 InterfaceTypeDefinition.class);
-            if (!oldInterface.isPresent()) {
+            if (oldInterface.isEmpty()) {
                 continue;
             }
             Optional<InterfaceTypeDefinition> newInterface = ctx.getNewTypeDef(newImplementsMap.get(entry.getKey()),
                 InterfaceTypeDefinition.class);
-            if (!newInterface.isPresent()) {
+            if (newInterface.isEmpty()) {
                 ctx.report(DiffEvent.apiBreakage()
                     .category(DiffCategory.MISSING)
                     .typeName(old.getName())
@@ -657,7 +657,7 @@ public class SchemaDiff {
             InputValueDefinition newArg = entry.getValue();
             Optional<InputValueDefinition> oldArg = Optional.ofNullable(oldArgsMap.get(newArg.getName()));
 
-            if (!oldArg.isPresent()) {
+            if (oldArg.isEmpty()) {
                 // new args MUST not be mandatory
                 if (typeInfo(newArg.getType()).isNonNull()) {
                     ctx.report(DiffEvent.apiBreakage()
@@ -766,7 +766,7 @@ public class SchemaDiff {
         for (String directiveName : oldDirectivesMap.keySet()) {
             Directive oldDirective = oldDirectivesMap.get(directiveName);
             Optional<Directive> newDirective = Optional.ofNullable(newDirectivesMap.get(directiveName));
-            if (!newDirective.isPresent()) {
+            if (newDirective.isEmpty()) {
                 ctx.report(DiffEvent.apiBreakage()
                     .category(DiffCategory.MISSING)
                     .typeName(old.getName())
@@ -798,7 +798,7 @@ public class SchemaDiff {
                 Argument oldArgument = oldArgumentsByName.get(argName);
                 Optional<Argument> newArgument = Optional.ofNullable(newArgumentsByName.get(argName));
 
-                if (!newArgument.isPresent()) {
+                if (newArgument.isEmpty()) {
                     ctx.report(DiffEvent.apiBreakage()
                         .category(DiffCategory.MISSING)
                         .typeName(old.getName())

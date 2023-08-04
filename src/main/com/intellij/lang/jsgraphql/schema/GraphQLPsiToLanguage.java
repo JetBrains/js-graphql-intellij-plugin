@@ -57,12 +57,10 @@ public final class GraphQLPsiToLanguage {
     private OperationDefinition createOperationDefinition(@NotNull GraphQLOperationDefinition definition) {
         OperationDefinition.Builder operationDefinition = OperationDefinition.newOperationDefinition();
         addCommonData(operationDefinition, definition);
-        if (definition instanceof GraphQLSelectionSetOperationDefinition) {
+        if (definition instanceof GraphQLSelectionSetOperationDefinition selectionSetOperation) {
             operationDefinition.operation(OperationDefinition.Operation.QUERY);
-            GraphQLSelectionSetOperationDefinition selectionSetOperation = (GraphQLSelectionSetOperationDefinition) definition;
             operationDefinition.selectionSet(createSelectionSet(selectionSetOperation.getSelectionSet()));
-        } else if (definition instanceof GraphQLTypedOperationDefinition) {
-            GraphQLTypedOperationDefinition typedOperation = (GraphQLTypedOperationDefinition) definition;
+        } else if (definition instanceof GraphQLTypedOperationDefinition typedOperation) {
             operationDefinition.operation(parseOperation(typedOperation));
             operationDefinition.name(typedOperation.getName());
 
@@ -78,16 +76,12 @@ public final class GraphQLPsiToLanguage {
 
     @NotNull
     private OperationDefinition.Operation parseOperation(@NotNull GraphQLTypedOperationDefinition operation) {
-        switch (operation.getOperationType().getText()) {
-            case "query":
-                return OperationDefinition.Operation.QUERY;
-            case "mutation":
-                return OperationDefinition.Operation.MUTATION;
-            case "subscription":
-                return OperationDefinition.Operation.SUBSCRIPTION;
-            default:
-                return assertShouldNeverHappen("InternalError: unknown operationTypeContext=%s", operation.getText());
-        }
+        return switch (operation.getOperationType().getText()) {
+            case "query" -> OperationDefinition.Operation.QUERY;
+            case "mutation" -> OperationDefinition.Operation.MUTATION;
+            case "subscription" -> OperationDefinition.Operation.SUBSCRIPTION;
+            default -> assertShouldNeverHappen("InternalError: unknown operationTypeContext=%s", operation.getText());
+        };
     }
 
     @Nullable

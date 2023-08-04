@@ -159,7 +159,7 @@ public class GraphQLContext {
         }
 
         private Builder putImpl(Object... kvs) {
-            for (int i = 0; i < kvs.length; i = i + 2) {
+            for (int i = 0; i < kvs.length; i += 2) {
                 Object k = kvs[i];
                 Object v = kvs[i + 1];
                 map.put(assertNotNull(k), assertNotNull(v));
