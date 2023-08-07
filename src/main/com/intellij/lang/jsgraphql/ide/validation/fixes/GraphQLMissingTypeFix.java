@@ -7,27 +7,29 @@
  */
 package com.intellij.lang.jsgraphql.ide.validation.fixes;
 
-import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFixAndIntentionActionOnPsiElement;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.EditorModificationUtil;
+import com.intellij.openapi.editor.EditorModificationUtilEx;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiWhiteSpace;
-import com.intellij.psi.impl.source.codeStyle.CodeStyleManagerImpl;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -56,7 +58,7 @@ public class GraphQLMissingTypeFix extends LocalQuickFixAndIntentionActionOnPsiE
   @NotNull
   @Override
   public String getText() {
-    return "Add \"" + typeKind.name().toLowerCase() + ' ' + this.typeName + "\"";
+    return GraphQLBundle.message("graphql.intention.name.add.missing.type", StringUtil.toLowerCase(typeKind.name()), this.typeName);
   }
 
   @Override
@@ -76,26 +78,17 @@ public class GraphQLMissingTypeFix extends LocalQuickFixAndIntentionActionOnPsiE
       return;
     }
     editor.getCaretModel().moveToOffset(definition.getTextRange().getEndOffset() + 1);
-    String code = typeKind.name().toLowerCase() + " " + typeName;
+    String code = StringUtil.toLowerCase(typeKind.name()) + " " + typeName;
     String caret = "__caret__";
     switch (typeKind) {
-      case ENUM:
-      case TYPE:
-      case INTERFACE:
-      case INPUT:
-        code += " {\n" + caret + "\n}";
-        break;
-      case SCALAR:
-        code += caret;
-        break;
-      case UNION:
-        code += " = " + caret;
-        break;
+      case ENUM, TYPE, INTERFACE, INPUT -> code += " {\n" + caret + "\n}";
+      case SCALAR -> code += caret;
+      case UNION -> code += " = " + caret;
     }
     final PsiFile codeFile = PsiFileFactory.getInstance(project).createFileFromText("", GraphQLLanguage.INSTANCE, code);
-    CodeStyleManagerImpl.getInstance(project).reformat(codeFile);
+    CodeStyleManager.getInstance(project).reformat(codeFile);
     assert codeFile.getViewProvider().getDocument() != null;
-    CodeStyleManagerImpl.getInstance(project).reformat(codeFile);
+    CodeStyleManager.getInstance(project).reformat(codeFile);
     final Document document = codeFile.getViewProvider().getDocument();
     if (document != null) {
       code = document.getText();
@@ -108,18 +101,18 @@ public class GraphQLMissingTypeFix extends LocalQuickFixAndIntentionActionOnPsiE
 
     final String lineBefore = definition.getNextSibling() instanceof PsiWhiteSpace ? "" : "\n";
 
-    EditorModificationUtil.insertStringAtCaret(editor, lineBefore + "\n" + code + "\n", false, caretDelta);
+    EditorModificationUtilEx.insertStringAtCaret(editor, lineBefore + "\n" + code + "\n", false, caretDelta);
   }
 
   @Nls(capitalization = Nls.Capitalization.Sentence)
   @NotNull
   @Override
   public String getFamilyName() {
-    return "Create missing type definition";
+    return GraphQLBundle.message("graphql.intention.create.missing.type.definition.family.name");
   }
 
   public static List<GraphQLMissingTypeFix> getApplicableFixes(GraphQLIdentifier typeName) {
-    final List<GraphQLMissingTypeFix> fixes = Lists.newArrayList();
+    final List<GraphQLMissingTypeFix> fixes = new ArrayList<>();
     final GraphQLInputValueDefinition inputValueDefinition = PsiTreeUtil.getParentOfType(typeName, GraphQLInputValueDefinition.class);
     if (inputValueDefinition != null) {
       // input types: input object, enum, scalar

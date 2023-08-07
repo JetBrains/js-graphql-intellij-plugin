@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.actions;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.json.JsonFileType;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
@@ -27,7 +28,11 @@ public class GraphQLExecuteEditorAction extends AnAction {
   public static final String ACTION_ID = "GraphQLExecuteEditor";
 
   public GraphQLExecuteEditorAction() {
-    super("Execute GraphQL", "Executes the current GraphQL file against the specified GraphQL endpoint", AllIcons.Actions.Execute);
+    super(
+      GraphQLBundle.messagePointer("graphql.action.execute.graphql.text"),
+      GraphQLBundle.messagePointer("graphql.action.execute.current.graphql.file.against.specified.graphql.endpoint.description"),
+      AllIcons.Actions.Execute
+    );
   }
 
   @Override
@@ -81,7 +86,7 @@ public class GraphQLExecuteEditorAction extends AnAction {
     GraphQLUIProjectService.getService(project).executeGraphQL(editor, virtualFile);
   }
 
-  private boolean isQueryableFile(@NotNull Project project, @Nullable VirtualFile virtualFile) {
+  private static boolean isQueryableFile(@NotNull Project project, @Nullable VirtualFile virtualFile) {
     if (virtualFile == null) {
       return false;
     }

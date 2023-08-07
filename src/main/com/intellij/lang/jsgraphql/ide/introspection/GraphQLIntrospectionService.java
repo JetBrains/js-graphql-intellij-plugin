@@ -38,7 +38,6 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
@@ -81,6 +80,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.*;
 import org.apache.http.util.EntityUtils;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,7 +106,7 @@ public final class GraphQLIntrospectionService implements Disposable {
   private final Project myProject;
 
   public static GraphQLIntrospectionService getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GraphQLIntrospectionService.class);
+    return project.getService(GraphQLIntrospectionService.class);
   }
 
   public GraphQLIntrospectionService(@NotNull Project project) {
@@ -208,7 +208,7 @@ public final class GraphQLIntrospectionService implements Disposable {
   }
 
   @NotNull
-  private String buildIntrospectionQuery(@NotNull GraphQLSettings settings) {
+  private static String buildIntrospectionQuery(@NotNull GraphQLSettings settings) {
     String query = settings.getIntrospectionQuery();
     if (!StringUtil.isEmptyOrSpaces(query)) {
       return query;
@@ -247,7 +247,7 @@ public final class GraphQLIntrospectionService implements Disposable {
     return builder.build();
   }
 
-  private @NotNull RequestConfig createRequestConfig(@NotNull String url) {
+  private static @NotNull RequestConfig createRequestConfig(@NotNull String url) {
     RequestConfig.Builder builder = RequestConfig.custom()
       .setConnectTimeout(Registry.intValue("graphql.request.connect.timeout", 5000))
       .setSocketTimeout(Registry.intValue("graphql.request.timeout", 15000));
@@ -255,7 +255,7 @@ public final class GraphQLIntrospectionService implements Disposable {
     return builder.build();
   }
 
-  private @NotNull CredentialsProvider createCredentialsProvider(@NotNull String url) {
+  private static @NotNull CredentialsProvider createCredentialsProvider(@NotNull String url) {
     CredentialsProvider provider = new BasicCredentialsProvider();
     IdeHttpClientHelpers.ApacheHttpClient4.setProxyCredentialsForUrlIfEnabled(provider, url);
     return provider;
@@ -315,7 +315,6 @@ public final class GraphQLIntrospectionService implements Disposable {
     return printIntrospectionAsGraphQL(parseIntrospectionJson(introspectionJson));
   }
 
-  @SuppressWarnings("unchecked")
   @NotNull
   public String printIntrospectionAsGraphQL(@NotNull Map<String, Object> introspection) {
     introspection = getIntrospectionSchemaData(introspection);
@@ -325,11 +324,11 @@ public final class GraphQLIntrospectionService implements Disposable {
       Ref<Consumer<Object>> defaultValueVisitJson = Ref.create();
       defaultValueVisitJson.set((value) -> {
         if (value instanceof Collection) {
-          ((Collection)value).forEach(colValue -> defaultValueVisitJson.get().consume(colValue));
+          ((Collection<?>)value).forEach(colValue -> defaultValueVisitJson.get().consume(colValue));
         }
         else if (value instanceof Map) {
-          ((Map)value).remove("defaultValue");
-          ((Map)value).values().forEach(mapValue -> defaultValueVisitJson.get().consume(mapValue));
+          ((Map<?, ?>)value).remove("defaultValue");
+          ((Map<?, ?>)value).values().forEach(mapValue -> defaultValueVisitJson.get().consume(mapValue));
         }
       });
       defaultValueVisitJson.get().consume(introspection);
@@ -376,7 +375,7 @@ public final class GraphQLIntrospectionService implements Disposable {
 
   @SuppressWarnings("unchecked")
   @NotNull
-  private Map<String, Object> getIntrospectionSchemaData(@NotNull Map<String, Object> introspection) {
+  private static Map<String, Object> getIntrospectionSchemaData(@NotNull Map<String, Object> introspection) {
     if (introspection.containsKey("__schema")) {
       return introspection;
     }
@@ -476,7 +475,7 @@ public final class GraphQLIntrospectionService implements Disposable {
     });
   }
 
-  private void showUnableToOpenEditorNotification(@NotNull VirtualFile outputFile) {
+  private static void showUnableToOpenEditorNotification(@NotNull VirtualFile outputFile) {
     Notifications.Bus.notify(
       new Notification(
         GRAPHQL_NOTIFICATION_GROUP_ID,
@@ -542,13 +541,13 @@ public final class GraphQLIntrospectionService implements Disposable {
               GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.action", url)) {
               @Override
               public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQuery(endpoint);
+                performIntrospectionQuery(endpoint);
               }
             });
 
             final VirtualFile schemaFile = ReadAction.compute(() -> LocalFileSystem.getInstance().findFileByPath(schemaPath));
             if (schemaFile != null) {
-              introspect.addAction(new NotificationAction("Open schema file") {
+              introspect.addAction(new NotificationAction(GraphQLBundle.message("graphql.notification.content.open.schema.file")) {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                   if (schemaFile.isValid()) {
@@ -564,7 +563,7 @@ public final class GraphQLIntrospectionService implements Disposable {
           }
         }
       });
-    }, ModalityState.NON_MODAL);
+    }, ModalityState.nonModal());
   }
 
   @Override
@@ -579,12 +578,12 @@ public final class GraphQLIntrospectionService implements Disposable {
     private final GraphQLConfigEndpoint endpoint;
     private final String url;
 
-    public IntrospectionQueryTask(@NotNull HttpUriRequest request,
-                                  @NotNull String filePath,
-                                  @NotNull NotificationAction retry,
-                                  @NotNull GraphQLSettings graphQLSettings,
-                                  @NotNull GraphQLConfigEndpoint endpoint,
-                                  @NotNull String url) {
+    private IntrospectionQueryTask(@NotNull HttpUriRequest request,
+                                   @NotNull String filePath,
+                                   @NotNull NotificationAction retry,
+                                   @NotNull GraphQLSettings graphQLSettings,
+                                   @NotNull GraphQLConfigEndpoint endpoint,
+                                   @NotNull String url) {
       super(
         GraphQLIntrospectionService.this.myProject,
         GraphQLBundle.message("graphql.progress.executing.introspection.query"),
@@ -600,6 +599,10 @@ public final class GraphQLIntrospectionService implements Disposable {
 
     @Override
     public void run(@NotNull ProgressIndicator indicator) {
+      if (myProject == null) {
+        return;
+      }
+
       indicator.setIndeterminate(true);
       String responseJson;
       GraphQLProjectConfig config = endpoint.getConfig();
@@ -662,13 +665,13 @@ public final class GraphQLIntrospectionService implements Disposable {
       });
     }
 
-    private int getErrorCount(@NotNull Map<String, Object> introspection) {
+    private static int getErrorCount(@NotNull Map<String, Object> introspection) {
       Object errors = introspection.get("errors");
       return errors instanceof Collection ? ((Collection<?>)errors).size() : 0;
     }
 
     private void handleIntrospectionError(@NotNull Exception e,
-                                          @Nullable String content,
+                                          @Nullable @Nls String content,
                                           @NotNull String responseJson) {
       String body = content != null
                     ? content

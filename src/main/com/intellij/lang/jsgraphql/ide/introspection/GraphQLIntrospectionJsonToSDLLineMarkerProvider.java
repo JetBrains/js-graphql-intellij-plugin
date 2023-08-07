@@ -41,7 +41,7 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
       // skip in-memory JSON files such as the query result viewer
       return null;
     }
-    if (!(element instanceof JsonProperty)) {
+    if (!(element instanceof JsonProperty jsonProperty)) {
       return null;
     }
     final Project project = element.getProject();
@@ -51,7 +51,6 @@ public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMark
     }
 
     // top level property or inside data property
-    final JsonProperty jsonProperty = (JsonProperty)element;
     final String propertyName = jsonProperty.getName();
     if (!"__schema".equals(propertyName) || !(jsonProperty.getValue() instanceof JsonObject)) {
       return null;

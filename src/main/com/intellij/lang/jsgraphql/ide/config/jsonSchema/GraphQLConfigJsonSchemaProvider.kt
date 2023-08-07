@@ -10,24 +10,24 @@ package com.intellij.lang.jsgraphql.ide.config.jsonSchema
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.config.*
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.NlsContexts
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.vfs.VirtualFile
 import com.jetbrains.jsonSchema.extension.JsonSchemaFileProvider
 import com.jetbrains.jsonSchema.extension.JsonSchemaProviderFactory
 import com.jetbrains.jsonSchema.extension.SchemaType
 
+private val MODERN_YML_JSON_CONFIGS = arrayOf(
+  GRAPHQL_CONFIG_JSON,
+  GRAPHQL_CONFIG_YAML,
+  GRAPHQL_CONFIG_YML,
+  GRAPHQL_RC,
+  GRAPHQL_RC_JSON,
+  GRAPHQL_RC_YAML,
+  GRAPHQL_RC_YML,
+)
 
 class GraphQLConfigJsonSchemaProvider : JsonSchemaProviderFactory {
-  companion object {
-    private val MODERN_YML_JSON_CONFIGS = arrayOf(
-      GRAPHQL_CONFIG_JSON,
-      GRAPHQL_CONFIG_YAML,
-      GRAPHQL_CONFIG_YML,
-      GRAPHQL_RC,
-      GRAPHQL_RC_JSON,
-      GRAPHQL_RC_YAML,
-      GRAPHQL_RC_YML,
-    )
-  }
 
   override fun getProviders(project: Project): List<JsonSchemaFileProvider> {
     return listOf<JsonSchemaFileProvider>(
@@ -51,8 +51,8 @@ class GraphQLConfigJsonSchemaProvider : JsonSchemaProviderFactory {
   }
 
   private class GraphQLEmbeddedJsonSchemaFileProvider(
-    private val resourceName: String,
-    private val presentableName: String?,
+    @NlsSafe private val resourceName: String,
+    @NlsContexts.ListItem private val presentableName: String?,
     private val remoteSourceUrl: String?,
     clazz: Class<*>,
     pathToFilename: String,

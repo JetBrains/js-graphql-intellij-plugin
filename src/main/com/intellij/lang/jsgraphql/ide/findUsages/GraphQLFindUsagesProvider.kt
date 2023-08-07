@@ -9,10 +9,12 @@ package com.intellij.lang.jsgraphql.ide.findUsages
 
 import com.intellij.lang.cacheBuilder.WordsScanner
 import com.intellij.lang.findUsages.FindUsagesProvider
+import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.asSafely
 import com.intellij.lang.jsgraphql.psi.*
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
+import org.jetbrains.annotations.Nls
 
 /**
  * Find usages for named GraphQL PSI elements
@@ -31,19 +33,20 @@ class GraphQLFindUsagesProvider : FindUsagesProvider {
     return "reference.dialogs.findUsages.other"
   }
 
+  @Nls
   override fun getType(element: PsiElement): String {
     if (element is GraphQLIdentifier) {
       when (element.parent) {
-        is GraphQLTypeNameDefinition -> return "type"
-        is GraphQLFieldDefinition -> return "field"
-        is GraphQLInputValueDefinition -> return "argument"
-        is GraphQLFragmentDefinition -> return "fragment"
-        is GraphQLEnumValue -> return "enum value"
-        is GraphQLDirectiveDefinition -> return "directive"
+        is GraphQLTypeNameDefinition -> return GraphQLBundle.message("graphql.find.usage.type")
+        is GraphQLFieldDefinition -> return GraphQLBundle.message("graphql.find.usage.field")
+        is GraphQLInputValueDefinition -> return GraphQLBundle.message("graphql.find.usage.argument")
+        is GraphQLFragmentDefinition -> return GraphQLBundle.message("graphql.find.usage.fragment")
+        is GraphQLEnumValue -> return GraphQLBundle.message("graphql.find.usage.enum.value")
+        is GraphQLDirectiveDefinition -> return GraphQLBundle.message("graphql.find.usage.directive")
       }
     }
 
-    return "unknown"
+    return GraphQLBundle.message("graphql.find.usage.unknown")
   }
 
   override fun getDescriptiveName(element: PsiElement): String =

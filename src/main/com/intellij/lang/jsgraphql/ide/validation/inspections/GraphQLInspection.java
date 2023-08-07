@@ -22,6 +22,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.profile.codeInspection.InspectionProjectProfileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,20 +95,20 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
 
   public static void createAnnotation(@NotNull AnnotationHolder annotationHolder,
                                       @NotNull PsiElement element,
-                                      @NotNull String message) {
+                                      @NotNull @Nls String message) {
     createAnnotation(annotationHolder, element, message, null, null);
   }
 
   public static void createAnnotation(@NotNull AnnotationHolder annotationHolder,
                                       @NotNull PsiElement element,
-                                      @NotNull String message,
+                                      @NotNull @Nls String message,
                                       @Nullable Function<AnnotationBuilder, AnnotationBuilder> builderConsumer) {
     createAnnotation(annotationHolder, element, message, null, builderConsumer);
   }
 
   public static void createAnnotation(@NotNull AnnotationHolder annotationHolder,
                                       @NotNull PsiElement element,
-                                      @NotNull String message,
+                                      @NotNull @Nls String message,
                                       @Nullable Class<? extends GraphQLInspection> inspectionClass,
                                       @Nullable Function<AnnotationBuilder, AnnotationBuilder> annotationBuilderProcessor) {
     AnnotationBuilder annotationBuilder = createAnnotationBuilder(annotationHolder, element, message, inspectionClass);
@@ -123,7 +124,7 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
 
   public static @Nullable AnnotationBuilder createAnnotationBuilder(@NotNull AnnotationHolder annotationHolder,
                                                                     @NotNull PsiElement element,
-                                                                    @NotNull String message,
+                                                                    @NotNull @Nls String message,
                                                                     @Nullable Class<? extends GraphQLInspection> inspectionClass) {
     HighlightSeverity severity = HighlightSeverity.ERROR;
     List<IntentionAction> fixes = new ArrayList<>();
@@ -146,7 +147,7 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
         return null;
       }
 
-      severity = GraphQLInspection.getSeverity(inspectionClass, element.getContainingFile());
+      severity = getSeverity(inspectionClass, element.getContainingFile());
       problemGroup = new GraphQLProblemGroup(toolId);
 
       String displayName = HighlightDisplayKey.getDisplayNameByKey(key);

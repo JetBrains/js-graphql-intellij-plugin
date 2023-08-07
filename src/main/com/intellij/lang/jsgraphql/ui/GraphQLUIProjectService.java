@@ -15,6 +15,7 @@ import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.json.JsonFileType;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition;
 import com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction;
@@ -44,14 +45,13 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.impl.EditorHeaderComponent;
 import com.intellij.openapi.fileEditor.*;
-import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider;
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -59,17 +59,19 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vcs.CodeSmellDetector;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
-import com.intellij.psi.impl.source.codeStyle.CodeStyleManagerImpl;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.Alarm;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -89,7 +91,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, GraphQLConfigListener {
 
@@ -119,6 +120,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
   public final static Key<Boolean> GRAPH_QL_EDITOR_QUERYING = Key.create("graphql.editor.querying");
 
   private static final int UPDATE_MS = 500;
+  private static final @NlsSafe String VARIABLES_PLACEHOLDER = "{ variables }";
   private final Alarm myUpdateUIAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
 
   @NotNull
@@ -149,7 +151,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
 
   public static GraphQLUIProjectService getService(@NotNull Project project) {
-    return ServiceManager.getService(project, GraphQLUIProjectService.class);
+    return project.getService(GraphQLUIProjectService.class);
   }
 
   // ---- editor tabs listener ----
@@ -157,10 +159,6 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
   @Override
   public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
     insertEditorHeaderComponentIfApplicable(source, file);
-  }
-
-  @Override
-  public void fileClosed(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
   }
 
   // ---- configuration listener ----
@@ -190,9 +188,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
       final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
       final GraphQLConfigProvider configProvider = GraphQLConfigProvider.getInstance(myProject);
       List<VirtualFile> files = ReadAction.compute(
-        () -> Arrays.stream(fileEditorManager.getOpenFiles())
-          .filter(f -> GraphQLFileType.isGraphQLFile(myProject, f))
-          .collect(Collectors.toList())
+        () -> ContainerUtil.filter(fileEditorManager.getOpenFiles(), f -> GraphQLFileType.isGraphQLFile(myProject, f))
       );
       if (myProject.isDisposed()) return;
 
@@ -282,7 +278,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
     final GraphQLEndpointsModel endpointsModel = new GraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
     final ComboBox<?> endpointComboBox = new ComboBox(endpointsModel);
-    endpointComboBox.setToolTipText("GraphQL endpoint");
+    endpointComboBox.setToolTipText(GraphQLBundle.message("graphql.endpoint.tooltip"));
     editor.putUserData(GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
     final JPanel endpointComboBoxPanel = new JPanel(new BorderLayout());
     endpointComboBoxPanel.setBorder(BorderFactory.createEmptyBorder(1, 2, 2, 2));
@@ -302,12 +298,12 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
     // variables editor
     final LightVirtualFile virtualFile = new LightVirtualFile(GRAPH_QL_VARIABLES_JSON, JsonFileType.INSTANCE, "");
-    final FileEditor variablesFileEditor = PsiAwareTextEditorProvider.getInstance().createEditor(myProject, virtualFile);
+    final FileEditor variablesFileEditor = TextEditorProvider.getInstance().createEditor(myProject, virtualFile);
     Disposer.register(fileEditor, variablesFileEditor);
 
     final EditorEx variablesEditor = (EditorEx)((TextEditor)variablesFileEditor).getEditor();
     virtualFile.putUserData(IS_GRAPH_QL_VARIABLES_VIRTUAL_FILE, Boolean.TRUE);
-    variablesEditor.setPlaceholder("{ variables }");
+    variablesEditor.setPlaceholder(VARIABLES_PLACEHOLDER);
     variablesEditor.setShowPlaceholderWhenFocused(true);
     variablesEditor.getSettings().setRightMarginShown(false);
     variablesEditor.getSettings().setAdditionalLinesCount(0);
@@ -335,7 +331,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     return headerComponent;
   }
 
-  private JComponent createToolbar(ActionGroup actionGroup, JComponent parent) {
+  private static JComponent createToolbar(ActionGroup actionGroup, JComponent parent) {
     final ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, actionGroup, true);
     toolbar.setReservePlaceAutoPopupIcon(false); // don't want space after the last button
     toolbar.setTargetComponent(parent);
@@ -364,7 +360,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     }
     catch (JsonSyntaxException jse) {
       Editor errorEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
-      String errorMessage = jse.getMessage();
+      @NlsSafe String errorMessage = jse.getMessage();
       if (errorEditor != null) {
         errorEditor.getContentComponent().grabFocus();
         final VirtualFile errorFile = FileDocumentManager.getInstance().getFile(errorEditor.getDocument());
@@ -382,7 +378,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
         errorEditor = editor;
       }
       final HintManagerImpl hintManager = HintManagerImpl.getInstanceImpl();
-      final JComponent label = HintUtil.createErrorLabel("Failed to parse variables as JSON:\n" + errorMessage);
+      final JComponent label = HintUtil.createErrorLabel(
+        GraphQLBundle.message("graphql.hint.text.failed.to.parse.variables.as.json", errorMessage));
       final LightweightHint lightweightHint = new LightweightHint(label);
       final Point hintPosition = hintManager.getHintPosition(lightweightHint, errorEditor, HintManager.UNDER);
       hintManager.showEditorHint(lightweightHint, editor, hintPosition, 0, 10000, false, HintManager.UNDER);
@@ -393,13 +390,14 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     try {
       final HttpPost request = GraphQLIntrospectionService.createRequest(selectedEndpoint, url, requestJson);
       //noinspection DialogTitleCapitalization
-      final Task.Backgroundable task = new Task.Backgroundable(myProject, "Executing GraphQL", false) {
-        @Override
-        public void run(@NotNull ProgressIndicator indicator) {
-          indicator.setIndeterminate(true);
-          runQuery(editor, virtualFile, context, url, request, selectedEndpoint);
-        }
-      };
+      final Task.Backgroundable task =
+        new Task.Backgroundable(myProject, GraphQLBundle.message("graphql.progress.title.executing.graphql"), false) {
+          @Override
+          public void run(@NotNull ProgressIndicator indicator) {
+            indicator.setIndeterminate(true);
+            runQuery(editor, virtualFile, context, url, request, selectedEndpoint);
+          }
+        };
       ProgressManager.getInstance().run(task);
     }
     catch (IllegalStateException | IllegalArgumentException e) {
@@ -461,7 +459,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
           if (queryResultHeader == null) return;
 
           JBLabel queryResultLabel = queryResultHeader.getResultLabel();
-          queryResultLabel.setText(queryResultText.toString());
+          @NlsSafe String resultTextString = queryResultText.toString();
+          queryResultLabel.setText(resultTextString);
           queryResultLabel.putClientProperty(GraphQLToolWindow.FILE_URL_PROPERTY, virtualFile.getUrl());
           if (!queryResultLabel.isVisible()) {
             queryResultLabel.setVisible(true);
@@ -509,7 +508,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
       if (reformatJson) {
         final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(myProject);
         final PsiFile jsonPsiFile = psiFileFactory.createFileFromText("", JsonFileType.INSTANCE, documentJson);
-        CodeStyleManagerImpl.getInstance(myProject).reformat(jsonPsiFile);
+        CodeStyleManager.getInstance(myProject).reformat(jsonPsiFile);
         final Document document = jsonPsiFile.getViewProvider().getDocument();
         if (document != null) {
           documentJson = document.getText();
@@ -541,13 +540,13 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
       .create();
   }
 
-  private Integer getErrorCount(String responseJson) {
+  private static Integer getErrorCount(String responseJson) {
     try {
-      final Map res = new Gson().fromJson(responseJson, Map.class);
+      final Map<?, ?> res = new Gson().fromJson(responseJson, Map.class);
       if (res != null) {
         final Object errors = res.get("errors");
         if (errors instanceof Collection) {
-          return ((Collection)errors).size();
+          return ((Collection<?>)errors).size();
         }
         return 0;
       }
@@ -557,7 +556,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     return null;
   }
 
-  private Object getQueryVariables(Editor editor) {
+  private static Object getQueryVariables(Editor editor) {
     final Editor variablesEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
     if (variablesEditor != null) {
       final String variables = variablesEditor.getDocument().getText();

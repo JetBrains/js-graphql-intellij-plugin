@@ -12,9 +12,11 @@ import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,16 +29,14 @@ public class GraphQLFileType extends LanguageFileType {
     super(GraphQLLanguage.INSTANCE);
   }
 
-  @NotNull
   @Override
-  public String getName() {
+  public @NonNls @NotNull String getName() {
     return GraphQLConstants.GraphQL;
   }
 
-  @NotNull
   @Override
-  public String getDescription() {
-    return getName();
+  public @NlsContexts.Label @NotNull String getDescription() {
+    return GraphQLConstants.GraphQL;
   }
 
   @NotNull
@@ -65,7 +65,7 @@ public class GraphQLFileType extends LanguageFileType {
       final PsiManager psiManager = PsiManager.getInstance(project);
       try {
         final PsiFile psiFile = psiManager.findFile(file);
-        if (psiFile != null && psiFile.getFileType() == GraphQLFileType.INSTANCE) {
+        if (psiFile != null && psiFile.getFileType() == INSTANCE) {
           return true;
         }
       }
@@ -82,6 +82,6 @@ public class GraphQLFileType extends LanguageFileType {
       return false;
     }
 
-    return virtualFile.getFileType() == GraphQLFileType.INSTANCE || GraphQLFileType.isGraphQLScratchFile(project, virtualFile);
+    return virtualFile.getFileType() == INSTANCE || isGraphQLScratchFile(project, virtualFile);
   }
 }

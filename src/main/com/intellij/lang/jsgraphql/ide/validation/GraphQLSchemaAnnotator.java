@@ -23,6 +23,7 @@ import com.intellij.lang.jsgraphql.types.validation.Validator;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiWhiteSpace;
@@ -30,6 +31,7 @@ import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,9 +46,8 @@ public class GraphQLSchemaAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
-    if (!(psiElement instanceof GraphQLFile)) return;
+    if (!(psiElement instanceof GraphQLFile file)) return;
 
-    final GraphQLFile file = (GraphQLFile)psiElement;
     final Project project = psiElement.getProject();
 
     if (GraphQLInspection.isEditorInspectionHighlightingDisabled(project, file)) return;
@@ -72,20 +73,19 @@ public class GraphQLSchemaAnnotator implements Annotator {
     }
   }
 
-  private void showDocumentErrors(@NotNull AnnotationHolder annotationHolder,
-                                  @NotNull GraphQLSchemaInfo schemaInfo,
-                                  @NotNull GraphQLFile file) {
+  private static void showDocumentErrors(@NotNull AnnotationHolder annotationHolder,
+                                         @NotNull GraphQLSchemaInfo schemaInfo,
+                                         @NotNull GraphQLFile file) {
     List<? extends GraphQLError> errors = validateQueryDocument(schemaInfo, file);
 
     for (GraphQLError error : errors) {
-      if (!(error instanceof ValidationError)) {
+      if (!(error instanceof ValidationError validationError)) {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("Ignored validation error: type=%s, message=%s", error.getClass().getName(), error.getMessage()));
         }
         continue;
       }
 
-      final ValidationError validationError = (ValidationError)error;
       final ValidationErrorType validationErrorType = validationError.getValidationErrorType();
       if (validationErrorType == null) {
         continue;
@@ -130,22 +130,24 @@ public class GraphQLSchemaAnnotator implements Annotator {
     }
   }
 
-  private @NotNull List<? extends GraphQLError> validateQueryDocument(@NotNull GraphQLSchemaInfo schemaInfo, @NotNull GraphQLFile file) {
+  private static @NotNull List<? extends GraphQLError> validateQueryDocument(@NotNull GraphQLSchemaInfo schemaInfo,
+                                                                             @NotNull GraphQLFile file) {
     return new Validator().validateDocument(schemaInfo.getSchema(), file.getDocument());
   }
 
-  private void showSchemaErrors(@NotNull AnnotationHolder annotationHolder,
-                                @NotNull List<GraphQLError> schemaErrors,
-                                @NotNull GraphQLFile file) {
+  private static void showSchemaErrors(@NotNull AnnotationHolder annotationHolder,
+                                       @NotNull List<GraphQLError> schemaErrors,
+                                       @NotNull GraphQLFile file) {
     for (GraphQLError error : schemaErrors) {
       Collection<? extends PsiElement> elements = getElementsToAnnotate(file, error);
       for (PsiElement element : elements) {
-        createErrorAnnotation(annotationHolder, error, element, error.getMessage());
+        @NlsSafe String errorMessage = error.getMessage();
+        createErrorAnnotation(annotationHolder, error, element, errorMessage);
       }
     }
   }
 
-  private @NotNull Collection<PsiElement> getElementsToAnnotate(@NotNull PsiFile containingFile, @NotNull GraphQLError error) {
+  private static @NotNull Collection<PsiElement> getElementsToAnnotate(@NotNull PsiFile containingFile, @NotNull GraphQLError error) {
     Node<?> node = error.getNode();
     if (node != null) {
       PsiElement element = node.getElement();
@@ -186,23 +188,26 @@ public class GraphQLSchemaAnnotator implements Annotator {
     });
   }
 
-  private void processValidationError(@NotNull AnnotationHolder annotationHolder,
-                                      @NotNull PsiFile containingFile,
-                                      @NotNull ValidationError validationError) {
+  private static void processValidationError(@NotNull AnnotationHolder annotationHolder,
+                                             @NotNull PsiFile containingFile,
+                                             @NotNull ValidationError validationError) {
     for (PsiElement element : getElementsToAnnotate(containingFile, validationError)) {
-      final String message = Optional.ofNullable(validationError.getDescription()).orElse(validationError.getMessage());
+      @NlsSafe String errorMessage = validationError.getMessage();
+      final String message = Optional.ofNullable(validationError.getDescription()).orElse(errorMessage);
       createErrorAnnotation(annotationHolder, validationError, element, message);
     }
   }
 
   @SuppressWarnings("rawtypes")
-  private void createErrorAnnotation(@NotNull AnnotationHolder annotationHolder,
-                                     @NotNull GraphQLError error,
-                                     @NotNull PsiElement element,
-                                     @Nullable String message) {
+  private static void createErrorAnnotation(@NotNull AnnotationHolder annotationHolder,
+                                            @NotNull GraphQLError error,
+                                            @NotNull PsiElement element,
+                                            @Nullable @Nls String message) {
     if (message == null) return;
-    if (GraphQLErrorFilter.EP_NAME.extensions()
-      .anyMatch(filter -> filter.isGraphQLErrorSuppressed(element.getProject(), error, element))) {
+    if (ContainerUtil.exists(
+      GraphQLErrorFilter.EP_NAME.getExtensionList(),
+      filter -> filter.isGraphQLErrorSuppressed(element.getProject(), error, element))
+    ) {
       return;
     }
 
@@ -230,7 +235,7 @@ public class GraphQLSchemaAnnotator implements Annotator {
 
   @SuppressWarnings("rawtypes")
   @NotNull
-  private String createTooltip(@NotNull GraphQLError error, @NotNull String message, boolean isMultiple) {
+  private static @NlsSafe String createTooltip(@NotNull GraphQLError error, @NotNull String message, boolean isMultiple) {
     StringBuilder sb = new StringBuilder();
     sb
       .append("<html>")
@@ -268,7 +273,7 @@ public class GraphQLSchemaAnnotator implements Annotator {
     return sb.toString();
   }
 
-  private @NotNull PsiElement getAnnotationAnchor(@NotNull PsiElement element) {
+  private static @NotNull PsiElement getAnnotationAnchor(@NotNull PsiElement element) {
     if (element instanceof PsiWhiteSpace) {
       PsiElement next = PsiTreeUtil.skipWhitespacesForward(element);
       if (next != null) {

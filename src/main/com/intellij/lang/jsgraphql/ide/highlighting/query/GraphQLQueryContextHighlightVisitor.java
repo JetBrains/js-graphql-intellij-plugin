@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.ide.highlighting.query;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
@@ -21,6 +20,7 @@ import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.HintManagerImpl;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLPluginDisposable;
 import com.intellij.lang.jsgraphql.ide.highlighting.GraphQLSyntaxAnnotator;
 import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
@@ -45,6 +45,7 @@ import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -55,10 +56,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -78,18 +76,6 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
   private static final String QUERY_SELECT_OPERATION_HINT_PREF_KEY = "JSGraphQL.Query.Select.Operation.Hint";
   private static final String HIDE_LINK = "hide";
   private static final String SELECT_OPERATION_LINK = "select-operation";
-  public static final String QUERY_CONTEXT_HINT_MESSAGE = "Place the caret <a href=\"" +
-                                                          SELECT_OPERATION_LINK +
-                                                          "\">inside an operation</a>" +
-                                                          " to execute it on its own.<br> " +
-                                                          "Referenced fragments are automatically included.<br>" +
-                                                          "<div style=\"margin: 4px 0 4px 0;\">" +
-                                                          "<a style=\"text-decoration: none\" href=\"" +
-                                                          HIDE_LINK +
-                                                          "\">Don't show this again</a></div>";
-
-  private static final String ELEMENT_INCLUDED_MESSAGE = "Element is included in query execution";
-
 
   @Override
   public boolean suitableForFile(@NotNull PsiFile file) {
@@ -125,8 +111,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
       findFragmentsInsideOperation(operationAtCursor, foundFragments, null);
       for (PsiElement psiElement : file.getChildren()) {
         boolean showAsUsed = false;
-        if (psiElement instanceof GraphQLFragmentDefinition) {
-          GraphQLFragmentDefinition definition = (GraphQLFragmentDefinition)psiElement;
+        if (psiElement instanceof GraphQLFragmentDefinition definition) {
           if (definition.getOriginalElement() instanceof GraphQLFragmentDefinition) {
             // use the original PSI to compare since a separate editor tab has its own version of the PSI
             definition = (GraphQLFragmentDefinition)definition.getOriginalElement();
@@ -142,7 +127,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
               .newHighlightInfo(HighlightInfoType.INFORMATION)
               .textAttributes(textAttributes)
               .range(psiElement.getTextRange())
-              .description(ELEMENT_INCLUDED_MESSAGE)
+              .description(GraphQLBundle.message("graphql.editor.element.is.included.in.query.execution"))
               .create()
           );
         }
@@ -227,7 +212,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
    * Indicates whether multiple visible top level psi elements exist.
    * If there's not, then there's no need to do contextual highlight
    */
-  private boolean hasMultipleVisibleTopLevelElement(PsiFile file) {
+  private static boolean hasMultipleVisibleTopLevelElement(PsiFile file) {
     int visibleChildren = 0;
     for (PsiElement psiElement : file.getChildren()) {
       if (psiElement instanceof PsiWhiteSpace || psiElement instanceof PsiComment) {
@@ -303,7 +288,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
 
           // indicate in the editor which text wasn't used
           int startOffset = 0;
-          final Collection<TextRange> unusedRanges = Lists.newArrayList();
+          final Collection<TextRange> unusedRanges = new ArrayList<>();
           for (TextRange selectedRange : selectedRanges) {
             if (startOffset < selectedRange.getStartOffset()) {
               unusedRanges.add(new TextRange(startOffset, selectedRange.getStartOffset()));
@@ -318,7 +303,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
             highlightUnusedRange(editor, unusedRange);
           }
 
-          showQueryContextHint(editor, "Executed selection");
+          showQueryContextHint(editor, GraphQLBundle.message("graphql.editor.hint.text.executed.selection"));
 
           return new GraphQLQueryContext(query.toString(), () -> {
             if (HIDE_LINK.equals(PropertiesComponent.getInstance(editor.getProject()).getValue(QUERY_SELECT_OPERATION_HINT_PREF_KEY))) {
@@ -329,8 +314,8 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
             // add a hint to use caret position instead
             final Notification notification = new Notification(
               GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
-              "Limit the GraphQL that is sent to the server?",
-              QUERY_CONTEXT_HINT_MESSAGE,
+              GraphQLBundle.message("graphql.notification.title.limit.graphql.that.sent.to.server"),
+              GraphQLBundle.message("graphql.editor.query.hint.description", SELECT_OPERATION_LINK, HIDE_LINK),
               NotificationType.INFORMATION
             );
             notification.setListener((source, event) -> {
@@ -406,15 +391,20 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
 
           if (operationAtCursor.getNameIdentifier() != null) {
             // named operation
-            showQueryContextHint(editor, "Executed " +
-                                         getOperationKind(operationAtCursor) +
-                                         " \"" +
-                                         operationAtCursor.getNameIdentifier().getText() +
-                                         "\"");
+            showQueryContextHint(
+              editor,
+              GraphQLBundle.message(
+                "graphql.hint.text.executed.named.operation",
+                getOperationKind(operationAtCursor),
+                operationAtCursor.getNameIdentifier().getText())
+            );
           }
           else {
             // anonymous operation
-            showQueryContextHint(editor, "Executed anonymous " + getOperationKind(operationAtCursor));
+            showQueryContextHint(
+              editor,
+              GraphQLBundle.message("graphql.hint.text.executed.anonymous.operation", getOperationKind(operationAtCursor))
+            );
           }
           return new GraphQLQueryContext(query.toString(), null);
         }
@@ -423,7 +413,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
     // fallback is the entire buffer
     final VirtualFile file = FileDocumentManager.getInstance().getFile(editor.getDocument());
     if (file != null) {
-      showQueryContextHint(editor, "Executed buffer \"" + file.getPresentableName() + "\"");
+      showQueryContextHint(editor, GraphQLBundle.message("graphql.hint.text.executed.buffer", file.getPresentableName()));
     }
 
     return new GraphQLQueryContext(editor.getDocument().getText(), null);
@@ -461,7 +451,7 @@ public class GraphQLQueryContextHighlightVisitor implements HighlightVisitor, Du
    * Shows a query context hint under the current caret position.
    * The hint hides after a few seconds or when the user interacts with the editor
    */
-  private static void showQueryContextHint(Editor editor, String hintText) {
+  private static void showQueryContextHint(Editor editor, @NlsContexts.HintText String hintText) {
     final HintManagerImpl hintManager = HintManagerImpl.getInstanceImpl();
     final JComponent label = HintUtil.createInformationLabel(hintText);
     final LightweightHint lightweightHint = new LightweightHint(label);

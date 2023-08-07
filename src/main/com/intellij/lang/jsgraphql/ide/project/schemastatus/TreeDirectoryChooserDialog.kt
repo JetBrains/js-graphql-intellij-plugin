@@ -12,10 +12,11 @@ import com.intellij.ide.projectView.TreeStructureProvider
 import com.intellij.ide.projectView.impl.AbstractProjectTreeStructure
 import com.intellij.ide.projectView.impl.ProjectAbstractTreeStructureBase
 import com.intellij.ide.util.treeView.NodeRenderer
-import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.ScrollPaneFactory
@@ -34,7 +35,7 @@ import javax.swing.tree.TreeSelectionModel
 /**
  * Directory picker for where to place a GraphQL schema configuration file.
  */
-class TreeDirectoryChooserDialog(private val project: Project, title: String?) : DialogWrapper(project, true) {
+class TreeDirectoryChooserDialog(private val project: Project, @NlsContexts.DialogTitle title: String?) : DialogWrapper(project, true) {
   private val disposable = Disposer.newDisposable()
 
   private lateinit var tree: Tree
@@ -44,7 +45,7 @@ class TreeDirectoryChooserDialog(private val project: Project, title: String?) :
   init {
     setTitle(title)
     init()
-    invokeLater { handleSelectionChanged() }
+    runInEdt { handleSelectionChanged() }
   }
 
   override fun createCenterPanel(): JComponent {

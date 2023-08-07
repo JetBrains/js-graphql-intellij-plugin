@@ -14,11 +14,11 @@ import static com.intellij.codeInspection.SuppressionUtilCore.SUPPRESS_INSPECTIO
 
 public class GraphQLSuppressByCommentFix extends SuppressByCommentFix {
 
-  private final String myText;
+  private final @IntentionName String myText;
 
   public GraphQLSuppressByCommentFix(@NotNull String toolId,
                                      @NotNull Class<? extends PsiElement> suppressionHolderClass,
-                                     @NotNull String text) {
+                                     @NotNull @IntentionName String text) {
     super(toolId, suppressionHolderClass);
     myText = text;
   }
@@ -35,7 +35,7 @@ public class GraphQLSuppressByCommentFix extends SuppressByCommentFix {
     PsiComment comment = createComment(project, element);
     PsiElement parent = container.getParent();
     PsiElement added = parent.addBefore(comment, container);
-    parent.addAfter(PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText("\n"), added);
+    parent.addAfter(PsiParserFacade.getInstance(project).createWhiteSpaceFromText("\n"), added);
   }
 
   @NotNull

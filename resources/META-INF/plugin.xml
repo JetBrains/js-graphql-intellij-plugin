@@ -36,7 +36,7 @@
   <depends optional="true" config-file="graphql-intellilang.xml">org.intellij.intelliLang</depends>
   <depends optional="true" config-file="graphql-yaml.xml">org.jetbrains.plugins.yaml</depends>
 
-  <resource-bundle>messages.GraphQLMessages</resource-bundle>
+  <resource-bundle>messages.GraphQLBundle</resource-bundle>
 
   <extensionPoints>
     <extensionPoint name="fileTypeContributor" dynamic="true"
@@ -103,8 +103,6 @@
 
     <!-- Startup -->
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.startup.GraphQLStartupActivity"/>
-    <postStartupActivity
-      implementation="com.intellij.lang.jsgraphql.frameworks.relay.GraphQLRelayModernEnableStartupActivity"/>
 
     <!-- Syntax and error highlighting -->
     <lang.syntaxHighlighterFactory language="GraphQL"
@@ -162,7 +160,7 @@
     <!-- Settings -->
     <projectConfigurable id="settings.jsgraphql" groupId="language"
                          instance="com.intellij.lang.jsgraphql.ui.GraphQLSettingsConfigurable"
-                         bundle="messages.GraphQLMessages" key="graphql"/>
+                         bundle="messages.GraphQLBundle" key="graphql"/>
 
     <!-- Introspection -->
     <codeInsight.lineMarkerProvider

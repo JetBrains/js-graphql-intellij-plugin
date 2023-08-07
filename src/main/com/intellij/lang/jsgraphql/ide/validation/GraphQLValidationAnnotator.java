@@ -7,7 +7,6 @@
  */
 package com.intellij.lang.jsgraphql.ide.validation;
 
-import com.google.common.collect.Lists;
 import com.intellij.codeInsight.daemon.impl.quickfix.RenameElementFix;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalQuickFix;
@@ -15,6 +14,7 @@ import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.fixes.GraphQLMissingTypeFix;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
@@ -24,6 +24,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
@@ -31,11 +32,13 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.text.EditDistance;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -69,27 +72,31 @@ public class GraphQLValidationAnnotator implements Annotator {
     }
   }
 
-  private void checkEnumValues(GraphQLEnumValue psiElement, @NotNull AnnotationHolder annotationHolder) {
+  private static void checkEnumValues(GraphQLEnumValue psiElement, @NotNull AnnotationHolder annotationHolder) {
     final GraphQLIdentifier nameIdentifier = psiElement.getNameIdentifier();
     final String enumValueName = nameIdentifier.getText();
     if ("true".equals(enumValueName) || "false".equals(enumValueName) || "null".equals(enumValueName)) {
-      createAnnotation(annotationHolder, nameIdentifier, "Enum values can not be named '" + enumValueName + "'");
+      createAnnotation(
+        annotationHolder,
+        nameIdentifier,
+        GraphQLBundle.message("graphql.validation.enum.values.can.not.be.named.0", enumValueName)
+      );
     }
   }
 
-  private void checkDirectiveLocation(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
+  private static void checkDirectiveLocation(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
     final PsiReference reference = psiElement.getReference();
     if (reference != null && reference.resolve() != null) {
       return;
     }
 
     createAnnotation(
-      annotationHolder, psiElement, "Unknown directive location '" + psiElement.getText() + "'",
+      annotationHolder, psiElement, GraphQLBundle.message("graphql.validation.unknown.directive.location.0", psiElement.getText()),
       GraphQLUnresolvedReferenceInspection.class, builder -> builder.highlightType(ProblemHighlightType.LIKE_UNKNOWN_SYMBOL)
     );
   }
 
-  private void checkIdentifierReferences(@NotNull PsiElement element, @NotNull AnnotationHolder annotationHolder) {
+  private static void checkIdentifierReferences(@NotNull PsiElement element, @NotNull AnnotationHolder annotationHolder) {
     Project project = element.getProject();
 
     final PsiReference reference = element.getReference();
@@ -99,7 +106,7 @@ public class GraphQLValidationAnnotator implements Annotator {
 
     final PsiElement parent = element.getParent();
     final GraphQLTypeScopeProvider typeScopeProvider = PsiTreeUtil.getParentOfType(parent, GraphQLTypeScopeProvider.class);
-    com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope = null;
+    GraphQLType typeScope = null;
     if (typeScopeProvider != null) {
       typeScope = typeScopeProvider.getTypeScope();
       if (typeScope != null) {
@@ -111,12 +118,12 @@ public class GraphQLValidationAnnotator implements Annotator {
     String message = null;
 
     // fixes to automatically rename misspelled identifiers
-    final List<LocalQuickFix> fixes = Lists.newArrayList();
+    final List<LocalQuickFix> fixes = new ArrayList<>();
     Consumer<List<String>> createFixes = (List<String> suggestions) ->
       suggestions.forEach(suggestion -> fixes.add(new RenameElementFix((PsiNamedElement)element, suggestion)));
 
     if (parent instanceof GraphQLField) {
-      message = "Unknown field \"" + element.getText() + "\"";
+      message = GraphQLBundle.message("graphql.validation.unknown.field.0", element.getText());
       if (typeScope != null) {
         String definitionType = "";
         if (typeScope instanceof GraphQLObjectType) {
@@ -125,47 +132,47 @@ public class GraphQLValidationAnnotator implements Annotator {
         else if (typeScope instanceof GraphQLInterfaceType) {
           definitionType = "interface ";
         }
-        message += " on " + definitionType + "type \"" + GraphQLSchemaUtil.getTypeName(typeScope) + "\"";
+        message += GraphQLBundle.message("graphql.validation.on.0.type.1", definitionType, GraphQLSchemaUtil.getTypeName(typeScope));
         final List<String> suggestions = getFieldNameSuggestions(element.getText(), typeScope);
         if (suggestions != null && !suggestions.isEmpty()) {
-          message += ". Did you mean " + formatSuggestions(suggestions) + "?";
+          message += GraphQLBundle.message("graphql.validation.did.you.mean.0", formatSuggestions(suggestions));
           createFixes.accept(suggestions);
         }
       }
       else {
         // no type info available from the parent
-        message += ": The parent selection or operation does not resolve to a valid schema type";
+        message += GraphQLBundle.message("graphql.validation.parent.selection.or.operation.does.not.resolve.to.a.valid.schema.type");
       }
     }
     else if (parent instanceof GraphQLFragmentSpread) {
-      message = "Unknown fragment spread \"" + element.getText() + "\"";
+      message = GraphQLBundle.message("graphql.validation.unknown.fragment.spread.0", element.getText());
     }
     else if (parent instanceof GraphQLArgument) {
-      message = "Unknown argument \"" + element.getText() + "\"";
+      message = GraphQLBundle.message("graphql.validation.unknown.argument.0", element.getText());
       if (typeScope != null) {
         final List<String> suggestions = getArgumentNameSuggestions(element);
         if (!suggestions.isEmpty()) {
-          message += ". Did you mean " + formatSuggestions(suggestions) + "?";
+          message += GraphQLBundle.message("graphql.validation.did.you.mean.0", formatSuggestions(suggestions));
           createFixes.accept(suggestions);
         }
       }
     }
     else if (parent instanceof GraphQLDirective) {
-      message = "Unknown directive \"" + element.getText() + "\"";
+      message = GraphQLBundle.message("graphql.validation.unknown.directive.0", element.getText());
     }
     else if (parent instanceof GraphQLObjectField) {
-      message = "Unknown field \"" + element.getText() + "\"";
+      message = GraphQLBundle.message("graphql.validation.unknown.field.0", element.getText());
       if (typeScope != null) {
-        message += " on input type \"" + GraphQLSchemaUtil.getTypeName(typeScope) + "\"";
+        message += GraphQLBundle.message("graphql.validation.on.input.type.0", GraphQLSchemaUtil.getTypeName(typeScope));
         final List<String> suggestions = getFieldNameSuggestions(element.getText(), typeScope);
         if (suggestions != null && !suggestions.isEmpty()) {
-          message += ". Did you mean " + formatSuggestions(suggestions) + "?";
+          message += GraphQLBundle.message("graphql.validation.did.you.mean.0", formatSuggestions(suggestions));
           createFixes.accept(suggestions);
         }
       }
     }
     else if (parent instanceof GraphQLTypeName) {
-      message = "Unknown type \"" + element.getText() + "\"";
+      message = GraphQLBundle.message("graphql.validation.unknown.type.0", element.getText());
       fixes.addAll(GraphQLMissingTypeFix.getApplicableFixes((GraphQLIdentifier)element));
     }
 
@@ -196,7 +203,7 @@ public class GraphQLValidationAnnotator implements Annotator {
     });
   }
 
-  private List<String> getArgumentNameSuggestions(PsiElement argument) {
+  private static List<String> getArgumentNameSuggestions(PsiElement argument) {
     final GraphQLField field = PsiTreeUtil.getParentOfType(argument, GraphQLField.class);
     final PsiElement fieldDefinitionIdentifier = GraphQLResolveUtil.resolve(field);
     if (fieldDefinitionIdentifier != null) {
@@ -204,7 +211,7 @@ public class GraphQLValidationAnnotator implements Annotator {
       if (fieldDefinition != null) {
         final GraphQLArgumentsDefinition argumentsDefinition = fieldDefinition.getArgumentsDefinition();
         if (argumentsDefinition != null) {
-          final List<String> argumentNames = Lists.newArrayList();
+          final List<String> argumentNames = new ArrayList<>();
           argumentsDefinition.getInputValueDefinitionList().forEach(arg -> {
             if (arg.getName() != null) {
               argumentNames.add(arg.getName());
@@ -217,15 +224,14 @@ public class GraphQLValidationAnnotator implements Annotator {
     return Collections.emptyList();
   }
 
-  private List<String> getFieldNameSuggestions(String fieldName, com.intellij.lang.jsgraphql.types.schema.GraphQLType typeScope) {
+  private static List<String> getFieldNameSuggestions(String fieldName, GraphQLType typeScope) {
     List<String> fieldNames = null;
     if (typeScope instanceof GraphQLFieldsContainer) {
-      fieldNames = ((GraphQLFieldsContainer)typeScope).getFieldDefinitions().stream()
-        .map(com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition::getName).collect(Collectors.toList());
+      fieldNames = ContainerUtil.map(((GraphQLFieldsContainer)typeScope).getFieldDefinitions(),
+                                     com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition::getName);
     }
     else if (typeScope instanceof GraphQLInputFieldsContainer) {
-      fieldNames = ((GraphQLInputFieldsContainer)typeScope).getFieldDefinitions().stream().map(GraphQLInputObjectField::getName)
-        .collect(Collectors.toList());
+      fieldNames = ContainerUtil.map(((GraphQLInputFieldsContainer)typeScope).getFieldDefinitions(), GraphQLInputObjectField::getName);
     }
     if (fieldNames != null) {
       return getSuggestions(fieldName, fieldNames);
@@ -234,7 +240,7 @@ public class GraphQLValidationAnnotator implements Annotator {
   }
 
   @NotNull
-  private List<String> getSuggestions(@Nullable String text, @NotNull List<String> candidates) {
+  private static List<String> getSuggestions(@Nullable String text, @NotNull List<String> candidates) {
     if (text == null) return Collections.emptyList();
 
     return candidates.stream()
@@ -245,7 +251,7 @@ public class GraphQLValidationAnnotator implements Annotator {
       .map(p -> p.first).collect(Collectors.toList());
   }
 
-  private String formatSuggestions(List<String> suggestions) {
+  private static String formatSuggestions(List<String> suggestions) {
     if (suggestions != null && !suggestions.isEmpty()) {
       return "\"" + StringUtils.join(suggestions, "\", or \"") + "\"";
     }

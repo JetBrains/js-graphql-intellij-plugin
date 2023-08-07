@@ -7,11 +7,13 @@
  */
 package com.intellij.lang.jsgraphql;
 
+import com.intellij.openapi.util.NlsSafe;
+
 public final class GraphQLConstants {
 
-  public static final String GraphQL = "GraphQL";
+  public static final @NlsSafe String GraphQL = "GraphQL";
 
-  public static class Schema {
+  public static final class Schema {
     public static final String __TYPE = "__type";
     public static final String __SCHEMA = "__schema";
   }

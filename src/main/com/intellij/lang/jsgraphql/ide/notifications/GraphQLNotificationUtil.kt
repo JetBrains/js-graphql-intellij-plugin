@@ -15,15 +15,17 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ObjectUtils
+import org.jetbrains.annotations.Nls
 import javax.net.ssl.SSLException
 
 const val GRAPHQL_NOTIFICATION_GROUP_ID = GraphQLConstants.GraphQL
 
 fun showInvalidConfigurationNotification(
-  message: String,
+  message: @Nls String,
   configFile: VirtualFile?,
   project: Project
 ) {
@@ -46,7 +48,7 @@ fun showInvalidConfigurationNotification(
 
 fun showGraphQLRequestErrorNotification(
   project: Project,
-  url: String,
+  url: @NlsSafe String,
   error: Exception,
   notificationType: NotificationType,
   action: NotificationAction?
@@ -107,6 +109,7 @@ private fun addRetryWithoutDefaultValuesAction(
   }
 }
 
+@NlsSafe
 fun formatExceptionMessage(throwable: Throwable): String {
   return StringUtil.decapitalize(ObjectUtils.coalesce(throwable.message, ""))
 }

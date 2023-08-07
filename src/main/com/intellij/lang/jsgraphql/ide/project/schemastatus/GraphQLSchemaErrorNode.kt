@@ -15,6 +15,7 @@ import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.language.SourceLocation
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileTypes.PlainTextLanguage
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.psi.PsiFileFactory
 import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
@@ -83,6 +84,7 @@ class GraphQLSchemaErrorNode(parent: SimpleNode?, private val error: GraphQLErro
     }
 
   companion object {
+    @NlsSafe
     private fun getTooltip(location: SourceLocation): String? {
       return if (location.sourceName == null || location.line == -1 || location.column == -1) {
         null

@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 
 public class GraphQLBundle extends AbstractBundle {
   @NonNls
-  public static final String PATH = "messages.GraphQLMessages";
+  public static final String PATH = "messages.GraphQLBundle";
 
   private static final GraphQLBundle INSTANCE = new GraphQLBundle();
 

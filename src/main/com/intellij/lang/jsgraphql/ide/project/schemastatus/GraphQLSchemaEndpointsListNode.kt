@@ -64,7 +64,7 @@ class GraphQLSchemaEndpointsListNode(
   ) : SimpleNode(parent), GraphQLSchemaContextMenuNode {
     init {
       myName = endpoint.displayName
-      templatePresentation.tooltip = "Endpoints allow you to perform GraphQL introspection, queries and mutations"
+      templatePresentation.tooltip = GraphQLBundle.message("graphql.tooltip.endpoints.perform.introspection.queries.mutations")
       if (!endpoint.url.equals(endpoint.displayName, true)) {
         templatePresentation.locationString = endpoint.url
       }
@@ -82,7 +82,7 @@ class GraphQLSchemaEndpointsListNode(
     }
 
     private fun showPopup(component: Component?, x: Int, y: Int) {
-      val group = DefaultActionGroup();
+      val group = DefaultActionGroup()
       group.add(object : AnAction(
         GraphQLBundle.messagePointer("graphql.tool.window.action.introspect.endpoint"),
         AllIcons.Actions.Refresh,
@@ -102,8 +102,8 @@ class GraphQLSchemaEndpointsListNode(
       })
 
       val popupMenu =
-        ActionManager.getInstance().createActionPopupMenu(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_POPUP, group);
-      popupMenu.component.show(component, x, y);
+        ActionManager.getInstance().createActionPopupMenu(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_POPUP, group)
+      popupMenu.component.show(component, x, y)
     }
 
     override fun getChildren(): Array<SimpleNode> {
@@ -118,7 +118,7 @@ class GraphQLSchemaEndpointsListNode(
   private class DefaultEndpointNode(project: Project) : SimpleNode(project) {
     init {
       myName = "No endpoints available in the default schema"
-      templatePresentation.tooltip = "Endpoints allow you to perform GraphQL introspection, queries and mutations"
+      templatePresentation.tooltip = GraphQLBundle.message("graphql.tooltip.endpoints.perform.introspection.queries.mutations")
       icon = AllIcons.General.Information
     }
 

@@ -19,9 +19,11 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumValueDefinition;
 import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,34 +36,32 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
   private final static String GRAPHQL_DOC_PREFIX = GraphQLConstants.GraphQL;
 
-  @Nullable
   @Override
-  public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
+  public @Nullable @Nls String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
     if (isDocumentationSupported(element)) {
-      return createQuickNavigateDocumentation(element, false);
+      return createQuickNavigateDocumentation(element);
     }
     return null;
   }
 
   @Override
-  public String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
-    return createQuickNavigateDocumentation(element, true);
+  public @Nullable @Nls String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
+    return createQuickNavigateDocumentation(element);
   }
 
   @Override
-  public PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
+  public @Nullable PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
     if (link.startsWith(GRAPHQL_DOC_PREFIX)) {
       return new GraphQLDocumentationPsiElement(context, link);
     }
     return super.getDocumentationElementForLink(psiManager, link, context);
   }
 
-  private boolean isDocumentationSupported(PsiElement element) {
+  private static boolean isDocumentationSupported(PsiElement element) {
     return element.getContainingFile() instanceof GraphQLFile;
   }
 
-  @Nullable
-  private String createQuickNavigateDocumentation(PsiElement element, boolean fullDocumentation) {
+  private static @Nullable @NlsSafe String createQuickNavigateDocumentation(PsiElement element) {
     if (!isDocumentationSupported(element)) {
       return null;
     }
@@ -100,7 +100,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
   }
 
   @Nullable
-  private String getDirectiveDocumentation(GraphQLSchema schema, GraphQLDirectiveDefinition parent) {
+  private static String getDirectiveDocumentation(GraphQLSchema schema, GraphQLDirectiveDefinition parent) {
     final GraphQLIdentifier directiveName = parent.getNameIdentifier();
     if (directiveName == null) {
       return null;
@@ -125,7 +125,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
   }
 
   @Nullable
-  private String getEnumValueDocumentation(GraphQLSchema schema, GraphQLEnumValue parent) {
+  private static String getEnumValueDocumentation(GraphQLSchema schema, GraphQLEnumValue parent) {
     final String enumName = GraphQLPsiUtil.findContainingTypeName(parent);
     if (enumName != null) {
       com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(enumName);
@@ -152,7 +152,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
   }
 
   @Nullable
-  private String getArgumentDocumentation(GraphQLSchema schema, GraphQLInputValueDefinition parent) {
+  private static String getArgumentDocumentation(GraphQLSchema schema, GraphQLInputValueDefinition parent) {
 
     // input value definition defines an argument on a field or a directive, or a field on an input type
 
@@ -230,7 +230,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
   }
 
   @NotNull
-  private String getArgumentDocumentation(String inputValueName, GraphQLArgument argument) {
+  private static String getArgumentDocumentation(String inputValueName, GraphQLArgument argument) {
     final StringBuilder html = new StringBuilder().append(DEFINITION_START);
     GraphQLInputType argumentType = argument.getType();
     html.append(inputValueName).append(argumentType != null ? ": " : " ").append(
@@ -240,13 +240,13 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
     return html.toString();
   }
 
-  private void appendDescription(StringBuilder result, @Nullable String descriptionAsHTML) {
+  private static void appendDescription(StringBuilder result, @Nullable String descriptionAsHTML) {
     if (descriptionAsHTML == null) return;
     result.append(CONTENT_START).append(descriptionAsHTML).append(CONTENT_END);
   }
 
   @Nullable
-  private String getFieldDocumentation(PsiElement element, GraphQLSchema schema, GraphQLFieldDefinition parent) {
+  private static String getFieldDocumentation(PsiElement element, GraphQLSchema schema, GraphQLFieldDefinition parent) {
     final GraphQLType psiFieldType = parent.getType();
     final GraphQLTypeSystemDefinition psiDefinition = PsiTreeUtil.getParentOfType(parent, GraphQLTypeSystemDefinition.class);
     final GraphQLNamedElement psiTypeName = PsiTreeUtil.findChildOfType(psiDefinition, GraphQLNamedElement.class);
@@ -281,7 +281,7 @@ public class GraphQLDocumentationProvider extends DocumentationProviderEx {
   }
 
   @Nullable
-  private String getTypeDocumentation(PsiElement element, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
+  private static String getTypeDocumentation(PsiElement element, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
     com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement)element).getName());
     if (schemaType != null) {
       final StringBuilder html = new StringBuilder().append(DEFINITION_START);

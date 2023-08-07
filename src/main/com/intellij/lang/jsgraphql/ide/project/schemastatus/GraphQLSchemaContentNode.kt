@@ -11,11 +11,13 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.util.gotoByName.ChooseByNamePopup
 import com.intellij.ide.util.gotoByName.ChooseByNamePopupComponent
 import com.intellij.ide.util.gotoByName.SimpleChooseByNameModel
+import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLTreeNodeNavigationUtil.openSourceLocation
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
 import com.intellij.lang.jsgraphql.types.language.*
 import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.util.NlsSafe
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.CachingSimpleNode
@@ -53,14 +55,14 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
       templatePresentation.locationString = "- schema is empty"
     }
 
-    templatePresentation.tooltip = "Double click or press enter to search the schema registry"
+    templatePresentation.tooltip = GraphQLBundle.message("graphql.tooltip.search.schema.registry")
     icon = AllIcons.Nodes.ModuleGroup
   }
 
   override fun handleDoubleClickOrEnter(tree: SimpleTree, inputEvent: InputEvent) {
     val popup = ChooseByNamePopup.createPopup(
       myProject,
-      object : SimpleChooseByNameModel(myProject, "Search schema registry \"${parent.name}\"", null) {
+      object : SimpleChooseByNameModel(myProject, GraphQLBundle.message("graphql.search.schema.registry.0", parent.name), null) {
         override fun getNames(): Array<String> {
           val names: MutableList<String> = mutableListOf()
           val registry = validatedSchema.registryInfo.typeDefinitionRegistry
@@ -108,6 +110,7 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
           }
         }
 
+        @NlsSafe
         override fun getElementName(element: Any): String? {
           return if (element is NamedNode<*>) element.name else null
         }
@@ -124,7 +127,7 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
           }
         }
       }
-    }, ModalityState.NON_MODAL, false)
+    }, ModalityState.nonModal(), false)
   }
 
   public override fun buildChildren(): Array<SimpleNode> {

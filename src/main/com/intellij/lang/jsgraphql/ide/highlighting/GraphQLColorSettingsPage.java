@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.highlighting;
 
+import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
@@ -23,24 +24,42 @@ import java.util.Map;
 
 public class GraphQLColorSettingsPage implements ColorSettingsPage {
   private static final AttributesDescriptor[] DESCRIPTORS = new AttributesDescriptor[]{
-    new AttributesDescriptor("Keyword", GraphQLSyntaxHighlighter.KEYWORD),
-    new AttributesDescriptor("Number", GraphQLSyntaxHighlighter.NUMBER),
-    new AttributesDescriptor("String", GraphQLSyntaxHighlighter.STRING),
-    new AttributesDescriptor("Comment", GraphQLSyntaxHighlighter.COMMENT),
-    new AttributesDescriptor("Operation definition", GraphQLSyntaxAnnotator.OPERATION_DEFINITION),
-    new AttributesDescriptor("Fragment definition", GraphQLSyntaxAnnotator.FRAGMENT_DEFINITION),
-    new AttributesDescriptor("Fragment spread", GraphQLSyntaxAnnotator.FRAGMENT_SPREAD),
-    new AttributesDescriptor("Field name", GraphQLSyntaxAnnotator.FIELD_NAME),
-    new AttributesDescriptor("Field alias", GraphQLSyntaxAnnotator.FIELD_ALIAS),
-    new AttributesDescriptor("Parameter", GraphQLSyntaxAnnotator.PARAMETER),
-    new AttributesDescriptor("Argument", GraphQLSyntaxAnnotator.ARGUMENT),
-    new AttributesDescriptor("Object field", GraphQLSyntaxAnnotator.OBJECT_FIELD),
-    new AttributesDescriptor("Variable definition", GraphQLSyntaxAnnotator.VARIABLE_DEFINITION),
-    new AttributesDescriptor("Variable", GraphQLSyntaxAnnotator.VARIABLE),
-    new AttributesDescriptor("Type name", GraphQLSyntaxAnnotator.TYPE_NAME),
-    new AttributesDescriptor("Constant", GraphQLSyntaxAnnotator.CONSTANT),
-    new AttributesDescriptor("Directive", GraphQLSyntaxAnnotator.DIRECTIVE),
-    new AttributesDescriptor("Unused fragment", GraphQLSyntaxAnnotator.UNUSED_FRAGMENT),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.keyword"), GraphQLSyntaxHighlighter.KEYWORD),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.number"), GraphQLSyntaxHighlighter.NUMBER),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.string"), GraphQLSyntaxHighlighter.STRING),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.comment"), GraphQLSyntaxHighlighter.COMMENT),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.operation.definition"), GraphQLSyntaxAnnotator.OPERATION_DEFINITION),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.fragment.definition"), GraphQLSyntaxAnnotator.FRAGMENT_DEFINITION),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.fragment.spread"), GraphQLSyntaxAnnotator.FRAGMENT_SPREAD),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.field.name"), GraphQLSyntaxAnnotator.FIELD_NAME),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.field.alias"), GraphQLSyntaxAnnotator.FIELD_ALIAS),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.parameter"), GraphQLSyntaxAnnotator.PARAMETER),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.argument"), GraphQLSyntaxAnnotator.ARGUMENT),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.object.field"), GraphQLSyntaxAnnotator.OBJECT_FIELD),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.variable.definition"), GraphQLSyntaxAnnotator.VARIABLE_DEFINITION),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.variable"), GraphQLSyntaxAnnotator.VARIABLE),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.type.name"), GraphQLSyntaxAnnotator.TYPE_NAME),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.constant"), GraphQLSyntaxAnnotator.CONSTANT),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.directive"), GraphQLSyntaxAnnotator.DIRECTIVE),
+    new AttributesDescriptor(
+      GraphQLBundle.messagePointer("graphql.attribute.descriptor.unused.fragment"), GraphQLSyntaxAnnotator.UNUSED_FRAGMENT),
   };
 
   private static final Map<String, TextAttributesKey> TAG_TO_DESCRIPTOR_MAP = new HashMap<>();

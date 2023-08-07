@@ -32,8 +32,10 @@ public class GraphQLInspectionSuppressor implements InspectionSuppressor {
       return true;
     }
 
-    return GraphQLErrorFilter.EP_NAME.extensions()
-      .anyMatch(filter -> filter.isInspectionSuppressed(element.getProject(), toolId, element));
+    return ContainerUtil.exists(
+      GraphQLErrorFilter.EP_NAME.getExtensionList(),
+      filter -> filter.isInspectionSuppressed(element.getProject(), toolId, element)
+    );
   }
 
   @Override

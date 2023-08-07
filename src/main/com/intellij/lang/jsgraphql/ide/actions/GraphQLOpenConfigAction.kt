@@ -109,7 +109,7 @@ class GraphQLOpenConfigAction : AnAction(
     }
 
     init {
-      title = "Select GraphQL Configuration Folder"
+      title = GraphQLBundle.message("graphql.dialog.title.select.graphql.configuration.folder")
       init()
       comboBox.requestFocus()
     }

@@ -76,8 +76,8 @@ class GraphQLConfigFactory(private val project: Project) {
             Notifications.Bus.notify(
               Notification(
                 GRAPHQL_NOTIFICATION_GROUP_ID,
-                "Unable to create $PREFERRED_CONFIG",
-                "Unable to create file '$PREFERRED_CONFIG' in directory '${configBaseDir.path}': ${e.message}",
+                GraphQLBundle.message("graphql.notification.title.unable.to.create", PREFERRED_CONFIG),
+                GraphQLBundle.message("graphql.notification.content.unable.to.create.file.in.directory", PREFERRED_CONFIG, configBaseDir.path, e.message),
                 NotificationType.ERROR
               )
             )

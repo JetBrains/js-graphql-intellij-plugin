@@ -182,12 +182,12 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
     val group = DefaultActionGroup()
 
     group.add(object : AnAction(
-      "Add Schema Configuration",
-      "Adds a new GraphQL configuration file",
+      GraphQLBundle.message("graphql.action.add.schema.configuration.text"),
+      GraphQLBundle.message("graphql.action.adds.new.graphql.configuration.file.description"),
       AllIcons.General.Add
     ) {
       override fun actionPerformed(e: AnActionEvent) {
-        val dialog = TreeDirectoryChooserDialog(project, "Select GraphQL Schema Base Directory")
+        val dialog = TreeDirectoryChooserDialog(project, GraphQLBundle.message("graphql.dialog.title.select.graphql.schema.base.directory"))
         if (dialog.showAndGet()) {
           val selectedDirectory = dialog.selectedDirectory
           if (selectedDirectory != null) {
@@ -199,8 +199,8 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
     })
 
     group.add(object : AnAction(
-      "Edit Selected Schema Configuration",
-      "Opens the GraphQL config file for the selected schema",
+      GraphQLBundle.message("graphql.action.edit.selected.schema.configuration.text"),
+      GraphQLBundle.message("graphql.action.opens.graphql.config.file.for.selected.schema.description"),
       AllIcons.General.Settings
     ) {
       override fun actionPerformed(e: AnActionEvent) {
@@ -239,8 +239,8 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
     }
 
     group.add(object : AnAction(
-      "Help",
-      "Open the GraphQL plugin documentation",
+      GraphQLBundle.message("graphql.action.schemas.panel.help.text"),
+      GraphQLBundle.message("graphql.action.schemas.panel.open.documentation.description"),
       AllIcons.Actions.Help
     ) {
       override fun actionPerformed(e: AnActionEvent) {
@@ -249,10 +249,10 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
     })
 
     val actionsManager = CommonActionsManager.getInstance()
-    val treeExpander = DefaultTreeExpander(tree);
+    val treeExpander = DefaultTreeExpander(tree)
     group.addSeparator()
-    group.add(actionsManager.createExpandAllAction(treeExpander, tree));
-    group.add(actionsManager.createCollapseAllAction(treeExpander, tree));
+    group.add(actionsManager.createExpandAllAction(treeExpander, tree))
+    group.add(actionsManager.createCollapseAllAction(treeExpander, tree))
 
     val toolbar =
       actionManager.createActionToolbar(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_TOOLBAR, group, false)
