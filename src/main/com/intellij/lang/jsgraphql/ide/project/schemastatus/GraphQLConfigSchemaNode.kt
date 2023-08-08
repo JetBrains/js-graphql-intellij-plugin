@@ -8,18 +8,15 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
 import com.intellij.icons.AllIcons
-import com.intellij.ide.projectView.PresentationData
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
 import org.apache.commons.lang.StringUtils
@@ -68,31 +65,8 @@ class GraphQLConfigSchemaNode(
     }
   }
 
-  /**
-   * Gets whether this node contains a schema that includes the specified file
-   */
-  fun representsFile(virtualFile: VirtualFile?): Boolean {
-    if (virtualFile == null) return false
-    if (virtualFile == configFile && !isProjectLevelNode) {
-      return true
-    }
-    if (performSchemaDiscovery) {
-      val scope = usedProjectConfig?.scope
-      if (scope != null) {
-        return scope.contains(virtualFile)
-      }
-    }
-    return false
-  }
-
   val configFile: VirtualFile?
     get() = usedProjectConfig?.file ?: config.file
-
-  override fun update(presentation: PresentationData) {
-    super.update(presentation)
-    val style = if (representsCurrentFile()) SimpleTextAttributes.STYLE_BOLD else SimpleTextAttributes.STYLE_PLAIN
-    presentation.addText(name, SimpleTextAttributes(style, color))
-  }
 
   public override fun buildChildren(): Array<SimpleNode> {
     val children: MutableList<SimpleNode> = mutableListOf()
@@ -109,16 +83,8 @@ class GraphQLConfigSchemaNode(
     return children.toTypedArray()
   }
 
-  override fun isAutoExpandNode(): Boolean {
-    return representsCurrentFile() || !performSchemaDiscovery
-  }
-
   override fun getEqualityObjects(): Array<Any?> {
     return arrayOf(config, schemaInfo)
-  }
-
-  private fun representsCurrentFile(): Boolean {
-    return representsFile(FileEditorManager.getInstance(myProject).selectedFiles.getOrNull(0))
   }
 
   private class GraphQLConfigProjectsNode(private val parent: GraphQLConfigSchemaNode) :

@@ -23,8 +23,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent
-import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
@@ -37,11 +35,9 @@ import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tree.AsyncTreeModel
 import com.intellij.ui.tree.StructureTreeModel
-import com.intellij.ui.tree.TreeVisitor
 import com.intellij.ui.treeStructure.AutoExpandSimpleNodeListener
 import com.intellij.ui.treeStructure.SimpleTree
 import com.intellij.util.Alarm
-import com.intellij.util.concurrency.NonUrgentExecutor
 import com.intellij.util.messages.MessageBusConnection
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
@@ -106,36 +102,6 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
 
       override fun exitDumbMode() {
         updateTree()
-      }
-    })
-
-    // "bold" the schema node that matches the edited file
-    connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, object : FileEditorManagerListener {
-      override fun selectionChanged(event: FileEditorManagerEvent) {
-        if (event.newFile == null) return
-
-        NonUrgentExecutor.getInstance().execute {
-          val paths = mutableSetOf<TreePath>()
-          var pathToExpand: TreePath? = null
-          TreeUtil.promiseVisit(tree) {
-            val userObject = TreeUtil.getLastUserObject(it)
-            if (userObject is GraphQLConfigSchemaNode) {
-              paths.add(it)
-              if (userObject.representsFile(event.newFile)) {
-                pathToExpand = it
-              }
-            }
-            TreeVisitor.Action.CONTINUE
-          }.onSuccess {
-            paths.forEach {
-              model.invalidate(it, false)
-            }
-
-            if (pathToExpand != null) {
-              tree.expandPath(pathToExpand)
-            }
-          }
-        }
       }
     })
 
@@ -264,24 +230,26 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
     val startVersion = schemaModificationTracker.modificationCount
 
     updateAlarm.cancelAllRequests()
-    updateAlarm.addRequest({
-                             // run the schema discovery on a pooled to prevent blocking of the UI thread by asking the nodes for heir child nodes
-                             // the schema caches will be ready when the UI thread then needs to show the tree nodes
-                             if (project.isDisposed) {
-                               return@addRequest
-                             }
+    updateAlarm.addRequest(
+      {
+        // run the schema discovery on a pooled to prevent blocking of the UI thread by asking the nodes for heir child nodes
+        // the schema caches will be ready when the UI thread then needs to show the tree nodes
+        if (project.isDisposed) {
+          return@addRequest
+        }
 
-                             try {
-                               val currentVersion = schemaModificationTracker.modificationCount
-                               if (isInitialized.compareAndSet(false, true) || startVersion == currentVersion) {
-                                 model.invalidate()
-                               }
-                             }
-                             catch (ignored: IndexNotReadyException) {
-                               // allowed to happen here -- retry will run later
-                             }
-                             catch (ignored: ProcessCanceledException) {
-                             }
-                           }, 750, ModalityState.stateForComponent(this))
+        try {
+          val currentVersion = schemaModificationTracker.modificationCount
+          if (isInitialized.compareAndSet(false, true) || startVersion == currentVersion) {
+            model.invalidateAsync()
+          }
+        }
+        catch (ignored: IndexNotReadyException) {
+          // allowed to happen here -- retry will run later
+        }
+        catch (ignored: ProcessCanceledException) {
+        }
+      }, 750, ModalityState.stateForComponent(this)
+    )
   }
 }
