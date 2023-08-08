@@ -17,7 +17,6 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
@@ -62,7 +61,7 @@ public class GraphQLReferenceService implements Disposable {
   };
 
   public static GraphQLReferenceService getService(@NotNull Project project) {
-    return ServiceManager.getService(project, GraphQLReferenceService.class);
+    return project.getService(GraphQLReferenceService.class);
   }
 
   public GraphQLReferenceService(@NotNull final Project project) {

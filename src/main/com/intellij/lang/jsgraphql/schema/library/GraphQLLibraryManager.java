@@ -4,7 +4,6 @@ import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -21,7 +20,6 @@ import com.intellij.util.PathUtil;
 import com.intellij.util.io.URLUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 import java.net.URL;
 import java.util.Collection;
@@ -38,9 +36,6 @@ public final class GraphQLLibraryManager {
   private static final GraphQLLibrary EMPTY_LIBRARY =
     new GraphQLLibrary(new GraphQLLibraryDescriptor("EMPTY"), new LightVirtualFile());
 
-  @VisibleForTesting
-  public static volatile boolean LIBRARIES_ENABLED = false;
-
   private static final Map<GraphQLLibraryDescriptor, String> ourDefinitionResourcePaths = Map.of(
     GraphQLLibraryTypes.SPECIFICATION, "Specification.graphql",
     GraphQLLibraryTypes.RELAY, "Relay.graphql",
@@ -52,14 +47,13 @@ public final class GraphQLLibraryManager {
   private final Map<GraphQLLibraryDescriptor, GraphQLLibrary> myLibraries = new ConcurrentHashMap<>();
   private final AtomicBoolean myLibrariesChangeTriggered = new AtomicBoolean();
   private final AtomicBoolean myAsyncRefreshRequested = new AtomicBoolean();
+  private volatile boolean myLibrariesEnabled = !ApplicationManager.getApplication().isUnitTestMode();
 
-  private final ClearableLazyValue<Set<VirtualFile>> myKnownLibraryRoots = ClearableLazyValue.createAtomic(() ->
-                                                                                                             getAllLibraries()
-                                                                                                               .stream()
-                                                                                                               .flatMap(
-                                                                                                                 library -> library.getSourceRoots()
-                                                                                                                   .stream())
-                                                                                                               .collect(Collectors.toSet())
+  private final ClearableLazyValue<Set<VirtualFile>> myKnownLibraryRoots = ClearableLazyValue.createAtomic(
+    () -> getAllLibraries()
+      .stream()
+      .flatMap(library -> library.getSourceRoots().stream())
+      .collect(Collectors.toSet())
   );
 
   public GraphQLLibraryManager(@NotNull Project project) {
@@ -67,12 +61,12 @@ public final class GraphQLLibraryManager {
   }
 
   public static GraphQLLibraryManager getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GraphQLLibraryManager.class);
+    return project.getService(GraphQLLibraryManager.class);
   }
 
   @Nullable
   public GraphQLLibrary getOrCreateLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor) {
-    if (ApplicationManager.getApplication().isUnitTestMode() && !LIBRARIES_ENABLED) {
+    if (ApplicationManager.getApplication().isUnitTestMode() && !myLibrariesEnabled) {
       return null;
     }
 
@@ -113,7 +107,7 @@ public final class GraphQLLibraryManager {
           notifyLibrariesChanged();
         }
       }
-    }), ModalityState.NON_MODAL, myProject.getDisposed());
+    }), ModalityState.nonModal(), myProject.getDisposed());
   }
 
   @NotNull
@@ -168,7 +162,11 @@ public final class GraphQLLibraryManager {
         finally {
           myLibrariesChangeTriggered.set(false);
         }
-      }, ModalityState.NON_MODAL);
+      }, ModalityState.nonModal());
     }
+  }
+
+  public void setLibrariesEnabled(boolean enabled) {
+    myLibrariesEnabled = enabled;
   }
 }

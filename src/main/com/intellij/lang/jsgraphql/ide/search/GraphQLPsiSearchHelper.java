@@ -9,7 +9,6 @@ package com.intellij.lang.jsgraphql.ide.search;
 
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex;
@@ -17,10 +16,8 @@ import com.intellij.lang.jsgraphql.ide.indexing.GraphQLInjectionIndex;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
@@ -32,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Enables cross-file searches for PSI references
@@ -44,7 +40,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
   private final InjectedLanguageManager myInjectedLanguageManager;
 
   public static GraphQLPsiSearchHelper getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GraphQLPsiSearchHelper.class);
+    return project.getService(GraphQLPsiSearchHelper.class);
   }
 
   public GraphQLPsiSearchHelper(@NotNull Project project) {
@@ -161,7 +157,6 @@ public class GraphQLPsiSearchHelper implements Disposable {
       final PsiFile psiFile = myPsiManager.findFile(virtualFile);
       final Ref<Boolean> continueProcessing = Ref.create(true);
       if (psiFile != null) {
-        final Set<GraphQLFile> introspectionFiles = Sets.newHashSetWithExpectedSize(1);
         final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
         identifierVisitor.set(new PsiRecursiveElementVisitor() {
           @Override

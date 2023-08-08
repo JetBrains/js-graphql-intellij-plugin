@@ -10,7 +10,6 @@ package com.intellij.lang.jsgraphql.ide.highlighting.query;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
@@ -35,7 +34,7 @@ public class GraphQLQueryContextCaretListener implements Disposable {
   }
 
   public static GraphQLQueryContextCaretListener getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GraphQLQueryContextCaretListener.class);
+    return project.getService(GraphQLQueryContextCaretListener.class);
   }
 
   public void listen() {

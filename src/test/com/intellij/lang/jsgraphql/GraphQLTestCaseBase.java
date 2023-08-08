@@ -51,11 +51,12 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    GraphQLLibraryManager.LIBRARIES_ENABLED = true;
-    GraphQLLibraryManager.getInstance(getProject()).notifyLibrariesChanged();
+    GraphQLLibraryManager libraryManager = GraphQLLibraryManager.getInstance(getProject());
+    libraryManager.setLibrariesEnabled(true);
+    libraryManager.notifyLibrariesChanged();
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     Disposer.register(getTestRootDisposable(), () -> {
-      GraphQLLibraryManager.LIBRARIES_ENABLED = false;
+      libraryManager.setLibrariesEnabled(false);
     });
   }
 

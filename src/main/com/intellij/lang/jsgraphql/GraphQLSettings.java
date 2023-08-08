@@ -8,7 +8,6 @@
 package com.intellij.lang.jsgraphql;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
@@ -23,17 +22,11 @@ import org.jetbrains.annotations.Nullable;
 @State(name = "GraphQLSettings", storages = {@Storage("graphql-settings.xml")})
 public class GraphQLSettings implements PersistentStateComponent<GraphQLSettings.GraphQLSettingsState> {
 
-  private final Project myProject;
-
   private final SimpleModificationTracker myModificationTracker = new SimpleModificationTracker();
   private GraphQLSettingsState myState = new GraphQLSettingsState();
 
-  public GraphQLSettings(@NotNull Project project) {
-    myProject = project;
-  }
-
-  public static GraphQLSettings getSettings(Project project) {
-    return ServiceManager.getService(project, GraphQLSettings.class);
+  public static GraphQLSettings getSettings(@NotNull Project project) {
+    return project.getService(GraphQLSettings.class);
   }
 
   @Nullable
