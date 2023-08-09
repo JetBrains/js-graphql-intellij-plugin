@@ -27,6 +27,7 @@ import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +35,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.Directives.DeprecatedDirective;
@@ -239,7 +239,7 @@ public class SchemaPrinter {
     }
 
     /**
-     * This flag controls whether schema printer will use the {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType}'s original Ast {@link com.intellij.lang.jsgraphql.types.language.TypeDefinition}s when printing the type.  This
+     * This flag controls whether schema printer will use the {@link GraphQLType}'s original Ast {@link TypeDefinition}s when printing the type.  This
      * allows access to any `extend type` declarations that might have been originally made.
      *
      * @param flag whether to print via AST type definitions
@@ -286,8 +286,6 @@ public class SchemaPrinter {
 
   private static final String DEFAULT_INDENT = "  ";
 
-
-  private final @Nullable Project project;
   private final @Nullable CommonCodeStyleSettings.IndentOptions indentOptions;
   private final Options options;
 
@@ -300,7 +298,6 @@ public class SchemaPrinter {
   }
 
   public SchemaPrinter(@Nullable Project project, Options options) {
-    this.project = project;
     this.options = options;
     this.indentOptions = project != null ? CodeStyle.getSettings(project).getLanguageIndentOptions(GraphQLLanguage.INSTANCE) : null;
 
@@ -341,7 +338,7 @@ public class SchemaPrinter {
    * This can print an in memory GraphQL IDL document back to a logical schema definition.
    * If you want to turn a Introspection query result into a Document (and then into a printed
    * schema) then use {@link GraphQLIntrospectionResultToSchema#createSchemaDefinition(Map)}
-   * first to get the {@link com.intellij.lang.jsgraphql.types.language.Document} and then print that.
+   * first to get the {@link Document} and then print that.
    *
    * @param schemaIDL the parsed schema IDL
    * @return the logical schema definition
@@ -445,7 +442,7 @@ public class SchemaPrinter {
           .stream()
           .sorted(comparator)
           .toList();
-        if (values.size() > 0) {
+        if (!values.isEmpty()) {
           out.format(" {\n");
           for (GraphQLEnumValueDefinition enumValueDefinition : values) {
             printComments(out, enumValueDefinition, indent);
@@ -466,7 +463,7 @@ public class SchemaPrinter {
   private void printFieldDefinitions(PrintWriter out,
                                      Comparator<? super GraphQLSchemaElement> comparator,
                                      List<GraphQLFieldDefinition> fieldDefinitions) {
-    if (fieldDefinitions.size() == 0) {
+    if (fieldDefinitions.isEmpty()) {
       return;
     }
 
@@ -631,7 +628,7 @@ public class SchemaPrinter {
 
         out.format("input %s%s", type.getName(), directivesString(GraphQLInputObjectType.class, type.getDirectives()));
         List<GraphQLInputObjectField> inputObjectFields = visibility.getFieldDefinitions(type);
-        if (inputObjectFields.size() > 0) {
+        if (!inputObjectFields.isEmpty()) {
           out.format(" {\n");
           inputObjectFields
             .stream()
@@ -752,7 +749,7 @@ public class SchemaPrinter {
   }
 
   String argsString(Class<? extends GraphQLSchemaElement> parent, List<GraphQLArgument> arguments) {
-    boolean hasDescriptions = arguments.stream().anyMatch(this::hasDescription);
+    boolean hasDescriptions = ContainerUtil.exists(arguments, this::hasDescription);
     String indent = hasDescriptions ? calcIndent(1) : "";
     String nestedIndent = hasDescriptions ? calcIndent(2) : "";
     int count = 0;
@@ -865,7 +862,7 @@ public class SchemaPrinter {
       .stream()
       .filter(arg -> arg.getValue() != null || arg.getDefaultValue() != null)
       .sorted(comparator)
-      .collect(toList());
+      .toList();
     if (!args.isEmpty()) {
       sb.append("(");
       for (int i = 0; i < args.size(); i++) {
@@ -924,7 +921,7 @@ public class SchemaPrinter {
     StringWriter sw = new StringWriter();
     printComments(new PrintWriter(sw), directive, "");
 
-    sb.append(sw.toString());
+    sb.append(sw);
 
     sb.append("directive @").append(directive.getName());
 
@@ -949,7 +946,7 @@ public class SchemaPrinter {
 
     sb.append(" on ");
 
-    String locations = directive.validLocations().stream().map(Enum::name).collect(Collectors.joining(" | "));
+    String locations = directive.validLocations().stream().map(Enum::name).collect(joining(" | "));
     sb.append(locations);
 
     return sb.toString();
