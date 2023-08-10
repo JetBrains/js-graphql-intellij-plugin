@@ -115,19 +115,19 @@ class GraphQLCompositeRegistry {
   fun buildTypeDefinitionRegistry(): TypeDefinitionRegistry {
     val registry = TypeDefinitionRegistry()
 
-    val schemaDefinition = schemaCompositeDefinition.mergedDefinition
+    val schemaDefinition = schemaCompositeDefinition.buildDefinition()
     if (schemaDefinition != null) {
       registry.add(schemaDefinition)
     }
-    schemaCompositeDefinition.extensions.forEach(registry::add)
+    schemaCompositeDefinition.sourceExtensions.forEach(registry::add)
 
     namedCompositeDefinitions.values.forEach { builder: GraphQLCompositeDefinition<*> ->
-      val definition = builder.mergedDefinition
+      val definition = builder.buildDefinition()
       if (definition != null) {
         registry.add(definition)
       }
       if (builder is GraphQLExtendableCompositeDefinition<*, *>) {
-        builder.extensions.forEach(registry::add)
+        builder.sourceExtensions.forEach(registry::add)
       }
     }
 

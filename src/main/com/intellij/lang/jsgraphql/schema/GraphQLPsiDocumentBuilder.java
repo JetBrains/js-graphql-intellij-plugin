@@ -4,6 +4,7 @@ package com.intellij.lang.jsgraphql.schema;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
 import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -24,13 +25,26 @@ import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseS
 import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseTripleQuotedString;
 
 @SuppressWarnings("rawtypes")
-public final class GraphQLPsiToLanguage {
-  public static final GraphQLPsiToLanguage INSTANCE = new GraphQLPsiToLanguage();
+public final class GraphQLPsiDocumentBuilder {
 
-  public @NotNull Document createDocument(@NotNull GraphQLFile file) {
+  private static final String IS_IN_LIBRARY_KEY = "is.in.library";
+
+  private final GraphQLFile myFile;
+  private final boolean myIsInLibrary;
+
+  public static boolean isInLibrary(@NotNull Node<?> node) {
+    return node.getAdditionalData().containsKey(IS_IN_LIBRARY_KEY);
+  }
+
+  public GraphQLPsiDocumentBuilder(@NotNull GraphQLFile file) {
+    myFile = file;
+    myIsInLibrary = GraphQLLibraryManager.getInstance(file.getProject()).isLibraryRoot(file.getVirtualFile());
+  }
+
+  public @NotNull Document createDocument() {
     Document.Builder document = Document.newDocument();
-    addCommonData(document, file);
-    document.definitions(mapNotNull(file.getDefinitions(), this::createDefinition));
+    addCommonData(document, myFile);
+    document.definitions(mapNotNull(myFile.getDefinitions(), this::createDefinition));
     return document.build();
   }
 
@@ -803,6 +817,10 @@ public final class GraphQLPsiToLanguage {
   private void addCommonData(NodeBuilder nodeBuilder, @NotNull PsiElement element) {
     nodeBuilder.sourceLocation(getSourceLocation(element));
     nodeBuilder.element(element);
+
+    if (myIsInLibrary) {
+      nodeBuilder.additionalData(IS_IN_LIBRARY_KEY, "");
+    }
   }
 
   @Nullable

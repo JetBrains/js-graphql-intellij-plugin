@@ -136,8 +136,8 @@ public final class GraphQLLibraryManager {
     return root != null && root.isValid() ? root : null;
   }
 
-  public boolean isLibraryRoot(@NotNull VirtualFile file) {
-    return myKnownLibraryRoots.getValue().contains(file);
+  public boolean isLibraryRoot(@Nullable VirtualFile file) {
+    return file != null && myKnownLibraryRoots.getValue().contains(file);
   }
 
   @NotNull

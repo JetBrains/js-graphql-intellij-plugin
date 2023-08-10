@@ -11,7 +11,7 @@ import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.lang.jsgraphql.GraphQLConstants;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.GraphQLLanguage;
-import com.intellij.lang.jsgraphql.schema.GraphQLPsiToLanguage;
+import com.intellij.lang.jsgraphql.schema.GraphQLPsiDocumentBuilder;
 import com.intellij.lang.jsgraphql.types.language.Document;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
@@ -73,7 +73,7 @@ public class GraphQLFile extends PsiFileBase implements GraphQLElement {
 
   public Document getDocument() {
     return CachedValuesManager.getCachedValue(this, () -> {
-      Document document = GraphQLPsiToLanguage.INSTANCE.createDocument(this);
+      Document document = new GraphQLPsiDocumentBuilder(this).createDocument();
       return CachedValueProvider.Result.createSingleDependency(document, this);
     });
   }

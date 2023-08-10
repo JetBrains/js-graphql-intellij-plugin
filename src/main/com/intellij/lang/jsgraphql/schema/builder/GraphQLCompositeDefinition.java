@@ -1,48 +1,54 @@
 package com.intellij.lang.jsgraphql.schema.builder;
 
+import com.intellij.lang.jsgraphql.schema.GraphQLPsiDocumentBuilder;
 import com.intellij.lang.jsgraphql.types.language.SDLDefinition;
 import com.intellij.util.SmartList;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public abstract class GraphQLCompositeDefinition<T extends SDLDefinition<T>> {
-  protected final List<T> myDefinitions = new SmartList<>();
+  private final List<T> myDefinitions = new SmartList<>();
+  private final List<T> myLibraryDefinitions = new SmartList<>();
 
-  @Nullable
-  protected T myMergedDefinition;
+  protected @Nullable T myMergedDefinition;
 
   public void addDefinition(@Nullable T definition) {
-    myMergedDefinition = null;
+    if (definition == null) {
+      return;
+    }
 
-    if (definition != null) {
+    if (GraphQLPsiDocumentBuilder.isInLibrary(definition)) {
+      myLibraryDefinitions.add(definition);
+    }
+    else {
       myDefinitions.add(definition);
     }
   }
 
-  @NotNull
-  public List<T> getSourceDefinitions() {
-    return ContainerUtil.unmodifiableOrEmptyList(myDefinitions);
+  public @NotNull List<T> getSourceDefinitions() {
+    return !myDefinitions.isEmpty() ? myDefinitions : myLibraryDefinitions;
   }
 
-  @Nullable
-  public final T getMergedDefinition() {
+  public final @Nullable T buildDefinition() {
     if (myMergedDefinition != null) {
       return myMergedDefinition;
     }
 
-    if (myDefinitions.isEmpty()) {
+    List<T> sourceDefinitions = getSourceDefinitions();
+    if (sourceDefinitions.isEmpty()) {
       return null;
     }
+    if (sourceDefinitions.size() == 1) {
+      return sourceDefinitions.get(0);
+    }
 
-    return myMergedDefinition = mergeDefinitions();
+    return myMergedDefinition = mergeDefinitions(sourceDefinitions);
   }
 
   /**
    * Called only when at least one type definition is added.
    */
-  @NotNull
-  protected abstract T mergeDefinitions();
+  protected abstract @NotNull T mergeDefinitions(@NotNull List<T> sourceDefinitions);
 }

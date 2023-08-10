@@ -14,18 +14,18 @@ public class GraphQLScalarTypeCompositeDefinition
 
   @NotNull
   @Override
-  protected ScalarTypeDefinition mergeDefinitions() {
+  protected ScalarTypeDefinition mergeDefinitions(@NotNull List<ScalarTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
 
-    for (ScalarTypeDefinition definition : myDefinitions) {
+    for (ScalarTypeDefinition definition : sourceDefinitions) {
       directives.addAll(definition.getDirectives());
     }
 
-    ScalarTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+    ScalarTypeDefinition definition = ContainerUtil.getFirstItem(sourceDefinitions);
     return definition.transform(builder ->
                                   builder
                                     .directives(directives)
-                                    .sourceNodes(myDefinitions)
+                                    .sourceNodes(sourceDefinitions)
     );
   }
 }

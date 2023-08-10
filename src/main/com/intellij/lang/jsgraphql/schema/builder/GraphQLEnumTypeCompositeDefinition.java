@@ -19,21 +19,21 @@ public class GraphQLEnumTypeCompositeDefinition
 
   @NotNull
   @Override
-  protected EnumTypeDefinition mergeDefinitions() {
+  protected EnumTypeDefinition mergeDefinitions(@NotNull List<EnumTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
     Map<String, EnumValueDefinition> enumValueDefinitions = new LinkedHashMap<>();
 
-    for (EnumTypeDefinition definition : myDefinitions) {
+    for (EnumTypeDefinition definition : sourceDefinitions) {
       directives.addAll(definition.getDirectives());
       mergeNodes(enumValueDefinitions, mapNamedNodesByKey(definition.getEnumValueDefinitions()));
     }
 
-    EnumTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+    EnumTypeDefinition definition = ContainerUtil.getFirstItem(sourceDefinitions);
     return definition.transform(builder ->
                                   builder
                                     .directives(directives)
                                     .enumValueDefinitions(toList(enumValueDefinitions))
-                                    .sourceNodes(myDefinitions)
+                                    .sourceNodes(sourceDefinitions)
     );
   }
 }

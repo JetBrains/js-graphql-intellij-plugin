@@ -19,21 +19,21 @@ public class GraphQLInputObjectTypeCompositeDefinition
 
   @NotNull
   @Override
-  protected InputObjectTypeDefinition mergeDefinitions() {
+  protected InputObjectTypeDefinition mergeDefinitions(@NotNull List<InputObjectTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
     Map<String, InputValueDefinition> inputValueDefinitions = new LinkedHashMap<>();
 
-    for (InputObjectTypeDefinition definition : myDefinitions) {
+    for (InputObjectTypeDefinition definition : sourceDefinitions) {
       directives.addAll(definition.getDirectives());
       mergeNodes(inputValueDefinitions, mapNamedNodesByKey(definition.getInputValueDefinitions()));
     }
 
-    InputObjectTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+    InputObjectTypeDefinition definition = ContainerUtil.getFirstItem(sourceDefinitions);
     return definition.transform(builder ->
                                   builder
                                     .directives(directives)
                                     .inputValueDefinitions(toList(inputValueDefinitions))
-                                    .sourceNodes(myDefinitions)
+                                    .sourceNodes(sourceDefinitions)
     );
   }
 }

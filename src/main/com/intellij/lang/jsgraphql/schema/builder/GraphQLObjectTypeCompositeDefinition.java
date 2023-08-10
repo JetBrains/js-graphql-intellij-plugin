@@ -18,21 +18,21 @@ public class GraphQLObjectTypeCompositeDefinition
   extends GraphQLExtendableCompositeDefinition<ObjectTypeDefinition, ObjectTypeExtensionDefinition> {
   @NotNull
   @Override
-  protected ObjectTypeDefinition mergeDefinitions() {
+  protected ObjectTypeDefinition mergeDefinitions(@NotNull List<ObjectTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
     Map<String, FieldDefinition> fieldDefinitions = new LinkedHashMap<>();
 
-    for (ObjectTypeDefinition definition : myDefinitions) {
+    for (ObjectTypeDefinition definition : sourceDefinitions) {
       directives.addAll(definition.getDirectives());
       mergeNodes(fieldDefinitions, mapNamedNodesByKey(definition.getFieldDefinitions()));
     }
 
-    ObjectTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+    ObjectTypeDefinition definition = ContainerUtil.getFirstItem(sourceDefinitions);
     return definition.transform(builder ->
                                   builder
                                     .directives(directives)
                                     .fieldDefinitions(toList(fieldDefinitions))
-                                    .sourceNodes(myDefinitions)
+                                    .sourceNodes(sourceDefinitions)
     );
   }
 }

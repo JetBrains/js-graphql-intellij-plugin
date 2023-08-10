@@ -19,21 +19,21 @@ public class GraphQLInterfaceTypeCompositeDefinition
 
   @NotNull
   @Override
-  protected InterfaceTypeDefinition mergeDefinitions() {
+  protected InterfaceTypeDefinition mergeDefinitions(@NotNull List<InterfaceTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
     Map<String, FieldDefinition> fieldDefinitions = new LinkedHashMap<>();
 
-    for (InterfaceTypeDefinition definition : myDefinitions) {
+    for (InterfaceTypeDefinition definition : sourceDefinitions) {
       directives.addAll(definition.getDirectives());
       mergeNodes(fieldDefinitions, mapNamedNodesByKey(definition.getFieldDefinitions()));
     }
 
-    InterfaceTypeDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+    InterfaceTypeDefinition definition = ContainerUtil.getFirstItem(sourceDefinitions);
     return definition.transform(builder ->
                                   builder
                                     .directives(directives)
                                     .definitions(toList(fieldDefinitions))
-                                    .sourceNodes(myDefinitions)
+                                    .sourceNodes(sourceDefinitions)
     );
   }
 }

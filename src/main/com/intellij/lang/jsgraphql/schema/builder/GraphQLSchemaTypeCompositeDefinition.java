@@ -19,20 +19,20 @@ public class GraphQLSchemaTypeCompositeDefinition
 
   @NotNull
   @Override
-  protected SchemaDefinition mergeDefinitions() {
+  protected SchemaDefinition mergeDefinitions(@NotNull List<SchemaDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
     Map<String, OperationTypeDefinition> operationTypeDefinitions = new LinkedHashMap<>();
 
-    for (SchemaDefinition definition : myDefinitions) {
+    for (SchemaDefinition definition : sourceDefinitions) {
       directives.addAll(definition.getDirectives());
       mergeNodes(operationTypeDefinitions, mapNamedNodesByKey(definition.getOperationTypeDefinitions()));
     }
 
-    SchemaDefinition definition = ContainerUtil.getFirstItem(myDefinitions);
+    SchemaDefinition definition = ContainerUtil.getFirstItem(sourceDefinitions);
     return definition.transform(builder -> builder
       .directives(directives)
       .operationTypeDefinitions(toList(operationTypeDefinitions))
-      .sourceNodes(myDefinitions)
+      .sourceNodes(sourceDefinitions)
     );
   }
 }
