@@ -7,7 +7,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.LanguageSubstitutor
 import java.io.FileNotFoundException
@@ -41,7 +41,7 @@ class GraphQLConfigLanguageSubstitutor : LanguageSubstitutor() {
 
   private fun isJsonDetected(file: VirtualFile): Boolean {
     val buffer: ByteArray = try {
-      FileUtil.loadFirstAndClose(file.inputStream, 64)
+      VfsUtilCore.loadNBytes(file, 64)
     }
     catch (e: FileNotFoundException) {
       return true
