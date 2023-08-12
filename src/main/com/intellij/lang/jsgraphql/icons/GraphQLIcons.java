@@ -14,7 +14,6 @@ import com.intellij.ui.LayeredIcon;
 import javax.swing.*;
 
 public final class GraphQLIcons {
-
   public static final Icon FILE = GraphqlIcons.Graphql;
 
   public static final class Logos {
@@ -27,7 +26,7 @@ public final class GraphQLIcons {
     public static final Icon GraphQL = FILE;
     public static final Icon GraphQLConfig = GraphqlIcons.GraphqlConfig;
     public static final Icon GraphQLSchema = GraphqlIcons.GraphqlSchema;
-    public static final Icon GraphQLScratch = new LayeredIcon(GraphQL, AllIcons.Actions.Scratch);
+    public static final Icon GraphQLScratch = LayeredIcon.layeredIcon(() -> new Icon[]{GraphQL, AllIcons.Actions.Scratch});
   }
 
   public static final class UI {
