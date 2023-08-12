@@ -40,7 +40,7 @@ class GraphQLRemoteSchemasRegistry(private val project: Project) {
     associations[FileUtil.toSystemIndependentName(filePath)] = FileUtil.toSystemIndependentName(configPath)
   }
 
-  fun getSourcePath(file: VirtualFile?): String? {
+  private fun getSourcePath(file: VirtualFile?): String? {
     return file?.let { associations[it.path] }
   }
 

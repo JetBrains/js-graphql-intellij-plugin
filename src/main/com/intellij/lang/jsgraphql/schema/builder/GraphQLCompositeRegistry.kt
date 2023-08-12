@@ -45,7 +45,7 @@ class GraphQLCompositeRegistry {
       }
   }
 
-  fun getCompositeDefinition(definition: SDLDefinition<*>): GraphQLCompositeDefinition<*>? {
+  private fun getCompositeDefinition(definition: SDLDefinition<*>): GraphQLCompositeDefinition<*>? {
     if (definition is SchemaDefinition) {
       return schemaCompositeDefinition
     }
@@ -59,7 +59,7 @@ class GraphQLCompositeRegistry {
     }
   }
 
-  fun addTypeDefinition(definition: SDLDefinition<*>) {
+  private fun addTypeDefinition(definition: SDLDefinition<*>) {
     LOG.assertTrue(!GraphQLTypeDefinitionUtil.isExtension(definition))
 
     val builder = getCompositeDefinition(definition) ?: return
@@ -76,7 +76,7 @@ class GraphQLCompositeRegistry {
     }
   }
 
-  fun addExtensionDefinition(definition: SDLDefinition<*>) {
+  private fun addExtensionDefinition(definition: SDLDefinition<*>) {
     LOG.assertTrue(GraphQLTypeDefinitionUtil.isExtension(definition))
 
     val builder =
@@ -94,7 +94,7 @@ class GraphQLCompositeRegistry {
     }
   }
 
-  fun addDefinition(definition: SDLDefinition<*>) {
+  private fun addDefinition(definition: SDLDefinition<*>) {
     if (GraphQLTypeDefinitionUtil.isExtension(definition)) {
       addExtensionDefinition(definition)
     }

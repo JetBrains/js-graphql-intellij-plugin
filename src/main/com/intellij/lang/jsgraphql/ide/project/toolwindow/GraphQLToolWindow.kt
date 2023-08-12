@@ -104,7 +104,7 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
   }
 
   companion object {
-    const val GRAPHQL_TOOL_WINDOW = GraphQLConstants.GraphQL
+    private const val GRAPHQL_TOOL_WINDOW = GraphQLConstants.GraphQL
 
     const val GRAPHQL_TOOL_WINDOW_TOOLBAR = "GraphQLToolWindowToolbar"
     const val GRAPHQL_TOOL_WINDOW_POPUP = "GraphQLToolWindowPopup"

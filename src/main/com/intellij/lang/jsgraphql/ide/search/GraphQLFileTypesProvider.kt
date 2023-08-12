@@ -32,7 +32,7 @@ class GraphQLFileTypesProvider : Disposable {
     return fileType.asSafely<LanguageFileType>()?.language?.isKindOf(HTMLLanguage.INSTANCE) ?: false
   }
 
-  fun getContributedFileTypes(): Collection<FileType> {
+  private fun getContributedFileTypes(): Collection<FileType> {
     return myContributedFileTypes.value
   }
 
