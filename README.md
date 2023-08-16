@@ -28,6 +28,7 @@ GraphQL language support for [WebStorm](https://www.jetbrains.com/webstorm/), [I
         * [.env files](#env-files)
         * [Manual configuration](#manual-configuration)
         * [System](#system)
+* [Frameworks](#frameworks)
 * [Introspection](#introspection)
     * [Rerun latest introspection](#rerun-latest-introspection)
 * [Queries](#queries)
@@ -454,6 +455,16 @@ accomplish this.
 ### System
 
 If no variables are found in the .env files or set manually, the plugin will attempt to retrieve them from your system environment.
+
+# Frameworks
+
+## Gatsby
+
+Create a `graphql.config.js` at the root of your project with the following contents:
+
+```javascript
+module.exports = require("./.cache/typegen/graphql.config.json")
+```
 
 # Introspection
 

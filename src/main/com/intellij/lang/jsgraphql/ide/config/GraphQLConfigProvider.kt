@@ -306,6 +306,10 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
   }
 
   private fun shouldSkipConfig(candidate: VirtualFile): Boolean {
+    if (GraphQLConfigSearchCustomizer.EP_NAME.extensionList.any { it.isIgnoredConfig(project, candidate) }) {
+      return true
+    }
+
     if (candidate.name !in OPTIONAL_CONFIG_NAMES) {
       return false
     }
@@ -493,7 +497,9 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
       FilenameIndex.processFilesByNames(
         CONFIG_NAMES, true, GlobalSearchScope.projectScope(project), null, processor
       )
-      processor.results.toSet()
+      processor.results
+        .filter { file -> GraphQLConfigSearchCustomizer.EP_NAME.extensionList.none { it.isIgnoredConfig(project, file) } }
+        .toSet()
     }
       .inSmartMode(project)
       .expireWith(this)

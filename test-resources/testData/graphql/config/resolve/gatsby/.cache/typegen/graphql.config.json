@@ -1,0 +1,14 @@
+{
+  "schema": ".cache/typegen/schema.graphql",
+  "documents": [
+    "src/**/**.{ts,js,tsx,jsx}",
+    ".cache/typegen/fragments.graphql"
+  ],
+  "extensions": {
+    "endpoints": {
+      "default": {
+        "url": "http://localhost:8000/___graphql"
+      }
+    }
+  }
+}

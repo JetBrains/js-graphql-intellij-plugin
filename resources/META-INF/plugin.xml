@@ -49,6 +49,8 @@
                     interface="com.intellij.lang.jsgraphql.ide.config.GraphQLConfigContributor"/>
     <extensionPoint name="configCustomLoader" dynamic="true"
                     interface="com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigCustomLoader"/>
+    <extensionPoint name="configSearchCustomizer" dynamic="true"
+                    interface="com.intellij.lang.jsgraphql.ide.config.GraphQLConfigSearchCustomizer"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -276,6 +278,8 @@
     <errorFilter implementation="com.intellij.lang.jsgraphql.frameworks.federation.GraphQLFederationErrorFilter"/>
 
     <fileTypeContributor implementation="com.intellij.lang.jsgraphql.ide.injection.GraphQLDefaultFileTypeContributor"/>
+
+    <configSearchCustomizer implementation="com.intellij.lang.jsgraphql.frameworks.gatsby.GraphQLGatsbyConfigSearchCustomizer"/>
   </extensions>
 
   <actions>
