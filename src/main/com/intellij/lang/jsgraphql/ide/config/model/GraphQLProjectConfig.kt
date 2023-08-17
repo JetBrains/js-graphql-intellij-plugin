@@ -70,9 +70,7 @@ class GraphQLProjectConfig(
   val exclude: List<String> =
     (rawData.exclude ?: defaultData?.exclude)?.let { expandVariables(it, createExpandContext()) } ?: emptyList()
 
-  private val endpointsLazy: Lazy<List<GraphQLConfigEndpoint>> = lazy { buildEndpoints() }
-
-  val endpoints = endpointsLazy.value
+  val endpoints: List<GraphQLConfigEndpoint> by lazy { buildEndpoints() }
 
   val isDefault = name == GraphQLConfig.DEFAULT_PROJECT
 
