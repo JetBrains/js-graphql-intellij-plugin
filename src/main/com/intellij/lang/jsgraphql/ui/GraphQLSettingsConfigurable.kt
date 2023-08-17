@@ -46,7 +46,7 @@ class GraphQLSettingsConfigurable(private val project: Project) :
       group(message("graphql.settings.introspection")) {
         row(message("graphql.settings.introspection.query.label") + ":") {
           expandableTextField()
-            .bindText(settings::getIntrospectionQuery, settings::setIntrospectionQuery)
+            .bindText(settings::introspectionQuery)
             .horizontalAlign(HorizontalAlign.FILL)
             .applyToComponent {
               emptyText.text = message("graphql.settings.introspection.query.empty.text")
@@ -55,47 +55,38 @@ class GraphQLSettingsConfigurable(private val project: Project) :
         }
         row {
           checkBox(message("graphql.settings.introspection.default.values.label"))
-            .bindSelected(
-              settings::isEnableIntrospectionDefaultValues,
-              settings::setEnableIntrospectionDefaultValues
-            )
+            .bindSelected(settings::isEnableIntrospectionDefaultValues)
             .applyToComponent {
               toolTipText = message("graphql.settings.introspection.default.values.tooltip")
             }
         }
         row {
           checkBox(message("graphql.settings.introspection.repeatable.directives.label"))
-            .bindSelected(
-              settings::isEnableIntrospectionRepeatableDirectives,
-              settings::setEnableIntrospectionRepeatableDirectives
-            )
+            .bindSelected(settings::isEnableIntrospectionRepeatableDirectives)
             .applyToComponent {
               toolTipText = message("graphql.settings.introspection.repeatable.directives.tooltip")
             }
         }
         row {
           checkBox(message("graphql.settings.introspection.open.editor.label"))
-            .bindSelected(
-              settings::isOpenEditorWithIntrospectionResult,
-              settings::setOpenEditorWithIntrospectionResult
-            )
+            .bindSelected(settings::isOpenEditorWithIntrospectionResult)
         }
       }
       group(message("graphql.settings.frameworks")) {
         row {
           checkBox(message("graphql.library.relay"))
-            .bindSelected(settings::isRelaySupportEnabled, settings::setRelaySupportEnabled)
+            .bindSelected(settings::isRelaySupportEnabled)
             .applyToComponent { toolTipText = message("graphql.settings.frameworks.relay.tooltip") }
             .updateLibraries()
         }
         row {
           checkBox(message("graphql.library.federation"))
-            .bindSelected(settings::isFederationSupportEnabled, settings::setFederationSupportEnabled)
+            .bindSelected(settings::isFederationSupportEnabled)
             .updateLibraries()
         }
         row {
           checkBox(message("graphql.library.apollokotlin"))
-            .bindSelected(settings::isApolloKotlinSupportEnabled, settings::setApolloKotlinSupportEnabled)
+            .bindSelected(settings::isApolloKotlinSupportEnabled)
             .updateLibraries()
         }
       }
