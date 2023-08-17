@@ -48,15 +48,13 @@ class GraphQLProjectConfig(
 
   val isLegacy = isLegacyConfig(file)
 
-  val schema: List<GraphQLSchemaPointer> = (rawData.schema ?: defaultData?.schema)
-                                             ?.map {
-                                               GraphQLSchemaPointer(project, dir, it, isLegacy, environment).also { pointer ->
-                                                 if (pointer.isRemote && !pointer.outputPath.isNullOrEmpty()) {
-                                                   remoteSchemasRegistry.associate(pointer.outputPath, file?.path ?: dir.path)
-                                                 }
-                                               }
-                                             }
-                                           ?: emptyList()
+  val schema: List<GraphQLSchemaPointer> = (rawData.schema ?: defaultData?.schema)?.map {
+    GraphQLSchemaPointer(project, dir, it, isLegacy, environment).also { pointer ->
+      if (pointer.isRemote && !pointer.outputPath.isNullOrEmpty()) {
+        remoteSchemasRegistry.associate(pointer.outputPath, file?.path ?: dir.path)
+      }
+    }
+  } ?: emptyList()
 
   val documents: List<String> =
     (rawData.documents ?: defaultData?.documents)?.let { expandVariables(it, createExpandContext()) } ?: emptyList()
@@ -196,42 +194,43 @@ class GraphQLProjectConfig(
       }
 
     val localIntrospectionPath = schema.firstOrNull()?.takeUnless { it.isRemote }?.rawData
-    val extensionEndpoints = extensions[GraphQLConfigKeys.EXTENSION_ENDPOINTS].asSafely<Map<*, *>>()
-                               ?.mapNotNull { (key: Any?, value: Any?) ->
-                                 val endpointName = key as? String ?: return@mapNotNull null
+    val extensionEndpoints =
+      extensions[GraphQLConfigKeys.EXTENSION_ENDPOINTS].asSafely<Map<*, *>>()
+        ?.mapNotNull { (key: Any?, value: Any?) ->
+          val endpointName = key as? String ?: return@mapNotNull null
 
-                                 when (value) {
-                                   is String -> {
-                                     GraphQLRawEndpoint(
-                                       endpointName,
-                                       value as String?,
-                                       emptyMap(),
-                                       false,
-                                     )
-                                   }
+          when (value) {
+            is String -> {
+              GraphQLRawEndpoint(
+                endpointName,
+                value as String?,
+                emptyMap(),
+                false,
+              )
+            }
 
-                                   is Map<*, *> -> {
-                                     val url = value[GraphQLConfigKeys.EXTENSION_ENDPOINT_URL]
-                                     if (url is String) {
-                                       GraphQLRawEndpoint(
-                                         endpointName,
-                                         url,
-                                         parseMap(value[GraphQLConfigKeys.HEADERS]) ?: emptyMap(),
-                                         value[GraphQLConfigKeys.INTROSPECT] as Boolean?
-                                       )
-                                     }
-                                     else {
-                                       null
-                                     }
-                                   }
+            is Map<*, *> -> {
+              val url = value[GraphQLConfigKeys.EXTENSION_ENDPOINT_URL]
+              if (url is String) {
+                GraphQLRawEndpoint(
+                  endpointName,
+                  url,
+                  parseMap(value[GraphQLConfigKeys.HEADERS]) ?: emptyMap(),
+                  value[GraphQLConfigKeys.INTROSPECT] as Boolean?
+                )
+              }
+              else {
+                null
+              }
+            }
 
-                                   else -> null
-                                 }
-                               }
-                               ?.map {
-                                 GraphQLConfigEndpoint(project, it, dir, isLegacy, environment, localIntrospectionPath, this)
-                               }
-                             ?: emptyList()
+            else -> null
+          }
+        }
+        ?.map {
+          GraphQLConfigEndpoint(project, it, dir, isLegacy, environment, localIntrospectionPath, this)
+        }
+      ?: emptyList()
 
     return schemaEndpoints + extensionEndpoints
   }
