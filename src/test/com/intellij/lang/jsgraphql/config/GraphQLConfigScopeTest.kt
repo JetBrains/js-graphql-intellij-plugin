@@ -159,6 +159,11 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest("graphql.config.yml", setOf("lib/common.graphql", "two/two.graphql"), emptySet(), "two")
   }
 
+  fun testRelativePath() {
+    doScopeTest("frontend1/graphql.config.yml", setOf("backend/schema.graphql"), setOf("frontend1/query1.graphql"))
+    doScopeTest("frontend2/graphql.config.yml", setOf("backend/schema.graphql"), setOf("frontend2/query2.graphql"))
+  }
+
   private fun doScopeTest(
     configPath: String,
     expectedSchemas: Set<String>,

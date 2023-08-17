@@ -74,6 +74,14 @@ class GraphQLProjectConfig(
 
   val isDefault = name == GraphQLConfig.DEFAULT_PROJECT
 
+  private val outOfScopePaths: List<String> by lazy {
+    schema.asSequence()
+      .mapNotNull { it.filePath }
+      .filter { it.startsWith("..") }
+      .map { FileUtil.toCanonicalPath(FileUtil.join(dir.path, FileUtil.toSystemIndependentName(it))) }
+      .toList()
+  }
+
   private val matchingCache = GraphQLFileMatcherCache.newInstance(project)
 
   private val matchingSchemaCache = GraphQLFileMatcherCache.newInstance(project)
@@ -153,12 +161,20 @@ class GraphQLProjectConfig(
   }
 
   private fun isIncluded(virtualFile: VirtualFile): Boolean {
+    if (isIncludedOutOfScopeFile(virtualFile)) {
+      return true
+    }
+
     val isExcluded = if (exclude.isNotEmpty()) matchPattern(virtualFile, exclude) else false
     if (isExcluded) {
       return false
     }
 
     return if (include.isNotEmpty()) matchPattern(virtualFile, include) else false
+  }
+
+  fun isIncludedOutOfScopeFile(virtualFile: VirtualFile): Boolean {
+    return outOfScopePaths.any { FileUtil.pathsEqual(it, virtualFile.path) }
   }
 
   private fun matchPattern(candidate: VirtualFile, pointer: Any?): Boolean {

@@ -31,10 +31,15 @@ open class GraphQLConfigScope(
 
   protected open fun match(file: VirtualFile): Boolean {
     val psiFile = psiManager.findFile(file) ?: return false
+    if (projectConfig.isIncludedOutOfScopeFile(file)) {
+      return true
+    }
+
     val matchingConfig = configProvider.resolveProjectConfig(psiFile) ?: return false
     if (projectConfig == matchingConfig) {
       return true
     }
+    // ensure that matched the same config file, even if it matched another project in that config, e.g. a fallback
     if (projectConfig.rootConfig != matchingConfig.rootConfig) {
       return false
     }
