@@ -5,6 +5,7 @@ import com.intellij.execution.process.CapturingProcessRunner
 import com.intellij.execution.process.ProcessOutput
 import com.intellij.javascript.nodejs.PackageJsonData
 import com.intellij.javascript.nodejs.execution.NodeTargetRun
+import com.intellij.javascript.nodejs.execution.NodeTargetRunOptions
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreter
 import com.intellij.javascript.nodejs.interpreter.NodeJsInterpreterManager
 import com.intellij.javascript.nodejs.settings.NodeSettingsConfigurable
@@ -23,7 +24,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.PathUtil
-import com.intellij.util.ThreeState
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TIMEOUT = 15000
@@ -123,7 +123,7 @@ class GraphQLJavaScriptConfigLoader : GraphQLConfigCustomLoader {
   }
 
   private fun createTargetRun(interpreter: NodeJsInterpreter, project: Project, workingDir: String): NodeTargetRun {
-    val targetRun = NodeTargetRun(interpreter, project, null, NodeTargetRun.createOptions(ThreeState.NO, emptyList()))
+    val targetRun = NodeTargetRun(interpreter, project, null, NodeTargetRunOptions.of(false))
     targetRun.commandLineBuilder.setWorkingDirectory(targetRun.path(workingDir))
     targetRun.commandLineBuilder.addEnvironmentVariable("NODE_ENV", "development")
     return targetRun
