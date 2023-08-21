@@ -35,10 +35,9 @@ class GraphQLSchemaEndpointsListNode(
   projectConfig: GraphQLProjectConfig?,
 ) : CachingSimpleNode(parent) {
 
-  private val endpoints: List<GraphQLConfigEndpoint>
+  private val endpoints: List<GraphQLConfigEndpoint> = projectConfig?.endpoints ?: emptyList()
 
   init {
-    endpoints = projectConfig?.endpoints ?: emptyList()
     myName = "Endpoints"
     icon = AllIcons.Nodes.WebFolder
   }

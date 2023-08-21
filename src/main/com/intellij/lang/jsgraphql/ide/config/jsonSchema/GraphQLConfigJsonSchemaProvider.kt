@@ -59,13 +59,8 @@ class GraphQLConfigJsonSchemaProvider : JsonSchemaProviderFactory {
     vararg files: String,
   ) : JsonSchemaFileProvider {
 
-    private val schemaFile: VirtualFile?
-    private val userFilename: Set<String>
-
-    init {
-      userFilename = if (files.isEmpty()) setOf(resourceName) else files.toSet()
-      schemaFile = JsonSchemaProviderFactory.getResourceFile(clazz, pathToFilename + resourceName)
-    }
+    private val schemaFile: VirtualFile? = JsonSchemaProviderFactory.getResourceFile(clazz, pathToFilename + resourceName)
+    private val userFilename: Set<String> = if (files.isEmpty()) setOf(resourceName) else files.toSet()
 
     override fun isAvailable(file: VirtualFile): Boolean {
       return userFilename.contains(file.name)
