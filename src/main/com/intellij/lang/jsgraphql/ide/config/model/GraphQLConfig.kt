@@ -17,7 +17,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.util.containers.ContainerUtil
+import com.intellij.util.containers.CollectionFactory
 import java.util.concurrent.ConcurrentMap
 
 
@@ -60,7 +60,7 @@ data class GraphQLConfig(
   private val fileToProjectCache: CachedValue<ConcurrentMap<VirtualFile, GraphQLProjectConfig>> =
     CachedValuesManager.getManager(project).createCachedValue {
       CachedValueProvider.Result.create(
-        ContainerUtil.createConcurrentWeakValueMap(),
+        CollectionFactory.createConcurrentWeakValueMap(),
         GraphQLScopeDependency.getInstance(project),
       )
     }
