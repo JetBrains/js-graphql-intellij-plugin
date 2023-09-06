@@ -1,6 +1,5 @@
 package com.intellij.lang.jsgraphql.ide.config
 
-import com.intellij.ProjectTopics
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
@@ -49,7 +48,7 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
   init {
     val connection: MessageBusConnection = project.messageBus.connect(this)
 
-    connection.subscribe(ProjectTopics.PROJECT_ROOTS, object : ModuleRootListener {
+    connection.subscribe(ModuleRootListener.TOPIC, object : ModuleRootListener {
       override fun rootsChanged(event: ModuleRootEvent) {
         ApplicationManager.getApplication().invokeLater {
           configProvider.scheduleConfigurationReload()
