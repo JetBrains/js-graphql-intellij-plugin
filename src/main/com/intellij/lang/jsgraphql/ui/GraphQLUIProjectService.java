@@ -75,8 +75,6 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.StopWatch;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -420,14 +418,14 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
         String responseJson;
         Header contentType;
-        StopWatch sw = new StopWatch();
-        sw.start();
+        long start = System.currentTimeMillis();
+        long end;
         try (final CloseableHttpResponse response = httpClient.execute(request)) {
           responseJson = StringUtil.notNullize(EntityUtils.toString(response.getEntity()));
           contentType = response.getFirstHeader("Content-Type");
         }
         finally {
-          sw.stop();
+          end = System.currentTimeMillis();
         }
 
         final boolean reformatJson = contentType != null && contentType.getValue() != null &&
@@ -442,7 +440,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
           updateQueryResultEditor(responseJson, queryResultEditor, reformatJson);
           final StringBuilder queryResultText = new StringBuilder(virtualFile.getName()).
             append(": ").
-            append(sw.getTime()).
+            append(end - start).
             append(" ms execution time, ").
             append(bytesToDisplayString(responseJson.length())).
             append(" response");
@@ -560,7 +558,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     final Editor variablesEditor = editor.getUserData(GRAPH_QL_VARIABLES_EDITOR);
     if (variablesEditor != null) {
       final String variables = variablesEditor.getDocument().getText();
-      if (!StringUtils.isBlank(variables)) {
+      if (!variables.isBlank()) {
         return new Gson().fromJson(variables, Map.class);
       }
     }

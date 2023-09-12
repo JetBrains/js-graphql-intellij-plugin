@@ -34,7 +34,6 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.text.EditDistance;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -253,7 +252,7 @@ public class GraphQLValidationAnnotator implements Annotator {
 
   private static String formatSuggestions(List<String> suggestions) {
     if (suggestions != null && !suggestions.isEmpty()) {
-      return "\"" + StringUtils.join(suggestions, "\", or \"") + "\"";
+      return "\"" + String.join("\", or \"", suggestions) + "\"";
     }
     return null;
   }

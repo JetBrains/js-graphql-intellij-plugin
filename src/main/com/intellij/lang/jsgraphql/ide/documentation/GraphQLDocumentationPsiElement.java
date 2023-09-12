@@ -10,20 +10,19 @@ package com.intellij.lang.jsgraphql.ide.documentation;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.FakePsiElement;
-import org.apache.commons.lang.StringUtils;
+import kotlin.text.StringsKt;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-class GraphQLDocumentationPsiElement extends FakePsiElement {
-
+final class GraphQLDocumentationPsiElement extends FakePsiElement {
   private final PsiElement context;
-  private String type;
+  private final String type;
   private JSGraphQLDocItemPresentation itemPresentation;
 
-  public GraphQLDocumentationPsiElement(PsiElement context, String link) {
+  GraphQLDocumentationPsiElement(PsiElement context, String link) {
     this.context = context;
-    this.type = StringUtils.substringAfterLast(link, "/");
+    this.type = StringsKt.substringAfterLast(link, "/", link);
   }
 
   public String getType() {

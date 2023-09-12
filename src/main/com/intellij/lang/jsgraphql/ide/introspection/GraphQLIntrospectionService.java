@@ -26,6 +26,7 @@ import com.intellij.lang.jsgraphql.types.schema.idl.SchemaParser;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter;
 import com.intellij.lang.jsgraphql.types.schema.idl.UnExecutableSchemaGenerator;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
+import com.intellij.lang.jsgraphql.types.util.EscapeUtil;
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
@@ -67,7 +68,6 @@ import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.net.IdeHttpClientHelpers;
 import com.intellij.util.net.ssl.CertificateManager;
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -196,7 +196,7 @@ public final class GraphQLIntrospectionService implements Disposable {
       final GraphQLSettings settings = GraphQLSettings.getSettings(myProject);
       String query = buildIntrospectionQuery(settings);
 
-      final String requestJson = "{\"query\":\"" + StringEscapeUtils.escapeJavaScript(query) + "\"}";
+      final String requestJson = "{\"query\":\"" + EscapeUtil.escapeJsonString(query) + "\"}";
       HttpPost request = createRequest(endpoint, url, requestJson);
       Task.Backgroundable task = new IntrospectionQueryTask(request, schemaPath, retry, settings, endpoint, url);
       ProgressManager.getInstance().run(task);

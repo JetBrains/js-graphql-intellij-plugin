@@ -23,7 +23,6 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
 import com.intellij.ui.treeStructure.SimpleTree
-import org.apache.commons.lang.StringUtils
 import java.awt.event.InputEvent
 import javax.swing.JList
 import javax.swing.ListCellRenderer
@@ -104,7 +103,7 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
               append(elementName)
               if (value !is AbstractNode<*>) return
               var sourceName = value.sourceLocation?.sourceName ?: return
-              sourceName = StringUtils.substringAfterLast(sourceName, "/")
+              sourceName = sourceName.substringAfterLast("/")
               append(" - $sourceName", SimpleTextAttributes.GRAYED_ATTRIBUTES)
             }
           }

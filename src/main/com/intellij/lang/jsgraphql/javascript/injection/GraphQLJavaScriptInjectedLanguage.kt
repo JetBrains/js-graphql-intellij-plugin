@@ -10,7 +10,6 @@ package com.intellij.lang.jsgraphql.javascript.injection
 import com.intellij.lang.javascript.psi.JSElement
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
 import com.intellij.psi.PsiElement
-import org.apache.commons.lang.StringUtils
 
 class GraphQLJavaScriptInjectedLanguage : GraphQLInjectedLanguage {
   override fun accepts(host: PsiElement): Boolean {
@@ -25,7 +24,7 @@ class GraphQLJavaScriptInjectedLanguage : GraphQLInjectedLanguage {
     return if (rawText != null && rawText.contains("\\`")) {
       // replace escaped backticks in template literals with a whitespace and the backtick to preserve token
       // positions for error mappings etc.
-      StringUtils.replace(rawText, "\\`", " `")
+      rawText.replace("\\`", " `")
     }
     else {
       rawText
@@ -33,6 +32,6 @@ class GraphQLJavaScriptInjectedLanguage : GraphQLInjectedLanguage {
   }
 
   override fun getInjectedTextForIndexing(host: PsiElement): String {
-    return StringUtils.strip(host.text, "` \t\n")
+    return host.text.trim('`', ' ', '\t', '\n')
   }
 }

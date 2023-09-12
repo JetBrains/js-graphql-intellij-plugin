@@ -19,7 +19,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
-import org.apache.commons.lang.StringUtils
 
 /**
  * Tree node that represents a graphql-config schema
@@ -37,7 +36,7 @@ class GraphQLConfigSchemaNode(
   private val isProjectLevelNode: Boolean
 
   init {
-    myName = projectConfig?.name ?: StringUtils.substringAfterLast(config.dir.path, "/")
+    myName = projectConfig?.name ?: config.dir.path.substringAfterLast("/")
     isProjectLevelNode = projectConfig != null
     presentation.setIcon(GraphQLIcons.Files.GraphQLSchema)
 

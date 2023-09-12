@@ -19,7 +19,7 @@ import com.intellij.util.io.BooleanDataDescriptor;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
-import org.apache.commons.lang.StringUtils;
+import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -59,7 +59,7 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
             GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
             if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
               final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
-              final String graphqlBuffer = StringUtils.strip(element.getText(), "` \t\n");
+              final String graphqlBuffer = StringsKt.trim(element.getText(), '`', ' ', '\t', '\n');
               final PsiFile graphqlInjectedPsiFile = psiFileFactory
                 .createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
               graphqlInjectedPsiFile.accept(identifierVisitor.get());
