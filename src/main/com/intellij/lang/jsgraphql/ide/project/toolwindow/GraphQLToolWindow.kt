@@ -4,7 +4,6 @@ import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.GraphQLConstants
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLSchemasPanel
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
@@ -21,6 +20,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.content.Content
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Cursor
@@ -115,7 +115,7 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
 
     @JvmStatic
     fun getQueryResultEditor(project: Project): TextEditor? {
-      ApplicationManager.getApplication().assertIsDispatchThread()
+      ThreadingAssertions.assertEventDispatchThread()
       val content = getQueryResultContent(project) ?: return null
       return content.getUserData(QUERY_RESULT_EDITOR_KEY)
     }

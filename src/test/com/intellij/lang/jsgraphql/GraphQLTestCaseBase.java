@@ -10,7 +10,6 @@ import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLIdentifierImpl;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -19,6 +18,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
+import com.intellij.util.concurrency.ThreadingAssertions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +66,7 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
   }
 
   protected void reloadConfiguration() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
+    ThreadingAssertions.assertEventDispatchThread();
     GraphQLConfigProvider.getInstance(getProject()).scheduleConfigurationReload();
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
   }
