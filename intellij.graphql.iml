@@ -121,5 +121,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="intellij.microservices" scope="PROVIDED" />
   </component>
 </module>
