@@ -27,7 +27,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.ContainerUtil
-import org.jetbrains.annotations.ApiStatus.ScheduledForRemoval
 import java.util.concurrent.ConcurrentMap
 
 @Service(Service.Level.PROJECT)
@@ -89,12 +88,5 @@ class GraphQLSchemaProvider(project: Project) {
         )
       }
     }
-  }
-
-  @Deprecated("use GraphQLRegistryProvider.getRegistryInfo() instead")
-  @ScheduledForRemoval
-  @RequiresReadLock
-  fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
-    return registryProvider.getRegistryInfo(context)
   }
 }
