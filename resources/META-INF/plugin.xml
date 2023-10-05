@@ -52,6 +52,8 @@
                     interface="com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigCustomLoader"/>
     <extensionPoint name="configSearchCustomizer" dynamic="true"
                     interface="com.intellij.lang.jsgraphql.ide.config.GraphQLConfigSearchCustomizer"/>
+    <extensionPoint name="globalResolveFilter" dynamic="true"
+                    interface="com.intellij.lang.jsgraphql.ide.resolve.GraphQLGlobalResolveFilter"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
