@@ -12,7 +12,6 @@ interface GraphQLGlobalResolveFilter {
 
     @RequiresReadLock
     fun isGlobalResolveForcedFor(context: PsiFile): Boolean {
-      println(context.name)
       return EP_NAME.extensionList.any { it.isGlobalResolveFor(context) }
     }
   }
