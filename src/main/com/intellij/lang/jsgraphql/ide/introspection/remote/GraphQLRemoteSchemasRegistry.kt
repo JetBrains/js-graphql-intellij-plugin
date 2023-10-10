@@ -15,7 +15,7 @@ import com.intellij.psi.search.GlobalSearchScopes
 import java.util.concurrent.ConcurrentHashMap
 
 
-@Service
+@Service(Service.Level.PROJECT)
 class GraphQLRemoteSchemasRegistry(private val project: Project) {
   companion object {
     private const val GRAPHQL_REMOTE_DIR = "remote"
