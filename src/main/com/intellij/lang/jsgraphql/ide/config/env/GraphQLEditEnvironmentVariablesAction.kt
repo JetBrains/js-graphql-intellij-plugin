@@ -54,14 +54,11 @@ class GraphQLEditEnvironmentVariablesAction : AnAction(
     val project = e.project ?: return
     val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
     val provider = GraphQLConfigProvider.getInstance(project)
+    val config = when (virtualFile.name) {
+                   in CONFIG_NAMES -> provider.getForConfigFile(virtualFile)
+                   else -> provider.resolveProjectConfig(virtualFile)?.rootConfig
+                 } ?: return
 
-    val environment = if (virtualFile.name in CONFIG_NAMES) {
-      provider.getForConfigFile(virtualFile)?.environment
-    }
-                      else {
-      provider.resolveProjectConfig(virtualFile)?.rootConfig?.environment
-    } ?: return
-
-    GraphQLEnvironmentVariablesDialog(project, environment, virtualFile, false).show()
+    GraphQLEnvironmentVariablesDialog(project, config.environment, config.dir, false).show()
   }
 }

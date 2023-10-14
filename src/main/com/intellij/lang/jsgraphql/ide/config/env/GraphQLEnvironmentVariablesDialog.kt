@@ -23,7 +23,7 @@ import javax.swing.table.TableCellRenderer
 class GraphQLEnvironmentVariablesDialog(
   project: Project,
   private val environment: GraphQLEnvironmentSnapshot,
-  private val fileOrDir: VirtualFile,
+  private val configFileOrDir: VirtualFile,
   private val onlyEmpty: Boolean,
   private val nameFilter: Collection<String>? = null,
 ) : DialogWrapper(project) {
@@ -47,7 +47,7 @@ class GraphQLEnvironmentVariablesDialog(
     val newVariables = table.environmentVariables
       .filterNot { it.name.isNullOrBlank() }
       .associate { it.name to it.value }
-    env.setExplicitVariables(newVariables, fileOrDir)
+    env.setExplicitVariables(newVariables, configFileOrDir)
 
     super.doOKAction()
   }
@@ -71,7 +71,7 @@ class GraphQLEnvironmentVariablesDialog(
         }
       }
       .map {
-        EnvironmentVariable(it.key, env.getExplicitVariable(it.key, fileOrDir), false)
+        EnvironmentVariable(it.key, env.getExplicitVariable(it.key, configFileOrDir), false)
       }
       .toList()
       .let { MyEnvVariablesTable(it) }

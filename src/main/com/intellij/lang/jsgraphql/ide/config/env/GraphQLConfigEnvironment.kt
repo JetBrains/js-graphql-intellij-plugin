@@ -75,8 +75,8 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     return GraphQLEnvironmentSnapshot(variables.associateWith { getVariable(it, fileOrDir) })
   }
 
-  fun setExplicitVariable(name: String, value: String?, fileOrDir: VirtualFile) {
-    val key = fileOrDir.parentDirectory
+  fun setExplicitVariable(name: String, value: String?, configFileOrDir: VirtualFile) {
+    val key = configFileOrDir.parentDirectory ?: return
     val variables = variables.computeIfAbsent(key) { ConcurrentHashMap() }
 
     if (value.isNullOrBlank()) {
@@ -89,8 +89,8 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     notifyEnvironmentChanged()
   }
 
-  fun setExplicitVariables(newVariables: Map<String, String?>, fileOrDir: VirtualFile) {
-    val key = fileOrDir.parentDirectory
+  fun setExplicitVariables(newVariables: Map<String, String?>, configFileOrDir: VirtualFile) {
+    val key = configFileOrDir.parentDirectory ?: return
     val variables = variables.computeIfAbsent(key) { ConcurrentHashMap() }
 
     newVariables.forEach {
@@ -105,8 +105,8 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     notifyEnvironmentChanged()
   }
 
-  fun getExplicitVariable(name: String, fileOrDir: VirtualFile): String? {
-    return fileOrDir.parentDirectory.let { variables[it] }?.get(name)
+  fun getExplicitVariable(name: String, configFileOrDir: VirtualFile): String? {
+    return configFileOrDir.parentDirectory?.let { variables[it] }?.get(name)
   }
 
   private fun getVariable(name: String, fileOrDir: VirtualFile?): String? {
@@ -204,8 +204,8 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
 
   override fun getModificationCount(): Long = modificationTracker.modificationCount
 
-  private val VirtualFile.parentDirectory: VirtualFile
-    get() = (if (isDirectory) this else parent) ?: this
+  private val VirtualFile.parentDirectory: VirtualFile?
+    get() = if (isDirectory) this else parent
 
   override fun prepareChange(events: List<VFileEvent>): ChangeApplier? {
     var changed = false
