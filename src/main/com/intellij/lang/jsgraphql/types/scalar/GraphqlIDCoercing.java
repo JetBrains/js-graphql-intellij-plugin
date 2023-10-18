@@ -34,20 +34,11 @@ import static com.intellij.lang.jsgraphql.types.scalar.CoercingUtil.typeName;
 @Internal
 public class GraphqlIDCoercing implements Coercing<Object, Object> {
 
-  private String convertImpl(Object input) {
+  private static String convertImpl(Object input) {
     if (input instanceof String) {
       return (String)input;
     }
-    if (input instanceof Integer) {
-      return String.valueOf(input);
-    }
-    if (input instanceof Long) {
-      return String.valueOf(input);
-    }
-    if (input instanceof UUID) {
-      return String.valueOf(input);
-    }
-    if (input instanceof BigInteger) {
+    if (input instanceof Integer || input instanceof Long || input instanceof UUID || input instanceof BigInteger) {
       return String.valueOf(input);
     }
     return String.valueOf(input);
