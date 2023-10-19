@@ -23,6 +23,11 @@ public final class GraphqlIcons {
   /** 16x16 */ public static final @NotNull Icon GraphqlNode = load("icons/graphqlNode.svg", -342439323, 2);
   /** 16x16 */ public static final @NotNull Icon GraphqlSchema = load("icons/graphqlSchema.svg", -1229132693, 2);
   /** 13x13 */ public static final @NotNull Icon GraphqlToolWindow = load("icons/graphqlToolWindow.svg", -1239891742, 2);
+
+  public static final class Gutter {
+    /** 12x12 */ public static final @NotNull Icon GraphQL = load("icons/gutter/graphQL.svg", -214176870, 2);
+  }
+
   /** 16x16 */ public static final @NotNull Icon Interface = load("icons/interface.svg", 1051857627, 1);
   /** 16x16 */ public static final @NotNull Icon Mutation = load("icons/mutation.svg", -753752934, 1);
   /** 16x16 */ public static final @NotNull Icon Query = load("icons/query.svg", -648140378, 0);

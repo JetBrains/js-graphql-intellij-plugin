@@ -1,0 +1,27 @@
+{
+  "icons": {
+    "newui": {
+      "gutter": {
+        "graphQL@14x14.svg": "icons/gutter/graphQL.svg"
+      },
+      "apollo.svg": "icons/apollo.svg",
+      "attribute.svg": "icons/attribute.svg",
+      "enum.svg": "icons/enum.svg",
+      "field.svg": "icons/field.svg",
+      "fragment.svg": "icons/fragment.svg",
+      "graphql.svg": "icons/graphql.svg",
+      "graphqlConfig.svg": "icons/graphqlConfig.svg",
+      "graphqlNode.svg": "icons/graphqlNode.svg",
+      "graphqlSchema.svg": "icons/graphqlSchema.svg",
+      "graphqlToolWindow.svg": "icons/graphqlToolWindow.svg",
+      "interface.svg": "icons/interface.svg",
+      "mutation.svg": "icons/mutation.svg",
+      "query.svg": "icons/query.svg",
+      "relay.svg": "icons/relay.svg",
+      "scalar.svg": "icons/scalar.svg",
+      "subscription.svg": "icons/subscription.svg",
+      "type.svg": "icons/type.svg",
+      "variable.svg": "icons/variable.svg"
+    }
+  }
+}

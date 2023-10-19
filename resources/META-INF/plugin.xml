@@ -266,6 +266,8 @@
 
     <lang.inspectionSuppressor language="GraphQL"
                                implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLInspectionSuppressor"/>
+
+    <iconMapper mappingFile="GraphQLIconsMapping.json"/>
   </extensions>
 
   <extensions defaultExtensionNs="JavaScript">
@@ -286,12 +288,12 @@
 
   <actions>
     <action id="GraphQLNewFileAction" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLNewFileAction">
-      <add-to-group group-id="NewGroup"/>
+      <add-to-group group-id="NewWebDevelopment"/>
     </action>
 
     <action id="GraphQLCreateConfigFile" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLCreateConfigFileAction"
             icon="com.intellij.lang.jsgraphql.icons.GraphQLIcons.Files.GraphQLConfig">
-      <add-to-group group-id="NewGroup"/>
+      <add-to-group group-id="NewWebDevelopment"/>
     </action>
 
     <action id="GraphQLExecuteEditor" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction"
