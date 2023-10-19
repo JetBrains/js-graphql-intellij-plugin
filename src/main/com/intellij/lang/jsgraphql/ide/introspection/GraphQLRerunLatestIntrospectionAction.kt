@@ -7,17 +7,12 @@
  */
 package com.intellij.lang.jsgraphql.ide.introspection
 
-import com.intellij.icons.AllIcons
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class GraphQLRerunLatestIntrospectionAction : AnAction(
-  GraphQLBundle.message("graphql.action.rerun.latest.introspection.title"),
-  GraphQLBundle.message("graphql.action.rerun.latest.introspection.desc"),
-  AllIcons.Actions.Rerun,
-) {
+class GraphQLRerunLatestIntrospectionAction : AnAction() {
   companion object {
     const val ACTION_ID = "GraphQLRerunLatestIntrospection"
   }

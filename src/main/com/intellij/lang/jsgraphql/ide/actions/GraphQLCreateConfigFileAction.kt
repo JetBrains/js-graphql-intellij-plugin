@@ -1,7 +1,5 @@
 package com.intellij.lang.jsgraphql.ide.actions
 
-import com.intellij.lang.jsgraphql.GraphQLBundle
-import com.intellij.lang.jsgraphql.icons.GraphQLIcons
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -10,11 +8,7 @@ import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VirtualFile
 
-class GraphQLCreateConfigFileAction : AnAction(
-  GraphQLBundle.message("graphql.action.create.config.file.title"),
-  GraphQLBundle.message("graphql.action.create.config.file.desc"),
-  GraphQLIcons.Files.GraphQLConfig
-) {
+class GraphQLCreateConfigFileAction : AnAction() {
   override fun getActionUpdateThread(): ActionUpdateThread {
     return ActionUpdateThread.BGT
   }

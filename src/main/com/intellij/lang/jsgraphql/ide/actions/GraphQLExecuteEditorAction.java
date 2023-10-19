@@ -7,9 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.actions;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.json.JsonFileType;
-import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.GraphQLFileType;
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLEndpointsModel;
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
@@ -26,14 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class GraphQLExecuteEditorAction extends AnAction {
   public static final String ACTION_ID = "GraphQLExecuteEditor";
-
-  public GraphQLExecuteEditorAction() {
-    super(
-      GraphQLBundle.messagePointer("graphql.action.execute.graphql.text"),
-      GraphQLBundle.messagePointer("graphql.action.execute.current.graphql.file.against.specified.graphql.endpoint.description"),
-      AllIcons.Actions.Execute
-    );
-  }
 
   @Override
   public void update(@NotNull AnActionEvent e) {

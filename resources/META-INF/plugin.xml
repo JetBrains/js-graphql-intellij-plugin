@@ -289,27 +289,32 @@
       <add-to-group group-id="NewGroup"/>
     </action>
 
-    <action id="GraphQLCreateConfigFile" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLCreateConfigFileAction">
+    <action id="GraphQLCreateConfigFile" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLCreateConfigFileAction"
+            icon="com.intellij.lang.jsgraphql.icons.GraphQLIcons.Files.GraphQLConfig">
       <add-to-group group-id="NewGroup"/>
     </action>
 
-    <action id="GraphQLExecuteEditor" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction">
+    <action id="GraphQLExecuteEditor" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLExecuteEditorAction"
+            icon="com.intellij.icons.AllIcons.Actions.Execute">
       <keyboard-shortcut first-keystroke="control ENTER" keymap="$default"/>
       <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X"/>
       <keyboard-shortcut first-keystroke="meta ENTER" keymap="Mac OS X 10.5+"/>
     </action>
 
     <action id="GraphQLRerunLatestIntrospection"
-            class="com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction"/>
+            class="com.intellij.lang.jsgraphql.ide.introspection.GraphQLRerunLatestIntrospectionAction"
+            icon="com.intellij.icons.AllIcons.Actions.Rerun"/>
 
     <action id="GraphQLRestartSchemaDiscovery"
-            class="com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryAction"/>
+            class="com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryAction"
+            icon="com.intellij.icons.AllIcons.Actions.Restart"/>
 
     <action id="GraphQLMigrateLegacyConfig"
             class="com.intellij.lang.jsgraphql.ide.config.migration.GraphQLMigrateLegacyConfigAction"/>
 
     <action id="GraphQLEditEnvironmentVariables"
-            class="com.intellij.lang.jsgraphql.ide.config.env.GraphQLEditEnvironmentVariablesAction">
+            class="com.intellij.lang.jsgraphql.ide.config.env.GraphQLEditEnvironmentVariablesAction"
+            icon="com.intellij.icons.AllIcons.Actions.Properties">
       <add-to-group group-id="EditorPopupMenu" anchor="last"/>
     </action>
   </actions>

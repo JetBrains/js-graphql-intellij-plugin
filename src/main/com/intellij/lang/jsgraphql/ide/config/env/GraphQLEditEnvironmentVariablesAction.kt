@@ -1,16 +1,12 @@
 package com.intellij.lang.jsgraphql.ide.config.env
 
-import com.intellij.icons.AllIcons
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_NAMES
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.openapi.actionSystem.*
 
-class GraphQLEditEnvironmentVariablesAction : AnAction(
-  GraphQLBundle.messagePointer("graphql.action.edit.environment.variables.title"),
-  AllIcons.Actions.Properties,
-) {
+class GraphQLEditEnvironmentVariablesAction : AnAction() {
   companion object {
     const val ACTION_ID = "GraphQLEditEnvironmentVariables"
   }
@@ -38,7 +34,7 @@ class GraphQLEditEnvironmentVariablesAction : AnAction(
       GraphQLBundle.message("graphql.action.edit.environment.variables.toolbar.title")
     }
     else {
-      GraphQLBundle.message("graphql.action.edit.environment.variables.title")
+      GraphQLBundle.message("action.GraphQLEditEnvironmentVariables.text")
     }
 
     e.presentation.text = title

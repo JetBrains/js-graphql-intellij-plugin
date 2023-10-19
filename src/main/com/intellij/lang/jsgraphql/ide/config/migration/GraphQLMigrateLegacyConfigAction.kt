@@ -23,7 +23,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import java.io.IOException
 
-class GraphQLMigrateLegacyConfigAction : AnAction(GraphQLBundle.message("graphql.action.migrate.config.title")) {
+class GraphQLMigrateLegacyConfigAction : AnAction() {
   companion object {
     const val ACTION_ID = "GraphQLMigrateLegacyConfig"
   }
@@ -60,7 +60,7 @@ class GraphQLMigrateLegacyConfigAction : AnAction(GraphQLBundle.message("graphql
       match.groupValues[1].trim().let { "\${$it}" }
     }
 
-    WriteCommandAction.runWriteCommandAction(project, GraphQLBundle.message("graphql.action.migrate.config.title"), null, {
+    WriteCommandAction.runWriteCommandAction(project, GraphQLBundle.message("action.GraphQLMigrateLegacyConfig.text"), null, {
       val newFile = try {
         val created = dir.createChildData(this, GraphQLConfigFactory.PREFERRED_CONFIG)
         VfsUtil.saveText(created, text)
