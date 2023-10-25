@@ -10,14 +10,18 @@ package com.intellij.lang.jsgraphql.ide.highlighting.query;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.event.CaretEvent;
 import com.intellij.openapi.editor.event.CaretListener;
 import com.intellij.openapi.editor.event.EditorEventMulticaster;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.Pair;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -51,11 +55,25 @@ public class GraphQLQueryContextCaretListener implements Disposable {
           return;
         }
 
-        final PsiFile psiFile = psiDocumentManager.getPsiFile(e.getEditor().getDocument());
-        if (psiFile instanceof GraphQLFile) {
-          int offset = e.getEditor().logicalPositionToOffset(e.getNewPosition());
-          psiFile.putUserData(CARET_OFFSET, offset);
-        }
+        ReadAction.nonBlocking(() -> {
+            var file = psiDocumentManager.getPsiFile(e.getEditor().getDocument());
+            if (file instanceof GraphQLFile) {
+              return Pair.create(file, e.getEditor().logicalPositionToOffset(e.getNewPosition()));
+            }
+            else {
+              return Pair.create(file, -1);
+            }
+          })
+          .expireWith(GraphQLQueryContextCaretListener.this)
+          .finishOnUiThread(ModalityState.defaultModalityState(), fileWithOffset -> {
+            PsiFile file = fileWithOffset.getFirst();
+            Integer offset = fileWithOffset.getSecond();
+
+            if (file != null && offset != -1) {
+              file.putUserData(CARET_OFFSET, offset);
+            }
+          })
+          .submit(AppExecutorUtil.getAppExecutorService());
       }
     }, this);
   }
