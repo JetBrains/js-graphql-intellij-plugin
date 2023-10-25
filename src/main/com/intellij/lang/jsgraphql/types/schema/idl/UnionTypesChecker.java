@@ -25,7 +25,10 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.IllegalNameError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotAnObjectTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotUniqueError;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -42,12 +45,6 @@ import java.util.stream.Stream;
  */
 @Internal
 class UnionTypesChecker {
-  private static final Map<Class<? extends UnionTypeDefinition>, String> TYPE_OF_MAP = new HashMap<>();
-
-  static {
-    TYPE_OF_MAP.put(UnionTypeDefinition.class, "union");
-    TYPE_OF_MAP.put(UnionTypeExtensionDefinition.class, "union extension");
-  }
 
   void checkUnionType(List<GraphQLError> errors, TypeDefinitionRegistry typeRegistry) {
     List<UnionTypeDefinition> unionTypes = typeRegistry.getTypes(UnionTypeDefinition.class);
@@ -65,7 +62,7 @@ class UnionTypesChecker {
     assertTypeName(unionTypeDefinition, errors);
 
     List<Type> memberTypes = unionTypeDefinition.getMemberTypes();
-    if (memberTypes == null || memberTypes.size() == 0) {
+    if (memberTypes == null || memberTypes.isEmpty()) {
       errors.add(new EmptyUnionTypeError(unionTypeDefinition));
       return;
     }
