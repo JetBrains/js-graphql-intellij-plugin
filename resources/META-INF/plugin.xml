@@ -194,7 +194,7 @@
                                    implementation="com.intellij.lang.jsgraphql.ide.validation.GraphQLChangeLocalityDetector"/>
 
     <!-- Query context highlighter -->
-    <highlightVisitor implementation="com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor"/>
+    <!--<highlightVisitor implementation="com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor"/>-->
 
     <!-- Schema documentation -->
     <lang.documentationProvider language="GraphQL"
