@@ -64,6 +64,7 @@ public class GraphQLQueryContextCaretListener implements Disposable {
               return Pair.create(file, -1);
             }
           })
+          .expireWhen(() -> e.getEditor().isDisposed())
           .expireWith(GraphQLQueryContextCaretListener.this)
           .finishOnUiThread(ModalityState.defaultModalityState(), fileWithOffset -> {
             PsiFile file = fileWithOffset.getFirst();
