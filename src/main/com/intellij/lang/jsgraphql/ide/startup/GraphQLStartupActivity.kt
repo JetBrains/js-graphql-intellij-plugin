@@ -10,7 +10,6 @@ package com.intellij.lang.jsgraphql.ide.startup
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigWatcher
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
-import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesUpdater
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService
@@ -32,7 +31,6 @@ class GraphQLStartupActivity : StartupActivity.Background {
 
     if (!ApplicationManager.getApplication().isUnitTestMode) {
       GraphQLUIProjectService.getService(project)
-      GraphQLQueryContextCaretListener.getInstance(project).listen()
     }
   }
 
