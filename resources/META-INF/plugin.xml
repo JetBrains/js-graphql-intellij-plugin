@@ -87,8 +87,6 @@
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.ide.resolve.GraphQLReferenceService"/>
     <projectService
       serviceImplementation="com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService"/>
-    <projectService
-      serviceImplementation="com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextCaretListener"/>
     <projectService serviceImplementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager"/>
 
     <!-- Sources -->
