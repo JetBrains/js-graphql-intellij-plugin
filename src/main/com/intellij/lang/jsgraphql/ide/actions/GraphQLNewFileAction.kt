@@ -17,11 +17,7 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDirectory
 
-class GraphQLNewFileAction : CreateFileFromTemplateAction(
-  GraphQLBundle.message("graphql.action.create.file.from.template.title"),
-  GraphQLBundle.message("graphql.action.create.file.from.template.desc"),
-  GraphQLIcons.Files.GraphQL
-), DumbAware {
+class GraphQLNewFileAction : CreateFileFromTemplateAction(), DumbAware {
 
   override fun isAvailable(dataContext: DataContext): Boolean {
     if (!super.isAvailable(dataContext)) {

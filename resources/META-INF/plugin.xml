@@ -285,7 +285,8 @@
   </extensions>
 
   <actions>
-    <action id="GraphQLNewFileAction" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLNewFileAction">
+    <action id="GraphQLNewFileAction" class="com.intellij.lang.jsgraphql.ide.actions.GraphQLNewFileAction"
+            icon="com.intellij.lang.jsgraphql.icons.GraphQLIcons.Files.GraphQL">
       <add-to-group group-id="NewWebDevelopment"/>
     </action>
 
