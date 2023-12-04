@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
 import com.intellij.icons.AllIcons
+import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
 import com.intellij.ui.treeStructure.CachingSimpleNode
@@ -20,7 +21,7 @@ class GraphQLSchemaErrorsListNode(parent: SimpleNode, private val schemaInfo: Gr
   CachingSimpleNode(parent) {
 
   init {
-    myName = "Schema errors"
+    myName = GraphQLBundle.message("graphql.toolwindow.schema.errors.list.node.name")
     icon = AllIcons.Nodes.Folder
   }
 
@@ -42,7 +43,7 @@ class GraphQLSchemaErrorsListNode(parent: SimpleNode, private val schemaInfo: Gr
         }
 
         override fun getName(): String {
-          return "No errors found"
+          return GraphQLBundle.message("graphql.toolwindow.schema.errors.list.node.empty.errors")
         }
       }
       noErrors.icon = AllIcons.General.InspectionsOK

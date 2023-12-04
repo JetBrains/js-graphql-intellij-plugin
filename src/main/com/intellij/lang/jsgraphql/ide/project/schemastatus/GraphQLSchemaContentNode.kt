@@ -36,22 +36,45 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
   init {
     val parts: MutableList<String> = mutableListOf()
     val registry = validatedSchema.registryInfo.typeDefinitionRegistry
-    parts.add("${registry.getTypes(ObjectTypeDefinition::class.java).size} types")
-    parts.add("${registry.getTypes(InterfaceTypeDefinition::class.java).size} interfaces")
-    parts.add("${registry.getTypes(InputObjectTypeDefinition::class.java).size} inputs")
-    parts.add("${registry.getTypes(EnumTypeDefinition::class.java).size} enums")
-    parts.add("${registry.getTypes(UnionTypeDefinition::class.java).size} unions")
-    parts.add("${(registry.scalars().size - ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS.size)} scalars")
-    parts.add("${registry.directiveDefinitions.size} directives")
+    parts.add(GraphQLBundle.message(
+      "graphql.toolwindow.schema.content.types.count",
+      registry.getTypes(ObjectTypeDefinition::class.java).size
+    ))
+    parts.add(GraphQLBundle.message(
+      "graphql.toolwindow.schema.content.interfaces.count",
+      registry.getTypes(InterfaceTypeDefinition::class.java).size
+    ))
+    parts.add(GraphQLBundle.message(
+      "graphql.toolwindow.schema.content.inputs.count",
+      registry.getTypes(InputObjectTypeDefinition::class.java).size
+    ))
+    parts.add(GraphQLBundle.message(
+      "graphql.toolwindow.schema.content.enums.count",
+      registry.getTypes(EnumTypeDefinition::class.java).size
+    ))
+    parts.add(GraphQLBundle.message(
+      "graphql.toolwindow.schema.content.unions.count",
+      registry.getTypes(UnionTypeDefinition::class.java).size
+    ))
+    parts.add(GraphQLBundle.message(
+      "graphql.toolwindow.schema.content.scalars.count",
+      registry.scalars().size - ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS.size
+    ))
+    parts.add(GraphQLBundle.message(
+      "graphql.toolwindow.schema.content.directives.count",
+      registry.directiveDefinitions.size
+    ))
 
-    myName = "Schema discovery summary"
+    myName = GraphQLBundle.message("graphql.toolwindow.schema.content.node.name")
 
     val nonEmptyParts = parts.filter { it[0] != '0' }
+    val locationDelimiter = "- "
     if (nonEmptyParts.isNotEmpty()) {
-      templatePresentation.locationString = "- " + nonEmptyParts.joinToString()
+      templatePresentation.locationString = locationDelimiter + nonEmptyParts.joinToString()
     }
     else {
-      templatePresentation.locationString = "- schema is empty"
+      templatePresentation.locationString = locationDelimiter + GraphQLBundle.message(
+        "graphql.toolwindow.schema.content.empty.node.tooltip")
     }
 
     templatePresentation.tooltip = GraphQLBundle.message("graphql.tooltip.search.schema.registry")

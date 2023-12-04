@@ -126,12 +126,15 @@ public class GraphQLValidationAnnotator implements Annotator {
       if (typeScope != null) {
         String definitionType = "";
         if (typeScope instanceof GraphQLObjectType) {
-          definitionType = "object ";
+          definitionType = GraphQLBundle.message("graphql.validation.object.type");
         }
         else if (typeScope instanceof GraphQLInterfaceType) {
-          definitionType = "interface ";
+          definitionType = GraphQLBundle.message("graphql.validation.interface.type");
         }
-        message += GraphQLBundle.message("graphql.validation.on.0.type.1", definitionType, GraphQLSchemaUtil.getTypeName(typeScope));
+        if (!definitionType.isEmpty()) {
+          definitionType += " ";
+        }
+        message += " " + GraphQLBundle.message("graphql.validation.on.0.type.1", definitionType, GraphQLSchemaUtil.getTypeName(typeScope));
         final List<String> suggestions = getFieldNameSuggestions(element.getText(), typeScope);
         if (suggestions != null && !suggestions.isEmpty()) {
           message += GraphQLBundle.message("graphql.validation.did.you.mean.0", formatSuggestions(suggestions));
@@ -162,7 +165,7 @@ public class GraphQLValidationAnnotator implements Annotator {
     else if (parent instanceof GraphQLObjectField) {
       message = GraphQLBundle.message("graphql.validation.unknown.field.0", element.getText());
       if (typeScope != null) {
-        message += GraphQLBundle.message("graphql.validation.on.input.type.0", GraphQLSchemaUtil.getTypeName(typeScope));
+        message += " " + GraphQLBundle.message("graphql.validation.on.input.type.0", GraphQLSchemaUtil.getTypeName(typeScope));
         final List<String> suggestions = getFieldNameSuggestions(element.getText(), typeScope);
         if (suggestions != null && !suggestions.isEmpty()) {
           message += GraphQLBundle.message("graphql.validation.did.you.mean.0", formatSuggestions(suggestions));
@@ -252,7 +255,8 @@ public class GraphQLValidationAnnotator implements Annotator {
 
   private static String formatSuggestions(List<String> suggestions) {
     if (suggestions != null && !suggestions.isEmpty()) {
-      return "\"" + String.join("\", or \"", suggestions) + "\"";
+      String suggestionDelimiter = GraphQLBundle.message("graphql.validation.field.name.suggestion.delimiter");
+      return "\"" + String.join("\"" + suggestionDelimiter + " \"", suggestions) + "\"";
     }
     return null;
   }

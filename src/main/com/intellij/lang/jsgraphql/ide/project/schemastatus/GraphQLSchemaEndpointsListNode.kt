@@ -38,7 +38,7 @@ class GraphQLSchemaEndpointsListNode(
   private val endpoints: List<GraphQLConfigEndpoint> = projectConfig?.endpoints ?: emptyList()
 
   init {
-    myName = "Endpoints"
+    myName = GraphQLBundle.message("graphql.toolwindow.schema.endpoints.list.node.name")
     icon = AllIcons.Nodes.WebFolder
   }
 
@@ -83,7 +83,7 @@ class GraphQLSchemaEndpointsListNode(
     private fun showPopup(component: Component?, x: Int, y: Int) {
       val group = DefaultActionGroup()
       group.add(object : AnAction(
-        GraphQLBundle.messagePointer("graphql.tool.window.action.introspect.endpoint"),
+        GraphQLBundle.messagePointer("graphql.toolwindow.action.introspect.endpoint"),
         AllIcons.Actions.Refresh,
       ) {
         override fun actionPerformed(e: AnActionEvent) {
@@ -92,7 +92,7 @@ class GraphQLSchemaEndpointsListNode(
       })
 
       group.add(object : AnAction(
-        GraphQLBundle.messagePointer("graphql.tool.window.action.create.scratch"),
+        GraphQLBundle.messagePointer("graphql.toolwindow.action.create.scratch"),
         GraphQLIcons.Files.GraphQLScratch,
       ) {
         override fun actionPerformed(e: AnActionEvent) {
@@ -116,7 +116,7 @@ class GraphQLSchemaEndpointsListNode(
 
   private class DefaultEndpointNode(project: Project) : SimpleNode(project) {
     init {
-      myName = "No endpoints available in the default schema"
+      myName = GraphQLBundle.message("graphql.toolwindow.schema.endpoints.default.node.name")
       templatePresentation.tooltip = GraphQLBundle.message("graphql.tooltip.endpoints.perform.introspection.queries.mutations")
       icon = AllIcons.General.Information
     }

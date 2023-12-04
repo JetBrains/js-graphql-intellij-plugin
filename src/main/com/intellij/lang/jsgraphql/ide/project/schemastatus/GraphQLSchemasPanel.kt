@@ -125,7 +125,7 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
         return hasFocus() && super.isPathSelected(treePath)
       }
     }
-    tree.emptyText.setText(GraphQLBundle.message("graphql.tool.window.discovery.not.completed"))
+    tree.emptyText.setText(GraphQLBundle.message("graphql.toolwindow.discovery.not.completed"))
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
     tree.isRootVisible = false
     tree.showsRootHandles = true

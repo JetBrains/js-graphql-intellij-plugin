@@ -438,15 +438,22 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
           }
 
           updateQueryResultEditor(responseJson, queryResultEditor, reformatJson);
-          final StringBuilder queryResultText = new StringBuilder(virtualFile.getName()).
-            append(": ").
-            append(end - start).
-            append(" ms execution time, ").
-            append(bytesToDisplayString(responseJson.length())).
-            append(" response");
+          String queryResultText = GraphQLBundle.message(
+            "graphql.query.result.statistics",
+            virtualFile.getName(),
+            end - start,
+            bytesToDisplayString(responseJson.length())
+          );
 
           if (errorCount != null && errorCount > 0) {
-            queryResultText.append(", ").append(errorCount).append(" error").append(errorCount > 1 ? "s" : "");
+            queryResultText += GraphQLBundle.message(
+              "graphql.query.result.statistics.error",
+              errorCount,
+              errorCount > 1
+              ? GraphQLBundle.message("graphql.query.result.statistics.multiple.errors")
+              : GraphQLBundle.message("graphql.query.result.statistics.single.error")
+            );
+
             if (context.onError != null) {
               context.onError.run();
             }
@@ -566,7 +573,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
   }
 
   private static String bytesToDisplayString(long bytes) {
-    if (bytes < 1000) return bytes + " bytes";
+    if (bytes < 1000) return GraphQLBundle.message("graphql.query.result.window.bytes.count", bytes);
     int exp = (int)(Math.log(bytes) / Math.log(1000));
     String pre = ("kMGTPE").charAt(exp - 1) + "";
     return String.format("%.1f %sb", bytes / Math.pow(1000, exp), pre);

@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
 import com.intellij.codeHighlighting.HighlightDisplayLevel
+import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLTreeNodeNavigationUtil.openSourceLocation
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection
 import com.intellij.lang.jsgraphql.schema.GraphQLUnexpectedSchemaError
@@ -38,7 +39,7 @@ class GraphQLSchemaErrorNode(parent: SimpleNode?, private val error: GraphQLErro
       }
     }
     else if (error is GraphQLUnexpectedSchemaError) {
-      templatePresentation.locationString = " - double click to open stack trace"
+      templatePresentation.locationString = " - " + GraphQLBundle.message("graphql.toolwindow.schema.error.node.tooltip")
     }
 
     setIconFromError(error)

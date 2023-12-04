@@ -7,6 +7,7 @@
  */
 package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
+import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
@@ -23,7 +24,7 @@ class GraphQLDefaultSchemaNode(project: Project, parent: GraphQLSchemasRootNode)
   private val schemaInfo: GraphQLSchemaInfo
 
   init {
-    myName = "Default project-wide schema"
+    myName = GraphQLBundle.message("graphql.toolwindow.default.schema.node.name")
     presentation.locationString = project.presentableUrl
     presentation.setIcon(GraphQLIcons.Files.GraphQLSchema)
 
