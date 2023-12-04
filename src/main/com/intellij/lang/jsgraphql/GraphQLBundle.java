@@ -1,30 +1,26 @@
 package com.intellij.lang.jsgraphql;
 
-import com.intellij.AbstractBundle;
+import com.intellij.DynamicBundle;
 import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
 import java.util.function.Supplier;
 
-public class GraphQLBundle extends AbstractBundle {
-  @NonNls
-  public static final String PATH = "messages.GraphQLBundle";
+public final class GraphQLBundle {
 
-  private static final GraphQLBundle INSTANCE = new GraphQLBundle();
+  private static final String BUNDLE = "messages.GraphQLBundle";
 
-  private GraphQLBundle() {
-    super(PATH);
-  }
+  private static final DynamicBundle INSTANCE = new DynamicBundle(GraphQLBundle.class, BUNDLE);
 
-  @NotNull
-  public static @Nls String message(@NotNull @PropertyKey(resourceBundle = PATH) String key, Object @NotNull ... params) {
+  private GraphQLBundle() { }
+
+  public static @NotNull @Nls String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, Object @NotNull ... params) {
     return INSTANCE.getMessage(key, params);
   }
 
   public static @NotNull Supplier<@Nls String> messagePointer(
-    @NotNull @PropertyKey(resourceBundle = PATH) String key,
+    @NotNull @PropertyKey(resourceBundle = BUNDLE) String key,
     Object @NotNull ... params
   ) {
     return INSTANCE.getLazyMessage(key, params);
