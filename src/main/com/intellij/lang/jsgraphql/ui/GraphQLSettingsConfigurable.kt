@@ -85,6 +85,7 @@ class GraphQLSettingsConfigurable(private val project: Project) :
             .updateLibraries()
         }
         row {
+          @Suppress("DialogTitleCapitalization")
           checkBox(message("graphql.library.apollokotlin"))
             .bindSelected(settings::isApolloKotlinSupportEnabled)
             .updateLibraries()
