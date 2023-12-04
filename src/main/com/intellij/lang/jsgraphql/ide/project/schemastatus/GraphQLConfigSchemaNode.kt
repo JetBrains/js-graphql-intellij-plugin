@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
 import com.intellij.icons.AllIcons
+import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
@@ -90,7 +91,7 @@ class GraphQLConfigSchemaNode(
     CachingSimpleNode(parent.myProject, parent) {
 
     init {
-      myName = "Projects"
+      myName = GraphQLBundle.message("graphql.toolwindow.projects.node.name")
       icon = AllIcons.Nodes.Folder
     }
 
