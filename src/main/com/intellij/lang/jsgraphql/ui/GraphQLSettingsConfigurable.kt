@@ -76,7 +76,6 @@ class GraphQLSettingsConfigurable(private val project: Project) :
         row {
           checkBox(message("graphql.library.relay"))
             .bindSelected(settings::isRelaySupportEnabled)
-            .applyToComponent { toolTipText = message("graphql.settings.frameworks.relay.tooltip") }
             .updateLibraries()
         }
         row {
