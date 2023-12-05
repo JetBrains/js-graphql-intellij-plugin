@@ -275,7 +275,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     // configured endpoints combo box
 
     final GraphQLEndpointsModel endpointsModel = new GraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
-    final ComboBox<?> endpointComboBox = new ComboBox(endpointsModel);
+    final ComboBox<?> endpointComboBox = new ComboBox<>(endpointsModel);
     endpointComboBox.setToolTipText(GraphQLBundle.message("graphql.endpoint.tooltip"));
     editor.putUserData(GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
     final JPanel endpointComboBoxPanel = new JPanel(new BorderLayout());
@@ -464,7 +464,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
           if (queryResultHeader == null) return;
 
           JBLabel queryResultLabel = queryResultHeader.getResultLabel();
-          @NlsSafe String resultTextString = queryResultText.toString();
+          @NlsSafe String resultTextString = queryResultText;
           queryResultLabel.setText(resultTextString);
           queryResultLabel.putClientProperty(GraphQLToolWindow.FILE_URL_PROPERTY, virtualFile.getUrl());
           if (!queryResultLabel.isVisible()) {
