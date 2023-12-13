@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class GraphQLJavaScriptTemplateFragmentLanguageInjector implements MultiHostInjector {
+public final class GraphQLJavaScriptTemplateFragmentLanguageInjector implements MultiHostInjector {
 
   private static final List<Class<JSStringTemplateExpression>> INJECTION_CLASSES = Lists.newArrayList(JSStringTemplateExpression.class);
 

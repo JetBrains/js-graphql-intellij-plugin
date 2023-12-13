@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GraphQLFoldingBuilder implements FoldingBuilder {
+public final class GraphQLFoldingBuilder implements FoldingBuilder {
 
   @Nullable
   @Override

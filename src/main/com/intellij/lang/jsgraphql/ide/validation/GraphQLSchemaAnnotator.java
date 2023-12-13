@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 
-public class GraphQLSchemaAnnotator implements Annotator {
+public final class GraphQLSchemaAnnotator implements Annotator {
   private static final Logger LOG = Logger.getInstance(GraphQLSchemaAnnotator.class);
 
   @Override

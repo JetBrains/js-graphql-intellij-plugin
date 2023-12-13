@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Line marker which shows an action to turn a GraphQL Introspection JSON result into a GraphQL schema expressed in GraphQL SDL.
  */
-public class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMarkerProvider {
+public final class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMarkerProvider {
   @Nullable
   @Override
   public LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {

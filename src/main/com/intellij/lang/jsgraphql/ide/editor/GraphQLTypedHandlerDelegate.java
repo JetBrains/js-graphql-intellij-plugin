@@ -11,7 +11,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLTypedHandlerDelegate extends TypedHandlerDelegate {
+public final class GraphQLTypedHandlerDelegate extends TypedHandlerDelegate {
   @Override
   public @NotNull Result checkAutoPopup(char charTyped, @NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
     if (!(file instanceof GraphQLFile)) {

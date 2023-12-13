@@ -14,7 +14,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GraphQLFormattingModelBuilder implements FormattingModelBuilder {
+public final class GraphQLFormattingModelBuilder implements FormattingModelBuilder {
   @Override
   public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
     return FormattingModelProvider.createFormattingModelForPsiFile(

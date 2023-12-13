@@ -14,7 +14,7 @@ import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLVariablesHighlightErrorFilter extends HighlightErrorFilter {
+public final class GraphQLVariablesHighlightErrorFilter extends HighlightErrorFilter {
 
   @Override
   public boolean shouldHighlightErrorElement(@NotNull PsiErrorElement element) {

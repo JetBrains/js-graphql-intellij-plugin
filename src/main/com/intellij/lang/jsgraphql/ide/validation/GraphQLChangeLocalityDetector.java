@@ -8,7 +8,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GraphQLChangeLocalityDetector implements ChangeLocalityDetector {
+public final class GraphQLChangeLocalityDetector implements ChangeLocalityDetector {
   @Override
   public @Nullable PsiElement getChangeHighlightingDirtyScopeFor(@NotNull PsiElement changedElement) {
     if (!changedElement.getLanguage().is(GraphQLLanguage.INSTANCE)) {

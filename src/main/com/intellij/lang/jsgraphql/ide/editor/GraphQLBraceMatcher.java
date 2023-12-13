@@ -15,7 +15,7 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GraphQLBraceMatcher implements PairedBraceMatcher {
+public final class GraphQLBraceMatcher implements PairedBraceMatcher {
   @Override
   public BracePair[] getPairs() {
     return new BracePair[]{

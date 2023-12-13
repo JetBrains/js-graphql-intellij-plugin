@@ -32,7 +32,7 @@ import java.util.Objects;
 
 import static com.intellij.lang.documentation.DocumentationMarkup.*;
 
-public class GraphQLDocumentationProvider extends DocumentationProviderEx {
+public final class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
   private final static String GRAPHQL_DOC_PREFIX = GraphQLConstants.GraphQL;
 

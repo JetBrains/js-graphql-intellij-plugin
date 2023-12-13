@@ -8,7 +8,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.SingleRootFileViewProvider;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLFileViewProviderFactory implements FileViewProviderFactory {
+public final class GraphQLFileViewProviderFactory implements FileViewProviderFactory {
   @Override
   public @NotNull FileViewProvider createFileViewProvider(@NotNull VirtualFile file,
                                                           Language language,

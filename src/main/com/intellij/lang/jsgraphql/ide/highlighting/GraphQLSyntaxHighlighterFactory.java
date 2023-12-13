@@ -13,7 +13,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLSyntaxHighlighterFactory extends SyntaxHighlighterFactory {
+public final class GraphQLSyntaxHighlighterFactory extends SyntaxHighlighterFactory {
   @NotNull
   @Override
   public SyntaxHighlighter getSyntaxHighlighter(Project project, VirtualFile virtualFile) {

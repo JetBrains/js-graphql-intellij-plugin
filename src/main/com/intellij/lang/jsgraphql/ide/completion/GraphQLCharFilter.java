@@ -6,7 +6,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.Nullable;
 
-public class GraphQLCharFilter extends CharFilter {
+public final class GraphQLCharFilter extends CharFilter {
   @Override
   public @Nullable Result acceptChar(char c, int prefixLength, Lookup lookup) {
     PsiFile file = lookup.getPsiFile();

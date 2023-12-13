@@ -28,7 +28,7 @@ import java.util.HashMap;
 /**
  * Indexes GraphQL identifiers in GraphQL files, GraphQL injections, and JSON GraphQL introspection query result files.
  */
-public class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, GraphQLIdentifierIndex.IdentifierKind> {
+public final class GraphQLIdentifierIndex extends FileBasedIndexExtension<String, GraphQLIdentifierIndex.IdentifierKind> {
 
   public static final ID<String, IdentifierKind> NAME = ID.create("GraphQLIdentifierIndex");
   public static final int VERSION = 3;

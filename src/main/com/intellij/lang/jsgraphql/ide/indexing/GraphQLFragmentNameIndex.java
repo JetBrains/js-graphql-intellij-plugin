@@ -27,7 +27,7 @@ import java.util.Collections;
 /**
  * Index for processing files that contain one or more GraphQL fragment definitions
  */
-public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Boolean> {
+public final class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Boolean> {
 
   public static final ID<String, Boolean> NAME = ID.create("GraphQLFragmentNameIndex");
 

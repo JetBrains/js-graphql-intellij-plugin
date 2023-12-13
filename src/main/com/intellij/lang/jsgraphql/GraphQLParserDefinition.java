@@ -23,7 +23,7 @@ import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
-public class GraphQLParserDefinition implements ParserDefinition {
+public final class GraphQLParserDefinition implements ParserDefinition {
 
   public static final Key<Boolean> GRAPHQL_ACTIVATED = Key.create("graphql.activated");
 

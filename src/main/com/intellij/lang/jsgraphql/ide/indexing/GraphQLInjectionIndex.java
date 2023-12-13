@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * Indexes files which contain GraphQL Injection to enable discovery of type definitions written using injected Schema IDL.
  */
-public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
+public final class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
 
   public static final ID<String, Void> NAME = ID.create(GraphQLInjectionIndex.class.getName());
   public static final String DATA_KEY = "true";

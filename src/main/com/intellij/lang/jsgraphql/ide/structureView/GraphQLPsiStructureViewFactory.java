@@ -16,7 +16,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GraphQLPsiStructureViewFactory implements PsiStructureViewFactory {
+public final class GraphQLPsiStructureViewFactory implements PsiStructureViewFactory {
 
   @Nullable
   @Override

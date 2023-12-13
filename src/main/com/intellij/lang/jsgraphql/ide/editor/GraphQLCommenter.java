@@ -10,7 +10,7 @@ package com.intellij.lang.jsgraphql.ide.editor;
 import com.intellij.lang.Commenter;
 import org.jetbrains.annotations.Nullable;
 
-public class GraphQLCommenter implements Commenter {
+public final class GraphQLCommenter implements Commenter {
   @Nullable
   @Override
   public String getLineCommentPrefix() {

@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Implements renaming of GraphQL identifiers
  */
-public class GraphQLIdentifierManipulator extends AbstractElementManipulator<GraphQLIdentifierImpl> {
+public final class GraphQLIdentifierManipulator extends AbstractElementManipulator<GraphQLIdentifierImpl> {
 
   @Override
   public GraphQLIdentifierImpl handleContentChange(@NotNull GraphQLIdentifierImpl element, @NotNull TextRange range, String newContent)

@@ -22,7 +22,7 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GraphQLColorSettingsPage implements ColorSettingsPage {
+public final class GraphQLColorSettingsPage implements ColorSettingsPage {
   private static final AttributesDescriptor[] DESCRIPTORS = new AttributesDescriptor[]{
     new AttributesDescriptor(
       GraphQLBundle.messagePointer("graphql.attribute.descriptor.keyword"), GraphQLSyntaxHighlighter.KEYWORD),

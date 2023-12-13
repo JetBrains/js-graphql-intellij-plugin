@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
-public class GraphQLSyntaxAnnotator implements Annotator {
+public final class GraphQLSyntaxAnnotator implements Annotator {
   public static final TextAttributesKey OPERATION_DEFINITION =
     createTextAttributesKey("GRAPHQL_OPERATION_DEFINITION", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION);
   public static final TextAttributesKey FRAGMENT_DEFINITION =

@@ -56,7 +56,7 @@ import static com.intellij.patterns.PlatformPatterns.psiComment;
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 
 @SuppressWarnings("rawtypes")
-public class GraphQLCompletionContributor extends CompletionContributor {
+public final class GraphQLCompletionContributor extends CompletionContributor {
 
   // top level keywords (incomplete keywords such as "q" is inside error Psi element, hence superParent
   private static final PsiElementPattern.Capture<PsiElement> TOP_LEVEL_KEYWORD_PATTERN =

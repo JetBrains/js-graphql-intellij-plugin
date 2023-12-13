@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Apollo client 2.5 doesn't require sub selections for client fields
  */
-public class GraphQLApolloErrorFilter implements GraphQLErrorFilter {
+public final class GraphQLApolloErrorFilter implements GraphQLErrorFilter {
 
   @Override
   public boolean isInspectionSuppressed(@NotNull Project project,

@@ -13,7 +13,7 @@ import com.intellij.codeInsight.editorActions.enter.EnterBetweenBracesDelegate;
  * Adds a new indented line when pressing enter between [] in an empty GraphQL list
  * in addition to handling pairs of {} and () braces by a default implementation.
  */
-public class GraphQLEnterBetweenBracesHandler extends EnterBetweenBracesDelegate {
+public final class GraphQLEnterBetweenBracesHandler extends EnterBetweenBracesDelegate {
 
   @Override
   protected boolean isBracePair(char c1, char c2) {

@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class GraphQLLibraryRootsProvider extends AdditionalLibraryRootsProvider {
+public final class GraphQLLibraryRootsProvider extends AdditionalLibraryRootsProvider {
 
   public static @Nullable GraphQLLibrary findLibrary(@NotNull Project project, @NotNull GraphQLLibraryDescriptor libraryDescriptor) {
     for (SyntheticLibrary library : getLibraries(project)) {

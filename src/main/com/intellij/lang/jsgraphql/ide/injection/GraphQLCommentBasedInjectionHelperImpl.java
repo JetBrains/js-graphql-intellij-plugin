@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Detects manual GraphQL injections using IntelliLang <code>language=GraphQL</code> injection comments.
  */
-public class GraphQLCommentBasedInjectionHelperImpl implements GraphQLCommentBasedInjectionHelper {
+public final class GraphQLCommentBasedInjectionHelperImpl implements GraphQLCommentBasedInjectionHelper {
 
   @Override
   public boolean isGraphQLInjectedUsingComment(@NotNull PsiElement host) {

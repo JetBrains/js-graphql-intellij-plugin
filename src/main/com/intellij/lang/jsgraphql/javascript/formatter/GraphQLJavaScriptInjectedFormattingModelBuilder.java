@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
-class GraphQLJavaScriptInjectedFormattingModelBuilder implements CustomFormattingModelBuilder {
+final class GraphQLJavaScriptInjectedFormattingModelBuilder implements CustomFormattingModelBuilder {
 
   private static final Key<Boolean> WANT_DEFAULT_FORMATTER_KEY = Key.create("GraphQLJavaScriptInjectedFormattingModelBuilder.wantDefault");
 

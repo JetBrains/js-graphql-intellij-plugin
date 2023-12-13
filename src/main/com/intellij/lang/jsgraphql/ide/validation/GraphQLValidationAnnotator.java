@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 
 import static com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection.createAnnotation;
 
-public class GraphQLValidationAnnotator implements Annotator {
+public final class GraphQLValidationAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {

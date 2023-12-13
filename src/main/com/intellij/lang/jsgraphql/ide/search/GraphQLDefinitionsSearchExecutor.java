@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Provides a list of 'type' implementations for an 'interface' definition
  */
-public class GraphQLDefinitionsSearchExecutor implements QueryExecutor<PsiElement, PsiElement> {
+public final class GraphQLDefinitionsSearchExecutor implements QueryExecutor<PsiElement, PsiElement> {
 
   @Override
   public boolean execute(@NotNull PsiElement queryParameters, @NotNull Processor<? super PsiElement> consumer) {

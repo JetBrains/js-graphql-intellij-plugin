@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Nests GraphQL files created using introspection under their source JSON files.
  */
-public class GraphQLIntrospectionProjectViewNestingRulesProvider implements ProjectViewNestingRulesProvider {
+public final class GraphQLIntrospectionProjectViewNestingRulesProvider implements ProjectViewNestingRulesProvider {
 
   @Override
   public void addFileNestingRules(@NotNull Consumer consumer) {

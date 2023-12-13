@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * Filters out errors from non-spec Relay Modern argument directives that rely on dynamically named arguments
  * that can't be expressed using SDL as of the June 2018 spec.
  */
-public class GraphQLRelayErrorFilter implements GraphQLErrorFilter {
+public final class GraphQLRelayErrorFilter implements GraphQLErrorFilter {
 
   @Override
   public boolean isInspectionSuppressed(@NotNull Project project,

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GraphQLInspectionSuppressor implements InspectionSuppressor {
+public final class GraphQLInspectionSuppressor implements InspectionSuppressor {
   public static final Pattern SUPPRESS_IN_LINE_COMMENT_PATTERN = Pattern.compile("#" + SuppressionUtil.COMMON_SUPPRESS_REGEXP);
 
   @Override

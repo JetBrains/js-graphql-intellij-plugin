@@ -20,7 +20,7 @@ import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GraphQLLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
+public final class GraphQLLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSettingsProvider {
 
   private static final String SAMPLE = """
     query Hero($episode: Episode!, $withFriends: Boolean!) {

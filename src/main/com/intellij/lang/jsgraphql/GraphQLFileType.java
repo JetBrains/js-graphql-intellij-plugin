@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class GraphQLFileType extends LanguageFileType {
+public final class GraphQLFileType extends LanguageFileType {
   public static final GraphQLFileType INSTANCE = new GraphQLFileType();
 
   private GraphQLFileType() {

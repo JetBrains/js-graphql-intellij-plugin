@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
 import com.intellij.lang.jsgraphql.psi.GraphQLExtendedElementTypes;
 import com.intellij.openapi.editor.highlighter.HighlighterIterator;
 
-public class GraphQLQuoteHandler extends SimpleTokenSetQuoteHandler {
+public final class GraphQLQuoteHandler extends SimpleTokenSetQuoteHandler {
 
   public GraphQLQuoteHandler() {
     super(GraphQLExtendedElementTypes.SINGLE_QUOTES);

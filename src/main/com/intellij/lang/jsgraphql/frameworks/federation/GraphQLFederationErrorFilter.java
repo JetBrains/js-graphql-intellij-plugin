@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class GraphQLFederationErrorFilter implements GraphQLErrorFilter {
+public final class GraphQLFederationErrorFilter implements GraphQLErrorFilter {
 
   @Override
   public boolean isGraphQLErrorSuppressed(@NotNull Project project,
