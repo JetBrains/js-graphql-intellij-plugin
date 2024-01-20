@@ -47,11 +47,6 @@ public class NoUndefinedVariables extends AbstractRule {
   }
 
   @Override
-  public void checkFragmentDefinition(FragmentDefinition fragmentDefinition) {
-    super.checkFragmentDefinition(fragmentDefinition);
-  }
-
-  @Override
   public void checkVariable(VariableReference variableReference) {
     if (!variableNames.contains(variableReference.getName())) {
       String message = String.format("Undefined variable %s", variableReference.getName());

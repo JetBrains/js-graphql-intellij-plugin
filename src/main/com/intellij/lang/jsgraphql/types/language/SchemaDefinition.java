@@ -71,10 +71,6 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition>
     return operationTypeDefinitions;
   }
 
-  public Description getDescription() {
-    return description;
-  }
-
   @Override
   public List<Node> getChildren() {
     List<Node> result = new ArrayList<>();

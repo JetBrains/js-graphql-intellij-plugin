@@ -22,10 +22,4 @@ public class GraphQLFormattingModelBuilder implements FormattingModelBuilder {
       new GraphQLBlock(formattingContext.getNode(), Wrap.createWrap(WrapType.NONE, false), null),
       formattingContext.getCodeStyleSettings());
   }
-
-  @Nullable
-  @Override
-  public TextRange getRangeAffectingIndent(PsiFile file, int offset, ASTNode elementAtOffset) {
-    return null;
-  }
 }

@@ -55,11 +55,6 @@ public class GraphQLParserTest extends ParsingTestCase {
   }
 
   @Override
-  protected boolean skipSpaces() {
-    return false;
-  }
-
-  @Override
   protected boolean includeRanges() {
     return true;
   }

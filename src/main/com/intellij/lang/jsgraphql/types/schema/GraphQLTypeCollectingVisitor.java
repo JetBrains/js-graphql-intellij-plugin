@@ -93,12 +93,6 @@ public class GraphQLTypeCollectingVisitor extends GraphQLTypeVisitorStub {
     return super.visitGraphQLUnionType(node, context);
   }
 
-  @Override
-  public TraversalControl visitGraphQLFieldDefinition(GraphQLFieldDefinition node, TraverserContext<GraphQLSchemaElement> context) {
-
-    return super.visitGraphQLFieldDefinition(node, context);
-  }
-
   private boolean isNotTypeReference(String name) {
     return result.containsKey(name) && !(result.get(name) instanceof GraphQLTypeReference);
   }

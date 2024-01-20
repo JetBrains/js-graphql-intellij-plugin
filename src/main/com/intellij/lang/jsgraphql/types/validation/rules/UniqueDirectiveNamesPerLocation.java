@@ -44,11 +44,6 @@ public class UniqueDirectiveNamesPerLocation extends AbstractRule {
   }
 
   @Override
-  public void checkDocument(Document document) {
-    super.checkDocument(document);
-  }
-
-  @Override
   public void checkInlineFragment(InlineFragment inlineFragment) {
     checkDirectivesUniqueness(inlineFragment, inlineFragment.getDirectives());
   }

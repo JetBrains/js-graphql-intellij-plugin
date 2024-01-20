@@ -59,12 +59,6 @@ class GraphQLJavaScriptInjectedFormattingModelBuilder implements CustomFormattin
     return new SpacingBuilder(settings, element.getLanguage());
   }
 
-  @Nullable
-  @Override
-  public TextRange getRangeAffectingIndent(PsiFile file, int offset, ASTNode elementAtOffset) {
-    return null;
-  }
-
   @Override
   public boolean isEngagedToFormat(PsiElement context) {
     if (context instanceof JSFile) {

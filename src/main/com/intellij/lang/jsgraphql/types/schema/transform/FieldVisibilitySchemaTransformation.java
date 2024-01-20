@@ -197,12 +197,6 @@ public class FieldVisibilitySchemaTransformation {
     }
 
     @Override
-    public TraversalControl visitGraphQLInterfaceType(GraphQLInterfaceType node,
-                                                      TraverserContext<GraphQLSchemaElement> context) {
-      return super.visitGraphQLInterfaceType(node, context);
-    }
-
-    @Override
     public TraversalControl visitGraphQLType(GraphQLSchemaElement node,
                                              TraverserContext<GraphQLSchemaElement> context) {
       if (observedBeforeTransform.contains(node) &&
