@@ -33,4 +33,9 @@ public class GraphQLStringValueImpl extends GraphQLValueImpl implements GraphQLS
     return findNotNullChildByClass(GraphQLStringLiteral.class);
   }
 
+  @Override
+  public @NotNull String getValueAsString() {
+    return GraphQLPsiImplUtil.getValueAsString(this);
+  }
+
 }

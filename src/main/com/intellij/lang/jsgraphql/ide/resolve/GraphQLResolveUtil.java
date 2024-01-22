@@ -73,7 +73,7 @@ public final class GraphQLResolveUtil {
    * like GraphQLObjectTypeDefinition, GraphQLFieldDefinition, etc.
    */
   @Nullable
-  public static PsiElement findResolvedDefinition(@Nullable PsiElement resolveTarget) {
+  public static PsiElement adjustResolvedDefinition(@Nullable PsiElement resolveTarget) {
     if (resolveTarget == null) return null;
 
     PsiElement definition = resolveTarget instanceof GraphQLIdentifier ? resolveTarget.getParent() : resolveTarget;
@@ -88,17 +88,22 @@ public final class GraphQLResolveUtil {
 
   @Nullable
   public static PsiElement resolve(@Nullable PsiElement element) {
-    if (!(element instanceof GraphQLNamedElement)) {
+    if (element instanceof GraphQLReferenceElement referenceElement) {
+      PsiReference reference = referenceElement.getReference();
+      return reference != null ? adjustResolvedDefinition(reference.resolve()) : null;
+    }
+
+    if (element instanceof GraphQLNamedElement namedElement) {
+      final PsiElement nameIdentifier = namedElement.getNameIdentifier();
+      if (nameIdentifier != null) {
+        PsiReference reference = nameIdentifier.getReference();
+        if (reference != null) {
+          return adjustResolvedDefinition(reference.resolve());
+        }
+      }
       return null;
     }
 
-    final PsiElement nameIdentifier = ((GraphQLNamedElement)element).getNameIdentifier();
-    if (nameIdentifier != null) {
-      PsiReference reference = nameIdentifier.getReference();
-      if (reference != null) {
-        return reference.resolve();
-      }
-    }
     return null;
   }
 

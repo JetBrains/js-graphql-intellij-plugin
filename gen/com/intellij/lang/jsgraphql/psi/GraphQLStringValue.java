@@ -10,4 +10,6 @@ public interface GraphQLStringValue extends GraphQLValue {
   @NotNull
   GraphQLStringLiteral getStringLiteral();
 
+  @NotNull String getValueAsString();
+
 }

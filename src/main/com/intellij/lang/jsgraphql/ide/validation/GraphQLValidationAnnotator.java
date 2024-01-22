@@ -32,6 +32,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.ObjectUtils;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.text.EditDistance;
 import org.jetbrains.annotations.NotNull;
@@ -207,20 +208,17 @@ public class GraphQLValidationAnnotator implements Annotator {
 
   private static List<String> getArgumentNameSuggestions(PsiElement argument) {
     final GraphQLField field = PsiTreeUtil.getParentOfType(argument, GraphQLField.class);
-    final PsiElement fieldDefinitionIdentifier = GraphQLResolveUtil.resolve(field);
-    if (fieldDefinitionIdentifier != null) {
-      GraphQLFieldDefinition fieldDefinition = PsiTreeUtil.getParentOfType(fieldDefinitionIdentifier, GraphQLFieldDefinition.class);
-      if (fieldDefinition != null) {
-        final GraphQLArgumentsDefinition argumentsDefinition = fieldDefinition.getArgumentsDefinition();
-        if (argumentsDefinition != null) {
-          final List<String> argumentNames = new ArrayList<>();
-          argumentsDefinition.getInputValueDefinitionList().forEach(arg -> {
-            if (arg.getName() != null) {
-              argumentNames.add(arg.getName());
-            }
-          });
-          return getSuggestions(argument.getText(), argumentNames);
-        }
+    final GraphQLFieldDefinition fieldDefinition = ObjectUtils.tryCast(GraphQLResolveUtil.resolve(field), GraphQLFieldDefinition.class);
+    if (fieldDefinition != null) {
+      final GraphQLArgumentsDefinition argumentsDefinition = fieldDefinition.getArgumentsDefinition();
+      if (argumentsDefinition != null) {
+        final List<String> argumentNames = new ArrayList<>();
+        argumentsDefinition.getInputValueDefinitionList().forEach(arg -> {
+          if (arg.getName() != null) {
+            argumentNames.add(arg.getName());
+          }
+        });
+        return getSuggestions(argument.getText(), argumentNames);
       }
     }
     return Collections.emptyList();

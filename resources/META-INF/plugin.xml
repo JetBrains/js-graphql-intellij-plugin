@@ -218,6 +218,10 @@
                      enabledByDefault="true"
                      groupKey="graphql.inspection.group.general" groupPathKey="graphql" unfair="true" level="ERROR"
                      implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection"/>
+    <localInspection language="GraphQL" key="graphql.inspection.display.name.deprecated.symbols"
+                     enabledByDefault="true"
+                     groupKey="graphql.inspection.group.general" groupPathKey="graphql" level="WEAK WARNING"
+                     implementationClass="com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLDeprecatedSymbolsInspection"/>
 
     <!-- Schema inspections -->
     <localInspection language="GraphQL" key="graphql.inspection.display.name.schema.validation" enabledByDefault="true"

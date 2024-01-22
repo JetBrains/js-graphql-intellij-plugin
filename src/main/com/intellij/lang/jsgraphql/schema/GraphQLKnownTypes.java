@@ -31,7 +31,14 @@ public class GraphQLKnownTypes {
     INTROSPECTION_DIRECTIVE_LOCATION
   );
 
-  public static final Set<String> DEFAULT_DIRECTIVES = Set.of("deprecated", "skip", "include", "specifiedBy");
+  public static final String DIRECTIVE_DEPRECATED = "deprecated";
+  public static final String DIRECTIVE_DEPRECATED_REASON = "reason";
+  public static final String DIRECTIVE_SKIP = "skip";
+  public static final String DIRECTIVE_INCLUDE = "include";
+  public static final String DIRECTIVE_SPECIFIED_BY = "specifiedBy";
+
+  public static final Set<String> DEFAULT_DIRECTIVES =
+    Set.of(DIRECTIVE_DEPRECATED, DIRECTIVE_SKIP, DIRECTIVE_INCLUDE, DIRECTIVE_SPECIFIED_BY);
 
   public static final String QUERY_TYPE = "Query";
   public static final String MUTATION_TYPE = "Mutation";

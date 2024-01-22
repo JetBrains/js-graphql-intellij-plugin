@@ -755,7 +755,7 @@ public final class GraphQLPsiDocumentBuilder {
     }
     else if (value instanceof GraphQLStringValue) {
       StringValue.Builder stringValue = StringValue.newStringValue()
-        .value(quotedString(((GraphQLStringValue)value).getStringLiteral()));
+        .value(((GraphQLStringValue)value).getValueAsString());
       addCommonData(stringValue, value);
       return stringValue.build();
     }
@@ -801,17 +801,6 @@ public final class GraphQLPsiDocumentBuilder {
       return null;
     }
     return assertShouldNeverHappen();
-  }
-
-  static @NotNull String quotedString(@NotNull GraphQLStringLiteral stringLiteral) {
-    String text = stringLiteral.getText();
-    boolean multiLine = text.startsWith("\"\"\"");
-    if (multiLine) {
-      return parseTripleQuotedString(text);
-    }
-    else {
-      return parseSingleQuotedString(text);
-    }
   }
 
   private void addCommonData(NodeBuilder nodeBuilder, @NotNull PsiElement element) {

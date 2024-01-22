@@ -1,0 +1,21 @@
+type Query {
+  id(lang: Lang): ID
+  name(arg: String @deprecated(reason: "Argument is not used.")): String @deprecated(reason: "Not used anymore, please use `fullName` instead.")
+  fullName(in: In): String
+}
+
+input In {
+  inputField: String @deprecated
+}
+
+enum Lang {
+  EN
+  DE
+  TEST @deprecated(reason: "Not used anymore")
+}
+
+query {
+  <weak_warning descr="Deprecated: Not used anymore, please use `fullName` instead.">name</weak_warning>(<weak_warning descr="Deprecated: Argument is not used.">arg</weak_warning>: "1234")
+  fullName(in: {<weak_warning descr="Deprecated symbol used, consult docs for better alternative">inputField</weak_warning>: "123"})
+  id(lang: <weak_warning descr="Deprecated: Not used anymore">TEST</weak_warning>)
+}

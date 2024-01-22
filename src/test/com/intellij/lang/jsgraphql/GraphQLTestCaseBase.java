@@ -1,6 +1,5 @@
 package com.intellij.lang.jsgraphql;
 
-import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
@@ -12,7 +11,7 @@ import com.intellij.lang.jsgraphql.psi.impl.GraphQLIdentifierImpl;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
@@ -23,16 +22,18 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
 
-  protected static final List<Class<? extends LocalInspectionTool>> ourGeneralInspections = Lists.newArrayList(
-    GraphQLUnresolvedReferenceInspection.class
+  protected static final List<Class<? extends LocalInspectionTool>> ourGeneralInspections = Arrays.asList(
+    GraphQLUnresolvedReferenceInspection.class,
+    GraphQLDeprecatedSymbolsInspection.class
   );
 
   // fake inspections for graphql-java validation
-  protected static final List<Class<? extends LocalInspectionTool>> ourSchemaInspections = Lists.newArrayList(
+  protected static final List<Class<? extends LocalInspectionTool>> ourSchemaInspections = Arrays.asList(
     GraphQLSchemaValidationInspection.class,
     GraphQLTypeRedefinitionInspection.class,
     GraphQLUnexpectedTypeInspection.class,
@@ -93,7 +94,7 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
   @NotNull
   protected String readFileAsString(@NotNull VirtualFile file) {
     try {
-      return StringUtil.convertLineSeparators(VfsUtil.loadText(file));
+      return StringUtil.convertLineSeparators(VfsUtilCore.loadText(file));
     }
     catch (IOException e) {
       throw new RuntimeException(e);

@@ -17,6 +17,7 @@
   psiImplClassSuffix="Impl"
   psiPackage="com.intellij.lang.jsgraphql.psi"
   psiImplPackage="com.intellij.lang.jsgraphql.psi.impl"
+  psiImplUtilClass="com.intellij.lang.jsgraphql.psi.GraphQLPsiImplUtil"
 
   elementTypeHolderClass="com.intellij.lang.jsgraphql.psi.GraphQLElementTypes"
   elementTypeClass="com.intellij.lang.jsgraphql.psi.GraphQLCompositeElementType"
@@ -187,7 +188,7 @@ booleanValue ::= 'true' | 'false' {extends=value}
 
 nullValue ::= 'null' {extends=value}
 
-stringValue ::= stringLiteral {extends=value}
+stringValue ::= stringLiteral {extends=value methods=[getValueAsString]}
 stringLiteral ::= quotedString | blockString {mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLStringLiteralMixin"}
 quotedString ::= OPEN_QUOTE REGULAR_STRING_PART? CLOSING_QUOTE {pin=1 extends=stringLiteral}
 blockString ::= OPEN_TRIPLE_QUOTE REGULAR_STRING_PART* CLOSING_TRIPLE_QUOTE {pin=1 extends=stringLiteral}

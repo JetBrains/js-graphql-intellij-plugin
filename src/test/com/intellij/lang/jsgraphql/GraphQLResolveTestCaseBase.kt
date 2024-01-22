@@ -34,7 +34,7 @@ abstract class GraphQLResolveTestCaseBase : GraphQLTestCaseBase() {
     val element = reference!!.resolve()
     assertInstanceOf(element, PsiNamedElement::class.java)
     TestCase.assertEquals(expectedName, (element as PsiNamedElement?)!!.name)
-    val definition = GraphQLResolveUtil.findResolvedDefinition(element)
+    val definition = GraphQLResolveUtil.adjustResolvedDefinition(element)
     assertInstanceOf(definition, expectedClass)
     myFixture.checkHighlighting()
     return definition!!
@@ -58,7 +58,7 @@ abstract class GraphQLResolveTestCaseBase : GraphQLTestCaseBase() {
     TestCase.assertEquals(target.textOffset, refOffset)
     assertInstanceOf(target, PsiNamedElement::class.java)
     TestCase.assertEquals(expectedName, (target as PsiNamedElement).name)
-    val definition = GraphQLResolveUtil.findResolvedDefinition(target)
+    val definition = GraphQLResolveUtil.adjustResolvedDefinition(target)
     assertInstanceOf(definition, expectedClass)
     myFixture.checkHighlighting()
     return definition!!
@@ -91,7 +91,7 @@ abstract class GraphQLResolveTestCaseBase : GraphQLTestCaseBase() {
     val target = findElementAndResolve(psiFile!!)
     assertInstanceOf(target, PsiNamedElement::class.java)
     TestCase.assertEquals(expectedName, (target as PsiNamedElement).name)
-    val definition = GraphQLResolveUtil.findResolvedDefinition(target)
+    val definition = GraphQLResolveUtil.adjustResolvedDefinition(target)
     assertInstanceOf(definition, expectedClass)
     val virtualFile = getPhysicalVirtualFile(definition?.containingFile)!!
     val expectedFile = myFixture.findFileInTempDir(expectedFileName)
