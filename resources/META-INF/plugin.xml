@@ -14,17 +14,20 @@
   <category>Languages</category>
 
   <description><![CDATA[
-      <p>GraphQL language support including tagged template literals in JavaScript and TypeScript. Formerly known as <b>JS GraphQL</b>.</p>
-      <br/>
-      <p>Feature highlights:</p>
+      <p>Provides <a href="https://graphql.org/">GraphQL</a> language support
+      to all JetBrains IDEs that <a href="https://www.jetbrains.com/products/#lang=js&type=ide">support JavaScript</a>.</p>
+
+      <h2>Features</h2>
       <ul>
         <li>Schema-aware completion, error highlighting, and documentation</li>
-        <li>Syntax highlighting, code-formatting, folding, commenter, and brace-matching</li>
-        <li>Execute queries and mutations with variables against configurable endpoints</li>
-        <li>Support for multiple schemas using graphql-config</li>
+        <li>Syntax highlighting, code-formatting, folding, commenting, and brace-matching</li>
+        <li>Execution of queries and mutations with variables against configurable endpoints</li>
+        <li>Support for multiple schemas using <code>graphql-config</code></li>
       </ul>
-      More information about configuring and using the plugin
-      can be found in the <a href="https://github.com/JetBrains/js-graphql-intellij-plugin">documentation</a>.
+
+      <h2>Getting started</h2>
+      <p>For information on getting started with this plugin in IntelliJ-based IDEs,
+      see the <a href="https://www.jetbrains.com/help/webstorm/graphql.html">documentation</a>.</p>
     ]]>
   </description>
 
