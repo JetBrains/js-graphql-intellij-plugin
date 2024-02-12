@@ -18,7 +18,6 @@
 package com.intellij.lang.jsgraphql.types.validation.rules;
 
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.VisibleForTesting;
 import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
 import com.intellij.lang.jsgraphql.types.validation.AbstractRule;
 import com.intellij.lang.jsgraphql.types.validation.ValidationContext;
@@ -54,7 +53,6 @@ public class UniqueFragmentNames extends AbstractRule {
     }
   }
 
-  @VisibleForTesting
   static String duplicateFragmentName(String fragmentName) {
     return String.format("There can be only one fragment named '%s'", fragmentName);
   }

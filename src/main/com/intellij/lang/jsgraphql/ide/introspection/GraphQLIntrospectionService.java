@@ -590,7 +590,7 @@ public final class GraphQLIntrospectionService implements Disposable {
         false
       );
       this.request = request;
-      this.filePath = filePath;
+      this.filePath = FileUtil.toSystemDependentName(filePath);
       this.retry = retry;
       this.graphQLSettings = graphQLSettings;
       this.endpoint = endpoint;

@@ -24,25 +24,45 @@ data class GraphQLSchemaPointer(
   val isLegacy: Boolean,
   val environment: GraphQLEnvironmentSnapshot,
 ) {
+  val pattern: String =
+    expandVariables(rawData.pattern, expandContext) ?: rawData.pattern
+
+  val headers: Map<String, Any?> =
+    parseMap(expandVariables(rawData.headers, expandContext)) ?: emptyMap()
+
+  val isRemote: Boolean = URLUtil.canContainUrl(pattern)
+
+  val url: String? = pattern.takeIf { isRemote }
+
+  val filePath: String? = pattern.takeUnless { URLUtil.canContainUrl(it) || it.contains(invalidPathCharsRegex) }
+
+  val globPath: String? = pattern.takeUnless { URLUtil.canContainUrl(it) || it.contains('$') }
+
+  val outputPath: String? = when {
+    isRemote -> createPathForRemote(this)
+    filePath != null -> createPathForLocal(this)
+    else -> null
+  }
+
+  private val expandContext
+    get() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
+
   companion object {
     @JvmStatic
-    fun createPathForLocal(pointer: GraphQLSchemaPointer): String? {
-      val filePath = pointer.filePath ?: return null
+    fun createPathForLocal(pointer: GraphQLSchemaPointer): String? =
+      pointer.filePath?.let { resolvePath(it, pointer.dir) }
 
-      return FileUtil.toSystemDependentName(
-        if (FileUtil.isAbsolute(pointer.filePath)) {
-          pointer.filePath
-        }
-        else {
-          FileUtil.join(pointer.dir.path, filePath)
-        }
-      )
-    }
+    @JvmStatic
+    fun createPathForLocal(rawPattern: String, dir: VirtualFile): String? =
+      if (!URLUtil.canContainUrl(rawPattern) && !rawPattern.contains(invalidPathCharsRegex)) resolvePath(rawPattern, dir) else null
+
+    private fun resolvePath(path: String, dir: VirtualFile): String =
+      FileUtil.toCanonicalPath(if (FileUtil.isAbsolute(path)) path else FileUtil.join(dir.path, path))
 
     @JvmStatic
     fun createPathForRemote(pointer: GraphQLSchemaPointer): String? {
       return createFileNameForRemote(pointer)
-        ?.let { FileUtil.toSystemDependentName(FileUtil.join(GraphQLRemoteSchemasRegistry.remoteSchemasDirPath, it)) }
+        ?.let { FileUtil.toCanonicalPath(FileUtil.join(GraphQLRemoteSchemasRegistry.remoteSchemasDirPath, it)) }
     }
 
     @Suppress("UnstableApiUsage")
@@ -67,30 +87,4 @@ data class GraphQLSchemaPointer(
       return "$name.graphql"
     }
   }
-
-  val pattern: String =
-    expandVariables(rawData.pattern, createExpandContext()) ?: rawData.pattern
-
-  val headers: Map<String, Any?> =
-    parseMap(expandVariables(rawData.headers, createExpandContext())) ?: emptyMap()
-
-  val isRemote: Boolean = URLUtil.canContainUrl(pattern)
-
-  val url: String? = pattern.takeIf { isRemote }
-
-  val filePath: String? = pattern.takeUnless { URLUtil.canContainUrl(it) || it.contains(invalidPathCharsRegex) }
-
-  val globPath: String? = pattern.takeUnless { URLUtil.canContainUrl(it) || it.contains('$') }
-
-  val outputPath: String? = if (isRemote) {
-    createPathForRemote(this)
-  }
-  else if (filePath != null) {
-    createPathForLocal(this)
-  }
-  else {
-    null
-  }
-
-  private fun createExpandContext() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 }

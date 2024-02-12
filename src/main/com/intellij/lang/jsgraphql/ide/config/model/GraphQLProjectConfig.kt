@@ -88,7 +88,7 @@ class GraphQLProjectConfig(
 
   private val baseScope
     get() = GlobalSearchScope
-      .projectScope(project)
+      .allScope(project)
       .union(generatedSourcesManager.createGeneratedSourcesScope())
       .union(remoteSchemasRegistry.createRemoteIntrospectionScope())
 
@@ -152,10 +152,6 @@ class GraphQLProjectConfig(
     if (isSchema) {
       return true
     }
-
-    // TODO: should we include SDL definitions included via `include` property or load just operations and fragments?
-    //// in the legacy .graphqlconfig multiple schema files were provided via `includes`
-    //return if (isLegacy) isIncluded(virtualFile) else false
 
     return isIncluded(virtualFile)
   }

@@ -19,7 +19,6 @@ package com.intellij.lang.jsgraphql.types.execution;
 
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.VisibleForTesting;
 import com.intellij.lang.jsgraphql.types.language.Directive;
 import com.intellij.lang.jsgraphql.types.language.NodeUtil;
 
@@ -32,7 +31,6 @@ import static com.intellij.lang.jsgraphql.types.Directives.SkipDirective;
 @Internal
 public class ConditionalNodes {
 
-  @VisibleForTesting
   ValuesResolver valuesResolver = new ValuesResolver();
 
   public boolean shouldInclude(Map<String, Object> variables, List<Directive> directives) {

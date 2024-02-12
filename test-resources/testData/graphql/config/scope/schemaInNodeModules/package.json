@@ -1,0 +1,8 @@
+{
+  "name": "node-modules-graphql-schema",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "@octokit/graphql-schema": "^14.53.0"
+  }
+}

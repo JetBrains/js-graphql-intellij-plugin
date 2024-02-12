@@ -1,9 +1,11 @@
 package com.intellij.lang.jsgraphql;
 
 import com.intellij.codeInspection.LocalInspectionTool;
+import com.intellij.javascript.debugger.com.intellij.lang.javascript.JSCoroutinesTestUtilKt;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.*;
+import com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesLibraryUpdater;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension;
@@ -70,6 +72,7 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
     ThreadingAssertions.assertEventDispatchThread();
     GraphQLConfigProvider.getInstance(getProject()).scheduleConfigurationReload();
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    JSCoroutinesTestUtilKt.waitCoroutinesBlocking(GraphQLNodeModulesLibraryUpdater.getInstance(getProject()).getCs());
   }
 
   protected void copyProject() {

@@ -15,8 +15,10 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.TestDataPath
 import junit.framework.TestCase
 
+@TestDataPath("\$CONTENT_ROOT/test-resources/testData/graphql/config/scope")
 class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
 
   override fun getBasePath(): String = "/config/scope"
@@ -162,6 +164,10 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
   fun testRelativePath() {
     doScopeTest("frontend1/graphql.config.yml", setOf("backend/schema.graphql"), setOf("frontend1/query1.graphql"))
     doScopeTest("frontend2/graphql.config.yml", setOf("backend/schema.graphql"), setOf("frontend2/query2.graphql"))
+  }
+
+  fun testSchemaInNodeModules() {
+    doScopeTest("graphql.config.yml", setOf("node_modules/@octokit/graphql-schema/schema.graphql"), emptySet())
   }
 
   private fun doScopeTest(

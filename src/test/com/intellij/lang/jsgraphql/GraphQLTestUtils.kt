@@ -45,7 +45,7 @@ fun withSettings(
   disposable: Disposable,
 ) {
   val settings = GraphQLSettings.getSettings(project)
-  val previousState = settings.state!!
+  val previousState = settings.state
   Disposer.register(disposable) {
     settings.loadState(previousState)
     onDispose?.run()
