@@ -57,7 +57,7 @@ class GraphQLProjectConfig(
   } ?: emptyList()
 
   val documents: List<String> =
-    (rawData.documents ?: defaultData?.documents)?.let { expandVariables(it, createExpandContext()) } ?: emptyList()
+    (rawData.documents ?: defaultData?.documents)?.let { expandVariables(it, expandContext) } ?: emptyList()
 
   val extensions: Map<String, Any?> = buildMap {
     defaultData?.extensions?.let { putAll(it) }
@@ -65,14 +65,18 @@ class GraphQLProjectConfig(
   }
 
   val include: List<String> =
-    (rawData.include ?: defaultData?.include)?.let { expandVariables(it, createExpandContext()) } ?: emptyList()
+    (rawData.include ?: defaultData?.include)?.let { expandVariables(it, expandContext) } ?: emptyList()
 
   val exclude: List<String> =
-    (rawData.exclude ?: defaultData?.exclude)?.let { expandVariables(it, createExpandContext()) } ?: emptyList()
+    (rawData.exclude ?: defaultData?.exclude)?.let { expandVariables(it, expandContext) } ?: emptyList()
 
   val endpoints: List<GraphQLConfigEndpoint> by lazy { buildEndpoints() }
 
   val isDefault = name == GraphQLConfig.DEFAULT_PROJECT
+
+  // need to create a new one for each invocation, because it has its own state
+  private val expandContext
+    get() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 
   private val outOfScopePaths: List<String> by lazy {
     schema.asSequence()
@@ -95,7 +99,7 @@ class GraphQLProjectConfig(
   private val scopeCached: CachedValue<GlobalSearchScope> =
     CachedValuesManager.getManager(project).createCachedValue {
       CachedValueProvider.Result.create(
-        GraphQLScopeProvider.createScope(project, GraphQLConfigScope(project, baseScope, this)),
+        GraphQLScopeProvider.createScope(project, GraphQLConfigScope(project, baseScope, this), dir),
         GraphQLScopeDependency.getInstance(project),
       )
     }
@@ -106,7 +110,7 @@ class GraphQLProjectConfig(
   private val schemaScopeCached: CachedValue<GlobalSearchScope> =
     CachedValuesManager.getManager(project).createCachedValue {
       CachedValueProvider.Result.create(
-        GraphQLScopeProvider.createScope(project, GraphQLConfigSchemaScope(project, baseScope, this)),
+        GraphQLScopeProvider.createScope(project, GraphQLConfigSchemaScope(project, baseScope, this), dir),
         GraphQLScopeDependency.getInstance(project),
       )
     }
@@ -244,9 +248,6 @@ class GraphQLProjectConfig(
 
     return schemaEndpoints + extensionEndpoints
   }
-
-  // need to create a new one for each invocation, because it has its own state
-  private fun createExpandContext() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

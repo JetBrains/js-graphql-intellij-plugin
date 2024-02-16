@@ -69,10 +69,7 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
   }
 
   protected void reloadConfiguration() {
-    ThreadingAssertions.assertEventDispatchThread();
-    GraphQLConfigProvider.getInstance(getProject()).scheduleConfigurationReload();
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    JSCoroutinesTestUtilKt.waitCoroutinesBlocking(GraphQLNodeModulesLibraryUpdater.getInstance(getProject()).getCs());
+    GraphQLTestUtils.reloadConfiguration(getProject());
   }
 
   protected void copyProject() {

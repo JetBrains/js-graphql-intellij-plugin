@@ -3,8 +3,11 @@
 package com.intellij.lang.jsgraphql
 
 import com.intellij.ide.scratch.ScratchRootType
+import com.intellij.javascript.debugger.com.intellij.lang.javascript.waitCoroutinesBlocking
 import com.intellij.lang.jsgraphql.GraphQLSettings.GraphQLSettingsState
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
+import com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesLibraryUpdater
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes
@@ -17,6 +20,7 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.concurrency.annotations.RequiresEdt
 import java.io.File
 import java.util.function.Consumer
@@ -121,4 +125,11 @@ fun createTestScratchFile(
         ApplicationManager.getApplication().runWriteAction { file.delete(null) }
       }
     }
+}
+
+fun reloadConfiguration(project: Project) {
+  ThreadingAssertions.assertEventDispatchThread()
+  GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  waitCoroutinesBlocking(GraphQLNodeModulesLibraryUpdater.getInstance(project).cs)
 }

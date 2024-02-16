@@ -2,7 +2,7 @@ package com.intellij.lang.jsgraphql.ide.resolve
 
 import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLMetaInfSchemaSearchScope
+import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLModuleLibrariesScope
 import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLRestrictedFileTypesScope
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread
@@ -12,6 +12,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
@@ -32,24 +33,14 @@ class GraphQLScopeProvider(private val project: Project) {
     fun getInstance(project: Project) = project.service<GraphQLScopeProvider>()
 
     @JvmStatic
-    fun createScope(project: Project, customScope: GlobalSearchScope?): GlobalSearchScope {
-      var scope = customScope ?: GlobalSearchScope.projectScope(project)
+    fun createScope(project: Project, baseScope: GlobalSearchScope, file: VirtualFile? = null): GlobalSearchScope {
+      val definitionsLibraryScope = GraphQLLibraryRootsProvider.createScope(project)
+      val moduleLibrariesScope = GraphQLModuleLibrariesScope.create(project, file)
 
-      // these scopes are used unconditionally, both for global and config filtered scopes
-      scope = scope
-        .union(createExternalDefinitionsLibraryScope(project))
-        .union(GraphQLMetaInfSchemaSearchScope(project))
-
-      return GraphQLRestrictedFileTypesScope(scope)
-    }
-
-    private fun createExternalDefinitionsLibraryScope(project: Project): GlobalSearchScope {
-      val roots = GraphQLLibraryRootsProvider.getLibraries(project)
-        .asSequence()
-        .flatMap { it.sourceRoots }
-        .toSet()
-
-      return GlobalSearchScope.filesWithLibrariesScope(project, roots)
+      return baseScope
+        .union(definitionsLibraryScope)
+        .union(moduleLibrariesScope)
+        .let { GraphQLRestrictedFileTypesScope(it) }
     }
 
     fun isResolvedInNonStrictScope(element: PsiElement?): Boolean {
@@ -63,7 +54,7 @@ class GraphQLScopeProvider(private val project: Project) {
 
   private val globalScopeCache: CachedValue<GlobalSearchScope> =
     CachedValuesManager.getManager(project).createCachedValue {
-      CachedValueProvider.Result.create(createScope(project, null), scopeDependency)
+      CachedValueProvider.Result.create(createScope(project, GlobalSearchScope.projectScope(project)), scopeDependency)
     }
 
   val globalScope: GlobalSearchScope
