@@ -8,10 +8,14 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.openapi.util.registry.RegistryValue
+import com.intellij.openapi.util.registry.RegistryValueListener
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -21,36 +25,18 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 
 @Service(Service.Level.PROJECT)
-class GraphQLScopeProvider(private val project: Project) {
-
-  companion object {
-    private val NON_STRICT_SCOPE_KEY =
-      Key.create<CachedValue<GlobalSearchScope>>("graphql.non.strict.scope")
-    private val STRICT_SCOPE_KEY =
-      Key.create<CachedValue<GlobalSearchScope>>("graphql.strict.scope")
-
-    @JvmStatic
-    fun getInstance(project: Project) = project.service<GraphQLScopeProvider>()
-
-    @JvmStatic
-    fun createScope(project: Project, baseScope: GlobalSearchScope, file: VirtualFile? = null): GlobalSearchScope {
-      val definitionsLibraryScope = GraphQLLibraryRootsProvider.createScope(project)
-      val moduleLibrariesScope = GraphQLModuleLibrariesScope.create(project, file)
-
-      return baseScope
-        .union(definitionsLibraryScope)
-        .union(moduleLibrariesScope)
-        .let { GraphQLRestrictedFileTypesScope(it) }
-    }
-
-    fun isResolvedInNonStrictScope(element: PsiElement?): Boolean {
-      val context = if (element is GraphQLIdentifier) element.parent else element
-      return context is GraphQLFragmentSpread || context is GraphQLFragmentDefinition
-    }
-  }
+class GraphQLScopeProvider(private val project: Project) : Disposable {
 
   private val configProvider = GraphQLConfigProvider.getInstance(project)
   private val scopeDependency = GraphQLScopeDependency.getInstance(project)
+
+  init {
+    Registry.get(GraphQLModuleLibrariesScope.REGISTRY_KEY).addListener(object : RegistryValueListener {
+      override fun afterValueChanged(value: RegistryValue) {
+        scopeDependency.update()
+      }
+    }, this)
+  }
 
   private val globalScopeCache: CachedValue<GlobalSearchScope> =
     CachedValuesManager.getManager(project).createCachedValue {
@@ -95,6 +81,35 @@ class GraphQLScopeProvider(private val project: Project) {
       }
 
       CachedValueProvider.Result.create(scope, file, scopeDependency)
+    }
+  }
+
+  override fun dispose() {
+  }
+
+  companion object {
+    private val NON_STRICT_SCOPE_KEY =
+      Key.create<CachedValue<GlobalSearchScope>>("graphql.non.strict.scope")
+    private val STRICT_SCOPE_KEY =
+      Key.create<CachedValue<GlobalSearchScope>>("graphql.strict.scope")
+
+    @JvmStatic
+    fun getInstance(project: Project) = project.service<GraphQLScopeProvider>()
+
+    @JvmStatic
+    fun createScope(project: Project, baseScope: GlobalSearchScope, file: VirtualFile? = null): GlobalSearchScope {
+      var scope = baseScope.union(GraphQLLibraryRootsProvider.createScope(project))
+
+      if (GraphQLModuleLibrariesScope.isEnabled) {
+        scope = scope.union(GraphQLModuleLibrariesScope.create(project, file))
+      }
+
+      return GraphQLRestrictedFileTypesScope(scope)
+    }
+
+    fun isResolvedInNonStrictScope(element: PsiElement?): Boolean {
+      val context = if (element is GraphQLIdentifier) element.parent else element
+      return context is GraphQLFragmentSpread || context is GraphQLFragmentDefinition
     }
   }
 }

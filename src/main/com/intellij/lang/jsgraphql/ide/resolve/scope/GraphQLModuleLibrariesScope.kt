@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.ide.resolve.scope
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ProjectRootManager
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.DelegatingGlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScope
@@ -17,6 +18,9 @@ class GraphQLModuleLibrariesScope private constructor(project: Project, baseScop
     super.contains(file) && fileIndex.getOrderEntriesForFile(file).any { it is LibraryOrderEntry }
 
   companion object {
+    internal const val REGISTRY_KEY = "graphql.config.scope.module.libraries"
+    internal val isEnabled get() = Registry.`is`(REGISTRY_KEY, true)
+
     @JvmStatic
     fun create(project: Project, file: VirtualFile?): GlobalSearchScope {
       val librariesScope = ProjectScope.getLibrariesScope(project)
