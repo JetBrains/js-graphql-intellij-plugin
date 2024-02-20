@@ -10,11 +10,7 @@ import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.EditorNotifications
-import com.intellij.ui.dsl.builder.Cell
-import com.intellij.ui.dsl.builder.bindSelected
-import com.intellij.ui.dsl.builder.bindText
-import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
+import com.intellij.ui.dsl.builder.*
 import javax.swing.JComponent
 
 private const val CONFIGURABLE_ID = "settings.jsgraphql"
@@ -47,7 +43,7 @@ class GraphQLSettingsConfigurable(private val project: Project) :
         row(message("graphql.settings.introspection.query.label") + ":") {
           expandableTextField()
             .bindText(settings::introspectionQuery)
-            .horizontalAlign(HorizontalAlign.FILL)
+            .align(AlignX.FILL)
             .applyToComponent {
               emptyText.text = message("graphql.settings.introspection.query.empty.text")
               toolTipText = message("graphql.settings.introspection.query.tooltip")
