@@ -38,6 +38,7 @@
     <orderEntry type="module" module-name="intellij.javascript.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.idea.ultimate.customization" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.vuejs" scope="TEST" />
     <orderEntry type="library" name="swingx" level="project" />
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />

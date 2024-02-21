@@ -119,7 +119,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
 
     List<PsiFile> psiFiles = new ArrayList<>();
     GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLFiles(
-      GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
+      getProject(), GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
     assertSize(1, psiFiles);
 
     PsiFile injectedFile = psiFiles.get(0);
@@ -133,7 +133,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
 
     List<PsiFile> psiFiles = new ArrayList<>();
     GraphQLPsiSearchHelper.getInstance(getProject()).processInjectedGraphQLFiles(
-      GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
+      getProject(), GlobalSearchScope.allScope(getProject()), new CommonProcessors.CollectProcessor<>(psiFiles));
     assertEmpty(psiFiles);
   }
 }

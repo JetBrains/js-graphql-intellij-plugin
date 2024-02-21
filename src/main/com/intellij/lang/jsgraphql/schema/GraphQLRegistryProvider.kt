@@ -26,7 +26,7 @@ import com.intellij.util.containers.ContainerUtil
 import java.util.concurrent.ConcurrentMap
 
 @Service(Service.Level.PROJECT)
-class GraphQLRegistryProvider(project: Project) {
+class GraphQLRegistryProvider(private val project: Project) {
 
   companion object {
     private val LOG = logger<GraphQLRegistryProvider>()
@@ -74,7 +74,7 @@ class GraphQLRegistryProvider(project: Project) {
       )
 
       // Injected GraphQL
-      psiSearchHelper.processInjectedGraphQLFiles(schemaScope, processor)
+      psiSearchHelper.processInjectedGraphQLFiles(project, schemaScope, processor)
 
       val registry = processor.compositeRegistry.buildTypeDefinitionRegistry()
       GraphQLRegistryInfo(registry, errors)
