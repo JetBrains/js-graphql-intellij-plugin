@@ -8,36 +8,40 @@
 package com.intellij.lang.jsgraphql.ide.search;
 
 
-import com.google.common.collect.Lists;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLIdentifierIndex;
 import com.intellij.lang.jsgraphql.ide.indexing.GraphQLInjectionIndex;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider;
-import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Processor;
+import com.intellij.util.containers.MultiMap;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Enables cross-file searches for PSI references
  */
 public class GraphQLPsiSearchHelper implements Disposable {
 
+  private static final Logger LOG = Logger.getInstance(GraphQLPsiSearchHelper.class);
+
   private final Project myProject;
   private final PsiManager myPsiManager;
-  private final InjectedLanguageManager myInjectedLanguageManager;
 
   public static GraphQLPsiSearchHelper getInstance(@NotNull Project project) {
     return project.getService(GraphQLPsiSearchHelper.class);
@@ -46,7 +50,6 @@ public class GraphQLPsiSearchHelper implements Disposable {
   public GraphQLPsiSearchHelper(@NotNull Project project) {
     myProject = project;
     myPsiManager = PsiManager.getInstance(myProject);
-    myInjectedLanguageManager = InjectedLanguageManager.getInstance(myProject);
   }
 
   /**
@@ -57,134 +60,110 @@ public class GraphQLPsiSearchHelper implements Disposable {
    */
   @NotNull
   public List<GraphQLFragmentDefinition> findFragmentDefinitions(@NotNull PsiElement context) {
+    if (DumbService.isDumb(context.getProject())) return Collections.emptyList();
+
     try {
-      final List<GraphQLFragmentDefinition> fragmentDefinitions = Lists.newArrayList();
+      List<GraphQLFragmentDefinition> fragmentDefinitions = new ArrayList<>();
       GlobalSearchScope scope = GraphQLScopeProvider.getInstance(myProject).getResolveScope(context, false);
-      final PsiManager psiManager = PsiManager.getInstance(myProject);
+      PsiManager psiManager = PsiManager.getInstance(myProject);
       FileBasedIndex.getInstance().processFilesContainingAllKeys(
         GraphQLFragmentNameIndex.NAME,
         Collections.singleton(GraphQLFragmentNameIndex.HAS_FRAGMENTS),
         scope,
         null,
         virtualFile -> {
-          final PsiFile psiFile = psiManager.findFile(virtualFile);
+          PsiFile psiFile = psiManager.findFile(virtualFile);
           if (psiFile != null) {
-            final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
-            identifierVisitor.set(new PsiRecursiveElementVisitor() {
-              @Override
-              public void visitElement(@NotNull PsiElement element) {
-                if (element instanceof GraphQLDefinition) {
-                  if (element instanceof GraphQLFragmentDefinition) {
-                    fragmentDefinitions.add((GraphQLFragmentDefinition)element);
-                  }
-                  return; // no need to visit deeper than definitions since fragments are top level
-                }
-                else if (element instanceof PsiLanguageInjectionHost) {
-                  if (visitLanguageInjectionHost((PsiLanguageInjectionHost)element, identifierVisitor.get())) {
-                    return;
-                  }
-                }
-                super.visitElement(element);
-              }
-            });
-            psiFile.accept(identifierVisitor.get());
+            fragmentDefinitions.addAll(collectFragmentDefinitions(psiFile));
           }
-
           return true; // process all known fragments
         });
 
       return fragmentDefinitions;
     }
     catch (IndexNotReadyException e) {
-      // can't search yet (e.g. during project startup)
+      LOG.warn(e);
     }
     return Collections.emptyList();
   }
 
-  /**
-   * Visits the potential GraphQL injection inside an injection host
-   *
-   * @return true if the host contained GraphQL and was visited, false otherwise
-   */
-  private boolean visitLanguageInjectionHost(@NotNull PsiLanguageInjectionHost element,
-                                             @NotNull PsiRecursiveElementVisitor visitor) {
-    GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
-    if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
-      myInjectedLanguageManager.enumerateEx(
-        element, element.getContainingFile(), false,
-        (injectedPsi, places) -> injectedPsi.accept(visitor)
-      );
-      return true;
+  private static @NotNull Collection<GraphQLFragmentDefinition> collectFragmentDefinitions(@NotNull PsiFile file) {
+    return CachedValuesManager.getCachedValue(file, () -> {
+      List<GraphQLFragmentDefinition> fragmentDefinitions = collectGraphQLFilesIncludingInjections(file).stream()
+        .flatMap(graphQLFile -> graphQLFile.getDefinitions().stream())
+        .filter(GraphQLFragmentDefinition.class::isInstance)
+        .map(GraphQLFragmentDefinition.class::cast)
+        .toList();
+      return CachedValueProvider.Result.create(fragmentDefinitions, file);
+    });
+  }
+
+  private static @NotNull Collection<GraphQLFile> collectGraphQLFilesIncludingInjections(@NotNull PsiFile file) {
+    if (file instanceof GraphQLFile graphQLFile) {
+      return Collections.singletonList(graphQLFile);
     }
-    return false;
+    else {
+      Set<GraphQLFile> files = new HashSet<>();
+      InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(file.getProject());
+      for (PsiLanguageInjectionHost host : findLanguageInjectionHosts(file)) {
+        injectedLanguageManager.enumerateEx(
+          host, file, false, (injectedPsi, places) -> {
+            if (injectedPsi instanceof GraphQLFile graphQLFile) {
+              files.add(graphQLFile);
+            }
+          }
+        );
+      }
+      return files;
+    }
+  }
+
+  private static @NotNull Collection<PsiLanguageInjectionHost> findLanguageInjectionHosts(@NotNull PsiFile file) {
+    return CachedValuesManager.getCachedValue(file, () -> {
+      List<PsiLanguageInjectionHost> injectionHosts =
+        PsiTreeUtil.collectElementsOfType(file, PsiLanguageInjectionHost.class).stream()
+          .filter(element -> {
+            GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
+            return injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element);
+          })
+          .toList();
+      return CachedValueProvider.Result.create(injectionHosts, file);
+    });
   }
 
   public void processNamedElements(@NotNull PsiElement context,
                                    @NotNull String name,
                                    @NotNull Processor<? super PsiNamedElement> processor) {
     GlobalSearchScope scope = GraphQLScopeProvider.getInstance(context.getProject()).getResolveScope(context);
-    processNamedElements(context, name, scope, processor);
+    processNamedElements(context.getProject(), name, scope, processor);
   }
 
   /**
    * Processes all named elements that match the specified name, e.g. the declaration of a type name
    */
-  public void processNamedElements(@NotNull PsiElement context,
+  public void processNamedElements(@NotNull Project project,
                                    @NotNull String name,
                                    @NotNull GlobalSearchScope scope,
                                    @NotNull Processor<? super PsiNamedElement> processor) {
+    if (DumbService.isDumb(project)) return;
+
     try {
-      processNamedElementsUsingIdentifierIndex(scope, name, processor);
+      FileBasedIndex.getInstance().getFilesWithKey(GraphQLIdentifierIndex.NAME, Collections.singleton(name), virtualFile -> {
+        PsiFile psiFile = myPsiManager.findFile(virtualFile);
+        if (psiFile != null) {
+          for (GraphQLFile graphQLFile : collectGraphQLFilesIncludingInjections(psiFile)) {
+            MultiMap<String, PsiNamedElement> namedElements = graphQLFile.getNamedElements();
+            for (PsiNamedElement namedElement : namedElements.get(name)) {
+              if (!processor.process(namedElement)) return false;
+            }
+          }
+        }
+        return true;
+      }, scope);
     }
     catch (IndexNotReadyException e) {
-      // TODO: rethrow
-      // can't search yet (e.g. during project startup)
+      LOG.warn(e);
     }
-  }
-
-  /**
-   * Processes GraphQL named elements whose name matches the specified name within the given schema scope.
-   *
-   * @param scope     the schema scope which limits the processing
-   * @param name      the name to match elements for
-   * @param processor processor called for all GraphQL elements whose name match the specified name
-   * @see GraphQLIdentifierIndex
-   */
-  private void processNamedElementsUsingIdentifierIndex(@NotNull GlobalSearchScope scope,
-                                                        @NotNull String name,
-                                                        @NotNull Processor<? super PsiNamedElement> processor) {
-    FileBasedIndex.getInstance().getFilesWithKey(GraphQLIdentifierIndex.NAME, Collections.singleton(name), virtualFile -> {
-      final PsiFile psiFile = myPsiManager.findFile(virtualFile);
-      final Ref<Boolean> continueProcessing = Ref.create(true);
-      if (psiFile != null) {
-        final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
-        identifierVisitor.set(new PsiRecursiveElementVisitor() {
-          @Override
-          public void visitElement(@NotNull PsiElement element) {
-            if (!continueProcessing.get()) {
-              return; // done visiting as the processor returned false
-            }
-
-            if (element instanceof PsiNamedElement) {
-              final String candidate = ((PsiNamedElement)element).getName();
-              if (name.equals(candidate)) {
-                continueProcessing.set(processor.process((PsiNamedElement)element));
-              }
-            }
-            else if (element instanceof PsiLanguageInjectionHost) {
-              if (visitLanguageInjectionHost((PsiLanguageInjectionHost)element, identifierVisitor.get())) {
-                return;
-              }
-            }
-
-            super.visitElement(element);
-          }
-        });
-
-        psiFile.accept(identifierVisitor.get());
-      }
-      return continueProcessing.get();
-    }, scope);
   }
 
   /**
@@ -193,38 +172,30 @@ public class GraphQLPsiSearchHelper implements Disposable {
    * @param scope     the search scope to use for limiting the schema definitions
    * @param processor a processor that will be invoked for each injected GraphQL file
    */
-  public void processInjectedGraphQLFiles(@NotNull GlobalSearchScope scope, @NotNull Processor<? super PsiFile> processor) {
+  public void processInjectedGraphQLFiles(@NotNull Project project,
+                                          @NotNull GlobalSearchScope scope,
+                                          @NotNull Processor<? super GraphQLFile> processor) {
+    if (DumbService.isDumb(project)) return;
+
     try {
-      final PsiManager psiManager = PsiManager.getInstance(myProject);
-      final InjectedLanguageManager injectedLanguageManager = InjectedLanguageManager.getInstance(myProject);
+      PsiManager psiManager = PsiManager.getInstance(myProject);
       FileBasedIndex.getInstance().getFilesWithKey(
         GraphQLInjectionIndex.NAME,
-        Collections.singleton(GraphQLInjectionIndex.DATA_KEY),
+        Collections.singleton(GraphQLInjectionIndex.INJECTION_MARKER),
         virtualFile -> {
-          final PsiFile psiFile = psiManager.findFile(virtualFile);
-          if (psiFile == null) {
-            return true;
-          }
-          psiFile.accept(new PsiRecursiveElementVisitor() {
-            @Override
-            public void visitElement(@NotNull PsiElement element) {
-              GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
-              if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
-                injectedLanguageManager.enumerate(element, (injectedPsi, places) -> processor.process(injectedPsi));
-              }
-              else {
-                // visit deeper until injection found
-                super.visitElement(element);
-              }
+          PsiFile psiFile = psiManager.findFile(virtualFile);
+          if (psiFile != null && !(psiFile instanceof GraphQLFile)) {
+            for (GraphQLFile graphQLFile : collectGraphQLFilesIncludingInjections(psiFile)) {
+              if (!processor.process(graphQLFile)) return false;
             }
-          });
+          }
           return true;
         },
         scope
       );
     }
     catch (IndexNotReadyException e) {
-      // can't search yet (e.g. during project startup)
+      LOG.warn(e);
     }
   }
 

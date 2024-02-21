@@ -13,6 +13,7 @@ import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.openapi.util.Ref;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.BooleanDataDescriptor;
@@ -34,52 +35,51 @@ public class GraphQLFragmentNameIndex extends FileBasedIndexExtension<String, Bo
   public static final String HAS_FRAGMENTS = "fragments";
   public static final int VERSION = 1;
 
-  private final DataIndexer<String, Boolean, FileContent> myDataIndexer;
+  private static final String FRAGMENT_MARKER = "fragment ";
 
-  public GraphQLFragmentNameIndex() {
-    myDataIndexer = inputData -> {
+  private final DataIndexer<String, Boolean, FileContent> myDataIndexer = inputData -> {
+    if (!StringUtil.contains(inputData.getContentAsText(), FRAGMENT_MARKER)) {
+      return Collections.emptyMap();
+    }
 
-      final Ref<Boolean> hasFragments = Ref.create(false);
-
-      final Ref<PsiRecursiveElementVisitor> identifierVisitor = Ref.create();
-      identifierVisitor.set(new PsiRecursiveElementVisitor() {
-        @Override
-        public void visitElement(@NotNull PsiElement element) {
-          if (hasFragments.get()) {
-            // done
+    Ref<Boolean> hasFragments = Ref.create(false);
+    PsiRecursiveElementVisitor identifierVisitor = new PsiRecursiveElementVisitor() {
+      @Override
+      public void visitElement(@NotNull PsiElement element) {
+        if (hasFragments.get()) {
+          // done
+          return;
+        }
+        if (element instanceof GraphQLDefinition) {
+          if (element instanceof GraphQLFragmentDefinition) {
+            hasFragments.set(true);
+          }
+          return; // no need to visit deeper than definitions since fragments are top level
+        }
+        else if (element instanceof PsiLanguageInjectionHost) {
+          GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
+          if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
+            final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
+            final String graphqlBuffer = StringsKt.trim(element.getText(), '`', ' ', '\t', '\n');
+            final PsiFile graphqlInjectedPsiFile = psiFileFactory
+              .createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
+            graphqlInjectedPsiFile.accept(this);
             return;
           }
-          if (element instanceof GraphQLDefinition) {
-            if (element instanceof GraphQLFragmentDefinition) {
-              hasFragments.set(true);
-            }
-            return; // no need to visit deeper than definitions since fragments are top level
-          }
-          else if (element instanceof PsiLanguageInjectionHost) {
-            GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
-            if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
-              final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
-              final String graphqlBuffer = StringsKt.trim(element.getText(), '`', ' ', '\t', '\n');
-              final PsiFile graphqlInjectedPsiFile = psiFileFactory
-                .createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
-              graphqlInjectedPsiFile.accept(identifierVisitor.get());
-              return;
-            }
-          }
-          super.visitElement(element);
         }
-      });
-
-      inputData.getPsiFile().accept(identifierVisitor.get());
-
-      if (hasFragments.get()) {
-        return Collections.singletonMap(HAS_FRAGMENTS, true);
-      }
-      else {
-        return Collections.emptyMap();
+        super.visitElement(element);
       }
     };
-  }
+
+    inputData.getPsiFile().accept(identifierVisitor);
+
+    if (hasFragments.get()) {
+      return Collections.singletonMap(HAS_FRAGMENTS, true);
+    }
+    else {
+      return Collections.emptyMap();
+    }
+  };
 
   @NotNull
   @Override

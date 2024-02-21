@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.injection
 
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiLanguageInjectionHost
 
 interface GraphQLInjectedLanguage {
   companion object {
@@ -18,6 +19,7 @@ interface GraphQLInjectedLanguage {
 
     @JvmStatic
     fun forElement(host: PsiElement): GraphQLInjectedLanguage? {
+      if (host !is PsiLanguageInjectionHost) return null
       return EP_NAME.findFirstSafe { it.accepts(host) }
     }
   }

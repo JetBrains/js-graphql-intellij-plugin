@@ -16,9 +16,11 @@ import com.intellij.lang.jsgraphql.types.language.Document;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.containers.MultiMap;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -29,9 +31,8 @@ public class GraphQLFile extends PsiFileBase implements GraphQLElement {
     super(viewProvider, GraphQLLanguage.INSTANCE);
   }
 
-  @NotNull
   @Override
-  public FileType getFileType() {
+  public @NotNull FileType getFileType() {
     return GraphQLFileType.INSTANCE;
   }
 
@@ -59,19 +60,30 @@ public class GraphQLFile extends PsiFileBase implements GraphQLElement {
     }
   }
 
-  @NotNull
-  public Collection<GraphQLDefinition> getDefinitions() {
+  public @NotNull Collection<GraphQLDefinition> getDefinitions() {
     return CachedValuesManager.getCachedValue(this, () -> CachedValueProvider.Result.create(
       PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLDefinition.class), this));
   }
 
-  @NotNull
-  public Collection<GraphQLTypeSystemDefinition> getTypeDefinitions() {
+  public @NotNull Collection<GraphQLTypeSystemDefinition> getTypeDefinitions() {
     return CachedValuesManager.getCachedValue(this, () -> CachedValueProvider.Result.create(
       PsiTreeUtil.getChildrenOfTypeAsList(this, GraphQLTypeSystemDefinition.class), this));
   }
 
-  public Document getDocument() {
+  public @NotNull MultiMap<String, PsiNamedElement> getNamedElements() {
+    return CachedValuesManager.getCachedValue(this, () -> {
+      MultiMap<String, PsiNamedElement> map = MultiMap.create();
+      for (PsiNamedElement namedElement : PsiTreeUtil.collectElementsOfType(this, PsiNamedElement.class)) {
+        String name = namedElement.getName();
+        if (name != null) {
+          map.putValue(name, namedElement);
+        }
+      }
+      return CachedValueProvider.Result.create(map, this);
+    });
+  }
+
+  public @NotNull Document getDocument() {
     return CachedValuesManager.getCachedValue(this, () -> {
       Document document = new GraphQLPsiDocumentBuilder(this).createDocument();
       return CachedValueProvider.Result.createSingleDependency(document, this);

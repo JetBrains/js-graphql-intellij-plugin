@@ -12,6 +12,7 @@ import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
 import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.EnumeratorStringDescriptor;
@@ -27,9 +28,9 @@ import java.util.Map;
 public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
 
   public static final ID<String, Void> NAME = ID.create(GraphQLInjectionIndex.class.getName());
-  public static final String DATA_KEY = "true";
+  public static final String INJECTION_MARKER = "true";
 
-  private static final Map<String, Void> INJECTED_KEY = Collections.singletonMap(DATA_KEY, null);
+  private static final Map<String, Void> INJECTED_KEY = Collections.singletonMap(INJECTION_MARKER, null);
   public static final int VERSION = 3;
 
   private final DataIndexer<String, Void, FileContent> myDataIndexer = inputData -> {
@@ -37,11 +38,13 @@ public class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
     inputData.getPsiFile().accept(new PsiRecursiveElementVisitor() {
       @Override
       public void visitElement(@NotNull PsiElement element) {
-        GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
-        if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
-          isInjected.set(Boolean.TRUE);
+        if (element instanceof PsiLanguageInjectionHost) {
+          GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
+          if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
+            isInjected.set(Boolean.TRUE);
+          }
         }
-        else {
+        else if (isInjected.get() == Boolean.FALSE) {
           // visit deeper until injection found
           super.visitElement(element);
         }
