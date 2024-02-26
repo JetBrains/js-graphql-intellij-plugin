@@ -59,7 +59,7 @@ class GraphQLNodeModulesLibraryUpdater(private val project: Project, @VisibleFor
 
   private suspend fun attachEntity(roots: Collection<String>) {
     val virtualFileUrlManager = WorkspaceModel.getInstance(project).getVirtualFileUrlManager()
-    val rootUrls = roots.mapTo(mutableSetOf()) { virtualFileUrlManager.getOrCreateFromUri(it) }
+    val rootUrls = roots.mapTo(mutableSetOf()) { virtualFileUrlManager.getOrCreateFromUrl(it) }
     val newModulesEntity = GraphQLNodeModulesEntity(rootUrls, GraphQLNodeModulesEntitySource)
     val entityStorage = MutableEntityStorage.create().apply {
       addEntity(newModulesEntity)
