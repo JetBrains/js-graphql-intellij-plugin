@@ -24,7 +24,11 @@ interface GraphQLNodeModulesEntity : WorkspaceEntity {
     @JvmOverloads
     @JvmStatic
     @JvmName("create")
-    operator fun invoke(roots: Set<VirtualFileUrl>, entitySource: EntitySource, init: (Builder.() -> Unit)? = null): GraphQLNodeModulesEntity {
+    operator fun invoke(
+      roots: Set<VirtualFileUrl>,
+      entitySource: EntitySource,
+      init: (Builder.() -> Unit)? = null,
+    ): GraphQLNodeModulesEntity {
       val builder = builder()
       builder.roots = roots.toMutableWorkspaceSet()
       builder.entitySource = entitySource
@@ -36,5 +40,10 @@ interface GraphQLNodeModulesEntity : WorkspaceEntity {
 }
 
 //region generated code
-fun MutableEntityStorage.modifyEntity(entity: GraphQLNodeModulesEntity, modification: GraphQLNodeModulesEntity.Builder.() -> Unit): GraphQLNodeModulesEntity = modifyEntity(GraphQLNodeModulesEntity.Builder::class.java, entity, modification)
+fun MutableEntityStorage.modifyEntity(
+  entity: GraphQLNodeModulesEntity,
+  modification: GraphQLNodeModulesEntity.Builder.() -> Unit,
+): GraphQLNodeModulesEntity {
+  return modifyEntity(GraphQLNodeModulesEntity.Builder::class.java, entity, modification)
+}
 //endregion
