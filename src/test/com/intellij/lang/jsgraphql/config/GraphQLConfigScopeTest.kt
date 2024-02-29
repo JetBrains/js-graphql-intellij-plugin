@@ -15,6 +15,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.TestDataPath
 import junit.framework.TestCase
 
@@ -209,6 +210,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
   }
 
   private fun getAllFiles(scope: GlobalSearchScope): Set<VirtualFile> {
+    IndexingTestUtil.waitUntilIndexesAreReady(project)
     val result = mutableSetOf<VirtualFile>()
     // need to include files outside of content root, which are processed by ProjectFileIndex
     result.addAll(FileTypeIndex.getFiles(GraphQLFileType.INSTANCE, scope))
