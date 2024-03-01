@@ -2,7 +2,7 @@
   "icons": {
     "newui": {
       "gutter": {
-        "graphQL@14x14.svg": "icons/gutter/graphQL.svg"
+        "graphql@14x14.svg": "icons/gutter/graphQL.svg"
       },
       "apollo.svg": "icons/apollo.svg",
       "attribute.svg": "icons/attribute.svg",
