@@ -15,9 +15,9 @@ interface GraphQLNodeModulesEntity : WorkspaceEntity {
 
   //region generated code
   @GeneratedCodeApiVersion(2)
-  interface Builder : GraphQLNodeModulesEntity, WorkspaceEntity.Builder<GraphQLNodeModulesEntity> {
+  interface Builder : WorkspaceEntity.Builder<GraphQLNodeModulesEntity> {
     override var entitySource: EntitySource
-    override var roots: MutableSet<VirtualFileUrl>
+    var roots: MutableSet<VirtualFileUrl>
   }
 
   companion object : EntityType<GraphQLNodeModulesEntity, Builder>() {
@@ -28,7 +28,7 @@ interface GraphQLNodeModulesEntity : WorkspaceEntity {
       roots: Set<VirtualFileUrl>,
       entitySource: EntitySource,
       init: (Builder.() -> Unit)? = null,
-    ): GraphQLNodeModulesEntity {
+    ): Builder {
       val builder = builder()
       builder.roots = roots.toMutableWorkspaceSet()
       builder.entitySource = entitySource
