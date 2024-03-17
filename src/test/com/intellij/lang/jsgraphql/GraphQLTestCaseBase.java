@@ -1,11 +1,8 @@
 package com.intellij.lang.jsgraphql;
 
 import com.intellij.codeInspection.LocalInspectionTool;
-import com.intellij.javascript.debugger.com.intellij.lang.javascript.JSCoroutinesTestUtilKt;
-import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.*;
-import com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesLibraryUpdater;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension;
@@ -17,9 +14,9 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
-import com.intellij.util.concurrency.ThreadingAssertions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,6 +55,7 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
     libraryManager.setLibrariesEnabled(true);
     libraryManager.notifyLibrariesChanged();
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
     Disposer.register(getTestRootDisposable(), () -> {
       libraryManager.setLibrariesEnabled(false);
     });
