@@ -14,7 +14,7 @@ interface GraphQLNodeModulesEntity : WorkspaceEntity {
   val roots: Set<VirtualFileUrl>
 
   //region generated code
-  @GeneratedCodeApiVersion(2)
+  @GeneratedCodeApiVersion(3)
   interface Builder : WorkspaceEntity.Builder<GraphQLNodeModulesEntity> {
     override var entitySource: EntitySource
     var roots: MutableSet<VirtualFileUrl>
