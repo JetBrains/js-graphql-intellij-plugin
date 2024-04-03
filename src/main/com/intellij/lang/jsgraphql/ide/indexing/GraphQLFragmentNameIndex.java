@@ -15,6 +15,8 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.text.BlockSupport;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.BooleanDataDescriptor;
 import com.intellij.util.io.DataExternalizer;
@@ -39,6 +41,11 @@ public final class GraphQLFragmentNameIndex extends FileBasedIndexExtension<Stri
 
   private final DataIndexer<String, Boolean, FileContent> myDataIndexer = inputData -> {
     if (!StringUtil.contains(inputData.getContentAsText(), FRAGMENT_MARKER)) {
+      return Collections.emptyMap();
+    }
+
+    PsiFile psiFile = inputData.getPsiFile();
+    if (psiFile instanceof XmlFile && BlockSupport.isTooDeep(psiFile)) {
       return Collections.emptyMap();
     }
 
@@ -71,7 +78,7 @@ public final class GraphQLFragmentNameIndex extends FileBasedIndexExtension<Stri
       }
     };
 
-    inputData.getPsiFile().accept(identifierVisitor);
+    psiFile.accept(identifierVisitor);
 
     if (hasFragments.get()) {
       return Collections.singletonMap(HAS_FRAGMENTS, true);

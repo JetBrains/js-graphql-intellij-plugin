@@ -12,8 +12,11 @@ import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
 import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.openapi.util.Ref;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.psi.PsiRecursiveElementVisitor;
+import com.intellij.psi.text.BlockSupport;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
@@ -34,8 +37,13 @@ public final class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
   public static final int VERSION = 3;
 
   private final DataIndexer<String, Void, FileContent> myDataIndexer = inputData -> {
+    PsiFile psiFile = inputData.getPsiFile();
+    if (psiFile instanceof XmlFile && BlockSupport.isTooDeep(psiFile)) {
+      return Collections.emptyMap();
+    }
+
     final Ref<Boolean> isInjected = new Ref<>(Boolean.FALSE);
-    inputData.getPsiFile().accept(new PsiRecursiveElementVisitor() {
+    psiFile.accept(new PsiRecursiveElementVisitor() {
       @Override
       public void visitElement(@NotNull PsiElement element) {
         if (element instanceof PsiLanguageInjectionHost) {

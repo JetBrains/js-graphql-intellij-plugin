@@ -76,10 +76,16 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
   }
 
   fun testSchemaInJson() {
-    val file = "client/query.graphql"
-    doTestCompletion(file, listOf("localField", "Activity", "Character", "GenreCollection"), false)
-    doTestTypeDefinitions(file, listOf("LocalType", "ThreadCommentLikeNotification", "ActivityMessageNotification", "ModAction"), false)
+    val fileName = "client/query.graphql"
+    doTestCompletion(fileName, listOf("localField", "Activity", "Character", "GenreCollection"), false)
+    doTestTypeDefinitions(fileName, listOf("LocalType", "ThreadCommentLikeNotification", "ActivityMessageNotification", "ModAction"), false)
     doTestHighlighting("client/highlight.graphql")
+  }
+
+  fun testSchemaInHtmlWithSOE() {
+    val fileName = "schema.graphql"
+    doTestFragmentDefinitions(fileName, listOf("UserFragment"))
+    doTestTypeDefinitions(fileName, listOf("User", "Query"))
   }
 
   private fun doTest(

@@ -1,0 +1,9 @@
+type User {
+    name: String
+    children: [User]
+}
+
+type Query {
+    root: Int
+    user: User
+}

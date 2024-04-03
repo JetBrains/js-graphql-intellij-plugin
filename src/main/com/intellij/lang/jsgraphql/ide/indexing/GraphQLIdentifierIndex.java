@@ -14,6 +14,8 @@ import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.psi.*;
+import com.intellij.psi.text.BlockSupport;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.EnumDataDescriptor;
@@ -22,6 +24,7 @@ import com.intellij.util.io.KeyDescriptor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,8 +41,12 @@ public final class GraphQLIdentifierIndex extends FileBasedIndexExtension<String
   }
 
   private final DataIndexer<String, IdentifierKind, FileContent> myDataIndexer = inputData -> {
-    final Map<String, IdentifierKind> identifiers = new HashMap<>();
+    PsiFile psiFile = inputData.getPsiFile();
+    if (psiFile instanceof XmlFile && BlockSupport.isTooDeep(psiFile)) {
+      return Collections.emptyMap();
+    }
 
+    final Map<String, IdentifierKind> identifiers = new HashMap<>();
     PsiRecursiveElementVisitor visitor = new PsiRecursiveElementVisitor() {
       @Override
       public void visitElement(@NotNull PsiElement element) {
@@ -84,7 +91,7 @@ public final class GraphQLIdentifierIndex extends FileBasedIndexExtension<String
       }
     };
 
-    inputData.getPsiFile().accept(visitor);
+    psiFile.accept(visitor);
 
     return identifiers;
   };
