@@ -10,12 +10,12 @@ package com.intellij.lang.jsgraphql.psi
 
 import com.intellij.injected.editor.VirtualFileWindow
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.originalFileOrSelf
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.testFramework.LightVirtualFile
 import com.intellij.util.SmartList
 
 
@@ -54,13 +54,7 @@ fun getOriginalVirtualFile(psiFile: PsiFile?): VirtualFile? {
 }
 
 fun getPhysicalVirtualFile(virtualFile: VirtualFile?): VirtualFile? {
-  var result = virtualFile ?: return null
-  if (result is LightVirtualFile) {
-    val originalFile = result.originalFile
-    if (originalFile != null) {
-      result = originalFile
-    }
-  }
+  var result = virtualFile?.originalFileOrSelf() ?: return null
   if (result is VirtualFileWindow) {
     // injected virtual files
     result = (result as VirtualFileWindow).delegate
