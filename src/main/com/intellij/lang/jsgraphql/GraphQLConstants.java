@@ -17,4 +17,9 @@ public final class GraphQLConstants {
     public static final String __TYPE = "__type";
     public static final String __SCHEMA = "__schema";
   }
+
+  public static final class Config {
+    public static final String CODEGEN = "codegen";
+    public static final String GRAPHQL = "graphql.config";
+  }
 }

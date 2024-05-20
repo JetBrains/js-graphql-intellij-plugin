@@ -157,6 +157,7 @@
     <usageTypeProvider implementation="com.intellij.lang.jsgraphql.ide.findUsages.GraphQLUsageTypeProvider"/>
     <lang.elementManipulator forClass="com.intellij.lang.jsgraphql.psi.impl.GraphQLIdentifierImpl"
                              implementationClass="com.intellij.lang.jsgraphql.ide.resolve.GraphQLIdentifierManipulator"/>
+    <implicitUsageProvider implementation="com.intellij.lang.jsgraphql.usages.GraphQLConfigImplicitUsageProvider"/>
 
     <!-- Search (find implementations etc.) -->
     <definitionsSearch implementation="com.intellij.lang.jsgraphql.ide.search.GraphQLDefinitionsSearchExecutor"/>
