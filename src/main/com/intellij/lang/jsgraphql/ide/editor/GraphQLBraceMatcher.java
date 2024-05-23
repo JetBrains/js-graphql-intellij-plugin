@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class GraphQLBraceMatcher implements PairedBraceMatcher {
   @Override
-  public BracePair[] getPairs() {
+  public BracePair @NotNull [] getPairs() {
     return new BracePair[]{
       new BracePair(GraphQLElementTypes.PAREN_L, GraphQLElementTypes.PAREN_R, true),
       new BracePair(GraphQLElementTypes.BRACKET_L, GraphQLElementTypes.BRACKET_R, true),
