@@ -40,7 +40,7 @@ interface GraphQLNodeModulesEntity : WorkspaceEntity {
 }
 
 //region generated code
-fun MutableEntityStorage.modifyEntity(
+fun MutableEntityStorage.modifyGraphQLNodeModulesEntity(
   entity: GraphQLNodeModulesEntity,
   modification: GraphQLNodeModulesEntity.Builder.() -> Unit,
 ): GraphQLNodeModulesEntity {
