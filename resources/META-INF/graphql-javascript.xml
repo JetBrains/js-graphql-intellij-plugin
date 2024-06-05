@@ -14,6 +14,8 @@
     <!-- Workspace -->
     <workspaceModel.fileIndexContributor
       implementation="com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesIndexContributor"/>
+
+    <implicitUsageProvider implementation="com.intellij.lang.jsgraphql.javascript.usages.GraphQLConfigImplicitUsageProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">

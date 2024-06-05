@@ -1,4 +1,4 @@
-package com.intellij.lang.jsgraphql.usages
+package com.intellij.lang.jsgraphql.javascript.usages
 
 import com.intellij.lang.javascript.inspections.JSConfigImplicitUsageProvider
 import com.intellij.lang.jsgraphql.GraphQLConstants.Config.CODEGEN
