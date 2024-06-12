@@ -1,5 +1,6 @@
-package com.intellij.lang.jsgraphql.javascript.workspace
+package com.intellij.lang.jsgraphql.javascript.workspace.impl
 
+import com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntity
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityType
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
@@ -19,7 +20,7 @@ import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 
 @GeneratedCodeApiVersion(3)
 @GeneratedCodeImplVersion(5)
-open class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModulesEntityData) : GraphQLNodeModulesEntity, WorkspaceEntityBase(
+internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModulesEntityData) : GraphQLNodeModulesEntity, WorkspaceEntityBase(
   dataSource) {
 
   private companion object {
@@ -47,9 +48,9 @@ open class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModul
   }
 
 
-  class Builder(result: GraphQLNodeModulesEntityData?) : ModifiableWorkspaceEntityBase<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityData>(
+  internal class Builder(result: GraphQLNodeModulesEntityData?) : ModifiableWorkspaceEntityBase<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityData>(
     result), GraphQLNodeModulesEntity.Builder {
-    constructor() : this(GraphQLNodeModulesEntityData())
+    internal constructor() : this(GraphQLNodeModulesEntityData())
 
     override fun applyToBuilder(builder: MutableEntityStorage) {
       if (this.diff != null) {
@@ -141,7 +142,7 @@ open class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModul
   }
 }
 
-class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeModulesEntity>() {
+internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeModulesEntity>() {
   lateinit var roots: MutableSet<VirtualFileUrl>
 
   internal fun isRootsInitialized(): Boolean = ::roots.isInitialized
