@@ -17,14 +17,14 @@ internal object MetadataStorageImpl: MetadataStorageBase() {
         
         addMetadata(typeMetadata)
         
-        typeMetadata = EntityMetadata(fqName = "com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntity", entityDataFqName = "com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntityData", supertypes = listOf("com.intellij.platform.workspace.storage.WorkspaceEntity"), properties = listOf(OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "entitySource", valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = false, typeMetadata = FinalClassMetadata.KnownClass(fqName = "com.intellij.platform.workspace.storage.EntitySource")), withDefault = false),
+        typeMetadata = EntityMetadata(fqName = "com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntity", entityDataFqName = "com.intellij.lang.jsgraphql.javascript.workspace.impl.GraphQLNodeModulesEntityData", supertypes = listOf("com.intellij.platform.workspace.storage.WorkspaceEntity"), properties = listOf(OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "entitySource", valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = false, typeMetadata = FinalClassMetadata.KnownClass(fqName = "com.intellij.platform.workspace.storage.EntitySource")), withDefault = false),
 OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "roots", valueType = ValueTypeMetadata.ParameterizedType(generics = listOf(ValueTypeMetadata.SimpleType.CustomType(isNullable = false, typeMetadata = FinalClassMetadata.KnownClass(fqName = "com.intellij.platform.workspace.storage.url.VirtualFileUrl"))), primitive = primitiveTypeSetNotNullable), withDefault = false)), extProperties = listOf(), isAbstract = false)
         
         addMetadata(typeMetadata)
     }
 
     override fun initializeMetadataHash() {
-        addMetadataHash(typeFqn = "com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntity", metadataHash = 1841341617)
+        addMetadataHash(typeFqn = "com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntity", metadataHash = -1916821461)
         addMetadataHash(typeFqn = "com.intellij.platform.workspace.storage.EntitySource", metadataHash = -677383296)
         addMetadataHash(typeFqn = "com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntitySource", metadataHash = -373169652)
     }
