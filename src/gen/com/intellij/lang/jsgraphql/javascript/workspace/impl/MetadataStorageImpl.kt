@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.javascript.workspace.impl
 
+import com.intellij.platform.workspace.storage.WorkspaceEntityInternalApi
 import com.intellij.platform.workspace.storage.metadata.impl.MetadataStorageBase
 import com.intellij.platform.workspace.storage.metadata.model.EntityMetadata
 import com.intellij.platform.workspace.storage.metadata.model.FinalClassMetadata
@@ -7,6 +8,7 @@ import com.intellij.platform.workspace.storage.metadata.model.OwnPropertyMetadat
 import com.intellij.platform.workspace.storage.metadata.model.StorageTypeMetadata
 import com.intellij.platform.workspace.storage.metadata.model.ValueTypeMetadata
 
+@OptIn(WorkspaceEntityInternalApi::class)
 internal object MetadataStorageImpl: MetadataStorageBase() {
     override fun initializeMetadata() {
         val primitiveTypeSetNotNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = false, type = "Set")

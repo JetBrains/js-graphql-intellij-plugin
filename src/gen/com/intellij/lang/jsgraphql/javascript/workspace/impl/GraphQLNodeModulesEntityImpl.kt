@@ -1,13 +1,14 @@
 package com.intellij.lang.jsgraphql.javascript.workspace.impl
 
 import com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntity
+import com.intellij.platform.workspace.storage.ConnectionId
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityType
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
 import com.intellij.platform.workspace.storage.GeneratedCodeImplVersion
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.WorkspaceEntity
-import com.intellij.platform.workspace.storage.impl.ConnectionId
+import com.intellij.platform.workspace.storage.WorkspaceEntityInternalApi
 import com.intellij.platform.workspace.storage.impl.ModifiableWorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityData
@@ -20,6 +21,7 @@ import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 
 @GeneratedCodeApiVersion(3)
 @GeneratedCodeImplVersion(5)
+@OptIn(WorkspaceEntityInternalApi::class)
 internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModulesEntityData) : GraphQLNodeModulesEntity, WorkspaceEntityBase(
   dataSource) {
 
@@ -142,6 +144,7 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
   }
 }
 
+@OptIn(WorkspaceEntityInternalApi::class)
 internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeModulesEntity>() {
   lateinit var roots: MutableSet<VirtualFileUrl>
 
