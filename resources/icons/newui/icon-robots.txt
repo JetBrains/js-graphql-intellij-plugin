@@ -1,1 +1,3 @@
-skip: *
+merge
+skip: *20x20.svg
+skip: *14x14.svg

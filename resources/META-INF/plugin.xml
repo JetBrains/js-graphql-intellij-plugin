@@ -272,8 +272,6 @@
 
     <lang.inspectionSuppressor language="GraphQL"
                                implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLInspectionSuppressor"/>
-
-    <iconMapper mappingFile="GraphQLIconsMapping.json"/>
   </extensions>
 
   <extensions defaultExtensionNs="JavaScript">
