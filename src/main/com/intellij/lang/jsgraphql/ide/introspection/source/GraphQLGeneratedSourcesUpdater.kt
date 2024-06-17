@@ -5,6 +5,7 @@ import com.intellij.lang.jsgraphql.executeOnPooledThread
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.introspection.isJsonSchemaCandidate
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager.Companion.generatedSdlDirPath
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -14,6 +15,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.AsyncFileListener.ChangeApplier
@@ -40,6 +42,7 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
 
   private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
   private val fileDocumentManager = FileDocumentManager.getInstance()
+  private val fileIndex = ProjectRootManager.getInstance(project).fileIndex
 
   private val queue = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   private val executor =
@@ -55,7 +58,6 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
 
   override fun prepareChange(events: MutableList<out VFileEvent>): ChangeApplier? {
     var changed = false
-    val generatedFilesPath = GraphQLGeneratedSourcesManager.generatedSdlDirPath
 
     for (event in events) {
       if (event is VFileCreateEvent) {
@@ -67,11 +69,12 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
       }
 
       val file = event.file ?: continue
+      if (!fileIndex.isInProject(file) && !FileUtil.isAncestor(generatedSdlDirPath, file.path, false)) continue
 
       if (event is VFileDeleteEvent) {
         // regenerate GraphQL SDLs from cache directory on deletion
-        if (file.isDirectory && FileUtil.isAncestor(file.path, generatedFilesPath, false) ||
-            FileUtil.pathsEqual(file.parent?.path, generatedFilesPath)
+        if (file.isDirectory && FileUtil.pathsEqual(file.path, generatedSdlDirPath) ||
+            FileUtil.pathsEqual(file.parent?.path, generatedSdlDirPath)
         ) {
           changed = true
           break
