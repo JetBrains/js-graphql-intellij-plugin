@@ -11,6 +11,7 @@ import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.UniqueVFilePathBuilder
 import com.intellij.openapi.fileEditor.impl.EditorTabTitleProvider
 import com.intellij.openapi.project.Project
@@ -22,7 +23,7 @@ class GraphQLIntrospectionEditorTabTitleProvider : EditorTabTitleProvider {
     val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
     if (generatedSourcesManager.isGeneratedFile(file)) {
       return generatedSourcesManager.getSourceFile(file)
-        ?.let { UniqueVFilePathBuilder.getInstance().getUniqueVirtualFilePath(project, it) }
+        ?.let { runReadAction { UniqueVFilePathBuilder.getInstance().getUniqueVirtualFilePath(project, it) } }
         ?.let { GraphQLBundle.message("graphql.tab.title.graphql.schema", it) }
     }
     val schemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
