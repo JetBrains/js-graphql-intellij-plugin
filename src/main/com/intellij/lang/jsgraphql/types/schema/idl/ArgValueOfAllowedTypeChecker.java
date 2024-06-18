@@ -129,14 +129,13 @@ class ArgValueOfAllowedTypeChecker {
   private void checkArgValueMatchesAllowedInputType(List<GraphQLError> errors,
                                                     @Nullable Value<?> instanceValue,
                                                     InputObjectTypeDefinition allowedTypeDefinition) {
-    if (!(instanceValue instanceof ObjectValue)) {
+    if (!(instanceValue instanceof ObjectValue objectValue)) {
       if (instanceValue != null) {
         addValidationError(errors, EXPECTED_OBJECT_MESSAGE, instanceValue.getClass().getSimpleName());
       }
       return;
     }
 
-    ObjectValue objectValue = ((ObjectValue)instanceValue);
     // duck typing validation, if it looks like the definition
     // then it must be the same type as the definition
 
@@ -151,7 +150,7 @@ class ArgValueOfAllowedTypeChecker {
     Map<String, Long> fieldsToOccurrenceMap = fields.stream().map(ObjectField::getName)
       .collect(groupingBy(Function.identity(), counting()));
 
-    if (fieldsToOccurrenceMap.values().stream().anyMatch(count -> count > 1)) {
+    if (ContainerUtil.exists(fieldsToOccurrenceMap.values(), count -> count > 1)) {
       addValidationError(errors, DUPLICATED_KEYS_MESSAGE, fieldsToOccurrenceMap.entrySet().stream()
         .filter(entry -> entry.getValue() > 1)
         .map(Map.Entry::getKey)
@@ -187,14 +186,12 @@ class ArgValueOfAllowedTypeChecker {
   private void checkArgValueMatchesAllowedEnum(List<GraphQLError> errors,
                                                @Nullable Value<?> instanceValue,
                                                EnumTypeDefinition allowedTypeDefinition) {
-    if (!(instanceValue instanceof EnumValue)) {
+    if (!(instanceValue instanceof EnumValue enumValue)) {
       if (instanceValue != null) {
         addValidationError(errors, EXPECTED_ENUM_MESSAGE, instanceValue.getClass().getSimpleName());
       }
       return;
     }
-
-    EnumValue enumValue = ((EnumValue)instanceValue);
 
     List<EnumTypeExtensionDefinition> enumExtensions =
       typeRegistry.enumTypeExtensions().getOrDefault(allowedTypeDefinition.getName(), emptyList());
@@ -202,8 +199,8 @@ class ArgValueOfAllowedTypeChecker {
     List<EnumValueDefinition> enumValueDefinitions =
       Stream.concat(allowedTypeDefinition.getEnumValueDefinitions().stream(), enumExtStream).toList();
 
-    boolean noneMatchAllowedEnumValue = enumValueDefinitions.stream()
-      .noneMatch(enumAllowedValue -> enumAllowedValue.getName().equals(enumValue.getName()));
+    boolean noneMatchAllowedEnumValue =
+      !ContainerUtil.exists(enumValueDefinitions, enumAllowedValue -> enumAllowedValue.getName().equals(enumValue.getName()));
 
     if (noneMatchAllowedEnumValue) {
       addValidationError(errors, MUST_BE_VALID_ENUM_VALUE_MESSAGE, enumValue.getName(), enumValueDefinitions.stream()
@@ -263,12 +260,11 @@ class ArgValueOfAllowedTypeChecker {
     }
 
     Type<?> unwrappedAllowedType = allowedArgType.getType();
-    if (!(instanceValue instanceof ArrayValue)) {
+    if (!(instanceValue instanceof ArrayValue arrayValue)) {
       checkArgValueMatchesAllowedType(errors, instanceValue, unwrappedAllowedType);
       return;
     }
 
-    ArrayValue arrayValue = ((ArrayValue)instanceValue);
     boolean isUnwrappedList = unwrappedAllowedType instanceof ListType;
 
     // validate each instance value in the list, all instances must match for the list to match
@@ -281,7 +277,7 @@ class ArgValueOfAllowedTypeChecker {
     });
   }
 
-  private boolean isArgumentValueScalarLiteral(GraphQLScalarType scalarType, Value<?> instanceValue) {
+  private static boolean isArgumentValueScalarLiteral(GraphQLScalarType scalarType, Value<?> instanceValue) {
     if (instanceValue == null) return false;
 
     try {

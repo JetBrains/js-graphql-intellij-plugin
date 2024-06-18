@@ -135,8 +135,7 @@ public class AstSignature {
       public TraversalControl visitDocument(Document node, TraverserContext<Node> context) {
         List<Definition> wantedDefinitions = node.getDefinitions().stream()
           .filter(d -> {
-            if (d instanceof OperationDefinition) {
-              OperationDefinition operationDefinition = (OperationDefinition)d;
+            if (d instanceof OperationDefinition operationDefinition) {
               return isThisOperation(operationDefinition, operationName);
             }
             return d instanceof FragmentDefinition;

@@ -22,10 +22,7 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertTrue;
 import static com.intellij.lang.jsgraphql.types.util.EscapeUtil.escapeJsonString;
@@ -34,7 +31,6 @@ import static java.lang.String.valueOf;
 /**
  * This can take graphql language AST and print it out as a string
  */
-@SuppressWarnings("UnnecessaryLocalVariable")
 @PublicApi
 public class AstPrinter {
   private final Map<Class<? extends Node>, NodePrinter<? extends Node>> printers = new LinkedHashMap<>();
@@ -127,7 +123,7 @@ public class AstPrinter {
     };
   }
 
-  private NodePrinter<DirectiveLocation> directiveLocation() {
+  private static NodePrinter<DirectiveLocation> directiveLocation() {
     return (out, node) -> out.append(node.getName());
   }
 
@@ -143,7 +139,7 @@ public class AstPrinter {
     };
   }
 
-  private NodePrinter<EnumValue> enumValue() {
+  private static NodePrinter<EnumValue> enumValue() {
     return (out, node) -> out.append(node.getName());
   }
 
@@ -204,13 +200,10 @@ public class AstPrinter {
     };
   }
 
-  private boolean hasDescription(List<? extends Node> nodes) {
-    for (Node node : nodes) {
-      if (node instanceof AbstractDescribedNode) {
-        AbstractDescribedNode<?> describedNode = (AbstractDescribedNode<?>)node;
-        if (describedNode.getDescription() != null) {
-          return true;
-        }
+  private static boolean hasDescription(List<? extends Node<?>> nodes) {
+    for (Node<?> node : nodes) {
+      if (node instanceof AbstractDescribedNode<?> describedNode && describedNode.getDescription() != null) {
+        return true;
       }
     }
 
@@ -273,7 +266,7 @@ public class AstPrinter {
     String nameTypeSep = compactMode ? ":" : ": ";
     String defaultValueEquals = compactMode ? "=" : "= ";
     return (out, node) -> {
-      Value defaultValue = node.getDefaultValue();
+      Value<?> defaultValue = node.getDefaultValue();
       out.append(description(node));
       out.append(spaced(
         node.getName() + nameTypeSep + type(node.getType()),
@@ -304,7 +297,7 @@ public class AstPrinter {
   private NodePrinter<OperationDefinition> operationDefinition() {
     final String argSep = compactMode ? "," : ", ";
     return (out, node) -> {
-      String op = node.getOperation().toString().toLowerCase();
+      String op = node.getOperation().toString().toLowerCase(Locale.ROOT);
       String name = node.getName();
       String varDefinitions = wrap("(", join(nvl(node.getVariableDefinitions()), argSep), ")");
       String directives = directives(node.getDirectives());
@@ -368,17 +361,15 @@ public class AstPrinter {
   }
 
 
-  private NodePrinter<Type> type() {
+  private static NodePrinter<Type<?>> type() {
     return (out, node) -> out.append(type(node));
   }
 
-  private String type(Type type) {
-    if (type instanceof NonNullType) {
-      NonNullType inner = (NonNullType)type;
+  private static String type(Type<?> type) {
+    if (type instanceof NonNullType inner) {
       return wrap("", type(inner.getType()), "!");
     }
-    else if (type instanceof ListType) {
-      ListType inner = (ListType)type;
+    else if (type instanceof ListType inner) {
       return wrap("[", type(inner.getType()), "]");
     }
     else {
@@ -440,15 +431,15 @@ public class AstPrinter {
       .append(directives(node.getDirectives()));
   }
 
-  private NodePrinter<VariableReference> variableReference() {
+  private static NodePrinter<VariableReference> variableReference() {
     return (out, node) -> out.append('$').append(node.getName());
   }
 
-  private String node(Node node) {
+  private String node(Node<?> node) {
     return node(node, null);
   }
 
-  private String node(Node node, Class startClass) {
+  private String node(Node<?> node, Class<?> startClass) {
     if (startClass != null) {
       assertTrue(startClass.isInstance(node), () -> "The starting class must be in the inherit tree");
     }
@@ -458,21 +449,19 @@ public class AstPrinter {
     return builder.toString();
   }
 
-  @SuppressWarnings("unchecked")
-  private <T extends Node> NodePrinter<T> _findPrinter(Node node) {
+  private <T extends Node<?>> NodePrinter<T> _findPrinter(Node<?> node) {
     return _findPrinter(node, null);
   }
 
-  private <T extends Node> NodePrinter<T> _findPrinter(Node node, Class startClass) {
+  private <T extends Node<?>> NodePrinter<T> _findPrinter(Node<?> node, Class<?> startClass) {
     if (node == null) {
       return (out, type) -> {
       };
     }
-    Class clazz = startClass != null ? startClass : node.getClass();
+    Class<?> clazz = startClass != null ? startClass : node.getClass();
     while (clazz != Object.class) {
-      NodePrinter nodePrinter = printers.get(clazz);
+      @SuppressWarnings("unchecked") NodePrinter<T> nodePrinter = (NodePrinter<T>)printers.get(clazz);
       if (nodePrinter != null) {
-        //noinspection unchecked
         return nodePrinter;
       }
       clazz = clazz.getSuperclass();
@@ -480,23 +469,23 @@ public class AstPrinter {
     throw new AssertException(String.format("We have a missing printer implementation for %s : report a bug!", clazz));
   }
 
-  private <T> boolean isEmpty(List<T> list) {
+  private static <T> boolean isEmpty(List<T> list) {
     return list == null || list.isEmpty();
   }
 
-  private boolean isEmpty(String s) {
-    return s == null || s.trim().length() == 0;
+  private static boolean isEmpty(String s) {
+    return s == null || s.trim().isEmpty();
   }
 
-  private <T> List<T> nvl(List<T> list) {
+  private static <T> List<T> nvl(List<T> list) {
     return list != null ? list : Collections.emptyList();
   }
 
-  private NodePrinter<Value> value() {
+  private NodePrinter<Value<?>> value() {
     return (out, node) -> out.append(value(node));
   }
 
-  private String value(Value value) {
+  private String value(Value<?> value) {
     String argSep = compactMode ? "," : ", ";
     if (value instanceof IntValue) {
       return valueOf(((IntValue)value).getValue());
@@ -519,17 +508,17 @@ public class AstPrinter {
     else if (value instanceof ArrayValue) {
       return "[" + join(((ArrayValue)value).getValues(), argSep) + "]";
     }
-    else if (value instanceof ObjectValue) {
-      return "{" + join(((ObjectValue)value).getObjectFields(), argSep) + "}";
+    else if (value instanceof ObjectValue objectValue) {
+      return "{" + join(objectValue.getObjectFields(), argSep) + "}";
     }
-    else if (value instanceof VariableReference) {
-      return "$" + ((VariableReference)value).getName();
+    else if (value instanceof VariableReference reference) {
+      return "$" + reference.getName();
     }
     return "";
   }
 
   private String description(Node<?> node) {
-    Description description = ((AbstractDescribedNode)node).getDescription();
+    Description description = ((AbstractDescribedNode<?>)node).getDescription();
     if (description == null || description.getContent() == null || compactMode) {
       return "";
     }
@@ -572,15 +561,15 @@ public class AstPrinter {
     return joined.toString();
   }
 
-  private String spaced(String... args) {
+  private static String spaced(String... args) {
     return join(" ", args);
   }
 
-  private String smooshed(String... args) {
+  private static String smooshed(String... args) {
     return join("", args);
   }
 
-  private String join(String delim, String... args) {
+  private static String join(String delim, String... args) {
     StringBuilder builder = new StringBuilder();
 
     boolean first = true;
@@ -600,7 +589,7 @@ public class AstPrinter {
     return builder.toString();
   }
 
-  String wrap(String start, String maybeString, String end) {
+  static String wrap(String start, String maybeString, String end) {
     if (isEmpty(maybeString)) {
       if (start.equals("\"") && end.equals("\"")) {
         return "\"\"";
@@ -610,7 +599,7 @@ public class AstPrinter {
     return start + maybeString + (!isEmpty(end) ? end : "");
   }
 
-  private <T extends Node> String block(List<T> nodes) {
+  private <T extends Node<?>> String block(List<T> nodes) {
     if (isEmpty(nodes)) {
       return "{}";
     }
@@ -624,7 +613,7 @@ public class AstPrinter {
            + "\n}";
   }
 
-  private String indent(String maybeString) {
+  private static String indent(String maybeString) {
     if (isEmpty(maybeString)) {
       return "";
     }
@@ -633,7 +622,7 @@ public class AstPrinter {
   }
 
   @SuppressWarnings("SameParameterValue")
-  String wrap(String start, Node maybeNode, String end) {
+  String wrap(String start, Node<?> maybeNode, String end) {
     if (maybeNode == null) {
       return "";
     }
@@ -646,7 +635,7 @@ public class AstPrinter {
    * @param node the AST node to print
    * @return the printed node in graphql language format
    */
-  public static String printAst(Node node) {
+  public static String printAst(Node<?> node) {
     StringBuilder builder = new StringBuilder();
     printImpl(builder, node, false);
     return builder.toString();
@@ -658,7 +647,7 @@ public class AstPrinter {
    * @param writer the place to put the output
    * @param node   the AST node to print
    */
-  public static void printAst(Writer writer, Node node) {
+  public static void printAst(Writer writer, Node<?> node) {
     String ast = printAst(node);
     PrintWriter printer = new PrintWriter(writer);
     printer.write(ast);
@@ -671,13 +660,13 @@ public class AstPrinter {
    * @param node the AST node to print
    * @return the printed node in a compact graphql language format
    */
-  public static String printAstCompact(Node node) {
+  public static String printAstCompact(Node<?> node) {
     StringBuilder builder = new StringBuilder();
     printImpl(builder, node, true);
     return builder.toString();
   }
 
-  private static void printImpl(StringBuilder writer, Node node, boolean compactMode) {
+  private static void printImpl(StringBuilder writer, Node<?> node, boolean compactMode) {
     AstPrinter astPrinter = new AstPrinter(compactMode);
     NodePrinter<Node> printer = astPrinter._findPrinter(node);
     printer.print(writer, node);

@@ -39,12 +39,10 @@ public class DefaultValueUnboxer implements ValueUnboxer {
 
   @Internal // used by next-gen at the moment
   public static Object unboxValue(Object result) {
-    if (result instanceof Optional) {
-      Optional optional = (Optional)result;
+    if (result instanceof Optional<?> optional) {
       return optional.orElse(null);
     }
-    else if (result instanceof OptionalInt) {
-      OptionalInt optional = (OptionalInt)result;
+    else if (result instanceof OptionalInt optional) {
       if (optional.isPresent()) {
         return optional.getAsInt();
       }
@@ -52,8 +50,7 @@ public class DefaultValueUnboxer implements ValueUnboxer {
         return null;
       }
     }
-    else if (result instanceof OptionalDouble) {
-      OptionalDouble optional = (OptionalDouble)result;
+    else if (result instanceof OptionalDouble optional) {
       if (optional.isPresent()) {
         return optional.getAsDouble();
       }
@@ -61,8 +58,7 @@ public class DefaultValueUnboxer implements ValueUnboxer {
         return null;
       }
     }
-    else if (result instanceof OptionalLong) {
-      OptionalLong optional = (OptionalLong)result;
+    else if (result instanceof OptionalLong optional) {
       if (optional.isPresent()) {
         return optional.getAsLong();
       }
