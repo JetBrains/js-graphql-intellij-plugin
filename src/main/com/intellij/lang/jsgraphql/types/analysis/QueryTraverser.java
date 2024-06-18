@@ -158,10 +158,9 @@ public class QueryTraverser {
   }
 
   private List<Node> childrenOf(Node<?> node) {
-    if (!(node instanceof FragmentSpread)) {
+    if (!(node instanceof FragmentSpread fragmentSpread)) {
       return node.getChildren();
     }
-    FragmentSpread fragmentSpread = (FragmentSpread)node;
     return singletonList(fragmentsByName.get(fragmentSpread.getName()));
   }
 

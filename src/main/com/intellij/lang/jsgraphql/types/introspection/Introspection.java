@@ -244,8 +244,7 @@ public class Introspection {
   private static final IntrospectionDataFetcher fieldsFetcher = environment -> {
     Object type = environment.getSource();
     Boolean includeDeprecated = environment.getArgument("includeDeprecated");
-    if (type instanceof GraphQLFieldsContainer) {
-      GraphQLFieldsContainer fieldsContainer = (GraphQLFieldsContainer)type;
+    if (type instanceof GraphQLFieldsContainer fieldsContainer) {
       List<GraphQLFieldDefinition> fieldDefinitions = environment
         .getGraphQLSchema()
         .getFieldVisibility()

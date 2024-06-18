@@ -180,47 +180,37 @@ public class TypeDefinitionRegistry {
    */
   public void add(SDLDefinition definition) {
     // extensions
-    if (definition instanceof ObjectTypeExtensionDefinition) {
-      ObjectTypeExtensionDefinition newEntry = (ObjectTypeExtensionDefinition)definition;
+    if (definition instanceof ObjectTypeExtensionDefinition newEntry) {
       defineExt(objectTypeExtensions, newEntry, ObjectTypeExtensionDefinition::getName);
     }
-    else if (definition instanceof InterfaceTypeExtensionDefinition) {
-      InterfaceTypeExtensionDefinition newEntry = (InterfaceTypeExtensionDefinition)definition;
+    else if (definition instanceof InterfaceTypeExtensionDefinition newEntry) {
       defineExt(interfaceTypeExtensions, newEntry, InterfaceTypeExtensionDefinition::getName);
     }
-    else if (definition instanceof UnionTypeExtensionDefinition) {
-      UnionTypeExtensionDefinition newEntry = (UnionTypeExtensionDefinition)definition;
+    else if (definition instanceof UnionTypeExtensionDefinition newEntry) {
       defineExt(unionTypeExtensions, newEntry, UnionTypeExtensionDefinition::getName);
     }
-    else if (definition instanceof EnumTypeExtensionDefinition) {
-      EnumTypeExtensionDefinition newEntry = (EnumTypeExtensionDefinition)definition;
+    else if (definition instanceof EnumTypeExtensionDefinition newEntry) {
       defineExt(enumTypeExtensions, newEntry, EnumTypeExtensionDefinition::getName);
     }
-    else if (definition instanceof ScalarTypeExtensionDefinition) {
-      ScalarTypeExtensionDefinition newEntry = (ScalarTypeExtensionDefinition)definition;
+    else if (definition instanceof ScalarTypeExtensionDefinition newEntry) {
       defineExt(scalarTypeExtensions, newEntry, ScalarTypeExtensionDefinition::getName);
     }
-    else if (definition instanceof InputObjectTypeExtensionDefinition) {
-      InputObjectTypeExtensionDefinition newEntry = (InputObjectTypeExtensionDefinition)definition;
+    else if (definition instanceof InputObjectTypeExtensionDefinition newEntry) {
       defineExt(inputObjectTypeExtensions, newEntry, InputObjectTypeExtensionDefinition::getName);
     }
     else if (definition instanceof SchemaExtensionDefinition) {
       schemaExtensionDefinitions.add((SchemaExtensionDefinition)definition);
     }
-    else if (definition instanceof ScalarTypeDefinition) {
-      ScalarTypeDefinition newEntry = (ScalarTypeDefinition)definition;
+    else if (definition instanceof ScalarTypeDefinition newEntry) {
       define(scalarTypes, scalarTypes, newEntry);
     }
-    else if (definition instanceof TypeDefinition) {
-      TypeDefinition newEntry = (TypeDefinition)definition;
+    else if (definition instanceof TypeDefinition newEntry) {
       define(types, types, newEntry);
     }
-    else if (definition instanceof DirectiveDefinition) {
-      DirectiveDefinition newEntry = (DirectiveDefinition)definition;
+    else if (definition instanceof DirectiveDefinition newEntry) {
       define(directiveDefinitions, directiveDefinitions, newEntry);
     }
-    else if (definition instanceof SchemaDefinition) {
-      SchemaDefinition newSchema = (SchemaDefinition)definition;
+    else if (definition instanceof SchemaDefinition newSchema) {
       if (schema != null) {
         myErrors.add(new SchemaRedefinitionError(this.schema, newSchema));
       }

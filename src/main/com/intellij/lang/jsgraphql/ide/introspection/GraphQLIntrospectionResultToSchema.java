@@ -304,8 +304,7 @@ public class GraphQLIntrospectionResultToSchema {
     if (descriptionAware == null) return null;
 
     final Object rawDescription = descriptionAware.get("description");
-    if (rawDescription instanceof String) {
-      String description = (String)rawDescription;
+    if (rawDescription instanceof String description) {
       if (!description.trim().isEmpty()) {
         final boolean multiLine = description.contains("\n");
         if (multiLine) {

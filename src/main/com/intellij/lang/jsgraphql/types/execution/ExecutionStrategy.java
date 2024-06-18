@@ -769,8 +769,7 @@ public abstract class ExecutionStrategy {
         result.complete(executionResult);
       }
     }
-    else if (underlyingException instanceof AbortExecutionException) {
-      AbortExecutionException abortException = (AbortExecutionException)underlyingException;
+    else if (underlyingException instanceof AbortExecutionException abortException) {
       executionResult = abortException.toExecutionResult();
       result.complete(executionResult);
     }

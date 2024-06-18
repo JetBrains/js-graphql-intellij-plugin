@@ -129,10 +129,9 @@ public class SchemaUtil {
   public List<GraphQLObjectType> findImplementations(GraphQLSchema schema, GraphQLInterfaceType interfaceType) {
     List<GraphQLObjectType> result = new ArrayList<>();
     for (GraphQLType type : schema.getAllTypesAsList()) {
-      if (!(type instanceof GraphQLObjectType)) {
+      if (!(type instanceof GraphQLObjectType objectType)) {
         continue;
       }
-      GraphQLObjectType objectType = (GraphQLObjectType)type;
       if ((objectType).getInterfaces().contains(interfaceType)) {
         result.add(objectType);
       }

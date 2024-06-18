@@ -290,8 +290,7 @@ public class ValuesResolver {
                                        GraphQLList graphQLList,
                                        Value value,
                                        Map<String, Object> variables) {
-    if (value instanceof ArrayValue) {
-      ArrayValue arrayValue = (ArrayValue)value;
+    if (value instanceof ArrayValue arrayValue) {
       List<Object> result = new ArrayList<>();
       for (Value singleValue : arrayValue.getValues()) {
         result.add(coerceValueAst(fieldVisibility, graphQLList.getWrappedType(), singleValue, variables));

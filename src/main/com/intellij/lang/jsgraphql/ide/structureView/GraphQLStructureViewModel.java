@@ -35,8 +35,7 @@ public class GraphQLStructureViewModel extends TextEditorBasedStructureViewModel
 
   @Override
   public boolean isAlwaysLeaf(StructureViewTreeElement element) {
-    if (element instanceof GraphQLStructureViewTreeElement) {
-      GraphQLStructureViewTreeElement treeElement = (GraphQLStructureViewTreeElement)element;
+    if (element instanceof GraphQLStructureViewTreeElement treeElement) {
       if (treeElement.childrenBase instanceof LeafPsiElement) {
         return true;
       }

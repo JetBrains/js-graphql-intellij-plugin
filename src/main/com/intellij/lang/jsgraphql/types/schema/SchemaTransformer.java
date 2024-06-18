@@ -270,8 +270,7 @@ public class SchemaTransformer {
         if (currentSchemaElement == dummyRoot) {
           return TraversalControl.CONTINUE;
         }
-        if (currentSchemaElement instanceof GraphQLTypeReference) {
-          GraphQLTypeReference typeRef = (GraphQLTypeReference)currentSchemaElement;
+        if (currentSchemaElement instanceof GraphQLTypeReference typeRef) {
           typeReferences.put(typeRef.getName(), typeRef);
         }
         NodeZipper<GraphQLSchemaElement> nodeZipper =
@@ -285,8 +284,7 @@ public class SchemaTransformer {
         // detection if the node was changed
         if (zippersBefore + 1 == zippers.size()) {
           nodeZipper = zippers.get(zippers.size() - 1);
-          if (context.originalThisNode() instanceof GraphQLNamedType && context.isChanged()) {
-            GraphQLNamedType originalNamedType = (GraphQLNamedType)context.originalThisNode();
+          if (context.originalThisNode() instanceof GraphQLNamedType originalNamedType && context.isChanged()) {
             GraphQLNamedType changedNamedType = (GraphQLNamedType)context.thisNode();
             if (!originalNamedType.getName().equals(changedNamedType.getName())) {
               changedTypes.put(originalNamedType.getName(), changedNamedType);

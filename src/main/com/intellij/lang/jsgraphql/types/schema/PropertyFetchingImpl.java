@@ -343,8 +343,7 @@ public class PropertyFetchingImpl {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
-      if (!(o instanceof CacheKey)) return false;
-      CacheKey cacheKey = (CacheKey)o;
+      if (!(o instanceof CacheKey cacheKey)) return false;
       return Objects.equals(classLoader, cacheKey.classLoader) &&
              Objects.equals(className, cacheKey.className) &&
              Objects.equals(propertyName, cacheKey.propertyName);

@@ -82,10 +82,9 @@ class GraphQLJavaScriptBlockWrapper extends AbstractBlock implements BlockEx, Se
 
     final List<Block> blocks = new ArrayList<>();
 
-    if (myNode.getPsi() instanceof JSStringTemplateExpression &&
+    if (myNode.getPsi() instanceof JSStringTemplateExpression psi &&
         GraphQLJavaScriptLanguageInjectionUtil.isGraphQLLanguageInjectionTarget(myNode.getPsi())) {
 
-      JSStringTemplateExpression psi = (JSStringTemplateExpression)myNode.getPsi();
       InjectedLanguageManager.getInstance(psi.getProject()).enumerate(psi, (injectedPsi, places) -> {
         // NO-OP here, but we need to enumerate for injection blocks to work in AbstractBlock#buildInjectedBlocks
         // since they call InjectedLanguageUtil.getCachedInjectedDocuments and return if empty

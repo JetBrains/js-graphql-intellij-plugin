@@ -1041,57 +1041,46 @@ public class SchemaPrinter {
   }
 
   private String getDescription(Object descriptionHolder) {
-    if (descriptionHolder instanceof GraphQLObjectType) {
-      GraphQLObjectType type = (GraphQLObjectType)descriptionHolder;
+    if (descriptionHolder instanceof GraphQLObjectType type) {
       return description(type.getDescription(),
                          ofNullable(type.getDefinition()).map(ObjectTypeDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLEnumType) {
-      GraphQLEnumType type = (GraphQLEnumType)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLEnumType type) {
       return description(type.getDescription(),
                          ofNullable(type.getDefinition()).map(EnumTypeDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLFieldDefinition) {
-      GraphQLFieldDefinition type = (GraphQLFieldDefinition)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLFieldDefinition type) {
       return description(type.getDescription(), ofNullable(type.getDefinition()).map(FieldDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLEnumValueDefinition) {
-      GraphQLEnumValueDefinition type = (GraphQLEnumValueDefinition)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLEnumValueDefinition type) {
       return description(type.getDescription(),
                          ofNullable(type.getDefinition()).map(EnumValueDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLUnionType) {
-      GraphQLUnionType type = (GraphQLUnionType)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLUnionType type) {
       return description(type.getDescription(),
                          ofNullable(type.getDefinition()).map(UnionTypeDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLInputObjectType) {
-      GraphQLInputObjectType type = (GraphQLInputObjectType)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLInputObjectType type) {
       return description(type.getDescription(),
                          ofNullable(type.getDefinition()).map(InputObjectTypeDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLInputObjectField) {
-      GraphQLInputObjectField type = (GraphQLInputObjectField)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLInputObjectField type) {
       return description(type.getDescription(),
                          ofNullable(type.getDefinition()).map(InputValueDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLInterfaceType) {
-      GraphQLInterfaceType type = (GraphQLInterfaceType)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLInterfaceType type) {
       return description(type.getDescription(),
                          ofNullable(type.getDefinition()).map(InterfaceTypeDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLScalarType) {
-      GraphQLScalarType type = (GraphQLScalarType)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLScalarType type) {
       return description(type.getDescription(),
                          ofNullable(type.getDefinition()).map(ScalarTypeDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLArgument) {
-      GraphQLArgument type = (GraphQLArgument)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLArgument type) {
       return description(type.getDescription(),
                          ofNullable(type.getDefinition()).map(InputValueDefinition::getDescription).orElse(null));
     }
-    else if (descriptionHolder instanceof GraphQLDirective) {
-      GraphQLDirective type = (GraphQLDirective)descriptionHolder;
+    else if (descriptionHolder instanceof GraphQLDirective type) {
       return description(type.getDescription(), null);
     }
     else {

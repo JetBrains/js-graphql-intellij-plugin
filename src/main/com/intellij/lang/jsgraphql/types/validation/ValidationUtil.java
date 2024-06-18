@@ -123,12 +123,11 @@ public class ValidationUtil {
   }
 
   private boolean isValidLiteralValue(Value<?> value, GraphQLInputObjectType type, GraphQLSchema schema) {
-    if (!(value instanceof ObjectValue)) {
+    if (!(value instanceof ObjectValue objectValue)) {
       handleNotObjectError(value, type);
       return false;
     }
     GraphqlFieldVisibility fieldVisibility = schema.getCodeRegistry().getFieldVisibility();
-    ObjectValue objectValue = (ObjectValue)value;
     Map<String, ObjectField> objectFieldMap = fieldMap(objectValue);
 
     Set<String> missingFields = getMissingFields(type, objectFieldMap, fieldVisibility);

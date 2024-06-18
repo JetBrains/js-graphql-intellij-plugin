@@ -47,8 +47,7 @@ public class ValidationContext {
 
   private void buildFragmentMap() {
     for (Definition definition : document.getDefinitions()) {
-      if (!(definition instanceof FragmentDefinition)) continue;
-      FragmentDefinition fragmentDefinition = (FragmentDefinition)definition;
+      if (!(definition instanceof FragmentDefinition fragmentDefinition)) continue;
       fragmentDefinitionMap.put(fragmentDefinition.getName(), fragmentDefinition);
     }
   }

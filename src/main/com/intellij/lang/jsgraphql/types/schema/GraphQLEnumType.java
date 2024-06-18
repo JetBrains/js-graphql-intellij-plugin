@@ -131,12 +131,11 @@ public class GraphQLEnumType
 
   @Internal
   public Object parseLiteral(Object input) {
-    if (!(input instanceof EnumValue)) {
+    if (!(input instanceof EnumValue enumValue)) {
       throw new CoercingParseLiteralException(
         "Expected type 'Enum' but was '" + GraphQLSchemaUtil.getValueTypeName(input) + "'."
       );
     }
-    EnumValue enumValue = (EnumValue)input;
     GraphQLEnumValueDefinition enumValueDefinition = valueDefinitionMap.get(enumValue.getName());
     if (enumValueDefinition == null) {
       throw new CoercingParseLiteralException(

@@ -225,8 +225,7 @@ public class FieldVisibilitySchemaTransformation {
     public TraversalControl visitGraphQLType(GraphQLSchemaElement node,
                                              TraverserContext<GraphQLSchemaElement> context) {
 
-      if (node instanceof GraphQLNamedType) {
-        GraphQLNamedType namedType = (GraphQLNamedType)node;
+      if (node instanceof GraphQLNamedType namedType) {
         // we encountered a node referencing one of the marked types, so it should not be removed.
         if (markedForRemovalTypes.contains(node)) {
           markedForRemovalTypes.remove(namedType);

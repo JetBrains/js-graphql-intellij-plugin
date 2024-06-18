@@ -232,8 +232,7 @@ public class NodeVisitorWithTypeTracking extends NodeVisitorStub {
     GraphQLUnmodifiedType unmodifiedType = unwrapAll(inputValue.getInputType());
     //
     // technically a scalar type can have an AST object field - eg field( arg : Json) -> field(arg : { ast : "here" })
-    if (unmodifiedType instanceof GraphQLInputObjectType) {
-      GraphQLInputObjectType inputObjectType = (GraphQLInputObjectType)unmodifiedType;
+    if (unmodifiedType instanceof GraphQLInputObjectType inputObjectType) {
       GraphQLInputObjectField inputObjectTypeField = inputObjectType.getField(node.getName());
 
       inputValue = inputValue.incompleteNewChild(inputObjectTypeField);

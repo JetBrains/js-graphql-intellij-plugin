@@ -44,8 +44,7 @@ public class NoFragmentCycles extends AbstractRule {
   private void prepareFragmentMap() {
     List<Definition> definitions = getValidationContext().getDocument().getDefinitions();
     for (Definition definition : definitions) {
-      if (definition instanceof FragmentDefinition) {
-        FragmentDefinition fragmentDefinition = (FragmentDefinition)definition;
+      if (definition instanceof FragmentDefinition fragmentDefinition) {
         fragmentSpreads.put(fragmentDefinition.getName(), gatherSpreads(fragmentDefinition));
       }
     }

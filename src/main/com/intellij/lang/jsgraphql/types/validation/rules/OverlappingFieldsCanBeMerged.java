@@ -327,8 +327,7 @@ public class OverlappingFieldsCanBeMerged extends AbstractRule {
     }
     GraphQLOutputType fieldType = null;
     GraphQLUnmodifiedType unwrappedParent = unwrapAll(parentType);
-    if (unwrappedParent instanceof GraphQLFieldsContainer) {
-      GraphQLFieldsContainer fieldsContainer = (GraphQLFieldsContainer)unwrappedParent;
+    if (unwrappedParent instanceof GraphQLFieldsContainer fieldsContainer) {
       GraphQLFieldDefinition fieldDefinition = getVisibleFieldDefinition(fieldsContainer, field);
       fieldType = fieldDefinition != null ? fieldDefinition.getType() : null;
     }

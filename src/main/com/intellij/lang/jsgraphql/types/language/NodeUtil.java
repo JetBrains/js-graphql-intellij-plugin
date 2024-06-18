@@ -74,8 +74,7 @@ public class NodeUtil {
     Map<String, FragmentDefinition> fragmentsByName = new LinkedHashMap<>();
 
     for (Definition definition : document.getDefinitions()) {
-      if (definition instanceof FragmentDefinition) {
-        FragmentDefinition fragmentDefinition = (FragmentDefinition)definition;
+      if (definition instanceof FragmentDefinition fragmentDefinition) {
         fragmentsByName.put(fragmentDefinition.getName(), fragmentDefinition);
       }
     }
@@ -89,12 +88,10 @@ public class NodeUtil {
     Map<String, OperationDefinition> operationsByName = new LinkedHashMap<>();
 
     for (Definition definition : document.getDefinitions()) {
-      if (definition instanceof OperationDefinition) {
-        OperationDefinition operationDefinition = (OperationDefinition)definition;
+      if (definition instanceof OperationDefinition operationDefinition) {
         operationsByName.put(operationDefinition.getName(), operationDefinition);
       }
-      if (definition instanceof FragmentDefinition) {
-        FragmentDefinition fragmentDefinition = (FragmentDefinition)definition;
+      if (definition instanceof FragmentDefinition fragmentDefinition) {
         fragmentsByName.put(fragmentDefinition.getName(), fragmentDefinition);
       }
     }
