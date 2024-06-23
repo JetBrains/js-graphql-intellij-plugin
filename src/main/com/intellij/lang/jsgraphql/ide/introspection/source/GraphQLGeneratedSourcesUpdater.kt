@@ -35,14 +35,10 @@ import java.util.*
 class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable, AsyncFileListener, GraphQLConfigListener {
   companion object {
     @JvmStatic
-    fun getInstance(project: Project) = project.service<GraphQLGeneratedSourcesUpdater>()
+    fun getInstance(project: Project): GraphQLGeneratedSourcesUpdater = project.service<GraphQLGeneratedSourcesUpdater>()
 
     private const val REFRESH_DELAY = 500
   }
-
-  private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
-  private val fileDocumentManager = FileDocumentManager.getInstance()
-  private val fileIndex = ProjectRootManager.getInstance(project).fileIndex
 
   private val queue = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
   private val executor =
@@ -57,6 +53,7 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
   }
 
   override fun prepareChange(events: MutableList<out VFileEvent>): ChangeApplier? {
+    val fileIndex = ProjectRootManager.getInstance(project).fileIndex
     var changed = false
 
     for (event in events) {
@@ -137,12 +134,14 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
                         .map { it.schemaScope }
                         .reduceOrNull(GlobalSearchScope::union) ?: return emptySet()
 
+    val fileDocumentManager = FileDocumentManager.getInstance()
     return FileTypeIndex.getFiles(JsonFileType.INSTANCE, schemaScope)
       .filter { isJsonSchemaCandidate(fileDocumentManager.getDocument(it)) }
       .toSet()
   }
 
   private fun updateCachedSchemas(schemas: Set<VirtualFile>) {
+    val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
     val prevSchemas = jsonSchemaFiles
     jsonSchemaFiles = Collections.unmodifiableSet(schemas)
 
