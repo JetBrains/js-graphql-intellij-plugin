@@ -91,7 +91,7 @@ class GraphQLEnvironmentVariablesDialog(
       return null
     }
 
-    override fun createListModel(): ListTableModel<*> {
+    override fun createListModel(): ListTableModel<EnvironmentVariable> {
       return ListTableModel<EnvironmentVariable>(MyNameColumnInfo(), MyValueColumnInfo())
     }
 
