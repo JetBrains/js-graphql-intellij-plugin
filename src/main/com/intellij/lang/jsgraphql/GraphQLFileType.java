@@ -10,12 +10,9 @@ package com.intellij.lang.jsgraphql;
 import com.intellij.ide.scratch.ScratchUtil;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,43 +42,38 @@ public final class GraphQLFileType extends LanguageFileType {
     return "graphql";
   }
 
-  @Nullable
   @Override
-  public Icon getIcon() {
+  public @NotNull Icon getIcon() {
     return GraphQLIcons.FILE;
   }
 
   /**
-   * Scratch virtual files don't return their actual file type, so we need to find the PsiFile to determine
-   * whether it's a GraphQL scratch file
-   *
-   * @return true if the scratch file contains a GraphQL PsiFile
+   * @deprecated Use {@link GraphQLFileType#isGraphQLScratchFile(VirtualFile)} instead.
    */
-  public static boolean isGraphQLScratchFile(@NotNull Project project, @Nullable VirtualFile file) {
+  @Deprecated(forRemoval = true)
+  public static boolean isGraphQLScratchFile(@SuppressWarnings("unused") @NotNull Project project, @Nullable VirtualFile file) {
+    return isGraphQLScratchFile(file);
+  }
+
+  public static boolean isGraphQLScratchFile(@Nullable VirtualFile file) {
     if (file == null) {
       return false;
     }
-    if (ScratchUtil.isScratch(file)) {
-      final PsiManager psiManager = PsiManager.getInstance(project);
-      try {
-        final PsiFile psiFile = psiManager.findFile(file);
-        if (psiFile != null && psiFile.getFileType() == INSTANCE) {
-          return true;
-        }
-      }
-      catch (ProcessCanceledException e) {
-        // TODO: rethrow
-        // can be thrown from psiManager.findFile
-      }
-    }
-    return false;
+    return ScratchUtil.isScratch(file) && file.getFileType() == INSTANCE;
   }
 
-  public static boolean isGraphQLFile(@NotNull Project project, @Nullable VirtualFile virtualFile) {
-    if (virtualFile == null) {
+  /**
+   * @deprecated Use {@link GraphQLFileType#isGraphQLFile(VirtualFile)} instead.
+   */
+  @Deprecated(forRemoval = true)
+  public static boolean isGraphQLFile(@SuppressWarnings("unused") @NotNull Project project, @Nullable VirtualFile file) {
+    return isGraphQLFile(file);
+  }
+
+  public static boolean isGraphQLFile(@Nullable VirtualFile file) {
+    if (file == null) {
       return false;
     }
-
-    return virtualFile.getFileType() == INSTANCE || isGraphQLScratchFile(project, virtualFile);
+    return file.getFileType() == INSTANCE;
   }
 }

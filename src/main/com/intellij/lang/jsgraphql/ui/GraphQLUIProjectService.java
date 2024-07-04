@@ -186,7 +186,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
       final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
       final GraphQLConfigProvider configProvider = GraphQLConfigProvider.getInstance(myProject);
       List<VirtualFile> files = ReadAction.compute(
-        () -> ContainerUtil.filter(fileEditorManager.getOpenFiles(), f -> GraphQLFileType.isGraphQLFile(myProject, f))
+        () -> ContainerUtil.filter(fileEditorManager.getOpenFiles(), f -> GraphQLFileType.isGraphQLFile(f))
       );
       if (myProject.isDisposed()) return;
 
@@ -215,7 +215,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
   // -- editor header component --
 
   private void insertEditorHeaderComponentIfApplicable(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-    if (!GraphQLFileType.isGraphQLFile(myProject, file)) {
+    if (!GraphQLFileType.isGraphQLFile(file)) {
       return;
     }
     if (ReadAction.compute(() -> shouldSkipEditorHeaderCreation(file))) {

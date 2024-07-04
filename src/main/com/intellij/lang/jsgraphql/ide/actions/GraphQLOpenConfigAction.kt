@@ -135,7 +135,7 @@ class GraphQLOpenConfigAction : AnAction(
     project: Project,
     virtualFile: VirtualFile,
   ): Collection<VirtualFile> {
-    return if (GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
+    return if (GraphQLFileType.isGraphQLScratchFile(virtualFile)) {
       project.guessProjectDir()?.let { listOf(it) } ?: emptyList()
     }
     else {
