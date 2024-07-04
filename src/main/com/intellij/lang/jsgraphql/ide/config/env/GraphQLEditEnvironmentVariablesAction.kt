@@ -20,7 +20,7 @@ class GraphQLEditEnvironmentVariablesAction : AnAction() {
     val environment = if (virtualFile.name in CONFIG_NAMES) {
       provider.getForConfigFile(virtualFile)?.environment
     }
-    else if (GraphQLFileType.isGraphQLFile(project, virtualFile) && inToolbar) {
+    else if (GraphQLFileType.isGraphQLFile(virtualFile) && inToolbar) {
       provider.resolveProjectConfig(virtualFile)?.rootConfig?.environment
     }
     else {

@@ -83,7 +83,7 @@ public class GraphQLExecuteEditorAction extends AnAction {
     if (virtualFile.getFileType() == GraphQLFileType.INSTANCE) {
       return true;
     }
-    if (GraphQLFileType.isGraphQLScratchFile(project, virtualFile)) {
+    if (GraphQLFileType.isGraphQLScratchFile(virtualFile)) {
       return true;
     }
     return virtualFile.getFileType() == JsonFileType.INSTANCE && Boolean.TRUE.equals(
