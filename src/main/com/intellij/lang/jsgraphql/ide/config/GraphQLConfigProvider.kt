@@ -454,18 +454,18 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
   }
 
   private fun notifyConfigurationChanged() {
-    invokeLater(ModalityState.defaultModalityState()) {
-      if (project.isDisposed) return@invokeLater
-
+    ApplicationManager.getApplication().invokeLater(Runnable {
       initialized = true
 
       modificationTracker.incModificationCount()
       scopeDependency.update()
-      PsiManager.getInstance(project).dropPsiCaches()
+      WriteAction.run<Throwable> {
+        PsiManager.getInstance(project).dropPsiCaches()
+      }
 
       DaemonCodeAnalyzer.getInstance(project).restart()
       project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()
-    }
+    }, ModalityState.nonModal(), project.disposed)
   }
 
   @RequiresBackgroundThread
