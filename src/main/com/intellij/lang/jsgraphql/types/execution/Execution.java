@@ -24,6 +24,7 @@ import com.intellij.lang.jsgraphql.types.execution.instrumentation.Instrumentati
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.InstrumentationState;
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.parameters.InstrumentationExecuteOperationParameters;
 import com.intellij.lang.jsgraphql.types.execution.instrumentation.parameters.InstrumentationExecutionParameters;
+import com.intellij.lang.jsgraphql.types.execution.nextgen.Common;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
@@ -33,11 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
 import static com.intellij.lang.jsgraphql.types.execution.ExecutionContextBuilder.newExecutionContextBuilder;
 import static com.intellij.lang.jsgraphql.types.execution.ExecutionStepInfo.newExecutionStepInfo;
 import static com.intellij.lang.jsgraphql.types.execution.ExecutionStrategyParameters.newParameters;
-import static com.intellij.lang.jsgraphql.types.language.OperationDefinition.Operation.*;
+import static com.intellij.lang.jsgraphql.types.language.OperationDefinition.Operation.SUBSCRIPTION;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 
 @Internal
@@ -128,7 +128,7 @@ public class Execution {
     GraphQLObjectType operationRootType;
 
     try {
-      operationRootType = getOperationRootType(executionContext.getGraphQLSchema(), operationDefinition);
+      operationRootType = Common.getOperationRootType(executionContext.getGraphQLSchema(), operationDefinition);
     }
     catch (RuntimeException rte) {
       if (rte instanceof GraphQLError) {
@@ -195,34 +195,5 @@ public class Execution {
     result = result.whenComplete(executeOperationCtx::onCompleted);
 
     return result;
-  }
-
-
-  private GraphQLObjectType getOperationRootType(GraphQLSchema graphQLSchema, OperationDefinition operationDefinition) {
-    OperationDefinition.Operation operation = operationDefinition.getOperation();
-    if (operation == MUTATION) {
-      GraphQLObjectType mutationType = graphQLSchema.getMutationType();
-      if (mutationType == null) {
-        throw new MissingRootTypeException("Schema is not configured for mutations.", operationDefinition.getSourceLocation());
-      }
-      return mutationType;
-    }
-    else if (operation == QUERY) {
-      GraphQLObjectType queryType = graphQLSchema.getQueryType();
-      if (queryType == null) {
-        throw new MissingRootTypeException("Schema does not define the required query root type.", operationDefinition.getSourceLocation());
-      }
-      return queryType;
-    }
-    else if (operation == SUBSCRIPTION) {
-      GraphQLObjectType subscriptionType = graphQLSchema.getSubscriptionType();
-      if (subscriptionType == null) {
-        throw new MissingRootTypeException("Schema is not configured for subscriptions.", operationDefinition.getSourceLocation());
-      }
-      return subscriptionType;
-    }
-    else {
-      return assertShouldNeverHappen("Unhandled case.  An extra operation enum has been added without code support");
-    }
   }
 }
