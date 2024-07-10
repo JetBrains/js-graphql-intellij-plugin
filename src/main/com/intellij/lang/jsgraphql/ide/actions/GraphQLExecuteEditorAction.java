@@ -73,7 +73,7 @@ public class GraphQLExecuteEditorAction extends AnAction {
     if (virtualFile == null) {
       return;
     }
-    GraphQLUIProjectService.getService(project).executeGraphQL(editor, virtualFile);
+    GraphQLUIProjectService.getInstance(project).executeGraphQL(editor, virtualFile);
   }
 
   private static boolean isQueryableFile(@NotNull Project project, @Nullable VirtualFile virtualFile) {

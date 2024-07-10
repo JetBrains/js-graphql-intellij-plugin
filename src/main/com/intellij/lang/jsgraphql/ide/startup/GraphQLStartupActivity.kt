@@ -29,9 +29,8 @@ class GraphQLStartupActivity : StartupActivity.Background {
     GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
     GraphQLConfigEnvironment.getInstance(project)
 
-    if (!ApplicationManager.getApplication().isUnitTestMode) {
-      GraphQLUIProjectService.getService(project)
+    if (!ApplicationManager.getApplication().isHeadlessEnvironment) {
+      GraphQLUIProjectService.getInstance(project).projectOpened()
     }
   }
-
 }

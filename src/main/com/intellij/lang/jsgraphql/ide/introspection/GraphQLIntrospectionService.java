@@ -621,7 +621,7 @@ public final class GraphQLIntrospectionService implements Disposable {
       try {
         introspection = parseIntrospectionJson(responseJson);
         if (getErrorCount(introspection) > 0) {
-          GraphQLUIProjectService.getService(myProject).showQueryResult(responseJson);
+          GraphQLUIProjectService.getInstance(myProject).showQueryResult(responseJson);
         }
       }
       catch (JsonSyntaxException exception) {
@@ -694,7 +694,7 @@ public final class GraphQLIntrospectionService implements Disposable {
       Notifications.Bus.notify(notification, myProject);
 
       if (myProject != null) {
-        GraphQLUIProjectService.getService(myProject).showQueryResult(responseJson);
+        GraphQLUIProjectService.getInstance(myProject).showQueryResult(responseJson);
       }
     }
   }
