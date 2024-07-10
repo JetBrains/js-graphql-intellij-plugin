@@ -71,10 +71,10 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.panels.NonOpaquePanel;
 import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.annotations.RequiresEdt;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -125,38 +125,49 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
   private final Project myProject;
 
   public GraphQLUIProjectService(@NotNull final Project project) {
-
     myProject = project;
-
-    final MessageBusConnection messageBusConnection = project.getMessageBus().connect(this);
-
-    // listen for editor file tab changes to update the list of current errors
-    messageBusConnection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, this);
-
-    // add editor headers to already open files since we've only just added the listener for fileOpened()
-    final FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-    for (VirtualFile virtualFile : fileEditorManager.getOpenFiles()) {
-      UIUtil.invokeLaterIfNeeded(() -> insertEditorHeaderComponentIfApplicable(fileEditorManager, virtualFile));
-    }
-
-    // listen for configuration changes
-    messageBusConnection.subscribe(GraphQLConfigListener.TOPIC, this);
-
-    // and notify to configure the schema
-    project.putUserData(GraphQLParserDefinition.GRAPHQL_ACTIVATED, true);
-    EditorNotifications.getInstance(project).updateAllNotifications();
   }
 
-
-  public static GraphQLUIProjectService getService(@NotNull Project project) {
+  public static GraphQLUIProjectService getInstance(@NotNull Project project) {
     return project.getService(GraphQLUIProjectService.class);
+  }
+
+  public void projectOpened() {
+    MessageBusConnection connection = myProject.getMessageBus().connect(this);
+
+    // listen for editor file tab changes to update the list of current errors
+    connection.subscribe(FILE_EDITOR_MANAGER, this);
+    // listen for configuration changes
+    connection.subscribe(TOPIC, this);
+
+    ApplicationManager.getApplication().invokeLater(
+      () -> {
+        // add editor headers to already open files since we've only just added the listener for fileOpened()
+        FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
+        for (VirtualFile virtualFile : fileEditorManager.getOpenFiles()) {
+          insertEditorHeaderComponentIfApplicable(virtualFile);
+        }
+      },
+      ModalityState.nonModal(),
+      myProject.getDisposed()
+    );
+
+    // and notify to configure the schema
+    myProject.putUserData(GraphQLParserDefinition.GRAPHQL_ACTIVATED, true);
+    EditorNotifications.getInstance(myProject).updateAllNotifications();
   }
 
   // ---- editor tabs listener ----
 
   @Override
   public void fileOpened(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-    insertEditorHeaderComponentIfApplicable(source, file);
+    if (!isApplicableForToolbar(file)) {
+      return;
+    }
+
+    ApplicationManager.getApplication().invokeLater(() -> {
+      insertEditorHeaderComponentIfApplicable(file);
+    }, myProject.getDisposed());
   }
 
   // ---- configuration listener ----
@@ -214,28 +225,34 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
   // -- editor header component --
 
-  private void insertEditorHeaderComponentIfApplicable(@NotNull FileEditorManager source, @NotNull VirtualFile file) {
-    if (!GraphQLFileType.isGraphQLFile(file)) {
+  @RequiresEdt
+  private void insertEditorHeaderComponentIfApplicable(@NotNull VirtualFile file) {
+    if (!isApplicableForToolbar(file)) {
       return;
     }
     if (ReadAction.compute(() -> shouldSkipEditorHeaderCreation(file))) {
       return;
     }
 
-    UIUtil.invokeLaterIfNeeded(() -> {
-      FileEditor fileEditor = source.getSelectedEditor(file);
-      if (fileEditor instanceof TextEditor) {
-        final Editor editor = ((TextEditor)fileEditor).getEditor();
-        if (editor.getHeaderComponent() instanceof GraphQLEditorHeaderComponent) {
-          return;
-        }
-        final JComponent headerComponent = createEditorHeaderComponent(fileEditor, editor, file);
-        editor.setHeaderComponent(headerComponent);
-        if (editor instanceof EditorEx) {
-          ((EditorEx)editor).setPermanentHeaderComponent(headerComponent);
-        }
+    FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
+    FileEditor fileEditor = fileEditorManager.getSelectedEditor(file);
+    if (fileEditor instanceof TextEditor) {
+      final Editor editor = ((TextEditor)fileEditor).getEditor();
+      if (editor.getHeaderComponent() instanceof GraphQLEditorHeaderComponent) {
+        return;
       }
-    });
+      final JComponent headerComponent = createEditorHeaderComponent(fileEditor, editor);
+      editor.setHeaderComponent(headerComponent);
+      if (editor instanceof EditorEx) {
+        ((EditorEx)editor).setPermanentHeaderComponent(headerComponent);
+      }
+
+      reloadEndpoints();
+    }
+  }
+
+  private static boolean isApplicableForToolbar(@NotNull VirtualFile file) {
+    return GraphQLFileType.isGraphQLFile(file);
   }
 
   private boolean shouldSkipEditorHeaderCreation(@NotNull VirtualFile file) {
@@ -247,10 +264,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
   private static class GraphQLEditorHeaderComponent extends EditorHeaderComponent {
   }
 
-  private JComponent createEditorHeaderComponent(@NotNull FileEditor fileEditor, @NotNull Editor editor, @NotNull VirtualFile file) {
-    GraphQLProjectConfig config = ReadAction.compute(() -> GraphQLConfigProvider.getInstance(myProject).resolveProjectConfig(file));
-    List<GraphQLConfigEndpoint> endpoints = config != null ? config.getEndpoints() : Collections.emptyList();
-
+  private JComponent createEditorHeaderComponent(@NotNull FileEditor fileEditor, @NotNull Editor editor) {
     final GraphQLEditorHeaderComponent headerComponent = new GraphQLEditorHeaderComponent();
 
     // variables & settings actions
@@ -274,7 +288,8 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
     // configured endpoints combo box
 
-    final GraphQLEndpointsModel endpointsModel = new GraphQLEndpointsModel(endpoints, PropertiesComponent.getInstance(myProject));
+    final GraphQLEndpointsModel endpointsModel =
+      new GraphQLEndpointsModel(Collections.emptyList(), PropertiesComponent.getInstance(myProject));
     final ComboBox<?> endpointComboBox = new ComboBox<>(endpointsModel);
     endpointComboBox.setToolTipText(GraphQLBundle.message("graphql.endpoint.tooltip"));
     editor.putUserData(GRAPH_QL_ENDPOINTS_MODEL, endpointsModel);
