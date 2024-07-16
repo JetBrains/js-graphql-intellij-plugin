@@ -60,6 +60,8 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
+    <dependencySupport kind="javascript" coordinate="npm:graphql" displayName="GraphQL"/>
+
     <!-- Color scheme -->
     <additionalTextAttributes scheme="Default" file="colorSchemes/GraphQLLanguageDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/GraphQLLanguageDarcula.xml"/>
