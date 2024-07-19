@@ -353,7 +353,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     if (project.isDisposed) return
 
     if (ApplicationManager.getApplication().isUnitTestMode) {
-      DumbService.getInstance(project).smartInvokeLater { reload() }
+      DumbService.getInstance(project).smartInvokeLater(::reload, ModalityState.nonModal())
     }
     else {
       reloadConfigAlarm.cancelAllRequests()
