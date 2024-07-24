@@ -1,3 +1,5 @@
+@file:OptIn(FlowPreview::class)
+
 package com.intellij.lang.jsgraphql.ide.config
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
@@ -17,15 +19,13 @@ import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.parseOverrideConfigComment
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.util.BackgroundTaskUtil
+import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -37,6 +37,7 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -47,19 +48,25 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.util.Alarm
 import com.intellij.util.CommonProcessors
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
 import com.intellij.util.concurrency.annotations.RequiresReadLock
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @Service(Service.Level.PROJECT)
-class GraphQLConfigProvider(private val project: Project) : Disposable, ModificationTracker, GraphQLConfigEnvironmentListener {
+class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : ModificationTracker, GraphQLConfigEnvironmentListener {
+
   companion object {
     private val LOG = logger<GraphQLConfigProvider>()
 
@@ -76,19 +83,11 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     fun getInstance(project: Project) = project.service<GraphQLConfigProvider>()
   }
 
-  init {
-    GraphQLFileTypeContributor.EP_NAME.addChangeListener({ invalidate() }, this)
-    GraphQLInjectedLanguage.EP_NAME.addChangeListener({ invalidate() }, this)
-    GraphQLConfigContributor.EP_NAME.addChangeListener({ invalidate() }, this)
-
-    project.messageBus.connect(this).subscribe(GraphQLConfigEnvironmentListener.TOPIC, this)
-  }
-
   private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
   private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
   private val scopeDependency = GraphQLScopeDependency.getInstance(project)
 
-  private val reloadConfigAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+  private val reloadConfigAlarm = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
   // need to trigger invalidation of dependent caches regardless of whether any changes are detected or not
   private val pendingInvalidation = AtomicBoolean(false)
@@ -126,6 +125,20 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     CachedValuesManager.getManager(project).createCachedValue {
       CachedValueProvider.Result.create(ConcurrentHashMap(), scopeDependency)
     }
+
+  init {
+    GraphQLFileTypeContributor.EP_NAME.addChangeListener(cs, ::invalidate)
+    GraphQLInjectedLanguage.EP_NAME.addChangeListener(cs, ::invalidate)
+    GraphQLConfigContributor.EP_NAME.addChangeListener(cs, ::invalidate)
+
+    project.messageBus.connect(cs).subscribe(GraphQLConfigEnvironmentListener.TOPIC, this)
+
+    cs.launch {
+      reloadConfigAlarm.debounce(CONFIG_RELOAD_DELAY.milliseconds).collectLatest {
+        reload()
+      }
+    }
+  }
 
   @RequiresReadLock
   fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? {
@@ -353,21 +366,27 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     if (project.isDisposed) return
 
     if (ApplicationManager.getApplication().isUnitTestMode) {
-      DumbService.getInstance(project).smartInvokeLater(::reload, ModalityState.nonModal())
+      DumbService.getInstance(project).smartInvokeLater(
+        {
+          runWithModalProgressBlocking(project, "") {
+            reload()
+          }
+        },
+        ModalityState.nonModal()
+      )
     }
     else {
-      reloadConfigAlarm.cancelAllRequests()
-      reloadConfigAlarm.addRequest({
-                                     BackgroundTaskUtil.runUnderDisposeAwareIndicator(this, ::reload)
-                                   }, CONFIG_RELOAD_DELAY)
+      check(reloadConfigAlarm.tryEmit(Unit))
     }
   }
 
-  private fun reload() {
+  private suspend fun reload() {
     if (project.isDisposed) return
-    ProgressManager.checkCanceled()
+    checkCanceled()
 
-    val discoveredConfigFiles = configFiles.value
+    val discoveredConfigFiles = smartReadAction(project) {
+      configFiles.value
+    }
     saveModifiedDocuments(discoveredConfigFiles)
 
     val loader = GraphQLConfigLoader.getInstance(project)
@@ -375,7 +394,7 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
     var hasChanged = configData.keys.removeIf { !it.isValid || it !in discoveredConfigFiles }
 
     for (file in discoveredConfigFiles) {
-      ProgressManager.checkCanceled()
+      checkCanceled()
       val dir = file.parent.takeIf { it.isValid && it.isDirectory }
       if (!file.isValid || dir == null) {
         continue
@@ -453,8 +472,8 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
       }
   }
 
-  private fun notifyConfigurationChanged() {
-    ApplicationManager.getApplication().invokeLater(Runnable {
+  private suspend fun notifyConfigurationChanged() {
+    withContext(Dispatchers.EDT) {
       initialized = true
 
       modificationTracker.incModificationCount()
@@ -465,22 +484,21 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
 
       DaemonCodeAnalyzer.getInstance(project).restart()
       project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()
-    }, ModalityState.nonModal(), project.disposed)
+    }
   }
 
-  @RequiresBackgroundThread
-  private fun saveModifiedDocuments(files: Collection<VirtualFile>) {
+  private suspend fun saveModifiedDocuments(files: Collection<VirtualFile>) {
     if (files.isEmpty()) return
     val fileDocumentManager = FileDocumentManager.getInstance()
-    val anyFileModified = runReadAction { files.any { fileDocumentManager.isFileModified(it) } }
+    val anyFileModified = readAction { files.any { fileDocumentManager.isFileModified(it) } }
     if (anyFileModified) {
-      ApplicationManager.getApplication().invokeAndWait {
-        val documents = runReadAction {
+      withContext(Dispatchers.EDT) {
+        val documents = readAction {
           files.filter { it.isValid }.mapNotNull { fileDocumentManager.getDocument(it) }
         }
 
         documents.forEach {
-          ProgressManager.checkCanceled()
+          checkCanceled()
           fileDocumentManager.saveDocument(it)
         }
       }
@@ -491,19 +509,15 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
    * Cached inside of [configFiles], do not use directly.
    */
   @RequiresBackgroundThread
-  private fun queryAllConfigFiles(): Set<VirtualFile> =
-    ReadAction.nonBlocking<Set<VirtualFile>> {
-      val processor = CommonProcessors.CollectUniquesProcessor<VirtualFile>()
-      FilenameIndex.processFilesByNames(
-        CONFIG_NAMES, true, GlobalSearchScope.projectScope(project), null, processor
-      )
-      processor.results
-        .filter { file -> GraphQLConfigSearchCustomizer.EP_NAME.extensionList.none { it.isIgnoredConfig(project, file) } }
-        .toSet()
-    }
-      .inSmartMode(project)
-      .expireWith(this)
-      .executeSynchronously()
+  private fun queryAllConfigFiles(): Set<VirtualFile> {
+    val processor = CommonProcessors.CollectUniquesProcessor<VirtualFile>()
+    FilenameIndex.processFilesByNames(
+      CONFIG_NAMES, true, GlobalSearchScope.projectScope(project), null, processor
+    )
+    return processor.results
+      .filter { file -> GraphQLConfigSearchCustomizer.EP_NAME.extensionList.none { it.isIgnoredConfig(project, file) } }
+      .toSet()
+  }
 
   private class ConfigEntry(
     val config: GraphQLConfig? = null,
@@ -515,9 +529,6 @@ class GraphQLConfigProvider(private val project: Project) : Disposable, Modifica
   }
 
   override fun getModificationCount(): Long = modificationTracker.modificationCount
-
-  override fun dispose() {
-  }
 
   data class ConfigEvaluationState(val status: GraphQLConfigEvaluationStatus, val error: Throwable?)
 }
