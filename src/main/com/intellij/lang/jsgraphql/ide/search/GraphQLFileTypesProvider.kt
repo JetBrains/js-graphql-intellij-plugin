@@ -9,17 +9,17 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.ExtensionPointUtil
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.fileTypes.LanguageFileType
-import com.intellij.openapi.util.ClearableLazyValue
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.concurrency.SynchronizedClearableLazy
 
 @Service(Service.Level.APP)
-class GraphQLFileTypesProvider : Disposable {
+internal class GraphQLFileTypesProvider : Disposable {
   companion object {
     @JvmStatic
     fun getService() = service<GraphQLFileTypesProvider>()
   }
 
-  private val myContributedFileTypes = ExtensionPointUtil.dropLazyValueOnChange(ClearableLazyValue.createAtomic {
+  private val contributedFileTypes = ExtensionPointUtil.dropLazyValueOnChange(SynchronizedClearableLazy {
     GraphQLFileTypeContributor.getAllFileTypes()
   }, GraphQLFileTypeContributor.EP_NAME, this)
 
@@ -32,9 +32,7 @@ class GraphQLFileTypesProvider : Disposable {
     return fileType.asSafely<LanguageFileType>()?.language?.isKindOf(HTMLLanguage.INSTANCE) ?: false
   }
 
-  private fun getContributedFileTypes(): Collection<FileType> {
-    return myContributedFileTypes.value
-  }
+  private fun getContributedFileTypes(): Collection<FileType> = contributedFileTypes.get()
 
   override fun dispose() {
   }

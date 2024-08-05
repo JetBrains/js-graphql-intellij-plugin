@@ -13,16 +13,13 @@ import com.intellij.openapi.fileTypes.FileType
 /**
  * Contributor that enables the plugin to locate GraphQL in additional file types such as JavaScript
  */
-interface GraphQLFileTypeContributor {
+internal interface GraphQLFileTypeContributor {
   companion object {
     @JvmField
-    val EP_NAME =
-      ExtensionPointName.create<GraphQLFileTypeContributor>("com.intellij.lang.jsgraphql.fileTypeContributor")
+    val EP_NAME = ExtensionPointName<GraphQLFileTypeContributor>("com.intellij.lang.jsgraphql.fileTypeContributor")
 
     @JvmStatic
-    fun getAllFileTypes(): Collection<FileType> {
-      return EP_NAME.extensionList.flatMap { it.getFileTypes() }.toSet()
-    }
+    fun getAllFileTypes(): Collection<FileType> = EP_NAME.extensionList.flatMapTo(LinkedHashSet()) { it.getFileTypes() }
   }
 
   /**
