@@ -16,8 +16,7 @@ public abstract class GraphQLExtendableCompositeDefinition<T extends SDLDefiniti
     }
   }
 
-  @NotNull
-  public List<E> getSourceExtensions() {
+  public @NotNull List<E> getSourceExtensions() {
     return myExtensions;
   }
 }

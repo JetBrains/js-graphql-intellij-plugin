@@ -34,9 +34,8 @@ public class GraphQLStructureViewTreeElement extends PsiTreeElementBase<PsiEleme
     this.childrenBase = childrenBase;
   }
 
-  @NotNull
   @Override
-  public Collection<StructureViewTreeElement> getChildrenBase() {
+  public @NotNull Collection<StructureViewTreeElement> getChildrenBase() {
     final List<StructureViewTreeElement> children = Lists.newArrayList();
 
     // See GraphQLParser.bnf for structure reference
@@ -205,9 +204,8 @@ public class GraphQLStructureViewTreeElement extends PsiTreeElementBase<PsiEleme
     }
   }
 
-  @Nullable
   @Override
-  public String getPresentableText() {
+  public @Nullable String getPresentableText() {
 
     if (element instanceof GraphQLSelectionSetOperationDefinition) {
       return "anonymous query"; // "{}" selection as root, which corresponds to anonymous query

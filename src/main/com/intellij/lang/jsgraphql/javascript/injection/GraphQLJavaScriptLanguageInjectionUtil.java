@@ -43,7 +43,7 @@ public class GraphQLJavaScriptLanguageInjectionUtil {
 
   private static final ElementPattern<JSExpression> GRAPHQL_CALL_ARG_PATTERN = JSPatterns.jsArgument(GRAPHQL_TEMPLATE_TAG, 0);
 
-  public final static Set<String> SUPPORTED_TAG_NAMES = Sets.newHashSet(
+  public static final Set<String> SUPPORTED_TAG_NAMES = Sets.newHashSet(
     RELAY_QL_TEMPLATE_TAG,
     GRAPHQL_TEMPLATE_TAG,
     GRAPHQL_EXPERIMENTAL_TEMPLATE_TAG,

@@ -43,21 +43,18 @@ final class GraphQLDocumentationPsiElement extends FakePsiElement {
   }
 
   private class JSGraphQLDocItemPresentation implements ItemPresentation {
-    @Nullable
     @Override
-    public String getPresentableText() {
+    public @Nullable String getPresentableText() {
       return type;
     }
 
-    @Nullable
     @Override
-    public String getLocationString() {
+    public @Nullable String getLocationString() {
       return null;
     }
 
-    @Nullable
     @Override
-    public Icon getIcon(boolean unused) {
+    public @Nullable Icon getIcon(boolean unused) {
       return null;
     }
   }

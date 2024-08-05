@@ -58,8 +58,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
    * @param context the starting point for finding known fragment definitions
    * @return a list of known fragment definitions, or an empty list if the index is not yet ready
    */
-  @NotNull
-  public List<GraphQLFragmentDefinition> findFragmentDefinitions(@NotNull PsiElement context) {
+  public @NotNull List<GraphQLFragmentDefinition> findFragmentDefinitions(@NotNull PsiElement context) {
     if (DumbService.isDumb(context.getProject())) return Collections.emptyList();
 
     try {

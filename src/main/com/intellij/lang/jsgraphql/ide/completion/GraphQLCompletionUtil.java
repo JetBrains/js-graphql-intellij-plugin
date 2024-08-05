@@ -77,50 +77,42 @@ public final class GraphQLCompletionUtil {
   private GraphQLCompletionUtil() {
   }
 
-  @NotNull
-  public static LookupElement createKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword) {
+  public static @NotNull LookupElement createKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword) {
     return createKeywordLookupElement(keyword.getText(), KEYWORD_PRIORITY, AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP);
   }
 
-  @NotNull
-  public static LookupElement createContextKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword) {
+  public static @NotNull LookupElement createContextKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword) {
     return createKeywordLookupElement(keyword.getText(), CONTEXT_KEYWORD_PRIORITY, AddSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP);
   }
 
-  @NotNull
-  public static LookupElement createContextKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword,
-                                                                @Nullable InsertHandler<LookupElement> insertHandler) {
+  public static @NotNull LookupElement createContextKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword,
+                                                                         @Nullable InsertHandler<LookupElement> insertHandler) {
     return createKeywordLookupElement(keyword.getText(), CONTEXT_KEYWORD_PRIORITY, insertHandler);
   }
 
-  @NotNull
-  public static LookupElement createOperationNameKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword) {
+  public static @NotNull LookupElement createOperationNameKeywordLookupElement(@NotNull GraphQLCompletionKeyword keyword) {
     return createKeywordLookupElement(keyword.getText(), CONTEXT_KEYWORD_PRIORITY, AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP);
   }
 
-  @NotNull
-  private static LookupElement createKeywordLookupElement(@NotNull String text,
-                                                          int priority,
-                                                          @Nullable InsertHandler<LookupElement> insertHandler) {
+  private static @NotNull LookupElement createKeywordLookupElement(@NotNull String text,
+                                                                   int priority,
+                                                                   @Nullable InsertHandler<LookupElement> insertHandler) {
     LookupElementBuilder element = LookupElementBuilder.create(text).bold().withInsertHandler(insertHandler);
     return PrioritizedLookupElement.withPriority(element, priority);
   }
 
-  @NotNull
-  public static LookupElement createVariableLookupElement(@NotNull String name, @Nullable String typeText) {
+  public static @NotNull LookupElement createVariableLookupElement(@NotNull String name, @Nullable String typeText) {
     LookupElementBuilder element = LookupElementBuilder.create(name).withTypeText(typeText);
     return PrioritizedLookupElement.withPriority(element, VARIABLE_PRIORITY);
   }
 
-  @NotNull
-  public static LookupElement createTypeNameLookupElement(@NotNull String name) {
+  public static @NotNull LookupElement createTypeNameLookupElement(@NotNull String name) {
     return createTypeNameLookupElement(name, null, null);
   }
 
-  @NotNull
-  public static LookupElement createTypeNameLookupElement(@NotNull String name,
-                                                          @Nullable String typeText,
-                                                          @Nullable InsertHandler<LookupElement> handler) {
+  public static @NotNull LookupElement createTypeNameLookupElement(@NotNull String name,
+                                                                   @Nullable String typeText,
+                                                                   @Nullable InsertHandler<LookupElement> handler) {
     int priority = TYPE_NAME_PRIORITY;
     if (name.startsWith("__")) {
       priority = TYPE_NAME_SYSTEM_PRIORITY;
@@ -135,24 +127,21 @@ public final class GraphQLCompletionUtil {
     return PrioritizedLookupElement.withPriority(element, priority);
   }
 
-  @NotNull
-  public static LookupElement createDirectiveLocationLookupElement(@NotNull String name) {
+  public static @NotNull LookupElement createDirectiveLocationLookupElement(@NotNull String name) {
     return PrioritizedLookupElement.withPriority(
       LookupElementBuilder.create(name).bold(),
       TYPE_NAME_PRIORITY
     );
   }
 
-  @NotNull
-  public static LookupElement createImplementFieldLookupElement(@NotNull String signature, @Nullable String typeText) {
+  public static @NotNull LookupElement createImplementFieldLookupElement(@NotNull String signature, @Nullable String typeText) {
     return PrioritizedLookupElement.withPriority(
       LookupElementBuilder.create(signature).withTypeText(typeText, true),
       IMPLEMENT_FIELD_PRIORITY
     );
   }
 
-  @NotNull
-  public static LookupElement createDirectiveNameLookupElement(@NotNull String name, boolean hasRequiredArgs) {
+  public static @NotNull LookupElement createDirectiveNameLookupElement(@NotNull String name, boolean hasRequiredArgs) {
     LookupElementBuilder element = LookupElementBuilder.create(name);
     if (hasRequiredArgs) {
       // found a required argument so insert the '()' for arguments
@@ -161,8 +150,7 @@ public final class GraphQLCompletionUtil {
     return PrioritizedLookupElement.withPriority(element, TYPE_NAME_PRIORITY);
   }
 
-  @NotNull
-  public static LookupElement createArgumentNameLookupElement(@NotNull String name, @Nullable String typeText) {
+  public static @NotNull LookupElement createArgumentNameLookupElement(@NotNull String name, @Nullable String typeText) {
     return PrioritizedLookupElement.withPriority(
       LookupElementBuilder.create(name)
         .withTypeText(typeText)
@@ -171,11 +159,10 @@ public final class GraphQLCompletionUtil {
     );
   }
 
-  @NotNull
-  public static LookupElement createFieldNameLookupElement(@NotNull String name,
-                                                           @Nullable String typeText,
-                                                           boolean isDeprecated,
-                                                           @Nullable InsertHandler<LookupElement> insertHandler) {
+  public static @NotNull LookupElement createFieldNameLookupElement(@NotNull String name,
+                                                                    @Nullable String typeText,
+                                                                    boolean isDeprecated,
+                                                                    @Nullable InsertHandler<LookupElement> insertHandler) {
     int priority = FIELD_PRIORITY;
     if (name.startsWith("__")) {
       priority = FIELD_SYSTEM_PRIORITY;
@@ -192,8 +179,7 @@ public final class GraphQLCompletionUtil {
     return PrioritizedLookupElement.withPriority(element, priority);
   }
 
-  @NotNull
-  public static LookupElement createObjectValueFieldNameLookupElement(@NotNull String name, @Nullable String typeText) {
+  public static @NotNull LookupElement createObjectValueFieldNameLookupElement(@NotNull String name, @Nullable String typeText) {
     LookupElementBuilder element = LookupElementBuilder.create(name)
       .withInsertHandler(AddColonSpaceInsertHandler.INSTANCE_WITH_AUTO_POPUP)
       .withTypeText(typeText);

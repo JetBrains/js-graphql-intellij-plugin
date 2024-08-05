@@ -234,8 +234,7 @@ public final class GraphQLSchemaAnnotator implements Annotator {
   }
 
   @SuppressWarnings("rawtypes")
-  @NotNull
-  private static @NlsSafe String createTooltip(@NotNull GraphQLError error, @NotNull String message, boolean isMultiple) {
+  private static @NotNull @NlsSafe String createTooltip(@NotNull GraphQLError error, @NotNull String message, boolean isMultiple) {
     StringBuilder sb = new StringBuilder();
     sb
       .append("<html>")

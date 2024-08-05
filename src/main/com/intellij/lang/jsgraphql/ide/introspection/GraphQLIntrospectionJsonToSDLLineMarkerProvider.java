@@ -33,9 +33,8 @@ import org.jetbrains.annotations.Nullable;
  * Line marker which shows an action to turn a GraphQL Introspection JSON result into a GraphQL schema expressed in GraphQL SDL.
  */
 public final class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements LineMarkerProvider {
-  @Nullable
   @Override
-  public LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
+  public @Nullable LineMarkerInfo<?> getLineMarkerInfo(@NotNull PsiElement element) {
     final VirtualFile virtualFile = element.isValid() ? element.getContainingFile().getVirtualFile() : null;
     if (virtualFile != null && !virtualFile.isInLocalFileSystem()) {
       // skip in-memory JSON files such as the query result viewer

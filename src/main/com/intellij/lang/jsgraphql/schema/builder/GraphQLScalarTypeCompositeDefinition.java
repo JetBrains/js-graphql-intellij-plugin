@@ -12,9 +12,8 @@ import java.util.List;
 public class GraphQLScalarTypeCompositeDefinition
   extends GraphQLExtendableCompositeDefinition<ScalarTypeDefinition, ScalarTypeExtensionDefinition> {
 
-  @NotNull
   @Override
-  protected ScalarTypeDefinition mergeDefinitions(@NotNull List<ScalarTypeDefinition> sourceDefinitions) {
+  protected @NotNull ScalarTypeDefinition mergeDefinitions(@NotNull List<ScalarTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
 
     for (ScalarTypeDefinition definition : sourceDefinitions) {

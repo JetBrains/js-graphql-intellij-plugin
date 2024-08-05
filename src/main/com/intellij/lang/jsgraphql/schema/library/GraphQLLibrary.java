@@ -24,8 +24,7 @@ public class GraphQLLibrary extends SyntheticLibrary implements ItemPresentation
     myFile = file;
   }
 
-  @NotNull
-  public GraphQLLibraryDescriptor getLibraryDescriptor() {
+  public @NotNull GraphQLLibraryDescriptor getLibraryDescriptor() {
     return myLibraryDescriptor;
   }
 

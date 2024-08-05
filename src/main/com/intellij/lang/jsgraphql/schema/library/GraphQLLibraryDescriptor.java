@@ -13,13 +13,11 @@ public class GraphQLLibraryDescriptor {
     myIdentifier = identifier;
   }
 
-  @NotNull
-  public String getIdentifier() {
+  public @NotNull String getIdentifier() {
     return myIdentifier;
   }
 
-  @NotNull
-  public String getPresentableText() {
+  public @NotNull String getPresentableText() {
     return getIdentifier();
   }
 

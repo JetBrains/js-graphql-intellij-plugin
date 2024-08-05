@@ -30,8 +30,8 @@ import java.util.List;
  */
 @Internal
 public class StringValueParsing {
-  private final static String ESCAPED_TRIPLE_QUOTES = "\\\\\"\"\""; // ahh Java + Regex
-  private final static String THREE_QUOTES = "\"\"\"";
+  private static final String ESCAPED_TRIPLE_QUOTES = "\\\\\"\"\""; // ahh Java + Regex
+  private static final String THREE_QUOTES = "\"\"\"";
 
   public static @NotNull String parseTripleQuotedString(@NotNull String strText) {
     if (strText.length() <= 6) {

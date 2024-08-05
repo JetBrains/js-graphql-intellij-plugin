@@ -37,9 +37,9 @@ import static java.util.stream.Collectors.toList;
 @Internal
 public class DataFetchingFieldSelectionSetImpl implements DataFetchingFieldSelectionSet {
 
-  private final static String SEP = "/";
+  private static final String SEP = "/";
 
-  private final static DataFetchingFieldSelectionSet NOOP = new DataFetchingFieldSelectionSet() {
+  private static final DataFetchingFieldSelectionSet NOOP = new DataFetchingFieldSelectionSet() {
 
     @Override
     public boolean contains(String fieldGlobPattern) {

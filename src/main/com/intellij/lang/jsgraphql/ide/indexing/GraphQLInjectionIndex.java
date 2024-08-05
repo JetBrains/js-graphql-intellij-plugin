@@ -61,27 +61,23 @@ public final class GraphQLInjectionIndex extends ScalarIndexExtension<String> {
     return isInjected.get() == Boolean.FALSE ? Collections.emptyMap() : INJECTED_KEY;
   };
 
-  @NotNull
   @Override
-  public ID<String, Void> getName() {
+  public @NotNull ID<String, Void> getName() {
     return NAME;
   }
 
-  @NotNull
   @Override
-  public DataIndexer<String, Void, FileContent> getIndexer() {
+  public @NotNull DataIndexer<String, Void, FileContent> getIndexer() {
     return myDataIndexer;
   }
 
-  @NotNull
   @Override
-  public KeyDescriptor<String> getKeyDescriptor() {
+  public @NotNull KeyDescriptor<String> getKeyDescriptor() {
     return EnumeratorStringDescriptor.INSTANCE;
   }
 
-  @NotNull
   @Override
-  public FileBasedIndex.InputFilter getInputFilter() {
+  public @NotNull FileBasedIndex.InputFilter getInputFilter() {
     return file -> file.getFileType() != GraphQLFileType.INSTANCE &&
                    GraphQLFileTypesProvider.getService().isAcceptedFile(file);
   }

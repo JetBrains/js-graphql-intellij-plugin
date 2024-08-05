@@ -14,8 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 public interface GraphQLCommentBasedInjectionHelper {
 
-  @Nullable
-  static GraphQLCommentBasedInjectionHelper getInstance() {
+  static @Nullable GraphQLCommentBasedInjectionHelper getInstance() {
     return ApplicationManager.getApplication().getService(GraphQLCommentBasedInjectionHelper.class);
   }
 

@@ -32,8 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class GraphQLJavaScriptBlockWrapper extends AbstractBlock implements BlockEx, SettingsAwareBlock {
-  @Nullable
-  private final GraphQLJavaScriptBlockWrapper parent;
+  private final @Nullable GraphQLJavaScriptBlockWrapper parent;
   private final SpacingBuilder spacingBuilder;
   private final CodeStyleSettings settings;
   private final Block wrapped;
@@ -144,9 +143,8 @@ class GraphQLJavaScriptBlockWrapper extends AbstractBlock implements BlockEx, Se
     return blocks;
   }
 
-  @NotNull
   @Override
-  public List<Block> getSubBlocks() {
+  public @NotNull List<Block> getSubBlocks() {
     if (subBlocks == null) {
       subBlocks = super.getSubBlocks();
       if (subBlocks.isEmpty()) {
@@ -156,9 +154,8 @@ class GraphQLJavaScriptBlockWrapper extends AbstractBlock implements BlockEx, Se
     return subBlocks;
   }
 
-  @Nullable
   @Override
-  protected Indent getChildIndent() {
+  protected @Nullable Indent getChildIndent() {
     if (myNode.getPsi() instanceof JSStringTemplateExpression) {
       // enter in a top-level block inside template indents, e.g. queries etc.
       return Indent.getNormalIndent();
@@ -187,9 +184,8 @@ class GraphQLJavaScriptBlockWrapper extends AbstractBlock implements BlockEx, Se
     return Indent.getNoneIndent();
   }
 
-  @Nullable
   @Override
-  public Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
+  public @Nullable Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
     if (wrapped != null) {
       Spacing wrappedSpacing = wrapped.getSpacing(child1, child2);
       if (wrappedSpacing == null) {
@@ -209,9 +205,8 @@ class GraphQLJavaScriptBlockWrapper extends AbstractBlock implements BlockEx, Se
     return myNode.getFirstChildNode() == null;
   }
 
-  @NotNull
   @Override
-  public TextRange getTextRange() {
+  public @NotNull TextRange getTextRange() {
     final TextRange textRange;
     if (wrapped != null) {
       textRange = wrapped.getTextRange();
@@ -222,18 +217,16 @@ class GraphQLJavaScriptBlockWrapper extends AbstractBlock implements BlockEx, Se
     return textRange;
   }
 
-  @Nullable
   @Override
-  public Language getLanguage() {
+  public @Nullable Language getLanguage() {
     if (wrapped != null) {
       return myNode.getPsi().getLanguage();
     }
     return GraphQLLanguage.INSTANCE;
   }
 
-  @NotNull
   @Override
-  public CodeStyleSettings getSettings() {
+  public @NotNull CodeStyleSettings getSettings() {
     return settings;
   }
 
@@ -249,8 +242,7 @@ class GraphQLJavaScriptBlockWrapper extends AbstractBlock implements BlockEx, Se
 
   // This is based on AbstractBlock.buildInjectedBlocks, but substitutes DefaultInjectedLanguageBlockBuilder for a GraphQLJavaScriptInjectedLanguageBlockBuilder to
   //  enable host JS/TS template fragments that separate/shreds the GraphQL with ${...} expressions
-  @NotNull
-  private List<Block> buildInjectedBlocks() {
+  private @NotNull List<Block> buildInjectedBlocks() {
 
     PsiElement psi = myNode.getPsi();
     if (psi == null) {

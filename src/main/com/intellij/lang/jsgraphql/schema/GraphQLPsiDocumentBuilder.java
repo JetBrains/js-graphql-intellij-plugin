@@ -48,8 +48,7 @@ public final class GraphQLPsiDocumentBuilder {
     return document.build();
   }
 
-  @Nullable
-  private Definition createDefinition(@NotNull GraphQLDefinition definition) {
+  private @Nullable Definition createDefinition(@NotNull GraphQLDefinition definition) {
     if (definition instanceof GraphQLOperationDefinition) {
       return createOperationDefinition(((GraphQLOperationDefinition)definition));
     }
@@ -73,8 +72,7 @@ public final class GraphQLPsiDocumentBuilder {
     }
   }
 
-  @NotNull
-  private OperationDefinition createOperationDefinition(@NotNull GraphQLOperationDefinition definition) {
+  private @NotNull OperationDefinition createOperationDefinition(@NotNull GraphQLOperationDefinition definition) {
     OperationDefinition.Builder operationDefinition = OperationDefinition.newOperationDefinition();
     addCommonData(operationDefinition, definition);
     if (definition instanceof GraphQLSelectionSetOperationDefinition selectionSetOperation) {
@@ -96,8 +94,7 @@ public final class GraphQLPsiDocumentBuilder {
     return operationDefinition.build();
   }
 
-  @NotNull
-  private OperationDefinition.Operation parseOperation(@NotNull GraphQLTypedOperationDefinition operation) {
+  private @NotNull OperationDefinition.Operation parseOperation(@NotNull GraphQLTypedOperationDefinition operation) {
     return switch (operation.getOperationType().getText()) {
       case "query" -> OperationDefinition.Operation.QUERY;
       case "mutation" -> OperationDefinition.Operation.MUTATION;
@@ -106,24 +103,21 @@ public final class GraphQLPsiDocumentBuilder {
     };
   }
 
-  @Nullable
-  private FragmentSpread createFragmentSpread(@NotNull GraphQLFragmentSpread fragment) {
+  private @Nullable FragmentSpread createFragmentSpread(@NotNull GraphQLFragmentSpread fragment) {
     FragmentSpread.Builder fragmentSpread = FragmentSpread.newFragmentSpread().name(fragment.getName());
     addCommonData(fragmentSpread, fragment);
     fragmentSpread.directives(createDirectives(fragment.getDirectives()));
     return checkNode(fragmentSpread.build());
   }
 
-  @NotNull
-  private List<VariableDefinition> createVariableDefinitions(@Nullable GraphQLVariableDefinitions definitions) {
+  private @NotNull List<VariableDefinition> createVariableDefinitions(@Nullable GraphQLVariableDefinitions definitions) {
     if (definitions == null) {
       return emptyList();
     }
     return mapNotNull(definitions.getVariableDefinitions(), this::createVariableDefinition);
   }
 
-  @Nullable
-  private VariableDefinition createVariableDefinition(@NotNull GraphQLVariableDefinition definition) {
+  private @Nullable VariableDefinition createVariableDefinition(@NotNull GraphQLVariableDefinition definition) {
     VariableDefinition.Builder variableDefinition = VariableDefinition.newVariableDefinition();
     addCommonData(variableDefinition, definition);
     variableDefinition.name(definition.getVariable().getName());
@@ -136,8 +130,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(variableDefinition.build());
   }
 
-  @Nullable
-  private FragmentDefinition createFragmentDefinition(@NotNull GraphQLFragmentDefinition definition) {
+  private @Nullable FragmentDefinition createFragmentDefinition(@NotNull GraphQLFragmentDefinition definition) {
     FragmentDefinition.Builder fragmentDefinition = FragmentDefinition.newFragmentDefinition();
     addCommonData(fragmentDefinition, definition);
     fragmentDefinition.name(definition.getName());
@@ -157,8 +150,7 @@ public final class GraphQLPsiDocumentBuilder {
   }
 
 
-  @Nullable
-  private SelectionSet createSelectionSet(@Nullable GraphQLSelectionSet selectionSet) {
+  private @Nullable SelectionSet createSelectionSet(@Nullable GraphQLSelectionSet selectionSet) {
     if (selectionSet == null) {
       return null;
     }
@@ -193,8 +185,7 @@ public final class GraphQLPsiDocumentBuilder {
   }
 
 
-  @Nullable
-  private Field createField(@NotNull GraphQLField field) {
+  private @Nullable Field createField(@NotNull GraphQLField field) {
     Field.Builder builder = Field.newField();
     addCommonData(builder, field);
     builder.name(field.getName());
@@ -210,8 +201,7 @@ public final class GraphQLPsiDocumentBuilder {
   }
 
 
-  @NotNull
-  private InlineFragment createInlineFragment(@NotNull GraphQLInlineFragment fragment) {
+  private @NotNull InlineFragment createInlineFragment(@NotNull GraphQLInlineFragment fragment) {
     InlineFragment.Builder inlineFragment = InlineFragment.newInlineFragment();
     addCommonData(inlineFragment, fragment);
     GraphQLTypeCondition typeCondition = fragment.getTypeCondition();
@@ -226,8 +216,7 @@ public final class GraphQLPsiDocumentBuilder {
     return inlineFragment.build();
   }
 
-  @Nullable
-  private SDLDefinition createTypeSystemDefinition(@NotNull GraphQLTypeSystemDefinition definition) {
+  private @Nullable SDLDefinition createTypeSystemDefinition(@NotNull GraphQLTypeSystemDefinition definition) {
     if (definition instanceof GraphQLSchemaDefinition) {
       return createSchemaDefinition((GraphQLSchemaDefinition)definition);
     }
@@ -242,8 +231,7 @@ public final class GraphQLPsiDocumentBuilder {
     }
   }
 
-  @Nullable
-  private TypeDefinition createTypeExtension(@NotNull GraphQLTypeExtension extension) {
+  private @Nullable TypeDefinition createTypeExtension(@NotNull GraphQLTypeExtension extension) {
     if (extension instanceof GraphQLEnumTypeExtensionDefinition) {
       return createEnumTypeExtensionDefinition(((GraphQLEnumTypeExtensionDefinition)extension));
     }
@@ -267,8 +255,7 @@ public final class GraphQLPsiDocumentBuilder {
     }
   }
 
-  @Nullable
-  private TypeDefinition createTypeDefinition(@NotNull GraphQLTypeDefinition definition) {
+  private @Nullable TypeDefinition createTypeDefinition(@NotNull GraphQLTypeDefinition definition) {
     if (definition instanceof GraphQLEnumTypeDefinition) {
       return createEnumTypeDefinition(((GraphQLEnumTypeDefinition)definition));
     }
@@ -292,8 +279,7 @@ public final class GraphQLPsiDocumentBuilder {
     }
   }
 
-  @Nullable
-  private Type createType(@Nullable GraphQLType type) {
+  private @Nullable Type createType(@Nullable GraphQLType type) {
     if (type == null) return null;
 
     if (type instanceof GraphQLTypeName) {
@@ -310,8 +296,7 @@ public final class GraphQLPsiDocumentBuilder {
     }
   }
 
-  @Nullable
-  private TypeName createTypeName(@Nullable GraphQLTypeName typeName) {
+  private @Nullable TypeName createTypeName(@Nullable GraphQLTypeName typeName) {
     if (typeName == null) return null;
     TypeName.Builder builder = TypeName.newTypeName();
     builder.name(typeName.getName());
@@ -319,8 +304,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(builder.build());
   }
 
-  @Nullable
-  private NonNullType createNonNullType(@NotNull GraphQLNonNullType nonNullType) {
+  private @Nullable NonNullType createNonNullType(@NotNull GraphQLNonNullType nonNullType) {
     NonNullType.Builder builder = NonNullType.newNonNullType();
     addCommonData(builder, nonNullType);
     GraphQLType type = nonNullType.getType();
@@ -336,16 +320,14 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(builder.build());
   }
 
-  @NotNull
-  private ListType createListType(@NotNull GraphQLListType listType) {
+  private @NotNull ListType createListType(@NotNull GraphQLListType listType) {
     ListType.Builder builder = ListType.newListType();
     addCommonData(builder, listType);
     builder.type(createType(listType.getType()));
     return checkNode(builder.build());
   }
 
-  @Nullable
-  private Argument createArgument(@NotNull GraphQLArgument argument) {
+  private @Nullable Argument createArgument(@NotNull GraphQLArgument argument) {
     Argument.Builder builder = Argument.newArgument();
     addCommonData(builder, argument);
     builder.name(argument.getName());
@@ -353,8 +335,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(builder.build());
   }
 
-  @NotNull
-  private List<Argument> createArguments(@Nullable GraphQLArguments arguments) {
+  private @NotNull List<Argument> createArguments(@Nullable GraphQLArguments arguments) {
     if (arguments == null) {
       return emptyList();
     }
@@ -362,13 +343,11 @@ public final class GraphQLPsiDocumentBuilder {
   }
 
 
-  @NotNull
-  private List<Directive> createDirectives(@NotNull List<GraphQLDirective> directives) {
+  private @NotNull List<Directive> createDirectives(@NotNull List<GraphQLDirective> directives) {
     return mapNotNull(directives, this::createDirective);
   }
 
-  @Nullable
-  private Directive createDirective(@NotNull GraphQLDirective directive) {
+  private @Nullable Directive createDirective(@NotNull GraphQLDirective directive) {
     Directive.Builder builder = Directive.newDirective();
     builder.name(directive.getName());
     addCommonData(builder, directive);
@@ -376,8 +355,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(builder.build());
   }
 
-  @NotNull
-  private SchemaDefinition createSchemaDefinition(@NotNull GraphQLSchemaDefinition schemaDefinition) {
+  private @NotNull SchemaDefinition createSchemaDefinition(@NotNull GraphQLSchemaDefinition schemaDefinition) {
     SchemaDefinition.Builder def = SchemaDefinition.newSchemaDefinition();
     addCommonData(def, schemaDefinition);
     def.directives(createDirectives(schemaDefinition.getDirectives()));
@@ -390,8 +368,7 @@ public final class GraphQLPsiDocumentBuilder {
     return def.build();
   }
 
-  @NotNull
-  private SchemaExtensionDefinition createSchemaExtension(@NotNull GraphQLSchemaExtension extension) {
+  private @NotNull SchemaExtensionDefinition createSchemaExtension(@NotNull GraphQLSchemaExtension extension) {
     SchemaExtensionDefinition.Builder def = SchemaExtensionDefinition.newSchemaExtensionDefinition();
     addCommonData(def, extension);
     def.directives(createDirectives(extension.getDirectives()));
@@ -404,8 +381,7 @@ public final class GraphQLPsiDocumentBuilder {
     return def.build();
   }
 
-  @Nullable
-  private OperationTypeDefinition createOperationTypeDefinition(@NotNull GraphQLOperationTypeDefinition definition) {
+  private @Nullable OperationTypeDefinition createOperationTypeDefinition(@NotNull GraphQLOperationTypeDefinition definition) {
     OperationTypeDefinition.Builder def = OperationTypeDefinition.newOperationTypeDefinition();
     GraphQLOperationType operationType = definition.getOperationType();
     if (operationType != null) {
@@ -416,8 +392,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private ScalarTypeDefinition createScalarTypeDefinition(@NotNull GraphQLScalarTypeDefinition typeDefinition) {
+  private @Nullable ScalarTypeDefinition createScalarTypeDefinition(@NotNull GraphQLScalarTypeDefinition typeDefinition) {
     ScalarTypeDefinition.Builder def = ScalarTypeDefinition.newScalarTypeDefinition();
     GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
     if (typeNameDefinition != null) {
@@ -429,8 +404,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private ScalarTypeExtensionDefinition createScalarTypeExtensionDefinition(@NotNull GraphQLScalarTypeExtensionDefinition extensionDefinition) {
+  private @Nullable ScalarTypeExtensionDefinition createScalarTypeExtensionDefinition(@NotNull GraphQLScalarTypeExtensionDefinition extensionDefinition) {
     ScalarTypeExtensionDefinition.Builder def = ScalarTypeExtensionDefinition.newScalarTypeExtensionDefinition();
     GraphQLTypeName typeName = extensionDefinition.getTypeName();
     if (typeName != null) {
@@ -441,8 +415,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private ObjectTypeDefinition createObjectTypeDefinition(@NotNull GraphQLObjectTypeDefinition typeDefinition) {
+  private @Nullable ObjectTypeDefinition createObjectTypeDefinition(@NotNull GraphQLObjectTypeDefinition typeDefinition) {
     ObjectTypeDefinition.Builder def = ObjectTypeDefinition.newObjectTypeDefinition();
     GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
     if (typeNameDefinition != null) {
@@ -456,8 +429,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private ObjectTypeExtensionDefinition createObjectTypeExtensionDefinition(@NotNull GraphQLObjectTypeExtensionDefinition extensionDefinition) {
+  private @Nullable ObjectTypeExtensionDefinition createObjectTypeExtensionDefinition(@NotNull GraphQLObjectTypeExtensionDefinition extensionDefinition) {
     ObjectTypeExtensionDefinition.Builder def = ObjectTypeExtensionDefinition.newObjectTypeExtensionDefinition();
     GraphQLTypeName typeName = extensionDefinition.getTypeName();
     if (typeName != null) {
@@ -474,16 +446,14 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @NotNull
-  private List<FieldDefinition> createFieldDefinitions(@Nullable GraphQLFieldsDefinition fieldsDefinition) {
+  private @NotNull List<FieldDefinition> createFieldDefinitions(@Nullable GraphQLFieldsDefinition fieldsDefinition) {
     if (fieldsDefinition == null) {
       return emptyList();
     }
     return mapNotNull(fieldsDefinition.getFieldDefinitionList(), this::createFieldDefinition);
   }
 
-  @Nullable
-  private FieldDefinition createFieldDefinition(@NotNull GraphQLFieldDefinition fieldDefinition) {
+  private @Nullable FieldDefinition createFieldDefinition(@NotNull GraphQLFieldDefinition fieldDefinition) {
     FieldDefinition.Builder def = FieldDefinition.newFieldDefinition();
     def.name(fieldDefinition.getName());
     def.type(createType(fieldDefinition.getType()));
@@ -497,13 +467,11 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @NotNull
-  private List<InputValueDefinition> createInputValueDefinitions(@NotNull List<GraphQLInputValueDefinition> defs) {
+  private @NotNull List<InputValueDefinition> createInputValueDefinitions(@NotNull List<GraphQLInputValueDefinition> defs) {
     return mapNotNull(defs, this::createInputValueDefinition);
   }
 
-  @Nullable
-  private InputValueDefinition createInputValueDefinition(@NotNull GraphQLInputValueDefinition valueDefinition) {
+  private @Nullable InputValueDefinition createInputValueDefinition(@NotNull GraphQLInputValueDefinition valueDefinition) {
     InputValueDefinition.Builder def = InputValueDefinition.newInputValueDefinition();
     def.name(valueDefinition.getName());
     def.type(createType(valueDefinition.getType()));
@@ -517,8 +485,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private InterfaceTypeDefinition createInterfaceTypeDefinition(@NotNull GraphQLInterfaceTypeDefinition typeDefinition) {
+  private @Nullable InterfaceTypeDefinition createInterfaceTypeDefinition(@NotNull GraphQLInterfaceTypeDefinition typeDefinition) {
     InterfaceTypeDefinition.Builder def = InterfaceTypeDefinition.newInterfaceTypeDefinition();
     GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
     if (typeNameDefinition != null) {
@@ -533,8 +500,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private InterfaceTypeExtensionDefinition createInterfaceTypeExtensionDefinition(@NotNull GraphQLInterfaceTypeExtensionDefinition extensionDefinition) {
+  private @Nullable InterfaceTypeExtensionDefinition createInterfaceTypeExtensionDefinition(@NotNull GraphQLInterfaceTypeExtensionDefinition extensionDefinition) {
     InterfaceTypeExtensionDefinition.Builder def = InterfaceTypeExtensionDefinition.newInterfaceTypeExtensionDefinition();
     GraphQLTypeName typeName = extensionDefinition.getTypeName();
     if (typeName != null) {
@@ -548,8 +514,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private UnionTypeDefinition createUnionTypeDefinition(@NotNull GraphQLUnionTypeDefinition typeDefinition) {
+  private @Nullable UnionTypeDefinition createUnionTypeDefinition(@NotNull GraphQLUnionTypeDefinition typeDefinition) {
     UnionTypeDefinition.Builder def = UnionTypeDefinition.newUnionTypeDefinition();
     GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
     if (typeNameDefinition != null) {
@@ -575,8 +540,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private UnionTypeExtensionDefinition createUnionTypeExtensionDefinition(@NotNull GraphQLUnionTypeExtensionDefinition extensionDefinition) {
+  private @Nullable UnionTypeExtensionDefinition createUnionTypeExtensionDefinition(@NotNull GraphQLUnionTypeExtensionDefinition extensionDefinition) {
     UnionTypeExtensionDefinition.Builder def = UnionTypeExtensionDefinition.newUnionTypeExtensionDefinition();
     GraphQLTypeName typeName = extensionDefinition.getTypeName();
     if (typeName != null) {
@@ -601,8 +565,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private EnumTypeDefinition createEnumTypeDefinition(@NotNull GraphQLEnumTypeDefinition enumTypeDefinition) {
+  private @Nullable EnumTypeDefinition createEnumTypeDefinition(@NotNull GraphQLEnumTypeDefinition enumTypeDefinition) {
     EnumTypeDefinition.Builder def = EnumTypeDefinition.newEnumTypeDefinition();
     GraphQLTypeNameDefinition typeNameDefinition = enumTypeDefinition.getTypeNameDefinition();
     if (typeNameDefinition != null) {
@@ -619,8 +582,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private EnumTypeExtensionDefinition createEnumTypeExtensionDefinition(@NotNull GraphQLEnumTypeExtensionDefinition extensionDefinition) {
+  private @Nullable EnumTypeExtensionDefinition createEnumTypeExtensionDefinition(@NotNull GraphQLEnumTypeExtensionDefinition extensionDefinition) {
     EnumTypeExtensionDefinition.Builder def = EnumTypeExtensionDefinition.newEnumTypeExtensionDefinition();
     GraphQLTypeName typeName = extensionDefinition.getTypeName();
     if (typeName != null) {
@@ -636,8 +598,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private EnumValueDefinition createEnumValueDefinition(@NotNull GraphQLEnumValueDefinition valueDefinition) {
+  private @Nullable EnumValueDefinition createEnumValueDefinition(@NotNull GraphQLEnumValueDefinition valueDefinition) {
     EnumValueDefinition.Builder def = EnumValueDefinition.newEnumValueDefinition();
     def.name(valueDefinition.getEnumValue().getName());
     addCommonData(def, valueDefinition);
@@ -646,8 +607,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private InputObjectTypeDefinition createInputObjectTypeDefinition(@NotNull GraphQLInputObjectTypeDefinition typeDefinition) {
+  private @Nullable InputObjectTypeDefinition createInputObjectTypeDefinition(@NotNull GraphQLInputObjectTypeDefinition typeDefinition) {
     InputObjectTypeDefinition.Builder def = InputObjectTypeDefinition.newInputObjectDefinition();
     GraphQLTypeNameDefinition typeNameDefinition = typeDefinition.getTypeNameDefinition();
     if (typeNameDefinition != null) {
@@ -663,8 +623,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private InputObjectTypeExtensionDefinition createInputObjectTypeExtensionDefinition(@NotNull GraphQLInputObjectTypeExtensionDefinition extensionDefinition) {
+  private @Nullable InputObjectTypeExtensionDefinition createInputObjectTypeExtensionDefinition(@NotNull GraphQLInputObjectTypeExtensionDefinition extensionDefinition) {
     InputObjectTypeExtensionDefinition.Builder def = InputObjectTypeExtensionDefinition.newInputObjectTypeExtensionDefinition();
     GraphQLTypeName typeName = extensionDefinition.getTypeName();
     if (typeName != null) {
@@ -679,8 +638,7 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private DirectiveDefinition createDirectiveDefinition(@NotNull GraphQLDirectiveDefinition directiveDefinition) {
+  private @Nullable DirectiveDefinition createDirectiveDefinition(@NotNull GraphQLDirectiveDefinition directiveDefinition) {
     DirectiveDefinition.Builder def = DirectiveDefinition.newDirectiveDefinition();
     GraphQLIdentifier nameIdentifier = directiveDefinition.getNameIdentifier();
     if (nameIdentifier != null) {
@@ -710,16 +668,14 @@ public final class GraphQLPsiDocumentBuilder {
     return checkNode(def.build());
   }
 
-  @Nullable
-  private DirectiveLocation createDirectiveLocation(@NotNull GraphQLDirectiveLocation directiveLocation) {
+  private @Nullable DirectiveLocation createDirectiveLocation(@NotNull GraphQLDirectiveLocation directiveLocation) {
     DirectiveLocation.Builder def = DirectiveLocation.newDirectiveLocation();
     def.name(directiveLocation.getText());
     addCommonData(def, directiveLocation);
     return checkNode(def.build());
   }
 
-  @Nullable
-  private Value createValue(@Nullable GraphQLValue value) {
+  private @Nullable Value createValue(@Nullable GraphQLValue value) {
     if (value == null) return null;
 
     if (value instanceof GraphQLIntValue) {
@@ -812,8 +768,7 @@ public final class GraphQLPsiDocumentBuilder {
     }
   }
 
-  @Nullable
-  private Description newDescription(@Nullable GraphQLDescription description) {
+  private @Nullable Description newDescription(@Nullable GraphQLDescription description) {
     if (description == null) {
       return null;
     }
@@ -841,8 +796,7 @@ public final class GraphQLPsiDocumentBuilder {
     return new Description(content, sourceLocation, multiLine, description);
   }
 
-  @NotNull
-  private SourceLocation getSourceLocation(@NotNull PsiElement element) {
+  private @NotNull SourceLocation getSourceLocation(@NotNull PsiElement element) {
     return new SourceLocation(element);
   }
 

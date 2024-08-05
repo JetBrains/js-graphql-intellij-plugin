@@ -29,8 +29,7 @@ public final class GraphQLIntrospectionSSLBuilder {
   private GraphQLIntrospectionSSLBuilder() {
   }
 
-  @NotNull
-  public static KeyStore makeKeyStore(final Path certPath, final Path keyPath, final GraphQLConfigCertificate.Encoding format)
+  public static @NotNull KeyStore makeKeyStore(final Path certPath, final Path keyPath, final GraphQLConfigCertificate.Encoding format)
     throws UnsupportedEncodingException {
     CertificateFactory certificateFactory;
     try {
@@ -68,8 +67,7 @@ public final class GraphQLIntrospectionSSLBuilder {
     return keyStore;
   }
 
-  @Nullable
-  private static PrivateKey generatePEMPrivateKey(final Path keyPath) throws IOException {
+  private static @Nullable PrivateKey generatePEMPrivateKey(final Path keyPath) throws IOException {
 
     String key = Files.readString(keyPath, Charset.defaultCharset());
     String privateKeyPEM = key

@@ -113,18 +113,17 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
 
   public static final Key<JPanel> GRAPH_QL_QUERY_COMPONENT = Key.create(GRAPH_QL_VARIABLES_JSON + ".query.component");
 
-  public final static Key<GraphQLEndpointsModel> GRAPH_QL_ENDPOINTS_MODEL = Key.create("graphql.endpoints.model");
+  public static final Key<GraphQLEndpointsModel> GRAPH_QL_ENDPOINTS_MODEL = Key.create("graphql.endpoints.model");
 
-  public final static Key<Boolean> GRAPH_QL_EDITOR_QUERYING = Key.create("graphql.editor.querying");
+  public static final Key<Boolean> GRAPH_QL_EDITOR_QUERYING = Key.create("graphql.editor.querying");
 
   private static final int UPDATE_MS = 500;
   private static final @NlsSafe String VARIABLES_PLACEHOLDER = "{ variables }";
   private final Alarm myUpdateUIAlarm = new Alarm(Alarm.ThreadToUse.POOLED_THREAD, this);
 
-  @NotNull
-  private final Project myProject;
+  private final @NotNull Project myProject;
 
-  public GraphQLUIProjectService(@NotNull final Project project) {
+  public GraphQLUIProjectService(final @NotNull Project project) {
     myProject = project;
   }
 
@@ -540,8 +539,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     });
   }
 
-  @NotNull
-  private static Gson createQueryJsonSerializer() {
+  private static @NotNull Gson createQueryJsonSerializer() {
     return new GsonBuilder()
       .registerTypeAdapter(Double.class, (JsonSerializer<Double>)(number, type, jsonSerializationContext) -> {
         if (!Double.isFinite(number)) {

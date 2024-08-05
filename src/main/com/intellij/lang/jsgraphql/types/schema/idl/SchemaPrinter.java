@@ -314,8 +314,7 @@ public class SchemaPrinter {
    * Trivial indentation formatting for type definitions when
    * a full reformat is not possible for some reason.
    */
-  @NotNull
-  private String calcIndent(int depth) {
+  private @NotNull String calcIndent(int depth) {
     if (depth == 0) {
       return "";
     }

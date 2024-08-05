@@ -34,7 +34,7 @@ import static com.intellij.lang.documentation.DocumentationMarkup.*;
 
 public final class GraphQLDocumentationProvider extends DocumentationProviderEx {
 
-  private final static String GRAPHQL_DOC_PREFIX = GraphQLConstants.GraphQL;
+  private static final String GRAPHQL_DOC_PREFIX = GraphQLConstants.GraphQL;
 
   @Override
   public @Nullable @Nls String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
@@ -99,8 +99,7 @@ public final class GraphQLDocumentationProvider extends DocumentationProviderEx 
     return null;
   }
 
-  @Nullable
-  private static String getDirectiveDocumentation(GraphQLSchema schema, GraphQLDirectiveDefinition parent) {
+  private static @Nullable String getDirectiveDocumentation(GraphQLSchema schema, GraphQLDirectiveDefinition parent) {
     final GraphQLIdentifier directiveName = parent.getNameIdentifier();
     if (directiveName == null) {
       return null;
@@ -124,8 +123,7 @@ public final class GraphQLDocumentationProvider extends DocumentationProviderEx 
     return result.toString();
   }
 
-  @Nullable
-  private static String getEnumValueDocumentation(GraphQLSchema schema, GraphQLEnumValue parent) {
+  private static @Nullable String getEnumValueDocumentation(GraphQLSchema schema, GraphQLEnumValue parent) {
     final String enumName = GraphQLPsiUtil.findContainingTypeName(parent);
     if (enumName != null) {
       com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(enumName);
@@ -151,8 +149,7 @@ public final class GraphQLDocumentationProvider extends DocumentationProviderEx 
     return null;
   }
 
-  @Nullable
-  private static String getArgumentDocumentation(GraphQLSchema schema, GraphQLInputValueDefinition parent) {
+  private static @Nullable String getArgumentDocumentation(GraphQLSchema schema, GraphQLInputValueDefinition parent) {
 
     // input value definition defines an argument on a field or a directive, or a field on an input type
 
@@ -229,8 +226,7 @@ public final class GraphQLDocumentationProvider extends DocumentationProviderEx 
     return null;
   }
 
-  @NotNull
-  private static String getArgumentDocumentation(String inputValueName, GraphQLArgument argument) {
+  private static @NotNull String getArgumentDocumentation(String inputValueName, GraphQLArgument argument) {
     final StringBuilder html = new StringBuilder().append(DEFINITION_START);
     GraphQLInputType argumentType = argument.getType();
     html.append(inputValueName).append(argumentType != null ? ": " : " ").append(
@@ -245,8 +241,7 @@ public final class GraphQLDocumentationProvider extends DocumentationProviderEx 
     result.append(CONTENT_START).append(descriptionAsHTML).append(CONTENT_END);
   }
 
-  @Nullable
-  private static String getFieldDocumentation(PsiElement element, GraphQLSchema schema, GraphQLFieldDefinition parent) {
+  private static @Nullable String getFieldDocumentation(PsiElement element, GraphQLSchema schema, GraphQLFieldDefinition parent) {
     final GraphQLType psiFieldType = parent.getType();
     final GraphQLTypeSystemDefinition psiDefinition = PsiTreeUtil.getParentOfType(parent, GraphQLTypeSystemDefinition.class);
     final GraphQLNamedElement psiTypeName = PsiTreeUtil.findChildOfType(psiDefinition, GraphQLNamedElement.class);
@@ -280,8 +275,7 @@ public final class GraphQLDocumentationProvider extends DocumentationProviderEx 
     return null;
   }
 
-  @Nullable
-  private static String getTypeDocumentation(PsiElement element, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
+  private static @Nullable String getTypeDocumentation(PsiElement element, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
     com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement)element).getName());
     if (schemaType != null) {
       final StringBuilder html = new StringBuilder().append(DEFINITION_START);

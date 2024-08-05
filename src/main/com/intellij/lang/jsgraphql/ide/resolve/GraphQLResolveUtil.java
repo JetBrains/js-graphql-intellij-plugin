@@ -48,16 +48,14 @@ public final class GraphQLResolveUtil {
     }
   }
 
-  @NotNull
-  public static Collection<GraphQLFile> getLibraryFiles(@NotNull GraphQLLibraryDescriptor libraryDescriptor,
-                                                        @NotNull PsiElement context) {
+  public static @NotNull Collection<GraphQLFile> getLibraryFiles(@NotNull GraphQLLibraryDescriptor libraryDescriptor,
+                                                                 @NotNull PsiElement context) {
     CommonProcessors.CollectUniquesProcessor<GraphQLFile> processor = new CommonProcessors.CollectUniquesProcessor<>();
     processFilesInLibrary(libraryDescriptor, context, processor);
     return processor.getResults();
   }
 
-  @Nullable
-  public static GraphQLDefinition findContainingDefinition(@Nullable PsiElement element) {
+  public static @Nullable GraphQLDefinition findContainingDefinition(@Nullable PsiElement element) {
     GraphQLDefinition definition = PsiTreeUtil.getParentOfType(element, GraphQLDefinition.class, false);
     if (definition instanceof GraphQLTemplateDefinition) {
       return null; // this is unexpected for most cases
@@ -72,8 +70,7 @@ public final class GraphQLResolveUtil {
    * but the real declaration we need is a node somewhere up in the PSI tree
    * like GraphQLObjectTypeDefinition, GraphQLFieldDefinition, etc.
    */
-  @Nullable
-  public static PsiElement adjustResolvedDefinition(@Nullable PsiElement resolveTarget) {
+  public static @Nullable PsiElement adjustResolvedDefinition(@Nullable PsiElement resolveTarget) {
     if (resolveTarget == null) return null;
 
     PsiElement definition = resolveTarget instanceof GraphQLIdentifier ? resolveTarget.getParent() : resolveTarget;
@@ -86,8 +83,7 @@ public final class GraphQLResolveUtil {
     return definition;
   }
 
-  @Nullable
-  public static PsiElement resolve(@Nullable PsiElement element) {
+  public static @Nullable PsiElement resolve(@Nullable PsiElement element) {
     if (element instanceof GraphQLReferenceElement referenceElement) {
       PsiReference reference = referenceElement.getReference();
       return reference != null ? adjustResolvedDefinition(reference.resolve()) : null;

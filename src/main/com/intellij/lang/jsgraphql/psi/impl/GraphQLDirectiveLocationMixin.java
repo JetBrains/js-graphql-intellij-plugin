@@ -52,9 +52,8 @@ public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl i
                   return referencedEnumIdentifier;
                 }
 
-                @NotNull
                 @Override
-                public Object @NotNull [] getVariants() {
+                public @NotNull Object @NotNull [] getVariants() {
                   return PsiReference.EMPTY_ARRAY;
                 }
               });

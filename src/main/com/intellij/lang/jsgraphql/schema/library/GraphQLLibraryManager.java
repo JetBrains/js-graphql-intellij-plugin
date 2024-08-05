@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 public final class GraphQLLibraryManager {
-  private final static Logger LOG = Logger.getInstance(GraphQLLibraryManager.class);
+  private static final Logger LOG = Logger.getInstance(GraphQLLibraryManager.class);
   private static final String DEFINITIONS_RESOURCE_DIR = "definitions";
   private static final GraphQLLibrary EMPTY_LIBRARY =
     new GraphQLLibrary(new GraphQLLibraryDescriptor("EMPTY"), new LightVirtualFile());
@@ -64,8 +64,7 @@ public final class GraphQLLibraryManager {
     return project.getService(GraphQLLibraryManager.class);
   }
 
-  @Nullable
-  public GraphQLLibrary getOrCreateLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor) {
+  public @Nullable GraphQLLibrary getOrCreateLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor) {
     if (ApplicationManager.getApplication().isUnitTestMode() && !myLibrariesEnabled) {
       return null;
     }
@@ -110,8 +109,7 @@ public final class GraphQLLibraryManager {
     }), ModalityState.nonModal(), myProject.getDisposed());
   }
 
-  @NotNull
-  public Collection<SyntheticLibrary> getAllLibraries() {
+  public @NotNull Collection<SyntheticLibrary> getAllLibraries() {
     return ourDefinitionResourcePaths
       .keySet().stream()
       .map(this::getOrCreateLibrary)
@@ -120,8 +118,7 @@ public final class GraphQLLibraryManager {
       .collect(Collectors.toList());
   }
 
-  @Nullable
-  private VirtualFile resolveLibraryRoot(@NotNull GraphQLLibraryDescriptor descriptor) {
+  private @Nullable VirtualFile resolveLibraryRoot(@NotNull GraphQLLibraryDescriptor descriptor) {
     String resourceName = ourDefinitionResourcePaths.get(descriptor);
     if (resourceName == null) {
       LOG.error("No resource files found for library: " + descriptor);
@@ -140,8 +137,7 @@ public final class GraphQLLibraryManager {
     return file != null && myKnownLibraryRoots.getValue().contains(file);
   }
 
-  @NotNull
-  public Set<VirtualFile> getLibraryRoots() {
+  public @NotNull Set<VirtualFile> getLibraryRoots() {
     return myKnownLibraryRoots.getValue();
   }
 

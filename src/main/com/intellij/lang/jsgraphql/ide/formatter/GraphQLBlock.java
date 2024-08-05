@@ -87,9 +87,8 @@ public class GraphQLBlock extends AbstractBlock {
     return Indent.getNoneIndent();
   }
 
-  @Nullable
   @Override
-  protected Indent getChildIndent() {
+  protected @Nullable Indent getChildIndent() {
     final IElementType elementType = myNode.getElementType();
     if (elementType == GraphQLElementTypes.BRACE_R) {
       return Indent.getNoneIndent();
@@ -100,9 +99,8 @@ public class GraphQLBlock extends AbstractBlock {
     return Indent.getNoneIndent();
   }
 
-  @Nullable
   @Override
-  public Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
+  public @Nullable Spacing getSpacing(@Nullable Block child1, @NotNull Block child2) {
     return null;
   }
 

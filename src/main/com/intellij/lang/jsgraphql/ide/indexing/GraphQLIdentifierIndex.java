@@ -114,27 +114,23 @@ public final class GraphQLIdentifierIndex extends FileBasedIndexExtension<String
     return false;
   }
 
-  @NotNull
   @Override
-  public ID<String, IdentifierKind> getName() {
+  public @NotNull ID<String, IdentifierKind> getName() {
     return NAME;
   }
 
-  @NotNull
   @Override
-  public DataIndexer<String, IdentifierKind, FileContent> getIndexer() {
+  public @NotNull DataIndexer<String, IdentifierKind, FileContent> getIndexer() {
     return myDataIndexer;
   }
 
-  @NotNull
   @Override
-  public KeyDescriptor<String> getKeyDescriptor() {
+  public @NotNull KeyDescriptor<String> getKeyDescriptor() {
     return new EnumeratorStringDescriptor();
   }
 
-  @NotNull
   @Override
-  public DataExternalizer<IdentifierKind> getValueExternalizer() {
+  public @NotNull DataExternalizer<IdentifierKind> getValueExternalizer() {
     return new EnumDataDescriptor<>(IdentifierKind.class);
   }
 
@@ -143,9 +139,8 @@ public final class GraphQLIdentifierIndex extends FileBasedIndexExtension<String
     return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
   }
 
-  @NotNull
   @Override
-  public FileBasedIndex.InputFilter getInputFilter() {
+  public @NotNull FileBasedIndex.InputFilter getInputFilter() {
     return file -> GraphQLFileTypesProvider.getService().isAcceptedFile(file);
   }
 

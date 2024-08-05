@@ -149,9 +149,8 @@ class GraphQLJavaScriptInjectedLanguageBlockBuilder extends DefaultInjectedLangu
         return places.get(places.size() - 1);
       }
 
-      @Nullable
       @Override
-      public Segment getHostRangeMarker() {
+      public @Nullable Segment getHostRangeMarker() {
         if (getFirst().getHostRangeMarker() != null && getLast().getHostRangeMarker() != null) {
           return new Segment() {
             @Override
@@ -168,15 +167,13 @@ class GraphQLJavaScriptInjectedLanguageBlockBuilder extends DefaultInjectedLangu
         return null;
       }
 
-      @NotNull
       @Override
-      public TextRange getRangeInsideHost() {
+      public @NotNull TextRange getRangeInsideHost() {
         return TextRange.create(getFirst().getRangeInsideHost().getStartOffset(), getLast().getRangeInsideHost().getEndOffset());
       }
 
-      @NotNull
       @Override
-      public TextRange getRange() {
+      public @NotNull TextRange getRange() {
         return TextRange.create(getFirst().getRange().getStartOffset(), getLast().getRange().getEndOffset());
       }
 
@@ -195,21 +192,18 @@ class GraphQLJavaScriptInjectedLanguageBlockBuilder extends DefaultInjectedLangu
         places.forEach(PsiLanguageInjectionHost.Shred::dispose);
       }
 
-      @Nullable
       @Override
-      public PsiLanguageInjectionHost getHost() {
+      public @Nullable PsiLanguageInjectionHost getHost() {
         return getFirst().getHost();
       }
 
-      @NotNull
       @Override
-      public String getPrefix() {
+      public @NotNull String getPrefix() {
         return getFirst().getPrefix();
       }
 
-      @NotNull
       @Override
-      public String getSuffix() {
+      public @NotNull String getSuffix() {
         return getLast().getSuffix();
       }
     };

@@ -88,27 +88,23 @@ public final class GraphQLFragmentNameIndex extends FileBasedIndexExtension<Stri
     }
   };
 
-  @NotNull
   @Override
-  public ID<String, Boolean> getName() {
+  public @NotNull ID<String, Boolean> getName() {
     return NAME;
   }
 
-  @NotNull
   @Override
-  public DataIndexer<String, Boolean, FileContent> getIndexer() {
+  public @NotNull DataIndexer<String, Boolean, FileContent> getIndexer() {
     return myDataIndexer;
   }
 
-  @NotNull
   @Override
-  public KeyDescriptor<String> getKeyDescriptor() {
+  public @NotNull KeyDescriptor<String> getKeyDescriptor() {
     return new EnumeratorStringDescriptor();
   }
 
-  @NotNull
   @Override
-  public DataExternalizer<Boolean> getValueExternalizer() {
+  public @NotNull DataExternalizer<Boolean> getValueExternalizer() {
     return BooleanDataDescriptor.INSTANCE;
   }
 
@@ -117,9 +113,8 @@ public final class GraphQLFragmentNameIndex extends FileBasedIndexExtension<Stri
     return GraphQLIndexUtil.INDEX_BASE_VERSION + VERSION;
   }
 
-  @NotNull
   @Override
-  public FileBasedIndex.InputFilter getInputFilter() {
+  public @NotNull FileBasedIndex.InputFilter getInputFilter() {
     return file -> GraphQLFileTypesProvider.getService().isAcceptedFile(file);
   }
 

@@ -28,7 +28,7 @@ public class Description implements Serializable {
   public final String content;
   public final SourceLocation sourceLocation;
   public final boolean multiLine;
-  private @Nullable final PsiElement element;
+  private final @Nullable PsiElement element;
 
   public Description(String content, SourceLocation sourceLocation, boolean multiLine) {
     this(content, sourceLocation, multiLine, null);

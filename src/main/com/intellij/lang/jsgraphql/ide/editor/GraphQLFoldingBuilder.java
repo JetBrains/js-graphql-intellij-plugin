@@ -22,9 +22,8 @@ import java.util.List;
 
 public final class GraphQLFoldingBuilder implements FoldingBuilder {
 
-  @Nullable
   @Override
-  public String getPlaceholderText(@NotNull ASTNode node) {
+  public @Nullable String getPlaceholderText(@NotNull ASTNode node) {
     final ASTNode first = node.getFirstChildNode();
     final ASTNode last = node.getLastChildNode();
     if (first != null && last != null) {
@@ -33,9 +32,8 @@ public final class GraphQLFoldingBuilder implements FoldingBuilder {
     return "{...}";
   }
 
-  @NotNull
   @Override
-  public FoldingDescriptor[] buildFoldRegions(@NotNull ASTNode node, @NotNull Document document) {
+  public @NotNull FoldingDescriptor[] buildFoldRegions(@NotNull ASTNode node, @NotNull Document document) {
     List<FoldingDescriptor> list = new ArrayList<>();
     buildFolding(node, list);
     FoldingDescriptor[] descriptors = new FoldingDescriptor[list.size()];

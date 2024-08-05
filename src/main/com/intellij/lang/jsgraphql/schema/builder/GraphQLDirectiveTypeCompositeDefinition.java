@@ -8,9 +8,8 @@ import java.util.List;
 
 public class GraphQLDirectiveTypeCompositeDefinition extends GraphQLCompositeDefinition<DirectiveDefinition> {
 
-  @NotNull
   @Override
-  protected DirectiveDefinition mergeDefinitions(@NotNull List<DirectiveDefinition> sourceDefinitions) {
+  protected @NotNull DirectiveDefinition mergeDefinitions(@NotNull List<DirectiveDefinition> sourceDefinitions) {
     DirectiveDefinition definition = ContainerUtil.getFirstItem(sourceDefinitions);
     return definition.transform(builder -> builder.sourceNodes(sourceDefinitions));
   }

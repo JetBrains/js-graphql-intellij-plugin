@@ -239,8 +239,7 @@ public final class GraphQLValidationAnnotator implements Annotator {
     return Collections.emptyList();
   }
 
-  @NotNull
-  private static List<String> getSuggestions(@Nullable String text, @NotNull List<String> candidates) {
+  private static @NotNull List<String> getSuggestions(@Nullable String text, @NotNull List<String> candidates) {
     if (text == null) return Collections.emptyList();
 
     return candidates.stream()

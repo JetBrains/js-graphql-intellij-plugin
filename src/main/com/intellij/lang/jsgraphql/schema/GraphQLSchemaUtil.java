@@ -29,8 +29,7 @@ public class GraphQLSchemaUtil {
   /**
    * Provides the IDL string version of a type including handling of types wrapped in non-null/list-types
    */
-  @NotNull
-  public static String typeString(@Nullable GraphQLType rawType) {
+  public static @NotNull String typeString(@Nullable GraphQLType rawType) {
     if (rawType == null) {
       return "";
     }
@@ -65,8 +64,7 @@ public class GraphQLSchemaUtil {
     return sb.toString();
   }
 
-  @Nullable
-  public static String getTypeDescription(@NotNull GraphQLType graphQLType) {
+  public static @Nullable String getTypeDescription(@NotNull GraphQLType graphQLType) {
     String description = null;
     if (graphQLType instanceof GraphQLObjectType) {
       description = ((GraphQLObjectType)graphQLType).getDescription();
@@ -151,8 +149,7 @@ public class GraphQLSchemaUtil {
     return value.getClass().getSimpleName();
   }
 
-  @NotNull
-  public static Set<String> getSchemaOperationTypeNames(@NotNull GraphQLSchema schema) {
+  public static @NotNull Set<String> getSchemaOperationTypeNames(@NotNull GraphQLSchema schema) {
     HashSet<String> types = new HashSet<>();
 
     GraphQLObjectType queryType = schema.getQueryType();

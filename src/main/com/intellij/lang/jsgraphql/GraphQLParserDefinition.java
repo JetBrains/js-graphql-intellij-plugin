@@ -29,29 +29,24 @@ public final class GraphQLParserDefinition implements ParserDefinition {
 
   public static final IFileElementType FILE = new IFileElementType("GRAPHQL", GraphQLLanguage.INSTANCE);
 
-  @NotNull
   @Override
-  public Lexer createLexer(Project project) {
+  public @NotNull Lexer createLexer(Project project) {
     return new GraphQLLexerAdapter();
   }
 
-  @NotNull
-  public TokenSet getWhitespaceTokens() {
+  public @NotNull TokenSet getWhitespaceTokens() {
     return GraphQLExtendedElementTypes.WHITE_SPACES;
   }
 
-  @NotNull
-  public TokenSet getCommentTokens() {
+  public @NotNull TokenSet getCommentTokens() {
     return GraphQLExtendedElementTypes.COMMENTS;
   }
 
-  @NotNull
-  public TokenSet getStringLiteralElements() {
+  public @NotNull TokenSet getStringLiteralElements() {
     return GraphQLExtendedElementTypes.STRING_LITERALS;
   }
 
-  @NotNull
-  public PsiParser createParser(final Project project) {
+  public @NotNull PsiParser createParser(final Project project) {
     return new GraphQLParser();
   }
 
@@ -68,8 +63,7 @@ public final class GraphQLParserDefinition implements ParserDefinition {
     return SpaceRequirements.MAY;
   }
 
-  @NotNull
-  public PsiElement createElement(ASTNode node) {
+  public @NotNull PsiElement createElement(ASTNode node) {
     return GraphQLElementTypes.Factory.createElement(node);
   }
 }

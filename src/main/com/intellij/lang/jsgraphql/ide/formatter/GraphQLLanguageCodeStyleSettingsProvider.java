@@ -33,15 +33,13 @@ public final class GraphQLLanguageCodeStyleSettingsProvider extends LanguageCode
         }
     }""";
 
-  @NotNull
   @Override
-  public Language getLanguage() {
+  public @NotNull Language getLanguage() {
     return GraphQLLanguage.INSTANCE;
   }
 
-  @Nullable
   @Override
-  public IndentOptionsEditor getIndentOptionsEditor() {
+  public @Nullable IndentOptionsEditor getIndentOptionsEditor() {
     return new IndentOptionsEditor();
   }
 

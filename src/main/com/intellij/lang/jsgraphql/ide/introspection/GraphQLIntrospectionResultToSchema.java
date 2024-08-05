@@ -95,8 +95,7 @@ public class GraphQLIntrospectionResultToSchema {
     return document.build();
   }
 
-  @NotNull
-  private TypeDefinition<?> createTypeDefinition(@NotNull Map<String, Object> type) {
+  private @NotNull TypeDefinition<?> createTypeDefinition(@NotNull Map<String, Object> type) {
     String kind = assertNotNull((String)type.get("kind"),
                                 () -> String.format("null object kind: %s", type));
 
@@ -111,60 +110,59 @@ public class GraphQLIntrospectionResultToSchema {
     };
   }
 
-  @NotNull
-  private static TypeDefinition<?> createScalar(@NotNull Map<String, Object> input) {
-    String name = (String)input.get("name");
-    return ScalarTypeDefinition.newScalarTypeDefinition().name(name).description(getDescription(input)).build();
-  }
+  private @NotNull List<FieldDefinition> createFields(@Nullable List<Map<String, Object>> fields) {
+    if (fields == null) return ContainerUtil.emptyList();
 
+    List<FieldDefinition> result = new ArrayList<>();
+    for (Map<String, Object> field : fields) {
+      if (field == null) continue;
 
-  @SuppressWarnings("unchecked")
-  @NotNull
-  static UnionTypeDefinition createUnion(@NotNull Map<String, Object> input) {
-    assertTrue(Objects.equals(input.get("kind"), "UNION"), () -> "wrong input");
-
-    final List<Map<String, Object>> possibleTypes = (List<Map<String, Object>>)input.get("possibleTypes");
-    final List<Type> memberTypes = Lists.newArrayList();
-    if (possibleTypes != null) {
-      for (Map<String, Object> possibleType : possibleTypes) {
-        if (possibleType == null) continue;
-        TypeName typeName = new TypeName((String)possibleType.get("name"));
-        memberTypes.add(typeName);
-      }
+      List<Map<String, Object>> args = (List<Map<String, Object>>)field.get("args");
+      List<InputValueDefinition> inputValueDefinitions = createInputValueDefinitions(args);
+      FieldDefinition fieldDefinition = FieldDefinition.newFieldDefinition()
+        .name((String)field.get("name"))
+        .description(getDescription(field))
+        .type(createTypeReference((Map<String, Object>)field.get("type")))
+        .inputValueDefinitions(inputValueDefinitions)
+        .directives(createDeprecatedDirective(field))
+        .build();
+      result.add(fieldDefinition);
     }
-
-    return UnionTypeDefinition.newUnionTypeDefinition()
-      .name((String)input.get("name"))
-      .description(getDescription(input))
-      .memberTypes(memberTypes)
-      .build();
+    return result;
   }
 
   @SuppressWarnings("unchecked")
-  @NotNull
-  static EnumTypeDefinition createEnum(@NotNull Map<String, Object> input) {
-    assertTrue(Objects.equals(input.get("kind"), "ENUM"), () -> "wrong input");
+  private @NotNull List<InputValueDefinition> createInputValueDefinitions(@Nullable List<Map<String, Object>> args) {
+    if (args == null) return ContainerUtil.emptyList();
 
-    final List<Map<String, Object>> enumValues = (List<Map<String, Object>>)input.get("enumValues");
-    final List<EnumValueDefinition> enumValueDefinitions = Lists.newArrayList();
-    if (enumValues != null) {
-      for (Map<String, Object> enumValue : enumValues) {
-        if (enumValue == null) continue;
+    List<InputValueDefinition> result = new ArrayList<>();
+    for (Map<String, Object> arg : args) {
+      if (arg == null) continue;
 
-        EnumValueDefinition enumValueDefinition = EnumValueDefinition.newEnumValueDefinition()
-          .name((String)enumValue.get("name"))
-          .description(getDescription(enumValue))
-          .directives(createDeprecatedDirective(enumValue))
-          .build();
-
-        enumValueDefinitions.add(enumValueDefinition);
-      }
+      Type argType = createTypeReference((Map<String, Object>)arg.get("type"));
+      String valueLiteral = (String)arg.get("defaultValue");
+      Value defaultValue = valueLiteral != null ? valueFromAst(valueLiteral) : null;
+      InputValueDefinition inputValueDefinition = InputValueDefinition.newInputValueDefinition()
+        .name((String)arg.get("name"))
+        .type(argType)
+        .description(getDescription(arg))
+        .defaultValue(defaultValue)
+        .build();
+      result.add(inputValueDefinition);
     }
+    return result;
+  }
 
-    return EnumTypeDefinition.newEnumTypeDefinition()
-      .name((String)input.get("name"))
-      .description(getDescription(input))
-      .enumValueDefinitions(enumValueDefinitions)
+  private @NotNull DirectiveDefinition createDirectiveDefinition(@NotNull Map<String, Object> definition) {
+    List<Map<String, Object>> args = (List<Map<String, Object>>)definition.get("args");
+    List<InputValueDefinition> inputValueDefinitions = createInputValueDefinitions(args);
+
+    return DirectiveDefinition.newDirectiveDefinition()
+      .name(((String)definition.get("name")))
+      .description(getDescription(definition))
+      .directiveLocations(createDirectiveLocations((List<String>)definition.get("locations")))
+      .inputValueDefinitions(inputValueDefinitions)
+      .repeatable(isRepeatable(definition))
       .build();
   }
 
@@ -217,30 +215,81 @@ public class GraphQLIntrospectionResultToSchema {
     return builder.build();
   }
 
-  @NotNull
-  private List<FieldDefinition> createFields(@Nullable List<Map<String, Object>> fields) {
-    if (fields == null) return ContainerUtil.emptyList();
-
-    List<FieldDefinition> result = new ArrayList<>();
-    for (Map<String, Object> field : fields) {
-      if (field == null) continue;
-
-      List<Map<String, Object>> args = (List<Map<String, Object>>)field.get("args");
-      List<InputValueDefinition> inputValueDefinitions = createInputValueDefinitions(args);
-      FieldDefinition fieldDefinition = FieldDefinition.newFieldDefinition()
-        .name((String)field.get("name"))
-        .description(getDescription(field))
-        .type(createTypeReference((Map<String, Object>)field.get("type")))
-        .inputValueDefinitions(inputValueDefinitions)
-        .directives(createDeprecatedDirective(field))
-        .build();
-      result.add(fieldDefinition);
+  private @Nullable Value<?> valueFromAst(@NotNull String literal) {
+    try {
+      Document doc = ReadAction.compute(() -> {
+        String text = "input X { x: String = " + literal + "}";
+        GraphQLFile file = GraphQLElementFactory.createFile(myProject, text);
+        return file.getDocument();
+      });
+      InputObjectTypeDefinition inputType = (InputObjectTypeDefinition)doc.getDefinitions().get(0);
+      InputValueDefinition inputValueDefinition = inputType.getInputValueDefinitions().get(0);
+      return inputValueDefinition.getDefaultValue();
     }
-    return result;
+    catch (ProcessCanceledException e) {
+      throw e;
+    }
+    catch (Exception e) {
+      LOG.error(e);
+    }
+
+    return null;
   }
 
-  @NotNull
-  private static List<Directive> createDeprecatedDirective(@NotNull Map<String, Object> field) {
+  private static @NotNull TypeDefinition<?> createScalar(@NotNull Map<String, Object> input) {
+    String name = (String)input.get("name");
+    return ScalarTypeDefinition.newScalarTypeDefinition().name(name).description(getDescription(input)).build();
+  }
+
+  @SuppressWarnings("unchecked")
+  static @NotNull UnionTypeDefinition createUnion(@NotNull Map<String, Object> input) {
+    assertTrue(Objects.equals(input.get("kind"), "UNION"), () -> "wrong input");
+
+    final List<Map<String, Object>> possibleTypes = (List<Map<String, Object>>)input.get("possibleTypes");
+    final List<Type> memberTypes = Lists.newArrayList();
+    if (possibleTypes != null) {
+      for (Map<String, Object> possibleType : possibleTypes) {
+        if (possibleType == null) continue;
+        TypeName typeName = new TypeName((String)possibleType.get("name"));
+        memberTypes.add(typeName);
+      }
+    }
+
+    return UnionTypeDefinition.newUnionTypeDefinition()
+      .name((String)input.get("name"))
+      .description(getDescription(input))
+      .memberTypes(memberTypes)
+      .build();
+  }
+
+  @SuppressWarnings("unchecked")
+  static @NotNull EnumTypeDefinition createEnum(@NotNull Map<String, Object> input) {
+    assertTrue(Objects.equals(input.get("kind"), "ENUM"), () -> "wrong input");
+
+    final List<Map<String, Object>> enumValues = (List<Map<String, Object>>)input.get("enumValues");
+    final List<EnumValueDefinition> enumValueDefinitions = Lists.newArrayList();
+    if (enumValues != null) {
+      for (Map<String, Object> enumValue : enumValues) {
+        if (enumValue == null) continue;
+
+        EnumValueDefinition enumValueDefinition = EnumValueDefinition.newEnumValueDefinition()
+          .name((String)enumValue.get("name"))
+          .description(getDescription(enumValue))
+          .directives(createDeprecatedDirective(enumValue))
+          .build();
+
+        enumValueDefinitions.add(enumValueDefinition);
+      }
+    }
+
+    return EnumTypeDefinition.newEnumTypeDefinition()
+      .name((String)input.get("name"))
+      .description(getDescription(input))
+      .enumValueDefinitions(enumValueDefinitions)
+      .build();
+  }
+
+  private static @NotNull List<Directive> createDeprecatedDirective(@NotNull Map<String, Object> field) {
     if ((Boolean)field.get("isDeprecated")) {
       String reason = (String)field.get("deprecationReason");
       if (reason == null) {
@@ -252,31 +301,7 @@ public class GraphQLIntrospectionResultToSchema {
     return Collections.emptyList();
   }
 
-  @SuppressWarnings("unchecked")
-  @NotNull
-  private List<InputValueDefinition> createInputValueDefinitions(@Nullable List<Map<String, Object>> args) {
-    if (args == null) return ContainerUtil.emptyList();
-
-    List<InputValueDefinition> result = new ArrayList<>();
-    for (Map<String, Object> arg : args) {
-      if (arg == null) continue;
-
-      Type argType = createTypeReference((Map<String, Object>)arg.get("type"));
-      String valueLiteral = (String)arg.get("defaultValue");
-      Value defaultValue = valueLiteral != null ? valueFromAst(valueLiteral) : null;
-      InputValueDefinition inputValueDefinition = InputValueDefinition.newInputValueDefinition()
-        .name((String)arg.get("name"))
-        .type(argType)
-        .description(getDescription(arg))
-        .defaultValue(defaultValue)
-        .build();
-      result.add(inputValueDefinition);
-    }
-    return result;
-  }
-
-  @Nullable
-  private static Type createTypeReference(@Nullable Map<String, Object> type) {
+  private static @Nullable Type createTypeReference(@Nullable Map<String, Object> type) {
     if (type == null) return null;
 
     String kind = (String)type.get("kind");
@@ -299,8 +324,12 @@ public class GraphQLIntrospectionResultToSchema {
     }
   }
 
-  @Nullable
-  private static Description getDescription(@Nullable Map<String, Object> descriptionAware) {
+  private boolean isRepeatable(@NotNull Map<String, Object> definition) {
+    Object isRepeatable = definition.get("isRepeatable");
+    return isRepeatable instanceof Boolean && (boolean)isRepeatable;
+  }
+
+  private static @Nullable Description getDescription(@Nullable Map<String, Object> descriptionAware) {
     if (descriptionAware == null) return null;
 
     final Object rawDescription = descriptionAware.get("description");
@@ -317,51 +346,9 @@ public class GraphQLIntrospectionResultToSchema {
     return null;
   }
 
-  @NotNull
-  private DirectiveDefinition createDirectiveDefinition(@NotNull Map<String, Object> definition) {
-    List<Map<String, Object>> args = (List<Map<String, Object>>)definition.get("args");
-    List<InputValueDefinition> inputValueDefinitions = createInputValueDefinitions(args);
-
-    return DirectiveDefinition.newDirectiveDefinition()
-      .name(((String)definition.get("name")))
-      .description(getDescription(definition))
-      .directiveLocations(createDirectiveLocations((List<String>)definition.get("locations")))
-      .inputValueDefinitions(inputValueDefinitions)
-      .repeatable(isRepeatable(definition))
-      .build();
-  }
-
-  private boolean isRepeatable(@NotNull Map<String, Object> definition) {
-    Object isRepeatable = definition.get("isRepeatable");
-    return isRepeatable instanceof Boolean && (boolean)isRepeatable;
-  }
-
-  @NotNull
-  private static List<DirectiveLocation> createDirectiveLocations(@NotNull List<String> locations) {
+  private static @NotNull List<DirectiveLocation> createDirectiveLocations(@NotNull List<String> locations) {
     return ContainerUtil.mapNotNull(
       locations,
       location -> location != null ? DirectiveLocation.newDirectiveLocation().name(location).build() : null);
-  }
-
-  @Nullable
-  private Value<?> valueFromAst(@NotNull String literal) {
-    try {
-      Document doc = ReadAction.compute(() -> {
-        String text = "input X { x: String = " + literal + "}";
-        GraphQLFile file = GraphQLElementFactory.createFile(myProject, text);
-        return file.getDocument();
-      });
-      InputObjectTypeDefinition inputType = (InputObjectTypeDefinition)doc.getDefinitions().get(0);
-      InputValueDefinition inputValueDefinition = inputType.getInputValueDefinitions().get(0);
-      return inputValueDefinition.getDefaultValue();
-    }
-    catch (ProcessCanceledException e) {
-      throw e;
-    }
-    catch (Exception e) {
-      LOG.error(e);
-    }
-
-    return null;
   }
 }

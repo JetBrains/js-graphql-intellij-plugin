@@ -81,21 +81,18 @@ public final class GraphQLColorSettingsPage implements ColorSettingsPage {
     TAG_TO_DESCRIPTOR_MAP.put("string", GraphQLSyntaxHighlighter.STRING);
   }
 
-  @Nullable
   @Override
-  public Icon getIcon() {
+  public @Nullable Icon getIcon() {
     return GraphQLIcons.FILE;
   }
 
-  @NotNull
   @Override
-  public SyntaxHighlighter getHighlighter() {
+  public @NotNull SyntaxHighlighter getHighlighter() {
     return new GraphQLSyntaxHighlighter();
   }
 
-  @NotNull
   @Override
-  public String getDemoText() {
+  public @NotNull String getDemoText() {
     return """
       # Comment
 
@@ -131,9 +128,8 @@ public final class GraphQLColorSettingsPage implements ColorSettingsPage {
       }""";
   }
 
-  @Nullable
   @Override
-  public Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {
+  public @Nullable Map<String, TextAttributesKey> getAdditionalHighlightingTagToDescriptorMap() {
     return TAG_TO_DESCRIPTOR_MAP;
   }
 
@@ -142,15 +138,13 @@ public final class GraphQLColorSettingsPage implements ColorSettingsPage {
     return DESCRIPTORS;
   }
 
-  @NotNull
   @Override
-  public ColorDescriptor @NotNull [] getColorDescriptors() {
+  public @NotNull ColorDescriptor @NotNull [] getColorDescriptors() {
     return ColorDescriptor.EMPTY_ARRAY;
   }
 
-  @NotNull
   @Override
-  public String getDisplayName() {
+  public @NotNull String getDisplayName() {
     return GraphQLConstants.GraphQL;
   }
 }

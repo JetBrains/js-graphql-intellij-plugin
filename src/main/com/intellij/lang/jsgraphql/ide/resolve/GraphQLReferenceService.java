@@ -45,12 +45,11 @@ public class GraphQLReferenceService implements Disposable {
   /**
    * Sentinel reference for use in concurrent maps which don't allow nulls
    */
-  private final static PsiReference NULL_REFERENCE = new PsiReferenceBase<PsiElement>(
+  private static final PsiReference NULL_REFERENCE = new PsiReferenceBase<PsiElement>(
     new LeafPsiElement(GraphQLElementTypes.TYPE, "type"), true
   ) {
-    @Nullable
     @Override
-    public PsiElement resolve() {
+    public @Nullable PsiElement resolve() {
       return null;
     }
 
@@ -64,7 +63,7 @@ public class GraphQLReferenceService implements Disposable {
     return project.getService(GraphQLReferenceService.class);
   }
 
-  public GraphQLReferenceService(@NotNull final Project project) {
+  public GraphQLReferenceService(final @NotNull Project project) {
     myPsiSearchHelper = GraphQLPsiSearchHelper.getInstance(project);
 
     project.getMessageBus().connect(this).subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
@@ -76,14 +75,12 @@ public class GraphQLReferenceService implements Disposable {
     });
   }
 
-  @Nullable
-  public PsiElement resolveReference(@NotNull GraphQLReferenceMixin element) {
+  public @Nullable PsiElement resolveReference(@NotNull GraphQLReferenceMixin element) {
     PsiReference reference = innerResolveReference(element);
     return reference != null ? reference.resolve() : null;
   }
 
-  @Nullable
-  private PsiReference innerResolveReference(GraphQLReferenceMixin element) {
+  private @Nullable PsiReference innerResolveReference(GraphQLReferenceMixin element) {
     if (element != null) {
       final PsiElement parent = element.getParent();
       if (parent instanceof GraphQLField) {
@@ -114,8 +111,7 @@ public class GraphQLReferenceService implements Disposable {
     return null;
   }
 
-  @Nullable
-  private PsiReference resolveFieldDefinition(@NotNull GraphQLReferenceMixin element, @NotNull GraphQLFieldDefinition fieldDefinition) {
+  private @Nullable PsiReference resolveFieldDefinition(@NotNull GraphQLReferenceMixin element, @NotNull GraphQLFieldDefinition fieldDefinition) {
     final String name = fieldDefinition.getName();
     if (name != null) {
       final GraphQLTypeSystemDefinition typeSystemDefinition =
@@ -147,8 +143,7 @@ public class GraphQLReferenceService implements Disposable {
     return null;
   }
 
-  @Nullable
-  private PsiReference resolveArgument(@NotNull GraphQLReferenceMixin element) {
+  private @Nullable PsiReference resolveArgument(@NotNull GraphQLReferenceMixin element) {
     final String name = element.getName();
     if (name != null) {
       final GraphQLDirectiveImpl directive = PsiTreeUtil.getParentOfType(element, GraphQLDirectiveImpl.class);
@@ -272,9 +267,8 @@ public class GraphQLReferenceService implements Disposable {
     return reference.get();
   }
 
-  @NotNull
-  private PsiReferenceBase<GraphQLReferenceMixin> createReference(@NotNull GraphQLReferenceMixin fromElement,
-                                                                  @NotNull PsiElement resolvedElement) {
+  private @NotNull PsiReferenceBase<GraphQLReferenceMixin> createReference(@NotNull GraphQLReferenceMixin fromElement,
+                                                                           @NotNull PsiElement resolvedElement) {
     return new PsiReferenceBase<>(fromElement, TextRange.from(0, fromElement.getTextLength())) {
       @Override
       public PsiElement resolve() {
@@ -314,8 +308,7 @@ public class GraphQLReferenceService implements Disposable {
     );
   }
 
-  @Nullable
-  private PsiReference resolveObjectField(@NotNull GraphQLReferenceMixin element, @NotNull GraphQLObjectField field) {
+  private @Nullable PsiReference resolveObjectField(@NotNull GraphQLReferenceMixin element, @NotNull GraphQLObjectField field) {
     final String name = element.getName();
     if (name != null) {
       final GraphQLTypeScopeProvider fieldTypeScopeProvider = PsiTreeUtil.getParentOfType(field, GraphQLTypeScopeProvider.class);
@@ -339,8 +332,7 @@ public class GraphQLReferenceService implements Disposable {
     return null;
   }
 
-  @Nullable
-  private PsiReference resolveEnumValue(@NotNull GraphQLReferenceMixin element) {
+  private @Nullable PsiReference resolveEnumValue(@NotNull GraphQLReferenceMixin element) {
     final String name = element.getName();
     if (name != null) {
       final GraphQLTypeScopeProvider enumTypeScopeProvider = PsiTreeUtil.getParentOfType(element, GraphQLTypeScopeProvider.class);
@@ -364,15 +356,13 @@ public class GraphQLReferenceService implements Disposable {
     return null;
   }
 
-  @Nullable
-  private PsiReference resolveDirective(GraphQLReferenceMixin element) {
+  private @Nullable PsiReference resolveDirective(GraphQLReferenceMixin element) {
     return resolveUsingIndex(element, psiNamedElement ->
       psiNamedElement instanceof GraphQLIdentifier && psiNamedElement.getParent() instanceof GraphQLDirectiveDefinition);
   }
 
-  @Nullable
-  private PsiReference resolveUsingIndex(@NotNull GraphQLReferenceMixin element,
-                                         @NotNull Predicate<? super PsiNamedElement> predicate) {
+  private @Nullable PsiReference resolveUsingIndex(@NotNull GraphQLReferenceMixin element,
+                                                   @NotNull Predicate<? super PsiNamedElement> predicate) {
     final String name = element.getName();
     Ref<PsiReference> reference = new Ref<>();
     if (name != null) {
@@ -380,15 +370,13 @@ public class GraphQLReferenceService implements Disposable {
         ProgressManager.checkCanceled();
         if (predicate.test(psiNamedElement)) {
           reference.set(new PsiReferenceBase<PsiNamedElement>(element, TextRange.from(0, element.getTextLength())) {
-            @Nullable
             @Override
-            public PsiElement resolve() {
+            public @Nullable PsiElement resolve() {
               return psiNamedElement;
             }
 
-            @NotNull
             @Override
-            public Object @NotNull [] getVariants() {
+            public @NotNull Object @NotNull [] getVariants() {
               return PsiReference.EMPTY_ARRAY;
             }
           });

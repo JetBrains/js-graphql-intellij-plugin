@@ -55,9 +55,8 @@ public class GraphQLMissingTypeFix extends LocalQuickFixAndIntentionActionOnPsiE
     this.typeKind = typeKind;
   }
 
-  @NotNull
   @Override
-  public String getText() {
+  public @NotNull String getText() {
     return GraphQLBundle.message("graphql.intention.name.add.missing.type", StringUtil.toLowerCase(typeKind.name()), this.typeName);
   }
 
@@ -104,10 +103,8 @@ public class GraphQLMissingTypeFix extends LocalQuickFixAndIntentionActionOnPsiE
     EditorModificationUtilEx.insertStringAtCaret(editor, lineBefore + "\n" + code + "\n", false, caretDelta);
   }
 
-  @Nls(capitalization = Nls.Capitalization.Sentence)
-  @NotNull
   @Override
-  public String getFamilyName() {
+  public @Nls(capitalization = Nls.Capitalization.Sentence) @NotNull String getFamilyName() {
     return GraphQLBundle.message("graphql.intention.create.missing.type.definition.family.name");
   }
 

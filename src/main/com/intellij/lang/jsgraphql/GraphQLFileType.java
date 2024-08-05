@@ -36,9 +36,8 @@ public final class GraphQLFileType extends LanguageFileType {
     return GraphQLConstants.GraphQL;
   }
 
-  @NotNull
   @Override
-  public String getDefaultExtension() {
+  public @NotNull String getDefaultExtension() {
     return "graphql";
   }
 

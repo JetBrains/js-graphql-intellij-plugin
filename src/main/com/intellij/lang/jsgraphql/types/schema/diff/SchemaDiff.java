@@ -236,7 +236,7 @@ public class SchemaDiff {
     return typeName.startsWith("__");
   }
 
-  private final static Set<String> SYSTEM_SCALARS = new LinkedHashSet<>();
+  private static final Set<String> SYSTEM_SCALARS = new LinkedHashSet<>();
 
   static {
     SYSTEM_SCALARS.add("ID");

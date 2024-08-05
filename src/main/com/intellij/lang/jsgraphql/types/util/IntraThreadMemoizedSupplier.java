@@ -31,7 +31,7 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
  */
 @Internal
 class IntraThreadMemoizedSupplier<T> implements Supplier<T> {
-  private final static Object SENTINEL = new Object() {
+  private static final Object SENTINEL = new Object() {
   };
 
   @SuppressWarnings("unchecked")

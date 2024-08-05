@@ -71,9 +71,8 @@ public final class GraphQLJavaScriptTemplateFragmentLanguageInjector implements 
     }
   }
 
-  @NotNull
   @Override
-  public List<? extends Class<? extends PsiElement>> elementsToInjectIn() {
+  public @NotNull List<? extends Class<? extends PsiElement>> elementsToInjectIn() {
     return INJECTION_CLASSES;
   }
 }

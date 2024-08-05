@@ -62,9 +62,8 @@ public class GraphQLStructureViewModel extends TextEditorBasedStructureViewModel
     return element instanceof GraphQLElement;
   }
 
-  @NotNull
   @Override
-  public StructureViewTreeElement getRoot() {
+  public @NotNull StructureViewTreeElement getRoot() {
     return root;
   }
 }

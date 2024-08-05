@@ -60,9 +60,8 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
     return getHighlightDisplayLevel(inspectionClass, element).getSeverity();
   }
 
-  @NotNull
-  public static HighlightDisplayLevel getHighlightDisplayLevel(@NotNull Class<? extends GraphQLInspection> inspectionClass,
-                                                               @NotNull PsiElement element) {
+  public static @NotNull HighlightDisplayLevel getHighlightDisplayLevel(@NotNull Class<? extends GraphQLInspection> inspectionClass,
+                                                                        @NotNull PsiElement element) {
     InspectionProfile inspectionProfile = InspectionProjectProfileManager.getInstance(element.getProject()).getCurrentProfile();
     HighlightDisplayKey highlightDisplayKey = getHighlightDisplayKeyByClass(inspectionClass);
     return inspectionProfile.getErrorLevel(highlightDisplayKey, element);

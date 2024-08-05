@@ -57,7 +57,7 @@ public final class GraphQLSyntaxAnnotator implements Annotator {
   public static final TextAttributesKey UNUSED_FRAGMENT = createTextAttributesKey("GRAPHQL_UNUSED_FRAGMENT");
 
   @Override
-  public void annotate(@NotNull PsiElement element, @NotNull final AnnotationHolder holder) {
+  public void annotate(@NotNull PsiElement element, final @NotNull AnnotationHolder holder) {
     element.accept(new GraphQLSyntaxAnnotatorVisitor(holder));
   }
 

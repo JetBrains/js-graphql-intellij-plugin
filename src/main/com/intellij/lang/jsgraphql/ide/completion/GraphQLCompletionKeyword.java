@@ -22,15 +22,13 @@ public enum GraphQLCompletionKeyword {
   TRUE("true"),
   FALSE("false");
 
-  @NotNull
-  private final String myText;
+  private final @NotNull String myText;
 
   GraphQLCompletionKeyword(@NotNull String text) {
     myText = text;
   }
 
-  @NotNull
-  public String getText() {
+  public @NotNull String getText() {
     return myText;
   }
 }

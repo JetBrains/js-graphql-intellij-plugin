@@ -67,15 +67,13 @@ public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   private static final TextAttributesKey[] BAD_CHARACTER_KEYS = new TextAttributesKey[]{BAD_CHARACTER};
   private static final TextAttributesKey[] EMPTY_KEYS = TextAttributesKey.EMPTY_ARRAY;
 
-  @NotNull
   @Override
-  public Lexer getHighlightingLexer() {
+  public @NotNull Lexer getHighlightingLexer() {
     return new GraphQLLexerAdapter();
   }
 
-  @NotNull
   @Override
-  public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
+  public @NotNull TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
     if (tokenType.equals(GraphQLElementTypes.NAME)) {
       return IDENTIFIER_KEYS;
     }

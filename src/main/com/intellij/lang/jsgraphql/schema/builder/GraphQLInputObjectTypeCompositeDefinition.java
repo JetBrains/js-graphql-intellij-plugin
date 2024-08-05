@@ -17,9 +17,8 @@ import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 public class GraphQLInputObjectTypeCompositeDefinition
   extends GraphQLExtendableCompositeDefinition<InputObjectTypeDefinition, InputObjectTypeExtensionDefinition> {
 
-  @NotNull
   @Override
-  protected InputObjectTypeDefinition mergeDefinitions(@NotNull List<InputObjectTypeDefinition> sourceDefinitions) {
+  protected @NotNull InputObjectTypeDefinition mergeDefinitions(@NotNull List<InputObjectTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
     Map<String, InputValueDefinition> inputValueDefinitions = new LinkedHashMap<>();
 

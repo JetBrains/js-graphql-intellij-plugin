@@ -22,9 +22,8 @@ public abstract class GraphQLSelectionSetOperationDefinitionMixin extends GraphQ
     super(node);
   }
 
-  @Nullable
   @Override
-  public GraphQLIdentifier getNameIdentifier() {
+  public @Nullable GraphQLIdentifier getNameIdentifier() {
     return null;
   }
 

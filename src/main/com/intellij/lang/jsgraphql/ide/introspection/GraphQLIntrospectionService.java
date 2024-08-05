@@ -207,31 +207,17 @@ public final class GraphQLIntrospectionService implements Disposable {
     }
   }
 
-  @NotNull
-  private static String buildIntrospectionQuery(@NotNull GraphQLSettings settings) {
-    String query = settings.getIntrospectionQuery();
-    if (!StringUtil.isEmptyOrSpaces(query)) {
-      return query;
-    }
+  public @Nullable NotificationAction createTrustAllHostsAction() {
+    final PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
+    if (propertiesComponent.isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) return null;
 
-    query = GraphQLIntrospectionQuery.INTROSPECTION_QUERY;
-    if (!settings.isEnableIntrospectionRepeatableDirectives()) {
-      query = query.replace("isRepeatable", "");
-    }
-    if (!settings.isEnableIntrospectionDefaultValues()) {
-      query = query.replace("defaultValue", "");
-    }
-    return query;
+    return NotificationAction.createSimpleExpiring(
+      GraphQLBundle.message("graphql.notification.trust.all.hosts"),
+      () -> propertiesComponent.setValue(GRAPHQL_TRUST_ALL_HOSTS, true));
   }
 
-  @NotNull
-  public static HttpPost createRequest(@NotNull GraphQLConfigEndpoint endpoint,
-                                       @NotNull String url,
-                                       @NotNull String requestJson) {
-    HttpPost request = new HttpPost(url);
-    request.setEntity(new StringEntity(requestJson, ContentType.APPLICATION_JSON));
-    setHeadersFromOptions(endpoint, request);
-    return request;
+  public @NotNull String printIntrospectionAsGraphQL(@NotNull String introspectionJson) {
+    return printIntrospectionAsGraphQL(parseIntrospectionJson(introspectionJson));
   }
 
   public @NotNull CloseableHttpClient createHttpClient(@NotNull String url, @Nullable GraphQLConfigSecurity sslConfig)
@@ -267,56 +253,7 @@ public final class GraphQLIntrospectionService implements Disposable {
            : new DefaultHostnameVerifier(PublicSuffixMatcherLoader.getDefault());
   }
 
-  @Nullable
-  public NotificationAction createTrustAllHostsAction() {
-    final PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
-    if (propertiesComponent.isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) return null;
-
-    return NotificationAction.createSimpleExpiring(
-      GraphQLBundle.message("graphql.notification.trust.all.hosts"),
-      () -> propertiesComponent.setValue(GRAPHQL_TRUST_ALL_HOSTS, true));
-  }
-
-  public void addIntrospectionStackTraceAction(@NotNull Notification notification, @NotNull Exception exception) {
-    notification.addAction(new NotificationAction(GraphQLBundle.message("graphql.notification.stack.trace")) {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-        String stackTrace = ExceptionUtil.getThrowableText(exception);
-        PsiFile file = PsiFileFactory.getInstance(myProject)
-          .createFileFromText("introspection-error.txt", PlainTextLanguage.INSTANCE, stackTrace);
-        new OpenFileDescriptor(myProject, file.getVirtualFile()).navigate(true);
-      }
-    });
-  }
-
-  /**
-   * Ensures that the JSON response falls within the GraphQL specification character range such that it can be expressed as valid GraphQL SDL in the editor
-   *
-   * @param introspectionJson the JSON to sanitize
-   * @return a sanitized version where the character ranges are within those allowed by the GraphQL Language Specification
-   */
-  private static String sanitizeIntrospectionJson(@NotNull String introspectionJson) {
-    // Strip out emojis (e.g. the one in the GitHub schema) since they're outside the allowed range
-    return introspectionJson.replaceAll("[\ud83c\udf00-\ud83d\ude4f]|[\ud83d\ude80-\ud83d\udeff]", "");
-  }
-
-  @SuppressWarnings("unchecked")
-  @NotNull
-  public static Map<String, Object> parseIntrospectionJson(@NotNull String introspectionJson) {
-    var result = new Gson().fromJson(sanitizeIntrospectionJson(introspectionJson), Map.class);
-    if (result == null) {
-      throw new JsonSyntaxException("Invalid introspection JSON value");
-    }
-    return result;
-  }
-
-  @NotNull
-  public String printIntrospectionAsGraphQL(@NotNull String introspectionJson) {
-    return printIntrospectionAsGraphQL(parseIntrospectionJson(introspectionJson));
-  }
-
-  @NotNull
-  public String printIntrospectionAsGraphQL(@NotNull Map<String, Object> introspection) {
+  public @NotNull String printIntrospectionAsGraphQL(@NotNull Map<String, Object> introspection) {
     introspection = getIntrospectionSchemaData(introspection);
 
     if (!GraphQLSettings.getSettings(myProject).isEnableIntrospectionDefaultValues()) {
@@ -373,29 +310,73 @@ public final class GraphQLIntrospectionService implements Disposable {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  @NotNull
-  private static Map<String, Object> getIntrospectionSchemaData(@NotNull Map<String, Object> introspection) {
-    if (introspection.containsKey("__schema")) {
-      return introspection;
+  public void addIntrospectionStackTraceAction(@NotNull Notification notification, @NotNull Exception exception) {
+    notification.addAction(new NotificationAction(GraphQLBundle.message("graphql.notification.stack.trace")) {
+      @Override
+      public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
+        String stackTrace = ExceptionUtil.getThrowableText(exception);
+        PsiFile file = PsiFileFactory.getInstance(myProject)
+          .createFileFromText("introspection-error.txt", PlainTextLanguage.INSTANCE, stackTrace);
+        new OpenFileDescriptor(myProject, file.getVirtualFile()).navigate(true);
+      }
+    });
+  }
+
+  /**
+   * Ensures that the JSON response falls within the GraphQL specification character range such that it can be expressed as valid GraphQL SDL in the editor
+   *
+   * @param introspectionJson the JSON to sanitize
+   * @return a sanitized version where the character ranges are within those allowed by the GraphQL Language Specification
+   */
+  private static String sanitizeIntrospectionJson(@NotNull String introspectionJson) {
+    // Strip out emojis (e.g. the one in the GitHub schema) since they're outside the allowed range
+    return introspectionJson.replaceAll("[\ud83c\udf00-\ud83d\ude4f]|[\ud83d\ude80-\ud83d\udeff]", "");
+  }
+
+  @RequiresWriteLock
+  private @NotNull VirtualFile createOrUpdateSchemaFile(@NotNull VirtualFile dir,
+                                                        @NotNull String relativeOutputFileName) throws IOException {
+    VirtualFile outputFile = dir.findFileByRelativePath(relativeOutputFileName);
+    if (outputFile == null) {
+      PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(dir);
+      CreateFileAction.MkDirs result = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
+      outputFile = result.directory.getVirtualFile().createChildData(dir, result.newName);
+    }
+    return outputFile;
+  }
+
+  private static @NotNull String buildIntrospectionQuery(@NotNull GraphQLSettings settings) {
+    String query = settings.getIntrospectionQuery();
+    if (!StringUtil.isEmptyOrSpaces(query)) {
+      return query;
     }
 
-    // possibly a full query result
-    if (introspection.containsKey("errors")) {
-      final Object errorsValue = introspection.get("errors");
-      if (errorsValue instanceof Collection<?> && !((Collection<?>)errorsValue).isEmpty()) {
-        throw new IllegalArgumentException(
-          GraphQLBundle.message("graphql.introspection.errors", new Gson().toJson(errorsValue)));
-      }
+    query = GraphQLIntrospectionQuery.INTROSPECTION_QUERY;
+    if (!settings.isEnableIntrospectionRepeatableDirectives()) {
+      query = query.replace("isRepeatable", "");
     }
-    if (!introspection.containsKey("data")) {
-      throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.data"));
+    if (!settings.isEnableIntrospectionDefaultValues()) {
+      query = query.replace("defaultValue", "");
     }
-    introspection = (Map<String, Object>)introspection.get("data");
-    if (!introspection.containsKey("__schema")) {
-      throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.schema"));
+    return query;
+  }
+
+  public static @NotNull HttpPost createRequest(@NotNull GraphQLConfigEndpoint endpoint,
+                                                @NotNull String url,
+                                                @NotNull String requestJson) {
+    HttpPost request = new HttpPost(url);
+    request.setEntity(new StringEntity(requestJson, ContentType.APPLICATION_JSON));
+    setHeadersFromOptions(endpoint, request);
+    return request;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static @NotNull Map<String, Object> parseIntrospectionJson(@NotNull String introspectionJson) {
+    var result = new Gson().fromJson(sanitizeIntrospectionJson(introspectionJson), Map.class);
+    if (result == null) {
+      throw new JsonSyntaxException("Invalid introspection JSON value");
     }
-    return introspection;
+    return result;
   }
 
   public GraphQLIntrospectionTask getLatestIntrospection() {
@@ -485,17 +466,28 @@ public final class GraphQLIntrospectionService implements Disposable {
     );
   }
 
-  @RequiresWriteLock
-  @NotNull
-  private VirtualFile createOrUpdateSchemaFile(@NotNull VirtualFile dir,
-                                               @NotNull String relativeOutputFileName) throws IOException {
-    VirtualFile outputFile = dir.findFileByRelativePath(relativeOutputFileName);
-    if (outputFile == null) {
-      PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(dir);
-      CreateFileAction.MkDirs result = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
-      outputFile = result.directory.getVirtualFile().createChildData(dir, result.newName);
+  @SuppressWarnings("unchecked")
+  private static @NotNull Map<String, Object> getIntrospectionSchemaData(@NotNull Map<String, Object> introspection) {
+    if (introspection.containsKey("__schema")) {
+      return introspection;
     }
-    return outputFile;
+
+    // possibly a full query result
+    if (introspection.containsKey("errors")) {
+      final Object errorsValue = introspection.get("errors");
+      if (errorsValue instanceof Collection<?> && !((Collection<?>)errorsValue).isEmpty()) {
+        throw new IllegalArgumentException(
+          GraphQLBundle.message("graphql.introspection.errors", new Gson().toJson(errorsValue)));
+      }
+    }
+    if (!introspection.containsKey("data")) {
+      throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.data"));
+    }
+    introspection = (Map<String, Object>)introspection.get("data");
+    if (!introspection.containsKey("__schema")) {
+      throw new IllegalArgumentException(GraphQLBundle.message("graphql.introspection.missing.schema"));
+    }
+    return introspection;
   }
 
   private void introspectEndpoints() {

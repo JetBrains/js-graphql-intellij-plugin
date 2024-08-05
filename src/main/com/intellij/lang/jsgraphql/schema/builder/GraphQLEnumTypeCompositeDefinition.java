@@ -17,9 +17,8 @@ import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 public class GraphQLEnumTypeCompositeDefinition
   extends GraphQLExtendableCompositeDefinition<EnumTypeDefinition, EnumTypeExtensionDefinition> {
 
-  @NotNull
   @Override
-  protected EnumTypeDefinition mergeDefinitions(@NotNull List<EnumTypeDefinition> sourceDefinitions) {
+  protected @NotNull EnumTypeDefinition mergeDefinitions(@NotNull List<EnumTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
     Map<String, EnumValueDefinition> enumValueDefinitions = new LinkedHashMap<>();
 

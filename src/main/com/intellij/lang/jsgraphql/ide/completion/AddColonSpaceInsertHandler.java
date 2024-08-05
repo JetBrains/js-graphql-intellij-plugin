@@ -20,7 +20,7 @@ import com.intellij.psi.PsiDocumentManager;
 
 public class AddColonSpaceInsertHandler implements InsertHandler<LookupElement> {
 
-  public final static InsertHandler<LookupElement> INSTANCE_WITH_AUTO_POPUP = new AddColonSpaceInsertHandler(true);
+  public static final InsertHandler<LookupElement> INSTANCE_WITH_AUTO_POPUP = new AddColonSpaceInsertHandler(true);
 
   private final String myIgnoreOnChars;
   private final boolean myTriggerAutoPopup;

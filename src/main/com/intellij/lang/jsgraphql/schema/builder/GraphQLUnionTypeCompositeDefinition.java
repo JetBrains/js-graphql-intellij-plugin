@@ -17,9 +17,8 @@ import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 public class GraphQLUnionTypeCompositeDefinition
   extends GraphQLExtendableCompositeDefinition<UnionTypeDefinition, UnionTypeExtensionDefinition> {
 
-  @NotNull
   @Override
-  protected UnionTypeDefinition mergeDefinitions(@NotNull List<UnionTypeDefinition> sourceDefinitions) {
+  protected @NotNull UnionTypeDefinition mergeDefinitions(@NotNull List<UnionTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
 
     @SuppressWarnings("rawtypes")

@@ -30,9 +30,8 @@ public abstract class GraphQLReferenceMixin extends GraphQLNamedElementImpl impl
     super(node);
   }
 
-  @Nullable
   @Override
-  public GraphQLIdentifier getNameIdentifier() {
+  public @Nullable GraphQLIdentifier getNameIdentifier() {
     if (this instanceof GraphQLIdentifier) {
       return (GraphQLIdentifier)this;
     }

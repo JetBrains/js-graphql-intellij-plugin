@@ -175,7 +175,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completionOfOperationKeywordsInSchemaDefinition() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -205,7 +205,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeOperationTypeNamesInSchemaDefinition() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -233,7 +233,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeInputFieldDefinitionAndArgumentInputTypes() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -251,7 +251,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeFieldDefinitionTypes() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -281,7 +281,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeUnionMemberTypeName() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -312,7 +312,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeFieldDefinitionFromImplementedInterface() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -356,7 +356,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeImplementsTypeName() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -385,7 +385,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeImplementsKeyword() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -428,7 +428,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeConstants() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
 
@@ -470,7 +470,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeEnumNamesInList() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
 
@@ -501,7 +501,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeVariableDefinitionTypeName() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
 
@@ -532,7 +532,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeDirectiveLocation() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -591,7 +591,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeDirectiveName() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
 
@@ -630,7 +630,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeObjectValueField() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
 
@@ -672,7 +672,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeArgumentName() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = Optional.ofNullable(parameters.getOriginalPosition()).orElse(parameters.getPosition());
@@ -751,7 +751,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeSpreadFragmentName() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
 
@@ -794,7 +794,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeFragmentOnTypeName() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
 
@@ -891,7 +891,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeFieldNames() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
 
@@ -968,7 +968,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeTypeNameToExtend() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();
@@ -1028,7 +1028,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeExtendFollowingKeyword() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         for (GraphQLCompletionKeyword keyword : EXTEND_KEYWORDS) {
@@ -1042,7 +1042,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeTopLevelKeywords() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         Document document = parameters.getEditor().getDocument();
@@ -1068,7 +1068,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
   private void completeVariableName() {
     CompletionProvider<CompletionParameters> provider = new CompletionProvider<>() {
       @Override
-      protected void addCompletions(@NotNull final CompletionParameters parameters,
+      protected void addCompletions(final @NotNull CompletionParameters parameters,
                                     @NotNull ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
         final PsiElement completionElement = parameters.getPosition();

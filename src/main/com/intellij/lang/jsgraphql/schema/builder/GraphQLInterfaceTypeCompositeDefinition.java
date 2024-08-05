@@ -17,9 +17,8 @@ import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.*;
 public class GraphQLInterfaceTypeCompositeDefinition
   extends GraphQLExtendableCompositeDefinition<InterfaceTypeDefinition, InterfaceTypeExtensionDefinition> {
 
-  @NotNull
   @Override
-  protected InterfaceTypeDefinition mergeDefinitions(@NotNull List<InterfaceTypeDefinition> sourceDefinitions) {
+  protected @NotNull InterfaceTypeDefinition mergeDefinitions(@NotNull List<InterfaceTypeDefinition> sourceDefinitions) {
     List<Directive> directives = new ArrayList<>();
     Map<String, FieldDefinition> fieldDefinitions = new LinkedHashMap<>();
 

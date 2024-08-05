@@ -17,9 +17,8 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 public final class GraphQLIconProvider extends IconProvider {
-  @Nullable
   @Override
-  public Icon getIcon(@NotNull PsiElement element, int flags) {
+  public @Nullable Icon getIcon(@NotNull PsiElement element, int flags) {
 
     if (element instanceof GraphQLElement) {
       if (element instanceof GraphQLFile) {

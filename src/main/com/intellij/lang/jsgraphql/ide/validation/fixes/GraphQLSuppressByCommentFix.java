@@ -38,8 +38,7 @@ public class GraphQLSuppressByCommentFix extends SuppressByCommentFix {
     parent.addAfter(PsiParserFacade.getInstance(project).createWhiteSpaceFromText("\n"), added);
   }
 
-  @NotNull
-  protected PsiComment createComment(@NotNull Project project, @NotNull PsiElement element) {
+  protected @NotNull PsiComment createComment(@NotNull Project project, @NotNull PsiElement element) {
     final String text = String.format(" %s %s", SUPPRESS_INSPECTIONS_TAG_NAME, myID);
     return SuppressionUtil.createComment(project, text, getCommentLanguage(element));
   }
