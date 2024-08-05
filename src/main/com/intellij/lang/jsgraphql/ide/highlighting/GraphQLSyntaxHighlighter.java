@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAttributesKey;
 
-public class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
+public final class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   public static final TextAttributesKey IDENTIFIER =
     createTextAttributesKey("GRAPHQL_IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER);
   public static final TextAttributesKey KEYWORD =
