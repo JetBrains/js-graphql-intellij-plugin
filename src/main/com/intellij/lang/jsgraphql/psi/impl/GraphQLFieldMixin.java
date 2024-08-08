@@ -13,6 +13,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLField;
 import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -25,7 +26,7 @@ public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implemen
 
   @Override
   public GraphQLType getTypeScope() {
-    final String fieldName = this.getName();
+    final String fieldName = getName();
     if (fieldName != null) {
       // the type scope for a field is the output type of the field, given the name of the field and its parent
       final GraphQLTypeScopeProvider parentTypeScopeProvider = PsiTreeUtil.getParentOfType(this, GraphQLTypeScopeProvider.class);
@@ -35,7 +36,7 @@ public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implemen
           // found a parent operation, field, or fragment
           parentType = GraphQLSchemaUtil.getUnmodifiedType(parentType); // unwrap list, non-null since we want a specific field
           if (parentType instanceof GraphQLFieldsContainer) {
-            final com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition =
+            final GraphQLFieldDefinition fieldDefinition =
               ((GraphQLFieldsContainer)parentType).getFieldDefinition(fieldName);
             if (fieldDefinition != null) {
               return fieldDefinition.getType();

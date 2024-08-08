@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GraphQLObjectValue extends GraphQLValue {
+public interface GraphQLObjectValue extends GraphQLValue, GraphQLTypeScopeProvider {
 
   @NotNull
   List<GraphQLObjectField> getObjectFieldList();

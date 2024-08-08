@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GraphQLVariableDefinition extends GraphQLDirectivesAware {
+public interface GraphQLVariableDefinition extends GraphQLDirectivesAware, GraphQLTypeScopeProvider, GraphQLTypeOwner {
 
   @Nullable
   GraphQLDefaultValue getDefaultValue();

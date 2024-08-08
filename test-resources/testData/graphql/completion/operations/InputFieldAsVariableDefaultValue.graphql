@@ -1,0 +1,20 @@
+query DefaultQuery($sort: AssemblySort = { <caret> }) {
+    items(sort: $sort)
+}
+
+type Query {
+    items(sort: AssemblySort): [String]
+}
+
+input AssemblySort {
+    criterion: SortCriterion
+}
+
+input SortCriterion {
+    direction: SortDirection
+}
+
+enum SortDirection {
+    ASC
+    DESC
+}
