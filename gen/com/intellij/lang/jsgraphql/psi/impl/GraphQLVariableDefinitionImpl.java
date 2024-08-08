@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 import com.intellij.lang.jsgraphql.psi.*;
 
-public class GraphQLVariableDefinitionImpl extends GraphQLElementImpl implements GraphQLVariableDefinition {
+public class GraphQLVariableDefinitionImpl extends GraphQLVariableDefinitionMixin implements GraphQLVariableDefinition {
 
   public GraphQLVariableDefinitionImpl(@NotNull ASTNode node) {
     super(node);

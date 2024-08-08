@@ -402,4 +402,10 @@ public class GraphQLOperationsCompletionTest extends GraphQLCompletionTestCaseBa
     LookupElement[] lookupElements = doTestWithProject(".js");
     checkEqualsOrdered(lookupElements, "ADMIN", "GUEST", "USER");
   }
+
+  public void testInputFieldAsVariableDefaultValue() {
+    LookupElement[] lookupElements = doTest();
+    checkEqualsOrdered(lookupElements, "criterion");
+    checkResult(lookupElements, "criterion");
+  }
 }

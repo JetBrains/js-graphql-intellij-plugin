@@ -28,6 +28,9 @@
 
   implements("typeDefinition|(field|inputValue|enumValue|directive|schema)Definition")="com.intellij.lang.jsgraphql.psi.GraphQLDescriptionAware"
 
+  implements("argument|inlineFragment|objectField|field|objectValue|(fragment|inputValue|typedOperation|variable|selectionSetOperation)Definition")="com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider"
+  implements("(field|inputValue|variable)Definition")="com.intellij.lang.jsgraphql.psi.GraphQLTypeOwner"
+
   tokens = [
 
     // punctuation
@@ -220,6 +223,7 @@ variableDefinition ::= variable ':' type defaultValue? directives? {
   recoverWhile=variableDefinition_recover
   methods=[directives="directive"]
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
+  mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLVariableDefinitionMixin"
 }
 
 private variableDefinition_recover ::= !(')' | root_tokens | variableDefinition)

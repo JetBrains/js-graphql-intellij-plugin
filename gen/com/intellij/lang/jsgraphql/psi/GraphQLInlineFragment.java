@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GraphQLInlineFragment extends GraphQLDirectivesAware {
+public interface GraphQLInlineFragment extends GraphQLDirectivesAware, GraphQLTypeScopeProvider {
 
   @Nullable
   GraphQLSelectionSet getSelectionSet();

@@ -13,6 +13,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
 
   public void visitArgument(@NotNull GraphQLArgument o) {
     visitNamedElement(o);
+    // visitTypeScopeProvider(o);
   }
 
   public void visitArguments(@NotNull GraphQLArguments o) {
@@ -91,12 +92,14 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
   public void visitField(@NotNull GraphQLField o) {
     visitDirectivesAware(o);
     // visitNamedElement(o);
+    // visitTypeScopeProvider(o);
   }
 
   public void visitFieldDefinition(@NotNull GraphQLFieldDefinition o) {
     visitDirectivesAware(o);
     // visitNamedElement(o);
     // visitDescriptionAware(o);
+    // visitTypeOwner(o);
   }
 
   public void visitFieldsDefinition(@NotNull GraphQLFieldsDefinition o) {
@@ -111,6 +114,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
     visitDefinition(o);
     // visitDirectivesAware(o);
     // visitNamedElement(o);
+    // visitTypeScopeProvider(o);
   }
 
   public void visitFragmentSelection(@NotNull GraphQLFragmentSelection o) {
@@ -132,6 +136,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
 
   public void visitInlineFragment(@NotNull GraphQLInlineFragment o) {
     visitDirectivesAware(o);
+    // visitTypeScopeProvider(o);
   }
 
   public void visitInputObjectTypeDefinition(@NotNull GraphQLInputObjectTypeDefinition o) {
@@ -152,6 +157,8 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
     visitDirectivesAware(o);
     // visitNamedElement(o);
     // visitDescriptionAware(o);
+    // visitTypeScopeProvider(o);
+    // visitTypeOwner(o);
   }
 
   public void visitIntValue(@NotNull GraphQLIntValue o) {
@@ -182,6 +189,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
 
   public void visitObjectField(@NotNull GraphQLObjectField o) {
     visitNamedElement(o);
+    // visitTypeScopeProvider(o);
   }
 
   public void visitObjectTypeDefinition(@NotNull GraphQLObjectTypeDefinition o) {
@@ -196,6 +204,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
 
   public void visitObjectValue(@NotNull GraphQLObjectValue o) {
     visitValue(o);
+    // visitTypeScopeProvider(o);
   }
 
   public void visitOperationDefinition(@NotNull GraphQLOperationDefinition o) {
@@ -250,6 +259,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
 
   public void visitSelectionSetOperationDefinition(@NotNull GraphQLSelectionSetOperationDefinition o) {
     visitOperationDefinition(o);
+    // visitTypeScopeProvider(o);
   }
 
   public void visitStringLiteral(@NotNull GraphQLStringLiteral o) {
@@ -306,6 +316,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
   public void visitTypedOperationDefinition(@NotNull GraphQLTypedOperationDefinition o) {
     visitOperationDefinition(o);
     // visitDirectivesAware(o);
+    // visitTypeScopeProvider(o);
   }
 
   public void visitUnionMembers(@NotNull GraphQLUnionMembers o) {
@@ -337,6 +348,8 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
 
   public void visitVariableDefinition(@NotNull GraphQLVariableDefinition o) {
     visitDirectivesAware(o);
+    // visitTypeScopeProvider(o);
+    // visitTypeOwner(o);
   }
 
   public void visitVariableDefinitions(@NotNull GraphQLVariableDefinitions o) {

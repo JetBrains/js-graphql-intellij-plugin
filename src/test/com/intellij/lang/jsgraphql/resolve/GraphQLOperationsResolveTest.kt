@@ -176,4 +176,8 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
   fun testFragmentExcluded() {
     doProjectHighlighting("query.graphql")
   }
+
+  fun testInputFieldAsVariableDefaultValue() {
+    doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "direction")
+  }
 }

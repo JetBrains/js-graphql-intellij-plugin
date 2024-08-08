@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GraphQLField extends GraphQLDirectivesAware, GraphQLNamedElement {
+public interface GraphQLField extends GraphQLDirectivesAware, GraphQLNamedElement, GraphQLTypeScopeProvider {
 
   @Nullable
   GraphQLAlias getAlias();
