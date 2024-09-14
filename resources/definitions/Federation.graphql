@@ -1,7 +1,4 @@
-# https://www.apollographql.com/docs/federation/subgraph-spec/
-# Latest update - Fed 2.7
-
-# ⚠️ This definition must be created dynamically! The union
+# ⚠️ This definition must be created dynamically. The union
 #   must include every object type in the schema that uses
 #   the @key directive (i.e., all federated entities).
 union _Entity
@@ -9,6 +6,7 @@ union _Entity
 scalar _Any
 scalar FieldSet
 scalar link__Import
+scalar federation__ContextFieldValue
 scalar federation__Scope
 scalar federation__Policy
 
@@ -41,16 +39,15 @@ directive @link(url: String!, as: String, for: link__Purpose, import: [link__Imp
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 directive @inaccessible on FIELD_DEFINITION | OBJECT | INTERFACE | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
 directive @tag(name: String!) repeatable on FIELD_DEFINITION | INTERFACE | OBJECT | UNION | ARGUMENT_DEFINITION | SCALAR | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
-directive @override(from: String!, label: String) on FIELD_DEFINITION
+directive @override(from: String!) on FIELD_DEFINITION
 directive @composeDirective(name: String!) repeatable on SCHEMA
 directive @interfaceObject on OBJECT
 directive @authenticated on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
 directive @requiresScopes(scopes: [[federation__Scope!]!]!) on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
 directive @policy(policies: [[federation__Policy!]!]!) on FIELD_DEFINITION | OBJECT | INTERFACE | SCALAR | ENUM
+directive @context(name: String!) repeatable on INTERFACE | OBJECT | UNION
+directive @fromContext(field: ContextFieldValue) on ARGUMENT_DEFINITION
 
 # This definition is required only for libraries that don't support
 # GraphQL's built-in `extend` keyword
-#
-# `repeatable` is technically not part of the spec, but is added here so that multiple `type Query @extends { ... }`
-# definitions from different DGS schemas would pass validation
-directive @extends repeatable on OBJECT | INTERFACE
+directive @extends on OBJECT | INTERFACE
