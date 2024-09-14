@@ -53,4 +53,7 @@ directive @fromContext(field: ContextFieldValue) on ARGUMENT_DEFINITION
 
 # This definition is required only for libraries that don't support
 # GraphQL's built-in `extend` keyword
-directive @extends on OBJECT | INTERFACE
+#
+# `repeatable` is technically not part of the spec, but is added here so that multiple `type Query @extends { ... }`
+# definitions from different DGS schemas would pass validation
+directive @extends repeatable on OBJECT | INTERFACE
