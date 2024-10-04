@@ -1,0 +1,48 @@
+{
+  "inspections": [
+    {
+      "id": "GraphQLInterfaceImplementation",
+      "codeQualityCategory": "Reliability"
+    },
+    {
+      "id": "GraphQLEmptyType",
+      "codeQualityCategory": "Reliability"
+    },
+    {
+      "id": "GraphQLUnresolvedReference",
+      "codeQualityCategory": "Sanity"
+    },
+    {
+      "id": "GraphQLDuplicateArgument",
+      "codeQualityCategory": "Code Style"
+    },
+    {
+      "id": "GraphQLInvalidDirectiveLocation",
+      "codeQualityCategory": "Security"
+    },
+    {
+      "id": "GraphQLSchemaValidation",
+      "codeQualityCategory": "Security"
+    },
+    {
+      "id": "GraphQLDeprecatedSymbols",
+      "codeQualityCategory": "Reliability"
+    },
+    {
+      "id": "GraphQLMemberRedefinition",
+      "codeQualityCategory": "Code Style"
+    },
+    {
+      "id": "GraphQLIllegalDirectiveArgument",
+      "codeQualityCategory": "Reliability"
+    },
+    {
+      "id": "GraphQLUnexpectedType",
+      "codeQualityCategory": "Reliability"
+    },
+    {
+      "id": "GraphQLTypeRedefinition",
+      "codeQualityCategory": "Sanity"
+    }
+  ]
+}
