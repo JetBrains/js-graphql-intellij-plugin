@@ -15,12 +15,19 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.annotations.RequiresEdt
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 const val GRAPHQL_CACHE_DIR_NAME = "graphql"
 
+@OptIn(ExperimentalContracts::class)
 @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
-inline fun <reified T : Any> Any?.asSafely(): @kotlin.internal.NoInfer T? = this as? T
-
+inline fun <reified T : Any> Any?.asSafely(): @kotlin.internal.NoInfer T? {
+  contract {
+    returnsNotNull() implies (this@asSafely is T)
+  }
+  return this as? T
+}
 @RequiresEdt
 @JvmOverloads
 fun createScratchFromEndpoint(
