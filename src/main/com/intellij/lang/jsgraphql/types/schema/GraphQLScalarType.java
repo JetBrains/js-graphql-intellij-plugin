@@ -88,7 +88,7 @@ public class GraphQLScalarType
    * @deprecated use the {@link #newScalar()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLScalarType(String name,
                            String description,
                            Coercing coercing,

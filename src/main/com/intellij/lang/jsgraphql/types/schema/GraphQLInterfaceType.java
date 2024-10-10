@@ -80,7 +80,7 @@ public class GraphQLInterfaceType
    * @deprecated use the {@link #newInterface()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLInterfaceType(String name, String description, List<GraphQLFieldDefinition> fieldDefinitions, TypeResolver typeResolver) {
     this(name, description, fieldDefinitions, typeResolver, emptyList(), null);
   }
@@ -95,7 +95,7 @@ public class GraphQLInterfaceType
    * @deprecated use the {@link #newInterface()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLInterfaceType(String name,
                               String description,
                               List<GraphQLFieldDefinition> fieldDefinitions,
@@ -106,7 +106,7 @@ public class GraphQLInterfaceType
   }
 
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLInterfaceType(String name,
                               String description,
                               List<GraphQLFieldDefinition> fieldDefinitions,

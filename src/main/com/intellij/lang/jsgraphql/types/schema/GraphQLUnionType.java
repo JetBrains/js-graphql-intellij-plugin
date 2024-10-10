@@ -76,7 +76,7 @@ public class GraphQLUnionType
    * @deprecated use the {@link #newUnionType()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLUnionType(String name, String description, List<GraphQLNamedOutputType> types, TypeResolver typeResolver) {
     this(name, description, types, typeResolver, emptyList(), null);
   }
@@ -91,7 +91,7 @@ public class GraphQLUnionType
    * @deprecated use the {@link #newUnionType()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLUnionType(String name,
                           String description,
                           List<GraphQLNamedOutputType> types,
@@ -305,7 +305,7 @@ public class GraphQLUnionType
       return this;
     }
 
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public Builder typeResolver(TypeResolver typeResolver) {
       this.typeResolver = typeResolver;
       return this;

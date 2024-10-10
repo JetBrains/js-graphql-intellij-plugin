@@ -64,7 +64,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
    * @deprecated use the {@link #newInputObjectField()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLInputObjectField(String name, GraphQLInputType type) {
     this(name, null, type, null, emptyList(), null);
   }
@@ -77,7 +77,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
    * @deprecated use the {@link #newInputObjectField()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLInputObjectField(String name, String description, GraphQLInputType type, Object defaultValue) {
     this(name, description, type, defaultValue, emptyList(), null, null);
   }
@@ -92,7 +92,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
    * @deprecated use the {@link #newInputObjectField()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLInputObjectField(String name,
                                  String description,
                                  GraphQLInputType type,

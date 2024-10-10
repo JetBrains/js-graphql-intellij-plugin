@@ -74,7 +74,7 @@ public class GraphQLSchema {
    * @deprecated use the {@link #newSchema()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLSchema(GraphQLObjectType queryType) {
     this(queryType, null, Collections.emptySet());
   }
@@ -86,7 +86,7 @@ public class GraphQLSchema {
    * @deprecated use the {@link #newSchema()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLSchema(GraphQLObjectType queryType, GraphQLObjectType mutationType, Set<GraphQLType> additionalTypes) {
     this(queryType, mutationType, null, additionalTypes);
   }
@@ -99,7 +99,7 @@ public class GraphQLSchema {
    * @deprecated use the {@link #newSchema()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLSchema(GraphQLObjectType queryType,
                        GraphQLObjectType mutationType,
                        GraphQLObjectType subscriptionType,
@@ -521,7 +521,7 @@ public class GraphQLSchema {
      * @return this builder
      * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry.Builder#fieldVisibility(com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility)} instead
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public Builder fieldVisibility(GraphqlFieldVisibility fieldVisibility) {
       this.codeRegistry = this.codeRegistry.transform(builder -> builder.fieldVisibility(fieldVisibility));
       return this;
@@ -619,7 +619,7 @@ public class GraphQLSchema {
      * @return the built schema
      * @deprecated - Use the {@link #additionalType(GraphQLType)} methods
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public GraphQLSchema build(Set<GraphQLType> additionalTypes) {
       return additionalTypes(additionalTypes).build();
     }
@@ -632,7 +632,7 @@ public class GraphQLSchema {
      * @return the built schema
      * @deprecated - Use the {@link #additionalType(GraphQLType)} and {@link #additionalDirective(GraphQLDirective)} methods
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public GraphQLSchema build(Set<GraphQLType> additionalTypes, Set<GraphQLDirective> additionalDirectives) {
       return additionalTypes(additionalTypes).additionalDirectives(additionalDirectives).build();
     }

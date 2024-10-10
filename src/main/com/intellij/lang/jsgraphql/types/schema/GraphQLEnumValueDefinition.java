@@ -61,7 +61,7 @@ public class GraphQLEnumValueDefinition implements GraphQLNamedSchemaElement, Gr
    * @deprecated use the {@link #newEnumValueDefinition()}   builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLEnumValueDefinition(String name, String description, Object value) {
     this(name, description, value, null, emptyList());
   }
@@ -74,7 +74,7 @@ public class GraphQLEnumValueDefinition implements GraphQLNamedSchemaElement, Gr
    * @deprecated use the {@link #newEnumValueDefinition()}   builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLEnumValueDefinition(String name, String description, Object value, String deprecationReason) {
     this(name, description, value, deprecationReason, emptyList());
   }
@@ -88,7 +88,7 @@ public class GraphQLEnumValueDefinition implements GraphQLNamedSchemaElement, Gr
    * @deprecated use the {@link #newEnumValueDefinition()}   builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLEnumValueDefinition(String name,
                                     String description,
                                     Object value,

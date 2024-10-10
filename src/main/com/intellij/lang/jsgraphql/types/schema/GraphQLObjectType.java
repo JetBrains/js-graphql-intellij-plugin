@@ -79,7 +79,7 @@ public class GraphQLObjectType
    * @deprecated use the {@link #newObject()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLObjectType(String name, String description, List<GraphQLFieldDefinition> fieldDefinitions,
                            List<GraphQLNamedOutputType> interfaces) {
     this(name, description, fieldDefinitions, interfaces, emptyList(), null);
@@ -95,7 +95,7 @@ public class GraphQLObjectType
    * @deprecated use the {@link #newObject()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLObjectType(String name, String description, List<GraphQLFieldDefinition> fieldDefinitions,
                            List<GraphQLNamedOutputType> interfaces, List<GraphQLDirective> directives, ObjectTypeDefinition definition) {
     this(name, description, fieldDefinitions, interfaces, directives, definition, emptyList(), asIsOrder());

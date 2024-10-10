@@ -72,7 +72,7 @@ public class GraphQLEnumType
    * @deprecated use the {@link #newEnum()}  builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLEnumType(String name, String description, List<GraphQLEnumValueDefinition> values) {
     this(name, description, values, emptyList(), null);
   }
@@ -86,7 +86,7 @@ public class GraphQLEnumType
    * @deprecated use the {@link #newEnum()}  builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLEnumType(String name,
                          String description,
                          List<GraphQLEnumValueDefinition> values,

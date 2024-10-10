@@ -66,7 +66,7 @@ public class GraphQLInputObjectType
    * @deprecated use the {@link #newInputObject()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLInputObjectType(String name, String description, List<GraphQLInputObjectField> fields) {
     this(name, description, fields, emptyList(), null);
   }
@@ -80,7 +80,7 @@ public class GraphQLInputObjectType
    * @deprecated use the {@link #newInputObject()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLInputObjectType(String name,
                                 String description,
                                 List<GraphQLInputObjectField> fields,

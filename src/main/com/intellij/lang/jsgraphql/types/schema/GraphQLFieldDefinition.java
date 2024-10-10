@@ -74,7 +74,7 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
    * @deprecated use the {@link #newFieldDefinition()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLFieldDefinition(String name,
                                 String description,
                                 GraphQLOutputType type,
@@ -97,7 +97,7 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
    * @deprecated use the {@link #newFieldDefinition()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLFieldDefinition(String name,
                                 String description,
                                 GraphQLOutputType type,
@@ -362,7 +362,7 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
      * @return this builder
      * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instead
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public Builder dataFetcherFactory(DataFetcherFactory<?> dataFetcherFactory) {
       assertNotNull(dataFetcherFactory, () -> "dataFetcherFactory must be not null");
       this.dataFetcherFactory = dataFetcherFactory;
@@ -376,7 +376,7 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
      * @return this builder
      * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instead
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public Builder staticValue(final Object value) {
       this.dataFetcherFactory = DataFetcherFactories.useDataFetcher(environment -> value);
       return this;
@@ -425,7 +425,7 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
      * @return this
      * @deprecated This is a badly named method and is replaced by {@link #arguments(List)}
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public Builder argument(List<GraphQLArgument> arguments) {
       return arguments(arguments);
     }

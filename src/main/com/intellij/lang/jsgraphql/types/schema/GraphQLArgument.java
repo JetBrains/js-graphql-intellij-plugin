@@ -81,7 +81,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
    * @deprecated use the {@link #newArgument()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLArgument(String name, String description, GraphQLInputType type, Object defaultValue) {
     this(name, description, type, defaultValue, null);
   }
@@ -92,7 +92,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
    * @deprecated use the {@link #newArgument()} builder pattern instead, as this constructor will be made private in a future version.
    */
   @Internal
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLArgument(String name, GraphQLInputType type) {
     this(name, null, type, DEFAULT_VALUE_SENTINEL, null);
   }

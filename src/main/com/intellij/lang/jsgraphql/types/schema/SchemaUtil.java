@@ -125,7 +125,7 @@ public class SchemaUtil {
    * @return List of object types implementing provided interface
    * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLSchema#getImplementations(GraphQLInterfaceType)} instead
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public List<GraphQLObjectType> findImplementations(GraphQLSchema schema, GraphQLInterfaceType interfaceType) {
     List<GraphQLObjectType> result = new ArrayList<>();
     for (GraphQLType type : schema.getAllTypesAsList()) {

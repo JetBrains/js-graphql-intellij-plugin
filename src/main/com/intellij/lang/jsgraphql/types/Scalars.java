@@ -75,7 +75,7 @@ public class Scalars {
    * @deprecated The is a non standard scalar and is difficult for clients (such as browser and mobile code) to cope with
    * the exact semantics.  These will be removed in the future version and moved to another library.
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public static final GraphQLScalarType GraphQLLong = GraphQLScalarType.newScalar()
     .name("Long").description("Long type").coercing(new GraphqlLongCoercing()).build();
 
@@ -127,7 +127,7 @@ public class Scalars {
    * @deprecated The is a non standard scalar and is difficult for clients (such as browser and mobile code) to cope with
    * the exact semantics.  These will be removed in the future version and moved to another library.
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public static final GraphQLScalarType GraphQLChar = GraphQLScalarType.newScalar()
     .name("Char").description("Built-in Char as Character").coercing(new GraphqlCharCoercing()).build();
 }

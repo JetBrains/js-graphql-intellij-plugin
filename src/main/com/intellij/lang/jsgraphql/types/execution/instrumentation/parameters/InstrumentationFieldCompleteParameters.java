@@ -80,7 +80,7 @@ public class InstrumentationFieldCompleteParameters {
     return getExecutionStepInfo().getFieldDefinition();
   }
 
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public ExecutionStepInfo getTypeInfo() {
     return getExecutionStepInfo();
   }
