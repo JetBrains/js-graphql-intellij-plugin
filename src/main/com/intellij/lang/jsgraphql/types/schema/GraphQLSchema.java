@@ -31,6 +31,7 @@ import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibilit
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -249,17 +250,17 @@ public class GraphQLSchema {
                                    abstractType.getName());
   }
 
-  public GraphQLObjectType getQueryType() {
+  public @Nullable GraphQLObjectType getQueryType() {
     ProgressManager.checkCanceled();
     return queryType;
   }
 
-  public GraphQLObjectType getMutationType() {
+  public @Nullable GraphQLObjectType getMutationType() {
     ProgressManager.checkCanceled();
     return mutationType;
   }
 
-  public GraphQLObjectType getSubscriptionType() {
+  public @Nullable GraphQLObjectType getSubscriptionType() {
     ProgressManager.checkCanceled();
     return subscriptionType;
   }

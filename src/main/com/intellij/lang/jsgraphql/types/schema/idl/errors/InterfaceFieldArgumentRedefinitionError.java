@@ -41,7 +41,6 @@ public class InterfaceFieldArgumentRedefinitionError extends BaseError {
     super(objectArgDef, format("The %s type '%s' has tried to redefine '%s' argument '%s' defined via interface '%s' from '%s' to '%s'",
                                typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceArgDef.getName(),
                                interfaceTypeDef.getName(), interfaceArgStr, objectArgStr));
-    addReferences(interfaceArgDef);
   }
 
   @Override

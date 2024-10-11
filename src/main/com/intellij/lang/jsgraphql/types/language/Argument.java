@@ -23,7 +23,6 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -51,9 +50,8 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
                      List<Comment> comments,
                      IgnoredChars ignoredChars,
                      Map<String, String> additionalData,
-                     @Nullable PsiElement element,
                      @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.name = name;
     this.value = value;
   }
@@ -65,7 +63,7 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
    * @param value of the argument
    */
   public Argument(String name, Value value) {
-    this(name, value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public static Builder newArgument() {
@@ -120,7 +118,7 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
 
   @Override
   public Argument deepCopy() {
-    return new Argument(name, deepCopy(value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(),
+    return new Argument(name, deepCopy(value), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(),
                         getSourceNodes());
   }
 
@@ -150,7 +148,6 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
     private Value value;
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -163,7 +160,6 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
       this.value = existing.getValue();
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -202,18 +198,13 @@ public class Argument extends AbstractNode<Argument> implements NamedNode<Argume
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
     }
 
     public Argument build() {
-      return new Argument(name, value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+      return new Argument(name, value, sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     }
   }
 }

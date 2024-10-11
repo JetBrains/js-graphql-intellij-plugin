@@ -5,7 +5,6 @@ import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes
 import com.intellij.lang.jsgraphql.withLibrary
-import junit.framework.TestCase
 
 class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
 
@@ -22,7 +21,7 @@ class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
       doHighlightingTest()
 
       val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(myFixture.file)
-      TestCase.assertNotNull(schemaInfo)
+      assertNotNull(schemaInfo)
       assertEmpty(schemaInfo.getErrors(project))
     }, testRootDisposable)
   }
@@ -31,7 +30,7 @@ class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
     withLibrary(project, GraphQLLibraryTypes.FEDERATION, {
       val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
       val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(globalScope)
-      TestCase.assertNotNull(schemaInfo)
+      assertNotNull(schemaInfo)
       assertEmpty(schemaInfo.getErrors(project))
     }, testRootDisposable)
   }

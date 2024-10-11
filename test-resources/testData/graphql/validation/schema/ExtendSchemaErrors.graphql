@@ -18,11 +18,11 @@ directive @SchemaDir on SCHEMA
 directive @SchemaDirOneMore on SCHEMA
 directive @SchemaDirRepeatable repeatable on SCHEMA
 
-<error descr="There is already a schema defined">schema</error> @SchemaDir @SchemaDirRepeatable {
+schema @SchemaDir @SchemaDirRepeatable {
     <error descr="There is already an operation 'query' defined">query</error>: MyQuery
 }
 
-schema {
+<error descr="There is already a schema defined">schema</error> {
     <error descr="There is already an operation 'subscription' defined">subscription</error>: MySubscription
 }
 

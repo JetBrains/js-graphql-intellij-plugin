@@ -23,16 +23,12 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.psi.PsiElement;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
 
@@ -44,18 +40,16 @@ public abstract class AbstractNode<T extends Node> implements Node<T> {
   private final IgnoredChars ignoredChars;
   private final ImmutableMap<String, String> additionalData;
 
-  private final @Nullable PsiElement myElement;
   private final @NotNull List<Node> mySourceNodes;
 
   public AbstractNode(SourceLocation sourceLocation, List<Comment> comments, IgnoredChars ignoredChars) {
-    this(sourceLocation, comments, ignoredChars, Collections.emptyMap(), null, Collections.emptyList());
+    this(sourceLocation, comments, ignoredChars, Collections.emptyMap(), Collections.emptyList());
   }
 
   public AbstractNode(SourceLocation sourceLocation,
                       List<Comment> comments,
                       IgnoredChars ignoredChars,
                       Map<String, String> additionalData,
-                      @Nullable PsiElement element,
                       @Nullable List<? extends Node> sourceNodes) {
     Assert.assertNotNull(comments, () -> "comments can't be null");
     Assert.assertNotNull(ignoredChars, () -> "ignoredChars can't be null");
@@ -66,7 +60,6 @@ public abstract class AbstractNode<T extends Node> implements Node<T> {
     this.comments = ImmutableList.copyOf(comments);
     this.ignoredChars = ignoredChars;
 
-    myElement = element;
     mySourceNodes = sourceNodes == null ? Collections.emptyList() : ImmutableList.copyOf(sourceNodes);
   }
 
@@ -108,19 +101,8 @@ public abstract class AbstractNode<T extends Node> implements Node<T> {
 
   @Override
   public @Nullable PsiElement getElement() {
-    if (myElement != null) {
-      return myElement;
-    }
-
-    Node node = ContainerUtil.getFirstItem(getSourceNodes());
-    return node != null ? node.getElement() : null;
-  }
-
-  @Override
-  public @NotNull List<PsiElement> getElements() {
-    Stream<PsiElement> nodesStream = getSourceNodes().stream().map(Node::getElement);
-    return Stream.concat(nodesStream, Stream.of(myElement))
-      .filter(Objects::nonNull).distinct().collect(Collectors.toList());
+    // remains only for binary compatibility, the method will be removed soon
+    return null;
   }
 
   @Override

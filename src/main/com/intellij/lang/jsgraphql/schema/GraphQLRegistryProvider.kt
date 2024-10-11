@@ -57,7 +57,6 @@ class GraphQLRegistryProvider(private val project: Project) {
 
   fun getRegistryInfo(schemaScope: GlobalSearchScope): GraphQLRegistryInfo {
     return scopeToRegistryCache.value.computeIfAbsent(schemaScope) {
-      val errors: MutableList<GraphQLException> = mutableListOf()
       val processor = GraphQLSchemaDocumentProcessor()
 
       // GraphQL files
@@ -76,8 +75,7 @@ class GraphQLRegistryProvider(private val project: Project) {
       // Injected GraphQL
       psiSearchHelper.processInjectedGraphQLFiles(project, schemaScope, processor)
 
-      val registry = processor.compositeRegistry.buildTypeDefinitionRegistry()
-      GraphQLRegistryInfo(registry, errors)
+      processor.compositeRegistry.build()
     }
   }
 }

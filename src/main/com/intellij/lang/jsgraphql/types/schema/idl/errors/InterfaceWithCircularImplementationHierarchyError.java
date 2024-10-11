@@ -35,7 +35,6 @@ public class InterfaceWithCircularImplementationHierarchyError extends BaseError
                                  typeOfType, typeDefinition.getName(),
                                  implementedInterface.getName()
     ));
-    addReferences(implementedInterface);
   }
 
   @Override

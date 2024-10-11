@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -56,9 +55,8 @@ public class DirectiveDefinition extends AbstractDescribedNode<DirectiveDefiniti
                                 List<Comment> comments,
                                 IgnoredChars ignoredChars,
                                 Map<String, String> additionalData,
-                                @Nullable PsiElement element,
                                 @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.name = name;
     this.repeatable = repeatable;
     this.inputValueDefinitions = ImmutableList.copyOf(inputValueDefinitions);
@@ -71,7 +69,7 @@ public class DirectiveDefinition extends AbstractDescribedNode<DirectiveDefiniti
    * @param name of the directive definition
    */
   public DirectiveDefinition(String name) {
-    this(name, false, null, emptyList(), emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, false, null, emptyList(), emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -146,7 +144,6 @@ public class DirectiveDefinition extends AbstractDescribedNode<DirectiveDefiniti
                                    getComments(),
                                    getIgnoredChars(),
                                    getAdditionalData(),
-                                   getElement(),
                                    getSourceNodes());
   }
 
@@ -184,7 +181,6 @@ public class DirectiveDefinition extends AbstractDescribedNode<DirectiveDefiniti
     private ImmutableList<DirectiveLocation> directiveLocations = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -200,7 +196,6 @@ public class DirectiveDefinition extends AbstractDescribedNode<DirectiveDefiniti
       this.directiveLocations = ImmutableList.copyOf(existing.getDirectiveLocations());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -265,11 +260,6 @@ public class DirectiveDefinition extends AbstractDescribedNode<DirectiveDefiniti
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -277,7 +267,7 @@ public class DirectiveDefinition extends AbstractDescribedNode<DirectiveDefiniti
 
     public DirectiveDefinition build() {
       return new DirectiveDefinition(name, repeatable, description, inputValueDefinitions, directiveLocations, sourceLocation, comments,
-                                     ignoredChars, additionalData, element, sourceNodes);
+                                     ignoredChars, additionalData, sourceNodes);
     }
   }
 }

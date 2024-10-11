@@ -33,7 +33,6 @@ public class InterfaceImplementedMoreThanOnceError extends BaseError {
                                                InterfaceTypeDefinition implementedInterface) {
     super(typeDefinition, format("The %s type '%s' can only implement '%s' once.",
                                  typeOfType, typeDefinition.getName(), implementedInterface.getName()));
-    addReferences(implementedInterface);
   }
 
   @Override

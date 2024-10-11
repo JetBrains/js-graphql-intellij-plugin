@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -57,9 +56,8 @@ public class InlineFragment extends AbstractNode<InlineFragment>
                            List<Comment> comments,
                            IgnoredChars ignoredChars,
                            Map<String, String> additionalData,
-                           @Nullable PsiElement element,
                            @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.typeCondition = typeCondition;
     this.directives = ImmutableList.copyOf(directives);
     this.selectionSet = selectionSet;
@@ -71,7 +69,7 @@ public class InlineFragment extends AbstractNode<InlineFragment>
    * @param typeCondition the type condition of the inline fragment
    */
   public InlineFragment(TypeName typeCondition) {
-    this(typeCondition, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(typeCondition, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   /**
@@ -81,7 +79,7 @@ public class InlineFragment extends AbstractNode<InlineFragment>
    * @param selectionSet  of the inline fragment
    */
   public InlineFragment(TypeName typeCondition, SelectionSet selectionSet) {
-    this(typeCondition, emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(typeCondition, emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public @Nullable TypeName getTypeCondition() {
@@ -144,7 +142,6 @@ public class InlineFragment extends AbstractNode<InlineFragment>
       getComments(),
       getIgnoredChars(),
       getAdditionalData(),
-      getElement(),
       getSourceNodes());
   }
 
@@ -180,7 +177,6 @@ public class InlineFragment extends AbstractNode<InlineFragment>
     private SelectionSet selectionSet;
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -195,7 +191,6 @@ public class InlineFragment extends AbstractNode<InlineFragment>
       this.selectionSet = existing.getSelectionSet();
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -247,18 +242,13 @@ public class InlineFragment extends AbstractNode<InlineFragment>
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
     }
 
     public InlineFragment build() {
-      return new InlineFragment(typeCondition, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData, element,
+      return new InlineFragment(typeCondition, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData,
                                 sourceNodes);
     }
   }

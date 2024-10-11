@@ -39,20 +39,6 @@ fun findContainingTypeNameIdentifier(psiElement: PsiElement?): PsiElement? {
 fun findContainingTypeName(psiElement: PsiElement?): String? =
   findContainingTypeNameIdentifier(psiElement)?.text
 
-fun getOriginalVirtualFile(psiFile: PsiFile?): VirtualFile? {
-  if (psiFile == null || !psiFile.isValid) {
-    return null
-  }
-  var file = psiFile.virtualFile
-  if (file == null) {
-    val originalFile = psiFile.originalFile
-    if (originalFile !== psiFile && originalFile.isValid) {
-      file = originalFile.virtualFile
-    }
-  }
-  return file
-}
-
 fun getPhysicalVirtualFile(virtualFile: VirtualFile?): VirtualFile? {
   var result = virtualFile?.originalFileOrSelf() ?: return null
   if (result is VirtualFileWindow) {
@@ -64,6 +50,20 @@ fun getPhysicalVirtualFile(virtualFile: VirtualFile?): VirtualFile? {
 
 fun getPhysicalVirtualFile(psiFile: PsiFile?): VirtualFile? {
   return getPhysicalVirtualFile(getOriginalVirtualFile(psiFile))
+}
+
+private fun getOriginalVirtualFile(psiFile: PsiFile?): VirtualFile? {
+  if (psiFile == null || !psiFile.isValid) {
+    return null
+  }
+  var file = psiFile.virtualFile
+  if (file == null) {
+    val originalFile = psiFile.originalFile
+    if (originalFile !== psiFile && originalFile.isValid) {
+      file = originalFile.virtualFile
+    }
+  }
+  return file
 }
 
 /**

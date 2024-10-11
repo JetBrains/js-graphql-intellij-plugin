@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -64,9 +63,8 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
                                 List<Comment> comments,
                                 IgnoredChars ignoredChars,
                                 Map<String, String> additionalData,
-                                @Nullable PsiElement element,
                                 @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.name = name;
     this.operation = operation;
     this.variableDefinitions = ImmutableList.copyOf(variableDefinitions);
@@ -75,11 +73,11 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
   }
 
   public OperationDefinition(String name, Operation operation) {
-    this(name, operation, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, operation, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public OperationDefinition(String name) {
-    this(name, null, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, null, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -155,7 +153,6 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
                                    getComments(),
                                    getIgnoredChars(),
                                    getAdditionalData(),
-                                   getElement(),
                                    getSourceNodes());
   }
 
@@ -195,7 +192,6 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
     private SelectionSet selectionSet;
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -211,7 +207,6 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
       this.selectionSet = existing.getSelectionSet();
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -277,11 +272,6 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -298,7 +288,6 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
         comments,
         ignoredChars,
         additionalData,
-        element,
         sourceNodes);
     }
   }

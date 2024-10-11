@@ -23,7 +23,6 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -49,9 +48,8 @@ public class VariableReference extends AbstractNode<VariableReference> implement
                               List<Comment> comments,
                               IgnoredChars ignoredChars,
                               Map<String, String> additionalData,
-                              @Nullable PsiElement element,
                               @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.name = name;
   }
 
@@ -61,7 +59,7 @@ public class VariableReference extends AbstractNode<VariableReference> implement
    * @param name of the variable
    */
   public VariableReference(String name) {
-    this(name, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -101,7 +99,7 @@ public class VariableReference extends AbstractNode<VariableReference> implement
 
   @Override
   public VariableReference deepCopy() {
-    return new VariableReference(name, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(),
+    return new VariableReference(name, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(),
                                  getSourceNodes());
   }
 
@@ -133,7 +131,6 @@ public class VariableReference extends AbstractNode<VariableReference> implement
     private String name;
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -145,7 +142,6 @@ public class VariableReference extends AbstractNode<VariableReference> implement
       this.name = existing.getName();
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -179,18 +175,13 @@ public class VariableReference extends AbstractNode<VariableReference> implement
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
     }
 
     public VariableReference build() {
-      return new VariableReference(name, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+      return new VariableReference(name, sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     }
   }
 }

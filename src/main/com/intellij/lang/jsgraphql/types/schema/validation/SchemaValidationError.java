@@ -27,30 +27,18 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.BaseError;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-
 @Internal
 public class SchemaValidationError extends BaseError {
 
   private final SchemaValidationErrorType errorType;
   private final String description;
 
-  public SchemaValidationError(@NotNull SchemaValidationErrorType errorType, @NotNull String description, @Nullable Node node) {
-    this(errorType, description, node, Collections.emptyList());
-  }
-
   public SchemaValidationError(@NotNull SchemaValidationErrorType errorType,
                                @NotNull String description,
-                               @Nullable Node node,
-                               @NotNull Collection<? extends Node> references) {
+                               @Nullable Node node) {
     super(node, description);
     this.errorType = errorType;
     this.description = description;
-
-    if (!references.isEmpty()) {
-      addReferences(references.toArray(Node.EMPTY_ARRAY));
-    }
   }
 
   public SchemaValidationErrorType getValidationErrorType() {

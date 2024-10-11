@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -54,9 +53,8 @@ public class FragmentSpread extends AbstractNode<FragmentSpread>
                            List<Comment> comments,
                            IgnoredChars ignoredChars,
                            Map<String, String> additionalData,
-                           @Nullable PsiElement element,
                            @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.name = name;
     this.directives = ImmutableList.copyOf(directives);
   }
@@ -67,7 +65,7 @@ public class FragmentSpread extends AbstractNode<FragmentSpread>
    * @param name of the fragment
    */
   public FragmentSpread(String name) {
-    this(name, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -117,7 +115,7 @@ public class FragmentSpread extends AbstractNode<FragmentSpread>
   @Override
   public FragmentSpread deepCopy() {
     return new FragmentSpread(name, deepCopy(directives), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(),
-                              getElement(), getSourceNodes());
+                              getSourceNodes());
   }
 
   @Override
@@ -155,7 +153,6 @@ public class FragmentSpread extends AbstractNode<FragmentSpread>
     private ImmutableList<Directive> directives = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -168,7 +165,6 @@ public class FragmentSpread extends AbstractNode<FragmentSpread>
       this.directives = ImmutableList.copyOf(existing.getDirectives());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -214,18 +210,13 @@ public class FragmentSpread extends AbstractNode<FragmentSpread>
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
     }
 
     public FragmentSpread build() {
-      return new FragmentSpread(name, directives, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+      return new FragmentSpread(name, directives, sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     }
   }
 }

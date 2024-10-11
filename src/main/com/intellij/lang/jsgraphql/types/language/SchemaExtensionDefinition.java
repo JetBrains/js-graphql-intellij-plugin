@@ -20,7 +20,6 @@ package com.intellij.lang.jsgraphql.types.language;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -40,9 +39,8 @@ public class SchemaExtensionDefinition extends SchemaDefinition {
                                       List<Comment> comments,
                                       IgnoredChars ignoredChars,
                                       Map<String, String> additionalData,
-                                      @Nullable PsiElement element,
                                       @Nullable List<? extends Node> sourceNodes) {
-    super(directives, operationTypeDefinitions, sourceLocation, comments, ignoredChars, additionalData, null, element, sourceNodes);
+    super(directives, operationTypeDefinitions, sourceLocation, comments, ignoredChars, additionalData, null, sourceNodes);
   }
 
   @Override
@@ -57,7 +55,7 @@ public class SchemaExtensionDefinition extends SchemaDefinition {
   public SchemaExtensionDefinition deepCopy() {
     return new SchemaExtensionDefinition(deepCopy(getDirectives()), deepCopy(getOperationTypeDefinitions()), getSourceLocation(),
                                          getComments(),
-                                         getIgnoredChars(), getAdditionalData(), getElement(), getSourceNodes());
+                                         getIgnoredChars(), getAdditionalData(), getSourceNodes());
   }
 
   @Override
@@ -85,7 +83,6 @@ public class SchemaExtensionDefinition extends SchemaDefinition {
     private ImmutableList<OperationTypeDefinition> operationTypeDefinitions = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -98,7 +95,6 @@ public class SchemaExtensionDefinition extends SchemaDefinition {
       this.operationTypeDefinitions = ImmutableList.copyOf(existing.getOperationTypeDefinitions());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -149,11 +145,6 @@ public class SchemaExtensionDefinition extends SchemaDefinition {
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -166,7 +157,6 @@ public class SchemaExtensionDefinition extends SchemaDefinition {
                                            comments,
                                            ignoredChars,
                                            additionalData,
-                                           element,
                                            sourceNodes);
     }
   }

@@ -33,7 +33,6 @@ public class DirectiveRedefinitionError extends BaseError {
           format("'%s' type tried to redefine existing directive '%s' type",
                  newEntry.getName(), oldEntry.getName()
           ));
-    addReferences(newEntry);
   }
 
   @Override

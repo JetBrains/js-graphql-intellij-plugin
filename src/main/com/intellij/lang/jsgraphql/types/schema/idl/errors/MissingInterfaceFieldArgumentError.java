@@ -21,7 +21,6 @@ public class MissingInterfaceFieldArgumentError extends BaseError {
     super(objectFieldDef, format("The %s type '%s' field '%s' is missing the argument '%s' specified via interface '%s'",
                                  typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceArgDef.getName(),
                                  interfaceTypeDef.getName()));
-    addReferences(interfaceArgDef);
   }
 
   @Override

@@ -29,14 +29,11 @@ import static java.lang.String.format;
 @Internal
 public class TypeExtensionEnumValueRedefinitionError extends BaseError {
 
-  public TypeExtensionEnumValueRedefinitionError(TypeDefinition typeDefinition,
-                                                 EnumValueDefinition enumValueDefinition,
-                                                 EnumValueDefinition redefinedValue) {
+  public TypeExtensionEnumValueRedefinitionError(TypeDefinition typeDefinition, EnumValueDefinition enumValueDefinition) {
     super(typeDefinition,
           format("'%s' extension type tried to redefine enum value '%s'",
                  typeDefinition.getName(), enumValueDefinition.getName()
           ));
-    addReferences(redefinedValue);
   }
 
   @Override

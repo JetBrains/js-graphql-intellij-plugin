@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -47,10 +46,9 @@ public class ObjectTypeExtensionDefinition extends ObjectTypeDefinition {
                                           List<Comment> comments,
                                           IgnoredChars ignoredChars,
                                           Map<String, String> additionalData,
-                                          @Nullable PsiElement element,
                                           @Nullable List<? extends Node> sourceNodes) {
     super(name, implementz, directives, fieldDefinitions,
-          description, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+          description, sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
   }
 
   /**
@@ -59,7 +57,7 @@ public class ObjectTypeExtensionDefinition extends ObjectTypeDefinition {
    * @param name of the object type extension
    */
   public ObjectTypeExtensionDefinition(String name) {
-    this(name, emptyList(), emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, emptyList(), emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -73,7 +71,6 @@ public class ObjectTypeExtensionDefinition extends ObjectTypeDefinition {
                                              getComments(),
                                              getIgnoredChars(),
                                              getAdditionalData(),
-                                             getElement(),
                                              getSourceNodes());
   }
 
@@ -114,7 +111,6 @@ public class ObjectTypeExtensionDefinition extends ObjectTypeDefinition {
     private ImmutableList<FieldDefinition> fieldDefinitions = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -130,7 +126,6 @@ public class ObjectTypeExtensionDefinition extends ObjectTypeDefinition {
       this.fieldDefinitions = ImmutableList.copyOf(existing.getFieldDefinitions());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -200,11 +195,6 @@ public class ObjectTypeExtensionDefinition extends ObjectTypeDefinition {
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -220,7 +210,6 @@ public class ObjectTypeExtensionDefinition extends ObjectTypeDefinition {
                                                comments,
                                                ignoredChars,
                                                additionalData,
-                                               element,
                                                sourceNodes);
     }
   }

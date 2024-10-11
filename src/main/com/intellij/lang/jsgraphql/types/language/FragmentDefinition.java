@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -60,9 +59,8 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition>
                                List<Comment> comments,
                                IgnoredChars ignoredChars,
                                Map<String, String> additionalData,
-                               @Nullable PsiElement element,
                                @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.name = name;
     this.typeCondition = typeCondition;
     this.directives = ImmutableList.copyOf(directives);
@@ -141,7 +139,6 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition>
                                   getComments(),
                                   getIgnoredChars(),
                                   getAdditionalData(),
-                                  getElement(),
                                   getSourceNodes());
   }
 
@@ -180,7 +177,6 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition>
     private SelectionSet selectionSet;
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -195,7 +191,6 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition>
       this.selectionSet = existing.getSelectionSet();
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -251,11 +246,6 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition>
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -264,7 +254,7 @@ public class FragmentDefinition extends AbstractNode<FragmentDefinition>
 
     public FragmentDefinition build() {
       return new FragmentDefinition(name, typeCondition, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData,
-                                    element, sourceNodes);
+                                    sourceNodes);
     }
   }
 }

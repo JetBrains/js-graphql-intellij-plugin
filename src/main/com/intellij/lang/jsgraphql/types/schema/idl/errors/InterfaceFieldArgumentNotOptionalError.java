@@ -34,12 +34,10 @@ public class InterfaceFieldArgumentNotOptionalError extends BaseError {
                                                 ImplementingTypeDefinition typeDefinition,
                                                 InterfaceTypeDefinition interfaceTypeDef,
                                                 FieldDefinition objectFieldDef,
-                                                InputValueDefinition objectArgDef,
-                                                FieldDefinition interfaceFieldDef) {
+                                                InputValueDefinition objectArgDef) {
     super(objectArgDef, format(
       "The %s type '%s' field '%s' defines an additional non-optional argument '%s' which is not allowed because field is also defined in interface '%s'.",
       typeOfType, typeDefinition.getName(), objectFieldDef.getName(), objectArgDef.getName(), interfaceTypeDef.getName()));
-    addReferences(interfaceFieldDef);
   }
 
   @Override

@@ -18,7 +18,6 @@
 package com.intellij.lang.jsgraphql.types.language;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -34,9 +33,8 @@ public abstract class AbstractDescribedNode<T extends Node> extends AbstractNode
                                IgnoredChars ignoredChars,
                                Map<String, String> additionalData,
                                Description description,
-                               @Nullable PsiElement element,
                                @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.description = description;
   }
 

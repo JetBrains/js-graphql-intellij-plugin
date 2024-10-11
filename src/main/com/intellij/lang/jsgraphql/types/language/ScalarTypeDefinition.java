@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -55,9 +54,8 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
                                  List<Comment> comments,
                                  IgnoredChars ignoredChars,
                                  Map<String, String> additionalData,
-                                 @Nullable PsiElement element,
                                  @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.name = name;
     this.directives = ImmutableList.copyOf(directives);
   }
@@ -68,7 +66,7 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
    * @param name of the scalar
    */
   public ScalarTypeDefinition(String name) {
-    this(name, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -117,7 +115,7 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
   @Override
   public ScalarTypeDefinition deepCopy() {
     return new ScalarTypeDefinition(name, deepCopy(directives), description, getSourceLocation(), getComments(), getIgnoredChars(),
-                                    getAdditionalData(), getElement(), getSourceNodes());
+                                    getAdditionalData(), getSourceNodes());
   }
 
   @Override
@@ -151,7 +149,6 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
     private ImmutableList<Directive> directives = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -165,7 +162,6 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
       this.directives = ImmutableList.copyOf(existing.getDirectives());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -216,11 +212,6 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -234,7 +225,6 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
                                       comments,
                                       ignoredChars,
                                       additionalData,
-                                      element,
                                       sourceNodes);
     }
   }

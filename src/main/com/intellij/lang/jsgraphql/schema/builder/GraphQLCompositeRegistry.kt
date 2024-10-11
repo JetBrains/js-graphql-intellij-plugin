@@ -1,6 +1,7 @@
 package com.intellij.lang.jsgraphql.schema.builder
 
-import com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil
+import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo
+import com.intellij.lang.jsgraphql.schema.isExtensionDefinition
 import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.GraphQLException
 import com.intellij.lang.jsgraphql.types.language.*
@@ -60,7 +61,7 @@ class GraphQLCompositeRegistry {
   }
 
   private fun addTypeDefinition(definition: SDLDefinition<*>) {
-    LOG.assertTrue(!GraphQLTypeDefinitionUtil.isExtension(definition))
+    LOG.assertTrue(!isExtensionDefinition(definition))
 
     val builder = getCompositeDefinition(definition) ?: return
     when (builder) {
@@ -77,7 +78,7 @@ class GraphQLCompositeRegistry {
   }
 
   private fun addExtensionDefinition(definition: SDLDefinition<*>) {
-    LOG.assertTrue(GraphQLTypeDefinitionUtil.isExtension(definition))
+    LOG.assertTrue(isExtensionDefinition(definition))
 
     val builder =
       getCompositeDefinition(definition) as? GraphQLExtendableCompositeDefinition<*, *> ?: return
@@ -95,7 +96,7 @@ class GraphQLCompositeRegistry {
   }
 
   private fun addDefinition(definition: SDLDefinition<*>) {
-    if (GraphQLTypeDefinitionUtil.isExtension(definition)) {
+    if (isExtensionDefinition(definition)) {
       addExtensionDefinition(definition)
     }
     else {
@@ -112,7 +113,7 @@ class GraphQLCompositeRegistry {
     }
   }
 
-  fun buildTypeDefinitionRegistry(): TypeDefinitionRegistry {
+  fun build(): GraphQLRegistryInfo {
     val registry = TypeDefinitionRegistry()
 
     val schemaDefinition = schemaCompositeDefinition.buildDefinition()
@@ -131,19 +132,19 @@ class GraphQLCompositeRegistry {
       }
     }
 
-    validate(registry)
-    return registry
+    return GraphQLRegistryInfo(registry, validate())
   }
 
-  // TODO: [intellij] find a better place, perhaps SchemaTypeChecker
-  private fun validate(registry: TypeDefinitionRegistry) {
+  private fun validate(): List<GraphQLException> {
+    val errors = ArrayList<GraphQLException>()
+
     val sourceSchemaDefinitions = schemaCompositeDefinition.sourceDefinitions
     if (sourceSchemaDefinitions.size > 1) {
-      val initialSchema = sourceSchemaDefinitions[0]
-      for (i in 1 until sourceSchemaDefinitions.size) {
-        registry.addError(SchemaRedefinitionError(initialSchema, sourceSchemaDefinitions[i]))
+      for (schemaDefinition in sourceSchemaDefinitions.drop(1)) {
+        errors.add(SchemaRedefinitionError(schemaDefinition))
       }
     }
+
     val operationRedefinitionErrors: MutableList<GraphQLError> = mutableListOf()
     val operationDefs: MutableMap<String, OperationTypeDefinition> = mutableMapOf()
     for (sourceSchemaDefinition in sourceSchemaDefinitions) {
@@ -156,7 +157,7 @@ class GraphQLCompositeRegistry {
       )
     }
     if (operationRedefinitionErrors.isNotEmpty()) {
-      registry.addError(SchemaProblem(operationRedefinitionErrors))
+      errors.add(SchemaProblem(operationRedefinitionErrors))
     }
 
     namedCompositeDefinitions.values.forEach { compositeDefinition: GraphQLCompositeDefinition<*> ->
@@ -165,7 +166,7 @@ class GraphQLCompositeRegistry {
         if (sourceDefinitions.size > 1) {
           val initialDefinition = sourceDefinitions[0]
           for (i in 1 until sourceDefinitions.size) {
-            registry.addError(DirectiveRedefinitionError(sourceDefinitions[i], initialDefinition))
+            errors.add(DirectiveRedefinitionError(sourceDefinitions[i], initialDefinition))
           }
         }
         return@forEach
@@ -175,10 +176,12 @@ class GraphQLCompositeRegistry {
       if (sourceDefinitions.size > 1) {
         val initialDefinition = sourceDefinitions[0]
         for (i in 1 until sourceDefinitions.size) {
-          registry.addError(TypeRedefinitionError(sourceDefinitions[i], initialDefinition))
+          errors.add(TypeRedefinitionError(sourceDefinitions[i], initialDefinition))
         }
       }
     }
+
+    return errors
   }
 
   companion object {

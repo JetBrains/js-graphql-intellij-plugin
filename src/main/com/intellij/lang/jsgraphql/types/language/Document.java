@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -50,9 +49,8 @@ public class Document extends AbstractNode<Document> {
                      List<Comment> comments,
                      IgnoredChars ignoredChars,
                      Map<String, String> additionalData,
-                     @Nullable PsiElement element,
                      @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.definitions = ImmutableList.copyOf(definitions);
   }
 
@@ -62,7 +60,7 @@ public class Document extends AbstractNode<Document> {
    * @param definitions the definitions that make up this document
    */
   public Document(List<Definition> definitions) {
-    this(definitions, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(definitions, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public List<Definition> getDefinitions() {
@@ -116,7 +114,7 @@ public class Document extends AbstractNode<Document> {
 
   @Override
   public Document deepCopy() {
-    return new Document(deepCopy(definitions), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(),
+    return new Document(deepCopy(definitions), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(),
                         getSourceNodes());
   }
 
@@ -148,7 +146,6 @@ public class Document extends AbstractNode<Document> {
     private ImmutableList<Comment> comments = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -160,7 +157,6 @@ public class Document extends AbstractNode<Document> {
       this.definitions = ImmutableList.copyOf(existing.getDefinitions());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -199,11 +195,6 @@ public class Document extends AbstractNode<Document> {
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -211,7 +202,7 @@ public class Document extends AbstractNode<Document> {
 
 
     public Document build() {
-      return new Document(definitions, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+      return new Document(definitions, sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     }
   }
 }

@@ -35,7 +35,6 @@ public class MissingInterfaceFieldError extends BaseError {
                                     FieldDefinition interfaceFieldDef) {
     super(objectType, format("The %s type '%s' does not have a field '%s' required via interface '%s'",
                              typeOfType, objectType.getName(), interfaceFieldDef.getName(), interfaceTypeDef.getName()));
-    addReferences(interfaceFieldDef);
   }
 
   @Override

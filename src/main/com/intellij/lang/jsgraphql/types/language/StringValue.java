@@ -23,7 +23,6 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -48,10 +47,9 @@ public class StringValue extends AbstractNode<StringValue> implements ScalarValu
                         List<Comment> comments,
                         IgnoredChars ignoredChars,
                         Map<String, String> additionalData,
-                        @Nullable PsiElement element,
                         @Nullable List<? extends Node> sourceNodes
   ) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.value = value;
   }
 
@@ -61,7 +59,7 @@ public class StringValue extends AbstractNode<StringValue> implements ScalarValu
    * @param value of the String
    */
   public StringValue(String value) {
-    this(value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(value, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public String getValue() {
@@ -107,7 +105,7 @@ public class StringValue extends AbstractNode<StringValue> implements ScalarValu
 
   @Override
   public StringValue deepCopy() {
-    return new StringValue(value, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(),
+    return new StringValue(value, getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(),
                            getSourceNodes());
   }
 
@@ -136,7 +134,6 @@ public class StringValue extends AbstractNode<StringValue> implements ScalarValu
     private ImmutableList<Comment> comments = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -148,7 +145,6 @@ public class StringValue extends AbstractNode<StringValue> implements ScalarValu
       this.value = existing.getValue();
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -183,18 +179,13 @@ public class StringValue extends AbstractNode<StringValue> implements ScalarValu
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
     }
 
     public StringValue build() {
-      return new StringValue(value, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+      return new StringValue(value, sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     }
   }
 }

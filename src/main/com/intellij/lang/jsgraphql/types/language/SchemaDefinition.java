@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -56,9 +55,8 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition>
                              IgnoredChars ignoredChars,
                              Map<String, String> additionalData,
                              Description description,
-                             @Nullable PsiElement element,
                              @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.directives = ImmutableList.copyOf(directives);
     this.operationTypeDefinitions = ImmutableList.copyOf(operationTypeDefinitions);
   }
@@ -109,7 +107,7 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition>
   @Override
   public SchemaDefinition deepCopy() {
     return new SchemaDefinition(deepCopy(directives), deepCopy(operationTypeDefinitions), getSourceLocation(), getComments(),
-                                getIgnoredChars(), getAdditionalData(), description, getElement(), getSourceNodes());
+                                getIgnoredChars(), getAdditionalData(), description, getSourceNodes());
   }
 
   @Override
@@ -143,7 +141,6 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition>
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
     private Description description;
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
 
@@ -158,7 +155,6 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition>
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
       this.description = existing.getDescription();
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -212,11 +208,6 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition>
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -230,7 +221,6 @@ public class SchemaDefinition extends AbstractDescribedNode<SchemaDefinition>
                                   ignoredChars,
                                   additionalData,
                                   description,
-                                  element,
                                   sourceNodes);
     }
   }

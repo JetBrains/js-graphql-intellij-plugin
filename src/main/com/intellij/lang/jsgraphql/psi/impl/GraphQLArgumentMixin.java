@@ -29,7 +29,7 @@ public abstract class GraphQLArgumentMixin extends GraphQLNamedElementImpl imple
   @Override
   public GraphQLType getTypeScope() {
     final GraphQLSchema schema = GraphQLSchemaProvider.getInstance(getProject()).getSchemaInfo(this).getSchema();
-    final String argumentName = this.getName();
+    final String argumentName = getName();
     if (argumentName != null) {
       // the type scope for an argument is the argument definition type in a field or directive definition
       final GraphQLDirective directive = PsiTreeUtil.getParentOfType(this, GraphQLDirective.class);

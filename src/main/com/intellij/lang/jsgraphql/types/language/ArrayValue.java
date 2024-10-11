@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -49,9 +48,8 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
                        List<Comment> comments,
                        IgnoredChars ignoredChars,
                        Map<String, String> additionalData,
-                       @Nullable PsiElement element,
                        @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.values = ImmutableList.copyOf(values);
   }
 
@@ -61,7 +59,7 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
    * @param values of the array
    */
   public ArrayValue(List<Value> values) {
-    this(values, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(values, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public static Builder newArrayValue() {
@@ -112,7 +110,7 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
 
   @Override
   public ArrayValue deepCopy() {
-    return new ArrayValue(deepCopy(values), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(), getElement(),
+    return new ArrayValue(deepCopy(values), getSourceLocation(), getComments(), getIgnoredChars(), getAdditionalData(),
                           getSourceNodes());
   }
 
@@ -133,7 +131,6 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
     private ImmutableList<Comment> comments = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -145,7 +142,6 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
       this.values = ImmutableList.copyOf(existing.getValues());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -185,18 +181,13 @@ public class ArrayValue extends AbstractNode<ArrayValue> implements Value<ArrayV
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
     }
 
     public ArrayValue build() {
-      return new ArrayValue(values, sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+      return new ArrayValue(values, sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     }
   }
 }

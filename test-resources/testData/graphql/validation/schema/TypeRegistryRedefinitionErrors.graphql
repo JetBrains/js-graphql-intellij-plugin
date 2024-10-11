@@ -1,13 +1,13 @@
-<error descr="There is already a schema defined">schema</error> {
+schema {
     <error descr="There is already an operation 'query' defined">query</error>: Query
 }
 
-schema {
+<error descr="There is already a schema defined">schema</error> {
     query: Query
     mutation: Mutation
 }
 
-schema {
+<error descr="There is already a schema defined">schema</error> {
     subscription: Subscription
 }
 

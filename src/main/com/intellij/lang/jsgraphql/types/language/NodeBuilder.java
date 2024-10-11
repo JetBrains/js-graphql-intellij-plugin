@@ -18,7 +18,6 @@
 package com.intellij.lang.jsgraphql.types.language;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -36,8 +35,6 @@ public interface NodeBuilder {
   NodeBuilder additionalData(Map<String, String> additionalData);
 
   NodeBuilder additionalData(String key, String value);
-
-  NodeBuilder element(@Nullable PsiElement element);
 
   NodeBuilder sourceNodes(@Nullable List<? extends Node> sourceNodes);
 }

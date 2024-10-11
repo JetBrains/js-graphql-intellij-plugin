@@ -21,11 +21,8 @@ import com.intellij.lang.jsgraphql.types.*;
 import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.language.SourceLocation;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,7 +32,6 @@ public class BaseError extends GraphQLException implements GraphQLError {
   protected static final SourceLocation EMPTY = new SourceLocation(-1, -1);
 
   private final Node node;
-  private final List<Node> myReferences = new ArrayList<>();
 
   public BaseError(@Nullable Node node, @Nullable String msg) {
     super(StringUtil.trimEnd(StringUtil.notNullize(msg), "."));
@@ -79,15 +75,5 @@ public class BaseError extends GraphQLException implements GraphQLError {
   @Override
   public @Nullable Node getNode() {
     return node;
-  }
-
-  protected void addReferences(Node @Nullable ... references) {
-    if (references != null) {
-      ContainerUtil.addAllNotNull(myReferences, references);
-    }
-  }
-
-  public @NotNull List<Node> getReferences() {
-    return myReferences;
   }
 }

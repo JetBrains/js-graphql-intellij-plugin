@@ -17,6 +17,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.utils.coroutines.waitCoroutinesBlocking
@@ -86,6 +87,7 @@ fun withLibrary(
 private fun updateLibraries(project: Project) {
   GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged()
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  IndexingTestUtil.waitUntilIndexesAreReady(project);
 }
 
 fun withCustomEnv(project: Project, env: Map<String, String?>, runnable: Runnable) {

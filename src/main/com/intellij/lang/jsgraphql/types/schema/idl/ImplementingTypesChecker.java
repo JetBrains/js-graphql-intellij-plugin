@@ -28,7 +28,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil.mapNamedNodesByKey;
+import static com.intellij.lang.jsgraphql.schema.builder.GraphQLRegistryBuilderUtil.mapNamedNodesByKey;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -156,7 +156,7 @@ class ImplementingTypesChecker {
             String objectFieldType = AstPrinter.printAst(typeFieldDef.getType());
             errors.add(
               new InterfaceFieldRedefinitionError(TYPE_OF_MAP.get(implementingType.getClass()), implementingType, implementedInterface,
-                                                  typeFieldDef, objectFieldType, interfaceFieldType, interfaceFieldDef));
+                                                  typeFieldDef, objectFieldType, interfaceFieldType));
           }
 
           // look at arguments
@@ -165,7 +165,7 @@ class ImplementingTypesChecker {
           if (objectArgs.size() < interfaceArgs.size()) {
             errors.add(
               new MissingInterfaceFieldArgumentsError(TYPE_OF_MAP.get(implementingType.getClass()), implementingType, implementedInterface,
-                                                      typeFieldDef, interfaceFieldDef));
+                                                      typeFieldDef));
           }
           else {
             checkArgumentConsistency(TYPE_OF_MAP.get(implementingType.getClass()), implementingType, implementedInterface, typeFieldDef,
@@ -214,7 +214,7 @@ class ImplementingTypesChecker {
 
         if (objectArg.getType() instanceof NonNullType) {
           errors.add(new InterfaceFieldArgumentNotOptionalError(
-            typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArg, interfaceFieldDef));
+            typeOfType, objectTypeDef, interfaceTypeDef, objectFieldDef, objectArg));
         }
       }
     }

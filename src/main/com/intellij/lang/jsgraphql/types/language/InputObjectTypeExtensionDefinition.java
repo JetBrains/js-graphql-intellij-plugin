@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -44,9 +43,8 @@ public class InputObjectTypeExtensionDefinition extends InputObjectTypeDefinitio
                                                List<Comment> comments,
                                                IgnoredChars ignoredChars,
                                                Map<String, String> additionalData,
-                                               @Nullable PsiElement element,
                                                @Nullable List<? extends Node> sourceNodes) {
-    super(name, directives, inputValueDefinitions, description, sourceLocation, comments, ignoredChars, additionalData, element,
+    super(name, directives, inputValueDefinitions, description, sourceLocation, comments, ignoredChars, additionalData,
           sourceNodes);
   }
 
@@ -60,7 +58,6 @@ public class InputObjectTypeExtensionDefinition extends InputObjectTypeDefinitio
                                                   getComments(),
                                                   getIgnoredChars(),
                                                   getAdditionalData(),
-                                                  getElement(),
                                                   getSourceNodes());
   }
 
@@ -100,7 +97,6 @@ public class InputObjectTypeExtensionDefinition extends InputObjectTypeDefinitio
     private ImmutableList<InputValueDefinition> inputValueDefinitions = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -115,7 +111,6 @@ public class InputObjectTypeExtensionDefinition extends InputObjectTypeDefinitio
       this.inputValueDefinitions = ImmutableList.copyOf(existing.getInputValueDefinitions());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -177,11 +172,6 @@ public class InputObjectTypeExtensionDefinition extends InputObjectTypeDefinitio
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -196,7 +186,6 @@ public class InputObjectTypeExtensionDefinition extends InputObjectTypeDefinitio
                                                     comments,
                                                     ignoredChars,
                                                     additionalData,
-                                                    element,
                                                     sourceNodes);
     }
   }

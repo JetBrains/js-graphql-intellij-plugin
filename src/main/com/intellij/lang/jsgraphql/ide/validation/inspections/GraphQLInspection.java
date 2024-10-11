@@ -35,19 +35,19 @@ public abstract class GraphQLInspection extends LocalInspectionTool {
 
   public static boolean isToolEnabled(@NotNull Project project,
                                       @NotNull Class<? extends GraphQLInspection> inspectionClass,
-                                      @Nullable PsiFile file) {
+                                      @Nullable PsiElement context) {
     HighlightDisplayKey highlightDisplayKey = getHighlightDisplayKeyByClass(inspectionClass);
     if (highlightDisplayKey == null) {
       return false;
     }
-    return isToolEnabled(project, highlightDisplayKey, file);
+    return isToolEnabled(project, highlightDisplayKey, context);
   }
 
   private static boolean isToolEnabled(@NotNull Project project,
                                        @NotNull HighlightDisplayKey highlightDisplayKey,
-                                       @Nullable PsiFile file) {
+                                       @Nullable PsiElement context) {
     InspectionProfileImpl inspectionProfile = InspectionProjectProfileManager.getInstance(project).getCurrentProfile();
-    return inspectionProfile.isToolEnabled(highlightDisplayKey, file);
+    return inspectionProfile.isToolEnabled(highlightDisplayKey, context);
   }
 
   private static @Nullable HighlightDisplayKey getHighlightDisplayKeyByClass(@NotNull Class<? extends GraphQLInspection> inspectionClass) {

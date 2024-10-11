@@ -34,7 +34,6 @@ public class MissingTransitiveInterfaceError extends BaseError {
                                          InterfaceTypeDefinition missingInterface) {
     super(typeDefinition, format("The %s type '%s' must implement '%s' because it is implemented by '%s'",
                                  typeOfType, typeDefinition.getName(), missingInterface.getName(), implementedInterface.getName()));
-    addReferences(missingInterface);
   }
 
   @Override

@@ -32,7 +32,6 @@ public class NotAnInputTypeError extends BaseError {
 
   public NotAnInputTypeError(@NotNull Type rawType, @NotNull TypeDefinition typeDefinition) {
     super(rawType, format("The type '%s' is not an input type, but was used as an input type", typeDefinition.getName()));
-    addReferences(typeDefinition);
   }
 
   @Override

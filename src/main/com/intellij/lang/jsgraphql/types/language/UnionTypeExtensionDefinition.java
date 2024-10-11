@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
@@ -44,7 +43,6 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
                                          List<Comment> comments,
                                          IgnoredChars ignoredChars,
                                          Map<String, String> additionalData,
-                                         @Nullable PsiElement element,
                                          @Nullable List<? extends Node> sourceNodes) {
     super(name,
           directives,
@@ -54,7 +52,6 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
           comments,
           ignoredChars,
           additionalData,
-          element,
           sourceNodes);
   }
 
@@ -68,7 +65,6 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
                                             getComments(),
                                             getIgnoredChars(),
                                             getAdditionalData(),
-                                            getElement(),
                                             getSourceNodes());
   }
 
@@ -108,7 +104,6 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
     private ImmutableList<Type> memberTypes = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -122,7 +117,6 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
       this.directives = ImmutableList.copyOf(existing.getDirectives());
       this.memberTypes = ImmutableList.copyOf(existing.getMemberTypes());
       this.ignoredChars = existing.getIgnoredChars();
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -182,11 +176,6 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -201,7 +190,6 @@ public class UnionTypeExtensionDefinition extends UnionTypeDefinition {
                                               comments,
                                               ignoredChars,
                                               additionalData,
-                                              element,
                                               sourceNodes);
     }
   }

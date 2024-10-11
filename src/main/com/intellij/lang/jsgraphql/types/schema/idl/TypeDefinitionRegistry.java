@@ -146,7 +146,7 @@ public class TypeDefinitionRegistry {
   private Map<String, OperationTypeDefinition> checkMergeSchemaDefs(TypeDefinitionRegistry toBeMergedTypeRegistry) {
     List<GraphQLError> errors = new ArrayList<>();
     if (toBeMergedTypeRegistry.schema != null && this.schema != null) {
-      errors.add(new SchemaRedefinitionError(this.schema, toBeMergedTypeRegistry.schema));
+      errors.add(new SchemaRedefinitionError(this.schema));
     }
 
     Map<String, OperationTypeDefinition> tempOperationDefs = gatherOperationDefs(errors, this.schema, this.schemaExtensionDefinitions);
@@ -212,7 +212,7 @@ public class TypeDefinitionRegistry {
     }
     else if (definition instanceof SchemaDefinition newSchema) {
       if (schema != null) {
-        myErrors.add(new SchemaRedefinitionError(this.schema, newSchema));
+        myErrors.add(new SchemaRedefinitionError(this.schema));
       }
       else {
         schema = newSchema;

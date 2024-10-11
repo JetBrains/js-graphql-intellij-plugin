@@ -28,6 +28,7 @@ inline fun <reified T : Any> Any?.asSafely(): @kotlin.internal.NoInfer T? {
   }
   return this as? T
 }
+
 @RequiresEdt
 @JvmOverloads
 fun createScratchFromEndpoint(

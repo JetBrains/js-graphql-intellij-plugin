@@ -28,9 +28,8 @@ import static java.lang.String.format;
 @Internal
 public class OperationRedefinitionError extends BaseError {
 
-  public OperationRedefinitionError(OperationTypeDefinition oldEntry, OperationTypeDefinition newEntry) {
+  public OperationRedefinitionError(OperationTypeDefinition oldEntry) {
     super(oldEntry, format("There is already an operation '%s' defined.", oldEntry.getName()));
-    addReferences(newEntry);
   }
 
   @Override

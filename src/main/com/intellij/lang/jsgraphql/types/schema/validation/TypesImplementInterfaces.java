@@ -22,7 +22,10 @@ import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
@@ -80,8 +83,7 @@ public class TypesImplementInterfaces implements SchemaValidationRule {
             format("%s type '%s' does not implement interface '%s' because field '%s' is missing",
                    TYPE_OF_MAP.get(implementingType.getClass()), implementingType.getName(), interfaceType.getName(),
                    interfaceFieldDef.getName()),
-            implementingType.getDefinition(),
-            Collections.singletonList(interfaceFieldDef.getDefinition())
+            implementingType.getDefinition()
           ));
       }
       else {
@@ -102,8 +104,7 @@ public class TypesImplementInterfaces implements SchemaValidationRule {
           error(
             format("%s type '%s' cannot implement '%s' because that would result on a circular reference",
                    TYPE_OF_MAP.get(implementingType.getClass()), implementingType.getName(), interfaceType.getName()),
-            implementingType.getDefinition(),
-            Collections.singletonList(interfaceType.getDefinition())
+            implementingType.getDefinition()
           )
         );
       }
@@ -113,8 +114,7 @@ public class TypesImplementInterfaces implements SchemaValidationRule {
             format("%s type '%s' must implement '%s' because it is implemented by '%s'",
                    TYPE_OF_MAP.get(implementingType.getClass()), implementingType.getName(), transitiveInterface.getName(),
                    interfaceType.getName()),
-            implementingType.getDefinition(),
-            Collections.singletonList(transitiveInterface.getDefinition())
+            implementingType.getDefinition()
           ));
       }
     });
@@ -134,8 +134,7 @@ public class TypesImplementInterfaces implements SchemaValidationRule {
           format("%s type '%s' does not implement interface '%s' because field '%s' is defined as '%s' type and not as '%s' type",
                  TYPE_OF_MAP.get(implementingType.getClass()), implementingType.getName(), interfaceType.getName(),
                  interfaceFieldDef.getName(), objectFieldDefStr, interfaceFieldDefStr),
-          implementingType.getDefinition(),
-          Collections.singletonList(interfaceType.getDefinition())
+          implementingType.getDefinition()
         ));
     }
     else {
@@ -164,8 +163,7 @@ public class TypesImplementInterfaces implements SchemaValidationRule {
           format("%s type '%s' does not implement interface '%s' because field '%s' is missing argument(s): '%s'",
                  TYPE_OF_MAP.get(implementingType.getClass()), implementingType.getName(), interfaceType.getName(),
                  interfaceFieldDef.getName(), missingArgsNames),
-          implementingType.getDefinition(),
-          Collections.singletonList(interfaceType.getDefinition())
+          implementingType.getDefinition()
         ));
     }
     else {
@@ -180,8 +178,7 @@ public class TypesImplementInterfaces implements SchemaValidationRule {
                   "%s type '%s' field '%s' defines an additional non-optional argument '%s' which is not allowed because field is also defined in interface '%s'",
                   TYPE_OF_MAP.get(implementingType.getClass()), implementingType.getName(), objectFieldDef.getName(), objectArg.getName(),
                   interfaceType.getName()),
-                objectFieldDef.getDefinition(),
-                Collections.singletonList(interfaceType.getDefinition())
+                objectFieldDef.getDefinition()
               ));
           }
         }
@@ -202,8 +199,7 @@ public class TypesImplementInterfaces implements SchemaValidationRule {
                 format("%s type '%s' does not implement interface '%s' because field '%s' argument '%s' is defined differently",
                        TYPE_OF_MAP.get(implementingType.getClass()), implementingType.getName(), interfaceType.getName(),
                        interfaceFieldDef.getName(), objectArg.getName()),
-                objectArg.getDefinition(),
-                Collections.singletonList(interfaceFieldDef.getDefinition())
+                objectArg.getDefinition()
               ));
           }
         }
@@ -218,8 +214,8 @@ public class TypesImplementInterfaces implements SchemaValidationRule {
            simplePrint(argument.getType());
   }
 
-  private SchemaValidationError error(String msg, Node node, Collection<? extends Node> references) {
-    return new SchemaValidationError(ObjectDoesNotImplementItsInterfaces, msg, node, references);
+  private SchemaValidationError error(String msg, Node node) {
+    return new SchemaValidationError(ObjectDoesNotImplementItsInterfaces, msg, node);
   }
 
   /**

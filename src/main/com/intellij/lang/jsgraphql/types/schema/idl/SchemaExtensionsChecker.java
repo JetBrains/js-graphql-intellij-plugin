@@ -62,7 +62,7 @@ public class SchemaExtensionsChecker {
     for (OperationTypeDefinition operationTypeDefinition : newOperationDefs) {
       OperationTypeDefinition oldEntry = existingOperationDefs.get(operationTypeDefinition.getName());
       if (oldEntry != null) {
-        errors.add(new OperationRedefinitionError(oldEntry, operationTypeDefinition));
+        errors.add(new OperationRedefinitionError(oldEntry));
       }
       else {
         existingOperationDefs.put(operationTypeDefinition.getName(), operationTypeDefinition);

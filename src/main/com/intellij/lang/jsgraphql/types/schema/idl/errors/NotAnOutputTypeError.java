@@ -33,7 +33,6 @@ public class NotAnOutputTypeError extends BaseError {
   public NotAnOutputTypeError(@NotNull Type rawType, @NotNull TypeDefinition typeDefinition) {
     super(rawType,
           format("The type '%s' is not an output type, but was used to declare the output type of a field", typeDefinition.getName()));
-    addReferences(typeDefinition);
   }
 
   @Override

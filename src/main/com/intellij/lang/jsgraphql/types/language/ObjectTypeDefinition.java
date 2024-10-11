@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -57,9 +56,8 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
                                  List<Comment> comments,
                                  IgnoredChars ignoredChars,
                                  Map<String, String> additionalData,
-                                 @Nullable PsiElement element,
                                  @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.name = name;
     this.implementz = ImmutableList.copyOf(implementz);
     this.directives = ImmutableList.copyOf(directives);
@@ -72,7 +70,7 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
    * @param name of the object type
    */
   public ObjectTypeDefinition(String name) {
-    this(name, emptyList(), emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, emptyList(), emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -145,7 +143,6 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
                                     getComments(),
                                     getIgnoredChars(),
                                     getAdditionalData(),
-                                    getElement(),
                                     getSourceNodes());
   }
 
@@ -184,7 +181,6 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
     private ImmutableList<FieldDefinition> fieldDefinitions = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -200,7 +196,6 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
       this.fieldDefinitions = ImmutableList.copyOf(existing.getFieldDefinitions());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -270,11 +265,6 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -290,7 +280,6 @@ public class ObjectTypeDefinition extends AbstractDescribedNode<ObjectTypeDefini
                                       comments,
                                       ignoredChars,
                                       additionalData,
-                                      element,
                                       sourceNodes);
     }
   }

@@ -22,7 +22,7 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -129,19 +129,21 @@ public interface Node<T extends Node> extends Serializable {
    */
   TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor);
 
-  @Nullable PsiElement getElement();
-
-  @NotNull List<PsiElement> getElements();
+  /**
+   * It's a stub method that doesn't do anything since 2024.3. Remains only for binary compatibility. It will be removed in 2025.1.
+   *
+   * @deprecated Use {@link com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil} methods instead.
+   */
+  @Deprecated(forRemoval = true)
+  @Nullable
+  PsiElement getElement();
 
   @NotNull
+  @ApiStatus.Internal
   List<Node> getSourceNodes();
 
+  @ApiStatus.Internal
   default boolean isComposite() {
     return !getSourceNodes().isEmpty();
-  }
-
-  default @Nullable PsiFile getFile() {
-    PsiElement element = getElement();
-    return element != null ? element.getContainingFile() : null;
   }
 }

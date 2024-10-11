@@ -26,9 +26,8 @@ import org.jetbrains.annotations.Nullable;
 @Internal
 public class SchemaRedefinitionError extends BaseError {
 
-  public SchemaRedefinitionError(SchemaDefinition oldEntry, SchemaDefinition newEntry) {
-    super(oldEntry, "There is already a schema defined.");
-    addReferences(newEntry);
+  public SchemaRedefinitionError(SchemaDefinition definition) {
+    super(definition, "There is already a schema defined.");
   }
 
   @Override

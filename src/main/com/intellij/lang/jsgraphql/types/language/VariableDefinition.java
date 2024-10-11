@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -57,9 +56,8 @@ public class VariableDefinition extends AbstractNode<VariableDefinition>
                                List<Comment> comments,
                                IgnoredChars ignoredChars,
                                Map<String, String> additionalData,
-                               @Nullable PsiElement element,
                                @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.name = name;
     this.type = type;
     this.defaultValue = defaultValue;
@@ -74,7 +72,7 @@ public class VariableDefinition extends AbstractNode<VariableDefinition>
    * @param defaultValue of the variable
    */
   public VariableDefinition(String name, Type type, Value defaultValue) {
-    this(name, type, defaultValue, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, type, defaultValue, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   /**
@@ -84,7 +82,7 @@ public class VariableDefinition extends AbstractNode<VariableDefinition>
    * @param type of the variable
    */
   public VariableDefinition(String name, Type type) {
-    this(name, type, null, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, type, null, emptyList(), null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public Value getDefaultValue() {
@@ -157,7 +155,6 @@ public class VariableDefinition extends AbstractNode<VariableDefinition>
                                   getComments(),
                                   getIgnoredChars(),
                                   getAdditionalData(),
-                                  getElement(),
                                   getSourceNodes());
   }
 
@@ -208,7 +205,6 @@ public class VariableDefinition extends AbstractNode<VariableDefinition>
     private ImmutableList<Directive> directives = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -223,7 +219,6 @@ public class VariableDefinition extends AbstractNode<VariableDefinition>
       this.directives = ImmutableList.copyOf(existing.getDirectives());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -278,11 +273,6 @@ public class VariableDefinition extends AbstractNode<VariableDefinition>
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -298,7 +288,6 @@ public class VariableDefinition extends AbstractNode<VariableDefinition>
         comments,
         ignoredChars,
         additionalData,
-        element,
         sourceNodes);
     }
   }

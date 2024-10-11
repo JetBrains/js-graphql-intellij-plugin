@@ -32,19 +32,15 @@ import static java.lang.String.format;
 public class TypeExtensionFieldRedefinitionError extends BaseError {
 
   public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition,
-                                             FieldDefinition fieldDefinition,
-                                             FieldDefinition redefinedField) {
+                                             FieldDefinition fieldDefinition) {
     super(typeDefinition,
           formatMessage(typeDefinition, fieldDefinition.getName(), fieldDefinition));
-    addReferences(redefinedField);
   }
 
   public TypeExtensionFieldRedefinitionError(TypeDefinition typeDefinition,
-                                             InputValueDefinition fieldDefinition,
-                                             InputValueDefinition redefinedField) {
+                                             InputValueDefinition fieldDefinition) {
     super(typeDefinition,
           formatMessage(typeDefinition, fieldDefinition.getName(), fieldDefinition));
-    addReferences(redefinedField);
   }
 
   private static String formatMessage(TypeDefinition typeDefinition, String fieldName, AbstractNode<?> fieldDefinition) {

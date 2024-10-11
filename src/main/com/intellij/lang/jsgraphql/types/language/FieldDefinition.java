@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -57,9 +56,8 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition>
                             List<Comment> comments,
                             IgnoredChars ignoredChars,
                             Map<String, String> additionalData,
-                            @Nullable PsiElement element,
                             @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.name = name;
     this.type = type;
     this.inputValueDefinitions = ImmutableList.copyOf(inputValueDefinitions);
@@ -67,7 +65,7 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition>
   }
 
   public FieldDefinition(String name, Type type) {
-    this(name, type, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, type, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public Type getType() {
@@ -140,7 +138,6 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition>
                                getComments(),
                                getIgnoredChars(),
                                getAdditionalData(),
-                               getElement(),
                                getSourceNodes());
   }
 
@@ -179,7 +176,6 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition>
     private ImmutableList<Directive> directives = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -195,7 +191,6 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition>
       this.directives = ImmutableList.copyOf(existing.getDirectives());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -262,11 +257,6 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition>
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -275,7 +265,7 @@ public class FieldDefinition extends AbstractDescribedNode<FieldDefinition>
 
     public FieldDefinition build() {
       return new FieldDefinition(name, type, inputValueDefinitions, directives, description, sourceLocation, comments, ignoredChars,
-                                 additionalData, element, sourceNodes);
+                                 additionalData, sourceNodes);
     }
   }
 }

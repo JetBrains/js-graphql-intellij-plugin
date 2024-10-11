@@ -12,6 +12,7 @@ import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLTreeNodeNavigationUtil.openSourceLocation
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection
 import com.intellij.lang.jsgraphql.schema.GraphQLUnexpectedSchemaError
+import com.intellij.lang.jsgraphql.schema.findElement
 import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.language.SourceLocation
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -49,7 +50,7 @@ class GraphQLSchemaErrorNode(parent: SimpleNode?, private val error: GraphQLErro
     var icon = HighlightDisplayLevel.ERROR.icon
     val node = error.node
     if (project != null && error.inspectionClass != null && node != null) {
-      val element = node.element
+      val element = node.findElement(project)
       if (element != null) {
         icon = GraphQLInspection.getHighlightDisplayLevel(error.inspectionClass!!, element).icon
       }

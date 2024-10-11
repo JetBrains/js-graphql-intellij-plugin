@@ -11,6 +11,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
+import com.intellij.lang.jsgraphql.schema.findElement
 import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
 
@@ -30,7 +31,7 @@ class GraphQLSchemaErrorsListNode(parent: SimpleNode, private val schemaInfo: Gr
     for (error in schemaInfo.getErrors(myProject)) {
       val node = error.node
       if (project != null && error.inspectionClass != null &&
-          !GraphQLInspection.isToolEnabled(project, error.inspectionClass!!, node?.file)
+          !GraphQLInspection.isToolEnabled(project, error.inspectionClass!!, node?.findElement(project))
       ) {
         continue
       }

@@ -25,7 +25,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -67,9 +66,8 @@ public class Field extends AbstractNode<Field>
                   List<Comment> comments,
                   IgnoredChars ignoredChars,
                   Map<String, String> additionalData,
-                  @Nullable PsiElement element,
                   @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
     this.name = name;
     this.alias = alias;
     this.arguments = ImmutableList.copyOf(arguments);
@@ -84,7 +82,7 @@ public class Field extends AbstractNode<Field>
    * @param name of the field
    */
   public Field(String name) {
-    this(name, null, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, null, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   /**
@@ -94,7 +92,7 @@ public class Field extends AbstractNode<Field>
    * @param arguments to the field
    */
   public Field(String name, List<Argument> arguments) {
-    this(name, null, arguments, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, null, arguments, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   /**
@@ -107,7 +105,7 @@ public class Field extends AbstractNode<Field>
   public Field(String name,
                List<Argument> arguments,
                SelectionSet selectionSet) {
-    this(name, null, arguments, emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, null, arguments, emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   /**
@@ -117,7 +115,7 @@ public class Field extends AbstractNode<Field>
    * @param selectionSet of the field
    */
   public Field(String name, SelectionSet selectionSet) {
-    this(name, null, emptyList(), emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, null, emptyList(), emptyList(), selectionSet, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -202,7 +200,6 @@ public class Field extends AbstractNode<Field>
                      getComments(),
                      getIgnoredChars(),
                      getAdditionalData(),
-                     getElement(),
                      getSourceNodes()
     );
   }
@@ -251,7 +248,6 @@ public class Field extends AbstractNode<Field>
     private SelectionSet selectionSet;
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private ImmutableMap<String, String> additionalData = emptyMap();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -267,7 +263,6 @@ public class Field extends AbstractNode<Field>
       this.selectionSet = existing.getSelectionSet();
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = copyOf(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -328,11 +323,6 @@ public class Field extends AbstractNode<Field>
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -340,7 +330,7 @@ public class Field extends AbstractNode<Field>
 
 
     public Field build() {
-      return new Field(name, alias, arguments, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData, element,
+      return new Field(name, alias, arguments, directives, selectionSet, sourceLocation, comments, ignoredChars, additionalData,
                        sourceNodes);
     }
   }

@@ -349,7 +349,7 @@ class SchemaTypeExtensionsChecker {
     fieldDefinitions.forEach(fld -> {
       if (referenceMap.containsKey(fld.getName())) {
         FieldDefinition redefinedField = referenceMap.get(fld.getName());
-        errors.add(new TypeExtensionFieldRedefinitionError(typeDefinition, fld, redefinedField));
+        errors.add(new TypeExtensionFieldRedefinitionError(typeDefinition, fld));
       }
     });
   }
@@ -363,7 +363,7 @@ class SchemaTypeExtensionsChecker {
     inputValueDefinitions.forEach(fld -> {
       if (referenceMap.containsKey(fld.getName())) {
         InputValueDefinition redefinedField = referenceMap.get(fld.getName());
-        errors.add(new TypeExtensionFieldRedefinitionError(typeDefinition, fld, redefinedField));
+        errors.add(new TypeExtensionFieldRedefinitionError(typeDefinition, fld));
       }
     });
   }
@@ -379,7 +379,7 @@ class SchemaTypeExtensionsChecker {
     enumValueDefinitions.forEach(fld -> {
       if (referenceMap.containsKey(fld.getName())) {
         EnumValueDefinition redefinedValue = referenceMap.get(fld.getName());
-        errors.add(new TypeExtensionEnumValueRedefinitionError(typeDefinition, fld, redefinedValue));
+        errors.add(new TypeExtensionEnumValueRedefinitionError(typeDefinition, fld));
       }
     });
   }

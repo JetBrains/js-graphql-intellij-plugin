@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -57,9 +56,8 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
                                  List<Comment> comments,
                                  IgnoredChars ignoredChars,
                                  Map<String, String> additionalData,
-                                 @Nullable PsiElement element,
                                  @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.name = name;
     this.type = type;
     this.defaultValue = defaultValue;
@@ -73,7 +71,7 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
    * @param type of the input value
    */
   public InputValueDefinition(String name, Type type) {
-    this(name, type, null, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, type, null, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   /**
@@ -85,7 +83,7 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
    */
 
   public InputValueDefinition(String name, Type type, Value defaultValue) {
-    this(name, type, defaultValue, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, type, defaultValue, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public Type getType() {
@@ -160,7 +158,6 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
                                     getComments(),
                                     getIgnoredChars(),
                                     getAdditionalData(),
-                                    getElement(),
                                     getSourceNodes());
   }
 
@@ -199,7 +196,6 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
     private ImmutableList<Directive> directives = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -214,7 +210,6 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
       this.description = existing.getDescription();
       this.directives = ImmutableList.copyOf(existing.getDirectives());
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -275,11 +270,6 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -295,7 +285,6 @@ public class InputValueDefinition extends AbstractDescribedNode<InputValueDefini
                                       comments,
                                       ignoredChars,
                                       additionalData,
-                                      element,
                                       sourceNodes);
     }
   }

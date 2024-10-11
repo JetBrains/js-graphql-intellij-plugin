@@ -13,19 +13,11 @@ import com.intellij.lang.jsgraphql.types.language.SourceLocation
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.StandardFileSystems
-import com.intellij.psi.NavigatablePsiElement
 
 object GraphQLTreeNodeNavigationUtil {
   @JvmStatic
   fun openSourceLocation(myProject: Project, location: SourceLocation, followGeneratedFile: Boolean) {
-    if (location.isPsiBased) {
-      val element = location.element
-      if (element is NavigatablePsiElement && element.isValid()) {
-        element.navigate(true)
-        return
-      }
-    }
-
+    // TODO: check
     var sourceFile = StandardFileSystems.local().findFileByPath(location.sourceName) ?: return
     if (sourceFile.fileType == JsonFileType.INSTANCE && followGeneratedFile) {
       val generatedSource = GraphQLGeneratedSourcesManager.getInstance(myProject).requestGeneratedFile(sourceFile)

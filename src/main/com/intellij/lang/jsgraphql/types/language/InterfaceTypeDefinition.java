@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -59,9 +58,8 @@ public class InterfaceTypeDefinition extends AbstractDescribedNode<InterfaceType
                                     List<Comment> comments,
                                     IgnoredChars ignoredChars,
                                     Map<String, String> additionalData,
-                                    @Nullable PsiElement element,
                                     @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.name = name;
     this.implementz = ImmutableList.copyOf(implementz);
     this.definitions = ImmutableList.copyOf(definitions);
@@ -74,7 +72,7 @@ public class InterfaceTypeDefinition extends AbstractDescribedNode<InterfaceType
    * @param name of the interface
    */
   public InterfaceTypeDefinition(String name) {
-    this(name, emptyList(), emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, emptyList(), emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -149,7 +147,6 @@ public class InterfaceTypeDefinition extends AbstractDescribedNode<InterfaceType
                                        getComments(),
                                        getIgnoredChars(),
                                        getAdditionalData(),
-                                       getElement(),
                                        getSourceNodes());
   }
 
@@ -189,7 +186,6 @@ public class InterfaceTypeDefinition extends AbstractDescribedNode<InterfaceType
     private ImmutableList<Directive> directives = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -206,7 +202,6 @@ public class InterfaceTypeDefinition extends AbstractDescribedNode<InterfaceType
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
       this.implementz = ImmutableList.copyOf(existing.getImplements());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -278,11 +273,6 @@ public class InterfaceTypeDefinition extends AbstractDescribedNode<InterfaceType
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -299,7 +289,6 @@ public class InterfaceTypeDefinition extends AbstractDescribedNode<InterfaceType
                                          comments,
                                          ignoredChars,
                                          additionalData,
-                                         element,
                                          sourceNodes);
     }
   }

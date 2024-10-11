@@ -34,12 +34,10 @@ public class InterfaceFieldRedefinitionError extends BaseError {
                                          InterfaceTypeDefinition interfaceTypeDef,
                                          FieldDefinition objectFieldDef,
                                          String objectFieldType,
-                                         String interfaceFieldType,
-                                         FieldDefinition interfaceFieldDef) {
+                                         String interfaceFieldType) {
     super(typeDefinition, format("The %s type '%s' has tried to redefine field '%s' defined via interface '%s' from '%s' to '%s'",
                                  typeOfType, typeDefinition.getName(), objectFieldDef.getName(), interfaceTypeDef.getName(),
                                  interfaceFieldType, objectFieldType));
-    addReferences(interfaceFieldDef);
   }
 
   @Override

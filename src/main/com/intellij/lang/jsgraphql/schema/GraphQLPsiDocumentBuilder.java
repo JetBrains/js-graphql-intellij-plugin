@@ -7,7 +7,6 @@ import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLanguageInjectionHost;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,7 +93,7 @@ public final class GraphQLPsiDocumentBuilder {
     return operationDefinition.build();
   }
 
-  private @NotNull OperationDefinition.Operation parseOperation(@NotNull GraphQLTypedOperationDefinition operation) {
+  private static @NotNull OperationDefinition.Operation parseOperation(@NotNull GraphQLTypedOperationDefinition operation) {
     return switch (operation.getOperationType().getText()) {
       case "query" -> OperationDefinition.Operation.QUERY;
       case "mutation" -> OperationDefinition.Operation.MUTATION;
@@ -759,16 +758,15 @@ public final class GraphQLPsiDocumentBuilder {
     return assertShouldNeverHappen();
   }
 
-  private void addCommonData(NodeBuilder nodeBuilder, @NotNull PsiElement element) {
-    nodeBuilder.sourceLocation(getSourceLocation(element));
-    nodeBuilder.element(element);
+  private void addCommonData(NodeBuilder nodeBuilder, @NotNull GraphQLElement element) {
+    nodeBuilder.sourceLocation(GraphQLTypeDefinitionUtil.getSourceLocation(element));
 
     if (myIsInLibrary) {
       nodeBuilder.additionalData(IS_IN_LIBRARY_KEY, "");
     }
   }
 
-  private @Nullable Description newDescription(@Nullable GraphQLDescription description) {
+  private static @Nullable Description newDescription(@Nullable GraphQLDescription description) {
     if (description == null) {
       return null;
     }
@@ -785,6 +783,7 @@ public final class GraphQLPsiDocumentBuilder {
       }
     }
 
+    SourceLocation sourceLocation = GraphQLTypeDefinitionUtil.getSourceLocation(description);
     boolean multiLine = content.startsWith("\"\"\"");
     if (multiLine) {
       content = parseTripleQuotedString(content);
@@ -792,12 +791,7 @@ public final class GraphQLPsiDocumentBuilder {
     else {
       content = parseSingleQuotedString(content);
     }
-    SourceLocation sourceLocation = getSourceLocation(description);
-    return new Description(content, sourceLocation, multiLine, description);
-  }
-
-  private @NotNull SourceLocation getSourceLocation(@NotNull PsiElement element) {
-    return new SourceLocation(element);
+    return new Description(content, sourceLocation, multiLine);
   }
 
   private @NotNull List<Type> getImplements(@Nullable GraphQLImplementsInterfaces implementsInterfaces) {

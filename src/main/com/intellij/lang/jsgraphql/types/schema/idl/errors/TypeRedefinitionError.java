@@ -33,7 +33,6 @@ public class TypeRedefinitionError extends BaseError {
           format("'%s' type tried to redefine existing '%s' type",
                  newEntry.getName(), oldEntry.getName()
           ));
-    addReferences(newEntry);
   }
 
   @Override

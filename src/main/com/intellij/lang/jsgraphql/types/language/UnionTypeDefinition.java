@@ -24,7 +24,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -55,9 +54,8 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
                                 List<Comment> comments,
                                 IgnoredChars ignoredChars,
                                 Map<String, String> additionalData,
-                                @Nullable PsiElement element,
                                 @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.name = name;
     this.directives = ImmutableList.copyOf(directives);
     this.memberTypes = ImmutableList.copyOf(memberTypes);
@@ -70,7 +68,7 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
    * @param directives on the union
    */
   public UnionTypeDefinition(String name, List<Directive> directives) {
-    this(name, directives, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, directives, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   /**
@@ -79,7 +77,7 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
    * @param name of the union
    */
   public UnionTypeDefinition(String name) {
-    this(name, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -144,7 +142,6 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
                                    getComments(),
                                    getIgnoredChars(),
                                    getAdditionalData(),
-                                   getElement(),
                                    getSourceNodes());
   }
 
@@ -181,7 +178,6 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
     private ImmutableList<Type> memberTypes = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -195,7 +191,6 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
       this.directives = ImmutableList.copyOf(existing.getDirectives());
       this.memberTypes = ImmutableList.copyOf(existing.getMemberTypes());
       this.ignoredChars = existing.getIgnoredChars();
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -255,11 +250,6 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -275,7 +265,6 @@ public class UnionTypeDefinition extends AbstractDescribedNode<UnionTypeDefiniti
                                      comments,
                                      ignoredChars,
                                      additionalData,
-                                     element,
                                      sourceNodes);
     }
   }

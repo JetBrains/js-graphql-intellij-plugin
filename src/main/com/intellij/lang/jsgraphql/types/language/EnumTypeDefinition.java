@@ -23,7 +23,6 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -53,9 +52,8 @@ public class EnumTypeDefinition extends AbstractDescribedNode<EnumTypeDefinition
                                List<Comment> comments,
                                IgnoredChars ignoredChars,
                                Map<String, String> additionalData,
-                               @Nullable PsiElement element,
                                @Nullable List<? extends Node> sourceNodes) {
-    super(sourceLocation, comments, ignoredChars, additionalData, description, element, sourceNodes);
+    super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.name = name;
     this.directives = ImmutableKit.nonNullCopyOf(directives);
     this.enumValueDefinitions = ImmutableKit.nonNullCopyOf(enumValueDefinitions);
@@ -67,7 +65,7 @@ public class EnumTypeDefinition extends AbstractDescribedNode<EnumTypeDefinition
    * @param name of the enum
    */
   public EnumTypeDefinition(String name) {
-    this(name, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null, null);
+    this(name, emptyList(), emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   public List<EnumValueDefinition> getEnumValueDefinitions() {
@@ -132,7 +130,6 @@ public class EnumTypeDefinition extends AbstractDescribedNode<EnumTypeDefinition
                                   getComments(),
                                   getIgnoredChars(),
                                   getAdditionalData(),
-                                  getElement(),
                                   getSourceNodes());
   }
 
@@ -169,7 +166,6 @@ public class EnumTypeDefinition extends AbstractDescribedNode<EnumTypeDefinition
     private ImmutableList<Directive> directives = emptyList();
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
-    private @Nullable PsiElement element;
     private @Nullable List<? extends Node> sourceNodes;
 
     private Builder() {
@@ -184,7 +180,6 @@ public class EnumTypeDefinition extends AbstractDescribedNode<EnumTypeDefinition
       this.enumValueDefinitions = ImmutableList.copyOf(existing.getEnumValueDefinitions());
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
-      this.element = existing.getElement();
       this.sourceNodes = existing.getSourceNodes();
     }
 
@@ -244,11 +239,6 @@ public class EnumTypeDefinition extends AbstractDescribedNode<EnumTypeDefinition
       return this;
     }
 
-    public Builder element(@Nullable PsiElement element) {
-      this.element = element;
-      return this;
-    }
-
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;
@@ -257,7 +247,7 @@ public class EnumTypeDefinition extends AbstractDescribedNode<EnumTypeDefinition
 
     public EnumTypeDefinition build() {
       return new EnumTypeDefinition(name, enumValueDefinitions, directives, description, sourceLocation, comments, ignoredChars,
-                                    additionalData, element, sourceNodes);
+                                    additionalData, sourceNodes);
     }
   }
 }
