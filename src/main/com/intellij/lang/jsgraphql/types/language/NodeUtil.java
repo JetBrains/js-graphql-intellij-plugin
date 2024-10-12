@@ -19,7 +19,6 @@ package com.intellij.lang.jsgraphql.types.language;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.execution.UnknownOperationException;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 import com.intellij.lang.jsgraphql.types.util.NodeLocation;
 
@@ -79,40 +78,6 @@ public class NodeUtil {
       }
     }
     return fragmentsByName;
-  }
-
-  public static GetOperationResult getOperation(Document document, String operationName) {
-
-
-    Map<String, FragmentDefinition> fragmentsByName = new LinkedHashMap<>();
-    Map<String, OperationDefinition> operationsByName = new LinkedHashMap<>();
-
-    for (Definition definition : document.getDefinitions()) {
-      if (definition instanceof OperationDefinition operationDefinition) {
-        operationsByName.put(operationDefinition.getName(), operationDefinition);
-      }
-      if (definition instanceof FragmentDefinition fragmentDefinition) {
-        fragmentsByName.put(fragmentDefinition.getName(), fragmentDefinition);
-      }
-    }
-    if (operationName == null && operationsByName.size() > 1) {
-      throw new UnknownOperationException("Must provide operation name if query contains multiple operations.");
-    }
-    OperationDefinition operation;
-
-    if (operationName == null || operationName.isEmpty()) {
-      operation = operationsByName.values().iterator().next();
-    }
-    else {
-      operation = operationsByName.get(operationName);
-    }
-    if (operation == null) {
-      throw new UnknownOperationException(String.format("Unknown operation named '%s'.", operationName));
-    }
-    GetOperationResult result = new GetOperationResult();
-    result.fragmentsByName = fragmentsByName;
-    result.operationDefinition = operation;
-    return result;
   }
 
   public static void assertNewChildrenAreEmpty(NodeChildrenContainer newChildren) {

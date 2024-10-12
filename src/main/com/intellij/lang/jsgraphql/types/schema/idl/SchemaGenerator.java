@@ -131,11 +131,6 @@ public class SchemaGenerator {
     Set<GraphQLType> additionalTypes = schemaGeneratorHelper.buildAdditionalTypes(buildCtx);
     schemaBuilder.additionalTypes(additionalTypes);
 
-    buildCtx.getCodeRegistry().fieldVisibility(buildCtx.getWiring().getFieldVisibility());
-
-    GraphQLCodeRegistry codeRegistry = buildCtx.getCodeRegistry().build();
-    schemaBuilder.codeRegistry(codeRegistry);
-
     buildCtx.getTypeRegistry().schemaDefinition().ifPresent(schemaDefinition -> {
       String description = schemaGeneratorHelper.buildDescription(schemaDefinition,
                                                                   schemaDefinition.getDescription());
@@ -143,17 +138,6 @@ public class SchemaGenerator {
     });
     GraphQLSchema graphQLSchema = schemaBuilder.build();
 
-    List<SchemaGeneratorPostProcessing> schemaTransformers = new ArrayList<>();
-    // handle directive wiring AFTER the schema has been built and hence type references are resolved at callback time
-    schemaTransformers.add(
-      new SchemaDirectiveWiringSchemaGeneratorPostProcessing(buildCtx.getTypeRegistry(), buildCtx.getWiring(),
-                                                             buildCtx.getCodeRegistry())
-    );
-    schemaTransformers.addAll(buildCtx.getWiring().getSchemaGeneratorPostProcessings());
-
-    for (SchemaGeneratorPostProcessing postProcessing : schemaTransformers) {
-      graphQLSchema = postProcessing.process(graphQLSchema);
-    }
     List<GraphQLError> buildErrors = buildCtx.getErrors();
     if (!buildErrors.isEmpty()) {
       graphQLSchema.addError(new SchemaProblem(buildErrors));

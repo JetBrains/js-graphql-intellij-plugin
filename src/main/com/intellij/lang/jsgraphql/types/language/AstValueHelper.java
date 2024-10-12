@@ -121,12 +121,12 @@ public class AstValueHelper {
     fields.forEach(field -> {
       String fieldName = field.getName();
       GraphQLInputType fieldType = field.getType();
-      Object fieldValueObj = PropertyDataFetcherHelper.getPropertyValue(fieldName, javaValue, fieldType);
-      Value<?> nodeValue = astFromValue(fieldValueObj, fieldType);
-      if (nodeValue != null) {
-
-        fieldNodes.add(ObjectField.newObjectField().name(fieldName).value(nodeValue).build());
-      }
+      // TODO: check
+      //Object fieldValueObj = PropertyDataFetcherHelper.getPropertyValue(fieldName, javaValue, fieldType);
+      //Value<?> nodeValue = astFromValue(fieldValueObj, fieldType);
+      //if (nodeValue != null) {
+      //  fieldNodes.add(ObjectField.newObjectField().name(fieldName).value(nodeValue).build());
+      //}
     });
     return ObjectValue.newObjectValue().objectFields(fieldNodes).build();
   }

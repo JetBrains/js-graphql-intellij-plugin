@@ -69,21 +69,6 @@ public class EchoingWiringFactory implements WiringFactory {
     return env -> env.getSchema().getQueryType();
   }
 
-  @Override
-  public DataFetcher getDefaultDataFetcher(FieldWiringEnvironment environment) {
-    return env -> {
-      GraphQLOutputType fieldType = env.getFieldType();
-      if (fieldType instanceof GraphQLObjectType) {
-        return fakeObjectValue((GraphQLObjectType)fieldType);
-      }
-      else {
-        PropertyDataFetcher<Object> df = new PropertyDataFetcher<>(env.getFieldDefinition().getName());
-        return df.get(env);
-      }
-    };
-  }
-
-
   private static Object fakeObjectValue(GraphQLObjectType fieldType) {
     Map<String, Object> map = new LinkedHashMap<>();
     fieldType.getFieldDefinitions().forEach(fldDef -> {

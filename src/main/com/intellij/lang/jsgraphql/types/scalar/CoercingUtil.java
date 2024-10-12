@@ -20,7 +20,7 @@ package com.intellij.lang.jsgraphql.types.scalar;
 import com.intellij.lang.jsgraphql.types.Internal;
 
 @Internal
-class CoercingUtil {
+final class CoercingUtil {
   static boolean isNumberIsh(Object input) {
     return input instanceof Number || input instanceof String;
   }

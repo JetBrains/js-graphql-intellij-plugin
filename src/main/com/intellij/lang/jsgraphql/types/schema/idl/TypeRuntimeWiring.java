@@ -18,12 +18,9 @@
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.lang.jsgraphql.types.schema.DataFetcher;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.lang.jsgraphql.types.schema.TypeResolver;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.function.UnaryOperator;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
@@ -36,19 +33,13 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 @PublicApi
 public class TypeRuntimeWiring {
   private final String typeName;
-  private final DataFetcher defaultDataFetcher;
-  private final Map<String, DataFetcher> fieldDataFetchers;
   private final TypeResolver typeResolver;
   private final EnumValuesProvider enumValuesProvider;
 
   private TypeRuntimeWiring(String typeName,
-                            DataFetcher defaultDataFetcher,
-                            Map<String, DataFetcher> fieldDataFetchers,
                             TypeResolver typeResolver,
                             EnumValuesProvider enumValuesProvider) {
     this.typeName = typeName;
-    this.defaultDataFetcher = defaultDataFetcher;
-    this.fieldDataFetchers = fieldDataFetchers;
     this.typeResolver = typeResolver;
     this.enumValuesProvider = enumValuesProvider;
   }
@@ -79,14 +70,6 @@ public class TypeRuntimeWiring {
     return typeName;
   }
 
-  public Map<String, DataFetcher> getFieldDataFetchers() {
-    return fieldDataFetchers;
-  }
-
-  public DataFetcher getDefaultDataFetcher() {
-    return defaultDataFetcher;
-  }
-
   public TypeResolver getTypeResolver() {
     return typeResolver;
   }
@@ -96,9 +79,7 @@ public class TypeRuntimeWiring {
   }
 
   public static class Builder {
-    private final Map<String, DataFetcher> fieldDataFetchers = new LinkedHashMap<>();
     private String typeName;
-    private DataFetcher defaultDataFetcher;
     private TypeResolver typeResolver;
     private EnumValuesProvider enumValuesProvider;
 
@@ -110,45 +91,6 @@ public class TypeRuntimeWiring {
      */
     public Builder typeName(String typeName) {
       this.typeName = typeName;
-      return this;
-    }
-
-    /**
-     * Adds a data fetcher for the current type to the specified field
-     *
-     * @param fieldName   the field that data fetcher should apply to
-     * @param dataFetcher the new data Fetcher
-     * @return the current type wiring
-     */
-    public Builder dataFetcher(String fieldName, DataFetcher dataFetcher) {
-      assertNotNull(dataFetcher, () -> "you must provide a data fetcher");
-      assertNotNull(fieldName, () -> "you must tell us what field");
-      fieldDataFetchers.put(fieldName, dataFetcher);
-      return this;
-    }
-
-    /**
-     * Adds data fetchers for the current type to the specified field
-     *
-     * @param dataFetchersMap a map of fields to data fetchers
-     * @return the current type wiring
-     */
-    public Builder dataFetchers(Map<String, DataFetcher> dataFetchersMap) {
-      assertNotNull(dataFetchersMap, () -> "you must provide a data fetchers map");
-      fieldDataFetchers.putAll(dataFetchersMap);
-      return this;
-    }
-
-    /**
-     * All fields in a type need a data fetcher of some sort and this method is called to provide the default data fetcher
-     * that will be used for this type if no specific one has been provided per field.
-     *
-     * @param dataFetcher the default data fetcher to use for this type
-     * @return the current type wiring
-     */
-    public Builder defaultDataFetcher(DataFetcher dataFetcher) {
-      assertNotNull(dataFetcher);
-      defaultDataFetcher = dataFetcher;
       return this;
     }
 
@@ -176,7 +118,7 @@ public class TypeRuntimeWiring {
      */
     public TypeRuntimeWiring build() {
       assertNotNull(typeName, () -> "you must provide a type name");
-      return new TypeRuntimeWiring(typeName, defaultDataFetcher, fieldDataFetchers, typeResolver, enumValuesProvider);
+      return new TypeRuntimeWiring(typeName, typeResolver, enumValuesProvider);
     }
   }
 }

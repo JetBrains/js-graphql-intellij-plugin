@@ -27,6 +27,7 @@ import com.intellij.lang.jsgraphql.types.schema.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.intellij.lang.jsgraphql.types.introspection.Introspection.*;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
@@ -176,7 +177,7 @@ public class TraversalContext implements DocumentVisitor {
     GraphQLUnmodifiedType objectType = unwrapAll(getInputType());
     GraphQLInputType inputType = null;
     if (objectType instanceof GraphQLInputObjectType inputObjectType) {
-      GraphQLInputObjectField inputField = schema.getFieldVisibility().getFieldDefinition(inputObjectType, objectField.getName());
+      GraphQLInputObjectField inputField = inputObjectType.getFieldDefinition(objectField.getName());
       if (inputField != null) {
         inputType = inputField.getType();
       }
@@ -312,7 +313,7 @@ public class TraversalContext implements DocumentVisitor {
 
 
   private GraphQLFieldDefinition getFieldDef(GraphQLSchema schema, GraphQLType parentType, Field field) {
-    if (schema.getQueryType().equals(parentType)) {
+    if (Objects.equals(schema.getQueryType(), parentType)) {
       if (field.getName().equals(SchemaMetaFieldDef.getName())) {
         return SchemaMetaFieldDef;
       }
@@ -326,8 +327,8 @@ public class TraversalContext implements DocumentVisitor {
             parentType instanceof GraphQLUnionType)) {
       return TypeNameMetaFieldDef;
     }
-    if (parentType instanceof GraphQLFieldsContainer) {
-      return schema.getFieldVisibility().getFieldDefinition((GraphQLFieldsContainer)parentType, field.getName());
+    if (parentType instanceof GraphQLFieldsContainer fieldsContainer) {
+      return fieldsContainer.getFieldDefinition(field.getName());
     }
     return null;
   }

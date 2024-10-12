@@ -30,9 +30,7 @@ import static com.intellij.lang.jsgraphql.types.schema.GraphQLList.list;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull.nonNull;
 
 @Internal
-public class TypeFromAST {
-
-
+public final class TypeFromAST {
   public static GraphQLType getTypeFromAST(GraphQLSchema schema, Type type) {
     GraphQLType innerType;
     if (type instanceof ListType) {

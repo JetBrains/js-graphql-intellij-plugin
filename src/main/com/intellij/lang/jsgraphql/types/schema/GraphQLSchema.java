@@ -27,7 +27,6 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.SchemaDefinition;
 import com.intellij.lang.jsgraphql.types.language.SchemaExtensionDefinition;
-import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -59,8 +58,6 @@ public class GraphQLSchema {
   private final DirectivesUtil.DirectivesHolder schemaDirectives;
   private final SchemaDefinition definition;
   private final ImmutableList<SchemaExtensionDefinition> extensionDefinitions;
-
-  private final GraphQLCodeRegistry codeRegistry;
 
   private final ImmutableMap<String, GraphQLNamedType> typeMap;
   private final ImmutableMap<String, ImmutableList<GraphQLObjectType>> interfaceNameToObjectTypes;
@@ -112,7 +109,6 @@ public class GraphQLSchema {
   private GraphQLSchema(Builder builder, boolean afterTransform) {
     assertNotNull(builder.additionalTypes, () -> "additionalTypes can't be null");
     assertNotNull(builder.additionalDirectives, () -> "directives can't be null");
-    assertNotNull(builder.codeRegistry, () -> "codeRegistry can't be null");
 
 
     this.queryType = builder.queryType;
@@ -123,34 +119,12 @@ public class GraphQLSchema {
     this.schemaDirectives = new DirectivesUtil.DirectivesHolder(builder.schemaDirectives);
     this.definition = builder.definition;
     this.extensionDefinitions = nonNullCopyOf(builder.extensionDefinitions);
-    this.codeRegistry = builder.codeRegistry;
     // sorted by type name
     SchemaUtil schemaUtil = new SchemaUtil();
     this.typeMap = ImmutableMap.copyOf(schemaUtil.allTypes(this, additionalTypes, afterTransform));
     this.interfaceNameToObjectTypes = buildInterfacesToObjectTypes(schemaUtil.groupImplementations(this));
     this.interfaceNameToObjectTypeNames = buildInterfacesToObjectName(interfaceNameToObjectTypes);
     this.description = builder.description;
-  }
-
-  // This can be removed once we no longer extract legacy code from types such as data fetchers but for now
-  // we need it to make an efficient copy that does not walk the types twice
-
-  @Internal
-  private GraphQLSchema(GraphQLSchema otherSchema, GraphQLCodeRegistry codeRegistry) {
-    this.queryType = otherSchema.queryType;
-    this.mutationType = otherSchema.mutationType;
-    this.subscriptionType = otherSchema.subscriptionType;
-    this.additionalTypes = otherSchema.additionalTypes;
-    this.directives = otherSchema.directives;
-    this.schemaDirectives = otherSchema.schemaDirectives;
-    this.definition = otherSchema.definition;
-    this.extensionDefinitions = nonNullCopyOf(otherSchema.extensionDefinitions);
-    this.codeRegistry = codeRegistry;
-
-    this.typeMap = otherSchema.typeMap;
-    this.interfaceNameToObjectTypes = otherSchema.interfaceNameToObjectTypes;
-    this.interfaceNameToObjectTypeNames = otherSchema.interfaceNameToObjectTypeNames;
-    this.description = otherSchema.description;
   }
 
   private ImmutableMap<String, ImmutableList<GraphQLObjectType>> buildInterfacesToObjectTypes(Map<String, List<GraphQLObjectType>> groupImplementations) {
@@ -169,12 +143,6 @@ public class GraphQLSchema {
       map.put(e.getKey(), objectTypeNames);
     }
     return map.build();
-  }
-
-
-  public GraphQLCodeRegistry getCodeRegistry() {
-    ProgressManager.checkCanceled();
-    return codeRegistry;
   }
 
   public Set<GraphQLType> getAdditionalTypes() {
@@ -263,15 +231,6 @@ public class GraphQLSchema {
   public @Nullable GraphQLObjectType getSubscriptionType() {
     ProgressManager.checkCanceled();
     return subscriptionType;
-  }
-
-  /**
-   * @return the field visibility
-   * @deprecated use {@link GraphQLCodeRegistry#getFieldVisibility()} instead
-   */
-  @Deprecated
-  public GraphqlFieldVisibility getFieldVisibility() {
-    return codeRegistry.getFieldVisibility();
   }
 
   /**
@@ -461,7 +420,6 @@ public class GraphQLSchema {
       .query(existingSchema.getQueryType())
       .mutation(existingSchema.getMutationType())
       .subscription(existingSchema.getSubscriptionType())
-      .codeRegistry(existingSchema.getCodeRegistry())
       .clearAdditionalTypes()
       .clearDirectives()
       .additionalDirectives(new LinkedHashSet<>(existingSchema.getDirectives()))
@@ -479,7 +437,6 @@ public class GraphQLSchema {
     private GraphQLObjectType queryType;
     private GraphQLObjectType mutationType;
     private GraphQLObjectType subscriptionType;
-    private GraphQLCodeRegistry codeRegistry = GraphQLCodeRegistry.newCodeRegistry().build();
     private Set<GraphQLType> additionalTypes = new LinkedHashSet<>();
     private SchemaDefinition definition;
     private List<SchemaExtensionDefinition> extensionDefinitions;
@@ -514,22 +471,6 @@ public class GraphQLSchema {
 
     public Builder subscription(GraphQLObjectType subscriptionType) {
       this.subscriptionType = subscriptionType;
-      return this;
-    }
-
-    /**
-     * @param fieldVisibility the field visibility
-     * @return this builder
-     * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry.Builder#fieldVisibility(com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility)} instead
-     */
-    @Deprecated(forRemoval = true)
-    public Builder fieldVisibility(GraphqlFieldVisibility fieldVisibility) {
-      this.codeRegistry = this.codeRegistry.transform(builder -> builder.fieldVisibility(fieldVisibility));
-      return this;
-    }
-
-    public Builder codeRegistry(GraphQLCodeRegistry codeRegistry) {
-      this.codeRegistry = codeRegistry;
       return this;
     }
 
@@ -651,14 +592,9 @@ public class GraphQLSchema {
       assertNotNull(additionalTypes, () -> "additionalTypes can't be null");
       assertNotNull(additionalDirectives, () -> "additionalDirectives can't be null");
 
-      // grab the legacy code things from types
-      final GraphQLSchema tempSchema = new GraphQLSchema(this, afterTransform);
-      codeRegistry = codeRegistry.transform(codeRegistryBuilder -> schemaUtil.extractCodeFromTypes(codeRegistryBuilder, tempSchema));
-
-      GraphQLSchema graphQLSchema = new GraphQLSchema(tempSchema, codeRegistry);
-      schemaUtil.replaceTypeReferences(graphQLSchema);
-
-      return graphQLSchema;
+      final GraphQLSchema schema = new GraphQLSchema(this, afterTransform);
+      schemaUtil.replaceTypeReferences(schema);
+      return schema;
     }
   }
 }

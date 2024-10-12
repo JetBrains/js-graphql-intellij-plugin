@@ -25,25 +25,6 @@ import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 
-
-/**
- * This context object can be used to contain key values that can be useful as "context" when executing
- * {@link graphql.schema.DataFetcher}s
- *
- * <pre>
- * {@code
- *     DataFetcher df = new DataFetcher() {
- *        public Object get(DataFetchingEnvironment env) {
- *            GraphQLContext ctx = env.getContext()
- *            User currentUser = ctx.getOrDefault("userKey",new AnonymousUser())
- *            ...
- *        }
- *     }
- * }
- * </pre>
- * <p>
- * You can set this up via {@link ExecutionInput.Builder#context(Builder)}
- */
 @PublicApi
 @ThreadSafe
 @SuppressWarnings("unchecked")

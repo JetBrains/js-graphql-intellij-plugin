@@ -18,11 +18,6 @@
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.schema.DataFetcher;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
-import com.intellij.lang.jsgraphql.types.schema.TypeResolver;
-
-import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
 
 @Internal
 public class NoopWiringFactory implements WiringFactory {

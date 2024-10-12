@@ -18,14 +18,18 @@
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.lang.jsgraphql.types.schema.*;
-import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphqlTypeComparatorRegistry;
+import com.intellij.lang.jsgraphql.types.schema.TypeResolver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
-import static com.intellij.lang.jsgraphql.types.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
 
 /**
  * A runtime wiring is a specification of data fetchers, type resolvers and custom scalars that are needed
@@ -34,39 +38,21 @@ import static com.intellij.lang.jsgraphql.types.schema.visibility.DefaultGraphql
 @PublicApi
 public class RuntimeWiring {
 
-  private final Map<String, Map<String, DataFetcher>> dataFetchers;
-  private final Map<String, DataFetcher> defaultDataFetchers;
   private final Map<String, GraphQLScalarType> scalars;
   private final Map<String, TypeResolver> typeResolvers;
   private final Map<String, SchemaDirectiveWiring> registeredDirectiveWiring;
   private final List<SchemaDirectiveWiring> directiveWiring;
   private final WiringFactory wiringFactory;
   private final Map<String, EnumValuesProvider> enumValuesProviders;
-  private final Collection<SchemaGeneratorPostProcessing> schemaGeneratorPostProcessings;
-  private final GraphqlFieldVisibility fieldVisibility;
-  private final GraphQLCodeRegistry codeRegistry;
   private final GraphqlTypeComparatorRegistry comparatorRegistry;
 
-  /**
-   * This is a Runtime wiring which provides mocked types resolver
-   * and scalars. Useful for testing only.
-   */
-  public static final RuntimeWiring MOCKED_WIRING = RuntimeWiring
-    .newRuntimeWiring()
-    .wiringFactory(new MockedWiringFactory()).build();
-
   private RuntimeWiring(Builder builder) {
-    this.dataFetchers = builder.dataFetchers;
-    this.defaultDataFetchers = builder.defaultDataFetchers;
     this.scalars = builder.scalars;
     this.typeResolvers = builder.typeResolvers;
     this.registeredDirectiveWiring = builder.registeredDirectiveWiring;
     this.directiveWiring = builder.directiveWiring;
     this.wiringFactory = builder.wiringFactory;
     this.enumValuesProviders = builder.enumValuesProviders;
-    this.schemaGeneratorPostProcessings = builder.schemaGeneratorPostProcessings;
-    this.fieldVisibility = builder.fieldVisibility;
-    this.codeRegistry = builder.codeRegistry;
     this.comparatorRegistry = builder.comparatorRegistry;
   }
 
@@ -77,24 +63,8 @@ public class RuntimeWiring {
     return new Builder();
   }
 
-  public GraphQLCodeRegistry getCodeRegistry() {
-    return codeRegistry;
-  }
-
   public Map<String, GraphQLScalarType> getScalars() {
     return new LinkedHashMap<>(scalars);
-  }
-
-  public Map<String, Map<String, DataFetcher>> getDataFetchers() {
-    return dataFetchers;
-  }
-
-  public Map<String, DataFetcher> getDataFetcherForType(String typeName) {
-    return dataFetchers.computeIfAbsent(typeName, k -> new LinkedHashMap<>());
-  }
-
-  public DataFetcher getDefaultDataFetcherForType(String typeName) {
-    return defaultDataFetchers.get(typeName);
   }
 
   public Map<String, TypeResolver> getTypeResolvers() {
@@ -109,10 +79,6 @@ public class RuntimeWiring {
     return wiringFactory;
   }
 
-  public GraphqlFieldVisibility getFieldVisibility() {
-    return fieldVisibility;
-  }
-
   public Map<String, SchemaDirectiveWiring> getRegisteredDirectiveWiring() {
     return registeredDirectiveWiring;
   }
@@ -121,35 +87,21 @@ public class RuntimeWiring {
     return directiveWiring;
   }
 
-  public Collection<SchemaGeneratorPostProcessing> getSchemaGeneratorPostProcessings() {
-    return schemaGeneratorPostProcessings;
-  }
-
   public GraphqlTypeComparatorRegistry getComparatorRegistry() {
     return comparatorRegistry;
   }
 
   @PublicApi
   public static class Builder {
-    private final Map<String, Map<String, DataFetcher>> dataFetchers = new LinkedHashMap<>();
-    private final Map<String, DataFetcher> defaultDataFetchers = new LinkedHashMap<>();
     private final Map<String, GraphQLScalarType> scalars = new LinkedHashMap<>();
     private final Map<String, TypeResolver> typeResolvers = new LinkedHashMap<>();
     private final Map<String, EnumValuesProvider> enumValuesProviders = new LinkedHashMap<>();
     private final Map<String, SchemaDirectiveWiring> registeredDirectiveWiring = new LinkedHashMap<>();
     private final List<SchemaDirectiveWiring> directiveWiring = new ArrayList<>();
-    private final Collection<SchemaGeneratorPostProcessing> schemaGeneratorPostProcessings = new ArrayList<>();
     private WiringFactory wiringFactory = new NoopWiringFactory();
-    private GraphqlFieldVisibility fieldVisibility = DEFAULT_FIELD_VISIBILITY;
-    private GraphQLCodeRegistry codeRegistry = GraphQLCodeRegistry.newCodeRegistry().build();
     private GraphqlTypeComparatorRegistry comparatorRegistry = GraphqlTypeComparatorRegistry.AS_IS_REGISTRY;
 
     private Builder() {
-      // We add these scalars explicitly in com.intellij.lang.jsgraphql.types.schema.idl.UnExecutableSchemaGenerator.makeUnExecutableSchema
-      //
-      // ScalarInfo.GRAPHQL_SPECIFICATION_SCALARS.forEach(this::scalar);
-      // we give this out by default
-      // registeredDirectiveWiring.put(FetchSchemaDirectiveWiring.FETCH, new FetchSchemaDirectiveWiring());
     }
 
     /**
@@ -165,28 +117,6 @@ public class RuntimeWiring {
     }
 
     /**
-     * This allows you to seed in your own {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instance
-     *
-     * @param codeRegistry the code registry to use
-     * @return this outer builder
-     */
-    public Builder codeRegistry(GraphQLCodeRegistry codeRegistry) {
-      this.codeRegistry = assertNotNull(codeRegistry);
-      return this;
-    }
-
-    /**
-     * This allows you to seed in your own {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instance
-     *
-     * @param codeRegistry the code registry to use
-     * @return this outer builder
-     */
-    public Builder codeRegistry(GraphQLCodeRegistry.Builder codeRegistry) {
-      this.codeRegistry = assertNotNull(codeRegistry).build();
-      return this;
-    }
-
-    /**
      * This allows you to add in new custom Scalar implementations beyond the standard set.
      *
      * @param scalarType the new scalar implementation
@@ -194,17 +124,6 @@ public class RuntimeWiring {
      */
     public Builder scalar(GraphQLScalarType scalarType) {
       scalars.put(scalarType.getName(), scalarType);
-      return this;
-    }
-
-    /**
-     * This allows you to add a field visibility that will be associated with the schema
-     *
-     * @param fieldVisibility the new field visibility
-     * @return the runtime wiring builder
-     */
-    public Builder fieldVisibility(GraphqlFieldVisibility fieldVisibility) {
-      this.fieldVisibility = assertNotNull(fieldVisibility);
       return this;
     }
 
@@ -238,10 +157,6 @@ public class RuntimeWiring {
      */
     public Builder type(TypeRuntimeWiring typeRuntimeWiring) {
       String typeName = typeRuntimeWiring.getTypeName();
-      Map<String, DataFetcher> typeDataFetchers = dataFetchers.computeIfAbsent(typeName, k -> new LinkedHashMap<>());
-      typeDataFetchers.putAll(typeRuntimeWiring.getFieldDataFetchers());
-
-      defaultDataFetchers.put(typeName, typeRuntimeWiring.getDefaultDataFetcher());
 
       TypeResolver typeResolver = typeRuntimeWiring.getTypeResolver();
       if (typeResolver != null) {
@@ -262,15 +177,15 @@ public class RuntimeWiring {
      * with the specified name.
      * <p>
      * To be called back for every directive the use {@link #directiveWiring(SchemaDirectiveWiring)} or
-     * use {@link com.intellij.lang.jsgraphql.types.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)}
+     * use {@link WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)}
      * instead.
      *
      * @param directiveName         the name of the directive to wire
      * @param schemaDirectiveWiring the runtime behaviour of this wiring
      * @return the runtime wiring builder
      * @see #directiveWiring(SchemaDirectiveWiring)
-     * @see com.intellij.lang.jsgraphql.types.schema.idl.SchemaDirectiveWiring
-     * @see com.intellij.lang.jsgraphql.types.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)
+     * @see SchemaDirectiveWiring
+     * @see WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)
      */
     public Builder directive(String directiveName, SchemaDirectiveWiring schemaDirectiveWiring) {
       registeredDirectiveWiring.put(directiveName, schemaDirectiveWiring);
@@ -287,8 +202,8 @@ public class RuntimeWiring {
      * @param schemaDirectiveWiring the runtime behaviour of this wiring
      * @return the runtime wiring builder
      * @see #directive(String, SchemaDirectiveWiring)
-     * @see com.intellij.lang.jsgraphql.types.schema.idl.SchemaDirectiveWiring
-     * @see com.intellij.lang.jsgraphql.types.schema.idl.WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)
+     * @see SchemaDirectiveWiring
+     * @see WiringFactory#providesSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment)
      */
     public Builder directiveWiring(SchemaDirectiveWiring schemaDirectiveWiring) {
       directiveWiring.add(schemaDirectiveWiring);
@@ -296,7 +211,7 @@ public class RuntimeWiring {
     }
 
     /**
-     * You can specify your own sort order of graphql types via {@link com.intellij.lang.jsgraphql.types.schema.GraphqlTypeComparatorRegistry}
+     * You can specify your own sort order of graphql types via {@link GraphqlTypeComparatorRegistry}
      * which will tell you what type of objects you are to sort when
      * it asks for a comparator.
      *
@@ -305,17 +220,6 @@ public class RuntimeWiring {
      */
     public Builder comparatorRegistry(GraphqlTypeComparatorRegistry comparatorRegistry) {
       this.comparatorRegistry = comparatorRegistry;
-      return this;
-    }
-
-    /**
-     * Adds a schema transformer into the mix
-     *
-     * @param schemaGeneratorPostProcessing the non null schema transformer to add
-     * @return the runtime wiring builder
-     */
-    public Builder transformer(SchemaGeneratorPostProcessing schemaGeneratorPostProcessing) {
-      this.schemaGeneratorPostProcessings.add(assertNotNull(schemaGeneratorPostProcessing));
       return this;
     }
 

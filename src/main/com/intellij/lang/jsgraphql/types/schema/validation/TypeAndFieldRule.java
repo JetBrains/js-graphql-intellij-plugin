@@ -23,7 +23,6 @@ import com.intellij.lang.jsgraphql.types.util.FpKit;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.intellij.lang.jsgraphql.types.introspection.Introspection.isIntrospectionTypes;
@@ -42,16 +41,12 @@ import static com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo.isGraphqlS
  */
 public class TypeAndFieldRule implements SchemaValidationRule {
 
-  private Map<String, GraphQLNamedType> schemaTypeHolder;
-
   @Override
   public void check(GraphQLSchema graphQLSchema, SchemaValidationErrorCollector validationErrorCollector) {
 
     List<GraphQLNamedType> allTypesAsList = graphQLSchema.getAllTypesAsList();
 
     List<GraphQLNamedType> filteredType = filterBuiltInTypes(allTypesAsList);
-
-    schemaTypeHolder = graphQLSchema.getTypeMap();
 
     checkTypes(filteredType, validationErrorCollector);
   }

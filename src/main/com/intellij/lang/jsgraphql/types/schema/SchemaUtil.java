@@ -20,16 +20,11 @@ package com.intellij.lang.jsgraphql.types.schema;
 
 import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.introspection.Introspection;
 
 import java.util.*;
 
 @Internal
 public class SchemaUtil {
-
-  private static final SchemaTraverser TRAVERSER = new SchemaTraverser();
-
-
   ImmutableMap<String, GraphQLNamedType> allTypes(final GraphQLSchema schema,
                                                   final Set<GraphQLType> additionalTypes,
                                                   boolean afterTransform) {
@@ -146,11 +141,5 @@ public class SchemaUtil {
     SchemaTraverser schemaTraverser =
       new SchemaTraverser(schemaElement -> schemaElement.getChildrenWithTypeReferences().getChildrenAsList());
     schemaTraverser.depthFirst(new GraphQLTypeResolvingVisitor(typeMap), roots);
-  }
-
-  void extractCodeFromTypes(GraphQLCodeRegistry.Builder codeRegistry, GraphQLSchema schema) {
-    Introspection.addCodeForIntrospectionTypes(codeRegistry);
-
-    TRAVERSER.depthFirst(new CodeRegistryVisitor(codeRegistry), schema.getAllTypesAsList());
   }
 }

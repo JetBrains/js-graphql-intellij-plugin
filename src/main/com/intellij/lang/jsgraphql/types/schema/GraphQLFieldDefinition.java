@@ -32,26 +32,14 @@ import java.util.function.UnaryOperator;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.Assert.assertValidName;
-import static com.intellij.lang.jsgraphql.types.schema.DataFetcherFactoryEnvironment.newDataFetchingFactoryEnvironment;
 import static com.intellij.lang.jsgraphql.types.util.FpKit.getByName;
 
-/**
- * Fields are the ways you get data values in graphql and a field definition represents a field, its type, the arguments it takes
- * and the {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} used to get data values for that field.
- * <p>
- * Fields can be thought of as functions in graphql, they have a name, take defined arguments and return a value.
- * <p>
- * Fields can also be deprecated, which indicates the consumers that a field wont be supported in the future.
- * <p>
- * See http://graphql.org/learn/queries/#fields for more details on the concept.
- */
 @PublicApi
 public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQLDirectiveContainer {
 
   private final String name;
   private final String description;
   private final GraphQLOutputType originalType;
-  private final DataFetcherFactory dataFetcherFactory;
   private final String deprecationReason;
   private final ImmutableList<GraphQLArgument> arguments;
   private final DirectivesUtil.DirectivesHolder directives;
@@ -78,11 +66,9 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
   public GraphQLFieldDefinition(String name,
                                 String description,
                                 GraphQLOutputType type,
-                                DataFetcher<?> dataFetcher,
                                 List<GraphQLArgument> arguments,
                                 String deprecationReason) {
-    this(name, description, type, DataFetcherFactories.useDataFetcher(dataFetcher), arguments, deprecationReason, Collections.emptyList(),
-         null);
+    this(name, description, type, arguments, deprecationReason, Collections.emptyList(), null);
   }
 
   /**
@@ -101,7 +87,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
   public GraphQLFieldDefinition(String name,
                                 String description,
                                 GraphQLOutputType type,
-                                DataFetcherFactory dataFetcherFactory,
                                 List<GraphQLArgument> arguments,
                                 String deprecationReason,
                                 List<GraphQLDirective> directives,
@@ -112,7 +97,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
     this.name = name;
     this.description = description;
     this.originalType = type;
-    this.dataFetcherFactory = dataFetcherFactory;
     this.arguments = ImmutableList.copyOf(arguments);
     this.directives = new DirectivesUtil.DirectivesHolder(directives);
     this.deprecationReason = deprecationReason;
@@ -131,16 +115,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
 
   public GraphQLOutputType getType() {
     return replacedType != null ? replacedType : originalType;
-  }
-
-  // to be removed in a future version when all code is in the code registry
-  DataFetcher<?> getDataFetcher() {
-    if (dataFetcherFactory == null) {
-      return null;
-    }
-    return dataFetcherFactory.get(newDataFetchingFactoryEnvironment()
-                                    .fieldDefinition(this)
-                                    .build());
   }
 
   public GraphQLArgument getArgument(String name) {
@@ -198,7 +172,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
            "name='" + name + '\'' +
            ", type=" + getType() +
            ", arguments=" + arguments +
-           ", dataFetcherFactory=" + dataFetcherFactory +
            ", description='" + description + '\'' +
            ", deprecationReason='" + deprecationReason + '\'' +
            ", definition=" + definition +
@@ -280,7 +253,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
   public static class Builder extends GraphqlTypeBuilder {
 
     private GraphQLOutputType type;
-    private DataFetcherFactory<?> dataFetcherFactory;
     private String deprecationReason;
     private FieldDefinition definition;
     private final Map<String, GraphQLArgument> arguments = new LinkedHashMap<>();
@@ -293,7 +265,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
       this.name = existing.getName();
       this.description = existing.getDescription();
       this.type = existing.originalType;
-      this.dataFetcherFactory = DataFetcherFactories.useDataFetcher(existing.getDataFetcher());
       this.deprecationReason = existing.getDeprecationReason();
       this.definition = existing.getDefinition();
       this.arguments.putAll(getByName(existing.getArguments(), GraphQLArgument::getName));
@@ -338,47 +309,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
 
     public Builder type(GraphQLOutputType type) {
       this.type = type;
-      return this;
-    }
-
-    /**
-     * Sets the {@link com.intellij.lang.jsgraphql.types.schema.DataFetcher} to use with this field.
-     *
-     * @param dataFetcher the data fetcher to use
-     * @return this builder
-     * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instead
-     */
-    @Deprecated
-    public Builder dataFetcher(DataFetcher<?> dataFetcher) {
-      assertNotNull(dataFetcher, () -> "dataFetcher must be not null");
-      this.dataFetcherFactory = DataFetcherFactories.useDataFetcher(dataFetcher);
-      return this;
-    }
-
-    /**
-     * Sets the {@link com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory} to use with this field.
-     *
-     * @param dataFetcherFactory the data fetcher factory
-     * @return this builder
-     * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instead
-     */
-    @Deprecated(forRemoval = true)
-    public Builder dataFetcherFactory(DataFetcherFactory<?> dataFetcherFactory) {
-      assertNotNull(dataFetcherFactory, () -> "dataFetcherFactory must be not null");
-      this.dataFetcherFactory = dataFetcherFactory;
-      return this;
-    }
-
-    /**
-     * This will cause the data fetcher of this field to always return the supplied value
-     *
-     * @param value the value to always return
-     * @return this builder
-     * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLCodeRegistry} instead
-     */
-    @Deprecated(forRemoval = true)
-    public Builder staticValue(final Object value) {
-      this.dataFetcherFactory = DataFetcherFactories.useDataFetcher(environment -> value);
       return this;
     }
 
@@ -510,7 +440,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
         name,
         description,
         type,
-        dataFetcherFactory,
         sort(arguments, GraphQLFieldDefinition.class, GraphQLArgument.class),
         deprecationReason,
         sort(directives, GraphQLFieldDefinition.class, GraphQLDirective.class),

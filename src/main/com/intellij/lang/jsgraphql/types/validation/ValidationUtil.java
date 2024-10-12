@@ -24,6 +24,7 @@ import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.visibility.DefaultGraphqlFieldVisibility;
 import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
 
 import java.util.*;
@@ -127,7 +128,7 @@ public class ValidationUtil {
       handleNotObjectError(value, type);
       return false;
     }
-    GraphqlFieldVisibility fieldVisibility = schema.getCodeRegistry().getFieldVisibility();
+    GraphqlFieldVisibility fieldVisibility = DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
     Map<String, ObjectField> objectFieldMap = fieldMap(objectValue);
 
     Set<String> missingFields = getMissingFields(type, objectFieldMap, fieldVisibility);

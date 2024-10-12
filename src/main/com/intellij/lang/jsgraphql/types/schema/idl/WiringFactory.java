@@ -18,18 +18,11 @@
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.PublicSpi;
-import com.intellij.lang.jsgraphql.types.schema.DataFetcher;
-import com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
 import com.intellij.lang.jsgraphql.types.schema.TypeResolver;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
 
-/**
- * A WiringFactory allows you to more dynamically wire in {@link TypeResolver}s and {@link DataFetcher}s
- * based on the IDL definitions.  For example you could look at the directives say to build a more dynamic
- * set of type resolvers and data fetchers.
- */
 @PublicSpi
 public interface WiringFactory {
 
@@ -94,27 +87,6 @@ public interface WiringFactory {
   }
 
   /**
-   * This is called to ask if this factory can provide a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory} for the definition
-   *
-   * @param environment the wiring environment
-   * @return true if the factory can give out a data fetcher factory
-   */
-  default boolean providesDataFetcherFactory(FieldWiringEnvironment environment) {
-    return false;
-  }
-
-  /**
-   * Returns a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory} given the type definition
-   *
-   * @param environment the wiring environment
-   * @param <T>         the type of the data fetcher
-   * @return a {@link com.intellij.lang.jsgraphql.types.schema.DataFetcherFactory}
-   */
-  default <T> DataFetcherFactory<T> getDataFetcherFactory(FieldWiringEnvironment environment) {
-    return assertShouldNeverHappen();
-  }
-
-  /**
    * This is called to ask if this factory can provide a schema directive wiring.
    * <p>
    * {@link SchemaDirectiveWiringEnvironment#getDirectives()} contains all the directives
@@ -135,37 +107,5 @@ public interface WiringFactory {
    */
   default SchemaDirectiveWiring getSchemaDirectiveWiring(SchemaDirectiveWiringEnvironment environment) {
     return assertShouldNeverHappen();
-  }
-
-
-  /**
-   * This is called to ask if this factory can provide a data fetcher for the definition
-   *
-   * @param environment the wiring environment
-   * @return true if the factory can give out a data fetcher
-   */
-  default boolean providesDataFetcher(FieldWiringEnvironment environment) {
-    return false;
-  }
-
-  /**
-   * Returns a {@link DataFetcher} given the type definition
-   *
-   * @param environment the wiring environment
-   * @return a {@link DataFetcher}
-   */
-  default DataFetcher getDataFetcher(FieldWiringEnvironment environment) {
-    return assertShouldNeverHappen();
-  }
-
-  /**
-   * All fields need a data fetcher of some sort and this method is called to provide the data fetcher
-   * that will be used if no specific one has been provided
-   *
-   * @param environment the wiring environment
-   * @return a {@link DataFetcher}
-   */
-  default DataFetcher getDefaultDataFetcher(FieldWiringEnvironment environment) {
-    return null;
   }
 }

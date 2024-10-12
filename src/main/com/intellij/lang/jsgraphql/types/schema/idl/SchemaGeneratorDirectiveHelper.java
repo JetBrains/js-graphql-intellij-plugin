@@ -43,22 +43,19 @@ public class SchemaGeneratorDirectiveHelper {
     private final RuntimeWiring runtimeWiring;
     private final NodeParentTree<NamedNode<?>> nodeParentTree;
     private final Map<String, Object> context;
-    private final GraphQLCodeRegistry.Builder codeRegistry;
     private final GraphqlElementParentTree elementParentTree;
     private final GraphQLFieldsContainer fieldsContainer;
     private final GraphQLFieldDefinition fieldDefinition;
 
     Parameters(TypeDefinitionRegistry typeRegistry,
                RuntimeWiring runtimeWiring,
-               Map<String, Object> context,
-               GraphQLCodeRegistry.Builder codeRegistry) {
-      this(typeRegistry, runtimeWiring, context, codeRegistry, null, null, null, null);
+               Map<String, Object> context) {
+      this(typeRegistry, runtimeWiring, context, null, null, null, null);
     }
 
     Parameters(TypeDefinitionRegistry typeRegistry,
                RuntimeWiring runtimeWiring,
                Map<String, Object> context,
-               GraphQLCodeRegistry.Builder codeRegistry,
                NodeParentTree<NamedNode<?>> nodeParentTree,
                GraphqlElementParentTree elementParentTree,
                GraphQLFieldsContainer fieldsContainer,
@@ -67,7 +64,6 @@ public class SchemaGeneratorDirectiveHelper {
       this.runtimeWiring = runtimeWiring;
       this.nodeParentTree = nodeParentTree;
       this.context = context;
-      this.codeRegistry = codeRegistry;
       this.elementParentTree = elementParentTree;
       this.fieldsContainer = fieldsContainer;
       this.fieldDefinition = fieldDefinition;
@@ -81,24 +77,12 @@ public class SchemaGeneratorDirectiveHelper {
       return runtimeWiring;
     }
 
-    public NodeParentTree<NamedNode<?>> getNodeParentTree() {
-      return nodeParentTree;
-    }
-
-    public GraphqlElementParentTree getElementParentTree() {
-      return elementParentTree;
-    }
-
     public GraphQLFieldsContainer getFieldsContainer() {
       return fieldsContainer;
     }
 
     public Map<String, Object> getContext() {
       return context;
-    }
-
-    public GraphQLCodeRegistry.Builder getCodeRegistry() {
-      return codeRegistry;
     }
 
     public GraphQLFieldDefinition getFieldsDefinition() {
@@ -108,7 +92,7 @@ public class SchemaGeneratorDirectiveHelper {
     public Parameters newParams(GraphQLFieldsContainer fieldsContainer,
                                 NodeParentTree<NamedNode<?>> nodeParentTree,
                                 GraphqlElementParentTree elementParentTree) {
-      return new Parameters(this.typeRegistry, this.runtimeWiring, this.context, this.codeRegistry, nodeParentTree, elementParentTree,
+      return new Parameters(this.typeRegistry, this.runtimeWiring, this.context, nodeParentTree, elementParentTree,
                             fieldsContainer, fieldDefinition);
     }
 
@@ -116,12 +100,12 @@ public class SchemaGeneratorDirectiveHelper {
                                 GraphQLFieldsContainer fieldsContainer,
                                 NodeParentTree<NamedNode<?>> nodeParentTree,
                                 GraphqlElementParentTree elementParentTree) {
-      return new Parameters(this.typeRegistry, this.runtimeWiring, this.context, this.codeRegistry, nodeParentTree, elementParentTree,
+      return new Parameters(this.typeRegistry, this.runtimeWiring, this.context, nodeParentTree, elementParentTree,
                             fieldsContainer, fieldDefinition);
     }
 
     public Parameters newParams(NodeParentTree<NamedNode<?>> nodeParentTree, GraphqlElementParentTree elementParentTree) {
-      return new Parameters(this.typeRegistry, this.runtimeWiring, this.context, this.codeRegistry, nodeParentTree, elementParentTree,
+      return new Parameters(this.typeRegistry, this.runtimeWiring, this.context, nodeParentTree, elementParentTree,
                             this.fieldsContainer, fieldDefinition);
     }
   }

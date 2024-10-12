@@ -29,7 +29,7 @@ import java.util.List;
  * Contains parsing code for the StringValue types in the grammar
  */
 @Internal
-public class StringValueParsing {
+public final class StringValueParsing {
   private static final String ESCAPED_TRIPLE_QUOTES = "\\\\\"\"\""; // ahh Java + Regex
   private static final String THREE_QUOTES = "\"\"\"";
 
