@@ -12,6 +12,7 @@ import com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter
 import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.GraphQLException
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema
+import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem
 import com.intellij.lang.jsgraphql.types.schema.validation.InvalidSchemaException
 import com.intellij.openapi.project.Project
@@ -19,8 +20,11 @@ import com.intellij.openapi.project.Project
 class GraphQLSchemaInfo(
   val schema: GraphQLSchema,
   private val additionalErrors: List<GraphQLException>,
-  val registryInfo: GraphQLRegistryInfo,
+  private val registryInfo: GraphQLRegistryInfo,
 ) {
+  val registry: TypeDefinitionRegistry
+    get() = registryInfo.typeDefinitionRegistry
+
   fun getErrors(project: Project): List<GraphQLError> {
     val rawErrors: MutableList<GraphQLException> = Lists.newArrayList(additionalErrors)
     rawErrors.addAll(registryInfo.errors)

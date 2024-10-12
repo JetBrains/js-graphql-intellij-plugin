@@ -35,7 +35,7 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
 
   init {
     val parts: MutableList<String> = mutableListOf()
-    val registry = validatedSchema.registryInfo.typeDefinitionRegistry
+    val registry = validatedSchema.registry
     parts.add(GraphQLBundle.message(
       "graphql.toolwindow.schema.content.types.count",
       registry.getTypes(ObjectTypeDefinition::class.java).size
@@ -87,7 +87,7 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
       object : SimpleChooseByNameModel(myProject, GraphQLBundle.message("graphql.search.schema.registry.0", parent.name), null) {
         override fun getNames(): Array<String> {
           val names: MutableList<String> = mutableListOf()
-          val registry = validatedSchema.registryInfo.typeDefinitionRegistry
+          val registry = validatedSchema.registry
           registry.types().values.forEach { names.add(it.name) }
           registry.scalars().values.forEach { names.add(it.name) }
           registry.directiveDefinitions.values.forEach { names.add(it.name) }
@@ -95,7 +95,7 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
         }
 
         override fun getElementsByName(name: String, pattern: String): Array<Any> {
-          val registry = validatedSchema.registryInfo.typeDefinitionRegistry
+          val registry = validatedSchema.registry
           val type = registry.getType(name)
           if (type.isPresent) {
             return arrayOf(type.get())

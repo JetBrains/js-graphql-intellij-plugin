@@ -258,7 +258,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
         GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(completionElement.getProject())
           .getSchemaInfo(completionElement);
         final GraphQLSchema schema = schemaInfo.getSchema();
-        final TypeDefinitionRegistry registry = schemaInfo.getRegistryInfo().getTypeDefinitionRegistry();
+        final TypeDefinitionRegistry registry = schemaInfo.getRegistry();
         final Set<String> filteredTypes = GraphQLSchemaUtil.getSchemaOperationTypeNames(schema);
         registry.scalars().values().forEach(scalar ->
                                               result.addElement(GraphQLCompletionUtil.createTypeNameLookupElement(scalar.getName())));
@@ -294,7 +294,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
           .getSchemaInfo(completionElement);
         currentMembers.addAll(GraphQLSchemaUtil.getSchemaOperationTypeNames(schemaInfo.getSchema()));
         unionMembers.getTypeNameList().forEach(t -> currentMembers.add(t.getName()));
-        final TypeDefinitionRegistry typeDefinitionRegistry = schemaInfo.getRegistryInfo().getTypeDefinitionRegistry();
+        final TypeDefinitionRegistry typeDefinitionRegistry = schemaInfo.getRegistry();
         typeDefinitionRegistry.getTypes(ObjectTypeDefinition.class).forEach(schemaType -> {
           String name = schemaType.getName();
           if (!isIgnoredType(name) && currentMembers.add(name)) {
