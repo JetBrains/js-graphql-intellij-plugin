@@ -56,6 +56,10 @@ class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
     doProjectTest("type1.graphql")
   }
 
+  fun testRecursiveDefaultObjectValues() {
+    doTest()
+  }
+
   private fun doTest(optionsBuilder: UnaryOperator<SchemaPrinter.Options>? = null) {
     myFixture.configureByFile(getTestName(true) + ".graphql")
 

@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isList;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNonNull;
@@ -121,14 +122,20 @@ public class AstValueHelper {
     fields.forEach(field -> {
       String fieldName = field.getName();
       GraphQLInputType fieldType = field.getType();
-      // TODO: check
-      //Object fieldValueObj = PropertyDataFetcherHelper.getPropertyValue(fieldName, javaValue, fieldType);
-      //Value<?> nodeValue = astFromValue(fieldValueObj, fieldType);
-      //if (nodeValue != null) {
-      //  fieldNodes.add(ObjectField.newObjectField().name(fieldName).value(nodeValue).build());
-      //}
+      Object fieldValueObj = getPropertyValue(javaValue, fieldName);
+      Value<?> nodeValue = astFromValue(fieldValueObj, fieldType);
+      if (nodeValue != null) {
+        fieldNodes.add(ObjectField.newObjectField().name(fieldName).value(nodeValue).build());
+      }
     });
     return ObjectValue.newObjectValue().objectFields(fieldNodes).build();
+  }
+
+  private static Object getPropertyValue(Object javaValue, String fieldName) {
+    if (javaValue instanceof Map<?, ?> map) {
+      return map.get(fieldName);
+    }
+    return null;
   }
 
   private static Value<?> handleNumber(String stringValue) {

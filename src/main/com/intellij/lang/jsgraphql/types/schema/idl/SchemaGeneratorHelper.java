@@ -27,6 +27,7 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnInputTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnOutputTypeError;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -200,6 +201,9 @@ public class SchemaGeneratorHelper {
       }
       return result;
     }
+    catch (ProcessCanceledException e) {
+      throw e;
+    }
     catch (Exception e) {
       LOG.warn(e);
       return null;
@@ -220,8 +224,23 @@ public class SchemaGeneratorHelper {
     objectType.getFieldDefinitions().forEach(
       f -> {
         final Value<?> fieldValueFromDefaultObjectValue = getFieldValueFromObjectValue(defaultValue, f.getName());
+
+        GraphQLInputType fieldType = f.getType();
+        if (fieldType instanceof GraphQLTypeReference) {
+          InputValueDefinition fieldDefinition = f.getDefinition();
+          if (fieldDefinition != null) {
+            TypeDefinition fieldTypeDefinition = buildCtx.getTypeDefinition(fieldDefinition.getType());
+            if (fieldTypeDefinition != null) {
+              GraphQLInputType computedFieldType = buildCtx.hasInputType(fieldTypeDefinition);
+              if (computedFieldType != null) {
+                fieldType = computedFieldType;
+              }
+            }
+          }
+        }
+
         Object value = fieldValueFromDefaultObjectValue != null
-                       ? buildValue(buildCtx, fieldValueFromDefaultObjectValue, f.getType())
+                       ? buildValue(buildCtx, fieldValueFromDefaultObjectValue, fieldType)
                        : f.getDefaultValue();
         if (value != null) {
           map.put(f.getName(), value);

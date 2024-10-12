@@ -1,0 +1,40 @@
+type ClaimRecovery {
+    tasks(order: TaskOrderInput = {by: COMPLETED, then: {by: DATE}}): TaskList!
+}
+
+type Task {
+    description: String!
+    id: Int!
+    isCompleted: Boolean!
+    isVoidable: Boolean!
+    isVoided: Boolean!
+    remark: String!
+    title: String!
+}
+
+type TaskList {
+    items: [Task!]!
+    totalCount: Long!
+}
+
+enum OrderDirection {
+    ASCENDING
+    DESCENDING
+}
+
+enum TaskOrder {
+    "Sorts by whether the task is completed or not"
+    COMPLETED
+    "Sorts pending tasks by due date, and completed tasks by completion date in the opposite direction"
+    DATE
+    PRIORITY
+}
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+input TaskOrderInput {
+    by: TaskOrder!
+    direction: OrderDirection
+    then: TaskOrderInput
+}
