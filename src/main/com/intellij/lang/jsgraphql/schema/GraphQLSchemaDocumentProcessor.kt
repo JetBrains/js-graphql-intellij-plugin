@@ -7,7 +7,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.util.Processor
 
 class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
-  val compositeRegistry = GraphQLCompositeRegistry()
+  private val compositeRegistry = GraphQLCompositeRegistry()
 
   override fun process(psiFile: PsiFile?): Boolean {
     ProgressManager.checkCanceled()
@@ -19,5 +19,9 @@ class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
     val document = psiFile.document
     compositeRegistry.addFromDocument(document)
     return true
+  }
+
+  fun build(): GraphQLRegistryInfo {
+    return compositeRegistry.build()
   }
 }

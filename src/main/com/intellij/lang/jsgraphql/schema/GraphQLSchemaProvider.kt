@@ -94,10 +94,10 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
         LOG.trace("Schema from cache returned ($currentModificationStamp)")
         printStats()
       }
-      return currentSchemaEntry.schema
+      return currentSchemaEntry.schemaInfo
     }
 
-    val fallbackSchema = currentSchemaEntry?.schema ?: emptySchemaInfo.value
+    val fallbackSchema = currentSchemaEntry?.schemaInfo ?: emptySchemaInfo.value
     var computation = scheduleComputationIfNeeded(scope, currentModificationStamp)
     computation.ensureStarted()
 
@@ -114,7 +114,7 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
     }
 
     printStats()
-    return scopeToSchemaCache[scope]?.schema ?: fallbackSchema
+    return scopeToSchemaCache[scope]?.schemaInfo ?: fallbackSchema
   }
 
   private fun printStats() {
@@ -245,7 +245,7 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
       // Injected GraphQL
       GraphQLPsiSearchHelper.getInstance(project).processInjectedGraphQLFiles(project, schemaScope, processor)
 
-      processor.compositeRegistry.build()
+      processor.build()
     }
     LOG.info("Registry was built in ${duration} ($modificationStamp)")
     return registry
@@ -298,5 +298,5 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
     }
   }
 
-  private class SchemaEntry(val schema: GraphQLSchemaInfo, val modificationStamp: Long)
+  private class SchemaEntry(val schemaInfo: GraphQLSchemaInfo, val modificationStamp: Long)
 }
