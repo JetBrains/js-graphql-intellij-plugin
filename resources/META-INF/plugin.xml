@@ -218,6 +218,7 @@
     <registryKey key="graphql.request.timeout" defaultValue="15000" description="GraphQL request timeout"/>
     <registryKey key="graphql.request.connect.timeout" defaultValue="5000" description="GraphQL request connection timeout"/>
     <registryKey key="graphql.config.scope.module.libraries" defaultValue="true" description="GraphQL search for definitions in module libraries"/>
+    <registryKey key="graphql.schema.build.timeout" defaultValue="500" description="GraphQL schema build timeout in ms"/>
 
     <!-- Inspections -->
     <localInspection language="GraphQL" key="graphql.inspection.display.name.unresolved.reference"

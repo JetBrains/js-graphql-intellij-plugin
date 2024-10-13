@@ -179,6 +179,8 @@ public class TypeDefinitionRegistry {
    * @param definition the definition to add
    */
   public void add(SDLDefinition definition) {
+    ProgressManager.checkCanceled();
+
     // extensions
     if (definition instanceof ObjectTypeExtensionDefinition newEntry) {
       defineExt(objectTypeExtensions, newEntry, ObjectTypeExtensionDefinition::getName);
