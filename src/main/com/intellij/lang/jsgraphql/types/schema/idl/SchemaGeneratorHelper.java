@@ -206,7 +206,8 @@ public class SchemaGeneratorHelper {
       throw e;
     }
     catch (Exception e) {
-      LOG.warn(e);
+      // we expect errors here due to potential errors in the user's code
+      LOG.info(e);
       return null;
     }
   }
