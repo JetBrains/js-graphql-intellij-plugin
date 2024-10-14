@@ -29,6 +29,7 @@ import com.intellij.lang.jsgraphql.types.util.FpKit;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.util.ObjectUtils;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -251,12 +252,8 @@ public class SchemaGeneratorHelper {
   }
 
   Value<?> getFieldValueFromObjectValue(final ObjectValue objectValue, final String fieldName) {
-    return objectValue.getObjectFields()
-      .stream()
-      .filter(dvf -> dvf.getName().equals(fieldName))
-      .map(ObjectField::getValue)
-      .findFirst()
-      .orElse(null);
+    ObjectField objectField = ContainerUtil.find(objectValue.getObjectFields(), f -> Objects.equals(f.getName(), fieldName));
+    return objectField != null ? objectField.getValue() : null;
   }
 
   String buildDescription(Node<?> node, Description description) {
