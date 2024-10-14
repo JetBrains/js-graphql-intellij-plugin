@@ -20,15 +20,17 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProcessCanceledException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
 
 
 /**
@@ -98,7 +100,7 @@ public class SchemaGenerator {
     try {
       schema = makeExecutableSchemaImpl(typeRegistryCopy, wiring, operationTypeDefinitions);
     }
-    catch (ProcessCanceledException e) {
+    catch (CancellationException e) {
       throw e;
     }
     catch (Exception e) {

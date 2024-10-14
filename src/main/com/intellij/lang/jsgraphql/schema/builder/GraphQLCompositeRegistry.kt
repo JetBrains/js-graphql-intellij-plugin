@@ -1,6 +1,5 @@
 package com.intellij.lang.jsgraphql.schema.builder
 
-import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo
 import com.intellij.lang.jsgraphql.schema.isExtensionDefinition
 import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.GraphQLException
@@ -13,32 +12,11 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionErr
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.util.registry.Registry
-import kotlin.Throws
 
-/**
- * A number chosen based on the average size estimation of GraphQL schemas.
- * For example, the GitHub schema contains approximately 1600 type definitions.
- * Can be changed via the registry option `graphql.schema.size.definitions.limit`.
- */
-private const val SCHEMA_SIZE_DEFINITIONS_LIMIT_DEFAULT = 4000
-
-internal const val SCHEMA_SIZE_DEFINITIONS_LIMIT_KEY = "graphql.schema.size.definitions.limit"
-
-internal val SCHEMA_SIZE_DEFINITIONS_LIMIT: Int
-  get() = Registry.intValue(SCHEMA_SIZE_DEFINITIONS_LIMIT_KEY, SCHEMA_SIZE_DEFINITIONS_LIMIT_DEFAULT)
-
-class GraphQLCompositeRegistry {
+internal class GraphQLCompositeRegistry {
 
   private val namedCompositeDefinitions = mutableMapOf<String, GraphQLCompositeDefinition<*>>()
   private val schemaCompositeDefinition = GraphQLSchemaTypeCompositeDefinition()
-
-  private var totalDefinitionsCount = 0
-  private val currentLimit = SCHEMA_SIZE_DEFINITIONS_LIMIT
-  private var isLimitOverflowLogged = false
-
-  val isTooComplex: Boolean
-    get() = totalDefinitionsCount >= currentLimit
 
   @Throws(GraphQLException::class)
   fun merge(source: TypeDefinitionRegistry) {
@@ -83,17 +61,6 @@ class GraphQLCompositeRegistry {
 
   private fun addTypeDefinition(definition: SDLDefinition<*>) {
     LOG.assertTrue(!isExtensionDefinition(definition))
-
-    if (isTooComplex) {
-      if (!isLimitOverflowLogged) {
-        LOG.warn("totalDefinitionsCount limit exceeded: $totalDefinitionsCount")
-        isLimitOverflowLogged = true
-      }
-      return
-    }
-    else {
-      totalDefinitionsCount++
-    }
 
     val builder = getCompositeDefinition(definition) ?: return
     when (builder) {
@@ -145,7 +112,7 @@ class GraphQLCompositeRegistry {
     }
   }
 
-  fun build(): GraphQLRegistryInfo {
+  fun build(): TypeDefinitionRegistry {
     val registry = TypeDefinitionRegistry()
 
     val schemaDefinition = schemaCompositeDefinition.buildDefinition()
@@ -168,7 +135,7 @@ class GraphQLCompositeRegistry {
       registry.addError(additionalError)
     }
 
-    return GraphQLRegistryInfo(registry, isTooComplex)
+    return registry
   }
 
   private fun validate(): List<GraphQLException> {

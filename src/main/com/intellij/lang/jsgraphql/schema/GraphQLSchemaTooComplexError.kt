@@ -1,8 +1,6 @@
 package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.lang.jsgraphql.GraphQLBundle
-import com.intellij.lang.jsgraphql.schema.builder.SCHEMA_SIZE_DEFINITIONS_LIMIT
-import com.intellij.lang.jsgraphql.schema.builder.SCHEMA_SIZE_DEFINITIONS_LIMIT_KEY
 import com.intellij.lang.jsgraphql.types.ErrorClassification
 import com.intellij.lang.jsgraphql.types.ErrorType
 import com.intellij.lang.jsgraphql.types.GraphQLError
