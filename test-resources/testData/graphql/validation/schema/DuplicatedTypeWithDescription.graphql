@@ -1,0 +1,10 @@
+"""Some description"""
+type <error descr="'PersonVehiclesEdge' type tried to redefine existing 'PersonVehiclesEdge' type">PersonVehiclesEdge</error> {
+  node: String
+  cursor: String!
+}
+
+type PersonVehiclesEdge {
+  node: String
+  cursor: String!
+}

@@ -102,4 +102,8 @@ public class GraphQLSchemaValidationTest extends GraphQLTestCaseBase {
   public void testInterfaceImplementationWithFieldSubType() {
     doHighlightingTest();
   }
+
+  public void testDuplicatedTypeWithDescription() {
+    doHighlightingTest();
+  }
 }

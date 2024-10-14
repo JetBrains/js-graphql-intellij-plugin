@@ -87,7 +87,7 @@ fun getLeadingFileComments(file: PsiFile): List<PsiComment> {
   return comments
 }
 
-fun skipDescription(element: PsiElement): PsiElement {
+fun skipDeclarationDescription(element: PsiElement): PsiElement {
   if (element is GraphQLDescriptionAware) {
     val description = element.description
     if (description != null) {

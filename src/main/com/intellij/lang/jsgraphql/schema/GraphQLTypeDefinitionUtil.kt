@@ -11,7 +11,6 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem
 import com.intellij.openapi.vfs.findPsiFile
-import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafElement
@@ -32,7 +31,7 @@ val GraphQLElement.sourceLocation: SourceLocation
     var file = containingFile
     val isInjected = injectedLanguageManager.isInjectedFragment(file)
 
-    var offset = textRange.startOffset
+    var offset = locationOffset
     if (isInjected) {
       offset = injectedLanguageManager.injectedToHost(this, offset)
       file = injectedLanguageManager.getTopLevelFile(file)
@@ -49,6 +48,11 @@ val GraphQLElement.sourceLocation: SourceLocation
     return SourceLocation(line, col, file.viewProvider.virtualFile.path)
   }
 
+private val GraphQLElement.locationOffset: Int
+  get() {
+    return navigationElement.textRange.startOffset
+  }
+
 fun Node<*>.findElement(project: Project): PsiElement? = sourceLocation.findElement(project)
 
 fun SourceLocation.findElement(project: Project): PsiElement? {
@@ -60,11 +64,11 @@ fun SourceLocation.findElement(project: Project): PsiElement? {
                 ?: file.findElementAt(offset)
                 ?: return null
 
-  return when (element) {
-    is PsiComment -> element
-    is PsiWhiteSpace, is LeafElement -> element.parent
-    else -> element
+  if (element is PsiWhiteSpace || element is LeafElement) {
+    element = element.parent
   }
+
+  return element
 }
 
 private fun SourceLocation.findVirtualFile(): VirtualFile? {

@@ -17,7 +17,6 @@ import com.intellij.openapi.vfs.StandardFileSystems
 object GraphQLTreeNodeNavigationUtil {
   @JvmStatic
   fun openSourceLocation(myProject: Project, location: SourceLocation, followGeneratedFile: Boolean) {
-    // TODO: check
     var sourceFile = StandardFileSystems.local().findFileByPath(location.sourceName) ?: return
     if (sourceFile.fileType == JsonFileType.INSTANCE && followGeneratedFile) {
       val generatedSource = GraphQLGeneratedSourcesManager.getInstance(myProject).requestGeneratedFile(sourceFile)
@@ -26,6 +25,6 @@ object GraphQLTreeNodeNavigationUtil {
         sourceFile = generatedSource
       }
     }
-    OpenFileDescriptor(myProject, sourceFile, location.line - 1, location.column - 1).navigate(true)
+    OpenFileDescriptor(myProject, sourceFile, location.line, location.column).navigate(true)
   }
 }

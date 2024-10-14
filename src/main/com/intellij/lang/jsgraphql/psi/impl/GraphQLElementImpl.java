@@ -24,7 +24,7 @@ public abstract class GraphQLElementImpl extends ASTWrapperPsiElement implements
 
   @Override
   public @NotNull PsiElement getNavigationElement() {
-    return GraphQLPsiUtil.skipDescription(this);
+    return GraphQLPsiUtil.skipDeclarationDescription(this);
   }
 
   @Override
