@@ -9,9 +9,10 @@ package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.lang.jsgraphql.GraphQLFileType
-import com.intellij.lang.jsgraphql.awaitFuture
+import com.intellij.lang.jsgraphql.awaitCoroutine
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
+import com.intellij.lang.jsgraphql.schema.builder.GraphQLCompositeRegistry
 import com.intellij.lang.jsgraphql.types.GraphQLException
 import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType
 import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema
@@ -21,16 +22,16 @@ import com.intellij.lang.jsgraphql.types.schema.validation.InvalidSchemaExceptio
 import com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidator
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.progress.EmptyProgressIndicator
-import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.util.BackgroundTaskUtil
+import com.intellij.openapi.diagnostic.trace
+import com.intellij.openapi.progress.blockingContext
+import com.intellij.openapi.progress.checkCanceled
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
@@ -38,10 +39,9 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.resolve.ResolveCache
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.ContainerUtil
-import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
@@ -56,7 +56,7 @@ private const val BUILD_TIMEOUT_MS = 500L
 private const val BUILD_TIMEOUT_TESTS_MS = 3000L
 
 @Service(Service.Level.PROJECT)
-class GraphQLSchemaProvider(private val project: Project) : Disposable {
+class GraphQLSchemaProvider(private val project: Project, private val coroutineScope: CoroutineScope) : Disposable {
 
   companion object {
     @JvmStatic
@@ -96,7 +96,7 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
     if (currentSchemaEntry?.modificationStamp == currentModificationStamp) {
       cacheHitsCount.incrementAndGet()
       if (LOG.isTraceEnabled) {
-        LOG.trace("Schema from cache returned ($currentModificationStamp)")
+        LOG.trace { "Schema from cache returned (scope=${scope.scopeId}, stamp=$currentModificationStamp)" }
         printStats()
       }
       return currentSchemaEntry.schemaInfo
@@ -106,16 +106,18 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
     var computation = scheduleComputationIfNeeded(scope, currentModificationStamp)
     computation.ensureStarted()
 
-    val future = computation.getFuture()
-    checkNotNull(future) { "Schema computation was not started" }
+    val job = computation.getJob()
+    checkNotNull(job) { "Schema computation was not started (scope=${scope.scopeId}, stamp=${computation.startModificationStamp})" }
     try {
-      awaitFuture(future, buildTimeout)
+      runBlockingCancellable {
+        awaitCoroutine(job, buildTimeout)
+      }
     }
-    catch (e: ProcessCanceledException) {
+    catch (e: CancellationException) {
       throw e
     }
     catch (e: Exception) {
-      LOG.warn("Schema computation waiting completed with exception (${computation.startModificationStamp})", e)
+      LOG.warn("Schema computation waiting completed with exception (scope=${scope.scopeId}, stamp=${computation.startModificationStamp})", e)
     }
 
     printStats()
@@ -145,66 +147,63 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
     if (computation != null) {
       if (computation.startModificationStamp != currentModificationStamp) {
         // cancel and start a new one
-        val future = computation.getFuture()
-        if (future != null && !future.isDone) {
-          LOG.debug("Cancelling schema computation: old=${computation.startModificationStamp}, new=${currentModificationStamp}")
-          computation.indicator.cancel()
-          awaitFuture(future, 50) // wait for a proper cancellation
-          if (!future.isDone) {
-            future.cancel(false)
-          }
+        val job = computation.getJob()
+        if (job != null && !job.isCompleted) {
+          LOG.debug { "Cancelling schema computation (scope=${scope.scopeId}, old=${computation.startModificationStamp}, new=${currentModificationStamp})" }
+          job.cancel()
         }
 
         scopeToTask.remove(scope, computation)
         computation = null
       }
       else {
-        LOG.debug("Join already in-progress schema computation (${computation.startModificationStamp})")
+        LOG.debug { "Join already in-progress schema computation (scope=${scope.scopeId}, stamp=${computation.startModificationStamp})" }
       }
     }
 
     if (computation == null) {
-      val scheduledComputation = SchemaComputation(scope, currentModificationStamp, EmptyProgressIndicator())
+      val scheduledComputation = SchemaComputation(scope, currentModificationStamp)
       val currentComputation = scopeToTask.putIfAbsent(scope, scheduledComputation)
       if (currentComputation != null) {
         // concurrently started a task already
-        LOG.debug("Concurrent schema computation: old=$currentModificationStamp, new=${currentComputation.startModificationStamp}")
+        LOG.debug { "Concurrent schema computation (scope=${scope.scopeId}, old=$currentModificationStamp, new=${currentComputation.startModificationStamp})" }
         computation = currentComputation
       }
       else {
         startedTasksCount.incrementAndGet()
-        LOG.debug("New schema computation scheduled ($currentModificationStamp)")
+        LOG.debug { "New schema computation scheduled (scope=${scope.scopeId}, stamp=$currentModificationStamp)" }
         computation = scheduledComputation
       }
     }
     return computation
   }
 
-  private fun computeSchema(scope: GlobalSearchScope, modificationStamp: Long): SchemaEntry {
-    ProgressManager.checkCanceled()
+  private suspend fun computeSchema(scope: GlobalSearchScope, modificationStamp: Long): SchemaEntry {
+    checkCanceled()
 
-    val registryInfo = runReadAction { getRegistryInfo(scope, modificationStamp) }
+    val registryInfo = getRegistryInfo(scope, modificationStamp)
     val schemaInfo = try {
-      LOG.info("Schema build started ($modificationStamp)")
-      val (schema, duration) = measureTimedValue {
-        val schema =
-          UnExecutableSchemaGenerator.makeUnExecutableSchema(registryInfo.typeDefinitionRegistry)
-        val validationErrors = SchemaValidator().validateSchema(schema)
-        val errors = if (validationErrors.isEmpty())
-          emptyList()
-        else
-          listOf<GraphQLException>(InvalidSchemaException(validationErrors))
-        GraphQLSchemaInfo(schema, errors, registryInfo)
+      LOG.info("Schema build started (scope=${scope.scopeId}, stamp=$modificationStamp)")
+      val (schema, duration) = blockingContext {
+        measureTimedValue {
+          val schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryInfo.typeDefinitionRegistry)
+          val validationErrors = SchemaValidator().validateSchema(schema)
+          val errors = if (validationErrors.isEmpty())
+            emptyList()
+          else
+            listOf<GraphQLException>(InvalidSchemaException(validationErrors))
+          GraphQLSchemaInfo(schema, errors, registryInfo)
+        }
       }
-      LOG.info("Schema was built in ${duration} ($modificationStamp)")
+      LOG.info("Schema was built in ${duration} (scope=${scope.scopeId}, stamp=$modificationStamp)")
       schema
     }
-    catch (e: ProcessCanceledException) {
-      LOG.info("Schema build cancelled ($modificationStamp)")
+    catch (e: CancellationException) {
+      LOG.info("Schema build cancelled (scope=${scope.scopeId}, stamp=$modificationStamp)")
       throw e
     }
     catch (e: Exception) {
-      LOG.error("Schema build error ($modificationStamp): ", e) // should never happen
+      LOG.error("Schema build error (scope=${scope.scopeId}, stamp=$modificationStamp): ", e) // should never happen
 
       GraphQLSchemaInfo(
         emptySchema.value,
@@ -221,85 +220,86 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
    * @return registry for provided scope
    */
   @Suppress("unused")
-  private fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
+  private suspend fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
     val currentModificationStamp = GraphQLSchemaContentTracker.getInstance(project).modificationCount
     return getRegistryInfo(GraphQLScopeProvider.getInstance(project).getResolveScope(context, true), currentModificationStamp)
   }
 
-  private fun getRegistryInfo(schemaScope: GlobalSearchScope, modificationStamp: Long): GraphQLRegistryInfo {
-    ProgressManager.checkCanceled()
+  private suspend fun getRegistryInfo(scope: GlobalSearchScope, modificationStamp: Long): GraphQLRegistryInfo {
+    checkCanceled()
 
-    LOG.info("Registry build started ($modificationStamp)")
-
+    LOG.info("Registry build started (scope=${scope.scopeId}, stamp=$modificationStamp)")
     val (registry, duration) = measureTimedValue {
-      val processor = GraphQLSchemaDocumentProcessor()
-
-      // GraphQL files
-      FileTypeIndex.processFiles(
-        GraphQLFileType.INSTANCE,
-        {
-          val psiFile = PsiManager.getInstance(project).findFile(it)
-          if (psiFile != null) processor.process(psiFile) else true
-        },
-        GlobalSearchScope.getScopeRestrictedByFileTypes(schemaScope, GraphQLFileType.INSTANCE)
-      )
-
-      if (!processor.isTooComplex) {
-        GraphQLPsiSearchHelper.getInstance(project).processInjectedGraphQLFiles(project, schemaScope, processor)
+      val documentsProcessor = smartReadAction(project) { processSchemaDocuments(scope) }
+      val compositeRegistry = GraphQLCompositeRegistry()
+      documentsProcessor.documents.forEach {
+        compositeRegistry.addFromDocument(it)
       }
-
-      processor.build()
+      GraphQLRegistryInfo(compositeRegistry.build(), documentsProcessor.isTooComplex)
     }
-    LOG.info("Registry was built in ${duration} ($modificationStamp)")
+    LOG.info("Registry was built in ${duration} (scope=${scope.scopeId}, stamp=$modificationStamp)")
     return registry
+  }
+
+  private fun processSchemaDocuments(scope: GlobalSearchScope): GraphQLSchemaDocumentProcessor {
+    val processor = GraphQLSchemaDocumentProcessor()
+
+    FileTypeIndex.processFiles(
+      GraphQLFileType.INSTANCE,
+      {
+        val psiFile = PsiManager.getInstance(project).findFile(it)
+        if (psiFile != null) processor.process(psiFile) else true
+      },
+      GlobalSearchScope.getScopeRestrictedByFileTypes(scope, GraphQLFileType.INSTANCE)
+    )
+
+    if (!processor.isTooComplex) {
+      GraphQLPsiSearchHelper.getInstance(project).processInjectedGraphQLFiles(project, scope, processor)
+    }
+
+    return processor
   }
 
   override fun dispose() {
   }
 
-  private inner class SchemaComputation(val scope: GlobalSearchScope, val startModificationStamp: Long, val indicator: ProgressIndicator) {
+  private inner class SchemaComputation(val scope: GlobalSearchScope, val startModificationStamp: Long) {
     private val lock = Any()
-    private var future: CompletableFuture<Void>? = null // lock
+    private var job: Job? = null // lock
 
     fun ensureStarted() {
       synchronized(lock) {
-        if (future != null) {
+        if (job != null) {
           return
         }
         else {
-          future = CompletableFuture.runAsync(
-            {
-              BackgroundTaskUtil.runUnderDisposeAwareIndicator(this@GraphQLSchemaProvider, {
-                val schemaEntry = computeSchema(scope, startModificationStamp)
+          job = coroutineScope.launch {
+            val schemaEntry = computeSchema(scope, startModificationStamp)
 
-                ProgressManager.checkCanceled()
-                scopeToSchemaCache.put(scope, schemaEntry)
+            checkCanceled()
+            scopeToSchemaCache.put(scope, schemaEntry)
+            scopeToTask.remove(scope, this@SchemaComputation)
 
-                val application = ApplicationManager.getApplication()
-                if (!application.isUnitTestMode) {
-                  application.invokeLater(
-                    {
-                      ResolveCache.getInstance(project).clearCache(true)
-                      DaemonCodeAnalyzer.getInstance(project).restart()
-                    },
-                    ModalityState.nonModal(),
-                    project.disposed
-                  )
-                }
-              }, indicator)
-            },
-            AppExecutorUtil.getAppExecutorService()
-          ).whenComplete { _, _ -> scopeToTask.remove(scope, this) }
+            if (!ApplicationManager.getApplication().isUnitTestMode) {
+              withContext(Dispatchers.EDT) {
+                ResolveCache.getInstance(project).clearCache(true)
+                DaemonCodeAnalyzer.getInstance(project).restart()
+              }
+            }
+          }
         }
       }
     }
 
-    fun getFuture(): CompletableFuture<Void>? {
+    fun getJob(): Job? {
       synchronized(lock) {
-        return future
+        return job
       }
     }
   }
 
   private class SchemaEntry(val schemaInfo: GraphQLSchemaInfo, val modificationStamp: Long)
+
+  private val GlobalSearchScope.scopeId: String
+    get() = hashCode().toString()
 }

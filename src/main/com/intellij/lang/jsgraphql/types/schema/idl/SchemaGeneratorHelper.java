@@ -27,13 +27,13 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnInputTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.NotAnOutputTypeError;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -202,7 +202,7 @@ public class SchemaGeneratorHelper {
       }
       return result;
     }
-    catch (ProcessCanceledException e) {
+    catch (CancellationException e) {
       throw e;
     }
     catch (Exception e) {
