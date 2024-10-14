@@ -34,7 +34,8 @@ class GraphQLRegistryProvider(private val project: Project) {
   @Deprecated("Use GraphQLSchemaProvider instead")
   @ApiStatus.ScheduledForRemoval
   fun getRegistryInfo(schemaScope: GlobalSearchScope): GraphQLRegistryInfo {
-    return GraphQLRegistryInfo(GraphQLSchemaProvider.getInstance(project).getSchemaInfo(schemaScope).registry, emptyList())
+    val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(schemaScope)
+    return GraphQLRegistryInfo(schemaInfo.registry, schemaInfo.isTooComplex)
   }
 }
 

@@ -12,13 +12,8 @@ import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry
 
 class GraphQLRegistryInfo(
   val typeDefinitionRegistry: TypeDefinitionRegistry,
-  private val additionalErrors: List<GraphQLException>,
+  val isTooComplex: Boolean = false,
 ) {
   val errors: List<GraphQLException>
-    get() {
-      val errors = mutableListOf<GraphQLException>()
-      errors.addAll(typeDefinitionRegistry.errors)
-      errors.addAll(additionalErrors)
-      return errors
-    }
+    get() = typeDefinitionRegistry.errors
 }

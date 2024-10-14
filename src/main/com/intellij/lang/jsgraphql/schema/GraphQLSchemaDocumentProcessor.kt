@@ -18,10 +18,13 @@ class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
 
     val document = psiFile.document
     compositeRegistry.addFromDocument(document)
-    return true
+    return !compositeRegistry.isTooComplex
   }
 
   fun build(): GraphQLRegistryInfo {
     return compositeRegistry.build()
   }
+
+  val isTooComplex: Boolean
+    get() = compositeRegistry.isTooComplex
 }

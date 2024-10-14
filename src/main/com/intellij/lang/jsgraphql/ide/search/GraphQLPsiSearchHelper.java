@@ -18,6 +18,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.project.Project;
@@ -182,6 +183,7 @@ public class GraphQLPsiSearchHelper implements Disposable {
         GraphQLInjectionIndex.NAME,
         Collections.singleton(GraphQLInjectionIndex.INJECTION_MARKER),
         virtualFile -> {
+          ProgressManager.checkCanceled();
           PsiFile psiFile = psiManager.findFile(virtualFile);
           if (psiFile != null && !(psiFile instanceof GraphQLFile)) {
             for (GraphQLFile graphQLFile : collectGraphQLFilesIncludingInjections(psiFile)) {

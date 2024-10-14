@@ -23,6 +23,8 @@ import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.types.schema.*;
@@ -53,6 +55,11 @@ public final class GraphQLValidationAnnotator implements Annotator {
   public void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
     if (GraphQLInspection.isEditorInspectionHighlightingDisabled(psiElement.getProject(),
                                                                  annotationHolder.getCurrentAnnotationSession().getFile())) {
+      return;
+    }
+
+    GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(psiElement.getProject()).getSchemaInfo(psiElement);
+    if (schemaInfo.isTooComplex()) {
       return;
     }
 

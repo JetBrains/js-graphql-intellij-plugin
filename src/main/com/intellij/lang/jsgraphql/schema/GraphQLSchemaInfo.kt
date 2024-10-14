@@ -25,12 +25,19 @@ class GraphQLSchemaInfo(
   val registry: TypeDefinitionRegistry
     get() = registryInfo.typeDefinitionRegistry
 
+  val isTooComplex: Boolean
+    get() = registryInfo.isTooComplex
+
   fun getErrors(project: Project): List<GraphQLError> {
     val rawErrors: MutableList<GraphQLException> = Lists.newArrayList(additionalErrors)
     rawErrors.addAll(registryInfo.errors)
     rawErrors.addAll(schema.errors)
 
     val errors = mutableListOf<GraphQLError>()
+    if (isTooComplex) {
+      errors.add(GraphQLSchemaTooComplexError())
+    }
+
     for (exception in rawErrors) {
       when (exception) {
         is SchemaProblem -> errors.addAll(exception.errors)

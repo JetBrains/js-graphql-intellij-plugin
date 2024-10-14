@@ -54,6 +54,10 @@ public final class GraphQLSchemaAnnotator implements Annotator {
 
     try {
       GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiElement);
+      if (schemaInfo.isTooComplex()) {
+        return;
+      }
+
       List<GraphQLError> schemaErrors = schemaInfo.getErrors(project);
       if (!schemaErrors.isEmpty()) {
         showSchemaErrors(annotationHolder, schemaErrors, file);

@@ -280,7 +280,7 @@ public final class GraphQLIntrospectionService implements Disposable {
       .includeDirectives(directive -> !GraphQLKnownTypes.DEFAULT_DIRECTIVES.contains(directive.getName()));
 
     GraphQLRegistryInfo registryInfo = new GraphQLRegistryInfo(
-      new SchemaParser().buildRegistry(schemaDefinition), Collections.emptyList());
+      new SchemaParser().buildRegistry(schemaDefinition), false);
     GraphQLSchemaInfo schemaInfo = new GraphQLSchemaInfo(
       UnExecutableSchemaGenerator.makeUnExecutableSchema(registryInfo.getTypeDefinitionRegistry()),
       Collections.emptyList(),

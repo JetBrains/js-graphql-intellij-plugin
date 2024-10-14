@@ -13,11 +13,32 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionErr
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.util.registry.Registry
+import kotlin.Throws
+
+/**
+ * A number chosen based on the average size estimation of GraphQL schemas.
+ * For example, the GitHub schema contains approximately 1600 type definitions.
+ * Can be changed via the registry option `graphql.schema.size.definitions.limit`.
+ */
+private const val SCHEMA_SIZE_DEFINITIONS_LIMIT_DEFAULT = 4000
+
+internal const val SCHEMA_SIZE_DEFINITIONS_LIMIT_KEY = "graphql.schema.size.definitions.limit"
+
+internal val SCHEMA_SIZE_DEFINITIONS_LIMIT: Int
+  get() = Registry.intValue(SCHEMA_SIZE_DEFINITIONS_LIMIT_KEY, SCHEMA_SIZE_DEFINITIONS_LIMIT_DEFAULT)
 
 class GraphQLCompositeRegistry {
 
   private val namedCompositeDefinitions = mutableMapOf<String, GraphQLCompositeDefinition<*>>()
   private val schemaCompositeDefinition = GraphQLSchemaTypeCompositeDefinition()
+
+  private var totalDefinitionsCount = 0
+  private val currentLimit = SCHEMA_SIZE_DEFINITIONS_LIMIT
+  private var isLimitOverflowLogged = false
+
+  val isTooComplex: Boolean
+    get() = totalDefinitionsCount >= currentLimit
 
   @Throws(GraphQLException::class)
   fun merge(source: TypeDefinitionRegistry) {
@@ -62,6 +83,17 @@ class GraphQLCompositeRegistry {
 
   private fun addTypeDefinition(definition: SDLDefinition<*>) {
     LOG.assertTrue(!isExtensionDefinition(definition))
+
+    if (isTooComplex) {
+      if (!isLimitOverflowLogged) {
+        LOG.warn("totalDefinitionsCount limit exceeded: $totalDefinitionsCount")
+        isLimitOverflowLogged = true
+      }
+      return
+    }
+    else {
+      totalDefinitionsCount++
+    }
 
     val builder = getCompositeDefinition(definition) ?: return
     when (builder) {
@@ -132,7 +164,11 @@ class GraphQLCompositeRegistry {
       }
     }
 
-    return GraphQLRegistryInfo(registry, validate())
+    for (additionalError in validate()) {
+      registry.addError(additionalError)
+    }
+
+    return GraphQLRegistryInfo(registry, isTooComplex)
   }
 
   private fun validate(): List<GraphQLException> {

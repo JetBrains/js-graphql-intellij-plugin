@@ -48,6 +48,11 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.measureTimedValue
 
 private const val BUILD_TIMEOUT_MS = 500L
+
+/**
+ * GitHub schema evaluation takes approximately 1 second in total for both type definitions and the schema combined.
+ * If it exceeds the specified time limit, it indicates a serious issue with the code and not the timeout itself.
+ */
 private const val BUILD_TIMEOUT_TESTS_MS = 3000L
 
 @Service(Service.Level.PROJECT)
@@ -70,7 +75,7 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
   }
 
   private val emptySchemaInfo = lazy(LazyThreadSafetyMode.PUBLICATION) {
-    GraphQLSchemaInfo(emptySchema.value, emptyList(), GraphQLRegistryInfo(TypeDefinitionRegistry(), emptyList()))
+    GraphQLSchemaInfo(emptySchema.value, emptyList(), GraphQLRegistryInfo(TypeDefinitionRegistry(), false))
   }
 
   private val scopeToTask = ConcurrentHashMap<GlobalSearchScope, SchemaComputation>()
@@ -234,16 +239,14 @@ class GraphQLSchemaProvider(private val project: Project) : Disposable {
         GraphQLFileType.INSTANCE,
         {
           val psiFile = PsiManager.getInstance(project).findFile(it)
-          if (psiFile != null) {
-            processor.process(psiFile)
-          }
-          true
+          if (psiFile != null) processor.process(psiFile) else true
         },
         GlobalSearchScope.getScopeRestrictedByFileTypes(schemaScope, GraphQLFileType.INSTANCE)
       )
 
-      // Injected GraphQL
-      GraphQLPsiSearchHelper.getInstance(project).processInjectedGraphQLFiles(project, schemaScope, processor)
+      if (!processor.isTooComplex) {
+        GraphQLPsiSearchHelper.getInstance(project).processInjectedGraphQLFiles(project, schemaScope, processor)
+      }
 
       processor.build()
     }
