@@ -143,12 +143,17 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   private fun scheduleComputationIfNeeded(scope: GlobalSearchScope, currentModificationStamp: Long): SchemaComputation {
     var computation = scopeToTask[scope]
     if (computation != null) {
-      if (computation.startModificationStamp != currentModificationStamp) {
+      val job = computation.getJob()
+      if (computation.startModificationStamp != currentModificationStamp || (job != null && job.isCancelled)) {
         // cancel and start a new one
-        val job = computation.getJob()
-        if (job != null && !job.isCompleted) {
-          LOG.debug { "Cancelling schema computation (scope=${scope.scopeId}, old=${computation.startModificationStamp}, new=${currentModificationStamp})" }
-          job.cancel()
+        if (job != null) {
+          if (!job.isCompleted) {
+            LOG.debug { "Cancelling schema computation (scope=${scope.scopeId}, old=${computation.startModificationStamp}, new=${currentModificationStamp})" }
+            job.cancel()
+          }
+          else if (job.isCancelled) {
+            LOG.debug { "Restarting already cancelled job (scope=${scope.scopeId}, stamp=${currentModificationStamp})" }
+          }
         }
 
         scopeToTask.remove(scope, computation)
