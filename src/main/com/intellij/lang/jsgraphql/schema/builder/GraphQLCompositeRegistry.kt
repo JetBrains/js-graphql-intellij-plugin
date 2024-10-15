@@ -12,6 +12,7 @@ import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaRedefinitionErr
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeRedefinitionError
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.progress.ProgressManager
 
 internal class GraphQLCompositeRegistry {
 
@@ -95,6 +96,8 @@ internal class GraphQLCompositeRegistry {
   }
 
   private fun addDefinition(definition: SDLDefinition<*>) {
+    ProgressManager.checkCanceled()
+
     if (isExtensionDefinition(definition)) {
       addExtensionDefinition(definition)
     }
