@@ -9,7 +9,7 @@ package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.lang.jsgraphql.GraphQLFileType
-import com.intellij.lang.jsgraphql.awaitCoroutine
+import com.intellij.lang.jsgraphql.awaitFuture
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
 import com.intellij.lang.jsgraphql.schema.builder.GraphQLCompositeRegistry
@@ -29,9 +29,9 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.trace
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.progress.checkCanceled
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
@@ -42,6 +42,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.*
+import kotlinx.coroutines.future.asCompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
@@ -103,17 +104,14 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
     }
 
     val fallbackSchema = currentSchemaEntry?.schemaInfo ?: emptySchemaInfo.value
-    var computation = scheduleComputationIfNeeded(scope, currentModificationStamp)
-    computation.ensureStarted()
+    var computation = scheduleComputationIfNeeded(scope, currentModificationStamp).apply { ensureStarted() }
 
     val job = computation.getJob()
     checkNotNull(job) { "Schema computation was not started (scope=${scope.scopeId}, stamp=${computation.startModificationStamp})" }
     try {
-      runBlockingCancellable {
-        awaitCoroutine(job, buildTimeout)
-      }
+      awaitFuture(job.asCompletableFuture(), buildTimeout)
     }
-    catch (e: CancellationException) {
+    catch (e: ProcessCanceledException) {
       throw e
     }
     catch (e: Exception) {
@@ -183,7 +181,7 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
 
     val registryInfo = getRegistryInfo(scope, modificationStamp)
     val schemaInfo = try {
-      LOG.info("Schema build started (scope=${scope.scopeId}, stamp=$modificationStamp)")
+      LOG.debug { "Schema build started (scope=${scope.scopeId}, stamp=$modificationStamp)" }
       val (schema, duration) = blockingContext {
         measureTimedValue {
           val schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryInfo.typeDefinitionRegistry)
@@ -228,7 +226,7 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   private suspend fun getRegistryInfo(scope: GlobalSearchScope, modificationStamp: Long): GraphQLRegistryInfo {
     checkCanceled()
 
-    LOG.info("Registry build started (scope=${scope.scopeId}, stamp=$modificationStamp)")
+    LOG.debug { "Registry build started (scope=${scope.scopeId}, stamp=$modificationStamp)" }
     val (registry, duration) = measureTimedValue {
       val documentsProcessor = smartReadAction(project) { processSchemaDocuments(scope) }
 
