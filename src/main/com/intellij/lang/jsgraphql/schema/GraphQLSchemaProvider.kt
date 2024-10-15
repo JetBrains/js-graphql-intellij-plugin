@@ -231,11 +231,14 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
     LOG.info("Registry build started (scope=${scope.scopeId}, stamp=$modificationStamp)")
     val (registry, duration) = measureTimedValue {
       val documentsProcessor = smartReadAction(project) { processSchemaDocuments(scope) }
-      val compositeRegistry = GraphQLCompositeRegistry()
-      documentsProcessor.documents.forEach {
-        compositeRegistry.addFromDocument(it)
+
+      blockingContext {
+        val compositeRegistry = GraphQLCompositeRegistry()
+        documentsProcessor.documents.forEach {
+          compositeRegistry.addFromDocument(it)
+        }
+        GraphQLRegistryInfo(compositeRegistry.build(), documentsProcessor.isTooComplex)
       }
-      GraphQLRegistryInfo(compositeRegistry.build(), documentsProcessor.isTooComplex)
     }
     LOG.info("Registry was built in ${duration} (scope=${scope.scopeId}, stamp=$modificationStamp)")
     return registry
