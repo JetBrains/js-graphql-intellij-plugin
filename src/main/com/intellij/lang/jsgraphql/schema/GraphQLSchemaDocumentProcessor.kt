@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.types.language.Document
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.registry.Registry
@@ -42,7 +43,10 @@ internal class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
 
     if (isTooComplex) {
       if (!isLimitOverflowLogged) {
-        LOG.warn("totalDefinitionsCount limit exceeded: $totalDefinitionsCount")
+        val message = "Schema total definitions count limit exceeded: $totalDefinitionsCount"
+        val application = ApplicationManager.getApplication()
+        if (application.isUnitTestMode || application.isInternal) LOG.error(message) else LOG.warn(message)
+
         isLimitOverflowLogged = true
       }
       return false
