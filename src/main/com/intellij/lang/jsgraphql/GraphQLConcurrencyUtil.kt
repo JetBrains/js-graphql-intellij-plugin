@@ -90,9 +90,8 @@ internal fun <T> awaitFuture(future: Future<T?>, timeoutMills: Long): T? {
   catch (e: ProcessCanceledException) {
     throw e
   }
-  catch (e: Exception) {
-    //no actions
-    LOG.info("Awaiting future failed with exception", e)
+  catch (_: Exception) {
+    // do nothing
   }
 
   return null
