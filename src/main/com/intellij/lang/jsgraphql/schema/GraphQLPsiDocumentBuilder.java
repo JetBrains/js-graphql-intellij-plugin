@@ -6,6 +6,7 @@ import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiLanguageInjectionHost;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,14 +27,31 @@ import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseT
 
 @SuppressWarnings("rawtypes")
 public final class GraphQLPsiDocumentBuilder {
+  private static final Logger LOG = Logger.getInstance(GraphQLPsiDocumentBuilder.class);
 
   private static final String IS_IN_LIBRARY_KEY = "is.in.library";
+  private static final String TYPE_DEFINITIONS_COUNT = "type.definitions.count";
 
   private final GraphQLFile myFile;
   private final boolean myIsInLibrary;
 
   public static boolean isInLibrary(@NotNull Node<?> node) {
     return node.getAdditionalData().containsKey(IS_IN_LIBRARY_KEY);
+  }
+
+  public static int getTypeDefinitionsCount(@NotNull Document document) {
+    String countAsString = document.getAdditionalData().get(TYPE_DEFINITIONS_COUNT);
+    if (countAsString == null) {
+      return document.getDefinitionsOfType(SDLDefinition.class).size();
+    }
+
+    try {
+      return Integer.parseInt(countAsString);
+    }
+    catch (NumberFormatException e) {
+      LOG.warn(e);
+      return 0;
+    }
   }
 
   public GraphQLPsiDocumentBuilder(@NotNull GraphQLFile file) {
@@ -43,11 +62,26 @@ public final class GraphQLPsiDocumentBuilder {
   public @NotNull Document createDocument() {
     Document.Builder document = Document.newDocument();
     addCommonData(document, myFile);
-    document.definitions(mapNotNull(myFile.getDefinitions(), this::createDefinition));
+
+    Collection<GraphQLDefinition> psiDefinitions = myFile.getDefinitions();
+    var definitions = new ArrayList<Definition>(psiDefinitions.size());
+    var typeDefinitionsCount = 0;
+    for (GraphQLDefinition psiDefinition : psiDefinitions) {
+      Definition definition = createDefinition(psiDefinition);
+      if (definition != null) {
+        definitions.add(definition);
+        if (definition instanceof SDLDefinition) {
+          typeDefinitionsCount++;
+        }
+      }
+    }
+    document.definitions(definitions);
+    document.additionalData(TYPE_DEFINITIONS_COUNT, String.valueOf(typeDefinitionsCount));
+
     return document.build();
   }
 
-  private @Nullable Definition createDefinition(@NotNull GraphQLDefinition definition) {
+  public @Nullable Definition createDefinition(@NotNull GraphQLDefinition definition) {
     if (definition instanceof GraphQLOperationDefinition) {
       return createOperationDefinition(((GraphQLOperationDefinition)definition));
     }
