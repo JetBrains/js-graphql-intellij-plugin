@@ -24,7 +24,7 @@ internal val SCHEMA_SIZE_DEFINITIONS_LIMIT: Int
 private val LOG = logger<GraphQLSchemaDocumentProcessor>()
 
 internal class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
-  val documents = ArrayList<Document>()
+  val documents = HashSet<Document>()
 
   private val currentLimit = SCHEMA_SIZE_DEFINITIONS_LIMIT
   private var totalDefinitionsCount = 0
@@ -38,8 +38,7 @@ internal class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
     }
 
     val document = psiFile.document
-    val documentDefinitionsCount = document.definitions.size
-    totalDefinitionsCount += documentDefinitionsCount
+    totalDefinitionsCount += GraphQLPsiDocumentBuilder.getTypeDefinitionsCount(document)
 
     if (isTooComplex) {
       if (!isLimitOverflowLogged) {

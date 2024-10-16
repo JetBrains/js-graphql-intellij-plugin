@@ -7,11 +7,7 @@ import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.language.SourceLocation
 
 class GraphQLSchemaTooComplexError() : GraphQLError {
-  override fun getMessage(): String = GraphQLBundle.message(
-    "graphql.schema.is.too.complex.error.text",
-    SCHEMA_SIZE_DEFINITIONS_LIMIT,
-    SCHEMA_SIZE_DEFINITIONS_LIMIT_KEY
-  )
+  override fun getMessage(): String = GraphQLBundle.message("graphql.schema.is.too.complex.error.text", SCHEMA_SIZE_DEFINITIONS_LIMIT)
 
   override fun getLocations(): List<SourceLocation> = emptyList()
 
