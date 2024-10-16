@@ -12,6 +12,7 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.workspaceModel.ide.impl.WorkspaceEntityLifecycleSupporterUtils
 import junit.framework.TestCase
 
 class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
@@ -76,7 +77,7 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     )
 
     tests.forEach {
-      TestCase.assertEquals(it.second, it.first, parseOverrideConfigComment(it.second))
+      assertEquals(it.second, it.first, parseOverrideConfigComment(it.second))
     }
   }
 
@@ -109,8 +110,6 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
             }
             """.trimIndent()
     )
-
-    myFixture.checkHighlighting()
   }
 
   fun testScratchWithProject() {
@@ -135,8 +134,6 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
             }
             """.trimIndent()
     )
-
-    myFixture.checkHighlighting()
   }
 
   fun testScratchFallbackToRoot() {
@@ -165,8 +162,6 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
             }
             """.trimIndent()
     )
-
-    myFixture.checkHighlighting()
   }
 
   fun testScratchFallbackToRootIfUnknownPathProvided() {
@@ -185,29 +180,30 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
             }
             """.trimIndent()
     )
-
-    myFixture.checkHighlighting()
   }
 
   private fun doScratchTest(
     expectedConfigPath: String,
     expectedProject: String,
     comment: String,
-    query: String
-  ): GraphQLProjectConfig {
-    copyProject()
-    val scratchFile = createTestScratchFile(myFixture, comment, query)!!
-    myFixture.configureFromExistingVirtualFile(scratchFile)
+    query: String,
+  ) {
+    WorkspaceEntityLifecycleSupporterUtils.withAllEntitiesInWorkspaceFromProvidersDefinedOnEdt(project) {
+      copyProject()
+      val scratchFile = createTestScratchFile(myFixture, comment, query)!!
+      myFixture.configureFromExistingVirtualFile(scratchFile)
 
-    val projectConfig = resolveConfig(scratchFile)
-    TestCase.assertEquals(expectedConfigPath, projectConfig.file?.path)
-    TestCase.assertEquals(expectedProject, projectConfig.name)
-    return projectConfig
+      val projectConfig = resolveConfig(scratchFile)
+      TestCase.assertEquals(expectedConfigPath, projectConfig.file?.path)
+      TestCase.assertEquals(expectedProject, projectConfig.name)
+
+      myFixture.checkHighlighting()
+    }
   }
 
   private fun resolveConfig(file: VirtualFile): GraphQLProjectConfig {
     val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(file)
-    TestCase.assertNotNull("config is not found", config)
+    assertNotNull("config is not found", config)
     return config!!
   }
 }
