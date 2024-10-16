@@ -23,6 +23,7 @@ import com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidator
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -39,7 +40,6 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.resolve.ResolveCache
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.asCompletableFuture
@@ -82,12 +82,11 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   private val scopeToTask = ConcurrentHashMap<GlobalSearchScope, SchemaComputation>()
   private val scopeToSchemaCache: ConcurrentMap<GlobalSearchScope, SchemaEntry> = ContainerUtil.createConcurrentSoftKeySoftValueMap()
 
-  @RequiresReadLock
   fun getSchemaInfo(context: PsiElement?): GraphQLSchemaInfo {
-    return getSchemaInfo(GraphQLScopeProvider.getInstance(project).getResolveScope(context, true))
+    val scope = runReadAction { GraphQLScopeProvider.getInstance(project).getResolveScope(context, true) }
+    return getSchemaInfo(scope)
   }
 
-  @RequiresReadLock
   fun getSchemaInfo(scope: GlobalSearchScope): GraphQLSchemaInfo {
     totalCallsCount.incrementAndGet()
 
@@ -120,6 +119,15 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
 
     printStats()
     return scopeToSchemaCache[scope]?.schemaInfo ?: fallbackSchema
+  }
+
+  fun getCachedSchemaInfo(context: PsiElement?): GraphQLSchemaInfo {
+    val scope = runReadAction { GraphQLScopeProvider.getInstance(project).getResolveScope(context, true) }
+    return getCachedSchemaInfo(scope)
+  }
+
+  fun getCachedSchemaInfo(scope: GlobalSearchScope): GraphQLSchemaInfo {
+    return scopeToSchemaCache[scope]?.schemaInfo ?: emptySchemaInfo.value
   }
 
   private fun printStats() {
@@ -286,11 +294,12 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
             scopeToSchemaCache.put(scope, schemaEntry)
             scopeToTask.remove(scope, this@SchemaComputation)
 
-            if (!ApplicationManager.getApplication().isUnitTestMode) {
-              withContext(Dispatchers.EDT) {
-                ResolveCache.getInstance(project).clearCache(true)
+            withContext(Dispatchers.EDT) {
+              ResolveCache.getInstance(project).clearCache(true)
+              if (!ApplicationManager.getApplication().isUnitTestMode) {
                 DaemonCodeAnalyzer.getInstance(project).restart()
               }
+              project.messageBus.syncPublisher(GraphQLSchemaCacheChangeListener.TOPIC).onSchemaCacheChanged()
             }
           }
         }

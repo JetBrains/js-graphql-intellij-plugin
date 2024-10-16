@@ -17,6 +17,7 @@ import com.intellij.lang.jsgraphql.ide.actions.GraphQLRestartSchemaDiscoveryActi
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener
 import com.intellij.lang.jsgraphql.ide.project.toolwindow.GraphQLToolWindow
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaCacheChangeListener
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentChangeListener
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
 import com.intellij.openapi.Disposable
@@ -88,6 +89,12 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
       }
     })
 
+    connection.subscribe(GraphQLSchemaCacheChangeListener.TOPIC, object : GraphQLSchemaCacheChangeListener {
+      override fun onSchemaCacheChanged() {
+        updateTree()
+      }
+    })
+
     connection.subscribe(GraphQLConfigListener.TOPIC, object : GraphQLConfigListener {
       override fun onConfigurationChanged() {
         updateTree()
@@ -125,7 +132,7 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
         return hasFocus() && super.isPathSelected(treePath)
       }
     }
-    tree.emptyText.setText(GraphQLBundle.message("graphql.toolwindow.discovery.not.completed"))
+    tree.emptyText.text = GraphQLBundle.message("graphql.toolwindow.discovery.not.completed")
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
     tree.isRootVisible = false
     tree.showsRootHandles = true
@@ -244,10 +251,10 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
             model.invalidateAsync()
           }
         }
-        catch (ignored: IndexNotReadyException) {
+        catch (_: IndexNotReadyException) {
           // allowed to happen here -- retry will run later
         }
-        catch (ignored: ProcessCanceledException) {
+        catch (_: ProcessCanceledException) {
         }
       }, 750, ModalityState.stateForComponent(this)
     )

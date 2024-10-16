@@ -28,10 +28,8 @@ class GraphQLDefaultSchemaNode(project: Project, parent: GraphQLSchemasRootNode)
     presentation.locationString = project.presentableUrl
     presentation.setIcon(GraphQLIcons.Files.GraphQLSchema)
 
-    schemaInfo = runReadAction {
-      val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
-      GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(globalScope)
-    }
+    val globalScope = runReadAction { GraphQLScopeProvider.getInstance(project).globalScope }
+    schemaInfo = GraphQLSchemaProvider.getInstance(myProject).getCachedSchemaInfo(globalScope)
   }
 
   public override fun buildChildren(): Array<SimpleNode> {
