@@ -90,6 +90,19 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   }
 
   fun getSchemaInfo(scope: GlobalSearchScope): GraphQLSchemaInfo {
+    return getFromCacheOrSchedule(scope)
+  }
+
+  fun getCachedSchemaInfo(context: PsiElement?): GraphQLSchemaInfo {
+    val scope = runReadAction { GraphQLScopeProvider.getInstance(project).getResolveScope(context, true) }
+    return getCachedSchemaInfo(scope)
+  }
+
+  fun getCachedSchemaInfo(scope: GlobalSearchScope): GraphQLSchemaInfo {
+    return getFromCacheOrSchedule(scope, wait = false)
+  }
+
+  private fun getFromCacheOrSchedule(scope: GlobalSearchScope, wait: Boolean = true): GraphQLSchemaInfo {
     totalCallsCount.incrementAndGet()
 
     val currentModificationStamp = GraphQLSchemaContentTracker.getInstance(project).modificationCount
@@ -110,7 +123,7 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
     val job = computation.getJob()
     checkNotNull(job) { "Schema computation was not started (scope=${scope.scopeId}, stamp=${computation.startModificationStamp})" }
     try {
-      awaitFuture(job.asCompletableFuture(), buildTimeout)
+      awaitFuture(job.asCompletableFuture(), if (wait) buildTimeout else 0)
     }
     catch (e: ProcessCanceledException) {
       throw e
@@ -121,15 +134,6 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
 
     printStats()
     return scopeToSchemaCache[scope]?.schemaInfo ?: fallbackSchema
-  }
-
-  fun getCachedSchemaInfo(context: PsiElement?): GraphQLSchemaInfo {
-    val scope = runReadAction { GraphQLScopeProvider.getInstance(project).getResolveScope(context, true) }
-    return getCachedSchemaInfo(scope)
-  }
-
-  fun getCachedSchemaInfo(scope: GlobalSearchScope): GraphQLSchemaInfo {
-    return scopeToSchemaCache[scope]?.schemaInfo ?: emptySchemaInfo.value
   }
 
   private fun printStats() {

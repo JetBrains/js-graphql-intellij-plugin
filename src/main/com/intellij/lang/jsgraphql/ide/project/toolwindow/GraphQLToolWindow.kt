@@ -35,7 +35,7 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
   }
 
   private fun createSchemasPanel(project: Project, toolWindow: ToolWindow) {
-    val schemasPanel = GraphQLSchemasPanel(project)
+    val schemasPanel = GraphQLSchemasPanel(project, toolWindow.id)
     val contentManager = toolWindow.contentManager
     val schemasContent = contentManager.factory
       .createContent(schemasPanel, GraphQLBundle.message("graphql.tab.title.schemas.project.structure"), false)
