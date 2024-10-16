@@ -43,8 +43,7 @@ internal class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
     if (isTooComplex) {
       if (!isLimitOverflowLogged) {
         val message = "Schema total definitions count limit exceeded: $totalDefinitionsCount"
-        val application = ApplicationManager.getApplication()
-        if (application.isUnitTestMode || application.isInternal) LOG.error(message) else LOG.warn(message)
+        if (ApplicationManager.getApplication().isUnitTestMode) LOG.error(message) else LOG.warn(message)
 
         isLimitOverflowLogged = true
       }
