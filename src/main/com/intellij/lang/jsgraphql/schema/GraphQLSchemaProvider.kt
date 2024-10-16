@@ -22,7 +22,6 @@ import com.intellij.lang.jsgraphql.types.schema.validation.InvalidSchemaExceptio
 import com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidator
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.components.Service
@@ -41,8 +40,11 @@ import com.intellij.psi.impl.source.resolve.ResolveCache
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.containers.ContainerUtil
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
@@ -294,13 +296,11 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
             scopeToSchemaCache.put(scope, schemaEntry)
             scopeToTask.remove(scope, this@SchemaComputation)
 
-            withContext(Dispatchers.EDT) {
-              ResolveCache.getInstance(project).clearCache(true)
-              if (!ApplicationManager.getApplication().isUnitTestMode) {
-                DaemonCodeAnalyzer.getInstance(project).restart()
-              }
-              project.messageBus.syncPublisher(GraphQLSchemaCacheChangeListener.TOPIC).onSchemaCacheChanged()
+            ResolveCache.getInstance(project).clearCache(true)
+            if (!ApplicationManager.getApplication().isUnitTestMode) {
+              DaemonCodeAnalyzer.getInstance(project).restart()
             }
+            project.messageBus.syncPublisher(GraphQLSchemaCacheChangeListener.TOPIC).onSchemaCacheChanged()
           }
         }
       }
