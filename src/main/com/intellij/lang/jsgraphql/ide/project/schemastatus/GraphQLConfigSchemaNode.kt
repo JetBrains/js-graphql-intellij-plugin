@@ -54,10 +54,8 @@ class GraphQLConfigSchemaNode(
 
     if (performSchemaDiscovery) {
       usedProjectConfig = projectConfig ?: defaultProjectConfig
-      schemaInfo = runReadAction {
-        val scope = usedProjectConfig!!.schemaScope
-        GraphQLSchemaProvider.getInstance(myProject).getSchemaInfo(scope)
-      }
+      val scope = runReadAction { usedProjectConfig!!.schemaScope }
+      schemaInfo = GraphQLSchemaProvider.getInstance(myProject).getCachedSchemaInfo(scope)
     }
     else {
       schemaInfo = null
@@ -95,7 +93,7 @@ class GraphQLConfigSchemaNode(
       icon = AllIcons.Nodes.Folder
     }
 
-    public override fun buildChildren(): Array<SimpleNode> {
+    override fun buildChildren(): Array<SimpleNode> {
       return try {
         val config = parent.config
         return config.getProjects().values
@@ -109,7 +107,7 @@ class GraphQLConfigSchemaNode(
           }
           .toTypedArray()
       }
-      catch (ignored: IndexNotReadyException) {
+      catch (_: IndexNotReadyException) {
         // entered "dumb" mode, so just return no children as the tree view will be rebuilt as empty shortly (GraphQLSchemasRootNode)
         NO_CHILDREN
       }
