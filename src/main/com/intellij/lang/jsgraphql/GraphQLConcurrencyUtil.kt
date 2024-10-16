@@ -44,7 +44,7 @@ internal fun <T> awaitFuture(future: Future<T?>, timeoutMills: Long): T? {
   if (ApplicationManager.getApplication().isDispatchThread() &&
       !ApplicationManager.getApplication().isHeadlessEnvironment()
   ) {
-    LOG.error("Await future on EDT may cause a deadlock");
+    LOG.error("Await future on EDT may cause a deadlock")
     return null
   }
 
@@ -84,7 +84,9 @@ internal fun <T> awaitFuture(future: Future<T?>, timeoutMills: Long): T? {
       return future.get()
     }
     else {
-      LOG.debug("Timeout waiting for $timeoutMills ms")
+      if (timeoutMills != 0L) {
+        LOG.debug("Timeout waiting for $timeoutMills ms")
+      }
     }
   }
   catch (e: ProcessCanceledException) {

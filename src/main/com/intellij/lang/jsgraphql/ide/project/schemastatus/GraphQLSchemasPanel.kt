@@ -28,6 +28,11 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.ActivateToolWindow
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener.ToolWindowManagerEventType.HideToolWindow
 import com.intellij.profile.ProfileChangeAdapter
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.PopupHandler
@@ -51,7 +56,7 @@ import javax.swing.tree.TreeSelectionModel
 /**
  * Tool window panel that shows the status of the GraphQL schemas discovered in the project.
  */
-class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
+class GraphQLSchemasPanel(private val project: Project, private val toolWindowId: String) : JPanel(), Disposable {
   private val connection: MessageBusConnection = project.messageBus.connect(this)
   private val schemaModificationTracker = GraphQLSchemaContentTracker.getInstance(project)
 
@@ -62,6 +67,7 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
   private val updateAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
 
   private val isInitialized = AtomicBoolean()
+  private var scheduleUpdateEvents = true
 
   init {
     layout = BorderLayout()
@@ -69,6 +75,8 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
     createTree()
     add(createToolPanel(), BorderLayout.WEST)
     add(createTreePanel(), BorderLayout.CENTER)
+
+    subscribeToToolWindowEvents()
   }
 
   override fun dispose() {
@@ -119,6 +127,32 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
     })
 
     return JBScrollPane(tree).apply { border = IdeBorderFactory.createBorder(SideBorder.LEFT) }
+  }
+
+  private fun subscribeToToolWindowEvents() {
+    connection.subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+      override fun stateChanged(toolWindowManager: ToolWindowManager, toolWindow: ToolWindow, changeType: ToolWindowManagerListener.ToolWindowManagerEventType) {
+        if (toolWindow.id != toolWindowId) return
+
+        when (changeType) {
+          ActivateToolWindow -> {
+            scheduleUpdateEvents = true
+          }
+          HideToolWindow -> {
+            scheduleUpdateEvents = false
+            updateAlarm.cancelAllRequests()
+          }
+          else -> {}
+        }
+      }
+
+      override fun toolWindowShown(toolWindow: ToolWindow) {
+        if (toolWindow.id != toolWindowId) return
+
+        scheduleUpdateEvents = true
+        updateTree()
+      }
+    })
   }
 
   private fun createTree() {
@@ -234,6 +268,10 @@ class GraphQLSchemasPanel(private val project: Project) : JPanel(), Disposable {
   }
 
   private fun updateTree() {
+    if (!scheduleUpdateEvents) {
+      return
+    }
+
     val startVersion = schemaModificationTracker.modificationCount
 
     updateAlarm.cancelAllRequests()
