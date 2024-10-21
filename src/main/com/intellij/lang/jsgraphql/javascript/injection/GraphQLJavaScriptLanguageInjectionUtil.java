@@ -14,6 +14,7 @@ import com.intellij.lang.javascript.psi.JSExpression;
 import com.intellij.lang.javascript.psi.JSReferenceExpression;
 import com.intellij.lang.javascript.psi.ecma6.ES6TaggedTemplateExpression;
 import com.intellij.lang.javascript.psi.ecma6.JSStringTemplateExpression;
+import com.intellij.lang.javascript.psi.ecma6.TypeScriptAsExpression;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLCommentBasedInjectionHelper;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
@@ -129,14 +130,16 @@ public class GraphQLJavaScriptLanguageInjectionUtil {
   }
 
   private static boolean isInjectedUsingCStyleComment(@NotNull JSStringTemplateExpression template) {
-    PsiElement initialElement = template;
+    PsiElement anchor = template;
 
-    PsiElement parent = template.getParent();
-    if (parent instanceof ES6TaggedTemplateExpression) {
-      initialElement = parent;
+    if (anchor.getParent() instanceof ES6TaggedTemplateExpression taggedTemplateExpression) {
+      anchor = taggedTemplateExpression;
+    }
+    if (anchor.getParent() instanceof TypeScriptAsExpression asExpression) {
+      anchor = asExpression;
     }
 
-    PsiElement element = PsiTreeUtil.skipWhitespacesBackward(initialElement);
+    PsiElement element = PsiTreeUtil.skipWhitespacesBackward(anchor);
     if (PsiUtilCore.getElementType(element) != JSTokenTypes.C_STYLE_COMMENT) {
       return false;
     }
