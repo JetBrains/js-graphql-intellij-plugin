@@ -43,6 +43,18 @@
     {
       "id": "GraphQLTypeRedefinition",
       "codeQualityCategory": "Sanity"
+    },
+    {
+      "id": "GraphQLDuplicateDirective",
+      "codeQualityCategory": "Reliability"
+    },
+    {
+      "id": "GraphQLIllegalName",
+      "codeQualityCategory": "Reliability"
+    },
+    {
+      "id": "GraphQLMissingType",
+      "codeQualityCategory": "Sanity"
     }
   ]
 }
