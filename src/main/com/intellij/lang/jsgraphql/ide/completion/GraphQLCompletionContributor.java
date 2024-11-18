@@ -184,7 +184,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
         if (operationTypeDefinition == null || operationTypeDefinition.getOperationType() != null) {
           return;
         }
-        final Set<String> availableKeywords = ContainerUtil.map2Set(OPERATION_NAME_KEYWORDS, GraphQLCompletionKeyword::getText);
+        final Set<String> availableKeywords = new HashSet<>(ContainerUtil.map2Set(OPERATION_NAME_KEYWORDS, GraphQLCompletionKeyword::getText));
         Collection<GraphQLOperationTypeDefinition> existingDefinitions =
           PsiTreeUtil.findChildrenOfType(operationTypeDefinition.getParent(), GraphQLOperationTypeDefinition.class);
         for (GraphQLOperationTypeDefinition existingDefinition : existingDefinitions) {
