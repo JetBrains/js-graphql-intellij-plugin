@@ -1,7 +1,5 @@
 ### auto-generated section `build intellij.graphql` start
-load("@rules_jvm//:jvm.bzl", "jvm_resources")
-load("@rules_jvm//:rules.bzl", "jvm_library")
-load("@rules_kotlin//kotlin:jvm.bzl", "kt_jvm_test")
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_provided_library", "jvm_resources", "jvm_test")
 
 jvm_resources(
   name = "graphql_resources",
@@ -9,20 +7,25 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_provided_library(
+  name = "microservices_provided",
+  lib = "//plugins/microservices/microservices"
+)
+
 jvm_library(
   name = "graphql",
   module_name = "intellij.graphql",
   visibility = ["//visibility:public"],
-  srcs = glob(["gen/**/*.kt", "gen/**/*.java", "src/main/**/*.kt", "src/main/**/*.java", "src/gen/**/*.kt", "src/gen/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["gen/**/*.kt", "gen/**/*.java", "src/main/**/*.kt", "src/main/**/*.java", "src/gen/**/*.kt", "src/gen/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:kotlin-stdlib",
     "@community//platform/platform-api:ide",
+    "@community//platform/ide-core-impl",
     "@community//platform/lang-api:lang",
     "@community//platform/lang-impl",
     "@community//platform/core-impl",
     "@community//platform/core-api:core",
+    "@community//plugins/yaml/editing",
     "@community//platform/core-ui",
     "@community//platform/platform-util-io:ide-util-io",
     "@community//platform/analysis-impl",
@@ -48,25 +51,25 @@ jvm_library(
     "@ultimate_lib//:graphql_reactivestreams_reactive_streams",
     "@ultimate_lib//:graphql_graphql_java_dataloader",
     "@ultimate_lib//:graphql_atlassian_commonmark",
-    "//plugins/microservices/microservices",
+    ":microservices_provided",
   ],
   runtime_deps = [":graphql_resources"]
 )
 
-kt_jvm_test(
-  name = "graphql_test",
+jvm_library(
+  name = "graphql_test_lib",
   visibility = ["//visibility:public"],
-  srcs = glob(["src/test/**/*.kt", "src/test/**/*.java"], allow_empty = True, exclude = ["**/module-info.java"]),
-  javac_opts = "@rules_jvm//:j17",
-  kotlinc_opts = "@rules_jvm//:k17",
+  srcs = glob(["src/test/**/*.kt", "src/test/**/*.java"], allow_empty = True),
   associates = [":graphql"],
   deps = [
     "@lib//:kotlin-stdlib",
     "@community//platform/platform-api:ide",
+    "@community//platform/ide-core-impl",
     "@community//platform/lang-api:lang",
     "@community//platform/lang-impl",
     "@community//platform/core-impl",
     "@community//platform/core-api:core",
+    "@community//plugins/yaml/editing",
     "@community//platform/core-ui",
     "@community//platform/platform-util-io:ide-util-io",
     "@community//platform/analysis-impl",
@@ -77,13 +80,16 @@ kt_jvm_test(
     "@community//platform/projectModel-api:projectModel",
     "@community//platform/projectModel-impl",
     "@community//plugins/yaml",
+    "@community//plugins/yaml:yaml_test_lib",
     "@community//plugins/IntelliLang:langInjection",
     "@community//platform/vcs-impl",
+    "@community//platform/vcs-impl:vcs-impl_test_lib",
     "@community//spellchecker",
+    "@community//spellchecker:spellchecker_test_lib",
     "//webcore/impl:webide-impl",
     "@community//platform/backend/workspace",
     "@community//platform/testFramework",
-    "@community//platform/testFramework:testFramework_test",
+    "@community//platform/testFramework:testFramework_test_lib",
     "//plugins/JavaScriptLanguage/testFramework-JavaScript:javascript-testFramework",
     "@community//java/testFramework",
     "//ultimate/ultimate-resources:idea-ultimate-customization",
@@ -98,7 +104,14 @@ kt_jvm_test(
     "@ultimate_lib//:graphql_reactivestreams_reactive_streams",
     "@ultimate_lib//:graphql_graphql_java_dataloader",
     "@ultimate_lib//:graphql_atlassian_commonmark",
+    "//plugins/microservices/microservices",
+    "//plugins/microservices/microservices:microservices_test_lib",
   ],
   runtime_deps = [":graphql_resources"]
+)
+
+jvm_test(
+  name = "graphql_test",
+  runtime_deps = [":graphql_test_lib"]
 )
 ### auto-generated section `build intellij.graphql` end
