@@ -55,6 +55,7 @@ public class CoercingSerializeException extends GraphqlErrorException {
   }
 
   public static class Builder extends BuilderBase<Builder, CoercingSerializeException> {
+    @Override
     public CoercingSerializeException build() {
       return new CoercingSerializeException(this);
     }

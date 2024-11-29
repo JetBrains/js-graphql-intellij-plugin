@@ -157,10 +157,12 @@ public class GraphQLUnionType
     return name;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
 
+  @Override
   public UnionTypeDefinition getDefinition() {
     return definition;
   }

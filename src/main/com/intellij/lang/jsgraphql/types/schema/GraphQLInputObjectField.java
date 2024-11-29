@@ -131,6 +131,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
     return name;
   }
 
+  @Override
   public GraphQLInputType getType() {
     return replacedType != null ? replacedType : originalType;
   }
@@ -139,6 +140,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
     return defaultValue;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
@@ -151,6 +153,7 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
     return deprecationReason != null;
   }
 
+  @Override
   public InputValueDefinition getDefinition() {
     return definition;
   }

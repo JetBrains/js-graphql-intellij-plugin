@@ -119,6 +119,7 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
     return variableDefinitions;
   }
 
+  @Override
   public List<Directive> getDirectives() {
     return directives;
   }
@@ -211,11 +212,13 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
     }
 
 
+    @Override
     public Builder sourceLocation(SourceLocation sourceLocation) {
       this.sourceLocation = sourceLocation;
       return this;
     }
 
+    @Override
     public Builder comments(List<Comment> comments) {
       this.comments = ImmutableList.copyOf(comments);
       return this;
@@ -247,6 +250,7 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
       return this;
     }
 
+    @Override
     public Builder directive(Directive directive) {
       this.directives = ImmutableKit.addToList(directives, directive);
       return this;
@@ -257,21 +261,25 @@ public class OperationDefinition extends AbstractNode<OperationDefinition>
       return this;
     }
 
+    @Override
     public Builder ignoredChars(IgnoredChars ignoredChars) {
       this.ignoredChars = ignoredChars;
       return this;
     }
 
+    @Override
     public Builder additionalData(Map<String, String> additionalData) {
       this.additionalData = assertNotNull(additionalData);
       return this;
     }
 
+    @Override
     public Builder additionalData(String key, String value) {
       this.additionalData.put(key, value);
       return this;
     }
 
+    @Override
     public Builder sourceNodes(@Nullable List<? extends Node> sourceNodes) {
       this.sourceNodes = sourceNodes;
       return this;

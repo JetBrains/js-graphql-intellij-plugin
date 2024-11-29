@@ -172,6 +172,7 @@ public class GraphQLObjectType
     return originalInterfaces;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
@@ -182,6 +183,7 @@ public class GraphQLObjectType
     return name;
   }
 
+  @Override
   public ObjectTypeDefinition getDefinition() {
     return definition;
   }

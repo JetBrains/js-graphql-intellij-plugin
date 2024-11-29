@@ -104,6 +104,7 @@ public class GraphQLBlock extends AbstractBlock {
     return null;
   }
 
+  @Override
   public boolean isLeaf() {
     return myNode.getFirstChildNode() == null;
   }

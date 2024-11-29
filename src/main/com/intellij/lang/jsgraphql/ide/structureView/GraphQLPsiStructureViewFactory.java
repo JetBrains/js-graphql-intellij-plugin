@@ -21,10 +21,12 @@ public final class GraphQLPsiStructureViewFactory implements PsiStructureViewFac
   @Override
   public @Nullable StructureViewBuilder getStructureViewBuilder(@NotNull PsiFile psiFile) {
     return new TreeBasedStructureViewBuilder() {
+      @Override
       public @NotNull StructureViewModel createStructureViewModel(@Nullable Editor editor) {
         return new GraphQLStructureViewModel(psiFile, editor);
       }
 
+      @Override
       public boolean isRootNodeShown() {
         return false;
       }

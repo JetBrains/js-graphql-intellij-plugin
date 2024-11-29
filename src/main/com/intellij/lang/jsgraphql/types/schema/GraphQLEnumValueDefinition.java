@@ -119,6 +119,7 @@ public class GraphQLEnumValueDefinition implements GraphQLNamedSchemaElement, Gr
     return name;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
@@ -155,6 +156,7 @@ public class GraphQLEnumValueDefinition implements GraphQLNamedSchemaElement, Gr
     return directives.getDirective(directiveName);
   }
 
+  @Override
   public EnumValueDefinition getDefinition() {
     return definition;
   }

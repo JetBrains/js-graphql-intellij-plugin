@@ -98,10 +98,12 @@ public class GraphQLDirective implements GraphQLNamedSchemaElement {
     return EnumSet.copyOf(locations);
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
 
+  @Override
   public DirectiveDefinition getDefinition() {
     return definition;
   }

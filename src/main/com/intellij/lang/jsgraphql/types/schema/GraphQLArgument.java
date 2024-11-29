@@ -140,6 +140,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
     return name;
   }
 
+  @Override
   public GraphQLInputType getType() {
     return replacedType != null ? replacedType : originalType;
   }
@@ -169,6 +170,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
     return value;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
@@ -181,6 +183,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
     return deprecationReason != null;
   }
 
+  @Override
   public InputValueDefinition getDefinition() {
     return definition;
   }

@@ -156,6 +156,7 @@ public class GraphQLInterfaceType
     return name;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
@@ -165,6 +166,7 @@ public class GraphQLInterfaceType
     return typeResolver;
   }
 
+  @Override
   public InterfaceTypeDefinition getDefinition() {
     return definition;
   }

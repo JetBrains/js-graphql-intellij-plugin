@@ -82,6 +82,7 @@ public final class GraphQLSyntaxAnnotator implements Annotator {
       }
     }
 
+    @Override
     public void visitFragmentDefinition(@NotNull GraphQLFragmentDefinition fragmentDefinition) {
       applyTextAttributes(fragmentDefinition.getNameIdentifier(), FRAGMENT_DEFINITION);
     }

@@ -59,6 +59,7 @@ public class CoercingParseValueException extends GraphqlErrorException {
   }
 
   public static class Builder extends BuilderBase<Builder, CoercingParseValueException> {
+    @Override
     public CoercingParseValueException build() {
       return new CoercingParseValueException(this);
     }

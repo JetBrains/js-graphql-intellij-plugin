@@ -150,10 +150,12 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
     return arguments;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
 
+  @Override
   public FieldDefinition getDefinition() {
     return definition;
   }

@@ -34,18 +34,22 @@ public final class GraphQLParserDefinition implements ParserDefinition {
     return new GraphQLLexerAdapter();
   }
 
+  @Override
   public @NotNull TokenSet getWhitespaceTokens() {
     return GraphQLExtendedElementTypes.WHITE_SPACES;
   }
 
+  @Override
   public @NotNull TokenSet getCommentTokens() {
     return GraphQLExtendedElementTypes.COMMENTS;
   }
 
+  @Override
   public @NotNull TokenSet getStringLiteralElements() {
     return GraphQLExtendedElementTypes.STRING_LITERALS;
   }
 
+  @Override
   public @NotNull PsiParser createParser(final Project project) {
     return new GraphQLParser();
   }
@@ -55,14 +59,17 @@ public final class GraphQLParserDefinition implements ParserDefinition {
     return FILE;
   }
 
+  @Override
   public @NotNull PsiFile createFile(@NotNull FileViewProvider viewProvider) {
     return new GraphQLFile(viewProvider);
   }
 
+  @Override
   public @NotNull SpaceRequirements spaceExistenceTypeBetweenTokens(ASTNode left, ASTNode right) {
     return SpaceRequirements.MAY;
   }
 
+  @Override
   public @NotNull PsiElement createElement(ASTNode node) {
     return GraphQLElementTypes.Factory.createElement(node);
   }

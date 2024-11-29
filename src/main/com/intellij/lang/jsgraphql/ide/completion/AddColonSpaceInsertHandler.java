@@ -34,6 +34,7 @@ public class AddColonSpaceInsertHandler implements InsertHandler<LookupElement> 
     myTriggerAutoPopup = triggerAutoPopup;
   }
 
+  @Override
   public void handleInsert(InsertionContext context, LookupElement item) {
     Editor editor = context.getEditor();
     char completionChar = context.getCompletionChar();

@@ -123,6 +123,7 @@ public class GraphQLScalarType
   }
 
 
+  @Override
   public String getDescription() {
     return description;
   }
@@ -135,6 +136,7 @@ public class GraphQLScalarType
     return coercing;
   }
 
+  @Override
   public ScalarTypeDefinition getDefinition() {
     return definition;
   }

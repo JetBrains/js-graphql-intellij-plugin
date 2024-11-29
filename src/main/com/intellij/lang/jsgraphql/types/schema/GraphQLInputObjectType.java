@@ -118,6 +118,7 @@ public class GraphQLInputObjectType
     return name;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
@@ -160,6 +161,7 @@ public class GraphQLInputObjectType
     return ImmutableList.copyOf(fieldMap.values());
   }
 
+  @Override
   public InputObjectTypeDefinition getDefinition() {
     return definition;
   }

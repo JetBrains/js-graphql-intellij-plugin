@@ -71,6 +71,7 @@ public class GraphqlErrorException extends GraphQLException implements GraphQLEr
   }
 
   public static class Builder extends BuilderBase<Builder, GraphqlErrorException> {
+    @Override
     public GraphqlErrorException build() {
       return new GraphqlErrorException(this);
     }

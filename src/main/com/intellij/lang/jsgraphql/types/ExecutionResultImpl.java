@@ -68,6 +68,7 @@ public class ExecutionResultImpl implements ExecutionResult {
     this.extensions = extensions;
   }
 
+  @Override
   public boolean isDataPresent() {
     return dataPresent;
   }

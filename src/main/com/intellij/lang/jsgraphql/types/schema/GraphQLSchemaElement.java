@@ -56,6 +56,7 @@ public interface GraphQLSchemaElement {
    * @return {@code true} if this object is the same as the obj
    * argument; {@code false} otherwise.
    */
+  @Override
   boolean equals(Object obj);
 
   /**
@@ -64,5 +65,6 @@ public interface GraphQLSchemaElement {
    *
    * @return a hash code value for this object.
    */
+  @Override
   int hashCode();
 }

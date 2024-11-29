@@ -198,10 +198,12 @@ public class GraphQLEnumType
     return name;
   }
 
+  @Override
   public String getDescription() {
     return description;
   }
 
+  @Override
   public EnumTypeDefinition getDefinition() {
     return definition;
   }

@@ -49,6 +49,7 @@ public class GraphQLCachingReference extends PsiReferenceBase<GraphQLReferenceMi
   private static class MyResolver implements ResolveCache.Resolver {
     private static final GraphQLCachingReference.MyResolver INSTANCE = new GraphQLCachingReference.MyResolver();
 
+    @Override
     public @Nullable PsiElement resolve(@NotNull PsiReference ref, boolean incompleteCode) {
       return ((GraphQLCachingReference)ref).resolveInner();
     }

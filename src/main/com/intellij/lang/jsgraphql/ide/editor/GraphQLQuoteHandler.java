@@ -18,10 +18,12 @@ public final class GraphQLQuoteHandler extends SimpleTokenSetQuoteHandler {
     super(GraphQLExtendedElementTypes.SINGLE_QUOTES);
   }
 
+  @Override
   public boolean isOpeningQuote(final HighlighterIterator iterator, final int offset) {
     return iterator.getTokenType() == GraphQLElementTypes.OPEN_QUOTE;
   }
 
+  @Override
   public boolean isClosingQuote(final HighlighterIterator iterator, final int offset) {
     return iterator.getTokenType() == GraphQLElementTypes.CLOSING_QUOTE;
   }

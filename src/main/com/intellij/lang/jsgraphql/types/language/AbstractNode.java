@@ -79,6 +79,7 @@ public abstract class AbstractNode<T extends Node> implements Node<T> {
   }
 
 
+  @Override
   public Map<String, String> getAdditionalData() {
     return additionalData;
   }
