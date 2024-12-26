@@ -34,7 +34,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.mapping;
 
 @Internal
-public class FpKit {
+public final class FpKit {
 
   //
   // From a list of named things, get a map of them by name, merging them according to the merge function

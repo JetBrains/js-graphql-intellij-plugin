@@ -29,7 +29,7 @@ import java.util.*;
 import java.util.function.Consumer;
 
 @Internal
-public class SchemaExtensionsChecker {
+public final class SchemaExtensionsChecker {
 
   static Map<String, OperationTypeDefinition> gatherOperationDefs(TypeDefinitionRegistry typeRegistry) {
     List<GraphQLError> noErrors = new ArrayList<>();

@@ -25,7 +25,7 @@ import com.intellij.lang.jsgraphql.types.language.TypeName;
 /**
  * This class consists of {@code static} utility methods for operating on {@link com.intellij.lang.jsgraphql.types.language.Type}.
  */
-public class TypeUtil {
+public final class TypeUtil {
 
   /**
    * This will return the type in graphql SDL format, eg [typeName!]!

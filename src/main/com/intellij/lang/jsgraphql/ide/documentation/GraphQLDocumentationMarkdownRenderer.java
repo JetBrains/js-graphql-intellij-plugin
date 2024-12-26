@@ -14,7 +14,7 @@ import org.commonmark.renderer.text.TextContentRenderer;
 /**
  * Renders GraphQL documentation based on the CommonMark spec as either plain text or HTML.
  */
-public class GraphQLDocumentationMarkdownRenderer {
+public final class GraphQLDocumentationMarkdownRenderer {
 
   private static final Parser PARSER = Parser.builder().build();
 

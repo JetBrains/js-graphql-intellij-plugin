@@ -37,7 +37,7 @@ import static com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull.nonNull;
  * The directives that are understood by graphql-java
  */
 @PublicApi
-public class Directives {
+public final class Directives {
 
   private static final String SPECIFIED_BY = "specifiedBy";
   private static final String DEPRECATED = "deprecated";

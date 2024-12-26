@@ -29,7 +29,7 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
  * For more info see http://graphql.org/learn/schema/#scalar-types and more specifically http://facebook.github.io/graphql/#sec-Scalars
  */
 @PublicApi
-public class Scalars {
+public final class Scalars {
 
   /**
    * This represents the "Int" type as defined in the graphql specification : http://facebook.github.io/graphql/#sec-Int

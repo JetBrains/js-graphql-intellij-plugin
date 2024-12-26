@@ -28,7 +28,7 @@ import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
  * A utility class that helps work with {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType}s
  */
 @PublicApi
-public class GraphQLTypeUtil {
+public final class GraphQLTypeUtil {
 
   /**
    * This will return the type in graphql SDL format, eg [typeName!]!

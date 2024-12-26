@@ -31,7 +31,7 @@ import java.util.Map;
  * Info on all the standard scalar objects provided by graphql-java
  */
 @PublicApi
-public class ScalarInfo {
+public final class ScalarInfo {
 
   /**
    * A list of the built-in scalar types as defined by the graphql specification

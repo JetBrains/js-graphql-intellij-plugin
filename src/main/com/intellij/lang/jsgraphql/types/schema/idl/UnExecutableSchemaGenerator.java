@@ -27,7 +27,7 @@ import java.util.Map;
 import static com.intellij.lang.jsgraphql.types.schema.idl.EchoingWiringFactory.fakeScalar;
 
 @Internal
-public class UnExecutableSchemaGenerator {
+public final class UnExecutableSchemaGenerator {
 
   /*
    * Creates just enough runtime wiring to allow a schema to be built but which CANT

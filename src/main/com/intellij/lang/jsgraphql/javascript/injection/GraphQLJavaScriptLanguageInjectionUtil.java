@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class GraphQLJavaScriptLanguageInjectionUtil {
+public final class GraphQLJavaScriptLanguageInjectionUtil {
   private static final String GRAPHQL_EOL_COMMENT = "#graphql";
   // Min length for injection - `#graphql`
   private static final int GRAPHQL_EOL_COMMENT_MIN_TEMPLATE_LENGTH = 10;

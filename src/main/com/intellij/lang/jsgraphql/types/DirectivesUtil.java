@@ -36,7 +36,7 @@ import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.emptyList;
 import static java.util.stream.Collectors.toList;
 
 @Internal
-public class DirectivesUtil {
+public final class DirectivesUtil {
 
 
   public static Map<String, GraphQLDirective> nonRepeatableDirectivesByName(List<GraphQLDirective> directives) {

@@ -25,7 +25,7 @@ import static java.lang.String.format;
 
 @SuppressWarnings("TypeParameterUnusedInFormals")
 @Internal
-public class Assert {
+public final class Assert {
 
   public static <T> T assertNotNull(T object, Supplier<String> msg) {
     if (object != null) {

@@ -25,7 +25,7 @@ import java.util.Queue;
 import static com.intellij.lang.jsgraphql.types.Assert.assertTrue;
 
 @PublicApi
-public class TreeTransformerUtil {
+public final class TreeTransformerUtil {
 
   /**
    * Can be called multiple times to change the current node of the context. The latest call wins

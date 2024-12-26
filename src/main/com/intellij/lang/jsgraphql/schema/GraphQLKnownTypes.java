@@ -4,7 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
-public class GraphQLKnownTypes {
+public final class GraphQLKnownTypes {
   public static final String INTROSPECTION_QUERY_INTROSPECTION_META = "__QueryIntrospectionMeta";
   public static final String INTROSPECTION_TYPE_NAME_META = "__TypeNameMeta";
   public static final String INTROSPECTION_SCHEMA = "__Schema";

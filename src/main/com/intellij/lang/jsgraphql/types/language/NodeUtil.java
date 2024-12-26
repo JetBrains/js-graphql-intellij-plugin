@@ -33,7 +33,7 @@ import static com.intellij.lang.jsgraphql.types.util.FpKit.mergeFirst;
  * Helper class for working with {@link Node}s
  */
 @Internal
-public class NodeUtil {
+public final class NodeUtil {
 
   public static boolean isEqualTo(String thisStr, String thatStr) {
     if (null == thisStr) {

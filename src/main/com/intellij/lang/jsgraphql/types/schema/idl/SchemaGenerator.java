@@ -44,7 +44,7 @@ public class SchemaGenerator {
   /**
    * These options control how the schema generation works
    */
-  public static class Options {
+  public static final class Options {
 
     Options() {
     }

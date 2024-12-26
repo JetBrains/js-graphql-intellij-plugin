@@ -33,7 +33,7 @@ import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isList;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNonNull;
 
 @Internal
-public class AstValueHelper {
+public final class AstValueHelper {
 
   /**
    * Produces a GraphQL Value AST given a Java value.

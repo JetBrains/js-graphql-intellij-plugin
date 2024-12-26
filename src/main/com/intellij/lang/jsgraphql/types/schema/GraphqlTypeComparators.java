@@ -26,7 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 
 @Internal
-public class GraphqlTypeComparators {
+public final class GraphqlTypeComparators {
 
   /**
    * This sorts the list of {@link com.intellij.lang.jsgraphql.types.schema.GraphQLType} objects (by name) and allocates a new sorted

@@ -32,7 +32,7 @@ import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
  */
 @SuppressWarnings("SimplifiableIfStatement")
 @Internal
-public class GraphqlErrorHelper {
+public final class GraphqlErrorHelper {
 
   public static Map<String, Object> toSpecification(GraphQLError error) {
     Map<String, Object> errorMap = new LinkedHashMap<>();
