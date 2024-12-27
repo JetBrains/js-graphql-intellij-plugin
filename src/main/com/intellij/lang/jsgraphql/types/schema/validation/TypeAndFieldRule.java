@@ -81,7 +81,7 @@ public class TypeAndFieldRule implements SchemaValidationRule {
     assertTypeName(type.getName(), type.getDefinition(), errorCollector);
 
     List<GraphQLFieldDefinition> fieldDefinitions = type.getFieldDefinitions();
-    if (fieldDefinitions == null || fieldDefinitions.size() == 0) {
+    if (fieldDefinitions == null || fieldDefinitions.isEmpty()) {
       SchemaValidationError validationError = new SchemaValidationError(
         SchemaValidationErrorType.ImplementingTypeLackOfFieldError,
         String.format("\"%s\" must define one or more fields.", type.getName()),
@@ -99,7 +99,7 @@ public class TypeAndFieldRule implements SchemaValidationRule {
     assertTypeName(type.getName(), type.getDefinition(), errorCollector);
 
     List<GraphQLInputObjectField> inputObjectFields = type.getFields();
-    if (inputObjectFields == null || inputObjectFields.size() == 0) {
+    if (inputObjectFields == null || inputObjectFields.isEmpty()) {
       SchemaValidationError validationError = new SchemaValidationError(
         SchemaValidationErrorType.InputObjectTypeLackOfFieldError,
         String.format("\"%s\" must define one or more fields.", type.getName()),
@@ -122,7 +122,7 @@ public class TypeAndFieldRule implements SchemaValidationRule {
     assertTypeName(type.getName(), type.getDefinition(), errorCollector);
 
     List<GraphQLEnumValueDefinition> enumValueDefinitions = type.getValues();
-    if (enumValueDefinitions == null || enumValueDefinitions.size() == 0) {
+    if (enumValueDefinitions == null || enumValueDefinitions.isEmpty()) {
       SchemaValidationError validationError = new SchemaValidationError(
         SchemaValidationErrorType.EnumLackOfValueError,
         String.format("Enum type \"%s\" must define one or more enum values.", type.getName()),
@@ -144,7 +144,7 @@ public class TypeAndFieldRule implements SchemaValidationRule {
     assertNonNullType(fieldDefinition.getType(), fieldDefinition.getDefinition(), errorCollector);
 
     List<GraphQLArgument> fieldDefinitionArguments = fieldDefinition.getArguments();
-    if (fieldDefinitionArguments != null || fieldDefinitionArguments.size() != 0) {
+    if (fieldDefinitionArguments != null || !fieldDefinitionArguments.isEmpty()) {
       for (GraphQLArgument fieldDefinitionArgument : fieldDefinitionArguments) {
         validateFieldDefinitionArgument(typeName, fieldDefinition.getName(), fieldDefinitionArgument, errorCollector);
       }

@@ -56,7 +56,7 @@ public class SchemaParser {
       }
     }
 
-    if (errors.size() > 0) {
+    if (!errors.isEmpty()) {
       typeRegistry.addError(new SchemaProblem(errors));
     }
     return typeRegistry;

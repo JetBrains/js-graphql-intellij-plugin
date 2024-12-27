@@ -58,7 +58,7 @@ public class NodeMultiZipper<T> {
    * @return can be null if the root node is marked as deleted
    */
   public T toRootNode() {
-    if (zippers.size() == 0) {
+    if (zippers.isEmpty()) {
       return commonRoot;
     }
 

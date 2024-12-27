@@ -147,7 +147,7 @@ public class TreeParallelTraverser<T> {
       }
       assertTrue(traversalControl == CONTINUE);
       List<DefaultTraverserContext> children = pushAll(currentContext);
-      if (children.size() == 0) {
+      if (children.isEmpty()) {
         tryComplete();
         return;
       }

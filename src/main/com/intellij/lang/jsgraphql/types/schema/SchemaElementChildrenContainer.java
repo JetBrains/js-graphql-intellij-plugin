@@ -43,7 +43,7 @@ public class SchemaElementChildrenContainer {
     if (result.size() > 1) {
       throw new IllegalStateException("children " + key + " is not a single value");
     }
-    return result.size() > 0 ? (T)result.get(0) : null;
+    return !result.isEmpty() ? (T)result.get(0) : null;
   }
 
   public Map<String, List<GraphQLSchemaElement>> getChildren() {

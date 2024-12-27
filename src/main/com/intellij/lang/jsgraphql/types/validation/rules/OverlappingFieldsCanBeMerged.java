@@ -148,7 +148,7 @@ public class OverlappingFieldsCanBeMerged extends AbstractRule {
       collectFields(subFieldMap, selectionSet1, typeA, visitedFragmentSpreads);
       collectFields(subFieldMap, selectionSet2, typeB, visitedFragmentSpreads);
       List<Conflict> subConflicts = findConflicts(subFieldMap);
-      if (subConflicts.size() > 0) {
+      if (!subConflicts.isEmpty()) {
         String reason = format("%s: %s", responseName, joinReasons(subConflicts));
         List<Field> fields = new ArrayList<>();
         fields.add(fieldA);

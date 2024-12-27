@@ -272,7 +272,7 @@ public class SchemaGeneratorHelper {
         lines.add(commentLine);
       }
     }
-    if (lines.size() == 0) {
+    if (lines.isEmpty()) {
       return null;
     }
     return String.join("\n", lines);

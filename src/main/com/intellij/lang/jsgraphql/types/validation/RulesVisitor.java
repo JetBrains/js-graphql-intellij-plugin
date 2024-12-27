@@ -147,7 +147,7 @@ public class RulesVisitor implements DocumentVisitor {
       rule.checkFragmentSpread(fragmentSpread);
     }
     List<AbstractRule> rulesVisitingFragmentSpreads = getRulesVisitingFragmentSpreads(rules);
-    if (rulesVisitingFragmentSpreads.size() > 0) {
+    if (!rulesVisitingFragmentSpreads.isEmpty()) {
       FragmentDefinition fragment = validationContext.getFragment(fragmentSpread.getName());
       if (fragment != null && !ancestors.contains(fragment)) {
         new LanguageTraversal(ancestors).traverse(fragment, new RulesVisitor(validationContext, rulesVisitingFragmentSpreads, true));

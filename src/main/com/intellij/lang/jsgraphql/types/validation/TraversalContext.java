@@ -265,7 +265,7 @@ public class TraversalContext implements DocumentVisitor {
 
 
   private <T> T lastElement(List<T> list) {
-    if (list.size() == 0) return null;
+    if (list.isEmpty()) return null;
     return list.get(list.size() - 1);
   }
 

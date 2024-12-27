@@ -116,7 +116,7 @@ public class TreeParallelTransformer<T> {
       assertTrue(traversalControl == CONTINUE);
 
       this.children = pushAll(currentContext);
-      if (children.size() == 0) {
+      if (children.isEmpty()) {
         tryComplete();
         return;
       }
@@ -137,7 +137,7 @@ public class TreeParallelTransformer<T> {
       for (DefaultTraverserContext childContext : this.children) {
         childZippers.addAll((Collection<? extends NodeZipper<T>>)childContext.getVar(List.class));
       }
-      if (childZippers.size() > 0) {
+      if (!childZippers.isEmpty()) {
         NodeZipper<T> newNode = moveUp((T)currentContext.thisNode(), childZippers);
         myZippers.add(newNode);
         this.result = newNode.getCurNode();
