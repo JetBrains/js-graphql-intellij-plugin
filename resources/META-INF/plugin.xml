@@ -38,7 +38,6 @@
   <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
   <depends optional="true" config-file="graphql-intellilang.xml">org.intellij.intelliLang</depends>
   <depends optional="true" config-file="graphql-yaml.xml">org.jetbrains.plugins.yaml</depends>
-  <depends optional="true" config-file="graphql-microservices.xml">com.intellij.modules.microservices</depends>
 
   <resource-bundle>messages.GraphQLBundle</resource-bundle>
 
@@ -276,6 +275,8 @@
 
     <lang.inspectionSuppressor language="GraphQL"
                                implementationClass="com.intellij.lang.jsgraphql.ide.validation.GraphQLInspectionSuppressor"/>
+
+    <microservices.endpointsProvider implementation="com.intellij.lang.jsgraphql.ide.microservices.GraphQLEndpointsProvider"/>
   </extensions>
 
   <extensions defaultExtensionNs="JavaScript">

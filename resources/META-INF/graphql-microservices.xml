@@ -1,5 +1,0 @@
-<idea-plugin package="com.intellij.lang.jsgraphql.ide.microservices">
-  <extensions defaultExtensionNs="com.intellij">
-    <microservices.endpointsProvider implementation="com.intellij.lang.jsgraphql.ide.microservices.GraphQLEndpointsProvider"/>
-  </extensions>
-</idea-plugin>
