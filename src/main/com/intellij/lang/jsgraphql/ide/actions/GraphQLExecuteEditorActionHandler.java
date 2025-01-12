@@ -32,7 +32,7 @@ public final class GraphQLExecuteEditorActionHandler extends EditorActionHandler
 
   @Override
   protected void doExecute(@NotNull Editor editor, @Nullable Caret caret, DataContext dataContext) {
-    PsiFile file = dataContext.getData(LangDataKeys.PSI_FILE);
+    PsiFile file = dataContext.getData(CommonDataKeys.PSI_FILE);
     if (file instanceof GraphQLFile || isQueryVariablesFile(dataContext)) {
       final AnAction executeGraphQLAction = ActionManager.getInstance().getAction(GraphQLExecuteEditorAction.ACTION_ID);
       final AnActionEvent actionEvent = AnActionEvent.createFromInputEvent(null, ActionPlaces.EDITOR_TOOLBAR,
