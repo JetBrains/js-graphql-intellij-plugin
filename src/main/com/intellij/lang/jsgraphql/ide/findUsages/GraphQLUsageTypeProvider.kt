@@ -15,7 +15,7 @@ import com.intellij.usages.impl.rules.UsageTypeProvider
 /**
  * Shows field access as "read" in the find usages panel
  */
-class GraphQLUsageTypeProvider : UsageTypeProvider {
+private class GraphQLUsageTypeProvider : UsageTypeProvider {
   override fun getUsageType(element: PsiElement): UsageType? {
     return if (element is GraphQLReferenceElement) UsageType.READ else null
   }
