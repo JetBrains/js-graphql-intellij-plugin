@@ -33,6 +33,7 @@
 
   <dependencies>
     <plugin id="com.intellij.modules.lang"/>
+    <plugin id="com.intellij.modules.json"/>
   </dependencies>
 
   <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
