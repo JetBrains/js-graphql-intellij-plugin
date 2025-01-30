@@ -63,10 +63,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.milliseconds
 
-
 @Service(Service.Level.PROJECT)
-class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : ModificationTracker, GraphQLConfigEnvironmentListener {
-
+internal class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : ModificationTracker, GraphQLConfigEnvironmentListener {
   companion object {
     private val LOG = logger<GraphQLConfigProvider>()
 
