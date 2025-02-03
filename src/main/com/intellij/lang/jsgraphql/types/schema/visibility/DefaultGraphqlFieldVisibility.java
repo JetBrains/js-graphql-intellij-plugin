@@ -20,8 +20,6 @@ package com.intellij.lang.jsgraphql.types.schema.visibility;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLInputFieldsContainer;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
 
 import java.util.List;
 

@@ -19,7 +19,6 @@ package com.intellij.lang.jsgraphql.types.validation.rules;
 
 
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
 import com.intellij.lang.jsgraphql.types.language.OperationDefinition;
 import com.intellij.lang.jsgraphql.types.language.VariableDefinition;
 import com.intellij.lang.jsgraphql.types.language.VariableReference;
