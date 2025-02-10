@@ -43,6 +43,7 @@ public class GraphQLJavaScriptLanguageInjectionUtil {
   public static final String APOLLO_GQL_TEMPLATE_TAG = "Apollo.gql";
 
   private static final ElementPattern<JSExpression> GRAPHQL_CALL_ARG_PATTERN = JSPatterns.jsArgument(GRAPHQL_TEMPLATE_TAG, 0);
+  private static final ElementPattern<JSExpression> GQL_CALL_ARG_PATTERN = JSPatterns.jsArgument(GQL_TEMPLATE_TAG, 0);
 
   public static final Set<String> SUPPORTED_TAG_NAMES = Sets.newHashSet(
     RELAY_QL_TEMPLATE_TAG,
@@ -112,7 +113,7 @@ public class GraphQLJavaScriptLanguageInjectionUtil {
   private static boolean isInjectedInCallArgument(@NotNull JSStringTemplateExpression template) {
     PsiElement parent = template.getParent();
     PsiElement expr = parent instanceof ES6TaggedTemplateExpression ? parent : template;
-    return GRAPHQL_CALL_ARG_PATTERN.accepts(expr);
+    return GRAPHQL_CALL_ARG_PATTERN.accepts(expr) || GQL_CALL_ARG_PATTERN.accepts(expr);
   }
 
   /**

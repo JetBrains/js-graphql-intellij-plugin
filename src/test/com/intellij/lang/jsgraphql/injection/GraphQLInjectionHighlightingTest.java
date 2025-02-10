@@ -114,6 +114,10 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
     doTestInjectedFile("callArgument.js");
   }
 
+  public void testInjectedInGqlCallArgument() {
+    doTestInjectedFile("gqlCallArgument.js");
+  }
+
   public void testInjectedWithCStyleCommentAsType() {
     doTestInjectedFile("cStyleCommentAsType.ts");
   }
