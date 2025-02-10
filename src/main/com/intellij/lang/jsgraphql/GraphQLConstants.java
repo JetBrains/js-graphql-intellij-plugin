@@ -21,5 +21,6 @@ public final class GraphQLConstants {
   public static final class Config {
     public static final String CODEGEN = "codegen";
     public static final String GRAPHQL = "graphql.config";
+    public static final String GRAPHQLRC = "graphqlrc";
   }
 }
