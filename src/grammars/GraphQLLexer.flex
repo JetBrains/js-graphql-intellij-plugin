@@ -24,37 +24,6 @@ import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
 %%
 
 %{
-
-    private static final class State {
-        final int lBraceCount;
-        final int state;
-
-        public State(int state, int lBraceCount) {
-            this.state = state;
-            this.lBraceCount = lBraceCount;
-        }
-
-        @Override
-        public String toString() {
-            return "yystate = " + state + (lBraceCount == 0 ? "" : "lBraceCount = " + lBraceCount);
-        }
-    }
-
-    protected final Stack<State> myStateStack = new Stack<State>();
-    protected int myLeftBraceCount;
-
-    private void pushState(int state) {
-        myStateStack.push(new State(yystate(), myLeftBraceCount));
-        myLeftBraceCount = 0;
-        yybegin(state);
-    }
-
-    private void popState() {
-        State state = myStateStack.pop();
-        myLeftBraceCount = state.lBraceCount;
-        yybegin(state.state);
-    }
-
   public GraphQLLexer() {
     this((java.io.Reader)null);
   }
@@ -93,12 +62,7 @@ EXPONENT_PART = [eE] [+-]? {DIGIT}+
 NUMBER = {INTEGER_PART}
 FLOAT = {INTEGER_PART} {FRACTIONAL_PART} | {INTEGER_PART} {EXPONENT_PART} | {INTEGER_PART} {FRACTIONAL_PART} {EXPONENT_PART}
 
-%eof{
-  myLeftBraceCount = 0;
-  myStateStack.clear();
-%eof}
-
-%state QUOTED_STRING BLOCK_STRING VARIABLE_OR_TEMPLATE TEMPLATE
+%state QUOTED_STRING BLOCK_STRING
 
 %%
 
@@ -111,7 +75,6 @@ FLOAT = {INTEGER_PART} {FRACTIONAL_PART} | {INTEGER_PART} {EXPONENT_PART} | {INT
 
   // Punctuators
   "!"                { return BANG; }
-  "$"                { pushState(VARIABLE_OR_TEMPLATE); return DOLLAR; }
   "("                { return PAREN_L; }
   ")"                { return PAREN_R; }
   "..."              { return SPREAD; }
@@ -144,8 +107,8 @@ FLOAT = {INTEGER_PART} {FRACTIONAL_PART} | {INTEGER_PART} {EXPONENT_PART} | {INT
   "repeatable"       { return REPEATABLE_KEYWORD; }
 
   // string and number literals
-  \"                 { pushState(QUOTED_STRING); return OPEN_QUOTE;    }
-  {THREE_QUO}        { pushState(BLOCK_STRING);  return OPEN_TRIPLE_QUOTE;    }
+  \"                 { yybegin(QUOTED_STRING); return OPEN_QUOTE;    }
+  {THREE_QUO}        { yybegin(BLOCK_STRING);  return OPEN_TRIPLE_QUOTE;    }
   {NUMBER}           { return NUMBER; }
   {FLOAT}            { return FLOAT; }
 
@@ -156,16 +119,10 @@ FLOAT = {INTEGER_PART} {FRACTIONAL_PART} | {INTEGER_PART} {EXPONENT_PART} | {INT
   [^]                { return BAD_CHARACTER; }
 }
 
-<VARIABLE_OR_TEMPLATE> {
-  "{"                { pushState(TEMPLATE); return BRACE_L; }
-  {NAME}             { popState(); return NAME; }
-  [^]                { popState(); return BAD_CHARACTER; }
-}
-
 <QUOTED_STRING> {
     {QUOTED_STRING_BODY}    { return REGULAR_STRING_PART; }
-    \"                      { popState(); return CLOSING_QUOTE; }
-    [^]                     { popState(); return BAD_CHARACTER; }
+    \"                      { yybegin(YYINITIAL); return CLOSING_QUOTE; }
+    [^]                     { yybegin(YYINITIAL); return BAD_CHARACTER; }
 }
 
 <BLOCK_STRING> {
@@ -173,12 +130,6 @@ FLOAT = {INTEGER_PART} {FRACTIONAL_PART} | {INTEGER_PART} {EXPONENT_PART} | {INT
     {BLOCK_STRING_ESCAPE}   { return REGULAR_STRING_PART; }
     {ONE_TWO_QUO} / [^\"]   { return REGULAR_STRING_PART; }
     {BLOCK_STRING_BODY}     { return REGULAR_STRING_PART; }
-    {THREE_QUO}             { popState(); return CLOSING_TRIPLE_QUOTE; }
+    {THREE_QUO}             { yybegin(YYINITIAL); return CLOSING_TRIPLE_QUOTE; }
     [^]                     { return REGULAR_STRING_PART; }
-}
-
-<TEMPLATE> {
-    "{"              { myLeftBraceCount++; return TEMPLATE_CHAR; }
-    "}"              { if (myLeftBraceCount == 0) { popState(); popState(); return BRACE_R; } myLeftBraceCount--; return TEMPLATE_CHAR; }
-   [^\{\}]+          { return TEMPLATE_CHAR; }
 }

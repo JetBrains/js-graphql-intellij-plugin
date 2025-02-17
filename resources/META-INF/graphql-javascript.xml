@@ -1,21 +1,17 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-
-    <!-- Formatting -->
-    <lang.formatter language="JavaScript"
-                    implementationClass="com.intellij.lang.jsgraphql.javascript.formatter.GraphQLJavaScriptInjectedFormattingModelBuilder"/>
-    <lang.formatter language="TypeScript"
-                    implementationClass="com.intellij.lang.jsgraphql.javascript.formatter.GraphQLJavaScriptInjectedFormattingModelBuilder"/>
-
     <!-- Language Injection -->
-    <multiHostInjector implementation="com.intellij.lang.jsgraphql.javascript.injection.GraphQLJavaScriptTemplateFragmentLanguageInjector"
-                       order="first"/>
+    <multiHostInjector implementation="com.intellij.lang.jsgraphql.javascript.injection.GraphQLJavaScriptLanguageInjector" order="first"/>
 
     <!-- Workspace -->
     <workspaceModel.fileIndexContributor
       implementation="com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesIndexContributor"/>
 
     <implicitUsageProvider implementation="com.intellij.lang.jsgraphql.javascript.usages.GraphQLConfigImplicitUsageProvider"/>
+
+    <registryKey key="graphql.reformat.injections.javascript"
+                 defaultValue="true"
+                 description="Enables reformatting GraphQL injections in JavaScript and TypeScript"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.lang.jsgraphql">

@@ -38,10 +38,4 @@ public class GraphQLSelectionImpl extends GraphQLElementImpl implements GraphQLS
     return findChildByClass(GraphQLFragmentSelection.class);
   }
 
-  @Override
-  @Nullable
-  public GraphQLTemplateSelection getTemplateSelection() {
-    return findChildByClass(GraphQLTemplateSelection.class);
-  }
-
 }

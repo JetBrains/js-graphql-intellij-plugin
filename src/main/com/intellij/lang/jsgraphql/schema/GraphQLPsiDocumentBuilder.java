@@ -97,9 +97,6 @@ public final class GraphQLPsiDocumentBuilder {
     else if (definition instanceof GraphQLTypeSystemDefinition) {
       return createTypeSystemDefinition(((GraphQLTypeSystemDefinition)definition));
     }
-    else if (definition instanceof GraphQLTemplateDefinition) {
-      return null;
-    }
     else {
       return assertShouldNeverHappen();
     }
@@ -190,10 +187,6 @@ public final class GraphQLPsiDocumentBuilder {
     SelectionSet.Builder builder = SelectionSet.newSelectionSet();
     addCommonData(builder, selectionSet);
     List<Selection> selections = mapNotNull(selectionSet.getSelectionList(), selection -> {
-      GraphQLTemplateSelection templateSelection = selection.getTemplateSelection();
-      // ignore templates
-      if (templateSelection != null) return null;
-
       GraphQLField field = selection.getField();
       if (field != null) {
         return createField(field);
@@ -785,9 +778,6 @@ public final class GraphQLPsiDocumentBuilder {
         .name(((GraphQLVariable)value).getName());
       addCommonData(variableReference, value);
       return checkNode(variableReference.build());
-    }
-    else if (value instanceof GraphQLTemplateVariable) {
-      return null;
     }
     return assertShouldNeverHappen();
   }

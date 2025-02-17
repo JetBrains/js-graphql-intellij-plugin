@@ -1,0 +1,9 @@
+type Query {
+  user(arg: String): User
+}
+
+type User {
+  id: ID
+  name: String
+  active: Boolean
+}

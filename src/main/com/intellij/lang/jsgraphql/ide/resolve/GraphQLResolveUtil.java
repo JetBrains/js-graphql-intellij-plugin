@@ -56,11 +56,7 @@ public final class GraphQLResolveUtil {
   }
 
   public static @Nullable GraphQLDefinition findContainingDefinition(@Nullable PsiElement element) {
-    GraphQLDefinition definition = PsiTreeUtil.getParentOfType(element, GraphQLDefinition.class, false);
-    if (definition instanceof GraphQLTemplateDefinition) {
-      return null; // this is unexpected for most cases
-    }
-    return definition;
+    return PsiTreeUtil.getParentOfType(element, GraphQLDefinition.class, false);
   }
 
   /**

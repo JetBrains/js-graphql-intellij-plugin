@@ -7,14 +7,16 @@
  */
 package com.intellij.lang.jsgraphql.ide.indexing;
 
-import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionUtils;
 import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLanguageInjectionHost;
+import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.text.BlockSupport;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.indexing.*;
@@ -22,7 +24,6 @@ import com.intellij.util.io.BooleanDataDescriptor;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
-import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -63,17 +64,12 @@ public final class GraphQLFragmentNameIndex extends FileBasedIndexExtension<Stri
           }
           return; // no need to visit deeper than definitions since fragments are top level
         }
-        else if (element instanceof PsiLanguageInjectionHost) {
-          GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
-          if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
-            final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
-            final String graphqlBuffer = StringsKt.trim(element.getText(), '`', ' ', '\t', '\n');
-            final PsiFile graphqlInjectedPsiFile = psiFileFactory
-              .createFileFromText("", GraphQLFileType.INSTANCE, graphqlBuffer, 0, false, false);
-            graphqlInjectedPsiFile.accept(this);
+        else if (element instanceof PsiLanguageInjectionHost host) {
+          if (GraphQLInjectionUtils.visitInjectionAsRawText(host, this)) {
             return;
           }
         }
+
         super.visitElement(element);
       }
     };

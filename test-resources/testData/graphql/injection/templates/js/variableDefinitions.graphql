@@ -1,0 +1,41 @@
+schema {
+  query: Query
+}
+
+type Query {
+  user(input: UserInput): User
+}
+
+type User implements BaseModel  {
+  id: ID
+  name(arg: String): String
+  active: Boolean
+  additionalData: UserData
+}
+
+type UserData {
+  ssn: String
+  email: String
+  dob: String
+}
+
+input UserInput {
+  id: ID
+  name: String
+  active: Boolean
+  role: UserRole
+  data: JSON
+}
+
+interface BaseModel {
+  id: ID
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+scalar JSON
+
+directive @dir repeatable on FRAGMENT_DEFINITION | FRAGMENT_SPREAD | INLINE_FRAGMENT | VARIABLE_DEFINITION

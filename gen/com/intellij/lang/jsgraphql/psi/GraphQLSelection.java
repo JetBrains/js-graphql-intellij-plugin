@@ -13,7 +13,4 @@ public interface GraphQLSelection extends GraphQLElement {
   @Nullable
   GraphQLFragmentSelection getFragmentSelection();
 
-  @Nullable
-  GraphQLTemplateSelection getTemplateSelection();
-
 }

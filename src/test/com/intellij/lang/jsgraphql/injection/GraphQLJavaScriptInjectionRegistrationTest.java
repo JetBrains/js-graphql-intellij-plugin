@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
+public class GraphQLJavaScriptInjectionRegistrationTest extends GraphQLTestCaseBase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -43,7 +43,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
 
   @Override
   protected @NotNull String getBasePath() {
-    return "/injection";
+    return "/injection/registration/js";
   }
 
   public void testErrorAnnotatorOnFragments() {
@@ -79,7 +79,7 @@ public class GraphQLInjectionHighlightingTest extends GraphQLTestCaseBase {
   public void testInjectedTemplatesDontFail() {
     PsiFile injectedFile = doTestInjectedFile("injectedTemplates/injectedTemplates.js");
     myFixture.configureByText(GraphQLFileType.INSTANCE, AstPrinter.printAst(((GraphQLFile)injectedFile).getDocument()));
-    myFixture.checkResultByFile("injectedTemplates/injectedTemplates.graphql");
+    myFixture.checkResultByFile("injectedTemplates/injectedTemplates_expected.graphql");
   }
 
   public void testInjectedWithEOLComment() {

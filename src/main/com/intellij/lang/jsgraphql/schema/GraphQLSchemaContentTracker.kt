@@ -13,7 +13,6 @@ import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition
-import com.intellij.lang.jsgraphql.psi.GraphQLTemplateDefinition
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeLater
@@ -28,7 +27,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.impl.PsiTreeChangeEventImpl
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.parentOfTypes
 import com.intellij.util.Alarm
 
 
@@ -156,11 +155,8 @@ class GraphQLSchemaContentTracker(private val project: Project) : Disposable, Mo
           continue
         }
 
-        val containingDeclaration = PsiTreeUtil.findFirstParent(element) {
-          it is GraphQLOperationDefinition ||
-          it is GraphQLFragmentDefinition ||
-          it is GraphQLTemplateDefinition
-        }
+        val containingDeclaration = element
+          .parentOfTypes(GraphQLOperationDefinition::class, GraphQLFragmentDefinition::class, withSelf = true)
 
         if (containingDeclaration != null) {
           // edits inside query, mutation, subscription, fragment etc. don't affect the schema

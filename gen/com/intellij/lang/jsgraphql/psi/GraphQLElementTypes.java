@@ -65,9 +65,6 @@ public interface GraphQLElementTypes {
   IElementType SELECTION_SET_OPERATION_DEFINITION = new GraphQLCompositeElementType("SELECTION_SET_OPERATION_DEFINITION");
   IElementType STRING_LITERAL = new GraphQLCompositeElementType("STRING_LITERAL");
   IElementType STRING_VALUE = new GraphQLCompositeElementType("STRING_VALUE");
-  IElementType TEMPLATE_DEFINITION = new GraphQLCompositeElementType("TEMPLATE_DEFINITION");
-  IElementType TEMPLATE_SELECTION = new GraphQLCompositeElementType("TEMPLATE_SELECTION");
-  IElementType TEMPLATE_VARIABLE = new GraphQLCompositeElementType("TEMPLATE_VARIABLE");
   IElementType TYPE = new GraphQLCompositeElementType("TYPE");
   IElementType TYPED_OPERATION_DEFINITION = new GraphQLCompositeElementType("TYPED_OPERATION_DEFINITION");
   IElementType TYPE_CONDITION = new GraphQLCompositeElementType("TYPE_CONDITION");
@@ -96,7 +93,6 @@ public interface GraphQLElementTypes {
   IElementType CLOSING_TRIPLE_QUOTE = new GraphQLTokenType("CLOSING_TRIPLE_QUOTE");
   IElementType COLON = new GraphQLTokenType(":");
   IElementType DIRECTIVE_KEYWORD = new GraphQLTokenType("directive");
-  IElementType DOLLAR = new GraphQLTokenType("$");
   IElementType ENUM_KEYWORD = new GraphQLTokenType("enum");
   IElementType EOL_COMMENT = new GraphQLTokenType("EOL_COMMENT");
   IElementType EQUALS = new GraphQLTokenType("=");
@@ -122,8 +118,6 @@ public interface GraphQLElementTypes {
   IElementType SCHEMA_KEYWORD = new GraphQLTokenType("schema");
   IElementType SPREAD = new GraphQLTokenType("...");
   IElementType SUBSCRIPTION_KEYWORD = new GraphQLTokenType("subscription");
-  IElementType TEMPLATE_CHAR = new GraphQLTokenType("TEMPLATE_CHAR");
-  IElementType TEMPLATE_START = new GraphQLTokenType("${");
   IElementType TYPE_KEYWORD = new GraphQLTokenType("type");
   IElementType UNION_KEYWORD = new GraphQLTokenType("union");
   IElementType VARIABLE_NAME = new GraphQLTokenType("VARIABLE_NAME");
@@ -295,15 +289,6 @@ public interface GraphQLElementTypes {
       }
       else if (type == STRING_VALUE) {
         return new GraphQLStringValueImpl(node);
-      }
-      else if (type == TEMPLATE_DEFINITION) {
-        return new GraphQLTemplateDefinitionImpl(node);
-      }
-      else if (type == TEMPLATE_SELECTION) {
-        return new GraphQLTemplateSelectionImpl(node);
-      }
-      else if (type == TEMPLATE_VARIABLE) {
-        return new GraphQLTemplateVariableImpl(node);
       }
       else if (type == TYPED_OPERATION_DEFINITION) {
         return new GraphQLTypedOperationDefinitionImpl(node);

@@ -14,12 +14,12 @@ import com.intellij.psi.PsiLanguageInjectionHost
 interface GraphQLInjectedLanguage {
   companion object {
     @JvmField
-    val EP_NAME =
-      ExtensionPointName.create<GraphQLInjectedLanguage>("com.intellij.lang.jsgraphql.injectedLanguage")
+    val EP_NAME: ExtensionPointName<GraphQLInjectedLanguage> =
+      ExtensionPointName.create("com.intellij.lang.jsgraphql.injectedLanguage")
 
     @JvmStatic
     fun forElement(host: PsiElement): GraphQLInjectedLanguage? {
-      if (host !is PsiLanguageInjectionHost) return null
+      if (host !is PsiLanguageInjectionHost || !host.isValidHost) return null
       return EP_NAME.findFirstSafe { it.accepts(host) }
     }
   }

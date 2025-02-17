@@ -25,7 +25,7 @@ public class GraphQLBlock extends AbstractBlock {
 
   private List<Block> blocks = null;
 
-  public static Set<IElementType> INDENT_PARENTS = Sets.newHashSet(
+  public static final Set<IElementType> INDENT_PARENTS = Sets.newHashSet(
     GraphQLElementTypes.SELECTION_SET,
     GraphQLElementTypes.OPERATION_TYPE_DEFINITIONS,
     GraphQLElementTypes.FIELDS_DEFINITION,

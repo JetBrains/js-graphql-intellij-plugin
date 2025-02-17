@@ -270,18 +270,6 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
     visitValue(o);
   }
 
-  public void visitTemplateDefinition(@NotNull GraphQLTemplateDefinition o) {
-    visitDefinition(o);
-  }
-
-  public void visitTemplateSelection(@NotNull GraphQLTemplateSelection o) {
-    visitElement(o);
-  }
-
-  public void visitTemplateVariable(@NotNull GraphQLTemplateVariable o) {
-    visitValue(o);
-  }
-
   public void visitType(@NotNull GraphQLType o) {
     visitElement(o);
   }

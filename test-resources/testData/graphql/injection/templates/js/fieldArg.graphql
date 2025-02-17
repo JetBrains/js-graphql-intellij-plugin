@@ -1,0 +1,8 @@
+type Query {
+  field(arg: String): String
+  rail(railId: ID): Rail
+}
+
+type Rail {
+  id: ID
+}

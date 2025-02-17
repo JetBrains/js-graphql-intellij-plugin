@@ -8,12 +8,14 @@
 package com.intellij.lang.jsgraphql.ide.indexing;
 
 import com.intellij.json.psi.*;
-import com.intellij.lang.jsgraphql.GraphQLFileType;
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
+import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionUtils;
 import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiLanguageInjectionHost;
+import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.text.BlockSupport;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.indexing.*;
@@ -51,7 +53,9 @@ public final class GraphQLIdentifierIndex extends FileBasedIndexExtension<String
       @Override
       public void visitElement(@NotNull PsiElement element) {
         if (element instanceof GraphQLIdentifier) {
-          identifiers.put(element.getText(), IdentifierKind.IDENTIFIER_NAME);
+          if (!GraphQLInjectionUtils.isTemplatePlaceholder(element)) {
+            identifiers.put(element.getText(), IdentifierKind.IDENTIFIER_NAME);
+          }
           return; // no need to visit deeper
         }
         else if (element instanceof JsonElement) {
@@ -74,19 +78,12 @@ public final class GraphQLIdentifierIndex extends FileBasedIndexExtension<String
             }
           }
         }
-        else if (element instanceof PsiLanguageInjectionHost) {
-          GraphQLInjectedLanguage injectedLanguage = GraphQLInjectedLanguage.forElement(element);
-          if (injectedLanguage != null && injectedLanguage.isLanguageInjectionTarget(element)) {
-            final String injectedText = injectedLanguage.getInjectedTextForIndexing(element);
-            if (injectedText != null) {
-              final PsiFileFactory psiFileFactory = PsiFileFactory.getInstance(element.getProject());
-              final PsiFile graphqlInjectedPsiFile = psiFileFactory
-                .createFileFromText("", GraphQLFileType.INSTANCE, injectedText, 0, false, false);
-              graphqlInjectedPsiFile.accept(this);
-              return;
-            }
+        else if (element instanceof PsiLanguageInjectionHost host) {
+          if (GraphQLInjectionUtils.visitInjectionAsRawText(host, this)) {
+            return;
           }
         }
+
         super.visitElement(element);
       }
     };

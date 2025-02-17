@@ -8,6 +8,7 @@
 {
   generate=[names="long" tokenAccessors="no"]
   parserClass="com.intellij.lang.jsgraphql.GraphQLParser"
+  parserUtilClass="com.intellij.lang.jsgraphql.psi.parser.GraphQLParserUtil"
   psiVisitorName="VisitorBase"
 
   implements="com.intellij.lang.jsgraphql.psi.GraphQLElement"
@@ -35,7 +36,6 @@
 
     // punctuation
     BANG="!"
-    DOLLAR="$"
     PAREN_L="("
     PAREN_R=")"
     SPREAD="..."
@@ -75,33 +75,26 @@
     NAME='regexp:[_A-Za-z][_0-9A-Za-z]*'
     NUMBER='regexp:-?\d+'
     FLOAT='regexp:-?\d+(\.\d+)?([eE][+-]?\d+)?'
-
-    // language injection
-    TEMPLATE_CHAR='regexp:.*'
-    TEMPLATE_START='${'
   ]
 }
 
-document ::= definition*
+document ::= (definition | placeholder)*
 
 definition ::=
   operationDefinition |
   fragmentDefinition |
-  typeSystemDefinition |
-  templateDefinition
+  typeSystemDefinition
   {
     recoverWhile=definition_recover
   }
 
-private definition_recover ::= !(root_tokens | NAME) /* NAME since incomplete keywords show up as such */
+private definition_recover ::= !(rootTokens | NAME) /* NAME since incomplete keywords show up as such */
 
-private root_tokens ::=
-  definition_keywords | '{' /* anon query */ | OPEN_QUOTE | OPEN_TRIPLE_QUOTE /* schema description */ | (DOLLAR BRACE_L) /* placeholder */
+private rootTokens ::=
+  definitionKeywords | '{' /* anon query */ | OPEN_QUOTE | OPEN_TRIPLE_QUOTE /* schema description */
 
-private definition_keywords ::=
+private definitionKeywords ::=
   operationType | 'fragment' | 'schema' | 'type' | 'interface' | 'input' | 'enum' | 'union' | 'scalar' | 'directive' | 'extend'
-
-templateDefinition ::= templatePlaceholder {extends=definition}
 
 // common
 
@@ -128,7 +121,7 @@ objectField ::= identifier ':' value {
 
 private objectField_recover ::= !('}' | value)
 
-private directives ::= directive+
+private directives ::= (directive | placeholder)+
 
 directive ::='@' identifier arguments? {pin=1 methods=[nameIdentifier="identifier"]}
 arguments ::= '(' argument+ ')' {pin=1}
@@ -150,10 +143,7 @@ identifier ::=
     implements="com.intellij.lang.jsgraphql.psi.GraphQLReferenceElement"
   }
 
-private templatePlaceholder ::= DOLLAR BRACE_L TEMPLATE_CHAR* BRACE_R
-
 value ::=
-    templateVariable |
     variable |
     stringValue |
     intValue |
@@ -163,8 +153,6 @@ value ::=
     enumValue |
     arrayValue |
     objectValue
-
-templateVariable ::= templatePlaceholder {extends=value}
 
 variable ::= VARIABLE_NAME {
   pin=1
@@ -177,7 +165,7 @@ defaultValue ::= '=' value {pin=1}
 
 type ::= nonNullType | listType | typeName
 
-typeName ::= !(definition_keywords) identifier {
+typeName ::= !(definitionKeywords) identifier {
   extends=type
   methods=[nameIdentifier="identifier"]
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLTypeNameMixin"
@@ -185,7 +173,7 @@ typeName ::= !(definition_keywords) identifier {
 listType ::= '[' type ']' {extends=type}
 nonNullType ::= typeName BANG | listType BANG {extends=type}
 
-typeNameDefinition ::= !(definition_keywords) identifier {extends=type methods=[nameIdentifier="identifier"]}
+typeNameDefinition ::= !(definitionKeywords) identifier {extends=type methods=[nameIdentifier="identifier"]}
 
 booleanValue ::= 'true' | 'false' {extends=value}
 
@@ -208,7 +196,7 @@ selectionSetOperationDefinition ::= selectionSet {
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLSelectionSetOperationDefinitionMixin"
 }
 
-typedOperationDefinition ::= operationType identifier? variableDefinitions? directives? selectionSet {
+typedOperationDefinition ::= typedOperationDefinitionHeader selectionSet {
   pin=1
   extends=operationDefinition
   methods=[directives="directive" nameIdentifier="identifier"]
@@ -216,9 +204,14 @@ typedOperationDefinition ::= operationType identifier? variableDefinitions? dire
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLTypedOperationDefinitionMixin"
 }
 
+private typedOperationDefinitionHeader ::= operationType identifier? variableDefinitions? directives? {
+  pin=1
+  recoverWhile=rootTokens_recover
+}
+
 variableDefinitions ::= '(' variableDefinition+ ')' {pin=1 methods=[variableDefinitions="variableDefinition"]}
 
-variableDefinition ::= variable ':' type defaultValue? directives? {
+variableDefinition ::= variable <<colon type>> defaultValue? directives? {
   pin=1
   recoverWhile=variableDefinition_recover
   methods=[directives="directive"]
@@ -226,20 +219,18 @@ variableDefinition ::= variable ':' type defaultValue? directives? {
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLVariableDefinitionMixin"
 }
 
-private variableDefinition_recover ::= !(')' | root_tokens | variableDefinition)
-
+private variableDefinition_recover ::= !(')' | VARIABLE_NAME | rootTokens)
 
 selectionSet ::=  '{' selection+ '}' {pin=1}
 
 selection ::=
     field |
-    fragmentSelection |
-    templateSelection
+    fragmentSelection
     {
         pin=1 recoverWhile=selection_recover
     }
 
-private selection_recover ::= !('}' | root_tokens | selection)
+private selection_recover ::= !('}' | rootTokens | selection)
 
 field ::= alias? identifier arguments? directives? selectionSet? {
   methods=[directives="directive" nameIdentifier="identifier"]
@@ -250,8 +241,6 @@ field ::= alias? identifier arguments? directives? selectionSet? {
 alias ::= identifier ':'
 
 fragmentSelection ::= '...' (fragmentSpread | inlineFragment) {pin=1}
-
-templateSelection ::= templatePlaceholder
 
 fragmentSpread ::= fragmentName directives? {
   pin=1
@@ -266,12 +255,17 @@ inlineFragment ::= typeCondition? directives? selectionSet {
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLInlineFragmentMixin"
 }
 
-fragmentDefinition ::= 'fragment' fragmentName typeCondition directives? selectionSet {
+fragmentDefinition ::= fragmentDefinitionHeader selectionSet {
   pin=1
   extends=definition
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive" nameIdentifier="identifier"]
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLFragmentDefinitionMixin"
+}
+
+private fragmentDefinitionHeader ::= 'fragment' fragmentName typeCondition directives? {
+  pin=1
+  recoverWhile=rootTokens_recover
 }
 
 private fragmentName ::=  !'on' identifier
@@ -290,25 +284,38 @@ typeSystemDefinition ::=
         extends=definition
     }
 
-schemaDefinition ::= description? 'schema' directives? operationTypeDefinitions {
-  pin=2
+schemaDefinition ::= schemaDefinitionHeader operationTypeDefinitions {
+  pin=1
   extends=typeSystemDefinition
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive"]
 }
 
-schemaExtension ::= 'extend' 'schema' directives? operationTypeDefinitions? {
+private schemaDefinitionHeader ::= description? 'schema' directives? {
   pin=2
+  recoverWhile=rootTokens_recover
+}
+
+schemaExtension ::= schemaExtensionHeader operationTypeDefinitions? {
+  pin=1
   extends=typeSystemDefinition
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive"]
 }
 
-operationTypeDefinitions ::= '{' operationTypeDefinition+ '}' {pin=1}
+private schemaExtensionHeader ::= 'extend' 'schema' directives? {
+  pin=2
+  recoverWhile=rootTokens_recover
+}
 
-operationTypeDefinition ::= (operationType | NAME) ':' typeName {pin=1 recoverWhile=operationTypeDefinition_recover}
+operationTypeDefinitions ::= '{' (operationTypeDefinition | placeholder)+ '}' {pin=1}
 
-private operationTypeDefinition_recover ::= !('}' | root_tokens | operationTypeDefinition)
+operationTypeDefinition ::= (operationType | NAME) ':' typeName {
+  pin=1
+  recoverWhile=operationTypeDefinition_recover
+}
+
+private operationTypeDefinition_recover ::= !('}' | identifier | rootTokens)
 
 typeDefinition::=
   scalarTypeDefinition |
@@ -346,38 +353,48 @@ scalarTypeExtensionDefinition ::= 'extend' 'scalar' typeName directives? {
   methods=[directives="directive"]
 }
 
-objectTypeDefinition ::= description? 'type' typeNameDefinition implementsInterfaces? directives? fieldsDefinition? {
-  pin=2
+objectTypeDefinition ::= objectTypeDefinitionHeader fieldsDefinition? {
+  pin=1
   extends=typeDefinition
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition"
   methods=[directives="directive"]
 }
 
-objectTypeExtensionDefinition ::= 'extend' 'type' typeName implementsInterfaces? directives? fieldsDefinition? {
+private objectTypeDefinitionHeader ::= description? 'type' typeNameDefinition implementsInterfaces? directives? {
   pin=2
+  recoverWhile=rootTokens_recover
+}
+
+objectTypeExtensionDefinition ::= objectTypeExtensionDefinitionHeader fieldsDefinition? {
+  pin=1
   extends=typeExtension
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension"
   methods=[directives="directive"]
+}
+
+private objectTypeExtensionDefinitionHeader ::= 'extend' 'type' typeName implementsInterfaces? directives? {
+  pin=2
+  recoverWhile=rootTokens_recover
 }
 
 implementsInterfaces ::= 'implements' ampTypeName ampTypeName* {pin=1}
 
 private ampTypeName ::= '&'? typeName
 
-fieldsDefinition ::= '{' fieldDefinition* '}' {pin=1}
+fieldsDefinition ::= '{' (fieldDefinition)* '}' {pin=1}
 
-fieldDefinition ::= description? identifier argumentsDefinition? ':' type directives? {
+fieldDefinition ::= description? identifier argumentsDefinition? <<colon type>> directives? {
   pin=2
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive" nameIdentifier="identifier"]
   recoverWhile=fieldDefinition_recover
 }
 
-private fieldDefinition_recover ::= !('}' | root_tokens | fieldDefinition)
+private fieldDefinition_recover ::= !('}' | rootTokens | identifier)
 
 argumentsDefinition ::= '(' inputValueDefinition+ ')' {pin=1}
 
-inputValueDefinition ::= description? identifier ':' type defaultValue? directives? {
+inputValueDefinition ::= description? identifier <<colon type>> defaultValue? directives? {
   pin=2
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
   methods=[directives="directive" nameIdentifier="identifier"]
@@ -387,32 +404,54 @@ inputValueDefinition ::= description? identifier ':' type defaultValue? directiv
 
 private inputValueDefinition_recover ::= !(')' | '}' | inputValueDefinition)
 
-interfaceTypeDefinition ::= description? 'interface' typeNameDefinition implementsInterfaces? directives? fieldsDefinition? {
-  pin=2
+interfaceTypeDefinition ::= interfaceTypeDefinitionHeader fieldsDefinition? {
+  pin=1
   extends=typeDefinition
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition"
   methods=[directives="directive"]
 }
 
-interfaceTypeExtensionDefinition ::= 'extend' 'interface' typeName implementsInterfaces? directives? fieldsDefinition? {
+private interfaceTypeDefinitionHeader ::= description? 'interface' typeNameDefinition implementsInterfaces? directives? {
   pin=2
+  recoverWhile=rootTokens_recover
+}
+
+interfaceTypeExtensionDefinition ::= interfaceTypeExtensionDefinitionHeader fieldsDefinition? {
+  pin=1
   extends=typeExtension
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension"
   methods=[directives="directive"]
 }
 
-unionTypeDefinition ::= description? 'union' typeNameDefinition directives? unionMembership? {
+private interfaceTypeExtensionDefinitionHeader ::= 'extend' 'interface' typeName implementsInterfaces? directives? {
   pin=2
+  recoverWhile=rootTokens_recover
+}
+
+unionTypeDefinition ::= unionTypeDefinitionHeader unionMembership? {
+  pin=1
   extends=typeDefinition
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition"
   methods=[directives="directive"]
 }
 
-unionTypeExtensionDefinition ::= 'extend' 'union' typeName directives? unionMembership? {
+private unionTypeDefinitionHeader ::= description? 'union' typeNameDefinition directives? {
   pin=2
+  recoverWhile=unionTypeDefinitionHeader_recover
+}
+
+private unionTypeDefinitionHeader_recover ::= !(rootTokens | '=')
+
+unionTypeExtensionDefinition ::= unionTypeExtensionDefinitionHeader unionMembership? {
+  pin=1
   extends=typeExtension
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension"
   methods=[directives="directive"]
+}
+
+private unionTypeExtensionDefinitionHeader ::= 'extend' 'union' typeName directives? {
+  pin=2
+  recoverWhile=unionTypeDefinitionHeader_recover
 }
 
 unionMembership ::= '=' unionMembers {pin=1}
@@ -421,18 +460,28 @@ unionMembers::= '|'? typeName pipeUnionMember*
 
 private pipeUnionMember ::= '|' typeName {pin=1}
 
-enumTypeDefinition ::= description? 'enum' typeNameDefinition directives? enumValueDefinitions? {
-  pin=2
+enumTypeDefinition ::= enumTypeDefinitionHeader enumValueDefinitions? {
+  pin=1
   extends=typeDefinition
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition"
   methods=[directives="directive"]
 }
 
-enumTypeExtensionDefinition ::= 'extend' 'enum' typeName directives? enumValueDefinitions? {
+private enumTypeDefinitionHeader ::= description? 'enum' typeNameDefinition directives? {
   pin=2
+  recoverWhile=rootTokens_recover
+}
+
+enumTypeExtensionDefinition ::= enumTypeExtensionDefinitionHeader enumValueDefinitions? {
+  pin=1
   extends=typeExtension
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension"
   methods=[directives="directive"]
+}
+
+private enumTypeExtensionDefinitionHeader ::= 'extend' 'enum' typeName directives? {
+  pin=2
+  recoverWhile=rootTokens_recover
 }
 
 enumValueDefinitions ::= '{' enumValueDefinition+ '}' {pin=1}
@@ -444,20 +493,30 @@ enumValueDefinition ::= description? enumValue directives? {
   recoverWhile=enumValueDefinition_recover
 }
 
-private enumValueDefinition_recover ::= !('}' | enumValueDefinition | root_tokens)
+private enumValueDefinition_recover ::= !('}' | enumValueDefinition | rootTokens)
 
-inputObjectTypeDefinition ::= description? 'input' typeNameDefinition directives? inputObjectValueDefinitions? {
-  pin=2
+inputObjectTypeDefinition ::= inputObjectTypeDefinitionHeader inputObjectValueDefinitions? {
+  pin=1
   extends=typeDefinition
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition"
   methods=[directives="directive"]
 }
 
-inputObjectTypeExtensionDefinition ::= 'extend' 'input' typeName directives? inputObjectValueDefinitions? {
+private inputObjectTypeDefinitionHeader ::= description? 'input' typeNameDefinition directives? {
   pin=2
+  recoverWhile=rootTokens_recover
+}
+
+inputObjectTypeExtensionDefinition ::= inputObjectTypeExtensionDefinitionHeader inputObjectValueDefinitions? {
+  pin=1
   extends=typeExtension
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware, com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension"
   methods=[directives="directive"]
+}
+
+private inputObjectTypeExtensionDefinitionHeader ::= 'extend' 'input' typeName directives? {
+  pin=2
+  recoverWhile=rootTokens_recover
 }
 
 inputObjectValueDefinitions ::= '{' inputValueDefinition+ '}' {pin=1}
@@ -479,4 +538,13 @@ directiveLocation ::=
 directiveLocations ::= '|'? directiveLocation pipeDirectiveLocation*
 
 private pipeDirectiveLocation ::= '|' directiveLocation
+
+
+private external placeholder ::= consumePlaceholderWithError
+private external nameWithoutPlaceholder ::= parseNameIfNotPlaceholder
+private external newLine ::= isNewLine
+
+private meta colon ::= ':' <<param>> {pin=1}
+
+private rootTokens_recover ::= !(rootTokens)
 

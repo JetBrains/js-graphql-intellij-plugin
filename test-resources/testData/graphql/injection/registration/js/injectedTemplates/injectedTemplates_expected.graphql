@@ -1,0 +1,27 @@
+type SomeType {
+  id(arg: String = EXTERNAL_FRAGMENT_0): ID
+}
+
+query Departments($arg: String = EXTERNAL_FRAGMENT_1) @Dir(arg: EXTERNAL_FRAGMENT_2) {
+  users(filter: {name: EXTERNAL_FRAGMENT_3, addresses: ["abc", EXTERNAL_FRAGMENT_4]}) {
+    EXTERNAL_FRAGMENT_5
+  }
+  EXTERNAL_FRAGMENT_6
+}
+
+directive @Dir(arg: String) on QUERY
+
+type Query {
+  users(filter: UserFilter): [User]
+}
+
+input UserFilter {
+  name: String
+  addresses: [String!]
+}
+
+type User {
+  id: ID
+  name: String
+  phone: String
+}

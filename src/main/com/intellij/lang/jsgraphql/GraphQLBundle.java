@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 
 public final class GraphQLBundle {
 
-  private static final String BUNDLE = "messages.GraphQLBundle";
+  public static final String BUNDLE = "messages.GraphQLBundle";
 
   private static final DynamicBundle INSTANCE = new DynamicBundle(GraphQLBundle.class, BUNDLE);
 

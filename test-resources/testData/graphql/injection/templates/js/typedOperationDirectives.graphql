@@ -1,0 +1,20 @@
+type Query {
+  metaobject(handle: MetaobjectInput): Metaobject
+}
+
+input MetaobjectInput {
+  handle: String
+  type: String
+}
+
+type Metaobject {
+  id: ID
+  field(key: String): FieldValue
+  updatedAt: DateTime
+}
+
+type FieldValue {
+  value: String
+}
+
+scalar DateTime

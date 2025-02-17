@@ -631,7 +631,7 @@ GraphQL(0,2499)
     PsiWhiteSpace(' ')(1666,1667)
     GraphQLIdentifierImpl(IDENTIFIER)(1667,1670)
       PsiElement(NAME)('Foo')(1667,1670)
-    PsiErrorElement:'(', '@' or '{' expected, got 'type'(1670,1670)
+    PsiErrorElement:'{' expected, got 'type'(1670,1670)
       <empty list>
   PsiWhiteSpace('\n\n')(1670,1672)
   GraphQLObjectTypeDefinitionImpl(OBJECT_TYPE_DEFINITION)(1672,1692)
