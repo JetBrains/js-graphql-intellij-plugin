@@ -7,6 +7,12 @@ jvm_resources(
   strip_prefix = "resources"
 )
 
+jvm_resources(
+  name = "graphql_test_resources",
+  files = glob(["test-resources/**/*"]),
+  strip_prefix = "test-resources"
+)
+
 jvm_library(
   name = "graphql",
   module_name = "intellij.graphql",
@@ -110,7 +116,10 @@ jvm_library(
     "@ultimate_lib//:graphql-graphql-java-dataloader",
     "@ultimate_lib//:graphql-atlassian-commonmark",
   ],
-  runtime_deps = [":graphql_resources"]
+  runtime_deps = [
+    ":graphql_resources",
+    ":graphql_test_resources",
+  ]
 )
 
 jvm_test(
