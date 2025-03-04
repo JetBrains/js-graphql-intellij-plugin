@@ -4,7 +4,7 @@
     libraries:
       io.github.cdimascio.dotenv.kotlin:
       - name: $MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-kotlin/6/dotenv-kotlin-6.jar
-      - name: $MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/2/dotenv-java-2.jar
+      - name: $MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/3/dotenv-java-3.jar
       reactivestreams.reactive.streams:
       - name: $MAVEN_REPOSITORY$/org/reactivestreams/reactive-streams/1/reactive-streams-1.jar
       graphql.java.dataloader:

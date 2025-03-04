@@ -181,7 +181,15 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
     reloadConfiguration()
     val file = myFixture.findFileInTempDir("some/nested/dir/graphql.config.yml")!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)?.getDefault()!!
-    TestCase.assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
+    assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
+  }
+
+  fun testEnvFileDuplicatedVars() {
+    myFixture.copyDirectoryToProject(getTestName(true), "")
+    reloadConfiguration()
+    val file = myFixture.findFileInTempDir("graphql.config.yml")!!
+    val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)?.getDefault()!!
+    assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
   }
 
   fun testEnvFileInParent() {
@@ -189,7 +197,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
     reloadConfiguration()
     val file = myFixture.findFileInTempDir("some/nested/dir/graphql.config.yml")!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)?.getDefault()!!
-    TestCase.assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
+    assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
   }
 
   fun testEnvFileFallbackToRoot() {
@@ -197,7 +205,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
     reloadConfiguration()
     val file = myFixture.findFileInTempDir("some/nested/dir/graphql.config.yml")!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)?.getDefault()!!
-    TestCase.assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
+    assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
   }
 
   fun testEnvPerFile() {
