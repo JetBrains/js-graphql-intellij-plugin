@@ -54,13 +54,13 @@
     <orderEntry type="library" name="http-client" level="project" />
     <orderEntry type="module-library">
       <library name="io.github.cdimascio.dotenv.kotlin" type="repository">
-        <properties maven-id="io.github.cdimascio:dotenv-kotlin:6.4.1">
+        <properties maven-id="io.github.cdimascio:dotenv-kotlin:6.5.1">
           <verification>
-            <artifact url="file://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-kotlin/6.4.1/dotenv-kotlin-6.4.1.jar">
-              <sha256sum>f2483e30d72d4e310a738368da763f784d7ab2940ed79cad2b6a3c52b80907d6</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-kotlin/6.5.1/dotenv-kotlin-6.5.1.jar">
+              <sha256sum>9d0b65080ac1e1301313eef4cf311ddf4c0cd64ec06cda7c96ae8f8643186adb</sha256sum>
             </artifact>
-            <artifact url="file://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/2.3.2/dotenv-java-2.3.2.jar">
-              <sha256sum>4b9dd7c095d80d8a140d92c610224449772cc7b07dcb6963535cc23efc503e43</sha256sum>
+            <artifact url="file://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/3.2.0/dotenv-java-3.2.0.jar">
+              <sha256sum>47f5d208b29497f286a454817c955750cc92b99b4680392dd40e5db592259d22</sha256sum>
             </artifact>
           </verification>
           <exclude>
@@ -70,13 +70,13 @@
           </exclude>
         </properties>
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-kotlin/6.4.1/dotenv-kotlin-6.4.1.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/2.3.2/dotenv-java-2.3.2.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-kotlin/6.5.1/dotenv-kotlin-6.5.1.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/3.2.0/dotenv-java-3.2.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-kotlin/6.4.1/dotenv-kotlin-6.4.1-sources.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/2.3.2/dotenv-java-2.3.2-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-kotlin/6.5.1/dotenv-kotlin-6.5.1-sources.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/3.2.0/dotenv-java-3.2.0-sources.jar!/" />
         </SOURCES>
       </library>
     </orderEntry>
