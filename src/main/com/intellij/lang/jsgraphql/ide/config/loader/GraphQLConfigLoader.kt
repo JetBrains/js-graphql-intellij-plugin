@@ -127,7 +127,7 @@ class GraphQLConfigLoader(private val project: Project) {
     return when (file.extension) {
       "json" -> readJson(file)
       "yaml", "yml" -> readYml(file)
-      "js", "cjs", "ts" -> readJs(file)
+      "js", "cjs", "mjs", "ts", "cts", "mts" -> readJs(file)
       else -> when (file.name) {
         GRAPHQLCONFIG -> readJson(file)
         GRAPHQL_RC -> readContentDependent(file)
