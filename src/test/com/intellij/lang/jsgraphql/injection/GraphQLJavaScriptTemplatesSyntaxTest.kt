@@ -20,10 +20,9 @@ class GraphQLJavaScriptTemplatesSyntaxTest : GraphQLTestCaseBase() {
     doTest()
   }
 
-  // TODO: [panimaskin] fix test
-  //fun testSelectionSet() {
-  //  doTest()
-  //}
+  fun testSelectionSet() {
+    doTest()
+  }
 
   fun testOperationDefinitions() {
     doTest()
