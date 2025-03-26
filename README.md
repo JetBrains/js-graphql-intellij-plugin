@@ -299,7 +299,10 @@ The plugin supports multiple configuration file formats. Here is a list of all t
 - graphql.config.json
 - graphql.config.js
 - graphql.config.cjs
+- graphql.config.mjs
 - graphql.config.ts
+- graphql.config.cts
+- graphql.config.mts
 - graphql.config.yaml
 - graphql.config.yml
 - .graphqlrc (YAML and JSON)
@@ -307,7 +310,11 @@ The plugin supports multiple configuration file formats. Here is a list of all t
 - .graphqlrc.yaml
 - .graphqlrc.yml
 - .graphqlrc.js
+- .graphqlrc.cjs
+- .graphqlrc.mjs
 - .graphqlrc.ts
+- .graphqlrc.cts
+- .graphqlrc.mts
 
 ### Yaml
 

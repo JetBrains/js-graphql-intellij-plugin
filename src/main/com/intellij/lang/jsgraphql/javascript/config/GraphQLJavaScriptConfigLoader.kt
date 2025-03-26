@@ -30,7 +30,7 @@ private const val TIMEOUT = 15000
 
 private val LOG = logger<GraphQLJavaScriptConfigLoader>()
 
-private val EXTENSIONS = setOf("js", "ts", "cjs")
+private val EXTENSIONS = setOf("js", "ts", "cjs", "mjs", "cts", "mts")
 
 class GraphQLJavaScriptConfigLoader : GraphQLConfigCustomLoader {
 
