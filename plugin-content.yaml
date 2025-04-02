@@ -1,24 +1,13 @@
-- name: lib/atlassian.commonmark.jar
-  library: atlassian.commonmark
-  module: intellij.graphql
-  files:
-  - name: $MAVEN_REPOSITORY$/org/commonmark/commonmark/0/commonmark-0.jar
 - name: lib/graphql.jar
   modules:
   - name: intellij.graphql
-- name: lib/graphql.java.dataloader.jar
-  library: graphql.java.dataloader
-  module: intellij.graphql
-  files:
-  - name: $MAVEN_REPOSITORY$/com/graphql-java/java-dataloader/2/java-dataloader-2.jar
-- name: lib/io.github.cdimascio.dotenv.kotlin.jar
-  library: io.github.cdimascio.dotenv.kotlin
-  module: intellij.graphql
-  files:
-  - name: $MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-kotlin/6/dotenv-kotlin-6.jar
-  - name: $MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/3/dotenv-java-3.jar
-- name: lib/reactivestreams.reactive.streams.jar
-  library: reactivestreams.reactive.streams
-  module: intellij.graphql
-  files:
-  - name: $MAVEN_REPOSITORY$/org/reactivestreams/reactive-streams/1/reactive-streams-1.jar
+    libraries:
+      io.github.cdimascio.dotenv.kotlin:
+      - name: $MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-kotlin/6/dotenv-kotlin-6.jar
+      - name: $MAVEN_REPOSITORY$/io/github/cdimascio/dotenv-java/3/dotenv-java-3.jar
+      reactivestreams.reactive.streams:
+      - name: $MAVEN_REPOSITORY$/org/reactivestreams/reactive-streams/1/reactive-streams-1.jar
+      graphql.java.dataloader:
+      - name: $MAVEN_REPOSITORY$/com/graphql-java/java-dataloader/2/java-dataloader-2.jar
+      atlassian.commonmark:
+      - name: $MAVEN_REPOSITORY$/org/commonmark/commonmark/0/commonmark-0.jar
