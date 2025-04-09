@@ -81,6 +81,7 @@ jvm_library(
     "@community//platform/core-impl",
     "@community//platform/core-api:core",
     "@community//plugins/yaml",
+    "@community//plugins/yaml:yaml_test_lib",
     "@community//platform/core-ui",
     "@community//platform/platform-util-io:ide-util-io",
     "@community//platform/analysis-impl",
