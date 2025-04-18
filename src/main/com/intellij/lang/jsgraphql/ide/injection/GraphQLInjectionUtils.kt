@@ -1,6 +1,7 @@
 package com.intellij.lang.jsgraphql.ide.injection
 
 import com.intellij.lang.Language
+import com.intellij.lang.injection.MultiHostRegistrar
 import com.intellij.lang.jsgraphql.GraphQLLanguage
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
@@ -15,8 +16,8 @@ object GraphQLInjectionUtils {
   internal const val GRAPHQL_EXTERNAL_FRAGMENT: String = "EXTERNAL_FRAGMENT"
 
   @JvmStatic
-  fun registerInjection(host: PsiLanguageInjectionHost, language: Language) {
-    InjectedLanguageUtil.getCachedInjectedFileWithLanguage(host, language)?.putUserData(GRAPHQL_INJECTION_KEY, true)
+  fun registerInjection(registrar: MultiHostRegistrar) {
+    registrar.putInjectedFileUserData(GRAPHQL_INJECTION_KEY, true)
   }
 
   @JvmStatic

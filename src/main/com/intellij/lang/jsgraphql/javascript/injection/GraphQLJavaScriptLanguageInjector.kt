@@ -32,16 +32,14 @@ class GraphQLJavaScriptLanguageInjector : MultiHostInjector {
     for (fragment in fragments) {
       registrar.addPlace(fragment.prefix, fragment.suffix, context, fragment.range)
     }
-    registrar.doneInjecting()
-
     if (fragments.size > 1) {
-      StringInterpolationErrorFilter.register(context, injectionLanguage)
-      GraphQLInjectionUtils.registerInjection(context, injectionLanguage)
+      GraphQLInjectionUtils.registerInjection(registrar)
+      StringInterpolationErrorFilter.register(registrar)
     }
-
     if (Registry.`is`("graphql.reformat.injections.javascript")) {
-      JSFormattableInjectionUtil.setReformattableInjection(context, injectionLanguage)
+      JSFormattableInjectionUtil.setReformattableInjection(context, registrar)
     }
+    registrar.doneInjecting()
   }
 
   override fun elementsToInjectIn(): List<Class<out PsiElement>> = INJECTED_ELEMENTS
