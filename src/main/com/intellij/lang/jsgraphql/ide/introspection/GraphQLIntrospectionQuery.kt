@@ -2,10 +2,6 @@
 
 package com.intellij.lang.jsgraphql.ide.introspection
 
-import com.google.gson.JsonArray
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.*
 import java.util.*
 
@@ -145,77 +141,3 @@ val INTROSPECTION_SCHEMA_CAPABILITIES_QUERY: String = """
     }
   }
 """.trimIndent()
-
-
-internal fun parseSchemaCapabilities(introspectionResponse: JsonObject): EnumSet<GraphQLSchemaCapability> {
-  val responseObject = if (introspectionResponse.has("data"))
-    introspectionResponse.getAsJsonObject("data")!!
-  else
-    introspectionResponse
-
-  if (introspectionResponse.has("errors")) {
-    throw IllegalArgumentException(
-      GraphQLBundle.message(
-        "graphql.introspection.capabilities.detection.failed.errors",
-        introspectionResponse.get("errors")?.toString() ?: "[]"
-      )
-    )
-  }
-
-  val typeDefinition = responseObject.getTypeNonNull("__Type")
-  val fieldDefinition = responseObject.getTypeNonNull("__Field")
-  val directiveDefinition = responseObject.getTypeNonNull("__Directive")
-  val inputValueDefinition = responseObject.getTypeNonNull("__InputValue")
-
-  val capabilities = EnumSet.noneOf(GraphQLSchemaCapability::class.java)
-  if (typeDefinition.hasArgument("inputFields", "includeDeprecated")) {
-    capabilities.add(INCLUDE_DEPRECATED_INPUT_FIELDS)
-  }
-  if (fieldDefinition.hasArgument("args", "includeDeprecated")) {
-    capabilities.add(INCLUDE_DEPRECATED_FIELD_ARGS)
-  }
-  if (directiveDefinition.hasArgument("args", "includeDeprecated")) {
-    capabilities.add(INCLUDE_DEPRECATED_DIRECTIVE_ARGS)
-  }
-  if (inputValueDefinition.hasField("isDeprecated")) {
-    capabilities.add(INPUT_VALUE_IS_DEPRECATED)
-  }
-  if (inputValueDefinition.hasField("deprecationReason")) {
-    capabilities.add(INPUT_VALUE_DEPRECATION_REASON)
-  }
-  if (inputValueDefinition.hasField("defaultValue")) {
-    capabilities.add(INPUT_VALUE_DEFAULT_VALUE)
-  }
-  if (directiveDefinition.hasField("isRepeatable")) {
-    capabilities.add(DIRECTIVE_IS_REPEATABLE)
-  }
-  return capabilities
-}
-
-private fun JsonElement.getTypeNonNull(typeName: String): JsonObject =
-  getType(typeName) ?: throw IllegalArgumentException("Missing $typeName type definition in introspection response")
-
-private fun JsonElement.getType(typeName: String): JsonObject? {
-  if (!isJsonObject) return null
-  val schema = asJsonObject.get("__schema") as? JsonObject
-  val typesElement = schema?.get("types") as? JsonArray
-  return typesElement?.find { it.isJsonObject && it.asJsonObject.get("name")?.asString == typeName } as? JsonObject
-}
-
-private fun JsonElement.getField(fieldName: String): JsonObject? {
-  if (!isJsonObject) return null
-  val fieldsElement = asJsonObject.get("fields") as? JsonArray
-  return fieldsElement?.find { it.isJsonObject && it.asJsonObject.get("name")?.asString == fieldName } as? JsonObject
-}
-
-private fun JsonElement.getArgument(fieldName: String, argName: String): JsonObject? {
-  val typeField = getField(fieldName)
-  val argsElement = typeField?.get("args") as? JsonArray
-  return argsElement?.find { it.isJsonObject && it.asJsonObject.get("name")?.asString == argName } as? JsonObject
-}
-
-private fun JsonElement.hasField(fieldName: String): Boolean =
-  getField(fieldName) != null
-
-private fun JsonElement.hasArgument(fieldName: String, argName: String): Boolean =
-  getArgument(fieldName, argName) != null

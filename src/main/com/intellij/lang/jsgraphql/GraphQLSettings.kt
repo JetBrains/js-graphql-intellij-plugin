@@ -28,18 +28,6 @@ class GraphQLSettings : PersistentStateComponent<GraphQLSettingsState> {
 
   /* Introspection */
 
-  var introspectionQuery: String
-    get() = state.introspectionQuery
-    set(introspectionQuery) {
-      state.introspectionQuery = introspectionQuery
-    }
-
-  var isEnableIntrospectionDefaultValues: Boolean
-    get() = state.enableIntrospectionDefaultValues
-    set(enableIntrospectionDefaultValues) {
-      state.enableIntrospectionDefaultValues = enableIntrospectionDefaultValues
-    }
-
   var isOpenEditorWithIntrospectionResult: Boolean
     get() = state.openEditorWithIntrospectionResult
     set(openEditorWithIntrospectionResult) {
@@ -67,8 +55,6 @@ class GraphQLSettings : PersistentStateComponent<GraphQLSettingsState> {
     }
 
   class GraphQLSettingsState {
-    var introspectionQuery: String = ""
-    var enableIntrospectionDefaultValues: Boolean = true
     var openEditorWithIntrospectionResult: Boolean = true
 
     var enableRelayModernFrameworkSupport: Boolean = false

@@ -85,7 +85,7 @@ public final class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements Li
               NotificationType.ERROR
             ).setImportant(true);
 
-            GraphQLNotificationUtil.addRetryQueryForPossiblyInvalidIntrospectionSchemaAction(project, notification, e, generateAction.get());
+            GraphQLNotificationUtil.notifyAboutPossiblyInvalidIntrospectionSchema(notification, e);
             GraphQLNotificationUtil.addShowQueryErrorDetailsAction(project, notification, e);
             Notifications.Bus.notify(notification);
           }

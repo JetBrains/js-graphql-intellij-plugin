@@ -10,7 +10,9 @@ import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.EditorNotifications
-import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.panel
 import javax.swing.JComponent
 
 private const val CONFIGURABLE_ID = "settings.jsgraphql"
@@ -40,22 +42,6 @@ class GraphQLSettingsConfigurable(private val project: Project) :
   override fun createPanel(): DialogPanel {
     return panel {
       group(message("graphql.settings.introspection")) {
-        row(message("graphql.settings.introspection.query.label") + ":") {
-          expandableTextField()
-            .bindText(settings::introspectionQuery)
-            .align(AlignX.FILL)
-            .applyToComponent {
-              emptyText.text = message("graphql.settings.introspection.query.empty.text")
-              toolTipText = message("graphql.settings.introspection.query.tooltip")
-            }
-        }
-        row {
-          checkBox(message("graphql.settings.introspection.default.values.label"))
-            .bindSelected(settings::isEnableIntrospectionDefaultValues)
-            .applyToComponent {
-              toolTipText = message("graphql.settings.introspection.default.values.tooltip")
-            }
-        }
         row {
           checkBox(message("graphql.settings.introspection.open.editor.label"))
             .bindSelected(settings::isOpenEditorWithIntrospectionResult)
