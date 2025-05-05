@@ -16,7 +16,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 
 
-fun isJsonSchemaCandidate(document: Document?) =
+fun isJsonSchemaCandidate(document: Document?): Boolean =
   document?.text?.contains("__schema") == true
 
 fun createIntrospectionLineMarker(
@@ -61,4 +61,9 @@ fun promptForEnvVariables(project: Project, endpoint: GraphQLConfigEndpoint?): G
   }
 
   return endpoint.withUpdatedEnvironment()
+}
+
+internal fun getErrorCountFromResponse(introspection: Map<String, Any?>): Int {
+  val errors = introspection["errors"]
+  return if (errors is Collection<*>) errors.size else 0
 }

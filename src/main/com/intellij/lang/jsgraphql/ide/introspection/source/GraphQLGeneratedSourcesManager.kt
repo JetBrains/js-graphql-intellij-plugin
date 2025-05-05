@@ -210,7 +210,7 @@ class GraphQLGeneratedSourcesManager(
                      val sourceText = runReadAction { FileDocumentManager.getInstance().getDocument(source.file)?.text }
                                       ?: throw FileNotFoundException("Unable to read file: ${source.file.path}")
 
-                     GraphQLIntrospectionService.getInstance(project).printIntrospectionAsGraphQL(sourceText)
+                     GraphQLIntrospectionService.printIntrospectionAsGraphQL(project, sourceText)
                    }, executor)
       .thenApplyAsync({ introspection ->
                         if (project.isDisposed) throw ProcessCanceledException()

@@ -7,7 +7,7 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigLoader
 import com.intellij.lang.jsgraphql.ide.config.serialization.GraphQLConfigPrinter
 import com.intellij.lang.jsgraphql.ide.notifications.GRAPHQL_NOTIFICATION_GROUP_ID
-import com.intellij.lang.jsgraphql.ide.notifications.formatExceptionMessage
+import com.intellij.lang.jsgraphql.ide.notifications.addShowQueryErrorDetailsAction
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
@@ -76,10 +76,9 @@ class GraphQLMigrateLegacyConfigAction : AnAction() {
               "graphql.notification.unable.to.create.file",
               GraphQLConfigFactory.PREFERRED_CONFIG,
               dir.path,
-              formatExceptionMessage(e)
             ),
             NotificationType.ERROR,
-          )
+          ).apply { addShowQueryErrorDetailsAction(project, this, e) }
         )
         return@runWriteCommandAction
       }
@@ -96,10 +95,9 @@ class GraphQLMigrateLegacyConfigAction : AnAction() {
               "graphql.notification.unable.to.delete.file",
               sourceFile.name,
               dir.path,
-              formatExceptionMessage(e)
             ),
             NotificationType.ERROR,
-          )
+          ).apply { addShowQueryErrorDetailsAction(project, this, e) }
         )
       }
 

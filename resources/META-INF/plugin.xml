@@ -223,6 +223,9 @@
     <registryKey key="graphql.schema.build.timeout" defaultValue="500" description="GraphQL schema build timeout in ms"/>
     <registryKey key="graphql.schema.size.definitions.limit" defaultValue="4000"
                  description="A limit on the total number of type definitions in a GraphQL schema"/>
+    <registryKey key="graphql.introspection.detect.schema.capabilities"
+                 defaultValue="[Adaptive*|Latest|Legacy]"
+                 description="Enables preliminary request to detect GraphQL server capabilities before schema introspection"/>
 
     <!-- Inspections -->
     <localInspection language="GraphQL" key="graphql.inspection.display.name.unresolved.reference"

@@ -1,6 +1,5 @@
 package com.intellij.lang.jsgraphql.ide.introspection;
 
-import com.google.common.collect.Lists;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementFactory;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
 import com.intellij.lang.jsgraphql.types.language.*;
@@ -13,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.intellij.lang.jsgraphql.types.Assert.*;
 
@@ -132,21 +130,22 @@ public class GraphQLIntrospectionResultToSchema {
   }
 
   @SuppressWarnings("unchecked")
-  private @NotNull List<InputValueDefinition> createInputValueDefinitions(@Nullable List<Map<String, Object>> args) {
-    if (args == null) return ContainerUtil.emptyList();
+  private @NotNull List<InputValueDefinition> createInputValueDefinitions(@Nullable List<Map<String, Object>> inputValues) {
+    if (inputValues == null) return ContainerUtil.emptyList();
 
     List<InputValueDefinition> result = new ArrayList<>();
-    for (Map<String, Object> arg : args) {
-      if (arg == null) continue;
+    for (Map<String, Object> inputValue : inputValues) {
+      if (inputValue == null) continue;
 
-      Type argType = createTypeReference((Map<String, Object>)arg.get("type"));
-      String valueLiteral = (String)arg.get("defaultValue");
+      Type argType = createTypeReference((Map<String, Object>)inputValue.get("type"));
+      String valueLiteral = (String)inputValue.get("defaultValue");
       Value defaultValue = valueLiteral != null ? valueFromAst(valueLiteral) : null;
       InputValueDefinition inputValueDefinition = InputValueDefinition.newInputValueDefinition()
-        .name((String)arg.get("name"))
+        .name((String)inputValue.get("name"))
         .type(argType)
-        .description(getDescription(arg))
+        .description(getDescription(inputValue))
         .defaultValue(defaultValue)
+        .directives(createDeprecatedDirective(inputValue))
         .build();
       result.add(inputValueDefinition);
     }
@@ -203,9 +202,7 @@ public class GraphQLIntrospectionResultToSchema {
       .description(getDescription(input));
     if (input.containsKey("interfaces")) {
       builder.implementz(
-        ((List<Map<String, Object>>)input.get("interfaces")).stream()
-          .map(GraphQLIntrospectionResultToSchema::createTypeReference)
-          .collect(Collectors.toList())
+        ContainerUtil.map((List<Map<String, Object>>)input.get("interfaces"), GraphQLIntrospectionResultToSchema::createTypeReference)
       );
     }
     List<Map<String, Object>> fields = (List<Map<String, Object>>)input.get("fields");
@@ -246,7 +243,7 @@ public class GraphQLIntrospectionResultToSchema {
     assertTrue(Objects.equals(input.get("kind"), "UNION"), () -> "wrong input");
 
     final List<Map<String, Object>> possibleTypes = (List<Map<String, Object>>)input.get("possibleTypes");
-    final List<Type> memberTypes = Lists.newArrayList();
+    final List<Type> memberTypes = new ArrayList<>();
     if (possibleTypes != null) {
       for (Map<String, Object> possibleType : possibleTypes) {
         if (possibleType == null) continue;
@@ -267,7 +264,7 @@ public class GraphQLIntrospectionResultToSchema {
     assertTrue(Objects.equals(input.get("kind"), "ENUM"), () -> "wrong input");
 
     final List<Map<String, Object>> enumValues = (List<Map<String, Object>>)input.get("enumValues");
-    final List<EnumValueDefinition> enumValueDefinitions = Lists.newArrayList();
+    final List<EnumValueDefinition> enumValueDefinitions = new ArrayList<>();
     if (enumValues != null) {
       for (Map<String, Object> enumValue : enumValues) {
         if (enumValue == null) continue;
@@ -290,7 +287,7 @@ public class GraphQLIntrospectionResultToSchema {
   }
 
   private static @NotNull List<Directive> createDeprecatedDirective(@NotNull Map<String, Object> field) {
-    if ((Boolean)field.get("isDeprecated")) {
+    if (field.get("isDeprecated") == Boolean.TRUE) {
       String reason = (String)field.get("deprecationReason");
       if (reason == null) {
         reason = "No longer supported"; // default according to spec
@@ -324,7 +321,7 @@ public class GraphQLIntrospectionResultToSchema {
     }
   }
 
-  private boolean isRepeatable(@NotNull Map<String, Object> definition) {
+  private static boolean isRepeatable(@NotNull Map<String, Object> definition) {
     Object isRepeatable = definition.get("isRepeatable");
     return isRepeatable instanceof Boolean && (boolean)isRepeatable;
   }

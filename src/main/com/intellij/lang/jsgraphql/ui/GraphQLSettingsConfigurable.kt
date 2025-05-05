@@ -57,13 +57,6 @@ class GraphQLSettingsConfigurable(private val project: Project) :
             }
         }
         row {
-          checkBox(message("graphql.settings.introspection.repeatable.directives.label"))
-            .bindSelected(settings::isEnableIntrospectionRepeatableDirectives)
-            .applyToComponent {
-              toolTipText = message("graphql.settings.introspection.repeatable.directives.tooltip")
-            }
-        }
-        row {
           checkBox(message("graphql.settings.introspection.open.editor.label"))
             .bindSelected(settings::isOpenEditorWithIntrospectionResult)
         }
