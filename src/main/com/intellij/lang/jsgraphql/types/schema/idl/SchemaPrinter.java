@@ -26,6 +26,7 @@ import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -80,6 +81,8 @@ public class SchemaPrinter {
 
     private final Predicate<GraphQLSchemaElement> includeSchemaElement;
 
+    private final boolean includeEmptyTypes;
+
     private final GraphqlTypeComparatorRegistry comparatorRegistry;
 
     private Options(boolean includeIntrospectionTypes,
@@ -90,6 +93,7 @@ public class SchemaPrinter {
                     boolean descriptionsAsHashComments,
                     Predicate<GraphQLDirective> includeDirective,
                     Predicate<GraphQLSchemaElement> includeSchemaElement,
+                    boolean includeEmptyTypes,
                     GraphqlTypeComparatorRegistry comparatorRegistry) {
       this.includeIntrospectionTypes = includeIntrospectionTypes;
       this.includeScalars = includeScalars;
@@ -100,6 +104,7 @@ public class SchemaPrinter {
       this.descriptionsAsHashComments = descriptionsAsHashComments;
       this.comparatorRegistry = comparatorRegistry;
       this.includeSchemaElement = includeSchemaElement;
+      this.includeEmptyTypes = includeEmptyTypes;
     }
 
     public boolean isIncludeIntrospectionTypes() {
@@ -138,10 +143,18 @@ public class SchemaPrinter {
       return useAstDefinitions;
     }
 
+    public boolean isIncludeEmptyTypes() {
+      return includeEmptyTypes;
+    }
+
     public static Options defaultOptions() {
       return new Options(false, true,
-                         false, true, false, false,
-                         directive -> true, element -> true, DefaultGraphqlTypeComparatorRegistry.defaultComparators());
+                         false, true,
+                         false, false,
+                         directive -> true,
+                         element -> true,
+                         true,
+                         DefaultGraphqlTypeComparatorRegistry.defaultComparators());
     }
 
     /**
@@ -153,7 +166,7 @@ public class SchemaPrinter {
     public Options includeIntrospectionTypes(boolean flag) {
       return new Options(flag, this.includeScalars, this.includeSchemaDefinition, this.includeDirectiveDefinitions,
                          this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement,
-                         this.comparatorRegistry);
+                         this.includeEmptyTypes, this.comparatorRegistry);
     }
 
     /**
@@ -165,7 +178,7 @@ public class SchemaPrinter {
     public Options includeScalarTypes(boolean flag) {
       return new Options(this.includeIntrospectionTypes, flag, this.includeSchemaDefinition, this.includeDirectiveDefinitions,
                          this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement,
-                         this.comparatorRegistry);
+                         this.includeEmptyTypes, this.comparatorRegistry);
     }
 
     /**
@@ -180,7 +193,7 @@ public class SchemaPrinter {
     public Options includeSchemaDefinition(boolean flag) {
       return new Options(this.includeIntrospectionTypes, this.includeScalars, flag, this.includeDirectiveDefinitions,
                          this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement,
-                         this.comparatorRegistry);
+                         this.includeEmptyTypes, this.comparatorRegistry);
     }
 
     /**
@@ -197,7 +210,7 @@ public class SchemaPrinter {
     public Options includeDirectiveDefinitions(boolean flag) {
       return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition, flag,
                          this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective, this.includeSchemaElement,
-                         this.comparatorRegistry);
+                         this.includeEmptyTypes, this.comparatorRegistry);
     }
 
     /**
@@ -210,7 +223,7 @@ public class SchemaPrinter {
     public Options includeDirectives(boolean flag) {
       return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
                          this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, directive -> flag,
-                         this.includeSchemaElement, this.comparatorRegistry);
+                         this.includeSchemaElement, this.includeEmptyTypes, this.comparatorRegistry);
     }
 
     /**
@@ -222,7 +235,7 @@ public class SchemaPrinter {
     public Options includeDirectives(Predicate<GraphQLDirective> includeDirective) {
       return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
                          this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, includeDirective,
-                         this.includeSchemaElement, this.comparatorRegistry);
+                         this.includeSchemaElement, this.includeEmptyTypes, this.comparatorRegistry);
     }
 
     /**
@@ -235,7 +248,7 @@ public class SchemaPrinter {
       Assert.assertNotNull(includeSchemaElement);
       return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
                          this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, includeDirective,
-                         includeSchemaElement, this.comparatorRegistry);
+                         includeSchemaElement, this.includeEmptyTypes, this.comparatorRegistry);
     }
 
     /**
@@ -248,7 +261,7 @@ public class SchemaPrinter {
     public Options useAstDefinitions(boolean flag) {
       return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
                          this.includeDirectiveDefinitions, flag, this.descriptionsAsHashComments, this.includeDirective,
-                         this.includeSchemaElement,
+                         this.includeSchemaElement, this.includeEmptyTypes,
                          this.comparatorRegistry);
     }
 
@@ -264,7 +277,13 @@ public class SchemaPrinter {
     public Options descriptionsAsHashComments(boolean flag) {
       return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
                          this.includeDirectiveDefinitions, this.useAstDefinitions, flag, this.includeDirective, this.includeSchemaElement,
-                         this.comparatorRegistry);
+                         this.includeEmptyTypes, this.comparatorRegistry);
+    }
+
+    public Options includeEmptyTypes(boolean flag) {
+      return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
+                         this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments,
+                         this.includeDirective, this.includeSchemaElement, flag, this.comparatorRegistry);
     }
 
     /**
@@ -278,7 +297,7 @@ public class SchemaPrinter {
     public Options setComparators(GraphqlTypeComparatorRegistry comparatorRegistry) {
       return new Options(this.includeIntrospectionTypes, this.includeScalars, this.includeSchemaDefinition,
                          this.includeDirectiveDefinitions, this.useAstDefinitions, this.descriptionsAsHashComments, this.includeDirective,
-                         this.includeSchemaElement, comparatorRegistry);
+                         this.includeSchemaElement, this.includeEmptyTypes, comparatorRegistry);
     }
   }
 
@@ -423,6 +442,9 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
+      if (!shouldIncludeEmptyTypes() && type.getValues().isEmpty()) {
+        return;
+      }
 
       GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
         .parentType(GraphQLEnumType.class)
@@ -491,6 +513,9 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
+      if (!shouldIncludeEmptyTypes() && type.getFields().isEmpty()) {
+        return;
+      }
 
       if (shouldPrintAsAst(type.getDefinition())) {
         printAsAst(out, type.getDefinition(), type.getExtensionDefinitions());
@@ -535,6 +560,9 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
+      if (!shouldIncludeEmptyTypes() && type.getTypes().isEmpty()) {
+        return;
+      }
 
       GraphqlTypeComparatorEnvironment environment = GraphqlTypeComparatorEnvironment.newEnvironment()
         .parentType(GraphQLUnionType.class)
@@ -569,6 +597,10 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
+      if (!shouldIncludeEmptyTypes() && type.getFields().isEmpty()) {
+        return;
+      }
+
       if (shouldPrintAsAst(type.getDefinition())) {
         printAsAst(out, type.getDefinition(), type.getExtensionDefinitions());
       }
@@ -612,6 +644,9 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
+      if (!shouldIncludeEmptyTypes() && type.getFields().isEmpty()) {
+        return;
+      }
 
       String indent = calcIndent(1);
       if (shouldPrintAsAst(type.getDefinition())) {
@@ -650,6 +685,10 @@ public class SchemaPrinter {
         out.format("\n\n");
       }
     };
+  }
+
+  private boolean shouldIncludeEmptyTypes() {
+    return options.isIncludeEmptyTypes() || Registry.is("graphql.introspection.include.empty.types");
   }
 
   /**

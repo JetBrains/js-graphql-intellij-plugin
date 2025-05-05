@@ -47,6 +47,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -199,7 +200,7 @@ public final class GraphQLIntrospectionService implements Disposable {
   public static @NotNull String printIntrospectionAsGraphQL(@NotNull Project project, @NotNull Map<String, Object> introspection) {
     introspection = getIntrospectionSchemaDataFromParsedResponse(introspection);
 
-    if (!GraphQLSettings.getSettings(project).isEnableIntrospectionDefaultValues()) {
+    if (Registry.is("graphql.introspection.skip.default.values")) {
       // strip out the defaultValues that are potentially non-spec compliant
       Ref<Consumer<Object>> defaultValueVisitJson = Ref.create();
       defaultValueVisitJson.set((value) -> {
@@ -219,6 +220,7 @@ public final class GraphQLIntrospectionService implements Disposable {
       .defaultOptions()
       .includeScalarTypes(true)
       .includeSchemaDefinition(true)
+      .includeEmptyTypes(false)
       .includeDirectives(directive -> !GraphQLKnownTypes.DEFAULT_DIRECTIVES.contains(directive.getName()));
 
     GraphQLRegistryInfo registryInfo = new GraphQLRegistryInfo(new SchemaParser().buildRegistry(schemaDefinition), false);

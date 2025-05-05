@@ -226,6 +226,15 @@
     <registryKey key="graphql.introspection.detect.schema.capabilities"
                  defaultValue="[Adaptive*|Latest|Legacy]"
                  description="Enables preliminary request to detect GraphQL server capabilities before schema introspection"/>
+    <registryKey key="graphql.introspection.custom.query"
+                 defaultValue=""
+                 description="Defines a custom query for server introspection, overriding the default behavior"/>
+    <registryKey key="graphql.introspection.skip.default.values"
+                 defaultValue="false"
+                 description="Improves compatibility with non-compliant endpoints by skipping default values, though this removes default value information from the schema"/>
+    <registryKey key="graphql.introspection.include.empty.types"
+                 defaultValue="false"
+                 description="Determines whether empty types are included in the introspection result"/>
 
     <!-- Inspections -->
     <localInspection language="GraphQL" key="graphql.inspection.display.name.unresolved.reference"

@@ -4,7 +4,6 @@ package com.intellij.lang.jsgraphql.ide.notifications
 
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.GraphQLConstants
-import com.intellij.lang.jsgraphql.GraphQLSettings
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
 import com.intellij.lang.jsgraphql.types.GraphQLException
@@ -14,7 +13,6 @@ import com.intellij.notification.NotificationAction
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.fileLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
@@ -72,35 +70,9 @@ fun addShowQueryErrorDetailsAction(project: Project, notification: Notification,
   })
 }
 
-fun addRetryQueryForPossiblyInvalidIntrospectionSchemaAction(
-  project: Project,
-  notification: Notification,
-  e: Exception,
-  retry: Runnable,
-) {
-  if (e !is GraphQLException) return
-  notification.setContent(GraphQLBundle.message("graphql.notification.introspection.spec.error.body"))
-  addRetryQueryWithoutDefaultValuesAction(notification, GraphQLSettings.getSettings(project), retry)
-}
-
-private fun addRetryQueryWithoutDefaultValuesAction(
-  notification: Notification,
-  settings: GraphQLSettings,
-  retry: Runnable,
-) {
-  if (settings.isEnableIntrospectionDefaultValues) {
-    // suggest retrying without the default values as they're a common cause of spec compliance issues
-    val retryWithoutDefaultValues: NotificationAction = object : NotificationAction(
-      GraphQLBundle.message("graphql.notification.retry.without.defaults")
-    ) {
-      override fun actionPerformed(e: AnActionEvent, notification: Notification) {
-        settings.isEnableIntrospectionDefaultValues = false
-        ApplicationManager.getApplication().saveSettings()
-        notification.expire()
-        retry.run()
-      }
-    }
-    notification.addAction(retryWithoutDefaultValues)
+internal fun notifyAboutPossiblyInvalidIntrospectionSchema(notification: Notification, e: Exception) {
+  if (e is GraphQLException) {
+    notification.setContent(GraphQLBundle.message("graphql.notification.introspection.spec.error.body"))
   }
 }
 
@@ -168,9 +140,7 @@ fun handleIntrospectionError(
   addRetryQueryAction(notification) {
     GraphQLIntrospectionService.getInstance(project).performIntrospectionQuery(endpoint)
   }
-  addRetryQueryForPossiblyInvalidIntrospectionSchemaAction(project, notification, e) {
-    GraphQLIntrospectionService.getInstance(project).performIntrospectionQuery(endpoint)
-  }
+  notifyAboutPossiblyInvalidIntrospectionSchema(notification, e)
   addShowQueryErrorDetailsAction(project, notification, e)
   Notifications.Bus.notify(notification, project)
 
