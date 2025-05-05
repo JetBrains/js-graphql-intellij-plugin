@@ -29,9 +29,9 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigSecurity;
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionUtil;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLOpenIntrospectionSchemaAction;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryRunner;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLRunIntrospectionQueryAction;
 import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry;
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager;
@@ -78,7 +78,7 @@ import com.intellij.util.ui.JBUI;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.NotNull;
@@ -87,8 +87,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 public class GraphQLUIProjectService implements Disposable, FileEditorManagerListener, GraphQLConfigListener {
 
@@ -397,37 +397,32 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
       hintManager.showEditorHint(lightweightHint, editor, hintPosition, 0, 10000, false, HintManager.UNDER);
       return;
     }
-    String requestJson = createQueryJsonSerializer().toJson(requestData);
-    final String url = selectedEndpoint.getUrl();
-    try {
-      final HttpPost request = GraphQLIntrospectionService.createRequest(selectedEndpoint, url, requestJson);
-      //noinspection DialogTitleCapitalization
-      final Task.Backgroundable task =
-        new Task.Backgroundable(myProject, GraphQLBundle.message("graphql.progress.title.executing.graphql"), false) {
-          @Override
-          public void run(@NotNull ProgressIndicator indicator) {
-            indicator.setIndeterminate(true);
-            runQuery(editor, virtualFile, context, url, request, selectedEndpoint);
-          }
-        };
-      ProgressManager.getInstance().run(task);
+    String payload = createQueryJsonSerializer().toJson(requestData);
+    HttpUriRequest request = GraphQLQueryRunner.getInstance(myProject).createRequest(selectedEndpoint, payload);
+    if (request == null) {
+      return;
     }
-    catch (IllegalStateException | IllegalArgumentException e) {
-      LOG.warn(e);
-      GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.ERROR, null);
-    }
+    //noinspection DialogTitleCapitalization
+    Task.Backgroundable task =
+      new Task.Backgroundable(myProject, GraphQLBundle.message("graphql.progress.title.executing.graphql"), false) {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          indicator.setIndeterminate(true);
+          runQuery(editor, virtualFile, context, selectedEndpoint.getUrl(), request, selectedEndpoint);
+        }
+      };
+    ProgressManager.getInstance().run(task);
   }
 
   private void runQuery(@NotNull Editor editor,
                         @NotNull VirtualFile virtualFile,
                         @NotNull GraphQLQueryContext context,
                         @NotNull String url,
-                        @NotNull HttpPost request,
+                        @NotNull HttpUriRequest request,
                         @NotNull GraphQLConfigEndpoint endpoint) {
-    GraphQLIntrospectionService introspectionService = GraphQLIntrospectionService.getInstance(myProject);
     try {
       GraphQLConfigSecurity sslConfig = GraphQLConfigSecurity.getSecurityConfig(endpoint.getConfig());
-      try (final CloseableHttpClient httpClient = introspectionService.createHttpClient(url, sslConfig)) {
+      try (final CloseableHttpClient httpClient = GraphQLQueryRunner.getInstance(myProject).createHttpClient(url, sslConfig)) {
         editor.putUserData(GRAPH_QL_EDITOR_QUERYING, true);
 
         String responseJson;
@@ -506,8 +501,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
       }
     }
     catch (IOException | GeneralSecurityException e) {
-      LOG.warn(e);
-      GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.WARNING, null);
+      GraphQLNotificationUtil.handleGenericRequestError(myProject, url, e, NotificationType.WARNING);
     }
   }
 

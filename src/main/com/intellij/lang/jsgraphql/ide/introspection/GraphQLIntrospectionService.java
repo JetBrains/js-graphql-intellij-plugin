@@ -8,7 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.introspection;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.JsonParseException;
 import com.intellij.ide.actions.CreateFileAction;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
@@ -16,7 +16,6 @@ import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.config.model.*;
-import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
@@ -26,7 +25,6 @@ import com.intellij.lang.jsgraphql.types.schema.idl.SchemaParser;
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter;
 import com.intellij.lang.jsgraphql.types.schema.idl.UnExecutableSchemaGenerator;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.SchemaProblem;
-import com.intellij.lang.jsgraphql.types.util.EscapeUtil;
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
@@ -40,59 +38,46 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.*;
-import com.intellij.openapi.fileTypes.PlainTextLanguage;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
-import com.intellij.util.ExceptionUtil;
 import com.intellij.util.ObjectUtils;
 import com.intellij.util.concurrency.annotations.RequiresWriteLock;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.net.IdeHttpClientHelpers;
-import com.intellij.util.net.ssl.CertificateManager;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.util.PublicSuffixMatcherLoader;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.*;
-import org.apache.http.util.EntityUtils;
-import org.jetbrains.annotations.Nls;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.net.ssl.HostnameVerifier;
-import java.io.File;
 import java.io.IOException;
-import java.security.*;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.*;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID;
+import static com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil.*;
 import static com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService.setHeadersFromOptions;
 
 @Service(Service.Level.PROJECT)
@@ -122,28 +107,40 @@ public final class GraphQLIntrospectionService implements Disposable {
     });
   }
 
-  public void performIntrospectionQuery(@NotNull GraphQLConfigEndpoint endpoint) {
+  public @Nullable GraphQLIntrospectionTask getLatestIntrospection() {
+    return latestIntrospection;
+  }
+
+  public void performIntrospectionQuery(@NotNull GraphQLConfigEndpoint selectedEndpoint) {
+    // store the endpoint before substituting environment variables
+    GraphQLIntrospectionTask introspectionTask = new GraphQLIntrospectionTask(myProject, selectedEndpoint);
+    latestIntrospection = introspectionTask;
+
+    var preparedEndpoint = GraphQLIntrospectionUtil.promptForEnvVariables(myProject, selectedEndpoint);
+    if (preparedEndpoint == null || !isEndpointConfigurationValid(preparedEndpoint)) return;
+
+    GraphQLIntrospectionQueryExecutor.getInstance(myProject).runIntrospectionQuery(preparedEndpoint, introspectionTask);
+  }
+
+  private boolean isEndpointConfigurationValid(GraphQLConfigEndpoint endpoint) {
     GraphQLProjectConfig projectConfig = endpoint.getConfig();
     VirtualFile configFile = projectConfig != null ? projectConfig.getFile() : null;
     if (projectConfig == null || configFile == null) {
-      GraphQLNotificationUtil.showInvalidConfigurationNotification(
+      showInvalidConfigurationNotification(
         GraphQLBundle.message("graphql.notification.introspection.endpoint.config.not.found"),
         endpoint.getFile(),
         myProject
       );
-      return;
+      return false;
     }
 
-    endpoint = GraphQLIntrospectionUtil.promptForEnvVariables(myProject, endpoint);
-    if (endpoint == null) return;
-
     if (StringUtil.isEmptyOrSpaces(endpoint.getUrl())) {
-      GraphQLNotificationUtil.showInvalidConfigurationNotification(
+      showInvalidConfigurationNotification(
         GraphQLBundle.message("graphql.notification.introspection.empty.endpoint.url"),
         endpoint.getFile(),
         myProject
       );
-      return;
+      return false;
     }
 
     GraphQLSchemaPointer pointer = endpoint.getSchemaPointer();
@@ -151,7 +148,7 @@ public final class GraphQLIntrospectionService implements Disposable {
 
     if (StringUtil.isEmptyOrSpaces(schemaPath)) {
       if (pointer == null || !pointer.isRemote()) {
-        GraphQLNotificationUtil.showInvalidConfigurationNotification(
+        showInvalidConfigurationNotification(
           GraphQLBundle.message(
             "graphql.notification.introspection.empty.schema.path",
             pointer != null ? GraphQLBundle.message(
@@ -164,51 +161,20 @@ public final class GraphQLIntrospectionService implements Disposable {
         );
       }
       else {
-        GraphQLNotificationUtil.showInvalidConfigurationNotification(
+        showInvalidConfigurationNotification(
           GraphQLBundle.message("graphql.notification.introspection.unable.to.build.path"),
           endpoint.getFile(),
           myProject
         );
       }
-      return;
+      return false;
     }
 
-    performIntrospectionQuery(endpoint, schemaPath);
-  }
-
-  private void performIntrospectionQuery(@NotNull GraphQLConfigEndpoint endpoint, @NotNull String schemaPath) {
-    latestIntrospection = new GraphQLIntrospectionTask(
-      endpoint,
-      () -> performIntrospectionQuery(endpoint)
-    );
-
-    final NotificationAction retry = new NotificationAction(GraphQLBundle.message("graphql.notification.retry")) {
-
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-        notification.expire();
-        performIntrospectionQuery(endpoint);
-      }
-    };
-
-    String url = Objects.requireNonNull(endpoint.getUrl());
-    try {
-      final GraphQLSettings settings = GraphQLSettings.getSettings(myProject);
-      String query = buildIntrospectionQuery(settings);
-
-      final String requestJson = "{\"query\":\"" + EscapeUtil.escapeJsonString(query) + "\"}";
-      HttpPost request = createRequest(endpoint, url, requestJson);
-      Task.Backgroundable task = new IntrospectionQueryTask(request, schemaPath, retry, settings, endpoint, url);
-      ProgressManager.getInstance().run(task);
-    }
-    catch (IllegalStateException | IllegalArgumentException e) {
-      LOG.warn(e);
-      GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.ERROR, retry);
-    }
+    return true;
   }
 
   public @Nullable NotificationAction createTrustAllHostsAction() {
-    final PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
+    PropertiesComponent propertiesComponent = PropertiesComponent.getInstance(myProject);
     if (propertiesComponent.isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)) return null;
 
     return NotificationAction.createSimpleExpiring(
@@ -216,47 +182,24 @@ public final class GraphQLIntrospectionService implements Disposable {
       () -> propertiesComponent.setValue(GRAPHQL_TRUST_ALL_HOSTS, true));
   }
 
-  public @NotNull String printIntrospectionAsGraphQL(@NotNull String introspectionJson) {
-    return printIntrospectionAsGraphQL(parseIntrospectionJson(introspectionJson));
+  public static @NotNull String printIntrospectionAsGraphQL(@NotNull Project project, @NotNull String introspectionJson) {
+    return printIntrospectionAsGraphQL(project, GraphQLQueryRunner.parseResponseJsonAsMap(introspectionJson));
   }
 
+  /**
+   * @deprecated Use {@link GraphQLQueryRunner#createHttpClient(String, GraphQLConfigSecurity)} instead.
+   */
+  @Deprecated(forRemoval = true)
   public @NotNull CloseableHttpClient createHttpClient(@NotNull String url, @Nullable GraphQLConfigSecurity sslConfig)
     throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException,
            CertificateException {
-    HttpClientBuilder builder = HttpClients.custom()
-      .setDefaultRequestConfig(createRequestConfig(url))
-      .setSSLContext(CertificateManager.getInstance().getSslContext())
-      .setDefaultCredentialsProvider(createCredentialsProvider(url))
-      .setRedirectStrategy(LaxRedirectStrategy.INSTANCE)
-      .setSSLHostnameVerifier(createHostnameVerifier());
-    GraphQLIntrospectionSSLBuilder.loadCustomSSLConfiguration(sslConfig, builder);
-    return builder.build();
+    return GraphQLQueryRunner.getInstance(myProject).createHttpClient(url, sslConfig);
   }
 
-  private static @NotNull RequestConfig createRequestConfig(@NotNull String url) {
-    RequestConfig.Builder builder = RequestConfig.custom()
-      .setConnectTimeout(Registry.intValue("graphql.request.connect.timeout", 5000))
-      .setSocketTimeout(Registry.intValue("graphql.request.timeout", 15000));
-    IdeHttpClientHelpers.ApacheHttpClient4.setProxyForUrlIfEnabled(builder, url);
-    return builder.build();
-  }
+  public static @NotNull String printIntrospectionAsGraphQL(@NotNull Project project, @NotNull Map<String, Object> introspection) {
+    introspection = getIntrospectionSchemaDataFromParsedResponse(introspection);
 
-  private static @NotNull CredentialsProvider createCredentialsProvider(@NotNull String url) {
-    CredentialsProvider provider = new BasicCredentialsProvider();
-    IdeHttpClientHelpers.ApacheHttpClient4.setProxyCredentialsForUrlIfEnabled(provider, url);
-    return provider;
-  }
-
-  private @NotNull HostnameVerifier createHostnameVerifier() {
-    return PropertiesComponent.getInstance(myProject).isTrueValue(GRAPHQL_TRUST_ALL_HOSTS)
-           ? NoopHostnameVerifier.INSTANCE
-           : new DefaultHostnameVerifier(PublicSuffixMatcherLoader.getDefault());
-  }
-
-  public @NotNull String printIntrospectionAsGraphQL(@NotNull Map<String, Object> introspection) {
-    introspection = getIntrospectionSchemaData(introspection);
-
-    if (!GraphQLSettings.getSettings(myProject).isEnableIntrospectionDefaultValues()) {
+    if (!GraphQLSettings.getSettings(project).isEnableIntrospectionDefaultValues()) {
       // strip out the defaultValues that are potentially non-spec compliant
       Ref<Consumer<Object>> defaultValueVisitJson = Ref.create();
       defaultValueVisitJson.set((value) -> {
@@ -271,23 +214,21 @@ public final class GraphQLIntrospectionService implements Disposable {
       defaultValueVisitJson.get().consume(introspection);
     }
 
-    final Document schemaDefinition = new GraphQLIntrospectionResultToSchema(myProject)
-      .createSchemaDefinition(introspection);
-    final SchemaPrinter.Options options = SchemaPrinter.Options
+    Document schemaDefinition = new GraphQLIntrospectionResultToSchema(project).createSchemaDefinition(introspection);
+    SchemaPrinter.Options options = SchemaPrinter.Options
       .defaultOptions()
       .includeScalarTypes(true)
       .includeSchemaDefinition(true)
       .includeDirectives(directive -> !GraphQLKnownTypes.DEFAULT_DIRECTIVES.contains(directive.getName()));
 
-    GraphQLRegistryInfo registryInfo = new GraphQLRegistryInfo(
-      new SchemaParser().buildRegistry(schemaDefinition), false);
+    GraphQLRegistryInfo registryInfo = new GraphQLRegistryInfo(new SchemaParser().buildRegistry(schemaDefinition), false);
     GraphQLSchemaInfo schemaInfo = new GraphQLSchemaInfo(
       UnExecutableSchemaGenerator.makeUnExecutableSchema(registryInfo.getTypeDefinitionRegistry()),
       Collections.emptyList(),
       registryInfo
     );
 
-    List<GraphQLError> errors = schemaInfo.getErrors(myProject);
+    List<GraphQLError> errors = schemaInfo.getErrors(project);
     if (!errors.isEmpty()) {
       for (GraphQLError error : errors) {
         LOG.warn(error.getMessage());
@@ -295,7 +236,7 @@ public final class GraphQLIntrospectionService implements Disposable {
     }
 
     try {
-      return new SchemaPrinter(myProject, options).print(schemaInfo.getSchema());
+      return new SchemaPrinter(project, options).print(schemaInfo.getSchema());
     }
     catch (ProcessCanceledException e) {
       throw e;
@@ -310,57 +251,23 @@ public final class GraphQLIntrospectionService implements Disposable {
     }
   }
 
-  public void addIntrospectionStackTraceAction(@NotNull Notification notification, @NotNull Exception exception) {
-    notification.addAction(new NotificationAction(GraphQLBundle.message("graphql.notification.stack.trace")) {
-      @Override
-      public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-        String stackTrace = ExceptionUtil.getThrowableText(exception);
-        PsiFile file = PsiFileFactory.getInstance(myProject)
-          .createFileFromText("introspection-error.txt", PlainTextLanguage.INSTANCE, stackTrace);
-        new OpenFileDescriptor(myProject, file.getVirtualFile()).navigate(true);
-      }
-    });
-  }
-
-  /**
-   * Ensures that the JSON response falls within the GraphQL specification character range such that it can be expressed as valid GraphQL SDL in the editor
-   *
-   * @param introspectionJson the JSON to sanitize
-   * @return a sanitized version where the character ranges are within those allowed by the GraphQL Language Specification
-   */
-  private static String sanitizeIntrospectionJson(@NotNull String introspectionJson) {
-    // Strip out emojis (e.g. the one in the GitHub schema) since they're outside the allowed range
-    return introspectionJson.replaceAll("[\ud83c\udf00-\ud83d\ude4f]|[\ud83d\ude80-\ud83d\udeff]", "");
-  }
-
   @RequiresWriteLock
-  private @NotNull VirtualFile createOrUpdateSchemaFile(@NotNull VirtualFile dir,
-                                                        @NotNull String relativeOutputFileName) throws IOException {
+  private static @NotNull VirtualFile createOrUpdateSchemaFile(@NotNull Project project,
+                                                               @NotNull VirtualFile dir,
+                                                               @NotNull String relativeOutputFileName) throws IOException {
     VirtualFile outputFile = dir.findFileByRelativePath(relativeOutputFileName);
     if (outputFile == null) {
-      PsiDirectory directory = PsiDirectoryFactory.getInstance(myProject).createDirectory(dir);
+      PsiDirectory directory = PsiDirectoryFactory.getInstance(project).createDirectory(dir);
       CreateFileAction.MkDirs result = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
       outputFile = result.directory.getVirtualFile().createChildData(dir, result.newName);
     }
     return outputFile;
   }
 
-  private static @NotNull String buildIntrospectionQuery(@NotNull GraphQLSettings settings) {
-    String query = settings.getIntrospectionQuery();
-    if (!StringUtil.isEmptyOrSpaces(query)) {
-      return query;
-    }
-
-    query = GraphQLIntrospectionQuery.INTROSPECTION_QUERY;
-    if (!settings.isEnableIntrospectionRepeatableDirectives()) {
-      query = query.replace("isRepeatable", "");
-    }
-    if (!settings.isEnableIntrospectionDefaultValues()) {
-      query = query.replace("defaultValue", "");
-    }
-    return query;
-  }
-
+  /**
+   * @deprecated use {@link GraphQLQueryRunner#createRequest(GraphQLConfigEndpoint, String)} instead.
+   */
+  @Deprecated(forRemoval = true)
   public static @NotNull HttpPost createRequest(@NotNull GraphQLConfigEndpoint endpoint,
                                                 @NotNull String url,
                                                 @NotNull String requestJson) {
@@ -370,66 +277,97 @@ public final class GraphQLIntrospectionService implements Disposable {
     return request;
   }
 
-  @SuppressWarnings("unchecked")
-  public static @NotNull Map<String, Object> parseIntrospectionJson(@NotNull String introspectionJson) {
-    var result = new Gson().fromJson(sanitizeIntrospectionJson(introspectionJson), Map.class);
-    if (result == null) {
-      throw new JsonSyntaxException("Invalid introspection JSON value");
-    }
-    return result;
-  }
-
-  public GraphQLIntrospectionTask getLatestIntrospection() {
-    return latestIntrospection;
-  }
-
   enum IntrospectionOutputFormat {
     JSON,
     SDL
   }
 
-  void createOrUpdateIntrospectionOutputFile(@NotNull String schemaText,
-                                             @NotNull IntrospectionOutputFormat format,
-                                             @NotNull String outputFileName,
-                                             @NotNull VirtualFile dir) {
-    String header = switch (format) {
+  record IntrospectionOutput(@NotNull String schemaText, @NotNull IntrospectionOutputFormat format) {
+  }
+
+  private static @Nullable Map<String, Object> parseIntrospectionResponse(@NotNull Project project,
+                                                                          @NotNull GraphQLConfigEndpoint endpoint,
+                                                                          @NotNull String introspectionResponse) {
+    try {
+      Map<String, Object> introspection = GraphQLQueryRunner.parseResponseJsonAsMap(introspectionResponse);
+      if (GraphQLIntrospectionUtil.getErrorCountFromResponse(introspection) > 0) {
+        GraphQLUIProjectService.getInstance(project).showQueryResult(introspectionResponse);
+      }
+      return introspection;
+    }
+    catch (JsonParseException exception) {
+      handleIntrospectionError(project, endpoint, exception,
+                               GraphQLBundle.message("graphql.notification.introspection.parse.error"),
+                               introspectionResponse);
+      return null;
+    }
+  }
+
+  static @Nullable IntrospectionOutput parseIntrospectionOutput(@NotNull Project project,
+                                                                @NotNull GraphQLConfigEndpoint endpoint,
+                                                                @NotNull String schemaPath,
+                                                                @NotNull String rawIntrospectionResponse) {
+    var parsedIntrospection = parseIntrospectionResponse(project, endpoint, rawIntrospectionResponse);
+    if (parsedIntrospection == null) return null;
+
+    IntrospectionOutputFormat format = schemaPath.endsWith(".json") ? IntrospectionOutputFormat.JSON : IntrospectionOutputFormat.SDL;
+    try {
+      // always try to print the schema to validate it since that will be done in schema discovery of the JSON anyway
+      String schemaAsSDL = printIntrospectionAsGraphQL(project, parsedIntrospection);
+      String schemaText = format == IntrospectionOutputFormat.SDL ? schemaAsSDL : rawIntrospectionResponse;
+      return new IntrospectionOutput(schemaText, format);
+    }
+    catch (CancellationException exception) {
+      throw exception;
+    }
+    catch (Exception exception) {
+      handleIntrospectionError(project, endpoint, exception, null, rawIntrospectionResponse);
+      return null;
+    }
+  }
+
+  static void createOrUpdateIntrospectionOutputFile(@NotNull Project project,
+                                                    @NotNull IntrospectionOutput output,
+                                                    @NotNull String outputFileName,
+                                                    @NotNull VirtualFile dir) {
+    String header = switch (output.format) {
       case SDL -> "# This file was generated. Do not edit manually.\n\n";
       case JSON -> "";
     };
 
-    WriteCommandAction.runWriteCommandAction(myProject, () -> {
+    WriteCommandAction.runWriteCommandAction(project, () -> {
       try {
         FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
-        PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(myProject);
+        PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
 
-        VirtualFile outputFile =
-          createOrUpdateSchemaFile(dir, FileUtil.toSystemIndependentName(outputFileName));
+        VirtualFile outputFile = createOrUpdateSchemaFile(project, dir, FileUtil.toSystemIndependentName(outputFileName));
         com.intellij.openapi.editor.Document document = fileDocumentManager.getDocument(outputFile);
         if (document == null) {
           throw new IllegalStateException("Document not found");
         }
-        document.setText(StringUtil.convertLineSeparators(header + schemaText));
+        document.setText(StringUtil.convertLineSeparators(header + output.schemaText));
         psiDocumentManager.commitDocument(document);
         PsiFile psiFile = psiDocumentManager.getPsiFile(document);
         if (psiFile != null) {
-          CodeStyleManager.getInstance(myProject).reformat(psiFile);
+          CodeStyleManager.getInstance(project).reformat(psiFile);
           psiDocumentManager.commitDocument(document);
           fileDocumentManager.saveDocument(document);
         }
-        openSchemaInEditor(outputFile);
+        openSchemaInEditor(project, outputFile);
       }
       catch (ProcessCanceledException e) {
         throw e;
       }
       catch (IOException e) {
         LOG.info(e);
-        Notifications.Bus.notify(new Notification(
+        Notification notification = new Notification(
           GRAPHQL_NOTIFICATION_GROUP_ID,
           GraphQLBundle.message("graphql.notification.error.title"),
-          GraphQLBundle.message("graphql.notification.unable.to.create.file",
-                                outputFileName, dir.getPath(), GraphQLNotificationUtil.formatExceptionMessage(e)),
+          GraphQLBundle.message("graphql.notification.unable.to.create.file", outputFileName, dir.getPath()),
           NotificationType.ERROR
-        ));
+        );
+        addShowQueryErrorDetailsAction(project, notification, e);
+        Notifications.Bus.notify(notification);
       }
       catch (Exception e) {
         LOG.error(e);
@@ -437,13 +375,13 @@ public final class GraphQLIntrospectionService implements Disposable {
     });
   }
 
-  private void openSchemaInEditor(@NotNull VirtualFile file) {
-    if (!GraphQLSettings.getSettings(myProject).isOpenEditorWithIntrospectionResult()) {
+  private static void openSchemaInEditor(@NotNull Project project, @NotNull VirtualFile file) {
+    if (!GraphQLSettings.getSettings(project).isOpenEditorWithIntrospectionResult()) {
       return;
     }
 
     ApplicationManager.getApplication().invokeLater(() -> {
-      final FileEditor[] fileEditors = FileEditorManager.getInstance(myProject).openFile(file, true, true);
+      FileEditor[] fileEditors = FileEditorManager.getInstance(project).openFile(file, true, true);
       if (fileEditors.length == 0) {
         showUnableToOpenEditorNotification(file);
         return;
@@ -467,14 +405,14 @@ public final class GraphQLIntrospectionService implements Disposable {
   }
 
   @SuppressWarnings("unchecked")
-  private static @NotNull Map<String, Object> getIntrospectionSchemaData(@NotNull Map<String, Object> introspection) {
+  private static @NotNull Map<String, Object> getIntrospectionSchemaDataFromParsedResponse(@NotNull Map<String, Object> introspection) {
     if (introspection.containsKey("__schema")) {
       return introspection;
     }
 
     // possibly a full query result
     if (introspection.containsKey("errors")) {
-      final Object errorsValue = introspection.get("errors");
+      Object errorsValue = introspection.get("errors");
       if (errorsValue instanceof Collection<?> && !((Collection<?>)errorsValue).isEmpty()) {
         throw new IllegalArgumentException(
           GraphQLBundle.message("graphql.introspection.errors", new Gson().toJson(errorsValue)));
@@ -521,7 +459,7 @@ public final class GraphQLIntrospectionService implements Disposable {
               continue;
             }
 
-            final Notification introspect = new Notification(
+            Notification introspect = new Notification(
               GRAPHQL_NOTIFICATION_GROUP_ID,
               GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.title"),
               GraphQLBundle.message("graphql.notification.load.schema.from.endpoint.body", endpoint.getDisplayName()),
@@ -537,7 +475,7 @@ public final class GraphQLIntrospectionService implements Disposable {
               }
             });
 
-            final VirtualFile schemaFile = ReadAction.compute(() -> LocalFileSystem.getInstance().findFileByPath(schemaPath));
+            VirtualFile schemaFile = ReadAction.compute(() -> LocalFileSystem.getInstance().findFileByPath(schemaPath));
             if (schemaFile != null) {
               introspect.addAction(new NotificationAction(GraphQLBundle.message("graphql.notification.content.open.schema.file")) {
                 @Override
@@ -560,134 +498,5 @@ public final class GraphQLIntrospectionService implements Disposable {
 
   @Override
   public void dispose() {
-  }
-
-  private class IntrospectionQueryTask extends Task.Backgroundable {
-    private final HttpUriRequest request;
-    private final String filePath;
-    private final NotificationAction retry;
-    private final GraphQLSettings graphQLSettings;
-    private final GraphQLConfigEndpoint endpoint;
-    private final String url;
-
-    private IntrospectionQueryTask(@NotNull HttpUriRequest request,
-                                   @NotNull String filePath,
-                                   @NotNull NotificationAction retry,
-                                   @NotNull GraphQLSettings graphQLSettings,
-                                   @NotNull GraphQLConfigEndpoint endpoint,
-                                   @NotNull String url) {
-      super(
-        GraphQLIntrospectionService.this.myProject,
-        GraphQLBundle.message("graphql.progress.executing.introspection.query"),
-        false
-      );
-      this.request = request;
-      this.filePath = FileUtil.toSystemDependentName(filePath);
-      this.retry = retry;
-      this.graphQLSettings = graphQLSettings;
-      this.endpoint = endpoint;
-      this.url = url;
-    }
-
-    @Override
-    public void run(@NotNull ProgressIndicator indicator) {
-      if (myProject == null) {
-        return;
-      }
-
-      indicator.setIndeterminate(true);
-      String responseJson;
-      GraphQLProjectConfig config = endpoint.getConfig();
-      GraphQLConfigSecurity sslConfig = config != null ? GraphQLConfigSecurity.getSecurityConfig(config) : null;
-      try (final CloseableHttpClient httpClient = createHttpClient(url, sslConfig);
-           final CloseableHttpResponse response = httpClient.execute(request)) {
-        responseJson = ObjectUtils.coalesce(EntityUtils.toString(response.getEntity()), "");
-      }
-      catch (IOException | GeneralSecurityException e) {
-        LOG.warn(e);
-        GraphQLNotificationUtil.showGraphQLRequestErrorNotification(myProject, url, e, NotificationType.WARNING, retry);
-        return;
-      }
-
-      Map<String, Object> introspection;
-      try {
-        introspection = parseIntrospectionJson(responseJson);
-        if (getErrorCount(introspection) > 0) {
-          GraphQLUIProjectService.getInstance(myProject).showQueryResult(responseJson);
-        }
-      }
-      catch (JsonSyntaxException exception) {
-        handleIntrospectionError(exception, GraphQLBundle.message("graphql.notification.introspection.parse.error"), responseJson);
-        return;
-      }
-
-      IntrospectionOutputFormat format = filePath.endsWith(".json")
-                                         ? IntrospectionOutputFormat.JSON : IntrospectionOutputFormat.SDL;
-      String schemaText;
-      try {
-        // always try to print the schema to validate it since that will be done in schema discovery of the JSON anyway
-        final String schemaAsSDL = printIntrospectionAsGraphQL(introspection);
-        schemaText = format == IntrospectionOutputFormat.SDL ? schemaAsSDL : responseJson;
-      }
-      catch (ProcessCanceledException exception) {
-        throw exception;
-      }
-      catch (Exception exception) {
-        handleIntrospectionError(exception, null, responseJson);
-        return;
-      }
-
-      ApplicationManager.getApplication().invokeLater(() -> {
-        try {
-          File file = new File(filePath);
-          FileUtil.createParentDirs(file);
-          File ioDir = file.getParentFile();
-          VirtualFile dir = ioDir != null ? LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioDir) : null;
-          if (dir == null) {
-            throw new IOException("unable to create target directory: path=" + filePath);
-          }
-          createOrUpdateIntrospectionOutputFile(schemaText, format, file.getName(), dir);
-        }
-        catch (ProcessCanceledException exception) {
-          throw exception;
-        }
-        catch (Exception e) {
-          handleIntrospectionError(e, null, responseJson);
-        }
-      });
-    }
-
-    private static int getErrorCount(@NotNull Map<String, Object> introspection) {
-      Object errors = introspection.get("errors");
-      return errors instanceof Collection ? ((Collection<?>)errors).size() : 0;
-    }
-
-    private void handleIntrospectionError(@NotNull Exception e,
-                                          @Nullable @Nls String content,
-                                          @NotNull String responseJson) {
-      String body = content != null
-                    ? content
-                    : GraphQLBundle.message("graphql.notification.introspection.error.body",
-                                            GraphQLNotificationUtil.formatExceptionMessage(e));
-
-      Notification notification = new Notification(
-        GRAPHQL_NOTIFICATION_GROUP_ID,
-        GraphQLBundle.message("graphql.notification.introspection.error.title"),
-        body,
-        NotificationType.WARNING
-      ).addAction(retry).setImportant(true);
-
-      GraphQLNotificationUtil.addRetryFailedSchemaIntrospectionAction(
-        notification, graphQLSettings, e,
-        () -> performIntrospectionQuery(endpoint)
-      );
-      addIntrospectionStackTraceAction(notification, e);
-
-      Notifications.Bus.notify(notification, myProject);
-
-      if (myProject != null) {
-        GraphQLUIProjectService.getInstance(myProject).showQueryResult(responseJson);
-      }
-    }
   }
 }

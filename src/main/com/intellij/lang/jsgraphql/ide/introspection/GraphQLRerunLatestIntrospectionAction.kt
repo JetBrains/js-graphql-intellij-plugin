@@ -35,6 +35,6 @@ class GraphQLRerunLatestIntrospectionAction : AnAction() {
 
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    GraphQLIntrospectionService.getInstance(project).latestIntrospection?.runnable?.run()
+    GraphQLIntrospectionService.getInstance(project).latestIntrospection?.run()
   }
 }

@@ -47,8 +47,8 @@ public class GraphQLIntrospectionPrinterTest extends GraphQLTestCaseBase {
 
   public void testGithubSchema() {
     // test only for being successful, file comparison doesn't give a meaningful result for files of this size
-    assertNoThrowable(() -> new GraphQLIntrospectionService(getProject())
-      .printIntrospectionAsGraphQL(Objects.requireNonNull(readSchemaJson("githubSchema.json")))
+    assertNoThrowable(() -> GraphQLIntrospectionService
+      .printIntrospectionAsGraphQL(getProject(), Objects.requireNonNull(readSchemaJson("githubSchema.json")))
     );
   }
 
@@ -67,7 +67,7 @@ public class GraphQLIntrospectionPrinterTest extends GraphQLTestCaseBase {
   private void doTest(@NotNull String source, @NotNull String expected) {
     myFixture.configureByText(
       "result.graphql",
-      new GraphQLIntrospectionService(getProject()).printIntrospectionAsGraphQL(Objects.requireNonNull(readSchemaJson(source)))
+      GraphQLIntrospectionService.printIntrospectionAsGraphQL(getProject(), Objects.requireNonNull(readSchemaJson(source)))
     );
     myFixture.checkResultByFile(expected);
   }

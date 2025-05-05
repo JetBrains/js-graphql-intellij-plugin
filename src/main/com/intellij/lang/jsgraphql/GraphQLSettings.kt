@@ -8,10 +8,7 @@
 package com.intellij.lang.jsgraphql
 
 import com.intellij.lang.jsgraphql.GraphQLSettings.GraphQLSettingsState
-import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
+import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
 
 /**
@@ -43,12 +40,6 @@ class GraphQLSettings : PersistentStateComponent<GraphQLSettingsState> {
       state.enableIntrospectionDefaultValues = enableIntrospectionDefaultValues
     }
 
-  var isEnableIntrospectionRepeatableDirectives: Boolean
-    get() = state.enableIntrospectionRepeatableDirectives
-    set(enableIntrospectionRepeatableDirectives) {
-      state.enableIntrospectionRepeatableDirectives = enableIntrospectionRepeatableDirectives
-    }
-
   var isOpenEditorWithIntrospectionResult: Boolean
     get() = state.openEditorWithIntrospectionResult
     set(openEditorWithIntrospectionResult) {
@@ -76,19 +67,17 @@ class GraphQLSettings : PersistentStateComponent<GraphQLSettingsState> {
     }
 
   class GraphQLSettingsState {
-    var introspectionQuery = ""
-    var enableIntrospectionDefaultValues = true
-    var enableIntrospectionRepeatableDirectives = false
-    var openEditorWithIntrospectionResult = true
-    var enableRelayModernFrameworkSupport = false
-    var enableFederationSupport = false
-    var enableApolloKotlinSupport = false
+    var introspectionQuery: String = ""
+    var enableIntrospectionDefaultValues: Boolean = true
+    var openEditorWithIntrospectionResult: Boolean = true
+
+    var enableRelayModernFrameworkSupport: Boolean = false
+    var enableFederationSupport: Boolean = false
+    var enableApolloKotlinSupport: Boolean = false
   }
 
   companion object {
     @JvmStatic
-    fun getSettings(project: Project): GraphQLSettings {
-      return project.getService(GraphQLSettings::class.java)
-    }
+    fun getSettings(project: Project): GraphQLSettings = project.service<GraphQLSettings>()
   }
 }

@@ -8,26 +8,28 @@
 package com.intellij.lang.jsgraphql.ide.introspection;
 
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
+import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Represents an executable introspection query against a GraphQL endpoint
  */
-public class GraphQLIntrospectionTask {
+public final class GraphQLIntrospectionTask implements Runnable {
 
-  private final GraphQLConfigEndpoint endpoint;
-  private final Runnable runnable;
+  @NotNull private final Project myProject;
+  @NotNull private final GraphQLConfigEndpoint myEndpoint;
 
-  public GraphQLIntrospectionTask(GraphQLConfigEndpoint endpoint, Runnable runnable) {
-
-    this.endpoint = endpoint;
-    this.runnable = runnable;
+  public GraphQLIntrospectionTask(@NotNull Project project, @NotNull GraphQLConfigEndpoint endpoint) {
+    myProject = project;
+    myEndpoint = endpoint;
   }
 
-  public GraphQLConfigEndpoint getEndpoint() {
-    return endpoint;
+  public @NotNull GraphQLConfigEndpoint getEndpoint() {
+    return myEndpoint;
   }
 
-  public Runnable getRunnable() {
-    return runnable;
+  @Override
+  public void run() {
+    GraphQLIntrospectionService.getInstance(myProject).performIntrospectionQuery(myEndpoint);
   }
 }
