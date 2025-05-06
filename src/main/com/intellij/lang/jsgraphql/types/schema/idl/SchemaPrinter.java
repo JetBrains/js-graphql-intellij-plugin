@@ -26,7 +26,6 @@ import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -442,7 +441,7 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
-      if (!shouldIncludeEmptyTypes() && type.getValues().isEmpty()) {
+      if (!options.isIncludeEmptyTypes() && type.getValues().isEmpty()) {
         return;
       }
 
@@ -513,7 +512,7 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
-      if (!shouldIncludeEmptyTypes() && type.getFields().isEmpty()) {
+      if (!options.isIncludeEmptyTypes() && type.getFields().isEmpty()) {
         return;
       }
 
@@ -560,7 +559,7 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
-      if (!shouldIncludeEmptyTypes() && type.getTypes().isEmpty()) {
+      if (!options.isIncludeEmptyTypes() && type.getTypes().isEmpty()) {
         return;
       }
 
@@ -597,7 +596,7 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
-      if (!shouldIncludeEmptyTypes() && type.getFields().isEmpty()) {
+      if (!options.isIncludeEmptyTypes() && type.getFields().isEmpty()) {
         return;
       }
 
@@ -644,7 +643,7 @@ public class SchemaPrinter {
       if (isIntrospectionType(type)) {
         return;
       }
-      if (!shouldIncludeEmptyTypes() && type.getFields().isEmpty()) {
+      if (!options.isIncludeEmptyTypes() && type.getFields().isEmpty()) {
         return;
       }
 
@@ -685,10 +684,6 @@ public class SchemaPrinter {
         out.format("\n\n");
       }
     };
-  }
-
-  private boolean shouldIncludeEmptyTypes() {
-    return options.isIncludeEmptyTypes() || Registry.is("graphql.introspection.include.empty.types");
   }
 
   /**

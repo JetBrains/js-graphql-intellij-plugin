@@ -42,12 +42,12 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.options.advanced.AdvancedSettings;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.util.registry.Registry;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -184,23 +184,23 @@ public final class GraphQLIntrospectionService implements Disposable {
   }
 
   public static @NotNull String printIntrospectionAsGraphQL(@NotNull Project project, @NotNull String introspectionJson) {
-    return printIntrospectionAsGraphQL(project, GraphQLQueryRunner.parseResponseJsonAsMap(introspectionJson));
+    return printIntrospectionAsGraphQL(project, GraphQLQueryClient.parseResponseJsonAsMap(introspectionJson));
   }
 
   /**
-   * @deprecated Use {@link GraphQLQueryRunner#createHttpClient(String, GraphQLConfigSecurity)} instead.
+   * @deprecated Use {@link GraphQLQueryClient#createHttpClient(String, GraphQLConfigSecurity)} instead.
    */
   @Deprecated(forRemoval = true)
   public @NotNull CloseableHttpClient createHttpClient(@NotNull String url, @Nullable GraphQLConfigSecurity sslConfig)
     throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException,
            CertificateException {
-    return GraphQLQueryRunner.getInstance(myProject).createHttpClient(url, sslConfig);
+    return GraphQLQueryClient.getInstance(myProject).createHttpClient(url, sslConfig);
   }
 
   public static @NotNull String printIntrospectionAsGraphQL(@NotNull Project project, @NotNull Map<String, Object> introspection) {
     introspection = getIntrospectionSchemaDataFromParsedResponse(introspection);
 
-    if (Registry.is("graphql.introspection.skip.default.values")) {
+    if (AdvancedSettings.getBoolean("graphql.introspection.skip.default.values")) {
       // strip out the defaultValues that are potentially non-spec compliant
       Ref<Consumer<Object>> defaultValueVisitJson = Ref.create();
       defaultValueVisitJson.set((value) -> {
@@ -220,7 +220,7 @@ public final class GraphQLIntrospectionService implements Disposable {
       .defaultOptions()
       .includeScalarTypes(true)
       .includeSchemaDefinition(true)
-      .includeEmptyTypes(false)
+      .includeEmptyTypes(AdvancedSettings.getBoolean("graphql.introspection.include.empty.types"))
       .includeDirectives(directive -> !GraphQLKnownTypes.DEFAULT_DIRECTIVES.contains(directive.getName()));
 
     GraphQLRegistryInfo registryInfo = new GraphQLRegistryInfo(new SchemaParser().buildRegistry(schemaDefinition), false);
@@ -267,7 +267,7 @@ public final class GraphQLIntrospectionService implements Disposable {
   }
 
   /**
-   * @deprecated use {@link GraphQLQueryRunner#createRequest(GraphQLConfigEndpoint, String)} instead.
+   * @deprecated use {@link GraphQLQueryClient#createRequest(GraphQLConfigEndpoint, String)} instead.
    */
   @Deprecated(forRemoval = true)
   public static @NotNull HttpPost createRequest(@NotNull GraphQLConfigEndpoint endpoint,
@@ -291,7 +291,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                                                                           @NotNull GraphQLConfigEndpoint endpoint,
                                                                           @NotNull String introspectionResponse) {
     try {
-      Map<String, Object> introspection = GraphQLQueryRunner.parseResponseJsonAsMap(introspectionResponse);
+      Map<String, Object> introspection = GraphQLQueryClient.parseResponseJsonAsMap(introspectionResponse);
       if (GraphQLIntrospectionUtil.getErrorCountFromResponse(introspection) > 0) {
         GraphQLUIProjectService.getInstance(project).showQueryResult(introspectionResponse);
       }

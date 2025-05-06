@@ -5,8 +5,8 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryRunner.Companion.parseResponseJson
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryRunner.Companion.prepareQueryPayload
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryClient.Companion.parseResponseJson
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryClient.Companion.prepareQueryPayload
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.*
 import com.intellij.lang.jsgraphql.ide.notifications.handleIntrospectionError
 import com.intellij.openapi.application.EDT
@@ -15,6 +15,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.getOrLogException
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -58,7 +59,7 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
         }
         val introspectionQuery = composeIntrospectionQuery(capabilities)
         val rawIntrospectionResponse = withContext(Dispatchers.IO) {
-          val queryRunner = GraphQLQueryRunner.getInstance(project)
+          val queryRunner = GraphQLQueryClient.getInstance(project)
           queryRunner.sendRequest(endpoint, prepareQueryPayload(introspectionQuery), retry)
         } ?: return@withBackgroundProgress
         val parsedIntrospection = blockingContext {
@@ -83,7 +84,7 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
     retry: Runnable? = null,
   ): EnumSet<GraphQLSchemaCapability>? {
     val response = withContext(Dispatchers.IO) {
-      GraphQLQueryRunner.getInstance(project)
+      GraphQLQueryClient.getInstance(project)
         .sendRequest(endpoint, prepareQueryPayload(INTROSPECTION_SCHEMA_CAPABILITIES_QUERY), retry)
     } ?: return null
 
@@ -96,17 +97,7 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
   }
 
   private val capabilitiesDetectionStrategy: GraphQLSchemaCapabilitiesDetectionStrategy
-    get() {
-      val option = Registry.get("graphql.introspection.detect.schema.capabilities").selectedOption
-                   ?: return GraphQLSchemaCapabilitiesDetectionStrategy.ADAPTIVE
-
-      return try {
-        GraphQLSchemaCapabilitiesDetectionStrategy.valueOf(option.uppercase(Locale.getDefault()))
-      }
-      catch (_: IllegalArgumentException) {
-        GraphQLSchemaCapabilitiesDetectionStrategy.ADAPTIVE
-      }
-    }
+    get() = AdvancedSettings.getEnum("graphql.introspection.detect.schema.capabilities", GraphQLSchemaCapabilitiesDetectionStrategy::class.java)
 
   private suspend fun createIntrospectionOutput(
     schemaPath: String,
@@ -144,8 +135,8 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
 
     // this is still needed since we can have an issue with parsing values returned from server,
     // especially for custom JSON types, more https://github.com/JetBrains/js-graphql-intellij-plugin/issues/217
-    if (Registry.`is`("graphql.introspection.skip.default.values")) {
-      capabilities.remove(GraphQLSchemaCapability.INPUT_VALUE_DEFAULT_VALUE)
+    if (AdvancedSettings.getBoolean("graphql.introspection.skip.default.values")) {
+      capabilities.remove(INPUT_VALUE_DEFAULT_VALUE)
     }
 
     return buildIntrospectionQueryFromTemplate(capabilities)
@@ -223,10 +214,4 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
 
   private fun JsonElement.hasArgument(fieldName: String, argName: String): Boolean =
     getArgument(fieldName, argName) != null
-}
-
-private enum class GraphQLSchemaCapabilitiesDetectionStrategy {
-  ADAPTIVE,
-  LATEST,
-  LEGACY,
 }
