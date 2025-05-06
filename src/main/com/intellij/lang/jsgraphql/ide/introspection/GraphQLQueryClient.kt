@@ -42,13 +42,13 @@ import java.util.concurrent.CancellationException
 import javax.net.ssl.HostnameVerifier
 
 @Service(Service.Level.PROJECT)
-class GraphQLQueryRunner(private val project: Project) {
+class GraphQLQueryClient(private val project: Project) {
 
   companion object {
-    private val LOG = logger<GraphQLQueryRunner>()
+    private val LOG = logger<GraphQLQueryClient>()
 
     @JvmStatic
-    fun getInstance(project: Project): GraphQLQueryRunner = project.service()
+    fun getInstance(project: Project): GraphQLQueryClient = project.service()
 
     @JvmStatic
     fun parseResponseJsonAsMap(responseJson: String): Map<String, Any?> {
@@ -76,10 +76,12 @@ class GraphQLQueryRunner(private val project: Project) {
       return responseJson.replace("[\ud83c\udf00-\ud83d\ude4f]|[\ud83d\ude80-\ud83d\udeff]".toRegex(), "")
     }
 
+    @JvmStatic
     fun prepareQueryPayload(query: String): String =
       """{"query": "${EscapeUtil.escapeJsonString(query)}"}"""
   }
 
+  @JvmOverloads
   fun sendRequest(
     endpoint: GraphQLConfigEndpoint,
     payload: String,
@@ -108,6 +110,7 @@ class GraphQLQueryRunner(private val project: Project) {
     }
   }
 
+  @JvmOverloads
   fun sendRequest(
     endpoint: GraphQLConfigEndpoint,
     request: HttpUriRequest,

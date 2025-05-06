@@ -31,7 +31,7 @@ import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContext;
 import com.intellij.lang.jsgraphql.ide.highlighting.query.GraphQLQueryContextHighlightVisitor;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionUtil;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLOpenIntrospectionSchemaAction;
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryRunner;
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryClient;
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLRunIntrospectionQueryAction;
 import com.intellij.lang.jsgraphql.ide.introspection.remote.GraphQLRemoteSchemasRegistry;
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager;
@@ -398,7 +398,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
       return;
     }
     String payload = createQueryJsonSerializer().toJson(requestData);
-    HttpUriRequest request = GraphQLQueryRunner.getInstance(myProject).createRequest(selectedEndpoint, payload);
+    HttpUriRequest request = GraphQLQueryClient.getInstance(myProject).createRequest(selectedEndpoint, payload);
     if (request == null) {
       return;
     }
@@ -422,7 +422,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
                         @NotNull GraphQLConfigEndpoint endpoint) {
     try {
       GraphQLConfigSecurity sslConfig = GraphQLConfigSecurity.getSecurityConfig(endpoint.getConfig());
-      try (final CloseableHttpClient httpClient = GraphQLQueryRunner.getInstance(myProject).createHttpClient(url, sslConfig)) {
+      try (final CloseableHttpClient httpClient = GraphQLQueryClient.getInstance(myProject).createHttpClient(url, sslConfig)) {
         editor.putUserData(GRAPH_QL_EDITOR_QUERYING, true);
 
         String responseJson;
