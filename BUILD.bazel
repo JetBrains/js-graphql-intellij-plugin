@@ -17,7 +17,7 @@ jvm_library(
   name = "graphql",
   module_name = "intellij.graphql",
   visibility = ["//visibility:public"],
-  srcs = glob(["gen/**/*.kt", "gen/**/*.java", "src/main/**/*.kt", "src/main/**/*.java", "src/gen/**/*.kt", "src/gen/**/*.java"], allow_empty = True),
+  srcs = glob(["gen/**/*.kt", "gen/**/*.java", "src/main/**/*.kt", "src/main/**/*.java"], allow_empty = True),
   deps = [
     "@lib//:kotlin-stdlib",
     "@community//platform/platform-api:ide",
