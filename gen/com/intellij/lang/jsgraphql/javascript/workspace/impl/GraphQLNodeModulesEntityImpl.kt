@@ -22,8 +22,8 @@ import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 @GeneratedCodeApiVersion(3)
 @GeneratedCodeImplVersion(6)
 @OptIn(WorkspaceEntityInternalApi::class)
-internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModulesEntityData) : GraphQLNodeModulesEntity, WorkspaceEntityBase(
-  dataSource) {
+internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModulesEntityData) : GraphQLNodeModulesEntity,
+                                                                                                    WorkspaceEntityBase(dataSource) {
 
   private companion object {
 
@@ -50,8 +50,8 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
   }
 
 
-  internal class Builder(result: GraphQLNodeModulesEntityData?) : ModifiableWorkspaceEntityBase<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityData>(
-    result), GraphQLNodeModulesEntity.Builder {
+  internal class Builder(result: GraphQLNodeModulesEntityData?) :
+    ModifiableWorkspaceEntityBase<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityData>(result), GraphQLNodeModulesEntity.Builder {
     internal constructor() : this(GraphQLNodeModulesEntityData())
 
     override fun applyToBuilder(builder: MutableEntityStorage) {
@@ -170,7 +170,8 @@ internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeMod
 
   override fun getMetadata(): EntityMetadata {
     return MetadataStorageImpl.getMetadataByTypeFqn(
-      "com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntity") as EntityMetadata
+      "com.intellij.lang.jsgraphql.javascript.workspace.GraphQLNodeModulesEntity"
+    ) as EntityMetadata
   }
 
   override fun clone(): GraphQLNodeModulesEntityData {
