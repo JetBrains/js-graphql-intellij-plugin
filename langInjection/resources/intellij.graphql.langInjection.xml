@@ -1,0 +1,11 @@
+<idea-plugin package="com.intellij.graphql.langInjection">
+  <dependencies>
+    <plugin id="com.intellij.modules.lang"/>
+    <plugin id="org.intellij.intelliLang"/>
+  </dependencies>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationService serviceInterface="com.intellij.lang.jsgraphql.ide.injection.GraphQLCommentBasedInjectionHelper"
+                        serviceImplementation="com.intellij.graphql.langInjection.GraphQLCommentBasedInjectionHelperImpl"/>
+  </extensions>
+</idea-plugin>

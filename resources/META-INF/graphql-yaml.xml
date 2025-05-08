@@ -1,6 +1,0 @@
-<idea-plugin>
-  <extensions defaultExtensionNs="com.intellij">
-    <codeInsight.lineMarkerProvider language="yaml"
-                                    implementationClass="com.intellij.lang.jsgraphql.ide.introspection.editor.yaml.GraphQLIntrospectionYamlLineMarkerProvider"/>
-  </extensions>
-</idea-plugin>

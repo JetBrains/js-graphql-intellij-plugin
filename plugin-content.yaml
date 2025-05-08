@@ -6,6 +6,10 @@
 - name: lib/graphql.jar
   modules:
   - name: intellij.graphql
+  contentModules:
+  - name: intellij.graphql.javascript
+  - name: intellij.graphql.langInjection
+  - name: intellij.graphql.yaml
 - name: lib/graphql.java.dataloader.jar
   library: graphql.java.dataloader
   module: intellij.graphql

@@ -1,0 +1,5 @@
+package com.intellij.graphql.javascript.workspace
+
+import com.intellij.workspaceModel.core.fileIndex.impl.ModuleOrLibrarySourceRootData
+
+internal class GraphQLSourceRootFileSetData : ModuleOrLibrarySourceRootData

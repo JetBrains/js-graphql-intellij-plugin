@@ -36,9 +36,11 @@
     <module name="intellij.json.backend"/>
   </dependencies>
 
-  <depends optional="true" config-file="graphql-javascript.xml">JavaScript</depends>
-  <depends optional="true" config-file="graphql-intellilang.xml">org.intellij.intelliLang</depends>
-  <depends optional="true" config-file="graphql-yaml.xml">org.jetbrains.plugins.yaml</depends>
+  <content>
+    <module name="intellij.graphql.javascript"/>
+    <module name="intellij.graphql.langInjection"/>
+    <module name="intellij.graphql.yaml"/>
+  </content>
 
   <resource-bundle>messages.GraphQLBundle</resource-bundle>
 

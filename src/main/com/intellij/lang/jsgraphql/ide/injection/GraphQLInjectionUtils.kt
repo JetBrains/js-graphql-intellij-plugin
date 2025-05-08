@@ -1,6 +1,5 @@
 package com.intellij.lang.jsgraphql.ide.injection
 
-import com.intellij.lang.Language
 import com.intellij.lang.injection.MultiHostRegistrar
 import com.intellij.lang.jsgraphql.GraphQLLanguage
 import com.intellij.openapi.util.Key
@@ -8,7 +7,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiLanguageInjectionHost
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageUtil
 
 object GraphQLInjectionUtils {
   internal val GRAPHQL_INJECTION_KEY: Key<Boolean> = Key.create("graphql.injection")

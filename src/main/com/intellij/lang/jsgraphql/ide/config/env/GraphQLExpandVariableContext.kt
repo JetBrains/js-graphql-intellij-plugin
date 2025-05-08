@@ -6,7 +6,7 @@ import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawSchemaPointer
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 
-internal class GraphQLExpandVariableContext(
+class GraphQLExpandVariableContext(
   val project: Project,
   val dir: VirtualFile,
   val isLegacy: Boolean,
@@ -16,7 +16,7 @@ internal class GraphQLExpandVariableContext(
   val parser = GraphQLConfigEnvironmentParser.getInstance(project)
 }
 
-internal inline fun <reified T> expandVariables(value: T?, context: GraphQLExpandVariableContext): T? {
+inline fun <reified T> expandVariables(value: T?, context: GraphQLExpandVariableContext): T? {
   if (value == null) return null
 
   if (context.visited.containsKey(value)) {
@@ -28,7 +28,7 @@ internal inline fun <reified T> expandVariables(value: T?, context: GraphQLExpan
   return result as? T
 }
 
-private fun expandVariable(value: Any, context: GraphQLExpandVariableContext) = when (value) {
+fun expandVariable(value: Any, context: GraphQLExpandVariableContext): Any = when (value) {
   is String -> context.parser.interpolate(value, context.isLegacy) { varName ->
     context.environment.variables[varName]
   }.trim()
@@ -40,7 +40,7 @@ private fun expandVariable(value: Any, context: GraphQLExpandVariableContext) = 
   else -> value
 }
 
-internal fun extractEnvironmentVariables(
+fun extractEnvironmentVariables(
   project: Project,
   isLegacy: Boolean,
   vararg items: Any?,
