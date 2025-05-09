@@ -1,0 +1,41 @@
+### auto-generated section `build intellij.graphql.javascript` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "javascript_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "javascript",
+  module_name = "intellij.graphql.javascript",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "@community//platform/platform-api:ide",
+    "@community//platform/ide-core-impl",
+    "@community//platform/platform-impl:ide-impl",
+    "@community//platform/lang-api:lang",
+    "@community//platform/lang-impl",
+    "@community//platform/core-impl",
+    "@community//platform/core-api:core",
+    "@community//platform/platform-util-io:ide-util-io",
+    "@community//platform/analysis-impl",
+    "@community//platform/projectModel-api:projectModel",
+    "@community//platform/projectModel-impl",
+    "//webcore/impl",
+    "@community//platform/backend/workspace",
+    "//plugins/JavaScriptLanguage:javascript",
+    "//plugins/JavaScriptLanguage:javascript-impl",
+    "//plugins/JavaScriptLanguage/javascript-parser",
+    "//plugins/JavaScriptLanguage/javascript-frontback-impl",
+    "@community//plugins/IntelliLang:langInjection",
+    "@community//platform/editor-ui-api:editor-ui",
+    "//plugins/js-graphql:graphql",
+    "@lib//:gson",
+  ],
+  runtime_deps = [":javascript_resources"]
+)
+### auto-generated section `build intellij.graphql.javascript` end

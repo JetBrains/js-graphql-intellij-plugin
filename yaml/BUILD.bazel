@@ -1,0 +1,35 @@
+### auto-generated section `build intellij.graphql.yaml` start
+load("@rules_jvm//:jvm.bzl", "jvm_library", "jvm_resources")
+
+jvm_resources(
+  name = "yaml_resources",
+  files = glob(["resources/**/*"]),
+  strip_prefix = "resources"
+)
+
+jvm_library(
+  name = "yaml",
+  module_name = "intellij.graphql.yaml",
+  visibility = ["//visibility:public"],
+  srcs = glob(["src/**/*.kt", "src/**/*.java"], allow_empty = True),
+  deps = [
+    "@lib//:kotlin-stdlib",
+    "@community//platform/platform-api:ide",
+    "@community//platform/ide-core-impl",
+    "@community//platform/platform-impl:ide-impl",
+    "@community//platform/lang-api:lang",
+    "@community//platform/lang-impl",
+    "@community//platform/core-impl",
+    "@community//platform/core-api:core",
+    "@community//platform/platform-util-io:ide-util-io",
+    "@community//platform/analysis-impl",
+    "@community//platform/projectModel-api:projectModel",
+    "@community//platform/projectModel-impl",
+    "@community//platform/backend/workspace",
+    "@community//plugins/yaml",
+    "@community//plugins/yaml/backend",
+    "//plugins/js-graphql:graphql",
+  ],
+  runtime_deps = [":yaml_resources"]
+)
+### auto-generated section `build intellij.graphql.yaml` end
