@@ -27,7 +27,6 @@ jvm_library(
     "@community//platform/projectModel-impl",
     "@community//platform/backend/workspace",
     "@community//plugins/yaml",
-    "@community//plugins/yaml/backend",
     "//plugins/js-graphql:graphql",
   ],
   runtime_deps = [":yaml_resources"]
