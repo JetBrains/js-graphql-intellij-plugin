@@ -21,7 +21,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLObjectValueImpl;
 import com.intellij.lang.jsgraphql.schema.*;
-import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes;
 import com.intellij.lang.jsgraphql.types.introspection.Introspection;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
@@ -558,7 +558,7 @@ public final class GraphQLCompletionContributor extends CompletionContributor {
         final Set<String> currentLocations = Sets.newHashSet();
         directiveLocations.getDirectiveLocationList().forEach(location -> currentLocations.add(location.getText()));
         GraphQLFile builtInSchema = ContainerUtil.getFirstItem(
-          GraphQLResolveUtil.getLibraryFiles(GraphQLLibraryTypes.SPECIFICATION, completionElement));
+          GraphQLResolveUtil.getLibraryFiles(GraphQLBundledLibraryTypes.SPECIFICATION, completionElement));
         if (builtInSchema == null) {
           return;
         }

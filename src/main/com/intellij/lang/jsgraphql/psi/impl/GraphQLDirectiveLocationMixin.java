@@ -13,7 +13,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveLocation;
 import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
 import com.intellij.lang.jsgraphql.psi.GraphQLRecursiveVisitor;
-import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
@@ -40,7 +40,7 @@ public abstract class GraphQLDirectiveLocationMixin extends GraphQLElementImpl i
       final String locationName = location.getText();
 
       // TODO: [vepanimas] move to a reference resolver: getReference should only create a reference, not resolve it.
-      GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, this, file -> {
+      GraphQLResolveUtil.processFilesInLibrary(GraphQLBundledLibraryTypes.SPECIFICATION, this, file -> {
         file.accept(new GraphQLRecursiveVisitor() {
           @Override
           public void visitEnumValue(@NotNull GraphQLEnumValue element) {

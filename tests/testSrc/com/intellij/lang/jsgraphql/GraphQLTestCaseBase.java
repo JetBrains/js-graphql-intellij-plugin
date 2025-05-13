@@ -14,8 +14,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
-import com.intellij.testFramework.IndexingTestUtil;
-import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -52,12 +50,10 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
     super.setUp();
 
     GraphQLLibraryManager libraryManager = GraphQLLibraryManager.getInstance(getProject());
-    libraryManager.setLibrariesEnabled(true);
-    libraryManager.notifyLibrariesChanged();
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
-    IndexingTestUtil.waitUntilIndexesAreReady(getProject());
+    libraryManager.enableLibraries(true);
+    reloadConfiguration();
     Disposer.register(getTestRootDisposable(), () -> {
-      libraryManager.setLibrariesEnabled(false);
+      libraryManager.enableLibraries(false);
     });
   }
 

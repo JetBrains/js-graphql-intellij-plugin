@@ -43,10 +43,10 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
   companion object {
     @JvmField
     @VisibleForTesting
-    var getEnvVariable = Function<String?, String?> { key: String? -> key?.let { System.getProperty(it) } }
+    var getEnvVariable: Function<String?, String?> = Function { key: String? -> key?.let { System.getProperty(it) } }
 
     @JvmStatic
-    fun getInstance(project: Project) = project.service<GraphQLConfigEnvironment>()
+    fun getInstance(project: Project): GraphQLConfigEnvironment = project.service()
 
     private val FILENAMES = linkedSetOf(
       ".env.local",
@@ -297,14 +297,14 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
 
 data class GraphQLEnvironmentSnapshot(val variables: Map<String, String?>) {
   companion object {
-    val EMPTY = GraphQLEnvironmentSnapshot(emptyMap())
+    val EMPTY: GraphQLEnvironmentSnapshot = GraphQLEnvironmentSnapshot(emptyMap())
   }
 
   fun hasMissingValues(nameFilter: Collection<String>? = null): Boolean {
     return variables.any { (nameFilter == null || it.key in nameFilter) && it.value.isNullOrBlank() }
   }
 
-  val hasVariables = variables.isNotEmpty()
+  val hasVariables: Boolean = variables.isNotEmpty()
 
   fun update(project: Project, dir: VirtualFile): GraphQLEnvironmentSnapshot =
     GraphQLConfigEnvironment.getInstance(project).createSnapshot(variables.keys, dir)

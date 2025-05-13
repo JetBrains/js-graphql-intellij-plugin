@@ -11,7 +11,7 @@ class GraphQLNodeModulesIndexContributor : WorkspaceFileIndexContributor<GraphQL
 
   override fun registerFileSets(entity: GraphQLNodeModulesEntity, registrar: WorkspaceFileSetRegistrar, storage: EntityStorage) {
     entity.roots.forEach {
-      registrar.registerFileSet(it, WorkspaceFileKind.EXTERNAL_SOURCE, entity, GraphQLSourceRootFileSetData())
+      registrar.registerFileSet(it, WorkspaceFileKind.EXTERNAL_SOURCE, entity, GraphQLNodeModulesSourceRootData())
     }
   }
 }

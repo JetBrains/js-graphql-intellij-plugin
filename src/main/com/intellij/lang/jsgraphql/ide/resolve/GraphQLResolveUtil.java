@@ -3,7 +3,7 @@ package com.intellij.lang.jsgraphql.ide.resolve;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor;
-import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.BaseProjectDirectories;
 import com.intellij.openapi.project.Project;
@@ -30,7 +30,7 @@ public final class GraphQLResolveUtil {
   public static void processFilesInLibrary(@NotNull GraphQLLibraryDescriptor libraryDescriptor,
                                            @NotNull PsiElement context,
                                            @NotNull Processor<? super GraphQLFile> processor) {
-    GraphQLLibrary library = GraphQLLibraryRootsProvider.findLibrary(context.getProject(), libraryDescriptor);
+    GraphQLLibrary library = GraphQLLibraryManager.getInstance(context.getProject()).findLibrary(libraryDescriptor);
     if (library == null) {
       LOG.warn("Library is not found: " + libraryDescriptor);
       return;
