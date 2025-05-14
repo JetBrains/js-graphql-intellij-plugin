@@ -23,6 +23,7 @@ jvm_library(
     "@community//platform/ide-core-impl",
     "@community//platform/platform-impl:ide-impl",
     "@community//platform/platform-impl:ide-impl_test_lib",
+    "@community//jps/model-api:model",
     "@community//platform/usageView",
     "@community//xml/xml-parser:parser",
     "@community//platform/lang-api:lang",
