@@ -20,8 +20,11 @@ val LEGACY_CONFIG_NAMES: Set<String> = linkedSetOf(
 )
 
 const val GRAPHQL_CONFIG_TS = "graphql.config.ts"
+const val GRAPHQL_CONFIG_CTS = "graphql.config.cts"
+const val GRAPHQL_CONFIG_MTS = "graphql.config.mts"
 const val GRAPHQL_CONFIG_JS = "graphql.config.js"
 const val GRAPHQL_CONFIG_CJS = "graphql.config.cjs"
+const val GRAPHQL_CONFIG_MJS = "graphql.config.mjs"
 
 const val GRAPHQL_CONFIG_JSON = "graphql.config.json"
 const val GRAPHQL_CONFIG_YAML = "graphql.config.yaml"
@@ -29,8 +32,11 @@ const val GRAPHQL_CONFIG_YML = "graphql.config.yml"
 
 const val GRAPHQL_RC = ".graphqlrc"
 const val GRAPHQL_RC_TS = ".graphqlrc.ts"
+const val GRAPHQL_RC_CTS = ".graphqlrc.cts"
+const val GRAPHQL_RC_MTS = ".graphqlrc.mts"
 const val GRAPHQL_RC_JS = ".graphqlrc.js"
 const val GRAPHQL_RC_CJS = ".graphqlrc.cjs"
+const val GRAPHQL_RC_MJS = ".graphqlrc.mjs"
 
 const val GRAPHQL_RC_JSON = ".graphqlrc.json"
 const val GRAPHQL_RC_YAML = ".graphqlrc.yaml"
@@ -39,16 +45,22 @@ const val GRAPHQL_RC_YML = ".graphqlrc.yml"
 @JvmField
 val MODERN_CONFIG_NAMES: Set<String> = linkedSetOf(
   GRAPHQL_CONFIG_TS,
+  GRAPHQL_CONFIG_CTS,
+  GRAPHQL_CONFIG_MTS,
   GRAPHQL_CONFIG_JS,
   GRAPHQL_CONFIG_CJS,
+  GRAPHQL_CONFIG_MJS,
   GRAPHQL_CONFIG_JSON,
   GRAPHQL_CONFIG_YAML,
   GRAPHQL_CONFIG_YML,
   //    "graphql.config.toml",
   GRAPHQL_RC,
   GRAPHQL_RC_TS,
+  GRAPHQL_RC_CTS,
+  GRAPHQL_RC_MTS,
   GRAPHQL_RC_JS,
   GRAPHQL_RC_CJS,
+  GRAPHQL_RC_MJS,
   GRAPHQL_RC_JSON,
   GRAPHQL_RC_YAML,
   GRAPHQL_RC_YML,
