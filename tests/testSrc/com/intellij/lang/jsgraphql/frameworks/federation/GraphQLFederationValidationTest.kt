@@ -3,7 +3,7 @@ package com.intellij.lang.jsgraphql.frameworks.federation
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
-import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes
+import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes
 import com.intellij.lang.jsgraphql.withLibrary
 
 class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
@@ -17,7 +17,7 @@ class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
   override fun getBasePath() = "/frameworks/federation/validation"
 
   fun testQueryValidation() {
-    withLibrary(project, GraphQLLibraryTypes.FEDERATION, {
+    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION, {
       doHighlightingTest()
 
       val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(myFixture.file)
@@ -27,7 +27,7 @@ class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
   }
 
   fun testEmptySchemaValidation() {
-    withLibrary(project, GraphQLLibraryTypes.FEDERATION, {
+    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION, {
       val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
       val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(globalScope)
       assertNotNull(schemaInfo)

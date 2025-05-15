@@ -34,7 +34,7 @@ import com.intellij.util.Alarm
 /**
  * Tracks PSI changes that can affect declared GraphQL schemas.
  * For configuration only changes use [com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider],
- * for scope changes use broader [com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency].
+ * for scope changes use broader [GraphQLScopeDependency].
  */
 @Service(Service.Level.PROJECT)
 class GraphQLSchemaContentTracker(private val project: Project) : Disposable, ModificationTracker {
@@ -42,11 +42,10 @@ class GraphQLSchemaContentTracker(private val project: Project) : Disposable, Mo
   companion object {
     private val LOG = logger<GraphQLSchemaContentTracker>()
 
-
     private const val EVENT_PUBLISH_TIMEOUT = 500
 
     @JvmStatic
-    fun getInstance(project: Project) = project.service<GraphQLSchemaContentTracker>()
+    fun getInstance(project: Project): GraphQLSchemaContentTracker = project.service()
   }
 
   private val notifyChangedAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)

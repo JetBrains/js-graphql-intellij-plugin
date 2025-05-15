@@ -1,47 +1,37 @@
-package com.intellij.lang.jsgraphql.schema.library;
+package com.intellij.lang.jsgraphql.schema.library
 
-import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.project.Project
 
-import java.util.Objects;
+internal val GRAPHQL_EMPTY_LIBRARY_DESCRIPTOR = object : GraphQLLibraryDescriptor("EMPTY") {
+  override fun isEnabled(project: Project): Boolean {
+    return false
+  }
+}
 
-public class GraphQLLibraryDescriptor {
+abstract class GraphQLLibraryDescriptor(
+  val identifier: String,
+  val displayName: String = identifier,
+  val description: String? = null,
+) {
+  abstract fun isEnabled(project: Project): Boolean
 
-  private final String myIdentifier;
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
 
-  public GraphQLLibraryDescriptor(@NotNull String identifier) {
-    myIdentifier = identifier;
+    other as GraphQLLibraryDescriptor
+
+    if (identifier != other.identifier) return false
+    if (displayName != other.displayName) return false
+    if (description != other.description) return false
+
+    return true
   }
 
-  public @NotNull String getIdentifier() {
-    return myIdentifier;
-  }
-
-  public @NotNull String getPresentableText() {
-    return getIdentifier();
-  }
-
-  public boolean isEnabled(@NotNull Project project) {
-    return true;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    GraphQLLibraryDescriptor that = (GraphQLLibraryDescriptor)o;
-    return Objects.equals(myIdentifier, that.myIdentifier);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(myIdentifier);
-  }
-
-  @Override
-  public String toString() {
-    return "GraphQLLibraryDescriptor{" +
-           "myIdentifier='" + myIdentifier + '\'' +
-           '}';
+  override fun hashCode(): Int {
+    var result = identifier.hashCode()
+    result = 31 * result + displayName.hashCode()
+    result = 31 * result + (description?.hashCode() ?: 0)
+    return result
   }
 }

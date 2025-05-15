@@ -14,7 +14,7 @@ import com.intellij.lang.jsgraphql.psi.impl.GraphQLDirectiveImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLFieldImpl;
 import com.intellij.lang.jsgraphql.psi.impl.GraphQLReferenceMixin;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
-import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.progress.ProgressManager;
@@ -206,7 +206,7 @@ public class GraphQLReferenceService implements Disposable {
     if (name != null) {
       if (name.startsWith("__")) {
         // __typename or introspection fields __schema and __type which implicitly extends the query root type
-        GraphQLResolveUtil.processFilesInLibrary(GraphQLLibraryTypes.SPECIFICATION, element, file -> {
+        GraphQLResolveUtil.processFilesInLibrary(GraphQLBundledLibraryTypes.SPECIFICATION, element, file -> {
           file.accept(new GraphQLRecursiveVisitor() {
             @Override
             public void visitElement(@NotNull GraphQLElement schemaElement) {
