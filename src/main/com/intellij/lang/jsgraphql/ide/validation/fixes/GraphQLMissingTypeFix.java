@@ -62,7 +62,7 @@ public class GraphQLMissingTypeFix extends LocalQuickFixAndIntentionActionOnPsiE
 
   @Override
   public void invoke(@NotNull Project project,
-                     @NotNull PsiFile file,
+                     @NotNull PsiFile psiFile,
                      @Nullable("is null when called from inspection") Editor editor,
                      @NotNull PsiElement startElement,
                      @NotNull PsiElement endElement) {
