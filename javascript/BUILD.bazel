@@ -34,6 +34,7 @@ jvm_library(
     "@community//plugins/IntelliLang:langInjection",
     "@community//platform/editor-ui-api:editor-ui",
     "//plugins/js-graphql:graphql",
+    "@community//platform/workspace/storage",
     "@lib//:gson",
   ],
   runtime_deps = [":javascript_resources"]
