@@ -2,7 +2,7 @@ package com.intellij.lang.jsgraphql.frameworks.relay;
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase;
 import com.intellij.lang.jsgraphql.GraphQLTestUtils;
-import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
 import org.jetbrains.annotations.NotNull;
 
 public class GraphQLRelayValidationTest extends GraphQLTestCaseBase {
@@ -12,6 +12,6 @@ public class GraphQLRelayValidationTest extends GraphQLTestCaseBase {
   }
 
   public void testSuppressedInspections() {
-    GraphQLTestUtils.withLibrary(getProject(), GraphQLBundledLibraryTypes.RELAY, this::doHighlightingTest, getTestRootDisposable());
+    GraphQLTestUtils.withLibrary(getProject(), GraphQLLibraryTypes.RELAY, this::doHighlightingTest, getTestRootDisposable());
   }
 }

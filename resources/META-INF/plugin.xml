@@ -105,12 +105,9 @@
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLFragmentNameIndex"/>
     <fileBasedIndex implementation="com.intellij.lang.jsgraphql.ide.indexing.GraphQLInjectionIndex"/>
 
-    <workspaceModel.fileIndexContributor implementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryIndexContributor"/>
-    <projectView.externalLibraries.workspaceModelNodesProvider
-      implementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryWorkspaceModelNodesProvider"/>
-
     <indexedRootsProvider
       implementation="com.intellij.lang.jsgraphql.ide.introspection.indexing.GraphQLIntrospectionIndexableSetContributor"/>
+    <additionalLibraryRootsProvider implementation="com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider"/>
 
     <!-- Startup -->
     <postStartupActivity implementation="com.intellij.lang.jsgraphql.ide.startup.GraphQLStartupActivity"/>

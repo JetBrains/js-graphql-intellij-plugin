@@ -7,19 +7,16 @@ import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.lang.jsgraphql.GraphQLSettings.GraphQLSettingsState
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
-import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes
-import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PluginPathManager
-import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -63,24 +60,6 @@ fun withSettings(
   consumer.accept(settings)
 }
 
-fun withExternalLibrary(
-  project: Project,
-  library: GraphQLLibrary,
-  consumer: Runnable,
-  disposable: Disposable,
-) {
-  val libraryManager = GraphQLLibraryManager.getInstance(project)
-  runWithModalProgressBlocking(project, "libraryManager.registerExternalLibrary(library)") {
-    libraryManager.registerExternalLibrary(library)
-  }
-  Disposer.register(disposable) {
-    runWithModalProgressBlocking(project, "libraryManager.unregisterExternalLibrary(library)") {
-      libraryManager.unregisterExternalLibrary(library)
-    }
-  }
-  consumer.run()
-}
-
 fun withLibrary(
   project: Project,
   libraryDescriptor: GraphQLLibraryDescriptor,
@@ -88,13 +67,13 @@ fun withLibrary(
   disposable: Disposable,
 ) {
   withSettings(project, { settings: GraphQLSettings ->
-    if (libraryDescriptor === GraphQLBundledLibraryTypes.RELAY) {
+    if (libraryDescriptor === GraphQLLibraryTypes.RELAY) {
       settings.isRelaySupportEnabled = true
     }
-    else if (libraryDescriptor === GraphQLBundledLibraryTypes.FEDERATION) {
+    else if (libraryDescriptor === GraphQLLibraryTypes.FEDERATION) {
       settings.isFederationSupportEnabled = true
     }
-    else if (libraryDescriptor === GraphQLBundledLibraryTypes.APOLLO_KOTLIN) {
+    else if (libraryDescriptor === GraphQLLibraryTypes.APOLLO_KOTLIN) {
       settings.isApolloKotlinSupportEnabled = true
     }
     else {
@@ -106,11 +85,7 @@ fun withLibrary(
 }
 
 private fun updateLibraries(project: Project) {
-  runBlockingMaybeCancellable {
-    GraphQLLibraryManager.getInstance(project).scheduleLibrariesSynchronization()
-  }
-  waitCoroutinesBlocking(GraphQLLibraryManager.getInstance(project).cs)
-
+  GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged()
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   IndexingTestUtil.waitUntilIndexesAreReady(project);
 }
@@ -156,14 +131,7 @@ fun createTestScratchFile(
 
 fun reloadConfiguration(project: Project) {
   ThreadingAssertions.assertEventDispatchThread()
-
-  runWithModalProgressBlocking(project, "GraphQLLibraryManager.getInstance(project).syncLibraries()") {
-    GraphQLLibraryManager.getInstance(project).syncLibraries()
-  }
   GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
-
-  waitCoroutinesBlocking(GraphQLNodeModulesLibraryUpdater.getInstance(project).cs)
-  waitCoroutinesBlocking(GraphQLLibraryManager.getInstance(project).cs)
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-  IndexingTestUtil.waitUntilIndexesAreReady(project)
+  waitCoroutinesBlocking(GraphQLNodeModulesLibraryUpdater.getInstance(project).cs)
 }

@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.frameworks.federation;
 
 import com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter;
-import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.language.NamedNode;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.EmptyUnionTypeError;
@@ -18,7 +18,7 @@ public final class GraphQLFederationErrorFilter implements GraphQLErrorFilter {
   public boolean isGraphQLErrorSuppressed(@NotNull Project project,
                                           @NotNull GraphQLError error,
                                           @Nullable PsiElement element) {
-    if (!GraphQLBundledLibraryTypes.FEDERATION.isEnabled(project)) {
+    if (!GraphQLLibraryTypes.FEDERATION.isEnabled(project)) {
       return false;
     }
 

@@ -35,7 +35,7 @@ class GraphQLConfigWatcher(private val project: Project) : Disposable {
 
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): GraphQLConfigWatcher = project.service()
+    fun getInstance(project: Project) = project.service<GraphQLConfigWatcher>()
 
     private const val SAVE_DOCUMENTS_TIMEOUT = 2000
   }

@@ -7,7 +7,7 @@ import com.intellij.lang.jsgraphql.ide.resolve.scope.GraphQLRestrictedFileTypesS
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier
-import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryRootsProvider
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -65,7 +65,7 @@ class GraphQLScopeProvider(private val project: Project) : Disposable {
 
   private fun getOrCreateScope(
     element: PsiElement,
-    key: Key<CachedValue<GlobalSearchScope>>,
+    key: Key<CachedValue<GlobalSearchScope>>
   ): GlobalSearchScope {
     val file = element.containingFile.originalFile
 
@@ -94,11 +94,11 @@ class GraphQLScopeProvider(private val project: Project) : Disposable {
       Key.create<CachedValue<GlobalSearchScope>>("graphql.strict.scope")
 
     @JvmStatic
-    fun getInstance(project: Project): GraphQLScopeProvider = project.service<GraphQLScopeProvider>()
+    fun getInstance(project: Project) = project.service<GraphQLScopeProvider>()
 
     @JvmStatic
     fun createScope(project: Project, baseScope: GlobalSearchScope, file: VirtualFile? = null): GlobalSearchScope {
-      var scope = baseScope.union(GraphQLLibraryManager.getInstance(project).createScope(project))
+      var scope = baseScope.union(GraphQLLibraryRootsProvider.createScope(project))
 
       if (GraphQLModuleLibrariesScope.isEnabled) {
         scope = scope.union(GraphQLModuleLibrariesScope.create(project, file))

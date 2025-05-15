@@ -11,7 +11,7 @@ import com.intellij.lang.jsgraphql.ide.validation.GraphQLErrorFilter;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection;
 import com.intellij.lang.jsgraphql.psi.GraphQLArguments;
 import com.intellij.lang.jsgraphql.psi.GraphQLDirective;
-import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes;
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -29,7 +29,7 @@ public final class GraphQLRelayErrorFilter implements GraphQLErrorFilter {
                                         @NotNull PsiElement element) {
     if (!toolId.equals(GraphQLUnresolvedReferenceInspection.SHORT_NAME)) return false;
 
-    if (!GraphQLBundledLibraryTypes.RELAY.isEnabled(project)) {
+    if (!GraphQLLibraryTypes.RELAY.isEnabled(project)) {
       return false;
     }
 

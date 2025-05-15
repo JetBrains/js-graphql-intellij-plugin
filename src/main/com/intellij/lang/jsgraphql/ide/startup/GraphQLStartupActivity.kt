@@ -12,26 +12,25 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigWatcher
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesUpdater
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
-import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.serviceAsync
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.openapi.startup.StartupActivity
 
-class GraphQLStartupActivity : ProjectActivity {
-  override suspend fun execute(project: Project) {
+/**
+ * Starts up the UI Service during project startup
+ */
+class GraphQLStartupActivity : StartupActivity.Background {
+  override fun runActivity(project: Project) {
     // init mandatory services
-    project.serviceAsync<GraphQLSchemaContentTracker>()
-    project.serviceAsync<GraphQLConfigWatcher>()
-    project.serviceAsync<GraphQLGeneratedSourcesUpdater>()
-    project.serviceAsync<GraphQLConfigEnvironment>()
-    project.serviceAsync<GraphQLConfigProvider>().scheduleConfigurationReload()
-
-    GraphQLLibraryManager.getInstanceAsync(project).syncLibraries()
+    GraphQLSchemaContentTracker.getInstance(project)
+    GraphQLConfigWatcher.getInstance(project)
+    GraphQLGeneratedSourcesUpdater.getInstance(project)
+    GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
+    GraphQLConfigEnvironment.getInstance(project)
 
     if (!ApplicationManager.getApplication().isHeadlessEnvironment) {
-      project.serviceAsync<GraphQLUIProjectService>().projectOpened()
+      GraphQLUIProjectService.getInstance(project).projectOpened()
     }
   }
 }

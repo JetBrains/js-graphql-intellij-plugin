@@ -6,7 +6,6 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLSchemaPointer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.components.serviceAsync
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -24,10 +23,12 @@ class GraphQLNodeModulesLibraryUpdater(private val project: Project, @VisibleFor
   private val lock = ReentrantLock()
   private val roots = mutableSetOf<String>() // lock
 
+  private val configProvider = GraphQLConfigProvider.getInstance(project)
+
   fun updateNodeModulesEntity() {
     cs.launch {
       val prevRoots = lock.withLock { roots.toSet() }
-      val newRoots = GraphQLConfigProvider.getInstance(project).getAllConfigs(true)
+      val newRoots = configProvider.getAllConfigs(true)
         .asSequence()
         .flatMap { it.getProjects().values }
         .flatMap { config ->
@@ -57,14 +58,13 @@ class GraphQLNodeModulesLibraryUpdater(private val project: Project, @VisibleFor
   }
 
   private suspend fun attachEntity(roots: Collection<String>) {
-    val workspaceModel = project.serviceAsync<WorkspaceModel>()
-    val virtualFileUrlManager = workspaceModel.getVirtualFileUrlManager()
+    val virtualFileUrlManager = WorkspaceModel.getInstance(project).getVirtualFileUrlManager()
     val rootUrls = roots.mapTo(mutableSetOf()) { virtualFileUrlManager.getOrCreateFromUrl(it) }
     val newModulesEntity = GraphQLNodeModulesEntity(rootUrls, GraphQLNodeModulesEntitySource)
     val entityStorage = MutableEntityStorage.create().apply {
       addEntity(newModulesEntity)
     }
-    workspaceModel.update("Attach GraphQL node modules") { storage ->
+    WorkspaceModel.getInstance(project).update("Attach GraphQL node modules") { storage ->
       storage.replaceBySource({ it is GraphQLNodeModulesEntitySource }, entityStorage)
     }
   }

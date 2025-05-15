@@ -35,7 +35,7 @@ import java.util.*
 class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable, AsyncFileListener, GraphQLConfigListener {
   companion object {
     @JvmStatic
-    fun getInstance(project: Project): GraphQLGeneratedSourcesUpdater = project.service()
+    fun getInstance(project: Project): GraphQLGeneratedSourcesUpdater = project.service<GraphQLGeneratedSourcesUpdater>()
 
     private const val REFRESH_DELAY = 500
   }

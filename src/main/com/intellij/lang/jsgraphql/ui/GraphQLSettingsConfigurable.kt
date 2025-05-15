@@ -29,7 +29,7 @@ class GraphQLSettingsConfigurable(private val project: Project) :
     super.apply()
 
     if (shouldUpdateLibraries) {
-      GraphQLLibraryManager.getInstance(project).scheduleLibrariesSynchronization()
+      GraphQLLibraryManager.getInstance(project).notifyLibrariesChanged()
     }
     else {
       ApplicationManager.getApplication().invokeLater({
