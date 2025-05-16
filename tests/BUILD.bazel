@@ -43,6 +43,7 @@ jvm_library(
     "@community//spellchecker:spellchecker_test_lib",
     "//webcore/impl",
     "@community//platform/backend/workspace",
+    "@community//platform/workspace/storage",
     "@community//json/backend",
     "@community//platform/testFramework",
     "@community//platform/testFramework:testFramework_test_lib",
