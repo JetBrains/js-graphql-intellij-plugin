@@ -7,7 +7,7 @@
  *  LICENSE file in the root directory of this source tree.
  */
 -->
-<idea-plugin require-restart="true" package="com.intellij.lang.jsgraphql">
+<idea-plugin require-restart="true" package="com.intellij.lang.jsgraphql" allow-bundled-update="true">
   <id>com.intellij.lang.jsgraphql</id>
   <name>GraphQL</name>
   <vendor>JetBrains</vendor>
