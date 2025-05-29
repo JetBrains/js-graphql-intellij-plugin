@@ -18,6 +18,7 @@ jvm_library(
     "@community//platform/platform-api:ide",
     "@community//platform/ide-core-impl",
     "@community//platform/platform-impl:ide-impl",
+    "@community//platform/indexing-api:indexing",
     "@community//platform/refactoring",
     "@community//platform/structure-view-impl:structureView-impl",
     "@community//platform/usageView",
