@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.ui
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.lang.jsgraphql.GraphQLBundle.message
 import com.intellij.lang.jsgraphql.GraphQLConstants
+import com.intellij.lang.jsgraphql.GraphQLCoroutineScope
 import com.intellij.lang.jsgraphql.GraphQLSettings
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.openapi.application.ApplicationManager
@@ -13,6 +14,7 @@ import com.intellij.ui.EditorNotifications
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.bindSelected
 import com.intellij.ui.dsl.builder.panel
+import kotlinx.coroutines.launch
 import javax.swing.JComponent
 
 private const val CONFIGURABLE_ID = "settings.jsgraphql"
@@ -29,7 +31,9 @@ class GraphQLSettingsConfigurable(private val project: Project) :
     super.apply()
 
     if (shouldUpdateLibraries) {
-      GraphQLLibraryManager.getInstance(project).scheduleLibrariesSynchronization()
+      GraphQLCoroutineScope.get(project).launch {
+        GraphQLLibraryManager.getInstance(project).syncLibraries()
+      }
     }
     else {
       ApplicationManager.getApplication().invokeLater({

@@ -1,6 +1,7 @@
 package com.intellij.lang.jsgraphql.schema.library
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.components.serviceAsync
@@ -14,13 +15,11 @@ import com.intellij.platform.backend.workspace.toVirtualFileUrl
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.PathUtil
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
+import com.intellij.util.concurrency.annotations.RequiresReadLockAbsence
 import com.intellij.util.io.URLUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.future.asCompletableFuture
-import kotlinx.coroutines.launch
+import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.concurrent.Volatile
 
@@ -35,8 +34,9 @@ private val BUNDLED_RESOURCE_PATHS = mapOf(
 
 private val BUNDLED_LIBRARIES_IDS = BUNDLED_RESOURCE_PATHS.keys.map { it.identifier }.toSet()
 
+@ApiStatus.Experimental
 @Service(Service.Level.PROJECT)
-class GraphQLLibraryManager(private val project: Project, @VisibleForTesting val cs: CoroutineScope) {
+class GraphQLLibraryManager(private val project: Project) {
   companion object {
     private val LOG = logger<GraphQLLibraryManager>()
 
@@ -57,9 +57,6 @@ class GraphQLLibraryManager(private val project: Project, @VisibleForTesting val
     shouldInitializeLibraries = enabled
   }
 
-  private val isEnabled: Boolean
-    get() = ApplicationManager.getApplication().isUnitTestMode() && !shouldInitializeLibraries
-
   /**
    * Registers an external GraphQL library.
    * If a library with the same identifier is already registered,
@@ -67,8 +64,10 @@ class GraphQLLibraryManager(private val project: Project, @VisibleForTesting val
    *
    * @param library The external GraphQL library to register, containing its descriptor and set of root URLs.
    */
+  @RequiresBackgroundThread
+  @RequiresReadLockAbsence
   suspend fun registerExternalLibrary(library: GraphQLLibrary) {
-    if (isEnabled) {
+    if (!shouldInitializeLibraries) {
       return
     }
 
@@ -81,16 +80,16 @@ class GraphQLLibraryManager(private val project: Project, @VisibleForTesting val
     attachLibrary(library)
   }
 
-  private fun isBundledLibrary(library: GraphQLLibrary): Boolean = library.descriptor.identifier in BUNDLED_LIBRARIES_IDS
-
   /**
    * If the specified library is not currently registered, a warning message is logged.
    * Otherwise, the library is removed from the list of external libraries and detached.
    *
    * @param library The external GraphQL library to unregister, containing its descriptor and set of root URLs.
    */
+  @RequiresBackgroundThread
+  @RequiresReadLockAbsence
   suspend fun unregisterExternalLibrary(library: GraphQLLibrary) {
-    if (isEnabled) {
+    if (!shouldInitializeLibraries) {
       return
     }
 
@@ -115,31 +114,19 @@ class GraphQLLibraryManager(private val project: Project, @VisibleForTesting val
    * @see getOrCreateLibraries
    * @see updateLibrariesWorkspaceModel
    */
+  @RequiresBackgroundThread
+  @RequiresReadLockAbsence
   suspend fun syncLibraries() {
-    if (isEnabled) {
+    if (!shouldInitializeLibraries) {
       return
     }
 
     val libraries = getOrCreateLibraries().also { LOG.debug { "GraphQL libraries to sync:\n${it.joinToString("\n")}" } }
-    val availableLibraries = libraries.filter { it.descriptor.isEnabled(project) }
+    val availableLibraries = libraries.filter { readAction { it.descriptor.isEnabled(project) } }
     updateLibrariesWorkspaceModel(availableLibraries)
   }
 
-  /**
-   * Schedules the synchronization of GraphQL libraries in the workspace.
-   *
-   * This method triggers the [syncLibraries] function to execute asynchronously,
-   * ensuring that the libraries, both external and bundled, are synchronized and updated
-   * in the workspace model.
-   *
-   * The synchronization is managed using a CompletableFuture, allowing the Java code
-   * to monitor its completion or handle any exceptions.
-   *
-   * @return A [CompletableFuture] representing the asynchronous task of library synchronization.
-   */
-  fun scheduleLibrariesSynchronization(): CompletableFuture<Unit> {
-    return cs.launch { syncLibraries() }.asCompletableFuture()
-  }
+  private fun isBundledLibrary(library: GraphQLLibrary): Boolean = library.descriptor.identifier in BUNDLED_LIBRARIES_IDS
 
   val libraries: Collection<GraphQLLibrary>
     get() = sequenceOf(bundledLibraries.values, externalLibraries.values)

@@ -14,7 +14,6 @@ import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PluginPathManager
-import com.intellij.openapi.progress.runBlockingMaybeCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
@@ -106,10 +105,9 @@ fun withLibrary(
 }
 
 private fun updateLibraries(project: Project) {
-  runBlockingMaybeCancellable {
-    GraphQLLibraryManager.getInstance(project).scheduleLibrariesSynchronization()
+  runWithModalProgressBlocking(project, "com.intellij.lang.jsgraphql.GraphQLTestUtils.updateLibraries") {
+    GraphQLLibraryManager.getInstance(project).syncLibraries()
   }
-  waitCoroutinesBlocking(GraphQLLibraryManager.getInstance(project).cs)
 
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   IndexingTestUtil.waitUntilIndexesAreReady(project);
@@ -163,7 +161,6 @@ fun reloadConfiguration(project: Project) {
   GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
 
   waitCoroutinesBlocking(GraphQLNodeModulesLibraryUpdater.getInstance(project).cs)
-  waitCoroutinesBlocking(GraphQLLibraryManager.getInstance(project).cs)
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   IndexingTestUtil.waitUntilIndexesAreReady(project)
 }
