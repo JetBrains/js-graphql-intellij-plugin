@@ -33,6 +33,7 @@
 
   <dependencies>
     <plugin id="com.intellij.modules.lang"/>
+    <module name="intellij.spellchecker"/>
     <module name="intellij.json.backend"/>
   </dependencies>
 
