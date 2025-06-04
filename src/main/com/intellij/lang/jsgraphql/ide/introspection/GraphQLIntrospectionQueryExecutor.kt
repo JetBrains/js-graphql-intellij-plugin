@@ -16,7 +16,6 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.getOrLogException
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.options.advanced.AdvancedSettings
-import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.registry.Registry
@@ -62,9 +61,9 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
           val queryRunner = GraphQLQueryClient.getInstance(project)
           queryRunner.sendRequest(endpoint, prepareQueryPayload(introspectionQuery), retry)
         } ?: return@withBackgroundProgress
-        val parsedIntrospection = blockingContext {
+        val parsedIntrospection =
           GraphQLIntrospectionService.parseIntrospectionOutput(project, endpoint, schemaPath, rawIntrospectionResponse)
-        } ?: return@withBackgroundProgress
+          ?: return@withBackgroundProgress
         createIntrospectionOutput(schemaPath, parsedIntrospection, endpoint, rawIntrospectionResponse)
       }
     }
@@ -114,9 +113,7 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
       }
 
       withContext(Dispatchers.EDT) {
-        blockingContext {
-          GraphQLIntrospectionService.createOrUpdateIntrospectionOutputFile(project, parsedIntrospection, filePath.name, dir)
-        }
+        GraphQLIntrospectionService.createOrUpdateIntrospectionOutputFile(project, parsedIntrospection, filePath.name, dir)
       }
     }
     catch (exception: CancellationException) {

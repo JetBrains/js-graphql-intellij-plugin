@@ -30,7 +30,6 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.progress.blockingContext
 import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
@@ -48,6 +47,7 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.TimedValue
 import kotlin.time.measureTimedValue
 
 private const val BUILD_TIMEOUT_MS = 500L
@@ -201,16 +201,14 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
     val registryInfo = getRegistryInfo(scope, modificationStamp)
     val schemaInfo = try {
       LOG.debug { "Schema build started (scope=${scope.scopeId}, stamp=$modificationStamp)" }
-      val (schema, duration) = blockingContext {
-        measureTimedValue {
-          val schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryInfo.typeDefinitionRegistry)
-          val validationErrors = SchemaValidator().validateSchema(schema)
-          val errors = if (validationErrors.isEmpty())
-            emptyList()
-          else
-            listOf<GraphQLException>(InvalidSchemaException(validationErrors))
-          GraphQLSchemaInfo(schema, errors, registryInfo)
-        }
+      val (schema, duration) = measureTimedValue {
+        val schema = UnExecutableSchemaGenerator.makeUnExecutableSchema(registryInfo.typeDefinitionRegistry)
+        val validationErrors = SchemaValidator().validateSchema(schema)
+        val errors = if (validationErrors.isEmpty())
+          emptyList()
+        else
+          listOf<GraphQLException>(InvalidSchemaException(validationErrors))
+        GraphQLSchemaInfo(schema, errors, registryInfo)
       }
       LOG.info("Schema was built in ${duration} (scope=${scope.scopeId}, stamp=$modificationStamp)")
       schema
@@ -249,13 +247,11 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
     val (registry, duration) = measureTimedValue {
       val documentsProcessor = smartReadAction(project) { processSchemaDocuments(scope) }
 
-      blockingContext {
-        val compositeRegistry = GraphQLCompositeRegistry()
-        documentsProcessor.documents.forEach {
-          compositeRegistry.addFromDocument(it)
-        }
-        GraphQLRegistryInfo(compositeRegistry.build(), documentsProcessor.isTooComplex)
+      val compositeRegistry = GraphQLCompositeRegistry()
+      documentsProcessor.documents.forEach {
+        compositeRegistry.addFromDocument(it)
       }
+      GraphQLRegistryInfo(compositeRegistry.build(), documentsProcessor.isTooComplex)
     }
     LOG.info("Registry was built in ${duration} (scope=${scope.scopeId}, stamp=$modificationStamp)")
     return registry
