@@ -51,6 +51,7 @@ jvm_library(
     "@ultimate_lib//:graphql-io-github-cdimascio-dotenv-kotlin",
     "@ultimate_lib//:graphql-reactivestreams-reactive-streams",
     "@ultimate_lib//:graphql-graphql-java-dataloader",
+    "@community//xml/xml-psi-api:psi",
     "@ultimate_lib//:graphql-atlassian-commonmark",
   ],
   runtime_deps = [":graphql_resources"]

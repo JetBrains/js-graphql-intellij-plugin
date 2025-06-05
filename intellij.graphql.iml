@@ -110,6 +110,7 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="intellij.xml.psi" />
     <orderEntry type="module-library">
       <library name="atlassian.commonmark" type="repository">
         <properties maven-id="com.atlassian.commonmark:commonmark:0.17.0">
