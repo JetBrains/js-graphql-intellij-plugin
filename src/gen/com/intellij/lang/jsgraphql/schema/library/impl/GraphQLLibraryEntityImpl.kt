@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nls
 import org.jetbrains.annotations.NonNls
 
 @GeneratedCodeApiVersion(3)
-@GeneratedCodeImplVersion(6)
+@GeneratedCodeImplVersion(7)
 @OptIn(WorkspaceEntityInternalApi::class)
 internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEntityData) : GraphQLLibraryEntity, WorkspaceEntityBase(
   dataSource) {
