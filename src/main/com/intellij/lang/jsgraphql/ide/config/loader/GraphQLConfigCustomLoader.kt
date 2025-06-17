@@ -12,7 +12,7 @@ interface GraphQLConfigCustomLoader {
 
   companion object {
     @JvmField
-    val EP_NAME =
+    val EP_NAME: ExtensionPointName<GraphQLConfigCustomLoader> =
       ExtensionPointName.create<GraphQLConfigCustomLoader>("com.intellij.lang.jsgraphql.configCustomLoader")
 
     fun forFile(file: VirtualFile): GraphQLConfigCustomLoader? {
