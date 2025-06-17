@@ -20,6 +20,7 @@ jvm_library(
     "@community//platform/ide-core-impl",
     "@community//platform/platform-impl:ide-impl",
     "@community//platform/indexing-api:indexing",
+    "@community//platform/lang-core",
     "@community//platform/refactoring",
     "@community//platform/structure-view-impl:structureView-impl",
     "@community//platform/usageView",

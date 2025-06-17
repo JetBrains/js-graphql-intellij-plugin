@@ -26,6 +26,7 @@ jvm_library(
     "@community//platform/platform-impl:ide-impl_test_lib",
     "@community//platform/indexing-api:indexing",
     "@community//jps/model-api:model",
+    "@community//platform/lang-core",
     "@community//platform/usageView",
     "@community//xml/xml-parser:parser",
     "@community//platform/lang-api:lang",
