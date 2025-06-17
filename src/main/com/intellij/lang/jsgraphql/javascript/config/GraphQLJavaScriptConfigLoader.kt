@@ -3,6 +3,7 @@ package com.intellij.lang.jsgraphql.javascript.config
 import com.google.gson.Gson
 import com.intellij.execution.process.CapturingProcessRunner
 import com.intellij.execution.process.ProcessOutput
+import com.intellij.ide.trustedProjects.TrustedProjects
 import com.intellij.javascript.nodejs.PackageJsonData
 import com.intellij.javascript.nodejs.execution.NodeTargetRun
 import com.intellij.javascript.nodejs.execution.NodeTargetRunOptions
@@ -43,6 +44,10 @@ class GraphQLJavaScriptConfigLoader : GraphQLConfigCustomLoader {
   }
 
   override fun load(project: Project, file: VirtualFile): Map<*, *>? {
+    if (!TrustedProjects.isProjectTrusted(project)) {
+      return null
+    }
+
     val interpreter = getInterpreter(project)
     if (interpreter == null) {
       if (interpreterNotificationShown.compareAndSet(false, true)) {
