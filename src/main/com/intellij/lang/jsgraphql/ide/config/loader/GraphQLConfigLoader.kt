@@ -164,7 +164,7 @@ class GraphQLConfigLoader(private val project: Project) {
   private fun readJs(file: VirtualFile): Map<*, *>? {
     val loader = GraphQLConfigCustomLoader.forFile(file)
     if (loader == null) {
-      val msg = "custom loader not found for ${file.path}"
+      val msg = "custom loader isn't found for ${file.path}"
       LOG.warn(msg)
       throw IllegalArgumentException(msg)
     }
