@@ -26,6 +26,7 @@ jvm_library(
     "@community//platform/usageView",
     "@community//platform/usageView-impl",
     "@community//xml/xml-parser:parser",
+    "@community//platform/platform-impl/concurrency",
     "@community//platform/lang-api:lang",
     "@community//platform/lang-impl",
     "@community//platform/core-impl",

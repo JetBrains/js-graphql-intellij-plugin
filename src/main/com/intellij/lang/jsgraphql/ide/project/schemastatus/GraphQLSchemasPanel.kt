@@ -56,7 +56,7 @@ import javax.swing.tree.TreeSelectionModel
 /**
  * Tool window panel that shows the status of the GraphQL schemas discovered in the project.
  */
-class GraphQLSchemasPanel(private val project: Project, private val toolWindowId: String) : JPanel(), Disposable {
+internal class GraphQLSchemasPanel(private val project: Project, private val toolWindowId: String) : JPanel(), Disposable {
   private val connection: MessageBusConnection = project.messageBus.connect(this)
   private val schemaModificationTracker = GraphQLSchemaContentTracker.getInstance(project)
 
