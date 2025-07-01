@@ -1,10 +1,7 @@
 package com.intellij.lang.jsgraphql.schema.library
 
-import com.intellij.platform.workspace.storage.EntitySource
-import com.intellij.platform.workspace.storage.EntityType
-import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
-import com.intellij.platform.workspace.storage.MutableEntityStorage
-import com.intellij.platform.workspace.storage.WorkspaceEntity
+import com.intellij.platform.workspace.storage.*
+import com.intellij.platform.workspace.storage.annotations.Default
 import com.intellij.platform.workspace.storage.impl.containers.toMutableWorkspaceSet
 import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 import org.jetbrains.annotations.Nls
@@ -22,6 +19,9 @@ interface GraphQLLibraryEntity : WorkspaceEntity {
   @get:Nls
   val description: String?
 
+  val attachmentScope: GraphQLLibraryAttachmentScope
+    @Default get() = GraphQLLibraryAttachmentScope.GLOBAL
+
   val roots: Set<VirtualFileUrl>
 
   //region generated code
@@ -31,6 +31,7 @@ interface GraphQLLibraryEntity : WorkspaceEntity {
     var identifier: String
     var displayName: String
     var description: String?
+    var attachmentScope: GraphQLLibraryAttachmentScope
     var roots: MutableSet<VirtualFileUrl>
   }
 

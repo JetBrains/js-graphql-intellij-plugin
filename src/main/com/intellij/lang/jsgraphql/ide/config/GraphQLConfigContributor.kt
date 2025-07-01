@@ -7,7 +7,7 @@ import com.intellij.openapi.project.Project
 interface GraphQLConfigContributor {
   companion object {
     @JvmField
-    val EP_NAME =
+    val EP_NAME: ExtensionPointName<GraphQLConfigContributor> =
       ExtensionPointName.create<GraphQLConfigContributor>("com.intellij.lang.jsgraphql.configContributor")
   }
 

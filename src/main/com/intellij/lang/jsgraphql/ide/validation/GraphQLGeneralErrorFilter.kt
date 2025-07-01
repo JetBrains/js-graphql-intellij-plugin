@@ -43,7 +43,7 @@ class GraphQLGeneralErrorFilter : GraphQLErrorFilter {
     }
 
     if (error is TypeExtensionMissingBaseTypeError && namedNode?.name == GraphQLKnownTypes.QUERY_TYPE) {
-      val roots = GraphQLLibraryManager.getInstance(project).libraryRoots.map { it.path }.toSet()
+      val roots = GraphQLLibraryManager.getInstance(project).getLibraryRoots().map { it.path }.toSet()
       return namedNode.sourceLocation?.sourceName in roots
     }
 

@@ -35,7 +35,11 @@ open class GraphQLConfigScope(
       return true
     }
 
-    val matchingConfig = configProvider.resolveProjectConfig(psiFile) ?: return false
+    val matchingConfig = configProvider.resolveProjectConfig(psiFile)
+    if (matchingConfig == null) {
+      return projectConfig.isInProjectLibrary(file)
+    }
+
     if (projectConfig == matchingConfig) {
       return true
     }

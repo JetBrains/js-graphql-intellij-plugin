@@ -15,7 +15,7 @@ data class GraphQLLibrary(
   val sourceRoots: Collection<VirtualFile>
     get() = rootUrls.mapNotNull { url -> url.virtualFile?.takeIf { it.isValid } }.toSet()
 
-  override fun getPresentableText(): String? =
+  override fun getPresentableText(): String =
     GraphQLBundle.message("graphql.library.prefix", descriptor.displayName)
 
   override fun getIcon(unused: Boolean): Icon = GraphQLIcons.Logos.GraphQL

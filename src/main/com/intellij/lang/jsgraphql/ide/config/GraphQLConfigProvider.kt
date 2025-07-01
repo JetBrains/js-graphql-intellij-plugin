@@ -78,7 +78,7 @@ class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : 
     private const val CONFIG_RELOAD_DELAY = 500
 
     @JvmStatic
-    fun getInstance(project: Project) = project.service<GraphQLConfigProvider>()
+    fun getInstance(project: Project): GraphQLConfigProvider = project.service<GraphQLConfigProvider>()
   }
 
   private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
@@ -95,7 +95,7 @@ class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : 
 
   /**
    * Use this service as a dependency for tracking content changes in configuration files.
-   * Note, that calculations which depends on the scope structure should probably depend on
+   * Note that calculations that depend on the scope structure should probably depend on
    * [GraphQLScopeDependency] instead, which tracks this service state and some more stuff,
    * which could affect resolve and type evaluation.
    */
@@ -182,10 +182,10 @@ class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : 
     return ConfigEvaluationState(entry.status, entry.error)
   }
 
-  val isInitialized
+  val isInitialized: Boolean
     get() = initialized
 
-  val hasExplicitConfiguration
+  val hasExplicitConfiguration: Boolean
     get() = configData.isNotEmpty()
 
   private fun findOverriddenConfig(file: PsiFile): GraphQLConfigOverride? {
@@ -476,9 +476,7 @@ class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : 
 
       modificationTracker.incModificationCount()
       scopeDependency.update()
-      WriteAction.run<Throwable> {
-        PsiManager.getInstance(project).dropPsiCaches()
-      }
+      PsiManager.getInstance(project).dropPsiCaches()
 
       DaemonCodeAnalyzer.getInstance(project).restart()
       project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()

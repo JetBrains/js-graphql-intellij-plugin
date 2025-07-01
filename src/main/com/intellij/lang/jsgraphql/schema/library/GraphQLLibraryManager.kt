@@ -128,14 +128,21 @@ class GraphQLLibraryManager(private val project: Project) {
 
   private fun isBundledLibrary(library: GraphQLLibrary): Boolean = library.descriptor.identifier in BUNDLED_LIBRARIES_IDS
 
-  val libraries: Collection<GraphQLLibrary>
-    get() = sequenceOf(bundledLibraries.values, externalLibraries.values)
+  fun getLibraries(vararg attachmentScopes: GraphQLLibraryAttachmentScope): Collection<GraphQLLibrary> =
+    sequenceOf(bundledLibraries.values, externalLibraries.values)
       .flatten()
+      .filter { it.descriptor.attachmentScope in attachmentScopes }
       .filter { it.descriptor.isEnabled(project) }
       .toList()
 
-  val libraryRoots: Collection<VirtualFile>
-    get() = libraries.flatMap { it.sourceRoots }.toSet()
+  fun getLibraries(): Collection<GraphQLLibrary> =
+    getLibraries(*GraphQLLibraryAttachmentScope.ALL)
+
+  fun getLibraryRoots(vararg attachmentScopes: GraphQLLibraryAttachmentScope): Collection<VirtualFile> =
+    getLibraries(*attachmentScopes).flatMap { it.sourceRoots }.toSet()
+
+  fun getLibraryRoots(): Collection<VirtualFile> =
+    getLibraryRoots(*GraphQLLibraryAttachmentScope.ALL)
 
   private suspend fun getOrCreateLibraries(): List<GraphQLLibrary> {
     val bundled = BUNDLED_RESOURCE_PATHS.keys.mapNotNull { getOrCreateLibrary(it) }
@@ -156,12 +163,18 @@ class GraphQLLibraryManager(private val project: Project) {
   }
 
   fun findLibrary(libraryDescriptor: GraphQLLibraryDescriptor): GraphQLLibrary? =
-    libraries.find { it.descriptor == libraryDescriptor }
+    getLibraries().find { it.descriptor == libraryDescriptor }
 
-  fun isLibraryRoot(virtualFile: VirtualFile?): Boolean = virtualFile != null && virtualFile in libraryRoots
+  fun isLibraryRoot(virtualFile: VirtualFile?): Boolean = virtualFile != null && virtualFile in getLibraryRoots()
 
-  fun createScope(project: Project): GlobalSearchScope =
-    GlobalSearchScope.filesWithLibrariesScope(project, libraryRoots)
+  fun isLibraryRoot(virtualFile: VirtualFile?, vararg attachmentScopes: GraphQLLibraryAttachmentScope): Boolean =
+    virtualFile != null && virtualFile in getLibraryRoots(*attachmentScopes)
+
+  fun createGlobalScope(project: Project): GlobalSearchScope =
+    createScope(project, GraphQLLibraryAttachmentScope.GLOBAL)
+
+  fun createScope(project: Project, vararg attachmentScopes: GraphQLLibraryAttachmentScope): GlobalSearchScope =
+    GlobalSearchScope.filesWithLibrariesScope(project, getLibraryRoots(*attachmentScopes))
 
   private suspend fun attachLibrary(library: GraphQLLibrary) {
     LOG.debug { "Attaching GraphQL library:\n$library" }
@@ -195,6 +208,7 @@ class GraphQLLibraryManager(private val project: Project) {
       GraphQLLibraryEntitySource
     ) {
       description = library.descriptor.description
+      attachmentScope = library.descriptor.attachmentScope
     }
 
   private suspend fun getOrCreateLibrary(libraryDescriptor: GraphQLLibraryDescriptor): GraphQLLibrary? {
