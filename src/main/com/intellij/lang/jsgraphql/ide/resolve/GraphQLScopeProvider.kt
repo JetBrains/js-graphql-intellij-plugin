@@ -98,7 +98,7 @@ class GraphQLScopeProvider(private val project: Project) : Disposable {
 
     @JvmStatic
     fun createScope(project: Project, baseScope: GlobalSearchScope, file: VirtualFile? = null): GlobalSearchScope {
-      var scope = baseScope.union(GraphQLLibraryManager.getInstance(project).createScope(project))
+      var scope = baseScope.union(GraphQLLibraryManager.getInstance(project).createGlobalScope(project))
 
       if (GraphQLModuleLibrariesScope.isEnabled) {
         scope = scope.union(GraphQLModuleLibrariesScope.create(project, file))

@@ -1,14 +1,9 @@
 package com.intellij.lang.jsgraphql.schema.library.impl
 
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryAttachmentScope
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryEntity
-import com.intellij.platform.workspace.storage.ConnectionId
-import com.intellij.platform.workspace.storage.EntitySource
-import com.intellij.platform.workspace.storage.EntityType
-import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
-import com.intellij.platform.workspace.storage.GeneratedCodeImplVersion
-import com.intellij.platform.workspace.storage.MutableEntityStorage
-import com.intellij.platform.workspace.storage.WorkspaceEntity
-import com.intellij.platform.workspace.storage.WorkspaceEntityInternalApi
+import com.intellij.platform.workspace.storage.*
+import com.intellij.platform.workspace.storage.annotations.Default
 import com.intellij.platform.workspace.storage.impl.ModifiableWorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityData
@@ -52,6 +47,8 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
       readField("description")
       return dataSource.description
     }
+
+  override var attachmentScope: GraphQLLibraryAttachmentScope = dataSource.attachmentScope
 
   override val roots: Set<VirtualFileUrl>
     get() {
@@ -132,6 +129,7 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
       if (this.identifier != dataSource.identifier) this.identifier = dataSource.identifier
       if (this.displayName != dataSource.displayName) this.displayName = dataSource.displayName
       if (this.description != dataSource?.description) this.description = dataSource.description
+      if (this.attachmentScope != dataSource.attachmentScope) this.attachmentScope = dataSource.attachmentScope
       if (this.roots != dataSource.roots) this.roots = dataSource.roots.toMutableSet()
       updateChildToParentReferences(parents)
     }
@@ -170,6 +168,15 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
         changedProperty.add("description")
       }
 
+    override var attachmentScope: GraphQLLibraryAttachmentScope
+      get() = getEntityData().attachmentScope
+      set(value) {
+        checkModificationAllowed()
+        getEntityData(true).attachmentScope = value
+        changedProperty.add("attachmentScope")
+
+      }
+
     private val rootsUpdater: (value: Set<VirtualFileUrl>) -> Unit = { value ->
       val _diff = diff
       if (_diff != null) index(this, "roots", value)
@@ -202,6 +209,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
   lateinit var identifier: String
   lateinit var displayName: String
   var description: String? = null
+  var attachmentScope: GraphQLLibraryAttachmentScope = GraphQLLibraryAttachmentScope.GLOBAL
   lateinit var roots: MutableSet<VirtualFileUrl>
 
   internal fun isIdentifierInitialized(): Boolean = ::identifier.isInitialized
@@ -244,6 +252,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
   override fun createDetachedEntity(parents: List<WorkspaceEntity.Builder<*>>): WorkspaceEntity.Builder<*> {
     return GraphQLLibraryEntity(identifier, displayName, roots, entitySource) {
       this.description = this@GraphQLLibraryEntityData.description
+      this.attachmentScope = this@GraphQLLibraryEntityData.attachmentScope
     }
   }
 
@@ -262,6 +271,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
     if (this.identifier != other.identifier) return false
     if (this.displayName != other.displayName) return false
     if (this.description != other.description) return false
+    if (this.attachmentScope != other.attachmentScope) return false
     if (this.roots != other.roots) return false
     return true
   }
@@ -275,6 +285,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
     if (this.identifier != other.identifier) return false
     if (this.displayName != other.displayName) return false
     if (this.description != other.description) return false
+    if (this.attachmentScope != other.attachmentScope) return false
     if (this.roots != other.roots) return false
     return true
   }
@@ -284,6 +295,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
     result = 31 * result + identifier.hashCode()
     result = 31 * result + displayName.hashCode()
     result = 31 * result + description.hashCode()
+    result = 31 * result + attachmentScope.hashCode()
     result = 31 * result + roots.hashCode()
     return result
   }
@@ -293,6 +305,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
     result = 31 * result + identifier.hashCode()
     result = 31 * result + displayName.hashCode()
     result = 31 * result + description.hashCode()
+    result = 31 * result + attachmentScope.hashCode()
     result = 31 * result + roots.hashCode()
     return result
   }

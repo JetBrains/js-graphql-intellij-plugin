@@ -18,7 +18,10 @@ import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSour
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryAttachmentScope
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
@@ -37,9 +40,6 @@ class GraphQLProjectConfig(
   val environment: GraphQLEnvironmentSnapshot,
   val rootConfig: GraphQLConfig,
 ) {
-  private val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
-  private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
-
   val dir: VirtualFile = rootConfig.dir
 
   val file: VirtualFile? = rootConfig.file
@@ -51,7 +51,7 @@ class GraphQLProjectConfig(
   val schema: List<GraphQLSchemaPointer> = (rawData.schema ?: defaultData?.schema)?.map {
     GraphQLSchemaPointer(project, dir, it, isLegacy, environment).also { pointer ->
       if (pointer.isRemote && !pointer.outputPath.isNullOrEmpty()) {
-        remoteSchemasRegistry.associate(pointer.outputPath, file?.path ?: dir.path)
+        GraphQLRemoteSchemasRegistry.getInstance(project).associate(pointer.outputPath, file?.path ?: dir.path)
       }
     }
   } ?: emptyList()
@@ -78,11 +78,18 @@ class GraphQLProjectConfig(
   private val expandContext
     get() = GraphQLExpandVariableContext(project, dir, isLegacy, environment)
 
-  private val outOfScopePaths: List<String> by lazy {
+  private val outOfScopePaths: List<String> by lazy(LazyThreadSafetyMode.PUBLICATION) {
     schema.asSequence()
       .mapNotNull { it.filePath }
       .filter { it.startsWith("..") }
       .map { FileUtil.toCanonicalPath(FileUtil.join(dir.path, FileUtil.toSystemIndependentName(it))) }
+      .toList()
+  }
+
+  private val absolutePaths: List<String> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+    schema.asSequence()
+      .mapNotNull { it.filePath }
+      .filter { FileUtil.isAbsolute(it) }
       .toList()
   }
 
@@ -93,8 +100,9 @@ class GraphQLProjectConfig(
   private val baseScope
     get() = GlobalSearchScope
       .allScope(project)
-      .union(generatedSourcesManager.createGeneratedSourcesScope())
-      .union(remoteSchemasRegistry.createRemoteIntrospectionScope())
+      .union(GraphQLGeneratedSourcesManager.getInstance(project).createGeneratedSourcesScope())
+      .union(GraphQLRemoteSchemasRegistry.getInstance(project).createRemoteIntrospectionScope())
+      .union(GraphQLLibraryManager.getInstance(project).createScope(project, GraphQLLibraryAttachmentScope.PROJECT))
 
   private val scopeCached: CachedValue<GlobalSearchScope> =
     CachedValuesManager.getManager(project).createCachedValue {
@@ -127,6 +135,7 @@ class GraphQLProjectConfig(
   }
 
   private fun matchesImpl(virtualFile: VirtualFile): Boolean {
+    val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
     if (generatedSourcesManager.isGeneratedFile(virtualFile)) {
       return generatedSourcesManager.getSourceFile(virtualFile)?.let { matches(it) } ?: false
     }
@@ -148,6 +157,7 @@ class GraphQLProjectConfig(
   }
 
   private fun matchesSchemaImpl(virtualFile: VirtualFile): Boolean {
+    val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
     if (generatedSourcesManager.isGeneratedFile(virtualFile)) {
       return generatedSourcesManager.getSourceFile(virtualFile)?.let { matchesSchema(it) } ?: false
     }
@@ -175,6 +185,12 @@ class GraphQLProjectConfig(
 
   fun isIncludedOutOfScopeFile(virtualFile: VirtualFile): Boolean {
     return outOfScopePaths.any { FileUtil.pathsEqual(it, virtualFile.path) }
+  }
+
+  fun isInProjectLibrary(file: VirtualFile): Boolean {
+    return ProjectFileIndex.getInstance(project).isInLibrary(file)
+           && GraphQLLibraryManager.getInstance(project).isLibraryRoot(file, GraphQLLibraryAttachmentScope.PROJECT)
+           && absolutePaths.any { FileUtil.pathsEqual(it, file.path) }
   }
 
   private fun matchPattern(candidate: VirtualFile, pointer: Any?): Boolean {

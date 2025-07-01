@@ -25,13 +25,18 @@ internal object MetadataStorageImpl: MetadataStorageBase() {
 OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "identifier", valueType = primitiveTypeStringNotNullable, withDefault = false),
 OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "displayName", valueType = primitiveTypeStringNotNullable, withDefault = false),
 OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "description", valueType = primitiveTypeStringNullable, withDefault = false),
+OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "attachmentScope", valueType = ValueTypeMetadata.SimpleType.CustomType(isNullable = false, typeMetadata = FinalClassMetadata.EnumClassMetadata(fqName = "com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryAttachmentScope", properties = listOf(), supertypes = listOf("java.io.Serializable",
+"kotlin.Comparable",
+"kotlin.Enum"), values = listOf("GLOBAL",
+"PROJECT"))), withDefault = true),
 OwnPropertyMetadata(isComputable = false, isKey = false, isOpen = false, name = "roots", valueType = ValueTypeMetadata.ParameterizedType(generics = listOf(ValueTypeMetadata.SimpleType.CustomType(isNullable = false, typeMetadata = FinalClassMetadata.KnownClass(fqName = "com.intellij.platform.workspace.storage.url.VirtualFileUrl"))), primitive = primitiveTypeSetNotNullable), withDefault = false)), extProperties = listOf(), isAbstract = false)
         
         addMetadata(typeMetadata)
     }
 
     override fun initializeMetadataHash() {
-        addMetadataHash(typeFqn = "com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryEntity", metadataHash = 87991351)
+        addMetadataHash(typeFqn = "com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryEntity", metadataHash = -1849614646)
+        addMetadataHash(typeFqn = "com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryAttachmentScope", metadataHash = -912984699)
         addMetadataHash(typeFqn = "com.intellij.platform.workspace.storage.EntitySource", metadataHash = 212848188)
         addMetadataHash(typeFqn = "com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryEntitySource", metadataHash = 619168016)
     }
