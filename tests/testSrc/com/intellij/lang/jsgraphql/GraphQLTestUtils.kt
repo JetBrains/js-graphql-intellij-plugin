@@ -2,11 +2,12 @@
 
 package com.intellij.lang.jsgraphql
 
-import com.intellij.graphql.javascript.workspace.GraphQLNodeModulesLibraryUpdater
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.lang.jsgraphql.GraphQLSettings.GraphQLSettingsState
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesUpdater
 import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor
@@ -23,7 +24,6 @@ import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.utils.coroutines.waitCoroutinesBlocking
-import com.intellij.util.concurrency.ThreadingAssertions
 import com.intellij.util.concurrency.annotations.RequiresEdt
 import java.io.File
 import java.util.function.Consumer
@@ -110,7 +110,7 @@ private fun updateLibraries(project: Project) {
   }
 
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-  IndexingTestUtil.waitUntilIndexesAreReady(project);
+  IndexingTestUtil.waitUntilIndexesAreReady(project)
 }
 
 fun withCustomEnv(project: Project, env: Map<String, String?>, runnable: Runnable) {
@@ -153,14 +153,21 @@ fun createTestScratchFile(
 }
 
 fun reloadConfiguration(project: Project) {
-  ThreadingAssertions.assertEventDispatchThread()
-
-  runWithModalProgressBlocking(project, "GraphQLLibraryManager.getInstance(project).syncLibraries()") {
-    GraphQLLibraryManager.getInstance(project).syncLibraries()
-  }
-  GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
-
-  waitCoroutinesBlocking(GraphQLNodeModulesLibraryUpdater.getInstance(project).cs)
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   IndexingTestUtil.waitUntilIndexesAreReady(project)
+
+  runWithModalProgressBlocking(project, "") {
+    GraphQLConfigProvider.getInstance(project).reload()
+    GraphQLLibraryManager.getInstance(project).syncLibraries()
+  }
+
+  generateJsonSchemas(project)
+}
+
+internal fun generateJsonSchemas(project: Project) {
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+  GraphQLGeneratedSourcesUpdater.getInstance(project).scheduleJsonSchemaGeneration()
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  waitCoroutinesBlocking(GraphQLGeneratedSourcesManager.getInstance(project).coroutineScope)
 }

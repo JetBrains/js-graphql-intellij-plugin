@@ -46,8 +46,6 @@ import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
-import java.util.concurrent.atomic.AtomicLong
-import kotlin.time.TimedValue
 import kotlin.time.measureTimedValue
 
 private const val BUILD_TIMEOUT_MS = 500L
@@ -67,10 +65,6 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
 
     private val LOG = logger<GraphQLSchemaProvider>()
   }
-
-  private val totalCallsCount = AtomicLong()
-  private val startedTasksCount = AtomicLong()
-  private val cacheHitsCount = AtomicLong()
 
   // can throw PCE, so we need to postpone initialization not to break the plugin class loading
   private val emptySchema = lazy(LazyThreadSafetyMode.PUBLICATION) {
@@ -103,22 +97,18 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   }
 
   private fun getFromCacheOrSchedule(scope: GlobalSearchScope, wait: Boolean = true): GraphQLSchemaInfo {
-    totalCallsCount.incrementAndGet()
-
     val currentModificationStamp = GraphQLSchemaContentTracker.getInstance(project).modificationCount
 
     val currentSchemaEntry = scopeToSchemaCache[scope]
     if (currentSchemaEntry?.modificationStamp == currentModificationStamp) {
-      cacheHitsCount.incrementAndGet()
       if (LOG.isTraceEnabled) {
         LOG.trace { "Schema from cache returned (scope=${scope.scopeId}, stamp=$currentModificationStamp)" }
-        printStats()
       }
       return currentSchemaEntry.schemaInfo
     }
 
     val fallbackSchema = currentSchemaEntry?.schemaInfo ?: emptySchemaInfo.value
-    var computation = scheduleComputationIfNeeded(scope, currentModificationStamp).apply { ensureStarted() }
+    val computation = scheduleComputationIfNeeded(scope, currentModificationStamp).apply { ensureStarted() }
 
     val job = computation.getJob()
     checkNotNull(job) { "Schema computation was not started (scope=${scope.scopeId}, stamp=${computation.startModificationStamp})" }
@@ -132,17 +122,7 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
       LOG.warn("Schema computation waiting completed with exception (scope=${scope.scopeId}, stamp=${computation.startModificationStamp})", e)
     }
 
-    printStats()
     return scopeToSchemaCache[scope]?.schemaInfo ?: fallbackSchema
-  }
-
-  private fun printStats() {
-    if (LOG.isTraceEnabled) {
-      val calls = totalCallsCount.get()
-      val tasks = startedTasksCount.get()
-      val hits = cacheHitsCount.get()
-      LOG.trace("Schema build stats: total calls=$calls, tasks started=$tasks, cache hits=$hits")
-    }
   }
 
   private val buildTimeout: Long
@@ -187,7 +167,6 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
         computation = currentComputation
       }
       else {
-        startedTasksCount.incrementAndGet()
         LOG.debug { "New schema computation scheduled (scope=${scope.scopeId}, stamp=$currentModificationStamp)" }
         computation = scheduledComputation
       }
@@ -293,7 +272,7 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
             val schemaEntry = computeSchema(scope, startModificationStamp)
 
             checkCanceled()
-            scopeToSchemaCache.put(scope, schemaEntry)
+            scopeToSchemaCache[scope] = schemaEntry
             scopeToTask.remove(scope, this@SchemaComputation)
 
             ResolveCache.getInstance(project).clearCache(true)

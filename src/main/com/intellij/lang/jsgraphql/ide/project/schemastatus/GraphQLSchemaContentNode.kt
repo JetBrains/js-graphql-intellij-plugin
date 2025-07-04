@@ -16,6 +16,7 @@ import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLTreeNodeNavig
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
 import com.intellij.lang.jsgraphql.types.language.*
 import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo
+import com.intellij.lang.jsgraphql.ui.GraphQLUICoroutineScope
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.util.NlsSafe
 import com.intellij.ui.ColoredListCellRenderer
@@ -23,6 +24,7 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
 import com.intellij.ui.treeStructure.SimpleTree
+import kotlinx.coroutines.launch
 import java.awt.event.InputEvent
 import javax.swing.JList
 import javax.swing.ListCellRenderer
@@ -145,7 +147,9 @@ class GraphQLSchemaContentNode(parent: SimpleNode, private val validatedSchema: 
         if (element is AbstractNode<*>) {
           val sourceLocation = element.sourceLocation
           if (sourceLocation != null && sourceLocation.sourceName != null) {
-            openSourceLocation(myProject, sourceLocation, true)
+            GraphQLUICoroutineScope.get(myProject).launch {
+              openSourceLocation(myProject, sourceLocation, true)
+            }
           }
         }
       }

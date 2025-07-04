@@ -1,19 +1,18 @@
 package com.intellij.lang.jsgraphql.ide.introspection.source
 
 import com.intellij.json.JsonFileType
-import com.intellij.lang.jsgraphql.executeOnPooledThread
+import com.intellij.lang.jsgraphql.emitOrRunImmediateInTests
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.introspection.isJsonSchemaCandidate
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager.Companion.generatedSdlDirPath
+import com.intellij.lang.jsgraphql.skipInTests
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.io.FileUtil
@@ -24,15 +23,23 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.util.Alarm
-import com.intellij.util.concurrency.SequentialTaskExecutor
+import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
 import java.util.*
+import kotlin.time.Duration.Companion.milliseconds
 
 
+@OptIn(FlowPreview::class)
 @Service(Service.Level.PROJECT)
-class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable, AsyncFileListener, GraphQLConfigListener {
+class GraphQLGeneratedSourcesUpdater(private val project: Project, coroutineScope: CoroutineScope) : Disposable, AsyncFileListener, GraphQLConfigListener {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): GraphQLGeneratedSourcesUpdater = project.service()
@@ -40,9 +47,7 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
     private const val REFRESH_DELAY = 500
   }
 
-  private val queue = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
-  private val executor =
-    SequentialTaskExecutor.createSequentialApplicationPoolExecutor("GraphQL Generated Source Updater")
+  private val jsonSchemaSyncRequests = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
   @Volatile
   private var jsonSchemaFiles: Set<VirtualFile> = emptySet()
@@ -50,6 +55,14 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
   init {
     project.messageBus.connect(this).subscribe(GraphQLConfigListener.TOPIC, this)
     VirtualFileManager.getInstance().addAsyncFileListener(this, this)
+
+    skipInTests {
+      coroutineScope.launch {
+        jsonSchemaSyncRequests.debounce(REFRESH_DELAY.milliseconds).collect {
+          runJsonSchemaFilesGeneration()
+        }
+      }
+    }
   }
 
   override fun prepareChange(events: MutableList<out VFileEvent>): ChangeApplier? {
@@ -93,72 +106,61 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project) : Disposable,
 
     return object : ChangeApplier {
       override fun afterVfsChange() {
-        refreshJsonSchemaFiles()
+        scheduleJsonSchemaGeneration()
       }
     }
   }
 
   override fun onConfigurationChanged() {
-    refreshJsonSchemaFiles()
+    scheduleJsonSchemaGeneration()
   }
 
-  fun refreshJsonSchemaFiles() {
+  fun scheduleJsonSchemaGeneration() {
     if (project.isDisposed) return
 
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      DumbService.getInstance(project).smartInvokeLater { refreshJsonSchemaFilesSync() }
-    }
-    else {
-      queue.cancelAllRequests()
-      queue.addRequest({
-                         ReadAction.nonBlocking(::findJsonSchemaCandidates)
-                           .expireWith(this)
-                           .inSmartMode(project)
-                           .withDocumentsCommitted(project)
-                           .finishOnUiThread(ModalityState.defaultModalityState(), ::updateCachedSchemas)
-                           .submit(executor)
-                       }, REFRESH_DELAY)
+    emitOrRunImmediateInTests(jsonSchemaSyncRequests, Unit) {
+      runWithModalProgressBlocking(project, "") {
+        runJsonSchemaFilesGeneration()
+      }
     }
   }
 
-  private fun refreshJsonSchemaFilesSync() {
+  @RequiresBackgroundThread
+  private suspend fun runJsonSchemaFilesGeneration() {
     if (project.isDisposed) return
     updateCachedSchemas(findJsonSchemaCandidates())
   }
 
-  private fun findJsonSchemaCandidates(): Set<VirtualFile> {
-    val schemaScope = GraphQLConfigProvider.getInstance(project)
-                        .getAllConfigs()
-                        .asSequence()
-                        .flatMap { it.getProjects().values }
-                        .map { it.schemaScope }
-                        .reduceOrNull(GlobalSearchScope::union) ?: return emptySet()
+  private suspend fun findJsonSchemaCandidates(): Set<VirtualFile> {
+    val schemaScope = readAction {
+      GraphQLConfigProvider.getInstance(project)
+        .getAllConfigs()
+        .asSequence()
+        .flatMap { it.getProjects().values }
+        .map { it.schemaScope }
+        .reduceOrNull(GlobalSearchScope::union)
+    } ?: return emptySet()
 
     val fileDocumentManager = FileDocumentManager.getInstance()
-    return FileTypeIndex.getFiles(JsonFileType.INSTANCE, schemaScope)
-      .filter { isJsonSchemaCandidate(fileDocumentManager.getDocument(it)) }
+    return smartReadAction(project) { FileTypeIndex.getFiles(JsonFileType.INSTANCE, schemaScope) }
+      .filter { readAction { isJsonSchemaCandidate(fileDocumentManager.getDocument(it)) } }
       .toSet()
   }
 
-  private fun updateCachedSchemas(schemas: Set<VirtualFile>) {
+  private suspend fun updateCachedSchemas(newSchemas: Set<VirtualFile>) {
     val generatedSourcesManager = GraphQLGeneratedSourcesManager.getInstance(project)
     val prevSchemas = jsonSchemaFiles
-    jsonSchemaFiles = Collections.unmodifiableSet(schemas)
+    jsonSchemaFiles = Collections.unmodifiableSet(newSchemas)
 
-    if (schemas.isNotEmpty()) {
-      executeOnPooledThread {
-        for (virtualFile in schemas) {
-          generatedSourcesManager.requestGeneratedFile(virtualFile)
-        }
-      }
+    for (virtualFile in newSchemas) {
+      generatedSourcesManager.requestGeneratedFile(virtualFile)
     }
 
-    if (prevSchemas != schemas) {
+    if (prevSchemas != newSchemas) {
       generatedSourcesManager.sourcesChanged()
     }
   }
 
   override fun dispose() {
-    executor.shutdown()
   }
 }

@@ -9,6 +9,7 @@ package com.intellij.lang.jsgraphql.ide.validation;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
@@ -48,9 +49,12 @@ public final class GraphQLSchemaAnnotator implements Annotator {
   public void annotate(@NotNull PsiElement psiElement, @NotNull AnnotationHolder annotationHolder) {
     if (!(psiElement instanceof GraphQLFile file)) return;
 
-    final Project project = psiElement.getProject();
+    Project project = psiElement.getProject();
 
-    if (GraphQLInspection.isEditorInspectionHighlightingDisabled(project, file)) return;
+    if (GraphQLInspection.isEditorInspectionHighlightingDisabled(project, file) ||
+        !GraphQLConfigProvider.getInstance(project).isInitialized()) {
+      return;
+    }
 
     try {
       GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiElement);

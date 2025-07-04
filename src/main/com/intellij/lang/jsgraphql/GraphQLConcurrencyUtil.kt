@@ -8,6 +8,7 @@ import com.intellij.openapi.diagnostic.fileLogger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.ConcurrencyUtil
+import org.jetbrains.annotations.ApiStatus
 import java.util.concurrent.*
 
 private val LOG = fileLogger()
@@ -40,7 +41,8 @@ internal fun executeOnPooledThread(runnable: () -> Unit) {
 
 private const val QUOTA_MS: Long = ConcurrencyUtil.DEFAULT_TIMEOUT_MS
 
-internal fun <T> awaitFuture(future: Future<T?>, timeoutMills: Long): T? {
+@ApiStatus.Internal
+fun <T> awaitFuture(future: Future<T?>, timeoutMills: Long): T? {
   if (ApplicationManager.getApplication().isDispatchThread() &&
       !ApplicationManager.getApplication().isHeadlessEnvironment()
   ) {

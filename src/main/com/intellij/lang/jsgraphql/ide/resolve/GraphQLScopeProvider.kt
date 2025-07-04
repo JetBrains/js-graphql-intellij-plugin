@@ -27,20 +27,20 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 @Service(Service.Level.PROJECT)
 class GraphQLScopeProvider(private val project: Project) : Disposable {
 
-  private val configProvider = GraphQLConfigProvider.getInstance(project)
-  private val scopeDependency = GraphQLScopeDependency.getInstance(project)
-
   init {
     Registry.get(GraphQLModuleLibrariesScope.REGISTRY_KEY).addListener(object : RegistryValueListener {
       override fun afterValueChanged(value: RegistryValue) {
-        scopeDependency.update()
+        GraphQLScopeDependency.getInstance(project).update()
       }
     }, this)
   }
 
   private val globalScopeCache: CachedValue<GlobalSearchScope> =
     CachedValuesManager.getManager(project).createCachedValue {
-      CachedValueProvider.Result.create(createScope(project, GlobalSearchScope.projectScope(project)), scopeDependency)
+      CachedValueProvider.Result.create(
+        createScope(project, GlobalSearchScope.projectScope(project)),
+        GraphQLScopeDependency.getInstance(project)
+      )
     }
 
   val globalScope: GlobalSearchScope
@@ -53,7 +53,7 @@ class GraphQLScopeProvider(private val project: Project) : Disposable {
 
   @RequiresReadLock
   fun getResolveScope(element: PsiElement?, isStrict: Boolean): GlobalSearchScope {
-    if (element == null) {
+    if (element == null || !GraphQLConfigProvider.getInstance(project).isInitialized) {
       return GlobalSearchScope.EMPTY_SCOPE
     }
 
@@ -70,6 +70,7 @@ class GraphQLScopeProvider(private val project: Project) : Disposable {
     val file = element.containingFile.originalFile
 
     return CachedValuesManager.getCachedValue(file, key) {
+      val configProvider = GraphQLConfigProvider.getInstance(project)
       val projectConfig = configProvider.resolveProjectConfig(file)
       var scope: GlobalSearchScope =
         projectConfig?.let { if (key == STRICT_SCOPE_KEY) it.schemaScope else it.scope }
@@ -80,7 +81,7 @@ class GraphQLScopeProvider(private val project: Project) : Disposable {
         scope = scope.union(GlobalSearchScope.fileScope(file))
       }
 
-      CachedValueProvider.Result.create(scope, file, scopeDependency)
+      CachedValueProvider.Result.create(scope, file, GraphQLScopeDependency.getInstance(project))
     }
   }
 
