@@ -204,15 +204,15 @@ typedOperationDefinition ::= typedOperationDefinitionHeader selectionSet {
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLTypedOperationDefinitionMixin"
 }
 
-private typedOperationDefinitionHeader ::= operationType identifier? variableDefinitions? directives? {
-  pin=1
+private typedOperationDefinitionHeader ::= description? operationType identifier? variableDefinitions? directives? {
+  pin=2
   recoverWhile=rootTokens_recover
 }
 
 variableDefinitions ::= '(' variableDefinition+ ')' {pin=1 methods=[variableDefinitions="variableDefinition"]}
 
-variableDefinition ::= variable <<colon type>> defaultValue? directives? {
-  pin=1
+variableDefinition ::= description? variable <<colon type>> defaultValue? directives? {
+  pin=2
   recoverWhile=variableDefinition_recover
   methods=[directives="directive"]
   implements="com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware"
@@ -263,8 +263,8 @@ fragmentDefinition ::= fragmentDefinitionHeader selectionSet {
   mixin="com.intellij.lang.jsgraphql.psi.impl.GraphQLFragmentDefinitionMixin"
 }
 
-private fragmentDefinitionHeader ::= 'fragment' fragmentName typeCondition directives? {
-  pin=1
+private fragmentDefinitionHeader ::= description? 'fragment' fragmentName typeCondition directives? {
+  pin=2
   recoverWhile=rootTokens_recover
 }
 
