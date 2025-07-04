@@ -8,14 +8,14 @@
 package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.lang.jsgraphql.emitOrRunImmediateInTests
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition
+import com.intellij.lang.jsgraphql.skipInTests
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -28,7 +28,13 @@ import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.impl.PsiTreeChangeEventImpl
 import com.intellij.psi.util.parentOfTypes
-import com.intellij.util.Alarm
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 
 /**
@@ -36,8 +42,9 @@ import com.intellij.util.Alarm
  * For configuration only changes use [com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider],
  * for scope changes use broader [GraphQLScopeDependency].
  */
+@OptIn(FlowPreview::class)
 @Service(Service.Level.PROJECT)
-class GraphQLSchemaContentTracker(private val project: Project) : Disposable, ModificationTracker {
+class GraphQLSchemaContentTracker(private val project: Project, coroutineScope: CoroutineScope) : Disposable, ModificationTracker {
 
   companion object {
     private val LOG = logger<GraphQLSchemaContentTracker>()
@@ -48,22 +55,26 @@ class GraphQLSchemaContentTracker(private val project: Project) : Disposable, Mo
     fun getInstance(project: Project): GraphQLSchemaContentTracker = project.service()
   }
 
-  private val notifyChangedAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
+  private val changeNotificationsFlow = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
   private val modificationTracker = CompositeModificationTracker(GraphQLScopeDependency.getInstance(project))
 
   init {
     PsiManager.getInstance(project).addPsiTreeChangeListener(PsiChangeListener(), this)
+
+    skipInTests {
+      coroutineScope.launch {
+        changeNotificationsFlow.debounce(EVENT_PUBLISH_TIMEOUT.milliseconds).collect {
+          notifySchemaContentChanged()
+        }
+      }
+    }
   }
 
   fun schemaChanged() {
     LOG.debug("GraphQL schema cache invalidated", if (LOG.isTraceEnabled) Throwable() else null)
 
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      invokeLater { notifySchemaContentChanged() }
-    }
-    else {
-      notifyChangedAlarm.cancelAllRequests()
-      notifyChangedAlarm.addRequest(::notifySchemaContentChanged, EVENT_PUBLISH_TIMEOUT)
+    emitOrRunImmediateInTests(changeNotificationsFlow, Unit) {
+      notifySchemaContentChanged()
     }
   }
 

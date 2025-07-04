@@ -10,11 +10,12 @@ import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.*
-import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.command.writeCommandAction
 import com.intellij.openapi.components.*
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
@@ -29,24 +30,32 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.GlobalSearchScopes
 import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.EditorNotifications
-import com.intellij.util.Alarm
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.xmlb.annotations.Attribute
 import com.intellij.util.xmlb.annotations.Tag
 import com.intellij.util.xmlb.annotations.XCollection
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import org.jetbrains.annotations.VisibleForTesting
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.*
+import java.util.concurrent.CompletionException
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
-import kotlin.concurrent.write
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 
+@OptIn(FlowPreview::class)
 @Service(Service.Level.PROJECT)
 @State(name = "GraphQLGeneratedSources", storages = [Storage(value = StoragePathMacros.CACHE_FILE, roamingType = RoamingType.DISABLED)])
 class GraphQLGeneratedSourcesManager(
   private val project: Project,
+  @VisibleForTesting val coroutineScope: CoroutineScope,
 ) : Disposable,
     ModificationTracker,
     PersistentStateComponent<GraphQLGeneratedSourcesManager.GraphQLGeneratedSourceState> {
@@ -55,9 +64,8 @@ class GraphQLGeneratedSourcesManager(
     private val LOG = logger<GraphQLGeneratedSourcesManager>()
 
     @JvmStatic
-    fun getInstance(project: Project) = project.service<GraphQLGeneratedSourcesManager>()
+    fun getInstance(project: Project): GraphQLGeneratedSourcesManager = project.service<GraphQLGeneratedSourcesManager>()
 
-    private const val EXECUTION_TIMEOUT = 10000L
     private const val NOTIFY_DELAY = 500
 
     private const val RETRY_DELAY = 5000
@@ -78,28 +86,26 @@ class GraphQLGeneratedSourcesManager(
       FileUtil.isAncestor(generatedSdlDirPath, file.path, true)
   }
 
-  private val lock = ReentrantReadWriteLock()
-  private val generatedFiles: MutableMap<Source, GeneratedEntry> = mutableMapOf() // lock
-  private val reverseMappings: MutableMap<VirtualFile, Source> = mutableMapOf() // lock
+  private val sdlGenerationDispatcher = Dispatchers.IO.limitedParallelism(1, "GraphQL SDL Generation")
 
-  private val pendingTasks = ConcurrentHashMap<Source, CompletableFuture<GeneratedEntry>>()
+  private val mapping = GeneratedEntriesMapping()
+  private val pendingTasks = ConcurrentHashMap<Source, Job>()
   private val retries = ConcurrentHashMap<Source, AtomicInteger>()
 
   private val modificationTracker = SimpleModificationTracker()
 
-  private val notifyChangedAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
-  private val retryAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+  private val notificationFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
-  private val executor = if (ApplicationManager.getApplication().isUnitTestMode) {
-    inEdt()
-  }
-  else {
-    AppExecutorUtil.createBoundedApplicationPoolExecutor(
-      "GraphQL Source File Generation",
-      AppExecutorUtil.getAppExecutorService(),
-      1,
-      this
-    )
+  init {
+    skipInTests {
+      coroutineScope.launch {
+        notificationFlow.debounce(NOTIFY_DELAY.milliseconds).collect {
+          withContext(Dispatchers.EDT) {
+            PsiManager.getInstance(project).dropPsiCaches()
+          }
+        }
+      }
+    }
   }
 
   fun createGeneratedSourcesScope(): GlobalSearchScope {
@@ -108,13 +114,13 @@ class GraphQLGeneratedSourcesManager(
     return GlobalSearchScopes.directoryScope(project, dir, false)
   }
 
-  fun requestGeneratedFile(file: VirtualFile?): VirtualFile? {
+  suspend fun requestGeneratedFile(file: VirtualFile?): VirtualFile? {
     if (file == null || project.isDisposed) return null
 
     val source = Source.create(file) ?: return null
-    val entry = lock.read { generatedFiles[source] }
+    val entry = mapping[source]
     if (entry?.output != null) {
-      if (!entry.output.isValid) {
+      if (!readAction { entry.output.isValid }) {
         removeEntry(source, entry)
         startAsyncProcessing(source)
         return null
@@ -128,59 +134,35 @@ class GraphQLGeneratedSourcesManager(
     return when (entry?.status) {
       RequestStatus.SUCCESS -> entry.output
       else -> null
-    }?.takeIf { it.isValid }
+    }?.takeIf { readAction { it.isValid } }
   }
 
   private fun addEntry(source: Source, entry: GeneratedEntry?) {
     if (entry == null) return
 
-    lock.write {
-      generatedFiles[source] = entry
-      entry.output?.let { reverseMappings[it] = source }
-    }
-
+    mapping[source] = entry
     sourcesChanged()
   }
 
   private fun removeEntry(source: Source, entry: GeneratedEntry?) {
     if (entry == null) return
 
-    lock.write {
-      generatedFiles.remove(source, entry)
-      entry.output?.let { reverseMappings.remove(it, source) }
-    }
-
+    mapping.remove(source, entry)
     sourcesChanged()
   }
 
   private fun startAsyncProcessing(source: Source) {
-    pendingTasks.compute(source) { _, running ->
-      if (running != null && !running.isDone) {
-        return@compute running
+    pendingTasks.compute(source) { _, operation ->
+      // let the ongoing operation finish first
+      if (operation != null && !operation.isCompleted) {
+        return@compute operation
       }
 
-      scheduleTask(source)
-        .orTimeout(EXECUTION_TIMEOUT, TimeUnit.MILLISECONDS)
-        .whenComplete { entry, error ->
-          if (!isCancellation(error) && error !is TimeoutException) {
-            if (error != null) {
-              processResult(source, source.createErrorResult(error))
-            }
-            else {
-              processResult(source, entry)
-              resetRetries(source)
-            }
-          }
-          else {
-            LOG.warn("GraphQL SDL generation cancelled: source=$source, isTimeout=${error is TimeoutException}")
-            scheduleRetry(source)
-          }
+      scheduleTask(source).apply {
+        invokeOnCompletion {
+          pendingTasks.remove(source, this)
         }
-        .apply {
-          whenComplete { _, _ ->
-            pendingTasks.remove(source, this)
-          }
-        }
+      }
     }
   }
 
@@ -191,62 +173,106 @@ class GraphQLGeneratedSourcesManager(
   private fun scheduleRetry(source: Source) {
     if (project.isDisposed || ApplicationManager.getApplication().isUnitTestMode) return
 
-    val retry =
-      retries.computeIfAbsent(source) { AtomicInteger() }.incrementAndGet() <= RETRIES_COUNT
+    val retry = retries.computeIfAbsent(source) { AtomicInteger() }.incrementAndGet() <= RETRIES_COUNT
     if (retry) {
       LOG.info("Retry GraphQL SDL generation: source=$source")
-      retryAlarm.addRequest({ requestGeneratedFile(source.file) }, RETRY_DELAY)
+
+      coroutineScope.launch {
+        delay(RETRY_DELAY.milliseconds)
+        requestGeneratedFile(source.file)
+      }
     }
     else {
       LOG.warn("Retry GraphQL SDL generation limit exceeded: source=$source")
     }
   }
 
-  private fun scheduleTask(source: Source): CompletableFuture<GeneratedEntry> {
+  private fun scheduleTask(source: Source): Job {
     LOG.info("Scheduling SDL generation task: source=$source")
 
-    return CompletableFuture
-      .supplyAsync({
-                     val sourceText = runReadAction { FileDocumentManager.getInstance().getDocument(source.file)?.text }
-                                      ?: throw FileNotFoundException("Unable to read file: ${source.file.path}")
-
-                     GraphQLIntrospectionService.printIntrospectionAsGraphQL(project, sourceText)
-                   }, executor)
-      .thenApplyAsync({ introspection ->
-                        if (project.isDisposed) throw ProcessCanceledException()
-
-                        val file = generatedSdlDirPath
-                          .let { VfsUtil.createDirectories(it) }
-                          .findOrCreateChildData(null, source.targetFileName)
-
-                        val fileDocumentManager = FileDocumentManager.getInstance()
-                        if (fileDocumentManager.isFileModified(file)) {
-                          fileDocumentManager.reloadFiles(file)
-                        }
-
-                        VfsUtil.saveText(file, introspection)
-                        file.refresh(false, false)
-
-                        reformatLater(file)
-                        source.createResult(file)
-                      }, inWriteAction(ModalityState.defaultModalityState()))
-  }
-
-  private fun reformatLater(file: VirtualFile) {
-    invokeLater {
-      if (project.isDisposed) return@invokeLater
-
-      WriteCommandAction.runWriteCommandAction(project) {
-        val psiDocumentManager = PsiDocumentManager.getInstance(project)
-        val fileDocumentManager = FileDocumentManager.getInstance()
-        val document = fileDocumentManager.getDocument(file)
-        if (document != null) {
-          psiDocumentManager.commitDocument(document)
-          val psiFile = psiDocumentManager.getPsiFile(document)
-          if (psiFile != null) {
-            CodeStyleManager.getInstance(project).reformat(psiFile)
+    return coroutineScope.launch(sdlGenerationDispatcher) {
+      coroutineScope {
+        try {
+          val entry = generateEntryFromSource(source)
+          processResult(source, entry)
+          resetRetries(source)
+        }
+        catch (e: Exception) {
+          if (!isCancellation(e)) {
+            if (ApplicationManager.getApplication().isUnitTestMode) {
+              LOG.error("GraphQL SDL generation failed: source=$source", e)
+            }
+            processResult(source, source.createErrorResult(e))
+          }
+          else {
+            LOG.warn("GraphQL SDL generation cancelled: source=$source")
+            scheduleRetry(source)
           }
         }
+      }
+    }
+  }
+
+  private suspend fun generateEntryFromSource(source: Source): GeneratedEntry {
+    val sourceText = readAction { FileDocumentManager.getInstance().getDocument(source.file)?.text }
+                     ?: throw FileNotFoundException("Unable to read file: ${source.file.path}")
+
+    val introspection = GraphQLIntrospectionService.printIntrospectionAsGraphQL(project, sourceText)
+
+    checkCanceled()
+    val file = edtWriteAction {
+      generatedSdlDirPath
+        .let { VfsUtil.createDirectoryIfMissing(it) }
+        ?.findOrCreateChildData(null, source.targetFileName)
+    } ?: throw IOException("Unable to create file in $generatedSdlDirPath: ${source.targetFileName}")
+
+    checkCanceled()
+    edtWriteAction {
+      val fileDocumentManager = FileDocumentManager.getInstance()
+      if (fileDocumentManager.isFileModified(file)) {
+        fileDocumentManager.reloadFiles(file)
+      }
+
+      VfsUtil.saveText(file, introspection)
+      file.refresh(false, false)
+    }
+
+    checkCanceled()
+    try {
+      withTimeout(10.seconds) {
+        reformat(file)
+      }
+    }
+    catch (_: TimeoutCancellationException) {
+      LOG.warn("GraphQL SDL generation reformatting timed out: $file")
+    }
+    return source.createResult(file)
+  }
+
+  private suspend fun reformat(file: VirtualFile) {
+    val psiDocumentManager = PsiDocumentManager.getInstance(project)
+    val fileDocumentManager = FileDocumentManager.getInstance()
+
+    val document = readAndEdtWriteAction {
+      ProgressManager.checkCanceled()
+      val document = fileDocumentManager.getDocument(file)
+      if (document == null || psiDocumentManager.isCommitted(document)) {
+        value(document)
+      }
+      else {
+        writeAction {
+          psiDocumentManager.commitDocument(document)
+          document
+        }
+      }
+    } ?: return
+
+    readAndEdtWriteAction {
+      ProgressManager.checkCanceled()
+      val psiFile = psiDocumentManager.getPsiFile(document) ?: return@readAndEdtWriteAction value(Unit)
+      writeCommandAction(project, GraphQLBundle.message("graphql.command.name.reformat.generated.graphql.sdl")) {
+        CodeStyleManager.getInstance(project).reformat(psiFile)
+        Unit
       }
     }
   }
@@ -270,12 +296,8 @@ class GraphQLGeneratedSourcesManager(
   fun sourcesChanged() {
     if (project.isDisposed) return
 
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      invokeLater { notifySourcesChanged() }
-    }
-    else {
-      notifyChangedAlarm.cancelAllRequests()
-      notifyChangedAlarm.addRequest(::notifySourcesChanged, NOTIFY_DELAY)
+    emitOrRunImmediateInTests(notificationFlow, Unit) {
+      notifySourcesChanged()
     }
   }
 
@@ -291,36 +313,21 @@ class GraphQLGeneratedSourcesManager(
     EditorNotifications.getInstance(project).updateAllNotifications()
   }
 
-  private fun Source.createResult(file: VirtualFile) =
-    GeneratedEntry(RequestStatus.SUCCESS, timeStamp, file, null)
-
-  private fun Source.createErrorResult(e: Throwable? = null) =
-    GeneratedEntry(
-      RequestStatus.ERROR, timeStamp, null, when (e) {
-      is CompletionException -> e.cause ?: e
-      else -> e
-    }
-    )
-
   fun reset() {
-    lock.write {
-      generatedFiles.clear()
-      reverseMappings.clear()
-    }
-
+    mapping.clear()
     retries.clear()
     sourcesChanged()
   }
 
   fun isSourceForGeneratedFile(file: VirtualFile?): Boolean {
     val source = Source.create(file) ?: return false
-    return lock.read { generatedFiles[source] != null }
+    return mapping[source] != null
   }
 
   fun isGeneratedFile(file: VirtualFile?): Boolean {
     if (file == null) return false
 
-    if (lock.read { reverseMappings.containsKey(file) }) {
+    if (mapping[file] != null) {
       return true
     }
 
@@ -329,12 +336,12 @@ class GraphQLGeneratedSourcesManager(
   }
 
   fun getSourceFile(generatedFile: VirtualFile?): VirtualFile? {
-    return generatedFile?.let { lock.read { reverseMappings[it] } }?.file?.takeIf { it.isValid }
+    return generatedFile?.let { mapping[it] }?.file?.takeIf { it.isValid }
   }
 
   fun getErrorForSource(sourceFile: VirtualFile?): Throwable? {
     val source = Source.create(sourceFile) ?: return null
-    return lock.read { generatedFiles[source] }
+    return mapping[source]
       ?.takeIf { it.status == RequestStatus.ERROR }
       ?.exception
   }
@@ -345,7 +352,6 @@ class GraphQLGeneratedSourcesManager(
   }
 
   private class Source(val file: VirtualFile) {
-
     val targetFileName: String
       get() {
         val fileName = Hashing.sha256()
@@ -354,9 +360,21 @@ class GraphQLGeneratedSourcesManager(
         return "$fileName.graphql"
       }
 
-    val timeStamp: Long = runReadAction { file.timeStamp }
+    val timeStamp: Long = file.timeStamp
 
     fun isEntryOutdated(entry: GeneratedEntry): Boolean = timeStamp != entry.timeStamp
+
+    fun createResult(file: VirtualFile) =
+      GeneratedEntry(RequestStatus.SUCCESS, timeStamp, file, null)
+
+    fun createErrorResult(e: Throwable? = null) =
+      GeneratedEntry(
+        RequestStatus.ERROR, timeStamp, null,
+        when (e) {
+          is CompletionException -> e.cause ?: e
+          else -> e
+        }
+      )
 
     override fun equals(other: Any?): Boolean {
       if (this === other) return true
@@ -404,12 +422,10 @@ class GraphQLGeneratedSourcesManager(
   }
 
   override fun getState(): GraphQLGeneratedSourceState {
-    val items = lock.read {
-      generatedFiles.mapNotNull { (source, entry) ->
-        val sourcePath = source.file.takeIf { it.isValid }?.path ?: return@mapNotNull null
-        val outputPath = entry.output?.takeIf { it.isValid }?.path ?: return@mapNotNull null
-        GraphQLGeneratedSourceStateItem(entry.status, entry.timeStamp, sourcePath, outputPath)
-      }
+    val items = mapping.getAll().mapNotNull { (source, entry) ->
+      val sourcePath = source.file.takeIf { it.isValid }?.path ?: return@mapNotNull null
+      val outputPath = entry.output?.takeIf { it.isValid }?.path ?: return@mapNotNull null
+      GraphQLGeneratedSourceStateItem(entry.status, entry.timeStamp, sourcePath, outputPath)
     }
 
     return GraphQLGeneratedSourceState(items)
@@ -436,20 +452,13 @@ class GraphQLGeneratedSourcesManager(
 
       val source = Source.create(sourceFile) ?: return@mapNotNull null
       source to GeneratedEntry(status, it.timeStamp, outputFile, null)
-    } ?: emptyList()
+    }?.toMap() ?: emptyMap()
 
     if (items.isNotEmpty()) {
-      lock.write {
-        generatedFiles.clear()
-        reverseMappings.clear()
-        items.forEach { (source, entry) ->
-          generatedFiles[source] = entry
-          entry.output?.let { reverseMappings[it] = source }
-        }
-      }
+      mapping.replaceAll(items)
 
-      ApplicationManager.getApplication().executeOnPooledThread {
-        generatedFiles.forEach {
+      coroutineScope.launch {
+        items.forEach {
           requestGeneratedFile(it.key.file)
         }
       }
@@ -472,4 +481,55 @@ class GraphQLGeneratedSourcesManager(
     @get:Tag
     var outputPath: String? = null,
   )
+
+  private class GeneratedEntriesMapping {
+    private val lock = ReentrantLock()
+    private val generatedFiles: MutableMap<Source, GeneratedEntry> = mutableMapOf() // lock
+    private val reverseMappings: MutableMap<VirtualFile, Source> = mutableMapOf() // lock
+
+    operator fun get(source: Source): GeneratedEntry? {
+      return lock.withLock { generatedFiles[source] }
+    }
+
+    operator fun get(file: VirtualFile): Source? {
+      return lock.withLock { reverseMappings[file] }
+    }
+
+    operator fun set(source: Source, entry: GeneratedEntry) {
+      lock.withLock {
+        generatedFiles[source] = entry
+        entry.output?.let { reverseMappings[it] = source }
+      }
+    }
+
+    fun remove(source: Source, entry: GeneratedEntry) {
+      lock.withLock {
+        generatedFiles.remove(source, entry)
+        entry.output?.let { reverseMappings.remove(it, source) }
+      }
+    }
+
+    fun clear() {
+      lock.withLock {
+        generatedFiles.clear()
+        reverseMappings.clear()
+      }
+    }
+
+    fun getAll(): Map<Source, GeneratedEntry> {
+      return lock.withLock { generatedFiles.toMap() }
+    }
+
+    fun replaceAll(entries: Map<Source, GeneratedEntry>) {
+      lock.withLock {
+        generatedFiles.clear()
+        reverseMappings.clear()
+
+        entries.forEach { (source, entry) ->
+          generatedFiles[source] = entry
+          entry.output?.let { reverseMappings[it] = source }
+        }
+      }
+    }
+  }
 }

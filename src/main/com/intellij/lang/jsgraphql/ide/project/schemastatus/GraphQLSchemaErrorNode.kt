@@ -15,6 +15,7 @@ import com.intellij.lang.jsgraphql.schema.GraphQLUnexpectedSchemaError
 import com.intellij.lang.jsgraphql.schema.findElement
 import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.language.SourceLocation
+import com.intellij.lang.jsgraphql.ui.GraphQLUICoroutineScope
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.util.NlsSafe
@@ -23,6 +24,7 @@ import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
 import com.intellij.ui.treeStructure.SimpleTree
 import com.intellij.util.ExceptionUtil
+import kotlinx.coroutines.launch
 import java.awt.event.InputEvent
 
 /**
@@ -59,15 +61,18 @@ class GraphQLSchemaErrorNode(parent: SimpleNode?, private val error: GraphQLErro
   }
 
   override fun handleDoubleClickOrEnter(tree: SimpleTree, inputEvent: InputEvent) {
-    val location = location
-    if (location != null && location.sourceName != null) {
-      openSourceLocation(myProject, location, false)
-    }
-    else if (error is GraphQLUnexpectedSchemaError) {
-      val stackTrace = ExceptionUtil.getThrowableText(error.exception)
-      val file = PsiFileFactory.getInstance(myProject)
-        .createFileFromText("graphql-error.txt", PlainTextLanguage.INSTANCE, stackTrace)
-      OpenFileDescriptor(myProject, file.virtualFile).navigate(true)
+    location.let {
+      GraphQLUICoroutineScope.get(myProject).launch {
+        if (it != null && it.sourceName != null) {
+          openSourceLocation(myProject, it, false)
+        }
+        else if (error is GraphQLUnexpectedSchemaError) {
+          val stackTrace = ExceptionUtil.getThrowableText(error.exception)
+          val file = PsiFileFactory.getInstance(myProject)
+            .createFileFromText("graphql-error.txt", PlainTextLanguage.INSTANCE, stackTrace)
+          OpenFileDescriptor(myProject, file.virtualFile).navigate(true)
+        }
+      }
     }
   }
 

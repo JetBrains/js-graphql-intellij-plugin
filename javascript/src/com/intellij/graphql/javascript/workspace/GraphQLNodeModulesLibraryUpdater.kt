@@ -14,45 +14,42 @@ import com.intellij.platform.backend.workspace.WorkspaceModel
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 @Service(Service.Level.PROJECT)
-class GraphQLNodeModulesLibraryUpdater(private val project: Project, @VisibleForTesting val cs: CoroutineScope) {
+class GraphQLNodeModulesLibraryUpdater(private val project: Project, private val coroutineScope: CoroutineScope) {
 
   private val lock = ReentrantLock()
   private val roots = mutableSetOf<String>() // lock
 
-  fun updateNodeModulesEntity() {
-    cs.launch {
-      val prevRoots = lock.withLock { roots.toSet() }
-      val newRoots = GraphQLConfigProvider.getInstance(project).getAllConfigs(true)
-        .asSequence()
-        .flatMap { it.getProjects().values }
-        .flatMap { config ->
-          config.schema.asSequence().map { schemaPointer -> schemaPointer.pattern }
-            .plus(config.documents)
-            .plus(config.include)
-            .filter { it.contains("node_modules") }
-            .mapNotNull { GraphQLSchemaPointer.createPathForLocal(it, config.dir) }
-            .map {
-              if (ApplicationManager.getApplication().isUnitTestMode)
-                VirtualFileManager.constructUrl(config.dir.fileSystem.protocol, it)
-              else
-                VfsUtil.pathToUrl(it)
-            }
-        }
-        .toSet()
-
-      if (newRoots != prevRoots) {
-        lock.withLock {
-          roots.clear()
-          roots.addAll(newRoots)
-        }
-
-        attachEntity(newRoots)
+  suspend fun updateNodeModulesEntity() {
+    val prevRoots = lock.withLock { roots.toSet() }
+    val newRoots = GraphQLConfigProvider.getInstance(project).getAllConfigs(true)
+      .asSequence()
+      .flatMap { it.getProjects().values }
+      .flatMap { config ->
+        config.schema.asSequence().map { schemaPointer -> schemaPointer.pattern }
+          .plus(config.documents)
+          .plus(config.include)
+          .filter { it.contains("node_modules") }
+          .mapNotNull { GraphQLSchemaPointer.createPathForLocal(it, config.dir) }
+          .map {
+            if (ApplicationManager.getApplication().isUnitTestMode)
+              VirtualFileManager.constructUrl(config.dir.fileSystem.protocol, it)
+            else
+              VfsUtil.pathToUrl(it)
+          }
       }
+      .toSet()
+
+    if (newRoots != prevRoots) {
+      lock.withLock {
+        roots.clear()
+        roots.addAll(newRoots)
+      }
+
+      attachEntity(newRoots)
     }
   }
 
@@ -71,7 +68,13 @@ class GraphQLNodeModulesLibraryUpdater(private val project: Project, @VisibleFor
 
   class ConfigListener(private val project: Project) : GraphQLConfigListener {
     override fun onConfigurationChanged() {
-      getInstance(project).updateNodeModulesEntity()
+      if (project.isDisposed) return
+
+      with(getInstance(project)) {
+        coroutineScope.launch {
+          updateNodeModulesEntity()
+        }
+      }
     }
   }
 

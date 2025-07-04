@@ -5,6 +5,7 @@ package com.intellij.lang.jsgraphql.ide.config
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.GraphQLConfigOverridePath
+import com.intellij.lang.jsgraphql.emitOrRunImmediateInTests
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironmentListener
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigLoader
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
@@ -19,6 +20,7 @@ import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.parseOverrideConfigComment
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.getPhysicalVirtualFile
+import com.intellij.lang.jsgraphql.skipInTests
 import com.intellij.openapi.application.*
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -29,6 +31,8 @@ import com.intellij.openapi.progress.checkCanceled
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.roots.ModuleRootEvent
+import com.intellij.openapi.roots.ModuleRootListener
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
@@ -54,7 +58,6 @@ import com.intellij.util.concurrency.annotations.RequiresReadLock
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -64,7 +67,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.milliseconds
 
 @Service(Service.Level.PROJECT)
-class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : ModificationTracker, GraphQLConfigEnvironmentListener {
+class GraphQLConfigProvider(private val project: Project, coroutineScope: CoroutineScope) : ModificationTracker, GraphQLConfigEnvironmentListener {
   companion object {
     private val LOG = logger<GraphQLConfigProvider>()
 
@@ -85,7 +88,7 @@ class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : 
   private val remoteSchemasRegistry = GraphQLRemoteSchemasRegistry.getInstance(project)
   private val scopeDependency = GraphQLScopeDependency.getInstance(project)
 
-  private val reloadConfigAlarm = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+  private val reloadRequests = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
   // need to trigger invalidation of dependent caches regardless of whether any changes are detected or not
   private val pendingInvalidation = AtomicBoolean(false)
@@ -125,15 +128,25 @@ class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : 
     }
 
   init {
-    GraphQLFileTypeContributor.EP_NAME.addChangeListener(cs, ::invalidate)
-    GraphQLInjectedLanguage.EP_NAME.addChangeListener(cs, ::invalidate)
-    GraphQLConfigContributor.EP_NAME.addChangeListener(cs, ::invalidate)
+    GraphQLFileTypeContributor.EP_NAME.addChangeListener(coroutineScope, ::invalidate)
+    GraphQLInjectedLanguage.EP_NAME.addChangeListener(coroutineScope, ::invalidate)
+    GraphQLConfigContributor.EP_NAME.addChangeListener(coroutineScope, ::invalidate)
 
-    project.messageBus.connect(cs).subscribe(GraphQLConfigEnvironmentListener.TOPIC, this)
+    val connection = project.messageBus.connect(coroutineScope)
+    connection.subscribe(GraphQLConfigEnvironmentListener.TOPIC, this)
+    connection.subscribe(ModuleRootListener.TOPIC, object : ModuleRootListener {
+      override fun rootsChanged(event: ModuleRootEvent) {
+        scheduleConfigurationReload()
+      }
+    })
 
-    cs.launch {
-      reloadConfigAlarm.debounce(CONFIG_RELOAD_DELAY.milliseconds).collectLatest {
-        reload()
+    VirtualFileManager.getInstance().addAsyncFileListener(coroutineScope, GraphQLConfigFileListener(project))
+
+    skipInTests {
+      coroutineScope.launch {
+        reloadRequests.debounce(CONFIG_RELOAD_DELAY.milliseconds).collect {
+          reload()
+        }
       }
     }
   }
@@ -363,7 +376,7 @@ class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : 
   fun scheduleConfigurationReload() {
     if (project.isDisposed) return
 
-    if (ApplicationManager.getApplication().isUnitTestMode) {
+    emitOrRunImmediateInTests(reloadRequests, Unit) {
       DumbService.getInstance(project).smartInvokeLater(
         {
           runWithModalProgressBlocking(project, "") {
@@ -373,18 +386,14 @@ class GraphQLConfigProvider(private val project: Project, cs: CoroutineScope) : 
         ModalityState.nonModal()
       )
     }
-    else {
-      check(reloadConfigAlarm.tryEmit(Unit))
-    }
   }
 
-  private suspend fun reload() {
+  @RequiresBackgroundThread
+  suspend fun reload() {
     if (project.isDisposed) return
     checkCanceled()
 
-    val discoveredConfigFiles = smartReadAction(project) {
-      configFiles.value
-    }
+    val discoveredConfigFiles = smartReadAction(project) { configFiles.value }
     saveModifiedDocuments(discoveredConfigFiles)
 
     val loader = GraphQLConfigLoader.getInstance(project)
