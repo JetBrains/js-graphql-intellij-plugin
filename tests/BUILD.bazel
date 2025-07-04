@@ -60,6 +60,7 @@ jvm_library(
     "//plugins/JavaScriptLanguage/javascript-frontback-impl",
     "//contrib/vuejs",
     "@community//plugins/IntelliLang:langInjection",
+    "@community//plugins/IntelliLang/plugin",
     "@community//plugins/yaml",
     "@community//plugins/yaml:yaml_test_lib",
     "@community//plugins/yaml/backend",
