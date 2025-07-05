@@ -9,7 +9,6 @@ import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryClient.Companio
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryClient.Companion.prepareQueryPayload
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.*
 import com.intellij.lang.jsgraphql.ide.notifications.handleIntrospectionError
-import com.intellij.openapi.application.EDT
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.debug
@@ -112,9 +111,8 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
         throw IOException("unable to create target directory: path=$schemaPath")
       }
 
-      withContext(Dispatchers.EDT) {
-        GraphQLIntrospectionService.createOrUpdateIntrospectionOutputFile(project, parsedIntrospection, filePath.name, dir)
-      }
+      GraphQLIntrospectionSchemaWriter.getInstance(project)
+        .createOrUpdateIntrospectionFile(parsedIntrospection, dir, filePath.name)
     }
     catch (exception: CancellationException) {
       throw exception
