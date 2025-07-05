@@ -9,10 +9,8 @@ package com.intellij.lang.jsgraphql.ide.introspection;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
-import com.intellij.ide.actions.CreateFileAction;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
-import com.intellij.lang.jsgraphql.GraphQLSettings;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
 import com.intellij.lang.jsgraphql.ide.config.model.*;
@@ -35,30 +33,18 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.options.advanced.AdvancedSettings;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDirectory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.impl.file.PsiDirectoryFactory;
 import com.intellij.util.Consumer;
-import com.intellij.util.ObjectUtils;
-import com.intellij.util.concurrency.annotations.RequiresWriteLock;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import org.apache.http.client.methods.HttpPost;
@@ -253,19 +239,6 @@ public final class GraphQLIntrospectionService implements Disposable {
     }
   }
 
-  @RequiresWriteLock
-  private static @NotNull VirtualFile createOrUpdateSchemaFile(@NotNull Project project,
-                                                               @NotNull VirtualFile dir,
-                                                               @NotNull String relativeOutputFileName) throws IOException {
-    VirtualFile outputFile = dir.findFileByRelativePath(relativeOutputFileName);
-    if (outputFile == null) {
-      PsiDirectory directory = PsiDirectoryFactory.getInstance(project).createDirectory(dir);
-      CreateFileAction.MkDirs result = new CreateFileAction.MkDirs(relativeOutputFileName, directory);
-      outputFile = result.directory.getVirtualFile().createChildData(dir, result.newName);
-    }
-    return outputFile;
-  }
-
   /**
    * @deprecated use {@link GraphQLQueryClient#createRequest(GraphQLConfigEndpoint, String)} instead.
    */
@@ -326,84 +299,6 @@ public final class GraphQLIntrospectionService implements Disposable {
       handleIntrospectionError(project, endpoint, exception, null, rawIntrospectionResponse);
       return null;
     }
-  }
-
-  static void createOrUpdateIntrospectionOutputFile(@NotNull Project project,
-                                                    @NotNull IntrospectionOutput output,
-                                                    @NotNull String outputFileName,
-                                                    @NotNull VirtualFile dir) {
-    String header = switch (output.format) {
-      case SDL -> "# This file was generated. Do not edit manually.\n\n";
-      case JSON -> "";
-    };
-
-    WriteCommandAction.runWriteCommandAction(project, () -> {
-      try {
-        FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
-        PsiDocumentManager psiDocumentManager = PsiDocumentManager.getInstance(project);
-
-        VirtualFile outputFile = createOrUpdateSchemaFile(project, dir, FileUtil.toSystemIndependentName(outputFileName));
-        com.intellij.openapi.editor.Document document = fileDocumentManager.getDocument(outputFile);
-        if (document == null) {
-          throw new IllegalStateException("Document not found");
-        }
-        document.setText(StringUtil.convertLineSeparators(header + output.schemaText));
-        psiDocumentManager.commitDocument(document);
-        PsiFile psiFile = psiDocumentManager.getPsiFile(document);
-        if (psiFile != null) {
-          CodeStyleManager.getInstance(project).reformat(psiFile);
-          psiDocumentManager.commitDocument(document);
-          fileDocumentManager.saveDocument(document);
-        }
-        openSchemaInEditor(project, outputFile);
-      }
-      catch (ProcessCanceledException e) {
-        throw e;
-      }
-      catch (IOException e) {
-        LOG.info(e);
-        Notification notification = new Notification(
-          GRAPHQL_NOTIFICATION_GROUP_ID,
-          GraphQLBundle.message("graphql.notification.error.title"),
-          GraphQLBundle.message("graphql.notification.unable.to.create.file", outputFileName, dir.getPath()),
-          NotificationType.ERROR
-        );
-        addShowQueryErrorDetailsAction(project, notification, e);
-        Notifications.Bus.notify(notification);
-      }
-      catch (Exception e) {
-        LOG.error(e);
-      }
-    });
-  }
-
-  private static void openSchemaInEditor(@NotNull Project project, @NotNull VirtualFile file) {
-    if (!GraphQLSettings.getSettings(project).isOpenEditorWithIntrospectionResult()) {
-      return;
-    }
-
-    ApplicationManager.getApplication().invokeLater(() -> {
-      FileEditor[] fileEditors = FileEditorManager.getInstance(project).openFile(file, true, true);
-      if (fileEditors.length == 0) {
-        showUnableToOpenEditorNotification(file);
-        return;
-      }
-
-      TextEditor textEditor = ObjectUtils.tryCast(fileEditors[0], TextEditor.class);
-      if (textEditor == null) {
-        showUnableToOpenEditorNotification(file);
-      }
-    });
-  }
-
-  private static void showUnableToOpenEditorNotification(@NotNull VirtualFile outputFile) {
-    Notifications.Bus.notify(
-      new Notification(
-        GRAPHQL_NOTIFICATION_GROUP_ID,
-        GraphQLBundle.message("graphql.notification.error.title"),
-        GraphQLBundle.message("graphql.notification.unable.to.open.editor", outputFile.getPath()),
-        NotificationType.ERROR)
-    );
   }
 
   @SuppressWarnings("unchecked")

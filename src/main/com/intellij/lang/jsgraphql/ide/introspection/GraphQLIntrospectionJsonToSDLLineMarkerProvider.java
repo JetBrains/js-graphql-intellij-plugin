@@ -14,20 +14,15 @@ import com.intellij.json.psi.JsonArray;
 import com.intellij.json.psi.JsonObject;
 import com.intellij.json.psi.JsonProperty;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
-import com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil;
-import com.intellij.notification.Notification;
-import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.concurrent.CancellationException;
 
 /**
  * Line marker which shows an action to turn a GraphQL Introspection JSON result into a GraphQL schema expressed in GraphQL SDL.
@@ -57,39 +52,9 @@ public final class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements Li
 
     for (JsonProperty property : ((JsonObject)jsonProperty.getValue()).getPropertyList()) {
       if ("types".equals(property.getName()) && property.getValue() instanceof JsonArray) {
+        SmartPsiElementPointer<PsiElement> pointer = SmartPointerManager.createPointer(element);
         // likely a GraphQL schema with a { __schema: { types: [] } }
-        Ref<Runnable> generateAction = Ref.create();
-        generateAction.set(() -> {
-          try {
-            String introspectionJson = element.getContainingFile().getText();
-            String schemaAsSDL = GraphQLIntrospectionService.printIntrospectionAsGraphQL(project, introspectionJson);
-
-            VirtualFile jsonFile = element.getContainingFile().getVirtualFile();
-            String outputFileName = jsonFile.getNameWithoutExtension() + ".graphql";
-
-            GraphQLIntrospectionService.createOrUpdateIntrospectionOutputFile(
-              project,
-              new GraphQLIntrospectionService.IntrospectionOutput(schemaAsSDL, GraphQLIntrospectionService.IntrospectionOutputFormat.SDL),
-              outputFileName,
-              jsonFile.getParent()
-            );
-          }
-          catch (CancellationException e) {
-            throw e;
-          }
-          catch (Exception e) {
-            Notification notification = new Notification(
-              GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID,
-              GraphQLBundle.message("graphql.notification.introspection.error.title"),
-              GraphQLBundle.message("graphql.notification.introspection.error.body"),
-              NotificationType.ERROR
-            ).setImportant(true);
-
-            GraphQLNotificationUtil.notifyAboutPossiblyInvalidIntrospectionSchema(notification, e);
-            GraphQLNotificationUtil.addShowQueryErrorDetailsAction(project, notification, e);
-            Notifications.Bus.notify(notification);
-          }
-        });
+        Runnable generateAction = new GraphQLConvertJsonIntrospectionToSdlCommand(project, pointer);
 
         PsiElement anchor = jsonProperty.getNameElement().getFirstChild();
         if (anchor == null) return null;
@@ -99,7 +64,7 @@ public final class GraphQLIntrospectionJsonToSDLLineMarkerProvider implements Li
           anchor.getTextRange(),
           AllIcons.RunConfigurations.TestState.Run,
           o -> GraphQLBundle.message("graphql.line.marker.generate.schema.file"),
-          (evt, elt) -> generateAction.get().run(),
+          (evt, elt) -> generateAction.run(),
           GutterIconRenderer.Alignment.CENTER,
           () -> GraphQLBundle.message("graphql.line.marker.generate.schema.file")
         );
