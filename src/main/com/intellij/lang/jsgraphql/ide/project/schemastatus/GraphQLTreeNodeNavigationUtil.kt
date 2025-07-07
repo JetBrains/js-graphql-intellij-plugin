@@ -10,10 +10,13 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus
 import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.types.language.SourceLocation
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.StandardFileSystems
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object GraphQLTreeNodeNavigationUtil {
   suspend fun openSourceLocation(project: Project, location: SourceLocation, followGeneratedFile: Boolean) {
@@ -25,6 +28,8 @@ object GraphQLTreeNodeNavigationUtil {
         sourceFile = generatedSource
       }
     }
-    OpenFileDescriptor(project, sourceFile, location.line, location.column).navigate(true)
+    withContext(Dispatchers.EDT) {
+      OpenFileDescriptor(project, sourceFile, location.line, location.column).navigate(true)
+    }
   }
 }
