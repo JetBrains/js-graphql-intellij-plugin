@@ -16,6 +16,8 @@ import com.intellij.lang.jsgraphql.schema.findElement
 import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.language.SourceLocation
 import com.intellij.lang.jsgraphql.ui.GraphQLUICoroutineScope
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.util.NlsSafe
@@ -24,7 +26,9 @@ import com.intellij.ui.treeStructure.CachingSimpleNode
 import com.intellij.ui.treeStructure.SimpleNode
 import com.intellij.ui.treeStructure.SimpleTree
 import com.intellij.util.ExceptionUtil
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.awt.event.InputEvent
 
 /**
@@ -68,9 +72,13 @@ class GraphQLSchemaErrorNode(parent: SimpleNode?, private val error: GraphQLErro
         }
         else if (error is GraphQLUnexpectedSchemaError) {
           val stackTrace = ExceptionUtil.getThrowableText(error.exception)
-          val file = PsiFileFactory.getInstance(myProject)
-            .createFileFromText("graphql-error.txt", PlainTextLanguage.INSTANCE, stackTrace)
-          OpenFileDescriptor(myProject, file.virtualFile).navigate(true)
+          val file = readAction {
+            PsiFileFactory.getInstance(myProject)
+              .createFileFromText("graphql-error.txt", PlainTextLanguage.INSTANCE, stackTrace)
+          }
+          withContext(Dispatchers.EDT) {
+            OpenFileDescriptor(myProject, file.virtualFile).navigate(true)
+          }
         }
       }
     }
