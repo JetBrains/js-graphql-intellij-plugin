@@ -11,9 +11,10 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.readAndEdtWriteAction
+import com.intellij.openapi.application.runUndoTransparentWriteAction
+import com.intellij.openapi.command.writeCommandAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.components.serviceAsync
@@ -32,6 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.impl.file.PsiDirectoryFactory
+import com.intellij.util.DocumentUtil
 import com.intellij.util.concurrency.annotations.RequiresWriteLock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -62,19 +64,23 @@ internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
     val psiDocumentManager = PsiDocumentManager.getInstance(project)
 
     try {
-      val outputFile = edtWriteAction {
-        createOrUpdateSchemaFile(project, dir, FileUtil.toSystemIndependentName(fileName))
+      val outputFile = withContext(Dispatchers.EDT) {
+        runUndoTransparentWriteAction {
+          createOrUpdateSchemaFile(project, dir, FileUtil.toSystemIndependentName(fileName))
+        }
       }
 
       val document = readAction { fileDocumentManager.getDocument(outputFile) }
                      ?: throw IOException("Unable to get document for created introspection file: $outputFile")
 
-      edtWriteAction {
-        document.setText(StringUtil.convertLineSeparators(header + output.schemaText))
-        psiDocumentManager.commitDocument(document)
+      withContext(Dispatchers.EDT) {
+        runUndoTransparentWriteAction {
+          document.setText(StringUtil.convertLineSeparators(header + output.schemaText))
+          psiDocumentManager.commitDocument(document)
+        }
       }
 
-      reformatDocumentIfNeeded(psiDocumentManager, fileDocumentManager, outputFile, document, dir)
+      reformatDocumentIfNeeded(psiDocumentManager, fileDocumentManager, outputFile, document)
       openSchemaInEditor(project, outputFile)
     }
     catch (e: ProcessCanceledException) {
@@ -101,19 +107,20 @@ internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
     fileDocumentManager: FileDocumentManager,
     outputFile: VirtualFile,
     document: Document,
-    dir: VirtualFile,
   ) {
     if (outputFile.getUserData(SKIP_FORMATTING_KEY) != true) {
       withTimeoutOrNull(3.seconds) {
         readAndEdtWriteAction {
           val psiFile = psiDocumentManager.getPsiFile(document)
           if (psiFile != null) {
-            writeAction {
-              CodeStyleManager.getInstance(project).reformat(psiFile);
+            writeCommandAction(project, GraphQLBundle.message("graphql.command.name.reformat.generated.graphql.sdl")) {
+              DocumentUtil.executeInBulk(document) {
+                CodeStyleManager.getInstance(project).reformat(psiFile)
 
-              ProgressManager.checkCanceled()
-              psiDocumentManager.commitDocument(document);
-              fileDocumentManager.saveDocument(document);
+                ProgressManager.checkCanceled()
+                psiDocumentManager.commitDocument(document)
+                fileDocumentManager.saveDocument(document)
+              }
             }
           }
           else {
@@ -121,7 +128,7 @@ internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
           }
         }
       } ?: run {
-        LOG.warn("Timed out waiting for reformat to complete: ${dir.path}$outputFile")
+        LOG.warn("Timed out waiting for reformat to complete: $outputFile")
         outputFile.putUserData(SKIP_FORMATTING_KEY, true)
       }
     }
