@@ -28,6 +28,12 @@ public class GraphQLFragmentDefinitionImpl extends GraphQLFragmentDefinitionMixi
 
   @Override
   @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
+  }
+
+  @Override
+  @Nullable
   public GraphQLSelectionSet getSelectionSet() {
     return findChildByClass(GraphQLSelectionSet.class);
   }

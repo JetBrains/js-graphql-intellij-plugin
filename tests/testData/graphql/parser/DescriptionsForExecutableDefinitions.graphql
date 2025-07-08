@@ -1,0 +1,29 @@
+"""
+Request the current status of a time machine and its operator.
+"""
+query GetTimeMachineStatus(
+  "The unique serial number of the time machine to inspect."
+  $machineId: ID!
+
+  """
+  The year to check the status for.
+  **Warning:** certain years may trigger an anomaly in the space-time continuum.
+  """
+  $year: Int
+) {
+  timeMachine(id: $machineId) {
+    ...TimeMachineDetails
+    operator {
+        name
+        licenseLevel
+    }
+    status(year: $year)
+  }
+}
+
+"Time machine details."
+fragment TimeMachineDetails on TimeMachine {
+  id
+  model
+  lastMaintenance
+}

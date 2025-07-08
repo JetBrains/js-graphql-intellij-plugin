@@ -114,6 +114,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
     visitDefinition(o);
     // visitDirectivesAware(o);
     // visitNamedElement(o);
+    // visitDescriptionAware(o);
     // visitTypeScopeProvider(o);
   }
 
@@ -304,6 +305,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
   public void visitTypedOperationDefinition(@NotNull GraphQLTypedOperationDefinition o) {
     visitOperationDefinition(o);
     // visitDirectivesAware(o);
+    // visitDescriptionAware(o);
     // visitTypeScopeProvider(o);
   }
 
@@ -336,6 +338,7 @@ public class GraphQLVisitorBase extends PsiElementVisitor {
 
   public void visitVariableDefinition(@NotNull GraphQLVariableDefinition o) {
     visitDirectivesAware(o);
+    // visitDescriptionAware(o);
     // visitTypeScopeProvider(o);
     // visitTypeOwner(o);
   }

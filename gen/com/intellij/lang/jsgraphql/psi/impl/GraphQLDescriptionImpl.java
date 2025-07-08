@@ -32,4 +32,14 @@ public class GraphQLDescriptionImpl extends GraphQLElementImpl implements GraphQ
     return findNotNullChildByClass(GraphQLStringLiteral.class);
   }
 
+  @Override
+  public @NotNull String getContent() {
+    return GraphQLPsiImplUtil.getContent(this);
+  }
+
+  @Override
+  public boolean isMultiLine() {
+    return GraphQLPsiImplUtil.isMultiLine(this);
+  }
+
 }

@@ -5,7 +5,10 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GraphQLFragmentDefinition extends GraphQLDefinition, GraphQLDirectivesAware, GraphQLNamedElement, GraphQLTypeScopeProvider {
+public interface GraphQLFragmentDefinition extends GraphQLDefinition, GraphQLDirectivesAware, GraphQLNamedElement, GraphQLDescriptionAware, GraphQLTypeScopeProvider {
+
+  @Nullable
+  GraphQLDescription getDescription();
 
   @Nullable
   GraphQLSelectionSet getSelectionSet();

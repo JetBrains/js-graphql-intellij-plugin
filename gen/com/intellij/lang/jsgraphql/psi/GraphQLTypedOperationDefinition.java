@@ -5,7 +5,10 @@ import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
 
-public interface GraphQLTypedOperationDefinition extends GraphQLOperationDefinition, GraphQLDirectivesAware, GraphQLTypeScopeProvider {
+public interface GraphQLTypedOperationDefinition extends GraphQLOperationDefinition, GraphQLDirectivesAware, GraphQLDescriptionAware, GraphQLTypeScopeProvider {
+
+  @Nullable
+  GraphQLDescription getDescription();
 
   @NotNull
   GraphQLOperationType getOperationType();

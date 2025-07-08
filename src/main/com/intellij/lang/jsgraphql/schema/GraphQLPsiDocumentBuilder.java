@@ -1,14 +1,11 @@
 package com.intellij.lang.jsgraphql.schema;
 
 
-import com.intellij.lang.injection.InjectedLanguageManager;
-import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage;
 import com.intellij.lang.jsgraphql.psi.*;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;
 import com.intellij.lang.jsgraphql.types.language.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiLanguageInjectionHost;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,8 +19,6 @@ import java.util.List;
 import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.emptyList;
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.mapNotNull;
-import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseSingleQuotedString;
-import static com.intellij.lang.jsgraphql.types.parser.StringValueParsing.parseTripleQuotedString;
 
 @SuppressWarnings("rawtypes")
 public final class GraphQLPsiDocumentBuilder {
@@ -791,30 +786,10 @@ public final class GraphQLPsiDocumentBuilder {
   }
 
   private static @Nullable Description newDescription(@Nullable GraphQLDescription description) {
-    if (description == null) {
-      return null;
-    }
-
-    String content = description.getText();
-
-    PsiLanguageInjectionHost injectionHost =
-      InjectedLanguageManager.getInstance(description.getProject()).getInjectionHost(description);
-    GraphQLInjectedLanguage injectedLanguage = injectionHost != null ? GraphQLInjectedLanguage.forElement(injectionHost) : null;
-    if (injectedLanguage != null) {
-      String escaped = injectedLanguage.escapeHostElements(content);
-      if (!StringUtil.isEmpty(escaped)) {
-        content = escaped;
-      }
-    }
-
+    if (description == null) return null;
+    String content = description.getContent();
+    boolean multiLine = description.isMultiLine();
     SourceLocation sourceLocation = GraphQLTypeDefinitionUtil.getSourceLocation(description);
-    boolean multiLine = content.startsWith("\"\"\"");
-    if (multiLine) {
-      content = parseTripleQuotedString(content);
-    }
-    else {
-      content = parseSingleQuotedString(content);
-    }
     return new Description(content, sourceLocation, multiLine);
   }
 
