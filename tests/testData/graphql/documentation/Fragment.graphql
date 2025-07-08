@@ -1,0 +1,12 @@
+query GetTimeMachineStatus {
+  timeMachine {
+    ...Time<caret>MachineDetails
+  }
+}
+
+"Time machine details."
+fragment TimeMachineDetails on TimeMachine {
+  id
+  model
+  lastMaintenance
+}

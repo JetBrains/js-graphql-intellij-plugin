@@ -5,295 +5,292 @@
  *  This source code is licensed under the MIT license found in the
  *  LICENSE file in the root directory of this source tree.
  */
-package com.intellij.lang.jsgraphql.ide.documentation;
+package com.intellij.lang.jsgraphql.ide.documentation
 
-import com.intellij.lang.documentation.DocumentationProviderEx;
-import com.intellij.lang.jsgraphql.GraphQLConstants;
-import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
-import com.intellij.lang.jsgraphql.psi.GraphQLType;
-import com.intellij.lang.jsgraphql.psi.*;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider;
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
-import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumValueDefinition;
-import com.intellij.lang.jsgraphql.types.schema.*;
-import com.intellij.openapi.util.NlsSafe;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.intellij.lang.documentation.DocumentationMarkup
+import com.intellij.lang.documentation.DocumentationProviderEx
+import com.intellij.lang.jsgraphql.GraphQLConstants
+import com.intellij.lang.jsgraphql.ide.documentation.GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML
+import com.intellij.lang.jsgraphql.psi.*
+import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil.getTypeDescription
+import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil.getTypeName
+import com.intellij.lang.jsgraphql.types.schema.*
+import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument
+import com.intellij.openapi.util.NlsSafe
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.parentOfType
+import org.jetbrains.annotations.Nls
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
-import java.util.List;
-import java.util.Objects;
-
-import static com.intellij.lang.documentation.DocumentationMarkup.*;
-
-public final class GraphQLDocumentationProvider extends DocumentationProviderEx {
-
-  private static final String GRAPHQL_DOC_PREFIX = GraphQLConstants.GraphQL;
-
-  @Override
-  public @Nullable @Nls String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
+class GraphQLDocumentationProvider : DocumentationProviderEx() {
+  override fun getQuickNavigateInfo(element: PsiElement?, originalElement: PsiElement?): @Nls String? {
     if (isDocumentationSupported(element)) {
-      return createQuickNavigateDocumentation(element);
+      return createQuickNavigateDocumentation(element)
     }
-    return null;
+    return null
   }
 
-  @Override
-  public @Nullable @Nls String generateDoc(PsiElement element, @Nullable PsiElement originalElement) {
-    return createQuickNavigateDocumentation(element);
+  override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): @Nls String? {
+    return createQuickNavigateDocumentation(element)
   }
 
-  @Override
-  public @Nullable PsiElement getDocumentationElementForLink(PsiManager psiManager, String link, PsiElement context) {
+  override fun getDocumentationElementForLink(psiManager: PsiManager?, link: String, context: PsiElement?): PsiElement? {
     if (link.startsWith(GRAPHQL_DOC_PREFIX)) {
-      return new GraphQLDocumentationPsiElement(context, link);
+      return GraphQLDocumentationPsiElement(context, link)
     }
-    return super.getDocumentationElementForLink(psiManager, link, context);
-  }
-
-  private static boolean isDocumentationSupported(PsiElement element) {
-    return element.getContainingFile() instanceof GraphQLFile;
-  }
-
-  private static @Nullable @NlsSafe String createQuickNavigateDocumentation(PsiElement element) {
-    if (!isDocumentationSupported(element)) {
-      return null;
-    }
-
-    final GraphQLSchemaProvider typeRegistryService = GraphQLSchemaProvider.getInstance(element.getProject());
-    final GraphQLSchema schema = typeRegistryService.getSchemaInfo(element).getSchema();
-
-    if (element instanceof GraphQLNamedElement) {
-
-      final PsiElement parent = element.getParent();
-
-      if (parent instanceof GraphQLTypeNameDefinition) {
-        return getTypeDocumentation(element, schema, (GraphQLTypeNameDefinition)parent);
-      }
-
-      if (parent instanceof GraphQLFieldDefinition) {
-        return getFieldDocumentation(element, schema, (GraphQLFieldDefinition)parent);
-      }
-
-      if (parent instanceof GraphQLInputValueDefinition) {
-        return getArgumentDocumentation(schema, (GraphQLInputValueDefinition)parent);
-      }
-
-      if (parent instanceof GraphQLEnumValue) {
-        return getEnumValueDocumentation(schema, (GraphQLEnumValue)parent);
-      }
-
-      if (parent instanceof GraphQLDirectiveDefinition) {
-        return getDirectiveDocumentation(schema, (GraphQLDirectiveDefinition)parent);
-      }
-
-      return null;
-    }
-
-    return null;
-  }
-
-  private static @Nullable String getDirectiveDocumentation(GraphQLSchema schema, GraphQLDirectiveDefinition parent) {
-    final GraphQLIdentifier directiveName = parent.getNameIdentifier();
-    if (directiveName == null) {
-      return null;
-    }
-    final GraphQLDirective schemaDirective = schema.getFirstDirective(directiveName.getText());
-    if (schemaDirective == null) {
-      return null;
-    }
-    final StringBuilder result = new StringBuilder().append(DEFINITION_START);
-    result.append("@").append(schemaDirective.getName());
-    if (schemaDirective.isRepeatable()) {
-      result.append(" ").append(GRAYED_START).append("(repeatable)").append(GRAYED_END);
-    }
-    result.append(DEFINITION_END);
-    final String description = schemaDirective.getDescription();
-    if (description != null) {
-      result.append(CONTENT_START);
-      result.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
-      result.append(CONTENT_END);
-    }
-    return result.toString();
-  }
-
-  private static @Nullable String getEnumValueDocumentation(GraphQLSchema schema, GraphQLEnumValue parent) {
-    final String enumName = GraphQLPsiUtil.findContainingTypeName(parent);
-    if (enumName != null) {
-      com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(enumName);
-      if (schemaType instanceof GraphQLEnumType) {
-        final String enumValueName = parent.getName();
-        final StringBuilder result = new StringBuilder().append(DEFINITION_START);
-        result.append(enumName).append(".").append(enumValueName);
-        result.append(DEFINITION_END);
-        for (GraphQLEnumValueDefinition enumValueDefinition : ((GraphQLEnumType)schemaType).getValues()) {
-          if (Objects.equals(enumValueDefinition.getName(), enumValueName)) {
-            final String description = enumValueDefinition.getDescription();
-            if (description != null) {
-              result.append(CONTENT_START);
-              result.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
-              result.append(CONTENT_END);
-              return result.toString();
-            }
-          }
-        }
-        return result.toString();
-      }
-    }
-    return null;
-  }
-
-  private static @Nullable String getArgumentDocumentation(GraphQLSchema schema, GraphQLInputValueDefinition parent) {
-
-    // input value definition defines an argument on a field or a directive, or a field on an input type
-
-    final String inputValueName = parent.getName();
-    if (inputValueName != null) {
-
-      final PsiElement definition = PsiTreeUtil.getParentOfType(parent, GraphQLFieldDefinition.class,
-                                                                GraphQLDirectiveDefinition.class, GraphQLInputObjectTypeDefinition.class,
-                                                                GraphQLInputObjectTypeExtensionDefinition.class);
-      if (definition instanceof GraphQLFieldDefinition) {
-
-        final String typeName = GraphQLPsiUtil.findContainingTypeName(parent);
-        if (typeName != null) {
-          final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(typeName);
-          List<com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition> fieldDefinitions;
-          if (schemaType instanceof GraphQLObjectType) {
-            fieldDefinitions = ((GraphQLObjectType)schemaType).getFieldDefinitions();
-          }
-          else if (schemaType instanceof GraphQLInterfaceType) {
-            fieldDefinitions = ((GraphQLInterfaceType)schemaType).getFieldDefinitions();
-          }
-          else {
-            return null;
-          }
-          final String fieldName = ((GraphQLFieldDefinition)definition).getName();
-          for (com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
-            if (Objects.equals(fieldDefinition.getName(), fieldName)) {
-              for (GraphQLArgument argument : fieldDefinition.getArguments()) {
-                if (Objects.equals(argument.getName(), inputValueName)) {
-                  return getArgumentDocumentation(inputValueName, argument);
-                }
-              }
-            }
-          }
-        }
-      }
-      else if (definition instanceof GraphQLDirectiveDefinition) {
-
-        final GraphQLIdentifier directiveName = ((GraphQLDirectiveDefinition)definition).getNameIdentifier();
-        if (directiveName != null) {
-          final GraphQLDirective schemaDirective = schema.getFirstDirective(directiveName.getText());
-          if (schemaDirective != null) {
-            for (GraphQLArgument argument : schemaDirective.getArguments()) {
-              if (inputValueName.equals(argument.getName())) {
-                return getArgumentDocumentation(inputValueName, argument);
-              }
-            }
-          }
-        }
-      }
-      else if (definition instanceof GraphQLInputObjectTypeDefinition || definition instanceof GraphQLInputObjectTypeExtensionDefinition) {
-
-        final String inputTypeName = GraphQLPsiUtil.findContainingTypeName(parent);
-        final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(inputTypeName);
-        if (schemaType instanceof GraphQLInputObjectType) {
-          for (GraphQLInputObjectField inputObjectField : ((GraphQLInputObjectType)schemaType).getFieldDefinitions()) {
-            if (inputValueName.equals(inputObjectField.getName())) {
-              GraphQLInputType type = inputObjectField.getType();
-              final StringBuilder result = new StringBuilder().append(DEFINITION_START);
-              result.append(GraphQLSchemaUtil.getTypeName(schemaType)).append(".");
-              result.append(inputValueName).append(type != null ? ": " : "").append(
-                type != null ? GraphQLSchemaUtil.getTypeName(type) : "");
-              result.append(DEFINITION_END);
-
-              final String description = inputObjectField.getDescription();
-              appendDescription(result, description);
-              return result.toString();
-            }
-          }
-        }
-      }
-    }
-
-    return null;
-  }
-
-  private static @NotNull String getArgumentDocumentation(String inputValueName, GraphQLArgument argument) {
-    final StringBuilder html = new StringBuilder().append(DEFINITION_START);
-    GraphQLInputType argumentType = argument.getType();
-    html.append(inputValueName).append(argumentType != null ? ": " : " ").append(
-      argumentType != null ? GraphQLSchemaUtil.getTypeName(argumentType) : "");
-    html.append(DEFINITION_END);
-    appendDescription(html, GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(argument.getDescription()));
-    return html.toString();
-  }
-
-  private static void appendDescription(StringBuilder result, @Nullable String descriptionAsHTML) {
-    if (descriptionAsHTML == null) return;
-    result.append(CONTENT_START).append(descriptionAsHTML).append(CONTENT_END);
-  }
-
-  private static @Nullable String getFieldDocumentation(PsiElement element, GraphQLSchema schema, GraphQLFieldDefinition parent) {
-    final GraphQLType psiFieldType = parent.getType();
-    final GraphQLTypeSystemDefinition psiDefinition = PsiTreeUtil.getParentOfType(parent, GraphQLTypeSystemDefinition.class);
-    final GraphQLNamedElement psiTypeName = PsiTreeUtil.findChildOfType(psiDefinition, GraphQLNamedElement.class);
-    if (psiTypeName != null) {
-      final com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(psiTypeName.getText());
-      if (schemaType != null) {
-        final String fieldName = element.getText();
-        final StringBuilder html = new StringBuilder().append(DEFINITION_START);
-        html.append(GraphQLSchemaUtil.getTypeName(schemaType)).append(".");
-        html.append(fieldName).append(psiFieldType != null ? ": " : "").append(psiFieldType != null ? psiFieldType.getText() : "");
-        html.append(DEFINITION_END);
-        List<com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition> fieldDefinitions = null;
-        if (schemaType instanceof GraphQLObjectType) {
-          fieldDefinitions = ((GraphQLObjectType)schemaType).getFieldDefinitions();
-        }
-        else if (schemaType instanceof GraphQLInterfaceType) {
-          fieldDefinitions = ((GraphQLInterfaceType)schemaType).getFieldDefinitions();
-        }
-        if (fieldDefinitions != null) {
-          for (com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition fieldDefinition : fieldDefinitions) {
-            if (fieldName.equals(fieldDefinition.getName())) {
-              appendDescription(html,
-                                GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(fieldDefinition.getDescription()));
-              break;
-            }
-          }
-        }
-        return html.toString();
-      }
-    }
-    return null;
-  }
-
-  private static @Nullable String getTypeDocumentation(PsiElement element, GraphQLSchema schema, GraphQLTypeNameDefinition parent) {
-    com.intellij.lang.jsgraphql.types.schema.GraphQLType schemaType = schema.getType(((GraphQLNamedElement)element).getName());
-    if (schemaType != null) {
-      final StringBuilder html = new StringBuilder().append(DEFINITION_START);
-      PsiElement keyword = PsiTreeUtil.prevVisibleLeaf(parent);
-      if (keyword != null) {
-        html.append(keyword.getText()).append(" ");
-      }
-      html.append(element.getText());
-      html.append(DEFINITION_END);
-      final String description = GraphQLSchemaUtil.getTypeDescription(schemaType);
-      if (description != null) {
-        html.append(CONTENT_START);
-        html.append(GraphQLDocumentationMarkdownRenderer.getDescriptionAsHTML(description));
-        html.append(CONTENT_END);
-      }
-      return html.toString();
-    }
-    return null;
+    return super.getDocumentationElementForLink(psiManager, link, context)
   }
 }
 
+private const val GRAPHQL_DOC_PREFIX = GraphQLConstants.GraphQL
+
+@OptIn(ExperimentalContracts::class)
+private fun isDocumentationSupported(element: PsiElement?): Boolean {
+  contract {
+    returns(true) implies (element is GraphQLElement)
+  }
+  return element is GraphQLElement
+}
+
+private fun createQuickNavigateDocumentation(element: PsiElement?): @NlsSafe String? {
+  if (!isDocumentationSupported(element)) {
+    return null
+  }
+
+  val typeRegistryService = GraphQLSchemaProvider.getInstance(element.project)
+  val schema = typeRegistryService.getSchemaInfo(element).schema
+
+  // TODO: remove a specific check for variables after refactoring them to be proper named elements with refactoring support
+  if (element !is GraphQLNamedElement && element !is GraphQLVariable) {
+    return null
+  }
+
+  return when (val parent = element.parent) {
+    is GraphQLTypeNameDefinition -> getTypeDocumentation(element, schema, parent)
+    is GraphQLFieldDefinition -> getFieldDocumentation(schema, parent)
+    is GraphQLInputValueDefinition -> getArgumentDocumentation(schema, parent)
+    is GraphQLEnumValue -> getEnumValueDocumentation(schema, parent)
+    is GraphQLDirectiveDefinition -> getDirectiveDocumentation(schema, parent)
+    is GraphQLTypedOperationDefinition -> getOperationDocumentation(parent)
+    is GraphQLVariableDefinition -> getVariableDocumentation(parent)
+    is GraphQLFragmentDefinition -> getFragmentDocumentation(parent)
+    else -> null
+  }
+}
+
+private fun getOperationDocumentation(target: GraphQLTypedOperationDefinition): String? {
+  val operationName = target.name ?: return null
+  val operationType = target.operationType.text
+
+  return buildString {
+    append(DocumentationMarkup.DEFINITION_START)
+    append(operationType)
+    append(" ")
+    append(operationName)
+    append(DocumentationMarkup.DEFINITION_END)
+
+    appendDescription(target)
+  }
+}
+
+private fun getVariableDocumentation(target: GraphQLVariableDefinition): String? {
+  val name = target.variable.name ?: return null
+  val type = target.type
+
+  return buildString {
+    append(DocumentationMarkup.DEFINITION_START)
+    append("$").append(name)
+    if (type != null) {
+      append(": ")
+      append(type.text)
+    }
+    append(DocumentationMarkup.DEFINITION_END)
+
+    appendDescription(target)
+  }
+}
+
+private fun getFragmentDocumentation(target: GraphQLFragmentDefinition): String? {
+  val name = target.name ?: return null
+  val condition = target.typeCondition?.typeName?.name ?: return null
+
+  return buildString {
+    append(DocumentationMarkup.DEFINITION_START)
+    append("fragment ").append(name).append(" on ").append(condition)
+    append(DocumentationMarkup.DEFINITION_END)
+
+    appendDescription(target)
+  }
+}
+
+private fun getDirectiveDocumentation(schema: GraphQLSchema, target: GraphQLDirectiveDefinition): String? {
+  val directiveName = target.nameIdentifier ?: return null
+  val schemaDirective = schema.getFirstDirective(directiveName.text) ?: return null
+
+  return buildString {
+    append(DocumentationMarkup.DEFINITION_START)
+    append("@").append(schemaDirective.name)
+    if (schemaDirective.isRepeatable) {
+      append(" ").append(DocumentationMarkup.GRAYED_START).append("(repeatable)").append(DocumentationMarkup.GRAYED_END)
+    }
+    append(DocumentationMarkup.DEFINITION_END)
+
+    appendDescription(schemaDirective.description)
+  }
+}
+
+private fun getEnumValueDocumentation(schema: GraphQLSchema, target: GraphQLEnumValue): String? {
+  val enumName = findContainingTypeName(target) ?: return null
+  val schemaType = schema.getType(enumName) as? GraphQLEnumType ?: return null
+  val enumValueName = target.name
+
+  return buildString {
+    append(DocumentationMarkup.DEFINITION_START)
+    append(enumName).append(".").append(enumValueName)
+    append(DocumentationMarkup.DEFINITION_END)
+
+    for (enumValueDefinition in schemaType.values) {
+      if (enumValueDefinition.name == enumValueName) {
+        val description = enumValueDefinition.description ?: break
+
+        appendDescription(description)
+        break
+      }
+    }
+  }
+}
+
+private fun getArgumentDocumentation(schema: GraphQLSchema, target: GraphQLInputValueDefinition): String? {
+  // input value definition defines an argument on a field or a directive, or a field on an input type
+  val inputValueName = target.name ?: return null
+  val definition = PsiTreeUtil.getParentOfType(
+    target,
+    GraphQLFieldDefinition::class.java,
+    GraphQLDirectiveDefinition::class.java,
+    GraphQLInputObjectTypeDefinition::class.java,
+    GraphQLInputObjectTypeExtensionDefinition::class.java
+  ) ?: return null
+
+  when (definition) {
+    is GraphQLFieldDefinition -> {
+      val typeName = findContainingTypeName(target) ?: return null
+      val schemaType = schema.getType(typeName)
+      val fieldDefinitions = if (schemaType is GraphQLFieldsContainer) schemaType.fieldDefinitions else return null
+      val fieldName = definition.name
+      for (fieldDefinition in fieldDefinitions) {
+        if (fieldDefinition.name == fieldName) {
+          for (argument in fieldDefinition.arguments) {
+            if (argument.name == inputValueName) {
+              return getArgumentDocumentation(inputValueName, argument)
+            }
+          }
+        }
+      }
+    }
+    is GraphQLDirectiveDefinition -> {
+      val directiveName = definition.nameIdentifier ?: return null
+      val schemaDirective = schema.getFirstDirective(directiveName.text) ?: return null
+      for (argument in schemaDirective.arguments) {
+        if (inputValueName == argument.name) {
+          return getArgumentDocumentation(inputValueName, argument)
+        }
+      }
+    }
+    is GraphQLInputObjectTypeDefinition, is GraphQLInputObjectTypeExtensionDefinition -> {
+      val inputTypeName = findContainingTypeName(target)
+      val schemaType = schema.getType(inputTypeName) as? GraphQLInputObjectType ?: return null
+      for (inputObjectField in schemaType.fieldDefinitions) {
+        if (inputValueName == inputObjectField.name) {
+          val type = inputObjectField.type
+          return buildString {
+            append(DocumentationMarkup.DEFINITION_START)
+            append(getTypeName(schemaType)).append(".")
+            append(inputValueName)
+              .append(if (type != null) ": " else "")
+              .append(if (type != null) getTypeName(type) else "")
+            append(DocumentationMarkup.DEFINITION_END)
+
+            appendDescription(inputObjectField.description)
+          }
+        }
+      }
+    }
+  }
+
+  return null
+}
+
+private fun getArgumentDocumentation(inputValueName: String?, argument: GraphQLArgument): String {
+  return buildString {
+    append(DocumentationMarkup.DEFINITION_START)
+    val argumentType = argument.type
+    append(inputValueName)
+      .append(if (argumentType != null) ": " else " ")
+      .append(if (argumentType != null) getTypeName(argumentType) else "")
+    append(DocumentationMarkup.DEFINITION_END)
+
+    appendDescription(argument.description)
+  }
+}
+
+private fun StringBuilder.appendDescription(target: GraphQLDescriptionAware) {
+  val description = target.description ?: return
+  appendDescription(description.content)
+}
+
+private fun StringBuilder.appendDescription(description: String?) {
+  if (description == null) return
+
+  append(DocumentationMarkup.CONTENT_START)
+    .append(getDescriptionAsHTML(description))
+    .append(DocumentationMarkup.CONTENT_END)
+}
+
+private fun getFieldDocumentation(schema: GraphQLSchema, target: GraphQLFieldDefinition): String? {
+  val psiFieldType = target.type
+  val psiDefinition = target.parentOfType<GraphQLTypeSystemDefinition>()
+  val psiTypeName = PsiTreeUtil.findChildOfType(psiDefinition, GraphQLNamedElement::class.java) ?: return null
+  val schemaType = schema.getType(psiTypeName.text) ?: return null
+  val fieldName = target.name ?: return null
+
+  return buildString {
+    append(DocumentationMarkup.DEFINITION_START)
+    append(getTypeName(schemaType)).append(".")
+    append(fieldName)
+    if (psiFieldType != null) {
+      append(": ")
+      append(psiFieldType.text)
+    }
+    append(DocumentationMarkup.DEFINITION_END)
+
+    val fieldDefinitions = if (schemaType is GraphQLFieldsContainer) schemaType.fieldDefinitions else emptyList()
+    for (fieldDefinition in fieldDefinitions) {
+      if (fieldName == fieldDefinition.name) {
+        appendDescription(fieldDefinition.description)
+        break
+      }
+    }
+  }
+}
+
+private fun getTypeDocumentation(targetIdentifier: PsiElement, schema: GraphQLSchema, target: GraphQLTypeNameDefinition): String? {
+  val namedElement = targetIdentifier as? GraphQLNamedElement ?: return null
+  val schemaType = schema.getType(namedElement.name) ?: return null
+  return buildString {
+    append(DocumentationMarkup.DEFINITION_START)
+    val keyword = PsiTreeUtil.prevVisibleLeaf(target)
+    if (keyword != null) {
+      append(keyword.text).append(" ")
+    }
+    append(targetIdentifier.text)
+    append(DocumentationMarkup.DEFINITION_END)
+
+    appendDescription(getTypeDescription(schemaType))
+  }
+}

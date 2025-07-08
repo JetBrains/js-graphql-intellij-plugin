@@ -27,6 +27,12 @@ public class GraphQLTypedOperationDefinitionImpl extends GraphQLTypedOperationDe
   }
 
   @Override
+  @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
+  }
+
+  @Override
   @NotNull
   public GraphQLOperationType getOperationType() {
     return findNotNullChildByClass(GraphQLOperationType.class);

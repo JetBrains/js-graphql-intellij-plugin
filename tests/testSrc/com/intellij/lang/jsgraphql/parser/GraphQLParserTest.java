@@ -49,6 +49,10 @@ public class GraphQLParserTest extends ParsingTestCase {
     doTest(true, true);
   }
 
+  public void testDescriptionsForExecutableDefinitions() {
+    doTest(true, true);
+  }
+
   @Override
   protected String getTestDataPath() {
     return GraphQLTestUtils.getTestDataPath("parser");

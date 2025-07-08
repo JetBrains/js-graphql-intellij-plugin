@@ -34,6 +34,12 @@ public class GraphQLVariableDefinitionImpl extends GraphQLVariableDefinitionMixi
 
   @Override
   @Nullable
+  public GraphQLDescription getDescription() {
+    return findChildByClass(GraphQLDescription.class);
+  }
+
+  @Override
+  @Nullable
   public GraphQLType getType() {
     return findChildByClass(GraphQLType.class);
   }

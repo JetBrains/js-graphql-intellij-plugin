@@ -875,9 +875,8 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   // fragmentDefinitionHeader selectionSet
   public static boolean fragmentDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "fragmentDefinition")) return false;
-    if (!nextTokenIs(builder, FRAGMENT_KEYWORD)) return false;
     boolean result, pinned;
-    Marker marker = enter_section_(builder, level, _NONE_, FRAGMENT_DEFINITION, null);
+    Marker marker = enter_section_(builder, level, _NONE_, FRAGMENT_DEFINITION, "<fragment definition>");
     result = fragmentDefinitionHeader(builder, level + 1);
     pinned = result; // pin = 1
     result = result && selectionSet(builder, level + 1);
@@ -886,23 +885,31 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // 'fragment' fragmentName typeCondition directives?
+  // description? 'fragment' fragmentName typeCondition directives?
   static boolean fragmentDefinitionHeader(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "fragmentDefinitionHeader")) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_);
-    result = consumeToken(builder, FRAGMENT_KEYWORD);
-    pinned = result; // pin = 1
+    result = fragmentDefinitionHeader_0(builder, level + 1);
+    result = result && consumeToken(builder, FRAGMENT_KEYWORD);
+    pinned = result; // pin = 2
     result = result && report_error_(builder, fragmentName(builder, level + 1));
     result = pinned && report_error_(builder, typeCondition(builder, level + 1)) && result;
-    result = pinned && fragmentDefinitionHeader_3(builder, level + 1) && result;
+    result = pinned && fragmentDefinitionHeader_4(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, GraphQLParser::rootTokens_recover);
     return result || pinned;
   }
 
+  // description?
+  private static boolean fragmentDefinitionHeader_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "fragmentDefinitionHeader_0")) return false;
+    description(builder, level + 1);
+    return true;
+  }
+
   // directives?
-  private static boolean fragmentDefinitionHeader_3(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "fragmentDefinitionHeader_3")) return false;
+  private static boolean fragmentDefinitionHeader_4(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "fragmentDefinitionHeader_4")) return false;
     directives(builder, level + 1);
     return true;
   }
@@ -2175,37 +2182,45 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // operationType identifier? variableDefinitions? directives?
+  // description? operationType identifier? variableDefinitions? directives?
   static boolean typedOperationDefinitionHeader(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "typedOperationDefinitionHeader")) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_);
-    result = operationType(builder, level + 1);
-    pinned = result; // pin = 1
-    result = result && report_error_(builder, typedOperationDefinitionHeader_1(builder, level + 1));
-    result = pinned && report_error_(builder, typedOperationDefinitionHeader_2(builder, level + 1)) && result;
-    result = pinned && typedOperationDefinitionHeader_3(builder, level + 1) && result;
+    result = typedOperationDefinitionHeader_0(builder, level + 1);
+    result = result && operationType(builder, level + 1);
+    pinned = result; // pin = 2
+    result = result && report_error_(builder, typedOperationDefinitionHeader_2(builder, level + 1));
+    result = pinned && report_error_(builder, typedOperationDefinitionHeader_3(builder, level + 1)) && result;
+    result = pinned && typedOperationDefinitionHeader_4(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, GraphQLParser::rootTokens_recover);
     return result || pinned;
   }
 
+  // description?
+  private static boolean typedOperationDefinitionHeader_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "typedOperationDefinitionHeader_0")) return false;
+    description(builder, level + 1);
+    return true;
+  }
+
   // identifier?
-  private static boolean typedOperationDefinitionHeader_1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "typedOperationDefinitionHeader_1")) return false;
+  private static boolean typedOperationDefinitionHeader_2(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "typedOperationDefinitionHeader_2")) return false;
     identifier(builder, level + 1);
     return true;
   }
 
   // variableDefinitions?
-  private static boolean typedOperationDefinitionHeader_2(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "typedOperationDefinitionHeader_2")) return false;
+  private static boolean typedOperationDefinitionHeader_3(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "typedOperationDefinitionHeader_3")) return false;
     variableDefinitions(builder, level + 1);
     return true;
   }
 
   // directives?
-  private static boolean typedOperationDefinitionHeader_3(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "typedOperationDefinitionHeader_3")) return false;
+  private static boolean typedOperationDefinitionHeader_4(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "typedOperationDefinitionHeader_4")) return false;
     directives(builder, level + 1);
     return true;
   }
@@ -2406,30 +2421,38 @@ public class GraphQLParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // variable <<colon type>> defaultValue? directives?
+  // description? variable <<colon type>> defaultValue? directives?
   public static boolean variableDefinition(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "variableDefinition")) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, VARIABLE_DEFINITION, "<variable definition>");
-    result = variable(builder, level + 1);
-    pinned = result; // pin = 1
+    result = variableDefinition_0(builder, level + 1);
+    result = result && variable(builder, level + 1);
+    pinned = result; // pin = 2
     result = result && report_error_(builder, colon(builder, level + 1, GraphQLParser::type));
-    result = pinned && report_error_(builder, variableDefinition_2(builder, level + 1)) && result;
-    result = pinned && variableDefinition_3(builder, level + 1) && result;
+    result = pinned && report_error_(builder, variableDefinition_3(builder, level + 1)) && result;
+    result = pinned && variableDefinition_4(builder, level + 1) && result;
     exit_section_(builder, level, marker, result, pinned, GraphQLParser::variableDefinition_recover);
     return result || pinned;
   }
 
+  // description?
+  private static boolean variableDefinition_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "variableDefinition_0")) return false;
+    description(builder, level + 1);
+    return true;
+  }
+
   // defaultValue?
-  private static boolean variableDefinition_2(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "variableDefinition_2")) return false;
+  private static boolean variableDefinition_3(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "variableDefinition_3")) return false;
     defaultValue(builder, level + 1);
     return true;
   }
 
   // directives?
-  private static boolean variableDefinition_3(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "variableDefinition_3")) return false;
+  private static boolean variableDefinition_4(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "variableDefinition_4")) return false;
     directives(builder, level + 1);
     return true;
   }

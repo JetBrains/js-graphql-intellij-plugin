@@ -10,4 +10,8 @@ public interface GraphQLDescription extends GraphQLElement {
   @NotNull
   GraphQLStringLiteral getStringLiteral();
 
+  @NotNull String getContent();
+
+  boolean isMultiLine();
+
 }
