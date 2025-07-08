@@ -54,7 +54,6 @@ jvm_library(
     "//plugins/JavaScriptLanguage:javascript-testFramework",
     "@community//java/testFramework",
     "//ultimate/ultimate-resources:idea-ultimate-customization",
-    "//plugins/JavaScriptLanguage:javascript",
     "//plugins/JavaScriptLanguage:javascript-impl",
     "//plugins/JavaScriptLanguage/javascript-parser",
     "//plugins/JavaScriptLanguage/javascript-frontback-impl",

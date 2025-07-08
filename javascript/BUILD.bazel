@@ -28,7 +28,6 @@ jvm_library(
     "@community//platform/projectModel-impl",
     "//webcore/impl",
     "@community//platform/backend/workspace",
-    "//plugins/JavaScriptLanguage:javascript",
     "//plugins/JavaScriptLanguage:javascript-impl",
     "//plugins/JavaScriptLanguage/javascript-parser",
     "//plugins/JavaScriptLanguage/javascript-frontback-impl",
