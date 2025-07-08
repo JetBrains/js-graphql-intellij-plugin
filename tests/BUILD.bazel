@@ -56,7 +56,6 @@ jvm_library(
     "//ultimate/ultimate-resources:idea-ultimate-customization",
     "//plugins/JavaScriptLanguage:javascript-impl",
     "//plugins/JavaScriptLanguage/javascript-parser",
-    "//plugins/JavaScriptLanguage/javascript-frontback-impl",
     "//contrib/vuejs",
     "@community//plugins/IntelliLang:langInjection",
     "@community//plugins/IntelliLang/plugin",

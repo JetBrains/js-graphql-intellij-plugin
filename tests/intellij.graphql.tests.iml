@@ -41,7 +41,6 @@
     <orderEntry type="module" module-name="intellij.idea.ultimate.customization" scope="TEST" />
     <orderEntry type="module" module-name="intellij.javascript.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.javascript.parser" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.javascript.frontback.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.vuejs" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.langInjection" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.langInjection.plugin" scope="TEST" />
