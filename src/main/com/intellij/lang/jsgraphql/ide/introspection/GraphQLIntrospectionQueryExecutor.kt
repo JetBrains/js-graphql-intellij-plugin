@@ -12,7 +12,7 @@ import com.intellij.lang.jsgraphql.ide.notifications.handleIntrospectionError
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.getOrLogException
+import com.intellij.openapi.diagnostic.getOrHandleException
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.options.advanced.AdvancedSettings
 import com.intellij.openapi.project.Project
@@ -89,7 +89,7 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
     val schemaCapabilities = runCatching {
       LOG.debug { "Received schema capabilities response: $response" }
       parseSchemaCapabilities(parseResponseJson(response))
-    }.getOrLogException { LOG.warn("Error during parsing schema capabilities response: $response", it) }
+    }.getOrHandleException { LOG.warn("Error during parsing schema capabilities response: $response", it) }
 
     return schemaCapabilities ?: EnumSet.allOf(GraphQLSchemaCapability::class.java)
   }
