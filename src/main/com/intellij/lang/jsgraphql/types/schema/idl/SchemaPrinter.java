@@ -463,7 +463,7 @@ public class SchemaPrinter {
           .sorted(comparator)
           .toList();
         if (!values.isEmpty()) {
-          out.format(" {\n");
+          out.print(" {\n");
           for (GraphQLEnumValueDefinition enumValueDefinition : values) {
             printComments(out, enumValueDefinition, indent);
             List<GraphQLDirective> enumValueDirectives = enumValueDefinition.getDirectives();
@@ -473,9 +473,9 @@ public class SchemaPrinter {
             out.format("%s%s%s\n", indent, enumValueDefinition.getName(),
                        directivesString(GraphQLEnumValueDefinition.class, enumValueDirectives));
           }
-          out.format("}");
+          out.print("}");
         }
-        out.format("\n\n");
+        out.print("\n\n");
       }
     };
   }
@@ -488,7 +488,7 @@ public class SchemaPrinter {
     }
 
     String indent = calcIndent(1);
-    out.format(" {\n");
+    out.print(" {\n");
     fieldDefinitions
       .stream()
       .filter(options.getIncludeSchemaElement())
@@ -504,7 +504,7 @@ public class SchemaPrinter {
                    indent, fd.getName(), argsString(GraphQLFieldDefinition.class, fd.getArguments()), typeString(fd.getType()),
                    directivesString(GraphQLFieldDefinition.class, fieldDirectives));
       });
-    out.format("}");
+    out.print("}");
   }
 
   private TypePrinter<GraphQLInterfaceType> interfacePrinter() {
@@ -549,7 +549,7 @@ public class SchemaPrinter {
         Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
         printFieldDefinitions(out, comparator, visibility.getFieldDefinitions(type));
-        out.format("\n\n");
+        out.print("\n\n");
       }
     };
   }
@@ -582,11 +582,11 @@ public class SchemaPrinter {
         for (int i = 0; i < types.size(); i++) {
           GraphQLNamedOutputType objectType = types.get(i);
           if (i > 0) {
-            out.format(" | ");
+            out.print(" | ");
           }
           out.format("%s", objectType.getName());
         }
-        out.format("\n\n");
+        out.print("\n\n");
       }
     };
   }
@@ -633,7 +633,7 @@ public class SchemaPrinter {
         Comparator<? super GraphQLSchemaElement> comparator = options.comparatorRegistry.getComparator(environment);
 
         printFieldDefinitions(out, comparator, visibility.getFieldDefinitions(type));
-        out.format("\n\n");
+        out.print("\n\n");
       }
     };
   }
@@ -662,7 +662,7 @@ public class SchemaPrinter {
         out.format("input %s%s", type.getName(), directivesString(GraphQLInputObjectType.class, type.getDirectives()));
         List<GraphQLInputObjectField> inputObjectFields = visibility.getFieldDefinitions(type);
         if (!inputObjectFields.isEmpty()) {
-          out.format(" {\n");
+          out.print(" {\n");
           inputObjectFields
             .stream()
             .filter(options.getIncludeSchemaElement())
@@ -676,12 +676,12 @@ public class SchemaPrinter {
                 String astValue = printAst(defaultValue, fd.getType());
                 out.format(" = %s", astValue);
               }
-              out.format(directivesString(GraphQLInputObjectField.class, fd.getDirectives()));
-              out.format("\n");
+              out.print(directivesString(GraphQLInputObjectField.class, fd.getDirectives()));
+              out.print("\n");
             });
-          out.format("}");
+          out.print("}");
         }
-        out.format("\n\n");
+        out.print("\n\n");
       }
     };
   }
@@ -753,13 +753,13 @@ public class SchemaPrinter {
         if (subscriptionType != null) {
           out.format("%ssubscription: %s\n", indent, subscriptionType.getName());
         }
-        out.format("}\n\n");
+        out.print("}\n\n");
       }
 
       if (options.isIncludeDirectiveDefinitions()) {
         List<GraphQLDirective> directives = getSchemaDirectives(schema);
         if (!directives.isEmpty()) {
-          out.format("%s", directiveDefinitions(directives));
+          out.print(directiveDefinitions(directives));
         }
       }
     };
@@ -782,9 +782,13 @@ public class SchemaPrinter {
   }
 
   String argsString(Class<? extends GraphQLSchemaElement> parent, List<GraphQLArgument> arguments) {
+    return argsString(parent, arguments, 1);
+  }
+
+  String argsString(Class<? extends GraphQLSchemaElement> parent, List<GraphQLArgument> arguments, int initialIndent) {
     boolean hasDescriptions = ContainerUtil.exists(arguments, this::hasDescription);
-    String indent = hasDescriptions ? calcIndent(1) : "";
-    String nestedIndent = hasDescriptions ? calcIndent(2) : "";
+    String indent = hasDescriptions ? calcIndent(initialIndent) : "";
+    String nestedIndent = hasDescriptions ? calcIndent(initialIndent + 1) : "";
     int count = 0;
     StringBuilder sb = new StringBuilder();
 
@@ -804,11 +808,16 @@ public class SchemaPrinter {
         sb.append("(");
       }
       else {
-        sb.append(", ");
+        sb.append(",");
       }
+
       if (hasDescriptions) {
         sb.append("\n");
       }
+      else if (count > 0) {
+        sb.append(" ");
+      }
+
       sb.append(printComments(argument, nestedIndent));
 
       sb.append(nestedIndent).append(argument.getName()).append(": ").append(typeString(argument.getType()));
@@ -971,7 +980,7 @@ public class SchemaPrinter {
       .sorted(comparator)
       .collect(toList());
 
-    sb.append(argsString(GraphQLDirective.class, args));
+    sb.append(argsString(GraphQLDirective.class, args, 0));
 
     if (directive.isRepeatable()) {
       sb.append(" repeatable");
@@ -1058,7 +1067,14 @@ public class SchemaPrinter {
 
   private void printMultiLineDescription(PrintWriter out, String prefix, List<String> lines) {
     out.printf("%s\"\"\"\n", prefix);
-    lines.forEach(l -> out.printf("%s%s\n", prefix, l));
+    for (String l : lines) {
+      if (l.isEmpty() && prefix.isBlank()) {
+        out.print("\n");
+      }
+      else {
+        out.printf("%s%s\n", prefix, l);
+      }
+    }
     out.printf("%s\"\"\"\n", prefix);
   }
 
