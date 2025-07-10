@@ -2,8 +2,8 @@ package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.types.language.Document
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiFile
@@ -28,7 +28,6 @@ internal class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
 
   private val currentLimit = SCHEMA_SIZE_DEFINITIONS_LIMIT
   private var totalDefinitionsCount = 0
-  private var isLimitOverflowLogged = false
 
   override fun process(psiFile: PsiFile?): Boolean {
     ProgressManager.checkCanceled()
@@ -38,23 +37,30 @@ internal class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
     }
 
     val document = psiFile.document
-    totalDefinitionsCount += GraphQLPsiDocumentBuilder.getTypeDefinitionsCount(document)
+
+    // We need to add it no matter if it's exceeding the limit to cover the case when there is only a single, but huge file.
+    // Preventing limits from being exceeded is important only for cases when there are multiple files, especially when
+    // there is no config defined, e.g., a whole project scope or an incorrect config for a monorepo.
+    documents.add(document)
+
+    if (!GraphQLPsiDocumentBuilder.isInLibrary(document)) {
+      totalDefinitionsCount += GraphQLPsiDocumentBuilder.getTypeDefinitionsCount(document)
+    }
 
     if (isTooComplex) {
-      if (!isLimitOverflowLogged) {
-        val message = "Schema total definitions count limit exceeded: $totalDefinitionsCount"
-        if (ApplicationManager.getApplication().isUnitTestMode) LOG.error(message) else LOG.warn(message)
-
-        isLimitOverflowLogged = true
+      LOG.warn("Schema total definitions count limit exceeded: ${totalDefinitionsCount}, file: ${psiFile.virtualFile?.path.orEmpty()}")
+      LOG.trace {
+        documents.joinToString("\n") { document ->
+          "file: ${document.filePath}, definitions: ${document.definitions.size}"
+        }
       }
-      return false
-    }
-    else {
-      documents.add(document)
     }
 
     return !isTooComplex
   }
+
+  private val Document.filePath: String
+    get() = sourceLocation?.sourceName ?: "<unknown>"
 
   val isTooComplex: Boolean
     get() = totalDefinitionsCount >= currentLimit
