@@ -11,9 +11,10 @@ import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.application.readAndEdtWriteAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
+import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.writeCommandAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -23,23 +24,22 @@ import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
-import com.intellij.openapi.progress.ProcessCanceledException
-import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.impl.file.PsiDirectoryFactory
-import com.intellij.util.DocumentUtil
 import com.intellij.util.concurrency.annotations.RequiresWriteLock
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.milliseconds
 
 @Service(Service.Level.PROJECT)
 internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
@@ -70,20 +70,29 @@ internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
         }
       }
 
-      val document = readAction { fileDocumentManager.getDocument(outputFile) }
-                     ?: throw IOException("Unable to get document for created introspection file: $outputFile")
-
-      withContext(Dispatchers.EDT) {
-        runUndoTransparentWriteAction {
-          document.setText(StringUtil.convertLineSeparators(header + output.schemaText))
-          psiDocumentManager.commitDocument(document)
+      val document = readAndEdtWriteAction {
+        val document = fileDocumentManager.getDocument(outputFile)
+                       ?: throw IOException("Unable to get document for created introspection file: $outputFile")
+        writeAction {
+          CommandProcessor.getInstance().withUndoTransparentAction().use {
+            document.setText(StringUtil.convertLineSeparators(header + output.schemaText))
+            psiDocumentManager.commitDocument(document)
+            document
+          }
         }
       }
 
-      reformatDocumentIfNeeded(psiDocumentManager, fileDocumentManager, outputFile, document)
+      reformatDocumentIfNeeded(psiDocumentManager, outputFile, document)
+
+      edtWriteAction {
+        psiDocumentManager.doPostponedOperationsAndUnblockDocument(document)
+        psiDocumentManager.commitDocument(document)
+        fileDocumentManager.saveDocument(document)
+      }
+
       openSchemaInEditor(project, outputFile)
     }
-    catch (e: ProcessCanceledException) {
+    catch (e: CancellationException) {
       throw e
     }
     catch (e: IOException) {
@@ -104,23 +113,17 @@ internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
 
   private suspend fun reformatDocumentIfNeeded(
     psiDocumentManager: PsiDocumentManager,
-    fileDocumentManager: FileDocumentManager,
     outputFile: VirtualFile,
     document: Document,
   ) {
+    // for some schemas reformatting can take up to ~30 seconds, so I don't see any better solution than a timeout for now
     if (outputFile.getUserData(SKIP_FORMATTING_KEY) != true) {
-      withTimeoutOrNull(3.seconds) {
+      withTimeoutOrNull(Registry.intValue("graphql.schema.reformat.timeout").milliseconds) {
         readAndEdtWriteAction {
           val psiFile = psiDocumentManager.getPsiFile(document)
           if (psiFile != null) {
             writeCommandAction(project, GraphQLBundle.message("graphql.command.name.reformat.generated.graphql.sdl")) {
-              DocumentUtil.executeInBulk(document) {
-                CodeStyleManager.getInstance(project).reformat(psiFile)
-
-                ProgressManager.checkCanceled()
-                psiDocumentManager.commitDocument(document)
-                fileDocumentManager.saveDocument(document)
-              }
+              CodeStyleManager.getInstance(project).reformat(psiFile)
             }
           }
           else {
