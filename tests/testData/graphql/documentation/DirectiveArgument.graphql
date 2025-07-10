@@ -1,0 +1,9 @@
+directive @someDir(param: String!) on SCHEMA
+
+schema @someDir(par<caret>am: "123") {
+  query: Query
+}
+
+type Query {
+  id: ID
+}

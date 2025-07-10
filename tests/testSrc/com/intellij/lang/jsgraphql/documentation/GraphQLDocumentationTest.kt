@@ -24,6 +24,22 @@ class GraphQLDocumentationTest : GraphQLTestCaseBase() {
     doTest()
   }
 
+  fun testField() {
+    doTest()
+  }
+
+  fun testInputField() {
+    doTest()
+  }
+
+  fun testDirectiveArgument() {
+    doTest()
+  }
+
+  fun testEnumValue() {
+    doTest()
+  }
+
   private fun doTest() {
     val file = myFixture.configureByFile("${getTestName(false)}.graphql")
     val originalElement = file.findElementAt(myFixture.caretOffset)

@@ -30,7 +30,7 @@ public abstract class GraphQLObjectFieldMixin extends GraphQLNamedElementImpl im
       if (typeScopeProvider != null) {
         GraphQLType typeScope = typeScopeProvider.getTypeScope();
         if (typeScope != null) {
-          typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
+          typeScope = GraphQLSchemaUtil.getUnmodified(typeScope); // unwrap list, non-null since we want a specific field
           if (typeScope instanceof GraphQLInputFieldsContainer) {
             final GraphQLInputObjectField inputObjectField = ((GraphQLInputFieldsContainer)typeScope).getFieldDefinition(this.getName());
             if (inputObjectField != null) {

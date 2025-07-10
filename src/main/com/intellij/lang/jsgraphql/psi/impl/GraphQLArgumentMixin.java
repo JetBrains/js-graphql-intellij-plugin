@@ -52,7 +52,7 @@ public abstract class GraphQLArgumentMixin extends GraphQLNamedElementImpl imple
       if (field != null && typeScopeProvider != null) {
         GraphQLType typeScope = typeScopeProvider.getTypeScope();
         if (typeScope != null) {
-          typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
+          typeScope = GraphQLSchemaUtil.getUnmodified(typeScope); // unwrap list, non-null since we want a specific field
           if (typeScope instanceof GraphQLFieldsContainer) {
             final GraphQLFieldDefinition fieldDefinition = ((GraphQLFieldsContainer)typeScope).getFieldDefinition(field.getName());
             if (fieldDefinition != null) {

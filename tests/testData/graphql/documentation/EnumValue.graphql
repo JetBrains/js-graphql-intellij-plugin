@@ -1,0 +1,13 @@
+enum UserRole {
+  ADMIN
+  USER
+  GUEST
+}
+
+type Query {
+  user(role: UserRole): ID
+}
+
+query {
+  user(role: GUE<caret>ST)
+}
