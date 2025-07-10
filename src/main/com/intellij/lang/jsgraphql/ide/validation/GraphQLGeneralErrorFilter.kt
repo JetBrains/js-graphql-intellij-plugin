@@ -8,6 +8,7 @@ import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.lang.jsgraphql.types.GraphQLError
 import com.intellij.lang.jsgraphql.types.language.NamedNode
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError
+import com.intellij.lang.jsgraphql.types.schema.idl.errors.IllegalNameError
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.QueryOperationMissingError
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.TypeExtensionMissingBaseTypeError
 import com.intellij.lang.jsgraphql.types.validation.ValidationError
@@ -42,9 +43,9 @@ class GraphQLGeneralErrorFilter : GraphQLErrorFilter {
       return true
     }
 
-    if (error is TypeExtensionMissingBaseTypeError && namedNode?.name == GraphQLKnownTypes.QUERY_TYPE) {
+    if (isExpectedInLibraryDefinitions(error, namedNode)) {
       val roots = GraphQLLibraryManager.getInstance(project).getLibraryRoots().map { it.path }.toSet()
-      return namedNode.sourceLocation?.sourceName in roots
+      return namedNode?.sourceLocation?.sourceName in roots
     }
 
     if (error is ValidationError && error.validationErrorType == ValidationErrorType.MisplacedDirective) {
@@ -54,6 +55,14 @@ class GraphQLGeneralErrorFilter : GraphQLErrorFilter {
     }
 
     return false
+  }
+
+  private fun isExpectedInLibraryDefinitions(
+    error: GraphQLError,
+    namedNode: NamedNode<*>?,
+  ): Boolean {
+    return error is TypeExtensionMissingBaseTypeError && namedNode?.name == GraphQLKnownTypes.QUERY_TYPE ||
+           error is IllegalNameError && namedNode?.name?.startsWith("__") == true
   }
 
   private fun intersectsInjectedFragments(element: PsiElement?): Boolean {
