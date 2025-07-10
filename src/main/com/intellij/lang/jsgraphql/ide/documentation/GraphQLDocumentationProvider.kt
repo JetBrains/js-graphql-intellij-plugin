@@ -15,8 +15,9 @@ import com.intellij.lang.jsgraphql.psi.*
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil.getTypeDescription
-import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil.getTypeName
+import com.intellij.lang.jsgraphql.schema.getTypeDescription
+import com.intellij.lang.jsgraphql.schema.getTypeName
+import com.intellij.lang.jsgraphql.schema.formatAsTypeReference
 import com.intellij.lang.jsgraphql.types.schema.*
 import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument
 import com.intellij.openapi.util.NlsSafe
@@ -213,7 +214,7 @@ private fun getArgumentDocumentation(schema: GraphQLSchema, target: GraphQLInput
             append(getTypeName(schemaType)).append(".")
             append(inputValueName)
               .append(if (type != null) ": " else "")
-              .append(if (type != null) getTypeName(type) else "")
+              .append(if (type != null) formatAsTypeReference(type) else "")
             append(DocumentationMarkup.DEFINITION_END)
 
             appendDescription(inputObjectField.description)
@@ -232,7 +233,7 @@ private fun getArgumentDocumentation(inputValueName: String?, argument: GraphQLA
     val argumentType = argument.type
     append(inputValueName)
       .append(if (argumentType != null) ": " else " ")
-      .append(if (argumentType != null) getTypeName(argumentType) else "")
+      .append(if (argumentType != null) formatAsTypeReference(argumentType) else "")
     append(DocumentationMarkup.DEFINITION_END)
 
     appendDescription(argument.description)
@@ -253,29 +254,24 @@ private fun StringBuilder.appendDescription(description: String?) {
 }
 
 private fun getFieldDocumentation(schema: GraphQLSchema, target: GraphQLFieldDefinition): String? {
-  val psiFieldType = target.type
-  val psiDefinition = target.parentOfType<GraphQLTypeSystemDefinition>()
-  val psiTypeName = PsiTreeUtil.findChildOfType(psiDefinition, GraphQLNamedElement::class.java) ?: return null
-  val schemaType = schema.getType(psiTypeName.text) ?: return null
+  val definition = target.parentOfType<GraphQLTypeSystemDefinition>()
+  val typeName = PsiTreeUtil.findChildOfType(definition, GraphQLNamedElement::class.java) ?: return null
+  val containerType = schema.getType(typeName.name) as? GraphQLFieldsContainer ?: return null
   val fieldName = target.name ?: return null
+  val fieldDefinition = containerType.getFieldDefinition(fieldName)
+  val type = containerType.getFieldDefinition(fieldName)?.type
 
   return buildString {
     append(DocumentationMarkup.DEFINITION_START)
-    append(getTypeName(schemaType)).append(".")
+    append(getTypeName(containerType)).append(".")
     append(fieldName)
-    if (psiFieldType != null) {
+    if (type != null) {
       append(": ")
-      append(psiFieldType.text)
+      append(formatAsTypeReference(type))
     }
     append(DocumentationMarkup.DEFINITION_END)
 
-    val fieldDefinitions = if (schemaType is GraphQLFieldsContainer) schemaType.fieldDefinitions else emptyList()
-    for (fieldDefinition in fieldDefinitions) {
-      if (fieldName == fieldDefinition.name) {
-        appendDescription(fieldDefinition.description)
-        break
-      }
-    }
+    appendDescription(fieldDefinition.description)
   }
 }
 

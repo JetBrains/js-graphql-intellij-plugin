@@ -1,0 +1,11 @@
+input Args {
+  filters: [String]
+}
+
+type Query {
+  usersCount(args: Args): Int
+}
+
+query {
+  usersCount(args: {filt<caret>ers: ["", ""]})
+}

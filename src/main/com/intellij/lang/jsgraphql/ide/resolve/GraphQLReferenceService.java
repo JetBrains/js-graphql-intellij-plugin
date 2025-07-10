@@ -229,7 +229,7 @@ public class GraphQLReferenceService implements Disposable {
       if (reference.isNull() && typeScopeProvider != null) {
         GraphQLType typeScope = typeScopeProvider.getTypeScope();
         if (typeScope != null) {
-          final GraphQLType fieldType = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
+          final GraphQLType fieldType = GraphQLSchemaUtil.getUnmodified(typeScope);
           myPsiSearchHelper.processNamedElements(element, name, psiNamedElement -> {
             if (psiNamedElement.getParent() instanceof GraphQLFieldDefinition fieldDefinition) {
               if (!Objects.equals(fieldDefinition.getName(), name)) {
@@ -315,7 +315,7 @@ public class GraphQLReferenceService implements Disposable {
       if (fieldTypeScopeProvider != null) {
         GraphQLType typeScope = fieldTypeScopeProvider.getTypeScope();
         if (typeScope != null) {
-          final String namedTypeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName();
+          final String namedTypeScope = GraphQLSchemaUtil.getUnmodified(typeScope).getName();
           return resolveUsingIndex(element, psiNamedElement -> {
             if (psiNamedElement.getParent() instanceof GraphQLInputValueDefinition) {
               final GraphQLInputObjectTypeDefinition inputTypeDefinition =
@@ -339,7 +339,7 @@ public class GraphQLReferenceService implements Disposable {
       if (enumTypeScopeProvider != null) {
         GraphQLType typeScope = enumTypeScopeProvider.getTypeScope();
         if (typeScope != null) {
-          final String namedTypeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope).getName();
+          final String namedTypeScope = GraphQLSchemaUtil.getUnmodified(typeScope).getName();
           return resolveUsingIndex(element, psiNamedElement -> {
             if (psiNamedElement.getParent() instanceof GraphQLEnumValue) {
               final GraphQLEnumTypeDefinition enumTypeDefinition =

@@ -34,7 +34,7 @@ public abstract class GraphQLObjectValueMixin extends GraphQLValueImpl implement
       GraphQLType typeScope = typeProvider.getTypeScope();
       if (typeScope != null) {
         // unwrap non-null and array type since this object is an element in the array list type
-        typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
+        typeScope = GraphQLSchemaUtil.getUnmodified(typeScope);
       }
       return typeScope;
     }
@@ -52,7 +52,7 @@ public abstract class GraphQLObjectValueMixin extends GraphQLValueImpl implement
     if (typeScopeProvider != null && objectField != null) {
       GraphQLType typeScope = typeScopeProvider.getTypeScope();
       if (typeScope != null) {
-        typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope); // unwrap list, non-null since we want a specific field
+        typeScope = GraphQLSchemaUtil.getUnmodified(typeScope); // unwrap list, non-null since we want a specific field
         if (typeScope instanceof GraphQLInputFieldsContainer fieldsContainer) {
           GraphQLInputObjectField inputObjectField = fieldsContainer.getFieldDefinition(objectField.getName());
           if (inputObjectField != null) {

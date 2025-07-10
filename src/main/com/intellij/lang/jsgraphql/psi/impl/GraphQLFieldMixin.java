@@ -34,7 +34,7 @@ public abstract class GraphQLFieldMixin extends GraphQLNamedElementImpl implemen
         GraphQLType parentType = parentTypeScopeProvider.getTypeScope();
         if (parentType != null) {
           // found a parent operation, field, or fragment
-          parentType = GraphQLSchemaUtil.getUnmodifiedType(parentType); // unwrap list, non-null since we want a specific field
+          parentType = GraphQLSchemaUtil.getUnmodified(parentType); // unwrap list, non-null since we want a specific field
           if (parentType instanceof GraphQLFieldsContainer) {
             final GraphQLFieldDefinition fieldDefinition =
               ((GraphQLFieldsContainer)parentType).getFieldDefinition(fieldName);

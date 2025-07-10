@@ -123,7 +123,7 @@ public final class GraphQLValidationAnnotator implements Annotator {
       typeScope = typeScopeProvider.getTypeScope();
       if (typeScope != null) {
         // unwrap non-nulls and lists for type and field hints
-        typeScope = GraphQLSchemaUtil.getUnmodifiedType(typeScope);
+        typeScope = GraphQLSchemaUtil.getUnmodified(typeScope);
       }
     }
 

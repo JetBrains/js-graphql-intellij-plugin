@@ -1,0 +1,7 @@
+type Query {
+  emails: [String!]!
+}
+
+query {
+  ema<caret>ils
+}
