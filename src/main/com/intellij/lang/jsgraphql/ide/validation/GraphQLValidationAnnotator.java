@@ -31,6 +31,7 @@ import com.intellij.lang.jsgraphql.types.schema.*;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
@@ -63,7 +64,7 @@ public final class GraphQLValidationAnnotator implements Annotator {
     }
 
     GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiElement);
-    if (schemaInfo.isTooComplex()) {
+    if (schemaInfo.isTooComplex() && !Registry.is("graphql.error.validation.for.complex.schemas")) {
       return;
     }
 

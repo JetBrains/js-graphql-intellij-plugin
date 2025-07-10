@@ -35,9 +35,6 @@ class GraphQLSchemaInfo(
     rawErrors.addAll(schema.errors)
 
     val errors = mutableListOf<GraphQLError>()
-    if (isTooComplex) {
-      errors.add(GraphQLSchemaTooComplexError())
-    }
 
     for (exception in rawErrors) {
       when (exception) {

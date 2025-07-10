@@ -25,6 +25,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsSafe;
+import com.intellij.openapi.util.registry.Registry;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiWhiteSpace;
@@ -58,7 +59,7 @@ public final class GraphQLSchemaAnnotator implements Annotator {
 
     try {
       GraphQLSchemaInfo schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiElement);
-      if (schemaInfo.isTooComplex()) {
+      if (schemaInfo.isTooComplex() && !Registry.is("graphql.error.validation.for.complex.schemas")) {
         return;
       }
 
