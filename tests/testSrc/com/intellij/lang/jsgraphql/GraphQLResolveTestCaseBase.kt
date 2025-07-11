@@ -53,7 +53,7 @@ abstract class GraphQLResolveTestCaseBase : GraphQLTestCaseBase() {
     val refOffset = textWithoutCarets.indexOf(REF_MARK)
     TestCase.assertTrue(refOffset >= 0)
     val psiFile = prepareFile(fileName, text)
-    reloadConfiguration()
+    reloadProjectConfiguration()
     val target = findElementAndResolve(psiFile)
     TestCase.assertEquals(target.textOffset, refOffset)
     assertInstanceOf(target, PsiNamedElement::class.java)
@@ -109,6 +109,6 @@ abstract class GraphQLResolveTestCaseBase : GraphQLTestCaseBase() {
 
   protected fun loadProject() {
     myFixture.copyDirectoryToProject(getTestName(false), "")
-    reloadConfiguration()
+    reloadProjectConfiguration()
   }
 }

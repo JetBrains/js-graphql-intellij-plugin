@@ -1,13 +1,13 @@
 package com.intellij.lang.jsgraphql.ide.introspection.source
 
 import com.intellij.json.JsonFileType
-import com.intellij.lang.jsgraphql.emitOrRunImmediateInTests
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.introspection.isJsonSchemaCandidate
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager.Companion.generatedSdlDirPath
 import com.intellij.lang.jsgraphql.skipInTests
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.components.Service
@@ -23,7 +23,6 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
-import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.concurrency.annotations.RequiresBackgroundThread
@@ -33,6 +32,8 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.ApiStatus
+import org.jetbrains.annotations.VisibleForTesting
 import java.util.*
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -117,16 +118,16 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project, coroutineScop
 
   fun scheduleJsonSchemaGeneration() {
     if (project.isDisposed) return
+    // generate manually when needed
+    if (ApplicationManager.getApplication().isUnitTestMode) return
 
-    emitOrRunImmediateInTests(jsonSchemaSyncRequests, Unit) {
-      runWithModalProgressBlocking(project, "") {
-        runJsonSchemaFilesGeneration()
-      }
-    }
+    check(jsonSchemaSyncRequests.tryEmit(Unit))
   }
 
+  @ApiStatus.Internal
+  @VisibleForTesting
   @RequiresBackgroundThread
-  private suspend fun runJsonSchemaFilesGeneration() {
+  suspend fun runJsonSchemaFilesGeneration() {
     if (project.isDisposed) return
     updateCachedSchemas(findJsonSchemaCandidates())
   }

@@ -30,14 +30,14 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
   fun testConfigRc() {
     val config = resolveConfig("dir/schema.graphql")
     TestCase.assertEquals("/src/.graphqlrc", config.file?.path)
-    TestCase.assertEquals(YAMLFileType.YML, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
+    assertEquals(YAMLFileType.YML, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
     assertConfigContentsMatches(config)
   }
 
   fun testConfigRcAsJson() {
     val config = resolveConfig("dir/schema.graphql")
     TestCase.assertEquals("/src/.graphqlrc", config.file?.path)
-    TestCase.assertEquals(JsonFileType.INSTANCE, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
+    assertEquals(JsonFileType.INSTANCE, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
     assertConfigContentsMatches(config)
   }
 
@@ -102,7 +102,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         )
       }
     }, testRootDisposable)
-    reloadConfiguration()
+    reloadProjectConfiguration()
 
     val configA = resolveConfig("main/graphql/servicea/operations.graphql")
     TestCase.assertEquals("/src/main/graphql/servicea", configA.dir.path)
@@ -137,17 +137,17 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
 
   private fun resolveConfig(filePath: String): GraphQLProjectConfig {
     val context = myFixture.configureFromTempProjectFile(filePath)
-    TestCase.assertNotNull("source file is not found", context)
+    assertNotNull("source file is not found", context)
     val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(context)
-    TestCase.assertNotNull("config is not resolved", config)
+    assertNotNull("config is not resolved", config)
     return config!!
   }
 
   private fun noConfig(filePath: String) {
     val context = myFixture.configureFromTempProjectFile(filePath)
-    TestCase.assertNotNull("source file is not found", context)
+    assertNotNull("source file is not found", context)
     val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(context)
-    TestCase.assertNull("config should be null", config)
+    assertNull("config should be null", config)
   }
 
   private fun assertConfigContentsMatches(config: GraphQLProjectConfig) {

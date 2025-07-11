@@ -6,7 +6,7 @@ package com.intellij.lang.jsgraphql.config
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.getTestDataPath
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.reloadConfiguration
+import com.intellij.lang.jsgraphql.reloadProjectConfiguration
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.vfs.JarFileSystem
@@ -51,7 +51,7 @@ class GraphQLModuleLibrariesScopeTest : JavaCodeInsightFixtureTestCase() {
     ModuleRootModificationUtil.addModuleLibrary(
       module2, "graphql-library-api", listOf(VfsUtil.getUrlForLibraryRoot(jar.toNioPath())), emptyList())
     IndexingTestUtil.waitUntilIndexesAreReady(project)
-    reloadConfiguration(project)
+    reloadProjectConfiguration(project)
 
     val configFile = myFixture.findFileInTempDir("mod1/graphql.config.yml")!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(configFile)?.getDefault()!!

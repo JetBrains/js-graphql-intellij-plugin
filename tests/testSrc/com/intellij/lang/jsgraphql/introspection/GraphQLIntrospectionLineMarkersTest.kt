@@ -45,7 +45,7 @@ class GraphQLIntrospectionLineMarkersTest : GraphQLTestCaseBase() {
   private fun doTest(name: String, expectedGutterOffsets: List<Int>) {
     myFixture.copyDirectoryToProject(getTestName(true), "")
     myFixture.configureFromTempProjectFile(name)
-    reloadConfiguration()
+    reloadProjectConfiguration()
     val allGutters = myFixture.findAllGutters()
     TestCase.assertEquals("total gutters count", expectedGutterOffsets.size, allGutters.size)
     expectedGutterOffsets.forEach {

@@ -69,7 +69,7 @@ class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
 
   private fun doProjectTest(fileName: String, optionsBuilder: UnaryOperator<SchemaPrinter.Options>? = null) {
     myFixture.copyDirectoryToProject(getTestName(true), "")
-    reloadConfiguration()
+    reloadProjectConfiguration()
 
     val file = myFixture.configureFromTempProjectFile(fileName)!!
     checkByExpectedSchema(file, optionsBuilder)

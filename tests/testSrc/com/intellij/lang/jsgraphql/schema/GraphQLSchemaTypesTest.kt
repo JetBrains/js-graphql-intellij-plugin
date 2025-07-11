@@ -20,7 +20,7 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
     super.setUp()
 
     myFixture.copyDirectoryToProject(getTestName(true), "")
-    reloadConfiguration()
+    reloadProjectConfiguration()
     enableAllInspections()
   }
 
@@ -93,7 +93,7 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
     expectedCompletions: List<String>,
     expectedFragments: List<String>,
     expectedTypes: List<String>,
-    strict: Boolean = true
+    strict: Boolean = true,
   ) {
     doTestCompletion(fileName, expectedCompletions, strict)
     doTestFragmentDefinitions(fileName, expectedFragments, strict)

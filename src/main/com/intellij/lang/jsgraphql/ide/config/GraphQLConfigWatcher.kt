@@ -1,8 +1,8 @@
 package com.intellij.lang.jsgraphql.ide.config
 
-import com.intellij.lang.jsgraphql.emitOrRunImmediateInTests
 import com.intellij.lang.jsgraphql.skipInTests
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -14,7 +14,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.LightVirtualFile
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
@@ -67,12 +66,9 @@ class GraphQLConfigWatcher(private val project: Project, coroutineScope: Corouti
 
   private fun scheduleDocumentSave() {
     if (project.isDisposed) return
+    if (ApplicationManager.getApplication().isUnitTestMode) return
 
-    emitOrRunImmediateInTests(documentsSaveEvents, Unit) {
-      runWithModalProgressBlocking(project, "") {
-        saveDocuments()
-      }
-    }
+    check(documentsSaveEvents.tryEmit(Unit))
   }
 
   private suspend fun saveDocuments() {

@@ -15,6 +15,7 @@ import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PluginPathManager
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
@@ -99,18 +100,19 @@ fun withLibrary(
     else {
       throw IllegalArgumentException("Unexpected library: $libraryDescriptor")
     }
-    updateLibraries(project)
+    syncLibrariesBlocking(project)
     testCase.run()
-  }, { updateLibraries(project) }, disposable)
+  }, { syncLibrariesBlocking(project) }, disposable)
 }
 
-private fun updateLibraries(project: Project) {
-  runWithModalProgressBlocking(project, "com.intellij.lang.jsgraphql.GraphQLTestUtils.updateLibraries") {
+private fun syncLibrariesBlocking(project: Project) {
+  runWithModalProgressBlocking(project, "") {
     GraphQLLibraryManager.getInstance(project).syncLibraries()
   }
 
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   IndexingTestUtil.waitUntilIndexesAreReady(project)
+  DumbService.getInstance(project).waitForSmartMode()
 }
 
 fun withCustomEnv(project: Project, env: Map<String, String?>, runnable: Runnable) {
@@ -118,7 +120,7 @@ fun withCustomEnv(project: Project, env: Map<String, String?>, runnable: Runnabl
   GraphQLConfigEnvironment.getEnvVariable = Function { env[it] }
   try {
     GraphQLConfigEnvironment.getInstance(project).notifyEnvironmentChanged()
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    reloadConfigBlocking(project)
     runnable.run()
   }
   finally {
@@ -152,22 +154,32 @@ fun createTestScratchFile(
     }
 }
 
-fun reloadConfiguration(project: Project) {
+fun reloadProjectConfiguration(project: Project) {
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   IndexingTestUtil.waitUntilIndexesAreReady(project)
 
-  runWithModalProgressBlocking(project, "") {
-    GraphQLConfigProvider.getInstance(project).reload()
-    GraphQLLibraryManager.getInstance(project).syncLibraries()
-  }
+  // initializing config provider
+  reloadConfigBlocking(project)
+  syncLibrariesBlocking(project)
+  // reload again to ensure that the new schemas and libraries are picked up, and the scope is updated
+  reloadConfigBlocking(project)
 
-  generateJsonSchemas(project)
+  convertJsonSchemasToSdlBlocking(project)
 }
 
-internal fun generateJsonSchemas(project: Project) {
-  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+internal fun reloadConfigBlocking(project: Project) {
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+  runWithModalProgressBlocking(project, "") {
+    GraphQLConfigProvider.getInstance(project).reload()
+  }
+  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+}
 
-  GraphQLGeneratedSourcesUpdater.getInstance(project).scheduleJsonSchemaGeneration()
+internal fun convertJsonSchemasToSdlBlocking(project: Project) {
+  runWithModalProgressBlocking(project, "") {
+    GraphQLGeneratedSourcesUpdater.getInstance(project).runJsonSchemaFilesGeneration()
+  }
   PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
   waitCoroutinesBlocking(GraphQLGeneratedSourcesManager.getInstance(project).coroutineScope)
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 }
