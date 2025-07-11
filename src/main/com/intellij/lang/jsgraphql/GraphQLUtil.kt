@@ -10,14 +10,12 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.annotations.RequiresEdt
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -117,14 +115,5 @@ data class GraphQLConfigOverridePath(val path: String, val project: String?)
 internal fun skipInTests(body: () -> Unit) {
   if (!ApplicationManager.getApplication().isUnitTestMode) {
     body()
-  }
-}
-
-internal fun <T> emitOrRunImmediateInTests(flow: MutableSharedFlow<T>, event: T, actionInTests: () -> Unit) {
-  if (ApplicationManager.getApplication().isUnitTestMode) {
-    invokeLater { actionInTests() }
-  }
-  else {
-    check(flow.tryEmit(event))
   }
 }

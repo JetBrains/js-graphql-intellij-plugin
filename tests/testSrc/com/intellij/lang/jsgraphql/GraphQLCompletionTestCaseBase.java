@@ -36,7 +36,7 @@ public abstract class GraphQLCompletionTestCaseBase extends GraphQLTestCaseBase 
   protected LookupElement @Nullable [] doTestWithProject(@NotNull String ext) {
     String dirName = getTestName(false);
     myFixture.copyDirectoryToProject(dirName, "");
-    reloadConfiguration();
+    reloadProjectConfiguration();
     String filePath = dirName + ext;
     myFixture.configureFromTempProjectFile(filePath);
     return myFixture.complete(CompletionType.BASIC, 1);

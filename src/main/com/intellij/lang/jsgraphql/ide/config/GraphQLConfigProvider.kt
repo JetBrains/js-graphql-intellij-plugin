@@ -5,7 +5,6 @@ package com.intellij.lang.jsgraphql.ide.config
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.GraphQLConfigOverridePath
-import com.intellij.lang.jsgraphql.emitOrRunImmediateInTests
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironmentListener
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigLoader
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
@@ -26,9 +25,9 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.traceThrowable
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.checkCanceled
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.roots.ModuleRootEvent
@@ -41,7 +40,6 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.ex.temp.TempFileSystem
-import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -360,6 +358,8 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
   fun invalidate(configFile: VirtualFile? = null) {
     if (project.isDisposed) return
 
+    LOG.traceThrowable { Throwable("Invalidating GraphQL config${if (configFile == null) "" else " for $configFile"}") }
+
     if (configFile != null) {
       configData[configFile]?.invalidated?.set(true)
     }
@@ -375,17 +375,12 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
 
   fun scheduleConfigurationReload() {
     if (project.isDisposed) return
+    // reload configuration manually when needed in tests
+    if (ApplicationManager.getApplication().isUnitTestMode) return
 
-    emitOrRunImmediateInTests(reloadRequests, Unit) {
-      DumbService.getInstance(project).smartInvokeLater(
-        {
-          runWithModalProgressBlocking(project, "") {
-            reload()
-          }
-        },
-        ModalityState.nonModal()
-      )
-    }
+    LOG.traceThrowable { Throwable("Scheduling GraphQL config reload") }
+
+    check(reloadRequests.tryEmit(Unit))
   }
 
   @RequiresBackgroundThread
@@ -435,9 +430,19 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
       hasChanged = true
     }
 
-    if (hasChanged || explicitInvalidation || !initialized) {
+    val shouldNotifyConfigurationChange = hasChanged ||
+                                          explicitInvalidation ||
+                                          !initialized
+
+    if (shouldNotifyConfigurationChange) {
+      LOG.debug {
+        "GraphQL configuration changed: hasChanged=$hasChanged, explicitInvalidation=$explicitInvalidation, initialized=$initialized "
+      }
+
       notifyConfigurationChanged()
     }
+
+    initialized = true
   }
 
   private fun pollConfigContributors(explicitInvalidation: Boolean): Boolean {
@@ -480,16 +485,19 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
   }
 
   private suspend fun notifyConfigurationChanged() {
+    updateModificationTrackers()
+
     withContext(Dispatchers.EDT) {
-      initialized = true
-
-      modificationTracker.incModificationCount()
-      scopeDependency.update()
       PsiManager.getInstance(project).dropPsiCaches()
-
-      DaemonCodeAnalyzer.getInstance(project).restart()
-      project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()
     }
+
+    DaemonCodeAnalyzer.getInstance(project).restart()
+    project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()
+  }
+
+  private fun updateModificationTrackers() {
+    modificationTracker.incModificationCount()
+    scopeDependency.update()
   }
 
   private suspend fun saveModifiedDocuments(files: Collection<VirtualFile>) {

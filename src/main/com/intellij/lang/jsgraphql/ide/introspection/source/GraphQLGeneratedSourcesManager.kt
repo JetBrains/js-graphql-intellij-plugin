@@ -100,9 +100,7 @@ class GraphQLGeneratedSourcesManager(
     skipInTests {
       coroutineScope.launch {
         notificationFlow.debounce(NOTIFY_DELAY.milliseconds).collect {
-          withContext(Dispatchers.EDT) {
-            PsiManager.getInstance(project).dropPsiCaches()
-          }
+          notifySourcesChanged()
         }
       }
     }
@@ -295,22 +293,29 @@ class GraphQLGeneratedSourcesManager(
 
   fun sourcesChanged() {
     if (project.isDisposed) return
-
-    emitOrRunImmediateInTests(notificationFlow, Unit) {
-      notifySourcesChanged()
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      updateModificationTrackers()
+      return
     }
+
+    check(notificationFlow.tryEmit(Unit))
   }
 
-  private fun notifySourcesChanged() {
+  private suspend fun notifySourcesChanged() {
     if (project.isDisposed) return
 
+    updateModificationTrackers()
+    withContext(Dispatchers.EDT) {
+      PsiManager.getInstance(project).dropPsiCaches()
+      EditorNotifications.getInstance(project).updateAllNotifications()
+    }
+    DaemonCodeAnalyzer.getInstance(project).restart()
+  }
+
+  private fun updateModificationTrackers() {
     modificationTracker.incModificationCount()
     GraphQLScopeDependency.getInstance(project).update()
-    PsiManager.getInstance(project).dropPsiCaches()
-    GraphQLSchemaContentTracker.getInstance(project).schemaChanged()
-
-    DaemonCodeAnalyzer.getInstance(project).restart()
-    EditorNotifications.getInstance(project).updateAllNotifications()
+    GraphQLSchemaContentTracker.getInstance(project).update()
   }
 
   fun reset() {

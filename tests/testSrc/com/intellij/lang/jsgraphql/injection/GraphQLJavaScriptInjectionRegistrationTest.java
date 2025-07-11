@@ -38,7 +38,7 @@ public class GraphQLJavaScriptInjectionRegistrationTest extends GraphQLTestCaseB
       "lines-2/.graphqlconfig"
     );
 
-    reloadConfiguration();
+    reloadProjectConfiguration();
   }
 
   @Override

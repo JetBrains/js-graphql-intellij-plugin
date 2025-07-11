@@ -8,7 +8,6 @@
 package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
-import com.intellij.lang.jsgraphql.emitOrRunImmediateInTests
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
@@ -16,9 +15,11 @@ import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition
 import com.intellij.lang.jsgraphql.skipInTests
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.diagnostic.traceThrowable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.CompositeModificationTracker
 import com.intellij.openapi.util.ModificationTracker
@@ -70,18 +71,25 @@ class GraphQLSchemaContentTracker(private val project: Project, coroutineScope: 
     }
   }
 
-  fun schemaChanged() {
-    LOG.debug("GraphQL schema cache invalidated", if (LOG.isTraceEnabled) Throwable() else null)
+  fun update() {
+    LOG.traceThrowable { Throwable("GraphQL schema cache invalidated") }
 
-    emitOrRunImmediateInTests(changeNotificationsFlow, Unit) {
-      notifySchemaContentChanged()
+    if (ApplicationManager.getApplication().isUnitTestMode) {
+      updateModificationTracker()
+      return
     }
+
+    check(changeNotificationsFlow.tryEmit(Unit))
   }
 
   private fun notifySchemaContentChanged() {
-    modificationTracker.incModificationCount()
+    updateModificationTracker()
     project.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
     DaemonCodeAnalyzer.getInstance(project).restart()
+  }
+
+  private fun updateModificationTracker() {
+    modificationTracker.incModificationCount()
   }
 
   override fun getModificationCount(): Long {
@@ -104,7 +112,7 @@ class GraphQLSchemaContentTracker(private val project: Project, coroutineScope: 
 
       if (event.file is GraphQLFile) {
         if (affectsGraphQLSchema(event)) {
-          schemaChanged()
+          update()
         }
       }
 
@@ -113,7 +121,7 @@ class GraphQLSchemaContentTracker(private val project: Project, coroutineScope: 
         val injectionHelper = GraphQLInjectedLanguage.forElement(event.parent)
         if (injectionHelper != null && injectionHelper.isLanguageInjectionTarget(event.parent)) {
           // change in injection target
-          schemaChanged()
+          update()
         }
       }
     }

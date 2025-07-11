@@ -51,7 +51,7 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
 
     GraphQLLibraryManager libraryManager = GraphQLLibraryManager.getInstance(getProject());
     libraryManager.enableLibraries(true);
-    reloadConfiguration();
+    reloadProjectConfiguration();
     Disposer.register(getTestRootDisposable(), () -> {
       libraryManager.enableLibraries(false);
     });
@@ -62,13 +62,13 @@ public abstract class GraphQLTestCaseBase extends BasePlatformTestCase {
     return GraphQLTestUtils.getTestDataPath(getBasePath());
   }
 
-  protected void reloadConfiguration() {
-    GraphQLTestUtils.reloadConfiguration(getProject());
+  protected void reloadProjectConfiguration() {
+    GraphQLTestUtils.reloadProjectConfiguration(getProject());
   }
 
   protected void copyProject() {
     myFixture.copyDirectoryToProject(getTestName(true), "");
-    reloadConfiguration();
+    reloadProjectConfiguration();
   }
 
   protected void doHighlightingTest() {

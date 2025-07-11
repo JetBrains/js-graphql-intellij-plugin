@@ -17,7 +17,6 @@ import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.TestDataPath
-import junit.framework.TestCase
 
 @TestDataPath("\$CONTENT_ROOT/testData/graphql/config/scope")
 class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
@@ -133,7 +132,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         )
       }
     }, testRootDisposable)
-    reloadConfiguration()
+    reloadProjectConfiguration()
 
     doScopeTest(
       "main/graphql/servicea",
@@ -196,7 +195,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
       val expandedPath = PathMacroManager.getInstance(project).expandPath(it)
       val file = myFixture.findFileInTempDir(expandedPath)
                  ?: LocalFileSystem.getInstance().findFileByPath(expandedPath)
-      TestCase.assertNotNull("expected file not found: $it", file)
+      assertNotNull("expected file not found: $it", file)
       file!!
     }.sortedBy { it.name }.toSet()
     assertSameElements(message, actualFiles, expectedFiles)
@@ -205,7 +204,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
   private fun loadConfig(configPath: String): GraphQLConfig {
     val file = myFixture.findFileInTempDir(configPath)!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)
-    TestCase.assertNotNull(config)
+    assertNotNull(config)
     return config!!
   }
 
