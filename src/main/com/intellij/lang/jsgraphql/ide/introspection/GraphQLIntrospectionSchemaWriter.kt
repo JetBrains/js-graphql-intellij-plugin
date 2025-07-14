@@ -10,10 +10,7 @@ import com.intellij.lang.jsgraphql.ide.notifications.addShowQueryErrorDetailsAct
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
-import com.intellij.openapi.application.EDT
-import com.intellij.openapi.application.edtWriteAction
-import com.intellij.openapi.application.readAndEdtWriteAction
-import com.intellij.openapi.application.runUndoTransparentWriteAction
+import com.intellij.openapi.application.*
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.writeCommandAction
 import com.intellij.openapi.components.Service
@@ -37,9 +34,10 @@ import com.intellij.util.concurrency.annotations.RequiresWriteLock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
+import kotlin.time.measureTime
 
 @Service(Service.Level.PROJECT)
 internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
@@ -116,25 +114,31 @@ internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
     outputFile: VirtualFile,
     document: Document,
   ) {
-    // for some schemas reformatting can take up to ~30 seconds, so I don't see any better solution than a timeout for now
-    if (outputFile.getUserData(SKIP_FORMATTING_KEY) != true) {
-      withTimeoutOrNull(Registry.intValue("graphql.schema.reformat.timeout").milliseconds) {
-        readAndEdtWriteAction {
-          val psiFile = psiDocumentManager.getPsiFile(document)
-          if (psiFile != null) {
-            writeCommandAction(project, GraphQLBundle.message("graphql.command.name.reformat.generated.graphql.sdl")) {
-              CodeStyleManager.getInstance(project).reformat(psiFile)
-            }
-          }
-          else {
-            value(Unit)
+    if (shouldSkipFormatting(outputFile, document)) {
+      LOG.info("Skipping reformat of generated SDL file: $outputFile")
+      return
+    }
+
+    readAndEdtWriteAction {
+      val psiFile = psiDocumentManager.getPsiFile(document)
+      if (psiFile != null) {
+        writeCommandAction(project, GraphQLBundle.message("graphql.command.name.reformat.generated.graphql.sdl")) {
+          val duration = measureTime { CodeStyleManager.getInstance(project).reformat(psiFile) }
+          if (duration > Registry.intValue("graphql.schema.reformat.timeout").milliseconds) {
+            LOG.warn("Timed out (${duration.toString(DurationUnit.SECONDS, 3)}) waiting for reformat to complete: $outputFile")
+            outputFile.putUserData(SKIP_FORMATTING_KEY, true)
           }
         }
-      } ?: run {
-        LOG.warn("Timed out waiting for reformat to complete: $outputFile")
-        outputFile.putUserData(SKIP_FORMATTING_KEY, true)
+      }
+      else {
+        value(Unit)
       }
     }
+  }
+
+  private suspend fun shouldSkipFormatting(outputFile: VirtualFile, document: Document): Boolean = readAction {
+    outputFile.getUserData(SKIP_FORMATTING_KEY) == true ||
+    document.lineCount >= Registry.intValue("graphql.schema.reformat.line.count.threshold")
   }
 
   private suspend fun openSchemaInEditor(project: Project, file: VirtualFile) {
