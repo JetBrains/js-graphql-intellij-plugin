@@ -5,6 +5,7 @@ import com.intellij.lang.jsgraphql.types.language.Document
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiFile
 import com.intellij.util.Processor
@@ -28,11 +29,17 @@ internal class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
 
   private val currentLimit = SCHEMA_SIZE_DEFINITIONS_LIMIT
   private var totalDefinitionsCount = 0
+  private var limitOverflowReported = false
 
   override fun process(psiFile: PsiFile?): Boolean {
     ProgressManager.checkCanceled()
 
     if (psiFile !is GraphQLFile) {
+      return true
+    }
+
+    // we've reached the limit of the user's definitions, but we still need to process all the library files
+    if (isTooComplex && !ProjectFileIndex.getInstance(psiFile.project).isInLibrary(psiFile.virtualFile)) {
       return true
     }
 
@@ -47,16 +54,17 @@ internal class GraphQLSchemaDocumentProcessor : Processor<PsiFile?> {
       totalDefinitionsCount += GraphQLPsiDocumentBuilder.getTypeDefinitionsCount(document)
     }
 
-    if (isTooComplex) {
+    if (isTooComplex && !limitOverflowReported) {
       LOG.warn("Schema total definitions count limit exceeded: ${totalDefinitionsCount}, file: ${psiFile.virtualFile?.path.orEmpty()}")
       LOG.trace {
         documents.joinToString("\n") { document ->
           "file: ${document.filePath}, definitions: ${document.definitions.size}"
         }
       }
+      limitOverflowReported = true
     }
 
-    return !isTooComplex
+    return true
   }
 
   private val Document.filePath: String
