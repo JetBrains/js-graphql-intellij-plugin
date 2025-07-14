@@ -234,7 +234,10 @@
     <registryKey key="graphql.introspection.custom.query"
                  defaultValue=""
                  description="Defines a custom query for server introspection, overriding the default behavior"/>
-    <registryKey key="graphql.schema.reformat.timeout" defaultValue="3000" description="GraphQL schema reformat timeout in ms"/>
+    <registryKey key="graphql.schema.reformat.timeout" defaultValue="3000"
+                 description="The maximum allowed time to wait for the GraphQL schema to be reformatted, in milliseconds"/>
+    <registryKey key="graphql.schema.reformat.line.count.threshold" defaultValue="80000"
+                 description="The maximum number of lines in a GraphQL schema that will be reformatted"/>
 
     <advancedSetting id="graphql.introspection.detect.schema.capabilities" default="ADAPTIVE"
                      enumClass="com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapabilitiesDetectionStrategy"
