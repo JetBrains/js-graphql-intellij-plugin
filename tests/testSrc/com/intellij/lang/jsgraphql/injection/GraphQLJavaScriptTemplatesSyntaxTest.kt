@@ -1,6 +1,10 @@
 package com.intellij.lang.jsgraphql.injection
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.progress.runBlockingCancellable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class GraphQLJavaScriptTemplatesSyntaxTest : GraphQLTestCaseBase() {
   protected override fun getBasePath(): String {
@@ -12,63 +16,65 @@ class GraphQLJavaScriptTemplatesSyntaxTest : GraphQLTestCaseBase() {
     enableAllInspections()
   }
 
-  fun testTypedOperationDirectives() {
+  fun testTypedOperationDirectives() = runBlockingCancellable {
     doTest()
   }
 
-  fun testFieldArg() {
+  fun testFieldArg() = runBlockingCancellable {
     doTest()
   }
 
-  fun testSelectionSet() {
+  fun testSelectionSet() = runBlockingCancellable {
     doTest()
   }
 
-  fun testOperationDefinitions() {
+  fun testOperationDefinitions() = runBlockingCancellable {
     doTest()
   }
 
-  fun testTypeDefinitions() {
+  fun testTypeDefinitions() = runBlockingCancellable {
     doTest(false)
   }
 
-  fun testFieldDefinitions() {
+  fun testFieldDefinitions() = runBlockingCancellable {
     doTest(false)
   }
 
-  fun testFieldDirectives() {
+  fun testFieldDirectives() = runBlockingCancellable {
     doTest(false)
   }
 
-  fun testTypeDefinitionDirectives() {
+  fun testTypeDefinitionDirectives() = runBlockingCancellable {
     doTest(false)
   }
 
-  fun testFragmentDirectives() {
+  fun testFragmentDirectives() = runBlockingCancellable {
     doTest()
   }
 
-  fun testVariableDefinitions() {
+  fun testVariableDefinitions() = runBlockingCancellable {
     doTest()
   }
 
-  fun testEnumFieldsExpression() {
+  fun testEnumFieldsExpression() = runBlockingCancellable {
     doTest(false)
   }
 
-  fun testOperationName() {
+  fun testOperationName() = runBlockingCancellable {
     doTest()
   }
 
-  fun testDirectiveArgument() {
+  fun testDirectiveArgument() = runBlockingCancellable {
     doTest(false)
   }
 
-  private fun doTest(withSchema: Boolean = true) {
-    if (withSchema) {
-      myFixture.copyFileToProject("${getTestName(true)}.graphql")
+  private suspend fun doTest(withSchema: Boolean = true) {
+    withContext(Dispatchers.EDT) {
+      if (withSchema) {
+        myFixture.copyFileToProject("${getTestName(true)}.graphql")
+      }
+      myFixture.configureByFile("${getTestName(true)}.js")
+      myFixture.checkHighlighting()
     }
-    myFixture.configureByFile("${getTestName(true)}.js")
-    myFixture.checkHighlighting()
   }
 }

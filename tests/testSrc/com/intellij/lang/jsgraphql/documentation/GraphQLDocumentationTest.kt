@@ -3,57 +3,60 @@ package com.intellij.lang.jsgraphql.documentation
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.lang.html.HTMLLanguage
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
-import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.command.writeCommandAction
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Computable
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.codeStyle.CodeStyleManager
 
 class GraphQLDocumentationTest : GraphQLTestCaseBase() {
   override fun getBasePath(): String = "/documentation"
 
-  fun testVariable() {
+  fun testVariable() = runBlockingCancellable {
     doTest()
   }
 
-  fun testFragment() {
+  fun testFragment() = runBlockingCancellable {
     doTest()
   }
 
-  fun testOperation() {
+  fun testOperation() = runBlockingCancellable {
     doTest()
   }
 
-  fun testField() {
+  fun testField() = runBlockingCancellable {
     doTest()
   }
 
-  fun testInputField() {
+  fun testInputField() = runBlockingCancellable {
     doTest()
   }
 
-  fun testDirectiveArgument() {
+  fun testDirectiveArgument() = runBlockingCancellable {
     doTest()
   }
 
-  fun testEnumValue() {
+  fun testEnumValue() = runBlockingCancellable {
     doTest()
   }
 
-  private fun doTest() {
+  private suspend fun doTest() {
     val file = myFixture.configureByFile("${getTestName(false)}.graphql")
-    val originalElement = file.findElementAt(myFixture.caretOffset)
-    val element = DocumentationManager.getInstance(myFixture.project)
-      .findTargetElement(myFixture.editor, file, originalElement)
-    val provider = DocumentationManager.getProviderFromElement(element, originalElement)
-    val doc = provider.generateDoc(element, originalElement)?.let { reformatDocumentation(project, it) } ?: "<empty>"
+    val originalElement = readAction { file.findElementAt(myFixture.caretOffset) }
+    val element = readAction {
+      DocumentationManager.getInstance(myFixture.project)
+        .findTargetElement(myFixture.editor, file, originalElement)
+    }
+    val provider = readAction { DocumentationManager.getProviderFromElement(element, originalElement) }
+    val doc = readAction { provider.generateDoc(element, originalElement) }?.let { reformatDocumentation(project, it) } ?: "<empty>"
     assertSameLinesWithFile("${testDataPath}/${getTestName(false)}.html", doc)
   }
 
-  internal fun reformatDocumentation(project: Project, text: String): String =
-    WriteCommandAction.runWriteCommandAction(project, Computable {
+  internal suspend fun reformatDocumentation(project: Project, text: String): String =
+    writeCommandAction(project, "") {
       PsiFileFactory.getInstance(project).createFileFromText("doc.html", HTMLLanguage.INSTANCE, text)
         .let { CodeStyleManager.getInstance(project).reformat(it) }
         .text
-    })
+    }
 }

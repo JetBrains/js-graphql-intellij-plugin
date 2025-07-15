@@ -2,8 +2,10 @@ package com.intellij.lang.jsgraphql.findUsages
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.PsiNamedElement
-import com.intellij.testFramework.UsefulTestCase
 
 class GraphQLFindUsagesTest : GraphQLTestCaseBase() {
 
@@ -11,18 +13,22 @@ class GraphQLFindUsagesTest : GraphQLTestCaseBase() {
 
   override fun setUp() {
     super.setUp()
-    copyProject()
+    runBlockingCancellable {
+      initTestProject()
+    }
   }
 
-  fun testFragments() {
+  fun testFragments() = runBlockingCancellable {
     myFixture.configureFromTempProjectFile("${getTestName(true)}.graphql")
-    val usageInfos = myFixture.findUsages(myFixture.elementAtCaret)
+    val usageInfos = smartReadAction(project) { myFixture.findUsages(myFixture.elementAtCaret) }
 
-    UsefulTestCase.assertSize(3, usageInfos)
-    val containingDeclarationNames = usageInfos
-      .map { GraphQLResolveUtil.findContainingDefinition(it.element) }
-      .filterIsInstance<PsiNamedElement>()
-      .map { it.name }
+    assertSize(3, usageInfos)
+    val containingDeclarationNames = readAction {
+      usageInfos
+        .map { GraphQLResolveUtil.findContainingDefinition(it.element) }
+        .filterIsInstance<PsiNamedElement>()
+        .map { it.name }
+    }
     assertSameElements(containingDeclarationNames, "Frag2", "Frag3", "Query1")
   }
 }

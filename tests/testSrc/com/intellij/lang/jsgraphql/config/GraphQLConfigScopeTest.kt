@@ -8,8 +8,12 @@ import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
+import com.intellij.lang.jsgraphql.reloadGraphQLConfiguration
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.components.PathMacroManager
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -19,7 +23,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.TestDataPath
 
-@TestDataPath("\$CONTENT_ROOT/testData/graphql/config/scope")
+@TestDataPath($$"$CONTENT_ROOT/testData/graphql/config/scope")
 class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
 
   override fun getBasePath(): String = "/config/scope"
@@ -27,10 +31,12 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
   override fun setUp() {
     super.setUp()
 
-    copyProject()
+    runBlockingCancellable {
+      initTestProject()
+    }
   }
 
-  fun testRootProject() {
+  fun testRootProject() = runBlockingCancellable {
     val expectedSchemas = setOf(
       "schema.graphql",
       "dir1/nested/other.graphql",
@@ -53,7 +59,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testRecursiveGlobIncludingCurrent() {
+  fun testRecursiveGlobIncludingCurrent() = runBlockingCancellable {
     val expectedSchemas = setOf(
       "file.graphql",
       "file1.graphql",
@@ -67,7 +73,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testRecursiveGlobFromNestedDir() {
+  fun testRecursiveGlobFromNestedDir() = runBlockingCancellable {
     val expectedSchemas = setOf(
       "dir2/file2.graphql",
       "dir2/dir3/file3.graphql",
@@ -82,10 +88,10 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testJsonSchema() {
+  fun testJsonSchema() = runBlockingCancellable {
     val expectedSchemas = setOf(
       "dir/remoteSchema.json",
-      "\$APPLICATION_CONFIG_DIR$/graphql/sdl/6833dafe39e404965a21449cbb58bc232e8b364ee5eb08fa1652f29fe081515c.graphql"
+      $$"$APPLICATION_CONFIG_DIR$/graphql/sdl/6833dafe39e404965a21449cbb58bc232e8b364ee5eb08fa1652f29fe081515c.graphql"
     )
 
     val expectedDocuments = emptySet<String>()
@@ -93,7 +99,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testExcludeNested() {
+  fun testExcludeNested() = runBlockingCancellable {
     val expectedSchemas = setOf(
       "some/some.graphql",
       "some/nested/nested.graphql",
@@ -106,7 +112,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testAbsolutePath() {
+  fun testAbsolutePath() = runBlockingCancellable {
     val expectedSchemas = setOf(
       "some/dir/schema.graphql",
     )
@@ -116,7 +122,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testOverriddenScope() {
+  fun testOverriddenScope() = runBlockingCancellable {
     GraphQLConfigContributor.EP_NAME.point.registerExtension(object : GraphQLConfigContributor {
       override fun contributeConfigs(project: Project): Collection<GraphQLConfig> {
         val customConfig = GraphQLRawConfig(
@@ -133,7 +139,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
         )
       }
     }, testRootDisposable)
-    reloadProjectConfiguration()
+    myFixture.reloadGraphQLConfiguration()
 
     doScopeTest(
       "main/graphql/servicea",
@@ -156,23 +162,23 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testShared() {
+  fun testShared() = runBlockingCancellable {
     doScopeTest("graphql.config.yml", setOf("lib/common.graphql"), emptySet(), "lib")
     doScopeTest("graphql.config.yml", setOf("lib/common.graphql", "one/one.graphql"), emptySet(), "one")
     doScopeTest("graphql.config.yml", setOf("lib/common.graphql", "two/two.graphql"), emptySet(), "two")
   }
 
-  fun testRelativePath() {
+  fun testRelativePath() = runBlockingCancellable {
     doScopeTest("frontend1/graphql.config.yml", setOf("backend/schema.graphql"), setOf("frontend1/query1.graphql"))
     doScopeTest("frontend2/graphql.config.yml", setOf("backend/schema.graphql"), setOf("frontend2/query2.graphql"))
   }
 
   @IJIgnore(issue = "WEB-74030")
-  fun testSchemaInNodeModules() {
+  fun testSchemaInNodeModules() = runBlockingCancellable {
     doScopeTest("graphql.config.yml", setOf("node_modules/@octokit/graphql-schema/schema.graphql"), emptySet())
   }
 
-  private fun doScopeTest(
+  private suspend fun doScopeTest(
     configPath: String,
     expectedSchemas: Set<String>,
     expectedDocuments: Set<String>,
@@ -183,16 +189,16 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
       projectName
         ?.let { checkNotNull(config.findProject(projectName)) }
       ?: checkNotNull(config.getDefault())
-    compareFiles("strict schema scope is invalid", projectConfig.schemaScope, expectedSchemas)
-    compareFiles("documents scope is invalid", projectConfig.scope, expectedSchemas + expectedDocuments)
+    compareFiles("strict schema scope is invalid", readAction { projectConfig.schemaScope }, expectedSchemas)
+    compareFiles("documents scope is invalid", readAction { projectConfig.scope }, expectedSchemas + expectedDocuments)
   }
 
-  private fun compareFiles(
+  private suspend fun compareFiles(
     message: String,
     scope: GlobalSearchScope,
     expected: Set<String>,
   ) {
-    val actualFiles = getAllFiles(scope)
+    val actualFiles = smartReadAction(project) { getAllFiles(scope) }
     val expectedFiles = expected.mapTo(mutableSetOf()) {
       val expandedPath = PathMacroManager.getInstance(project).expandPath(it)
       val file = myFixture.findFileInTempDir(expandedPath)

@@ -69,6 +69,7 @@ class GraphQLNodeModulesLibraryUpdater(private val project: Project, private val
   class ConfigListener(private val project: Project) : GraphQLConfigListener {
     override fun onConfigurationChanged() {
       if (project.isDisposed) return
+      if (ApplicationManager.getApplication().isUnitTestMode) return
 
       with(getInstance(project)) {
         coroutineScope.launch {

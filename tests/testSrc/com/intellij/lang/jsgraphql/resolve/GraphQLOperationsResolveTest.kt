@@ -5,6 +5,7 @@ import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition
+import com.intellij.openapi.progress.runBlockingCancellable
 
 class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
 
@@ -16,101 +17,101 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     return "/resolve/operations"
   }
 
-  fun testQueryFieldRoot() {
+  fun testQueryFieldRoot() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
   }
 
-  fun testCustomQueryFieldRoot() {
+  fun testCustomQueryFieldRoot() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
   }
 
-  fun testSelectionSetQueryFieldRoot() {
+  fun testSelectionSetQueryFieldRoot() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
   }
 
-  fun testMutationFieldRoot() {
+  fun testMutationFieldRoot() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createUser")
   }
 
-  fun testCustomMutationFieldRoot() {
+  fun testCustomMutationFieldRoot() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createUser")
   }
 
-  fun testSubscriptionFieldRoot() {
+  fun testSubscriptionFieldRoot() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "users")
   }
 
-  fun testCustomSubscriptionFieldRoot() {
+  fun testCustomSubscriptionFieldRoot() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "users")
   }
 
-  fun testFragmentName() {
+  fun testFragmentName() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFragmentDefinition::class.java, "fragment1")
   }
 
-  fun testFragmentObjectField() {
+  fun testFragmentObjectField() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
   }
 
-  fun testFragmentObjectFieldExtension() {
+  fun testFragmentObjectFieldExtension() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "email")
   }
 
-  fun testFragmentInterfaceField() {
+  fun testFragmentInterfaceField() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "id")
   }
 
-  fun testFragmentInterfaceFieldExtension() {
+  fun testFragmentInterfaceFieldExtension() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createdAt")
   }
 
-  fun testFragmentUnionField() {
+  fun testFragmentUnionField() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "language")
   }
 
-  fun testFragmentUnionFieldExtension() {
+  fun testFragmentUnionFieldExtension() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "someOtherField")
   }
 
-  fun testFragmentInlineAnonymous() {
+  fun testFragmentInlineAnonymous() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "id")
   }
 
-  fun testFieldArgument() {
+  fun testFieldArgument() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "after")
   }
 
-  fun testDirectiveArgument() {
+  fun testDirectiveArgument() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "second")
   }
 
-  fun testDirective() {
+  fun testDirective() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLDirectiveDefinition::class.java, "someDir")
   }
 
-  fun testInputValue() {
+  fun testInputValue() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "address")
   }
 
-  fun testInputValueNested() {
+  fun testInputValueNested() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "zip")
   }
 
-  fun testInputValueDefinitionDefault() {
+  fun testInputValueDefinitionDefault() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "street")
   }
 
-  fun testGithubQueries() {
+  fun testGithubQueries() = runBlockingCancellable {
     myFixture.copyFileToProject(GITHUB_SCHEMA)
     doHighlightingTest()
   }
 
-  fun testUnresolvedReferences() {
+  fun testUnresolvedReferences() = runBlockingCancellable {
     myFixture.copyFileToProject(GITHUB_SCHEMA)
     doHighlightingTest()
   }
 
-  fun testFragmentExplicitDocumentsGlob() {
+  fun testFragmentExplicitDocumentsGlob() = runBlockingCancellable<Unit> {
     doProjectResolveTest(
       "bar/bar.js",
       GraphQLFragmentDefinition::class.java,
@@ -119,7 +120,7 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentFallbackToFirstNonStrictProject() {
+  fun testFragmentFallbackToFirstNonStrictProject() = runBlockingCancellable<Unit> {
     doProjectResolveTest(
       "bar/bar.js",
       GraphQLFragmentDefinition::class.java,
@@ -128,7 +129,7 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentFallbackToFirstNonStrictProjectSkipInclude() {
+  fun testFragmentFallbackToFirstNonStrictProjectSkipInclude() = runBlockingCancellable<Unit> {
     doProjectResolveTest(
       "bar/bar.js",
       GraphQLFragmentDefinition::class.java,
@@ -137,7 +138,7 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentMatchedBySchema() {
+  fun testFragmentMatchedBySchema() = runBlockingCancellable<Unit> {
     doProjectResolveTest(
       "bar/bar.js",
       GraphQLFragmentDefinition::class.java,
@@ -146,7 +147,7 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentInjectedInHtml() {
+  fun testFragmentInjectedInHtml() = runBlockingCancellable<Unit> {
     doProjectResolveTest(
       "index.html",
       GraphQLFragmentDefinition::class.java,
@@ -155,7 +156,7 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentInjectedResolvedToOtherInjection() {
+  fun testFragmentInjectedResolvedToOtherInjection() = runBlockingCancellable<Unit> {
     doProjectResolveTest(
       "index.html",
       GraphQLFragmentDefinition::class.java,
@@ -164,7 +165,7 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentIncluded() {
+  fun testFragmentIncluded() = runBlockingCancellable<Unit> {
     doProjectResolveTest(
       "query.graphql",
       GraphQLFragmentDefinition::class.java,
@@ -173,11 +174,11 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentExcluded() {
+  fun testFragmentExcluded() = runBlockingCancellable {
     doProjectHighlighting("query.graphql")
   }
 
-  fun testInputFieldAsVariableDefaultValue() {
+  fun testInputFieldAsVariableDefaultValue() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "direction")
   }
 }

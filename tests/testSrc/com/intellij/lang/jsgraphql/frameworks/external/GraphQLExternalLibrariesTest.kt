@@ -5,6 +5,8 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor
 import com.intellij.lang.jsgraphql.withExternalLibrary
+import com.intellij.openapi.components.serviceAsync
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.platform.backend.workspace.WorkspaceModel
@@ -22,13 +24,13 @@ class GraphQLExternalLibrariesTest : GraphQLTestCaseBase() {
 
   override fun getBasePath() = "/frameworks/external"
 
-  fun testSchemaValidation() {
+  fun testSchemaValidation() = runBlockingCancellable {
     val sourceFilePath = Paths.get(testDataPath, "ExternalSchema.graphql")
     if (!sourceFilePath.exists()) {
       throw IllegalStateException("External schema file is not found: ${sourceFilePath.toAbsolutePath()}")
     }
 
-    val fileUrlManager = WorkspaceModel.getInstance(project).getVirtualFileUrlManager()
+    val fileUrlManager = project.serviceAsync<WorkspaceModel>().getVirtualFileUrlManager()
     val rootUrl = VirtualFileManager.getInstance().refreshAndFindFileByNioPath(sourceFilePath)
                     ?.toVirtualFileUrl(fileUrlManager)
                   ?: throw IllegalStateException("External schema virtual file is not found: ${sourceFilePath.toAbsolutePath()}")
@@ -43,13 +45,13 @@ class GraphQLExternalLibrariesTest : GraphQLTestCaseBase() {
     doTest(library)
   }
 
-  private fun doTest(library: GraphQLLibrary) {
-    withExternalLibrary(project, library, {
+  private suspend fun doTest(library: GraphQLLibrary) {
+    withExternalLibrary(project, library) {
       doHighlightingTest()
 
       val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(myFixture.file)
       assertNotNull(schemaInfo)
       assertEmpty(schemaInfo.getErrors(project))
-    }, testRootDisposable)
+    }
   }
 }
