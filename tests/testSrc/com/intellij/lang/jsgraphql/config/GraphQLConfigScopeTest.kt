@@ -1,5 +1,6 @@
 package com.intellij.lang.jsgraphql.config
 
+import com.intellij.idea.IJIgnore
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigContributor
@@ -166,6 +167,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest("frontend2/graphql.config.yml", setOf("backend/schema.graphql"), setOf("frontend2/query2.graphql"))
   }
 
+  @IJIgnore(issue = "WEB-74030")
   fun testSchemaInNodeModules() {
     doScopeTest("graphql.config.yml", setOf("node_modules/@octokit/graphql-schema/schema.graphql"), emptySet())
   }
