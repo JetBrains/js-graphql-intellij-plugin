@@ -2,44 +2,45 @@ package com.intellij.lang.jsgraphql.introspection
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
-import com.intellij.openapi.application.runUndoTransparentWriteAction
+import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.editor.impl.DocumentImpl
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.vfs.VfsUtilCore
 import java.io.IOException
 
 class GraphQLIntrospectionPrinterTest : GraphQLTestCaseBase() {
   override fun getBasePath(): String = "/introspection/print"
 
-  fun testPrintIntrospectionJsonAsGraphQL() {
+  fun testPrintIntrospectionJsonAsGraphQL() = runBlockingCancellable {
     doTest("schema.json", "schema.graphql")
   }
 
-  fun testPrintIntrospectionJsonWithEmptyErrorsAsGraphQL() {
+  fun testPrintIntrospectionJsonWithEmptyErrorsAsGraphQL() = runBlockingCancellable {
     doTest("schemaWithEmptyErrors.json", "schema.graphql")
   }
 
-  fun testPrintIntrospectionJsonWithErrorsAsGraphQL() {
+  fun testPrintIntrospectionJsonWithErrorsAsGraphQL() = runBlockingCancellable {
     try {
       doTest("schemaWithErrors.json", "schema.graphql")
     }
     catch (exception: IllegalArgumentException) {
       assertEquals("Introspection query returned errors: [{\"message\":\"Error\"}]", exception.message)
-      return
+      return@runBlockingCancellable
     }
 
     throw RuntimeException("Expected errors exception, found none.")
   }
 
-  fun testPrintIntrospectionWithNullFields() {
+  fun testPrintIntrospectionWithNullFields() = runBlockingCancellable {
     doTest("schemaWithNullFields.json", "schemaWithNullFields.graphql")
   }
 
-  fun testPrintIntrospectionRepeatableDirectives() {
+  fun testPrintIntrospectionRepeatableDirectives() = runBlockingCancellable {
     doTest("schemaWithRepeatableDirectives.json", "schemaWithRepeatableDirectives.graphql")
   }
 
-  fun testGithubSchema() {
+  fun testGithubSchema() = runBlockingCancellable {
     // test only for being successful, file comparison doesn't give a meaningful result for files of this size
     assertNoThrowable {
       GraphQLIntrospectionService
@@ -47,27 +48,27 @@ class GraphQLIntrospectionPrinterTest : GraphQLTestCaseBase() {
     }
   }
 
-  fun testPrintIntrospectionWithUndefinedDirectives() {
+  fun testPrintIntrospectionWithUndefinedDirectives() = runBlockingCancellable {
     doTest("schemaWithUndefinedDirectives.json", "schemaWithUndefinedDirectives.graphql")
   }
 
-  fun testPrintIntrospectionWithoutRootTypes() {
+  fun testPrintIntrospectionWithoutRootTypes() = runBlockingCancellable {
     doTest("schemaWithoutRootTypes.json", "schemaWithoutRootTypes.graphql")
   }
 
-  fun testPrintIntrospectionWithCustomRootTypes() {
+  fun testPrintIntrospectionWithCustomRootTypes() = runBlockingCancellable {
     doTest("schemaWithCustomRootTypes.json", "schemaWithCustomRootTypes.graphql")
   }
 
-  fun testPrintIntrospectionWithJavaFormatterSpecifiersInDescriptions() {
+  fun testPrintIntrospectionWithJavaFormatterSpecifiersInDescriptions() = runBlockingCancellable {
     doTest("schemaWithJavaFormatterSpecifiersInDescriptions.json", "schemaWithJavaFormatterSpecifiersInDescriptions.graphql")
   }
 
-  private fun doTest(source: String, expected: String) {
+  private suspend fun doTest(source: String, expected: String) {
     val introspection =
       GraphQLIntrospectionService.printIntrospectionAsGraphQL(project, checkNotNull(readSchemaJson(source)))
     myFixture.configureByText("result.graphql", introspection)
-    runUndoTransparentWriteAction { (myFixture.getDocument(myFixture.file) as DocumentImpl).stripTrailingSpaces(project, false) }
+    edtWriteAction { (myFixture.getDocument(myFixture.file) as DocumentImpl).stripTrailingSpaces(project, false) }
     myFixture.checkResultByFile(expected)
   }
 

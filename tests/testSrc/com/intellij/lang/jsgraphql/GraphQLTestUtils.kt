@@ -2,6 +2,7 @@
 
 package com.intellij.lang.jsgraphql
 
+import com.intellij.graphql.javascript.workspace.GraphQLNodeModulesLibraryUpdater
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.lang.jsgraphql.GraphQLSettings.GraphQLSettingsState
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
@@ -12,22 +13,18 @@ import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PluginPathManager
-import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.waitForSmartMode
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.testFramework.IndexingTestUtil
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.testFramework.utils.coroutines.waitCoroutinesBlocking
-import com.intellij.util.concurrency.annotations.RequiresEdt
+import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ui.UIUtil
 import java.io.File
-import java.util.function.Consumer
 import java.util.function.Function
 
 const val GRAPHQL_TEST_RELATIVE_PATH = "tests/testData/graphql"
@@ -38,54 +35,43 @@ fun getTestDataPath(path: String): String {
     .let { FileUtil.normalize(it) }
 }
 
-fun withSettings(
+suspend fun withSettings(
   project: Project,
-  consumer: Consumer<GraphQLSettings>,
-  disposable: Disposable,
-) {
-  withSettings(project, consumer, null, disposable)
-}
-
-fun withSettings(
-  project: Project,
-  consumer: Consumer<GraphQLSettings>,
-  onDispose: Runnable?,
-  disposable: Disposable,
+  action: suspend (GraphQLSettings) -> Unit,
+  onCompletion: (suspend () -> Unit)?,
 ) {
   val settings = GraphQLSettings.getSettings(project)
   val previousState = settings.state
-  Disposer.register(disposable) {
-    settings.loadState(previousState)
-    onDispose?.run()
-  }
   val tempState = GraphQLSettingsState()
   settings.loadState(tempState)
-  consumer.accept(settings)
+  try {
+    action.invoke(settings)
+  }
+  finally {
+    settings.loadState(previousState)
+    onCompletion?.invoke()
+  }
 }
 
-fun withExternalLibrary(
+suspend fun withExternalLibrary(
   project: Project,
   library: GraphQLLibrary,
-  consumer: Runnable,
-  disposable: Disposable,
+  action: suspend () -> Unit,
 ) {
   val libraryManager = GraphQLLibraryManager.getInstance(project)
-  runWithModalProgressBlocking(project, "libraryManager.registerExternalLibrary(library)") {
-    libraryManager.registerExternalLibrary(library)
+  libraryManager.registerExternalLibrary(library)
+  try {
+    action()
   }
-  Disposer.register(disposable) {
-    runWithModalProgressBlocking(project, "libraryManager.unregisterExternalLibrary(library)") {
-      libraryManager.unregisterExternalLibrary(library)
-    }
+  finally {
+    libraryManager.unregisterExternalLibrary(library)
   }
-  consumer.run()
 }
 
-fun withLibrary(
+suspend fun withLibrary(
   project: Project,
   libraryDescriptor: GraphQLLibraryDescriptor,
-  testCase: Runnable,
-  disposable: Disposable,
+  action: suspend () -> Unit,
 ) {
   withSettings(project, { settings: GraphQLSettings ->
     if (libraryDescriptor === GraphQLBundledLibraryTypes.RELAY) {
@@ -100,42 +86,29 @@ fun withLibrary(
     else {
       throw IllegalArgumentException("Unexpected library: $libraryDescriptor")
     }
-    syncLibrariesBlocking(project)
-    testCase.run()
-  }, { syncLibrariesBlocking(project) }, disposable)
+    syncLibraries(project)
+    action()
+  }, { syncLibraries(project) })
 }
 
-private fun syncLibrariesBlocking(project: Project) {
-  runWithModalProgressBlocking(project, "") {
-    GraphQLLibraryManager.getInstance(project).syncLibraries()
-  }
-
-  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+private suspend fun syncLibraries(project: Project) {
+  GraphQLLibraryManager.getInstance(project).syncLibraries()
+  GraphQLNodeModulesLibraryUpdater.getInstance(project).updateNodeModulesEntity()
   IndexingTestUtil.waitUntilIndexesAreReady(project)
-  DumbService.getInstance(project).waitForSmartMode()
+  project.waitForSmartMode()
 }
 
-fun withCustomEnv(project: Project, env: Map<String, String?>, runnable: Runnable) {
+suspend fun withCustomEnv(project: Project, env: Map<String, String?>, action: suspend () -> Unit) {
   val before = GraphQLConfigEnvironment.getEnvVariable
   GraphQLConfigEnvironment.getEnvVariable = Function { env[it] }
   try {
     GraphQLConfigEnvironment.getInstance(project).notifyEnvironmentChanged()
-    reloadConfigBlocking(project)
-    runnable.run()
+    reloadConfig(project)
+    action()
   }
   finally {
     GraphQLConfigEnvironment.getEnvVariable = before
   }
-}
-
-@RequiresEdt
-fun createTestScratchFile(
-  fixture: CodeInsightTestFixture,
-  path: String,
-  projectName: String?,
-  query: String?,
-): VirtualFile? {
-  return createTestScratchFile(fixture, createOverrideConfigComment(path, projectName), query)
 }
 
 fun createTestScratchFile(
@@ -154,32 +127,29 @@ fun createTestScratchFile(
     }
 }
 
-fun reloadProjectConfiguration(project: Project) {
-  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+suspend fun reloadGraphQLConfiguration(project: Project) {
+  runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
   IndexingTestUtil.waitUntilIndexesAreReady(project)
+  project.waitForSmartMode()
 
   // initializing config provider
-  reloadConfigBlocking(project)
-  syncLibrariesBlocking(project)
+  reloadConfig(project)
+  syncLibraries(project)
   // reload again to ensure that the new schemas and libraries are picked up, and the scope is updated
-  reloadConfigBlocking(project)
+  reloadConfig(project)
 
-  convertJsonSchemasToSdlBlocking(project)
+  convertJsonSchemasToSdl(project)
 }
 
-internal fun reloadConfigBlocking(project: Project) {
-  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-  runWithModalProgressBlocking(project, "") {
-    GraphQLConfigProvider.getInstance(project).reload()
-  }
-  PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+internal suspend fun CodeInsightTestFixture.reloadGraphQLConfiguration() {
+  reloadGraphQLConfiguration(project)
 }
 
-internal fun convertJsonSchemasToSdlBlocking(project: Project) {
-  runWithModalProgressBlocking(project, "") {
-    GraphQLGeneratedSourcesUpdater.getInstance(project).runJsonSchemaFilesGeneration()
-  }
-  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-  waitCoroutinesBlocking(GraphQLGeneratedSourcesManager.getInstance(project).coroutineScope)
-  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+internal suspend fun reloadConfig(project: Project) {
+  GraphQLConfigProvider.getInstance(project).reload()
+}
+
+internal suspend fun convertJsonSchemasToSdl(project: Project) {
+  GraphQLGeneratedSourcesUpdater.getInstance(project).runJsonSchemaFilesGeneration()
+  GraphQLGeneratedSourcesManager.getInstance(project).awaitPendingTasks()
 }

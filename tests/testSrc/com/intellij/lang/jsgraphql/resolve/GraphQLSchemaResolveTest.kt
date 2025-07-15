@@ -2,149 +2,150 @@ package com.intellij.lang.jsgraphql.resolve
 
 import com.intellij.lang.jsgraphql.GraphQLResolveTestCaseBase
 import com.intellij.lang.jsgraphql.psi.*
+import com.intellij.openapi.progress.runBlockingCancellable
 
 class GraphQLSchemaResolveTest : GraphQLResolveTestCaseBase() {
   override fun getBasePath(): String {
     return "/resolve/schema"
   }
 
-  fun testGithubSchema() {
+  fun testGithubSchema() = runBlockingCancellable {
     doHighlightingTest()
   }
 
-  fun testAniListSchema() {
+  fun testAniListSchema() = runBlockingCancellable {
     doHighlightingTest()
   }
 
-  fun testBitQuerySchema() {
+  fun testBitQuerySchema() = runBlockingCancellable {
     doHighlightingTest()
   }
 
-  fun testUniverseSchema() {
+  fun testUniverseSchema() = runBlockingCancellable {
     doHighlightingTest()
   }
 
-  fun testDirectiveArgumentObjectFieldValue() {
+  fun testDirectiveArgumentObjectFieldValue() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLEnumValueDefinition::class.java, "owner")
   }
 
-  fun testDirectiveArgumentObjectField() {
+  fun testDirectiveArgumentObjectField() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "allow")
   }
 
-  fun testDefaultArgumentObjectField() {
+  fun testDefaultArgumentObjectField() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "field")
   }
 
-  fun testDirectiveArgumentEnumValue() {
+  fun testDirectiveArgumentEnumValue() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLEnumValueDefinition::class.java, "FOREVER")
   }
 
-  fun testDefaultArgumentObjectFieldInsideArray() {
+  fun testDefaultArgumentObjectFieldInsideArray() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "field")
   }
 
-  fun testDefaultArgumentObjectFieldNestedCircular() {
+  fun testDefaultArgumentObjectFieldNestedCircular() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "order")
   }
 
-  fun testObjectFieldDefinitionObjectType() {
+  fun testObjectFieldDefinitionObjectType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "Location")
   }
 
-  fun testObjectFieldDefinitionEnumType() {
+  fun testObjectFieldDefinitionEnumType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLEnumTypeDefinition::class.java, "CheckStatusState")
   }
 
-  fun testObjectFieldDefinitionScalarType() {
+  fun testObjectFieldDefinitionScalarType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLScalarTypeDefinition::class.java, "Upload")
   }
 
-  fun testObjectFieldDefinitionUnionType() {
+  fun testObjectFieldDefinitionUnionType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLUnionTypeDefinition::class.java, "Node")
   }
 
-  fun testObjectFieldDefinitionInterfaceType() {
+  fun testObjectFieldDefinitionInterfaceType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition::class.java, "Node")
   }
 
-  fun testArgumentDefinitionObjectType() {
+  fun testArgumentDefinitionObjectType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "Argument")
   }
 
-  fun testArgumentDefinitionInputType() {
+  fun testArgumentDefinitionInputType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition::class.java, "Argument")
   }
 
-  fun testDirectiveArgument() {
+  fun testDirectiveArgument() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "fieldType")
   }
 
-  fun testSchemaOperationQueryType() {
+  fun testSchemaOperationQueryType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomQuery")
   }
 
-  fun testSchemaOperationMutationType() {
+  fun testSchemaOperationMutationType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomMutation")
   }
 
-  fun testSchemaOperationSubscriptionType() {
+  fun testSchemaOperationSubscriptionType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomSubscription")
   }
 
-  fun testSchemaExtensionOperationQueryType() {
+  fun testSchemaExtensionOperationQueryType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomQuery")
   }
 
-  fun testSchemaExtensionOperationMutationType() {
+  fun testSchemaExtensionOperationMutationType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomMutation")
   }
 
-  fun testSchemaExtensionOperationSubscriptionType() {
+  fun testSchemaExtensionOperationSubscriptionType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "CustomSubscription")
   }
 
-  fun testInterfaceFieldDefinitionObjectType() {
+  fun testInterfaceFieldDefinitionObjectType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "Location")
   }
 
-  fun testInputFieldDefinitionInputType() {
+  fun testInputFieldDefinitionInputType() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition::class.java, "LocationInput")
   }
 
-  fun testObjectTypeImplementsInterface() {
+  fun testObjectTypeImplementsInterface() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition::class.java, "Entity")
   }
 
-  fun testObjectTypeDirective() {
+  fun testObjectTypeDirective() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLDirectiveDefinition::class.java, "table")
   }
 
-  fun testObjectFieldDefinitionDirective() {
+  fun testObjectFieldDefinitionDirective() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLDirectiveDefinition::class.java, "field")
   }
 
-  fun testInterfaceTypeImplementsInterface() {
+  fun testInterfaceTypeImplementsInterface() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition::class.java, "Node")
   }
 
-  fun testInterfaceTypeImplementsCircular() {
+  fun testInterfaceTypeImplementsCircular() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInterfaceTypeDefinition::class.java, "Named")
   }
 
-  fun testInputObjectTypeCircular() {
+  fun testInputObjectTypeCircular() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition::class.java, "Example")
   }
 
-  fun testInputObjectTypeCircularList() {
+  fun testInputObjectTypeCircularList() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLInputObjectTypeDefinition::class.java, "Example")
   }
 
-  fun testUnionTypeMember() {
+  fun testUnionTypeMember() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLObjectTypeDefinition::class.java, "B")
   }
 
-  fun testUnionTypeMemberCircular() {
+  fun testUnionTypeMemberCircular() = runBlockingCancellable<Unit> {
     doResolveWithOffsetTest(GraphQLUnionTypeDefinition::class.java, "U")
   }
 }

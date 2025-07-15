@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.PsiFile
 import java.util.function.UnaryOperator
 
@@ -16,47 +17,47 @@ class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
 
   override fun getBasePath() = "/schema/builder"
 
-  fun testObjects() {
+  fun testObjects() = runBlockingCancellable {
     doTest()
   }
 
-  fun testInterfaces() {
+  fun testInterfaces() = runBlockingCancellable {
     doTest()
   }
 
-  fun testUnions() {
+  fun testUnions() = runBlockingCancellable {
     doTest()
   }
 
-  fun testInputObjects() {
+  fun testInputObjects() = runBlockingCancellable {
     doTest()
   }
 
-  fun testScalars() {
+  fun testScalars() = runBlockingCancellable {
     doTest()
   }
 
-  fun testEnums() {
+  fun testEnums() = runBlockingCancellable {
     doTest()
   }
 
-  fun testDirectives() {
+  fun testDirectives() = runBlockingCancellable {
     doTest { it.includeDirectiveDefinitions(true) }
   }
 
-  fun testSchemas() {
+  fun testSchemas() = runBlockingCancellable {
     doTest()
   }
 
-  fun testSpecifiedByAndDeprecatedDirectives() {
+  fun testSpecifiedByAndDeprecatedDirectives() = runBlockingCancellable {
     doTest()
   }
 
-  fun testSchemaInInjections() {
+  fun testSchemaInInjections() = runBlockingCancellable {
     doProjectTest("type1.graphql")
   }
 
-  fun testRecursiveDefaultObjectValues() {
+  fun testRecursiveDefaultObjectValues() = runBlockingCancellable {
     doTest()
   }
 
@@ -67,17 +68,15 @@ class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
     checkByExpectedSchema(file, optionsBuilder)
   }
 
-  private fun doProjectTest(fileName: String, optionsBuilder: UnaryOperator<SchemaPrinter.Options>? = null) {
-    myFixture.copyDirectoryToProject(getTestName(true), "")
-    reloadProjectConfiguration()
-
+  private suspend fun doProjectTest(fileName: String, optionsBuilder: UnaryOperator<SchemaPrinter.Options>? = null) {
+    initTestProject()
     val file = myFixture.configureFromTempProjectFile(fileName)!!
     checkByExpectedSchema(file, optionsBuilder)
   }
 
   private fun checkByExpectedSchema(
     file: PsiFile?,
-    optionsBuilder: UnaryOperator<SchemaPrinter.Options>?
+    optionsBuilder: UnaryOperator<SchemaPrinter.Options>?,
   ) {
     val schemaProvider = GraphQLSchemaProvider.getInstance(myFixture.project)
     val schema = schemaProvider.getSchemaInfo(file).schema

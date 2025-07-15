@@ -18,7 +18,9 @@ import com.intellij.lang.jsgraphql.ide.config.env.expandVariables
 import com.intellij.lang.jsgraphql.ide.config.env.extractEnvironmentVariables
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawEndpoint
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
+import com.intellij.lang.jsgraphql.reloadGraphQLConfiguration
 import com.intellij.lang.jsgraphql.withCustomEnv
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.guessProjectDir
 import junit.framework.TestCase
 import org.junit.Assert
@@ -28,7 +30,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
 
   override fun getBasePath(): String = "/config/environment"
 
-  fun testExpandedVariables() {
+  fun testExpandedVariables() = runBlockingCancellable {
     withCustomEnv(
       project,
       mapOf(
@@ -36,8 +38,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
         "AUTH" to "7FGD63HHDY373UFDSJF838FSNDFK3922WSJ99"
       ),
     ) {
-      myFixture.copyDirectoryToProject(getTestName(true), "")
-      reloadProjectConfiguration()
+      initTestProject()
 
       val config = GraphQLConfigProvider.getInstance(project).getAllConfigs().first().getDefault()!!
       myFixture.configureByText(JsonFileType.INSTANCE, GraphQLConfigTestPrinter(config).print())
@@ -45,7 +46,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
 
       GraphQLConfigEnvironment.getInstance(project)
         .setExplicitVariable("WITH_DEFAULT", "not/default/anymore/file.graphql", config.file!!)
-      reloadProjectConfiguration()
+      myFixture.reloadGraphQLConfiguration()
 
       val updatedConfig = GraphQLConfigProvider.getInstance(project).getAllConfigs().first().getDefault()!!
       myFixture.configureByText(JsonFileType.INSTANCE, GraphQLConfigTestPrinter(updatedConfig).print())
@@ -53,7 +54,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
     }
   }
 
-  fun testExpandedVariablesLegacy() {
+  fun testExpandedVariablesLegacy() = runBlockingCancellable {
     withCustomEnv(project, emptyMap()) {
       val dir = project.guessProjectDir()!!
 
@@ -104,7 +105,7 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
     }
   }
 
-  fun testInterpolation() {
+  fun testInterpolation() = runBlockingCancellable {
     withCustomEnv(project, emptyMap()) {
       val env = mapOf(
         "HOME" to "/usr/bin",
@@ -176,43 +177,39 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
     }
   }
 
-  fun testEnvFile() {
-    myFixture.copyDirectoryToProject(getTestName(true), "")
-    reloadProjectConfiguration()
+  fun testEnvFile() = runBlockingCancellable {
+    initTestProject()
     val file = myFixture.findFileInTempDir("some/nested/dir/graphql.config.yml")!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)?.getDefault()!!
     assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
   }
 
-  fun testEnvFileDuplicatedVars() {
-    myFixture.copyDirectoryToProject(getTestName(true), "")
-    reloadProjectConfiguration()
+  fun testEnvFileDuplicatedVars() = runBlockingCancellable {
+    initTestProject()
     val file = myFixture.findFileInTempDir("graphql.config.yml")!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)?.getDefault()!!
     assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
   }
 
-  fun testEnvFileInParent() {
-    myFixture.copyDirectoryToProject(getTestName(true), "")
-    reloadProjectConfiguration()
+  fun testEnvFileInParent() = runBlockingCancellable {
+    initTestProject()
     val file = myFixture.findFileInTempDir("some/nested/dir/graphql.config.yml")!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)?.getDefault()!!
     assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
   }
 
-  fun testEnvFileFallbackToRoot() {
-    myFixture.copyDirectoryToProject(getTestName(true), "")
-    reloadProjectConfiguration()
+  fun testEnvFileFallbackToRoot() = runBlockingCancellable {
+    initTestProject()
     val file = myFixture.findFileInTempDir("some/nested/dir/graphql.config.yml")!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)?.getDefault()!!
     assertEquals("bearer 123456QWERTY", config.endpoints.single().headers["Authorization"])
   }
 
-  fun testEnvPerFile() {
-    val root = myFixture.copyDirectoryToProject(getTestName(true), "")
+  fun testEnvPerFile() = runBlockingCancellable {
+    val root = initTestProject()
     GraphQLConfigEnvironment.getInstance(project)
       .setExplicitVariable("SCHEMA_URL", "https://google.com/graphql", root)
-    reloadProjectConfiguration()
+    myFixture.reloadGraphQLConfiguration()
 
     val childConfig = GraphQLConfigProvider.getInstance(project)
       .getForConfigFile(myFixture.findFileInTempDir("some/dir/graphql.config.yml"))?.getDefault()!!
@@ -223,9 +220,8 @@ class GraphQLConfigEnvironmentTest : GraphQLTestCaseBase() {
     TestCase.assertEquals("https://google.com/graphql", rootConfig.schema.single().pattern)
   }
 
-  fun testEndpointShouldUpdateSchemaPathOnEnvChange() {
-    myFixture.copyDirectoryToProject(getTestName(true), "")
-    reloadProjectConfiguration()
+  fun testEndpointShouldUpdateSchemaPathOnEnvChange() = runBlockingCancellable {
+    initTestProject()
     val config = GraphQLConfigProvider.getInstance(project).getAllConfigs().single().getDefault()!!
     var endpoint = config.endpoints.single()
     TestCase.assertEquals("https://default.com/graphql", endpoint.url)

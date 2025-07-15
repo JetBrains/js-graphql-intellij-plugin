@@ -9,16 +9,17 @@ package com.intellij.lang.jsgraphql.formatter
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.codeStyle.CodeStyleManager
 
 class GraphQLFormatterTest : GraphQLTestCaseBase() {
   protected override fun getBasePath(): String = "/formatter"
 
-  fun testSchema() {
+  fun testSchema() = runBlockingCancellable {
     doTest()
   }
 
-  private fun doTest() {
+  private suspend fun doTest() {
     myFixture.configureByFiles("${getTestName(true)}.graphql")
     WriteCommandAction.runWriteCommandAction(project, Runnable {
       CodeStyleManager.getInstance(project).reformat(myFixture.getFile())

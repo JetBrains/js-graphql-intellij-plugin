@@ -37,7 +37,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
-import org.jetbrains.annotations.VisibleForTesting
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -55,7 +54,7 @@ import kotlin.time.Duration.Companion.seconds
 @State(name = "GraphQLGeneratedSources", storages = [Storage(value = StoragePathMacros.CACHE_FILE, roamingType = RoamingType.DISABLED)])
 class GraphQLGeneratedSourcesManager(
   private val project: Project,
-  @VisibleForTesting val coroutineScope: CoroutineScope,
+  private val coroutineScope: CoroutineScope,
 ) : Disposable,
     ModificationTracker,
     PersistentStateComponent<GraphQLGeneratedSourcesManager.GraphQLGeneratedSourceState> {
@@ -349,6 +348,10 @@ class GraphQLGeneratedSourcesManager(
     return mapping[source]
       ?.takeIf { it.status == RequestStatus.ERROR }
       ?.exception
+  }
+
+  suspend fun awaitPendingTasks() {
+    pendingTasks.values.joinAll()
   }
 
   override fun getModificationCount(): Long = modificationTracker.modificationCount

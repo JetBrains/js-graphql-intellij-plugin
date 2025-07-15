@@ -8,8 +8,12 @@ import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.config.serialization.GraphQLConfigPrinter
+import com.intellij.lang.jsgraphql.reloadGraphQLConfiguration
 import com.intellij.lang.jsgraphql.withCustomEnv
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
@@ -24,30 +28,34 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
   override fun setUp() {
     super.setUp()
 
-    copyProject()
+    runBlockingCancellable {
+      initTestProject()
+    }
   }
 
-  fun testConfigRc() {
+  fun testConfigRc() = runBlockingCancellable {
     val config = resolveConfig("dir/schema.graphql")
     TestCase.assertEquals("/src/.graphqlrc", config.file?.path)
-    assertEquals(YAMLFileType.YML, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
+    val fileType = readAction { PsiManager.getInstance(project).findFile(config.file!!)?.fileType }
+    assertEquals(YAMLFileType.YML, fileType)
     assertConfigContentsMatches(config)
   }
 
-  fun testConfigRcAsJson() {
+  fun testConfigRcAsJson() = runBlockingCancellable {
     val config = resolveConfig("dir/schema.graphql")
     TestCase.assertEquals("/src/.graphqlrc", config.file?.path)
-    assertEquals(JsonFileType.INSTANCE, PsiManager.getInstance(project).findFile(config.file!!)?.fileType)
+    val fileType = readAction { PsiManager.getInstance(project).findFile(config.file!!)?.fileType }
+    assertEquals(JsonFileType.INSTANCE, fileType)
     assertConfigContentsMatches(config)
   }
 
-  fun testDontSkipEmptyRootConfigs() {
+  fun testDontSkipEmptyRootConfigs() = runBlockingCancellable {
     val config = resolveConfig("some/nested/dir/nested.graphql")
     TestCase.assertEquals("/src/some/.graphqlrc.yml", config.file?.path)
     assertConfigContentsMatches(config)
   }
 
-  fun testSchemaInEnvVariable() {
+  fun testSchemaInEnvVariable() = runBlockingCancellable {
     val filename = "dir/schema.graphql"
 
     withCustomEnv(project, mapOf("SCHEMA_PATH" to filename)) {
@@ -58,26 +66,26 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     }
   }
 
-  fun testGlobAsPath() {
+  fun testGlobAsPath() = runBlockingCancellable {
     val config = GraphQLConfigProvider.getInstance(project).getAllConfigs().first()
     val pointer = config.getDefault()?.schema?.first()!!
     TestCase.assertEquals("src/**/*.graphql", pointer.globPath)
     TestCase.assertEquals(null, pointer.filePath)
   }
 
-  fun testInjection() {
+  fun testInjection() = runBlockingCancellable {
     val config = resolveConfig("dir/file.js")
     TestCase.assertEquals("/src/.graphqlrc.yml", config.file?.path)
   }
 
-  fun testJsonSchema() {
+  fun testJsonSchema() = runBlockingCancellable {
     val config = resolveConfig("dir/remoteSchema.json")
     TestCase.assertEquals("/src/.graphqlrc.yml", config.file?.path)
 
     noConfig("dir2/otherSchema.json")
   }
 
-  fun testOverriddenScope() {
+  fun testOverriddenScope() = runBlockingCancellable {
     GraphQLConfigContributor.EP_NAME.point.registerExtension(object : GraphQLConfigContributor {
       override fun contributeConfigs(project: Project): Collection<GraphQLConfig> {
         return listOf(
@@ -102,7 +110,7 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
         )
       }
     }, testRootDisposable)
-    reloadProjectConfiguration()
+    myFixture.reloadGraphQLConfiguration()
 
     val configA = resolveConfig("main/graphql/servicea/operations.graphql")
     TestCase.assertEquals("/src/main/graphql/servicea", configA.dir.path)
@@ -116,29 +124,29 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     TestCase.assertEquals("/src/main/graphql/servicec/graphql.config.yml", configC.file?.path)
   }
 
-  fun testGlobStartingWithStar() {
+  fun testGlobStartingWithStar() = runBlockingCancellable {
     assertConfigContentsMatches(
       GraphQLConfigProvider.getInstance(project)
         .getForConfigFile(myFixture.findFileInTempDir("graphql.config.yml")!!)!!
     )
   }
 
-  fun testComplexConfig() {
+  fun testComplexConfig() = runBlockingCancellable {
     assertConfigContentsMatches(
       GraphQLConfigProvider.getInstance(project)
         .getForConfigFile(myFixture.findFileInTempDir("graphql.config.yml")!!)!!
     )
   }
 
-  fun testGatsby() {
+  fun testGatsby() = runBlockingCancellable {
     assertEquals("/src/graphql.config.js", resolveConfig(".cache/typegen/schema.graphql").file?.path)
     assertEquals("/src/graphql.config.js", resolveConfig("src/query.js").file?.path)
   }
 
-  private fun resolveConfig(filePath: String): GraphQLProjectConfig {
+  private suspend fun resolveConfig(filePath: String): GraphQLProjectConfig {
     val context = myFixture.configureFromTempProjectFile(filePath)
     assertNotNull("source file is not found", context)
-    val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(context)
+    val config = smartReadAction(project) { GraphQLConfigProvider.getInstance(project).resolveProjectConfig(context) }
     assertNotNull("config is not resolved", config)
     return config!!
   }
@@ -150,13 +158,13 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
     assertNull("config should be null", config)
   }
 
-  private fun assertConfigContentsMatches(config: GraphQLProjectConfig) {
+  private suspend fun assertConfigContentsMatches(config: GraphQLProjectConfig) {
     assertConfigContentsMatches(config.rootConfig)
   }
 
-  private fun assertConfigContentsMatches(config: GraphQLConfig) {
+  private suspend fun assertConfigContentsMatches(config: GraphQLConfig) {
     val text = GraphQLConfigPrinter.toYml(config.rawData)!!
-    val file = PsiFileFactory.getInstance(project).createFileFromText("graphql.config.yml", YAMLFileType.YML, text)
+    val file = readAction { PsiFileFactory.getInstance(project).createFileFromText("graphql.config.yml", YAMLFileType.YML, text) }
     WriteCommandAction.runWriteCommandAction(project) {
       CodeStyleManager.getInstance(project).reformat(file)
     }

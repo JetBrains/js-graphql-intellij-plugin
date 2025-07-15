@@ -5,6 +5,7 @@ import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
 import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes
 import com.intellij.lang.jsgraphql.withLibrary
+import com.intellij.openapi.progress.runBlockingCancellable
 
 class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
 
@@ -16,22 +17,22 @@ class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
 
   override fun getBasePath() = "/frameworks/federation/validation"
 
-  fun testQueryValidation() {
-    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION, {
+  fun testQueryValidation() = runBlockingCancellable {
+    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION) {
       doHighlightingTest()
 
       val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(myFixture.file)
       assertNotNull(schemaInfo)
       assertEmpty(schemaInfo.getErrors(project))
-    }, testRootDisposable)
+    }
   }
 
-  fun testEmptySchemaValidation() {
-    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION, {
+  fun testEmptySchemaValidation() = runBlockingCancellable {
+    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION) {
       val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
       val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(globalScope)
       assertNotNull(schemaInfo)
       assertEmpty(schemaInfo.getErrors(project))
-    }, testRootDisposable)
+    }
   }
 }

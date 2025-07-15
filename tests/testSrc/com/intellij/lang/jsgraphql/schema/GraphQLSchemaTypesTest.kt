@@ -10,8 +10,8 @@ package com.intellij.lang.jsgraphql.schema
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
-import com.intellij.lang.jsgraphql.schema.GraphQLRegistryProvider.Companion.getInstance
-import junit.framework.TestCase
+import com.intellij.openapi.application.smartReadAction
+import com.intellij.openapi.progress.runBlockingCancellable
 
 class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
   override fun getBasePath() = "/schema/types"
@@ -19,12 +19,13 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
   override fun setUp() {
     super.setUp()
 
-    myFixture.copyDirectoryToProject(getTestName(true), "")
-    reloadProjectConfiguration()
-    enableAllInspections()
+    runBlockingCancellable {
+      initTestProject()
+      enableAllInspections()
+    }
   }
 
-  fun testMultipleSchemasLegacy() {
+  fun testMultipleSchemasLegacy() = runBlockingCancellable {
     // an explicit test for empty schema config
     doTest(
       "schema-one/query-one.graphql",
@@ -58,13 +59,13 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testExcludeLegacy() {
+  fun testExcludeLegacy() = runBlockingCancellable {
     val fileName = "Types3.graphql"
     doTestTypeDefinitions(fileName, listOf("TheOnlyType"))
     doTestFragmentDefinitions(fileName, listOf("TheOnlyFragment"))
   }
 
-  fun testFragmentsInInjections() {
+  fun testFragmentsInInjections() = runBlockingCancellable {
     doTest(
       "src/query2.js",
       listOf("FragmentOne", "FragmentTwo", "FragmentThree", "FragmentFour", "FragmentInSchema", "FragmentTested", "on"),
@@ -75,20 +76,20 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
     doTestHighlighting("src/query1.js", "src/index.html")
   }
 
-  fun testSchemaInJson() {
+  fun testSchemaInJson() = runBlockingCancellable {
     val fileName = "client/query.graphql"
     doTestCompletion(fileName, listOf("localField", "Activity", "Character", "GenreCollection"), false)
     doTestTypeDefinitions(fileName, listOf("LocalType", "ThreadCommentLikeNotification", "ActivityMessageNotification", "ModAction"), false)
     doTestHighlighting("client/highlight.graphql")
   }
 
-  fun testSchemaInHtmlWithSOE() {
+  fun testSchemaInHtmlWithSOE() = runBlockingCancellable {
     val fileName = "schema.graphql"
     doTestFragmentDefinitions(fileName, listOf("UserFragment"))
     doTestTypeDefinitions(fileName, listOf("User", "Query"))
   }
 
-  private fun doTest(
+  private suspend fun doTest(
     fileName: String,
     expectedCompletions: List<String>,
     expectedFragments: List<String>,
@@ -112,9 +113,9 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
     }
   }
 
-  private fun doTestFragmentDefinitions(fileName: String, expectedFragments: List<String>, strict: Boolean = true) {
+  private suspend fun doTestFragmentDefinitions(fileName: String, expectedFragments: List<String>, strict: Boolean = true) {
     val file = myFixture.configureFromTempProjectFile(fileName)!!
-    val fragments = GraphQLPsiSearchHelper.getInstance(project).findFragmentDefinitions(file).map { it.name }
+    val fragments = smartReadAction(project) { GraphQLPsiSearchHelper.getInstance(project).findFragmentDefinitions(file).map { it.name } }
     if (strict) {
       assertSameElements(fragments, expectedFragments)
     }
@@ -123,10 +124,10 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
     }
   }
 
-  private fun doTestTypeDefinitions(fileName: String, expectedTypes: List<String>, strict: Boolean = true) {
+  private suspend fun doTestTypeDefinitions(fileName: String, expectedTypes: List<String>, strict: Boolean = true) {
     val psiFile = myFixture.configureFromTempProjectFile(fileName)
-    TestCase.assertNotNull(psiFile)
-    val registry = getInstance(project).getRegistryInfo(psiFile).typeDefinitionRegistry
+    assertNotNull(psiFile)
+    val registry = smartReadAction(project) { GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiFile).registry }
     val types = registry.types().values
       .map { it.name }
       .filter { !GraphQLKnownTypes.isIntrospectionType(it) }

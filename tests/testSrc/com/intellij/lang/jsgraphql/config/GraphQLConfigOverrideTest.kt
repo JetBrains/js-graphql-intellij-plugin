@@ -11,6 +11,8 @@ import com.intellij.lang.jsgraphql.*
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
+import com.intellij.openapi.application.smartReadAction
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.workspaceModel.ide.impl.WorkspaceEntityLifecycleSupporterUtils
 import junit.framework.TestCase
@@ -25,7 +27,7 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     enableAllInspections()
   }
 
-  fun testOverrideComment() {
+  fun testOverrideComment() = runBlockingCancellable {
     val tests = listOf(
       null to "#    asdsafasf",
       null to "#",
@@ -81,7 +83,7 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     }
   }
 
-  fun testScratch() {
+  fun testScratch() = runBlockingCancellable {
     doScratchTest(
       "/src/child/.graphqlrc.yml",
       GraphQLConfig.DEFAULT_PROJECT,
@@ -112,7 +114,7 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testScratchWithProject() {
+  fun testScratchWithProject() = runBlockingCancellable {
     doScratchTest(
       "/src/.graphqlrc.yml",
       "frontend",
@@ -136,7 +138,7 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testScratchFallbackToRoot() {
+  fun testScratchFallbackToRoot() = runBlockingCancellable {
     doScratchTest(
       "/src/.graphqlrc.yml",
       GraphQLConfig.DEFAULT_PROJECT,
@@ -164,7 +166,7 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testScratchFallbackToRootIfUnknownPathProvided() {
+  fun testScratchFallbackToRootIfUnknownPathProvided() = runBlockingCancellable {
     doScratchTest(
       "/src/.graphqlrc.yml",
       GraphQLConfig.DEFAULT_PROJECT,
@@ -182,28 +184,29 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     )
   }
 
-  private fun doScratchTest(
+  private suspend fun doScratchTest(
     expectedConfigPath: String,
     expectedProject: String,
     comment: String,
     query: String,
   ) {
-    WorkspaceEntityLifecycleSupporterUtils.withAllEntitiesInWorkspaceFromProvidersDefinedOnEdt(project) {
-      copyProject()
-      val scratchFile = createTestScratchFile(myFixture, comment, query)!!
-      myFixture.configureFromExistingVirtualFile(scratchFile)
+    WorkspaceEntityLifecycleSupporterUtils.ensureAllEntitiesInWorkspaceAreAsProvidersDefined(project)
+    initTestProject()
+    val scratchFile = createTestScratchFile(myFixture, comment, query)!!
+    myFixture.configureFromExistingVirtualFile(scratchFile)
 
-      val projectConfig = resolveConfig(scratchFile)
-      TestCase.assertEquals(expectedConfigPath, projectConfig.file?.path)
-      TestCase.assertEquals(expectedProject, projectConfig.name)
+    val projectConfig = resolveConfig(scratchFile)
+    TestCase.assertEquals(expectedConfigPath, projectConfig.file?.path)
+    TestCase.assertEquals(expectedProject, projectConfig.name)
 
-      myFixture.checkHighlighting()
-    }
+    myFixture.checkHighlighting()
   }
 
-  private fun resolveConfig(file: VirtualFile): GraphQLProjectConfig {
-    val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(file)
-    assertNotNull("config is not found", config)
-    return config!!
+  private suspend fun resolveConfig(file: VirtualFile): GraphQLProjectConfig {
+    return smartReadAction(project) {
+      val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(file)
+      assertNotNull("config is not found", config)
+      config!!
+    }
   }
 }

@@ -1,6 +1,7 @@
 package com.intellij.lang.jsgraphql.validation
 
 import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.openapi.progress.runBlockingCancellable
 
 class GraphQLDeprecatedSymbolsInspectionTest : GraphQLTestCaseBase() {
 
@@ -11,7 +12,7 @@ class GraphQLDeprecatedSymbolsInspectionTest : GraphQLTestCaseBase() {
     enableAllInspections()
   }
 
-  fun testDeprecatedSymbols() {
+  fun testDeprecatedSymbols() = runBlockingCancellable {
     doHighlightingTest()
   }
 }

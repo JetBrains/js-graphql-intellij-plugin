@@ -6,8 +6,10 @@ package com.intellij.lang.jsgraphql.config
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.getTestDataPath
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
-import com.intellij.lang.jsgraphql.reloadProjectConfiguration
+import com.intellij.lang.jsgraphql.reloadGraphQLConfiguration
+import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.module.JavaModuleType
+import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.VfsUtil
@@ -23,7 +25,11 @@ class GraphQLModuleLibrariesScopeTest : JavaCodeInsightFixtureTestCase() {
 
   override fun getTestDataPath(): String = getTestDataPath("/config/scope")
 
-  fun testResolveInJar() {
+  override fun runInDispatchThread(): Boolean = false
+
+  override fun runFromCoroutine(): Boolean = true
+
+  fun testResolveInJar() = runBlockingCancellable {
     val jarName = "graphql-library-api.jar"
     val lib = directoryContent {
       zip(jarName) {
@@ -51,12 +57,12 @@ class GraphQLModuleLibrariesScopeTest : JavaCodeInsightFixtureTestCase() {
     ModuleRootModificationUtil.addModuleLibrary(
       module2, "graphql-library-api", listOf(VfsUtil.getUrlForLibraryRoot(jar.toNioPath())), emptyList())
     IndexingTestUtil.waitUntilIndexesAreReady(project)
-    reloadProjectConfiguration(project)
+    myFixture.reloadGraphQLConfiguration()
 
     val configFile = myFixture.findFileInTempDir("mod1/graphql.config.yml")!!
     val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(configFile)?.getDefault()!!
 
-    val schemaFiles = FileTypeIndex.getFiles(GraphQLFileType.INSTANCE, config.schemaScope)
+    val schemaFiles = smartReadAction(project) { FileTypeIndex.getFiles(GraphQLFileType.INSTANCE, config.schemaScope) }
     val expectedFiles = listOf(
       myFixture.findFileInTempDir("mod1/resources/schema.graphql")!!,
       JarFileSystem.getInstance().getJarRootForLocalFile(jar)?.findFile("api-schema/graphql-library-api-schema.graphql")!!

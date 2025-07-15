@@ -186,12 +186,10 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
   }
 
   fun notifyEnvironmentChanged() {
-    invokeLater {
-      if (project.isDisposed) return@invokeLater
+    if (project.isDisposed) return
 
-      modificationTracker.incModificationCount()
-      project.messageBus.syncPublisher(GraphQLConfigEnvironmentListener.TOPIC).onEnvironmentChanged()
-    }
+    modificationTracker.incModificationCount()
+    project.messageBus.syncPublisher(GraphQLConfigEnvironmentListener.TOPIC).onEnvironmentChanged()
   }
 
   private fun createDotenvBuilder(path: String): DotenvBuilder {
