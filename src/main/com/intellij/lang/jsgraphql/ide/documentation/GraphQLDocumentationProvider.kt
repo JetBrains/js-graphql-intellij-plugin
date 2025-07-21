@@ -259,7 +259,7 @@ private fun getFieldDocumentation(schema: GraphQLSchema, target: GraphQLFieldDef
   val containerType = schema.getType(typeName.name) as? GraphQLFieldsContainer ?: return null
   val fieldName = target.name ?: return null
   val fieldDefinition = containerType.getFieldDefinition(fieldName)
-  val type = containerType.getFieldDefinition(fieldName)?.type
+  val type = fieldDefinition?.type
 
   return buildString {
     append(DocumentationMarkup.DEFINITION_START)
@@ -271,7 +271,7 @@ private fun getFieldDocumentation(schema: GraphQLSchema, target: GraphQLFieldDef
     }
     append(DocumentationMarkup.DEFINITION_END)
 
-    appendDescription(fieldDefinition.description)
+    appendDescription(fieldDefinition?.description)
   }
 }
 

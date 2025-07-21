@@ -18,6 +18,7 @@
 package com.intellij.lang.jsgraphql.types.schema;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -25,17 +26,17 @@ import java.util.List;
 /**
  * Types that can contain output fields are marked with this interface
  *
- * @see com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType
- * @see com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType
+ * @see GraphQLObjectType
+ * @see GraphQLInterfaceType
  */
 @PublicApi
 public interface GraphQLFieldsContainer extends GraphQLCompositeType {
 
-  GraphQLFieldDefinition getFieldDefinition(String name);
+  @Nullable GraphQLFieldDefinition getFieldDefinition(String name);
 
   List<GraphQLFieldDefinition> getFieldDefinitions();
 
-  default GraphQLFieldDefinition getField(String name) {
+  default @Nullable GraphQLFieldDefinition getField(String name) {
     return getFieldDefinition(name);
   }
 
