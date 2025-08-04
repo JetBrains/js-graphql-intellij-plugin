@@ -35,6 +35,7 @@ jvm_library(
     "//plugins/js-graphql:graphql",
     "@community//platform/workspace/storage",
     "@lib//:gson",
+    "//plugins/JavaScriptLanguage/javascript-common",
   ],
   runtime_deps = [":javascript_resources"]
 )
