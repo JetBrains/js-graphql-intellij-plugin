@@ -54,7 +54,7 @@ jvm_library(
     "//plugins/JavaScriptLanguage:javascript-testFramework",
     "@community//java/testFramework",
     "//ultimate/ultimate-resources:idea-ultimate-customization",
-    "//plugins/JavaScriptLanguage:javascript-impl",
+    "//plugins/JavaScriptLanguage:javascript-backend",
     "//plugins/JavaScriptLanguage/javascript-parser",
     "//contrib/vuejs",
     "@community//plugins/IntelliLang:langInjection",

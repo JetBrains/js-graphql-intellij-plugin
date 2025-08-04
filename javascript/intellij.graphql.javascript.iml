@@ -24,7 +24,7 @@
     <orderEntry type="module" module-name="intellij.platform.projectModel.impl" />
     <orderEntry type="module" module-name="intellij.platform.webide.impl" />
     <orderEntry type="module" module-name="intellij.platform.backend.workspace" />
-    <orderEntry type="module" module-name="intellij.javascript.impl" />
+    <orderEntry type="module" module-name="intellij.javascript.backend" />
     <orderEntry type="module" module-name="intellij.javascript.parser" />
     <orderEntry type="module" module-name="intellij.platform.langInjection" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
