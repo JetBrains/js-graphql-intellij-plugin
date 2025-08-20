@@ -13,10 +13,11 @@ import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.editor.EditorModificationUtil;
+import com.intellij.openapi.editor.EditorModificationUtilEx;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiDocumentManager;
+import org.jetbrains.annotations.NotNull;
 
 public class AddColonSpaceInsertHandler implements InsertHandler<LookupElement> {
 
@@ -35,14 +36,14 @@ public class AddColonSpaceInsertHandler implements InsertHandler<LookupElement> 
   }
 
   @Override
-  public void handleInsert(InsertionContext context, LookupElement item) {
+  public void handleInsert(@NotNull InsertionContext context, @NotNull LookupElement item) {
     Editor editor = context.getEditor();
     char completionChar = context.getCompletionChar();
     if (completionChar == ' ' || StringUtil.containsChar(myIgnoreOnChars, completionChar)) return;
     Project project = editor.getProject();
     if (project != null) {
       if (!isCharAtColon(editor)) {
-        EditorModificationUtil.insertStringAtCaret(editor, ": ");
+        EditorModificationUtilEx.insertStringAtCaret(editor, ": ");
         PsiDocumentManager.getInstance(project).commitDocument(editor.getDocument());
       }
       else {
