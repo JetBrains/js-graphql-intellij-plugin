@@ -96,7 +96,7 @@ class GraphQLEnvironmentVariablesDialog(
     }
 
     private inner class MyNameColumnInfo : NameColumnInfo() {
-      override fun isCellEditable(environmentVariable: EnvironmentVariable?): Boolean {
+      override fun isCellEditable(environmentVariable: EnvironmentVariable): Boolean {
         return false
       }
     }
