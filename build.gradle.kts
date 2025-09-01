@@ -104,7 +104,7 @@ tasks {
 
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "17"
+          jvmTarget = "21"
             languageVersion = "1.8"
             // see https://plugins.jetbrains.com/docs/intellij/using-kotlin.html#kotlin-standard-library
             apiVersion = "1.7"
