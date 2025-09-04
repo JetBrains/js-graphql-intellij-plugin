@@ -50,7 +50,7 @@ public class AddColonSpaceInsertHandler implements InsertHandler<LookupElement> 
         editor.getCaretModel().moveToOffset(editor.getCaretModel().getOffset() + 2);
       }
       if (myTriggerAutoPopup) {
-        AutoPopupController.getInstance(project).autoPopupMemberLookup(editor, null);
+        AutoPopupController.getInstance(project).scheduleAutoPopup(editor, null);
       }
     }
   }

@@ -40,7 +40,7 @@ public final class GraphQLCompletionUtil {
 
   public static final InsertHandler<LookupElement> ARGUMENTS_LIST_HANDLER = (context, item) -> {
     ParenthesesInsertHandler.WITH_PARAMETERS.handleInsert(context, item);
-    AutoPopupController.getInstance(context.getProject()).autoPopupMemberLookup(context.getEditor(), null);
+    AutoPopupController.getInstance(context.getProject()).scheduleAutoPopup(context.getEditor(), null);
   };
 
   /**
