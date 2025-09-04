@@ -20,7 +20,7 @@ public final class GraphQLTypedHandlerDelegate extends TypedHandlerDelegate {
 
     AutoPopupController autoPopupController = AutoPopupController.getInstance(project);
     if (charTyped == '@' || charTyped == '$' || charTyped == '[' || charTyped == '(') {
-      autoPopupController.scheduleAutoPopup(editor, null);
+      autoPopupController.scheduleAutoPopup(editor);
       return Result.STOP;
     }
 
@@ -28,7 +28,7 @@ public final class GraphQLTypedHandlerDelegate extends TypedHandlerDelegate {
       PsiElement element = file.findElementAt(editor.getCaretModel().getOffset());
       PsiElement parent = element != null ? element.getParent() : null;
       if (parent instanceof GraphQLArguments || parent instanceof GraphQLObjectValue) {
-        autoPopupController.scheduleAutoPopup(editor, null);
+        autoPopupController.scheduleAutoPopup(editor);
         return Result.STOP;
       }
     }
