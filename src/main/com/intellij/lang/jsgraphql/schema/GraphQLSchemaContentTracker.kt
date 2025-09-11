@@ -85,7 +85,7 @@ class GraphQLSchemaContentTracker(private val project: Project, coroutineScope: 
   private fun notifySchemaContentChanged() {
     updateModificationTracker()
     project.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
-    DaemonCodeAnalyzer.getInstance(project).restart()
+    DaemonCodeAnalyzer.getInstance(project).restart(this)
   }
 
   private fun updateModificationTracker() {

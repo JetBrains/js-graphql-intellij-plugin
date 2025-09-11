@@ -277,7 +277,7 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
 
             ResolveCache.getInstance(project).clearCache(true)
             if (!ApplicationManager.getApplication().isUnitTestMode) {
-              DaemonCodeAnalyzer.getInstance(project).restart()
+              DaemonCodeAnalyzer.getInstance(project).restart("GraphQLSchemaProvider.SchemaComputation.ensureStarted")
             }
             project.messageBus.syncPublisher(GraphQLSchemaCacheChangeListener.TOPIC).onSchemaCacheChanged()
           }

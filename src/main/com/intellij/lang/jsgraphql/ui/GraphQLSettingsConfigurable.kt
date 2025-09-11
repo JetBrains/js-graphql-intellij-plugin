@@ -37,7 +37,7 @@ class GraphQLSettingsConfigurable(private val project: Project) :
     }
     else {
       ApplicationManager.getApplication().invokeLater({
-                                                        DaemonCodeAnalyzer.getInstance(project).restart()
+                                                        DaemonCodeAnalyzer.getInstance(project).restart("GraphQLSettingsConfigurable.apply")
                                                         EditorNotifications.getInstance(project).updateAllNotifications()
                                                       }, project.disposed)
     }

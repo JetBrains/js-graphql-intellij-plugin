@@ -491,7 +491,7 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
       PsiManager.getInstance(project).dropPsiCaches()
     }
 
-    DaemonCodeAnalyzer.getInstance(project).restart()
+    DaemonCodeAnalyzer.getInstance(project).restart(this)
     project.messageBus.syncPublisher(GraphQLConfigListener.TOPIC).onConfigurationChanged()
   }
 

@@ -308,7 +308,7 @@ class GraphQLGeneratedSourcesManager(
       PsiManager.getInstance(project).dropPsiCaches()
       EditorNotifications.getInstance(project).updateAllNotifications()
     }
-    DaemonCodeAnalyzer.getInstance(project).restart()
+    DaemonCodeAnalyzer.getInstance(project).restart(this)
   }
 
   private fun updateModificationTrackers() {
