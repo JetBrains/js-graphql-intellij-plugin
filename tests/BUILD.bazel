@@ -71,7 +71,7 @@ jvm_library(
     "@lib//:gson",
     "@lib//:commons-io",
     "@lib//:snakeyaml",
-    "@lib//:guava",
+    "@community//libraries/guava",
     "@community//platform/editor-ui-api:editor-ui",
     "@lib//:http-client",
   ]

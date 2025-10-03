@@ -50,7 +50,7 @@ jvm_library(
     "@lib//:gson",
     "@lib//:commons-io",
     "@lib//:snakeyaml",
-    "@lib//:guava",
+    "@community//libraries/guava",
     "@lib//:http-client",
     "@ultimate_lib//:graphql-io-github-cdimascio-dotenv-kotlin",
     "@ultimate_lib//:graphql-reactivestreams-reactive-streams",

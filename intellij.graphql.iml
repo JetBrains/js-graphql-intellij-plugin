@@ -47,7 +47,7 @@
     <orderEntry type="library" name="gson" level="project" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="snakeyaml" level="project" />
-    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.guava" />
     <orderEntry type="library" name="http-client" level="project" />
     <orderEntry type="module-library">
       <library name="io.github.cdimascio.dotenv.kotlin" type="repository">
