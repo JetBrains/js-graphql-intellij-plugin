@@ -325,7 +325,7 @@ doesn't require any action.
 
 Internally, we use Node.js to load a JavaScript or TypeScript config file. Therefore, Node.js should be installed and properly configured in
 the IDE. Note that the JavaScript plugin should also be installed in the IDE. This type of configuration will not work in Community
-versions, but should work in IntelliJ IDEA Ultimate, WebStorm, PHPStorm, PyCharm, and other editions.
+versions, but should work in IntelliJ IDEA, WebStorm, PHPStorm, PyCharm, and other editions.
 
 As mentioned before, we don't transpile config files, so they should be written using the appropriate module system for Node.js. Note that
 in the following snippet, the `module.exports` syntax is used instead of `export default`.
