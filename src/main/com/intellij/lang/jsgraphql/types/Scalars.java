@@ -70,16 +70,6 @@ public final class Scalars {
     .name("ID").description("Built-in ID").coercing(new GraphqlIDCoercing()).build();
 
   /**
-   * This represents the "Long" type which is a representation of java.lang.Long
-   *
-   * @deprecated The is a non standard scalar and is difficult for clients (such as browser and mobile code) to cope with
-   * the exact semantics.  These will be removed in the future version and moved to another library.
-   */
-  @Deprecated(forRemoval = true)
-  public static final GraphQLScalarType GraphQLLong = GraphQLScalarType.newScalar()
-    .name("Long").description("Long type").coercing(new GraphqlLongCoercing()).build();
-
-  /**
    * This represents the "Short" type which is a representation of java.lang.Short
    *
    * @deprecated The is a non standard scalar and is difficult for clients (such as browser and mobile code) to cope with
@@ -119,15 +109,4 @@ public final class Scalars {
   @Deprecated
   public static final GraphQLScalarType GraphQLBigDecimal = GraphQLScalarType.newScalar()
     .name("BigDecimal").description("Built-in java.math.BigDecimal").coercing(new GraphqlBigDecimalCoercing()).build();
-
-
-  /**
-   * This represents the "Char" type which is a representation of java.lang.Character
-   *
-   * @deprecated The is a non standard scalar and is difficult for clients (such as browser and mobile code) to cope with
-   * the exact semantics.  These will be removed in the future version and moved to another library.
-   */
-  @Deprecated(forRemoval = true)
-  public static final GraphQLScalarType GraphQLChar = GraphQLScalarType.newScalar()
-    .name("Char").description("Built-in Char as Character").coercing(new GraphqlCharCoercing()).build();
 }

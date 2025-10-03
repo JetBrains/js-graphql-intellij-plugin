@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,12 +97,6 @@ public abstract class AbstractNode<T extends Node> implements Node<T> {
       return null;
     }
     return map(list, n -> (V)n.deepCopy());
-  }
-
-  @Override
-  public @Nullable PsiElement getElement() {
-    // remains only for binary compatibility, the method will be removed soon
-    return null;
   }
 
   @Override

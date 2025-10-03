@@ -65,36 +65,6 @@ public class GraphQLEnumType
   public static final String CHILD_DIRECTIVES = "directives";
 
 
-  /**
-   * @param name        the name
-   * @param description the description
-   * @param values      the values
-   * @deprecated use the {@link #newEnum()}  builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLEnumType(String name, String description, List<GraphQLEnumValueDefinition> values) {
-    this(name, description, values, emptyList(), null);
-  }
-
-  /**
-   * @param name        the name
-   * @param description the description
-   * @param values      the values
-   * @param directives  the directives on this type element
-   * @param definition  the AST definition
-   * @deprecated use the {@link #newEnum()}  builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLEnumType(String name,
-                         String description,
-                         List<GraphQLEnumValueDefinition> values,
-                         List<GraphQLDirective> directives,
-                         EnumTypeDefinition definition) {
-    this(name, description, values, directives, definition, emptyList());
-  }
-
   private GraphQLEnumType(String name,
                           String description,
                           List<GraphQLEnumValueDefinition> values,

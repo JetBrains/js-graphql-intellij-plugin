@@ -19,7 +19,6 @@ package com.intellij.lang.jsgraphql.types.schema;
 
 
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
-import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
@@ -32,7 +31,6 @@ import java.util.function.Consumer;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.Assert.assertValidName;
-import static java.util.Collections.emptyList;
 
 /**
  * Input objects defined via {@link com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectType} contains these input fields.
@@ -57,50 +55,6 @@ public class GraphQLInputObjectField implements GraphQLNamedSchemaElement, Graph
 
   public static final String CHILD_TYPE = "type";
   public static final String CHILD_DIRECTIVES = "directives";
-
-  /**
-   * @param name the name
-   * @param type the field type
-   * @deprecated use the {@link #newInputObjectField()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLInputObjectField(String name, GraphQLInputType type) {
-    this(name, null, type, null, emptyList(), null);
-  }
-
-  /**
-   * @param name         the name
-   * @param description  the description
-   * @param type         the field type
-   * @param defaultValue the default value
-   * @deprecated use the {@link #newInputObjectField()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLInputObjectField(String name, String description, GraphQLInputType type, Object defaultValue) {
-    this(name, description, type, defaultValue, emptyList(), null, null);
-  }
-
-  /**
-   * @param name         the name
-   * @param description  the description
-   * @param type         the field type
-   * @param defaultValue the default value
-   * @param directives   the directives on this type element
-   * @param definition   the AST definition
-   * @deprecated use the {@link #newInputObjectField()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLInputObjectField(String name,
-                                 String description,
-                                 GraphQLInputType type,
-                                 Object defaultValue,
-                                 List<GraphQLDirective> directives,
-                                 InputValueDefinition definition) {
-    this(name, description, type, defaultValue, directives, definition, null);
-  }
 
   private GraphQLInputObjectField(String name,
                                   String description,

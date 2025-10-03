@@ -20,7 +20,6 @@ package com.intellij.lang.jsgraphql.types.schema;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
-import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
@@ -33,7 +32,6 @@ import java.util.function.Consumer;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
 import static com.intellij.lang.jsgraphql.types.Assert.assertValidName;
-import static java.util.Collections.emptyList;
 
 /**
  * A graphql enumeration type has a limited set of values and this defines one of those unique values
@@ -53,49 +51,6 @@ public class GraphQLEnumValueDefinition implements GraphQLNamedSchemaElement, Gr
   private final EnumValueDefinition definition;
 
   public static final String CHILD_DIRECTIVES = "directives";
-
-  /**
-   * @param name        the name
-   * @param description the description
-   * @param value       the value
-   * @deprecated use the {@link #newEnumValueDefinition()}   builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLEnumValueDefinition(String name, String description, Object value) {
-    this(name, description, value, null, emptyList());
-  }
-
-  /**
-   * @param name              the name
-   * @param description       the description
-   * @param value             the value
-   * @param deprecationReason the deprecation reasons
-   * @deprecated use the {@link #newEnumValueDefinition()}   builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLEnumValueDefinition(String name, String description, Object value, String deprecationReason) {
-    this(name, description, value, deprecationReason, emptyList());
-  }
-
-  /**
-   * @param name              the name
-   * @param description       the description
-   * @param value             the value
-   * @param deprecationReason the deprecation reasons
-   * @param directives        the directives on this type element
-   * @deprecated use the {@link #newEnumValueDefinition()}   builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLEnumValueDefinition(String name,
-                                    String description,
-                                    Object value,
-                                    String deprecationReason,
-                                    List<GraphQLDirective> directives) {
-    this(name, description, value, deprecationReason, directives, null);
-  }
 
   private GraphQLEnumValueDefinition(String name,
                                      String description,

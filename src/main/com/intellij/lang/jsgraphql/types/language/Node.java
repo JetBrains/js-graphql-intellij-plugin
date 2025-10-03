@@ -21,10 +21,8 @@ package com.intellij.lang.jsgraphql.types.language;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
-import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.List;
@@ -128,15 +126,6 @@ public interface Node<T extends Node> extends Serializable {
    * Note! Visitor's operation might return special results to control traversal process.
    */
   TraversalControl accept(TraverserContext<Node> context, NodeVisitor visitor);
-
-  /**
-   * It's a stub method that doesn't do anything since 2024.3. Remains only for binary compatibility. It will be removed in 2025.1.
-   *
-   * @deprecated Use {@link com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil} methods instead.
-   */
-  @Deprecated(forRemoval = true)
-  @Nullable
-  PsiElement getElement();
 
   @NotNull
   @ApiStatus.Internal

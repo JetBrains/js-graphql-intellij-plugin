@@ -20,7 +20,6 @@ package com.intellij.lang.jsgraphql.types.schema;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
-import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.InputObjectTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.InputObjectTypeExtensionDefinition;
@@ -58,36 +57,6 @@ public class GraphQLInputObjectType
 
   public static final String CHILD_FIELD_DEFINITIONS = "fieldDefinitions";
   public static final String CHILD_DIRECTIVES = "directives";
-
-  /**
-   * @param name        the name
-   * @param description the description
-   * @param fields      the fields
-   * @deprecated use the {@link #newInputObject()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLInputObjectType(String name, String description, List<GraphQLInputObjectField> fields) {
-    this(name, description, fields, emptyList(), null);
-  }
-
-  /**
-   * @param name        the name
-   * @param description the description
-   * @param fields      the fields
-   * @param directives  the directives on this type element
-   * @param definition  the AST definition
-   * @deprecated use the {@link #newInputObject()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLInputObjectType(String name,
-                                String description,
-                                List<GraphQLInputObjectField> fields,
-                                List<GraphQLDirective> directives,
-                                InputObjectTypeDefinition definition) {
-    this(name, description, fields, directives, definition, emptyList());
-  }
 
   public GraphQLInputObjectType(String name,
                                 String description,

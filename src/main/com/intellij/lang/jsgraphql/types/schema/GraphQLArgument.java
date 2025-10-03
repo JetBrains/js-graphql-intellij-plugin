@@ -19,7 +19,6 @@ package com.intellij.lang.jsgraphql.types.schema;
 
 
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
-import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
@@ -72,30 +71,6 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
 
   private static final Object DEFAULT_VALUE_SENTINEL = new Object() {
   };
-
-  /**
-   * @param name         the arg name
-   * @param description  the arg description
-   * @param type         the arg type
-   * @param defaultValue the default value
-   * @deprecated use the {@link #newArgument()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLArgument(String name, String description, GraphQLInputType type, Object defaultValue) {
-    this(name, description, type, defaultValue, null);
-  }
-
-  /**
-   * @param name the arg name
-   * @param type the arg type
-   * @deprecated use the {@link #newArgument()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLArgument(String name, GraphQLInputType type) {
-    this(name, null, type, DEFAULT_VALUE_SENTINEL, null);
-  }
 
   /**
    * @param name         the arg name

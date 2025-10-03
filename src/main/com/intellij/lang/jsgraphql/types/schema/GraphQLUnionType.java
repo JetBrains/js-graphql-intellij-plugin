@@ -21,7 +21,6 @@ package com.intellij.lang.jsgraphql.types.schema;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
-import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.UnionTypeExtensionDefinition;
@@ -67,39 +66,6 @@ public class GraphQLUnionType
   public static final String CHILD_TYPES = "types";
   public static final String CHILD_DIRECTIVES = "directives";
 
-
-  /**
-   * @param name         the name
-   * @param description  the description
-   * @param types        the possible types
-   * @param typeResolver the type resolver function
-   * @deprecated use the {@link #newUnionType()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLUnionType(String name, String description, List<GraphQLNamedOutputType> types, TypeResolver typeResolver) {
-    this(name, description, types, typeResolver, emptyList(), null);
-  }
-
-  /**
-   * @param name         the name
-   * @param description  the description
-   * @param types        the possible types
-   * @param typeResolver the type resolver function
-   * @param directives   the directives on this type element
-   * @param definition   the AST definition
-   * @deprecated use the {@link #newUnionType()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLUnionType(String name,
-                          String description,
-                          List<GraphQLNamedOutputType> types,
-                          TypeResolver typeResolver,
-                          List<GraphQLDirective> directives,
-                          UnionTypeDefinition definition) {
-    this(name, description, types, typeResolver, directives, definition, emptyList());
-  }
 
   private GraphQLUnionType(String name,
                            String description,
@@ -304,12 +270,6 @@ public class GraphQLUnionType
 
     public Builder extensionDefinitions(List<UnionTypeExtensionDefinition> extensionDefinitions) {
       this.extensionDefinitions = extensionDefinitions;
-      return this;
-    }
-
-    @Deprecated(forRemoval = true)
-    public Builder typeResolver(TypeResolver typeResolver) {
-      this.typeResolver = typeResolver;
       return this;
     }
 

@@ -10,7 +10,6 @@ package com.intellij.lang.jsgraphql;
 import com.intellij.ide.scratch.ScratchUtil;
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons;
 import com.intellij.openapi.fileTypes.LanguageFileType;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NonNls;
@@ -46,27 +45,11 @@ public final class GraphQLFileType extends LanguageFileType {
     return GraphQLIcons.FILE;
   }
 
-  /**
-   * @deprecated Use {@link GraphQLFileType#isGraphQLScratchFile(VirtualFile)} instead.
-   */
-  @Deprecated(forRemoval = true)
-  public static boolean isGraphQLScratchFile(@SuppressWarnings("unused") @NotNull Project project, @Nullable VirtualFile file) {
-    return isGraphQLScratchFile(file);
-  }
-
   public static boolean isGraphQLScratchFile(@Nullable VirtualFile file) {
     if (file == null) {
       return false;
     }
     return ScratchUtil.isScratch(file) && file.getFileType() == INSTANCE;
-  }
-
-  /**
-   * @deprecated Use {@link GraphQLFileType#isGraphQLFile(VirtualFile)} instead.
-   */
-  @Deprecated(forRemoval = true)
-  public static boolean isGraphQLFile(@SuppressWarnings("unused") @NotNull Project project, @Nullable VirtualFile file) {
-    return isGraphQLFile(file);
   }
 
   public static boolean isGraphQLFile(@Nullable VirtualFile file) {

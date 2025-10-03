@@ -2,8 +2,6 @@ package com.intellij.lang.jsgraphql.types.language;
 
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -37,16 +35,6 @@ public class SourceLocation implements Serializable {
 
   public String getSourceName() {
     return sourceName;
-  }
-
-  /**
-   * It's a stub method that doesn't do anything since 2024.3. Remains only for binary compatibility. It will be removed in 2025.1.
-   *
-   * @deprecated Use {@link com.intellij.lang.jsgraphql.schema.GraphQLTypeDefinitionUtil} methods instead.
-   */
-  @Deprecated(forRemoval = true)
-  public @Nullable PsiElement getElement() {
-    return null;
   }
 
   @Override

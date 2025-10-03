@@ -68,28 +68,6 @@ public class GraphQLSchema {
   private final List<GraphQLException> errors = new ArrayList<>();
 
   /**
-   * @param queryType the query type
-   * @deprecated use the {@link #newSchema()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLSchema(GraphQLObjectType queryType) {
-    this(queryType, null, Collections.emptySet());
-  }
-
-  /**
-   * @param queryType       the query type
-   * @param mutationType    the mutation type
-   * @param additionalTypes additional types
-   * @deprecated use the {@link #newSchema()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLSchema(GraphQLObjectType queryType, GraphQLObjectType mutationType, Set<GraphQLType> additionalTypes) {
-    this(queryType, mutationType, null, additionalTypes);
-  }
-
-  /**
    * @param queryType        the query type
    * @param mutationType     the mutation type
    * @param subscriptionType the subscription type
@@ -552,31 +530,6 @@ public class GraphQLSchema {
     public Builder description(String description) {
       this.description = description;
       return this;
-    }
-
-    /**
-     * Builds the schema
-     *
-     * @param additionalTypes - please dont use this any more
-     * @return the built schema
-     * @deprecated - Use the {@link #additionalType(GraphQLType)} methods
-     */
-    @Deprecated(forRemoval = true)
-    public GraphQLSchema build(Set<GraphQLType> additionalTypes) {
-      return additionalTypes(additionalTypes).build();
-    }
-
-    /**
-     * Builds the schema
-     *
-     * @param additionalTypes      - please don't use this any more
-     * @param additionalDirectives - please don't use this any more
-     * @return the built schema
-     * @deprecated - Use the {@link #additionalType(GraphQLType)} and {@link #additionalDirective(GraphQLDirective)} methods
-     */
-    @Deprecated(forRemoval = true)
-    public GraphQLSchema build(Set<GraphQLType> additionalTypes, Set<GraphQLDirective> additionalDirectives) {
-      return additionalTypes(additionalTypes).additionalDirectives(additionalDirectives).build();
     }
 
     /**

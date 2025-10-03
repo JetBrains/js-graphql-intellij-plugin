@@ -53,25 +53,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
 
 
   /**
-   * @param name              the name
-   * @param description       the description
-   * @param type              the field type
-   * @param dataFetcher       the field data fetcher
-   * @param arguments         the field arguments
-   * @param deprecationReason the deprecation reason
-   * @deprecated use the {@link #newFieldDefinition()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLFieldDefinition(String name,
-                                String description,
-                                GraphQLOutputType type,
-                                List<GraphQLArgument> arguments,
-                                String deprecationReason) {
-    this(name, description, type, arguments, deprecationReason, Collections.emptyList(), null);
-  }
-
-  /**
    * @param name               the name
    * @param description        the description
    * @param type               the field type
@@ -348,18 +329,6 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
     public Builder argument(GraphQLArgument.Builder builder) {
       argument(builder.build());
       return this;
-    }
-
-    /**
-     * This adds the list of arguments to the field.
-     *
-     * @param arguments the arguments to add
-     * @return this
-     * @deprecated This is a badly named method and is replaced by {@link #arguments(List)}
-     */
-    @Deprecated(forRemoval = true)
-    public Builder argument(List<GraphQLArgument> arguments) {
-      return arguments(arguments);
     }
 
     /**

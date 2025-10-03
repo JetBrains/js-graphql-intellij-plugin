@@ -104,36 +104,6 @@ public class SchemaUtil {
     return ImmutableMap.copyOf(new TreeMap<>(result));
   }
 
-  /**
-   * This method is deprecated due to a performance concern.
-   * <p>
-   * The Algorithm complexity: O(n^2), where n is number of registered GraphQLTypes
-   * <p>
-   * That indexing operation is performed twice per input document:
-   * 1. during validation
-   * 2. during execution
-   * <p>
-   * We now indexed all types at the schema creation, which has brought complexity down to O(1)
-   *
-   * @param schema        GraphQL schema
-   * @param interfaceType an interface type to find implementations for
-   * @return List of object types implementing provided interface
-   * @deprecated use {@link com.intellij.lang.jsgraphql.types.schema.GraphQLSchema#getImplementations(GraphQLInterfaceType)} instead
-   */
-  @Deprecated(forRemoval = true)
-  public List<GraphQLObjectType> findImplementations(GraphQLSchema schema, GraphQLInterfaceType interfaceType) {
-    List<GraphQLObjectType> result = new ArrayList<>();
-    for (GraphQLType type : schema.getAllTypesAsList()) {
-      if (!(type instanceof GraphQLObjectType objectType)) {
-        continue;
-      }
-      if ((objectType).getInterfaces().contains(interfaceType)) {
-        result.add(objectType);
-      }
-    }
-    return result;
-  }
-
   void replaceTypeReferences(GraphQLSchema schema) {
     final Map<String, GraphQLNamedType> typeMap = schema.getTypeMap();
     List<GraphQLSchemaElement> roots = new ArrayList<>(typeMap.values());
