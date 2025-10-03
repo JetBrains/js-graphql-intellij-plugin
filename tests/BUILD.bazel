@@ -68,7 +68,7 @@ jvm_library(
     "//plugins/js-graphql/langInjection",
     "//plugins/js-graphql/yaml",
     "@lib//:swingx",
-    "@lib//:gson",
+    "@community//libraries/gson",
     "@lib//:commons-io",
     "@lib//:snakeyaml",
     "@community//libraries/guava",

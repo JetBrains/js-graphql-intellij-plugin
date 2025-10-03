@@ -35,7 +35,7 @@ jvm_library(
     "@community//platform/editor-ui-api:editor-ui",
     "//plugins/js-graphql:graphql",
     "@community//platform/workspace/storage",
-    "@lib//:gson",
+    "@community//libraries/gson",
     "//plugins/JavaScriptLanguage/javascript-common",
   ]
 )

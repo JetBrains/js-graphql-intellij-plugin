@@ -30,7 +30,7 @@
     <orderEntry type="module" module-name="intellij.platform.editor.ui" />
     <orderEntry type="module" module-name="intellij.graphql" />
     <orderEntry type="module" module-name="intellij.platform.workspace.storage" />
-    <orderEntry type="library" name="gson" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.gson" />
     <orderEntry type="module" module-name="intellij.javascript.common" />
   </component>
 </module>

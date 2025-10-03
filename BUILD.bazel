@@ -47,7 +47,7 @@ jvm_library(
     "@community//platform/workspace/storage",
     "@community//json/backend",
     "@lib//:swingx",
-    "@lib//:gson",
+    "@community//libraries/gson",
     "@lib//:commons-io",
     "@lib//:snakeyaml",
     "@community//libraries/guava",
