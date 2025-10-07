@@ -69,11 +69,11 @@ jvm_library(
     "//plugins/js-graphql/yaml",
     "@lib//:swingx",
     "@community//libraries/gson",
-    "@lib//:commons-io",
+    "@community//libraries/commons/io",
     "@lib//:snakeyaml",
     "@community//libraries/guava",
     "@community//platform/editor-ui-api:editor-ui",
-    "@lib//:http-client",
+    "@community//libraries/http-client",
   ]
 )
 ### auto-generated section `build intellij.graphql.tests` end

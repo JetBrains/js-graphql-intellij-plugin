@@ -51,10 +51,10 @@
     <orderEntry type="module" module-name="intellij.graphql.yaml" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="swingx" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.gson" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="commons-io" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.commons.io" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="snakeyaml" level="project" />
     <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="http-client" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.http.client" scope="TEST" />
   </component>
 </module>
