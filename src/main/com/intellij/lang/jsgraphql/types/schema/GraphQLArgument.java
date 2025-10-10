@@ -80,7 +80,7 @@ public class GraphQLArgument implements GraphQLNamedSchemaElement, GraphQLInputV
    * @param definition   the AST definition
    * @deprecated use the {@link #newArgument()} builder pattern instead, as this constructor will be made private in a future version.
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLArgument(String name, String description, GraphQLInputType type, Object defaultValue, InputValueDefinition definition) {
     this(name, description, type, defaultValue, null, definition, Collections.emptyList(), null);
   }

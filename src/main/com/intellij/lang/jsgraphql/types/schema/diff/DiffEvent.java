@@ -98,7 +98,7 @@ public class DiffEvent {
    * @return a Builder of Info level diff events
    * @deprecated use {@link DiffEvent#apiInfo()} instead
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public static Builder newInfo() {
     return new Builder().level(DiffLevel.INFO);
   }

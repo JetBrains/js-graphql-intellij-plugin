@@ -23,6 +23,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.util.ObjectUtils
+import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.Nls
 import javax.net.ssl.SSLException
 
@@ -76,6 +77,7 @@ internal fun notifyAboutPossiblyInvalidIntrospectionSchema(notification: Notific
   }
 }
 
+@ApiStatus.ScheduledForRemoval
 @Deprecated(message = "use handleGenericRequestError instead")
 fun showGraphQLRequestErrorNotification(
   project: Project,

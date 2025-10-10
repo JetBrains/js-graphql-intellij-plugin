@@ -247,7 +247,7 @@ public class GraphQLSchema {
    * @param directiveName the name of the directive to retrieve
    * @return the directive or null if there is not one with that name
    */
-  @Deprecated
+  @Deprecated(forRemoval = true)
   public GraphQLDirective getDirective(String directiveName) {
     ProgressManager.checkCanceled();
     return directives.getDirective(directiveName);

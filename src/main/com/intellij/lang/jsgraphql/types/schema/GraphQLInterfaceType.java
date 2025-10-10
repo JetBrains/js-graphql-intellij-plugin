@@ -368,7 +368,7 @@ public class GraphQLInterfaceType
     }
 
 
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public Builder typeResolver(TypeResolver typeResolver) {
       this.typeResolver = typeResolver;
       return this;
