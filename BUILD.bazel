@@ -49,7 +49,7 @@ jvm_library(
     "@lib//:swingx",
     "@community//libraries/gson",
     "@community//libraries/commons/io",
-    "@lib//:snakeyaml",
+    "@community//libraries/snakeyaml",
     "@community//libraries/guava",
     "@community//libraries/http-client",
     "@ultimate_lib//:graphql-io-github-cdimascio-dotenv-kotlin",

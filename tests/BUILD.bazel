@@ -70,7 +70,7 @@ jvm_library(
     "@lib//:swingx",
     "@community//libraries/gson",
     "@community//libraries/commons/io",
-    "@lib//:snakeyaml",
+    "@community//libraries/snakeyaml",
     "@community//libraries/guava",
     "@community//platform/editor-ui-api:editor-ui",
     "@community//libraries/http-client",
