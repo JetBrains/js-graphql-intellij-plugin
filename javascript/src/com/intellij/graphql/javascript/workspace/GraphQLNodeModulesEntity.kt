@@ -43,7 +43,5 @@ interface GraphQLNodeModulesEntity : WorkspaceEntity {
 fun MutableEntityStorage.modifyGraphQLNodeModulesEntity(
   entity: GraphQLNodeModulesEntity,
   modification: GraphQLNodeModulesEntity.Builder.() -> Unit,
-): GraphQLNodeModulesEntity {
-  return modifyEntity(GraphQLNodeModulesEntity.Builder::class.java, entity, modification)
-}
+): GraphQLNodeModulesEntity = modifyEntity(GraphQLNodeModulesEntity.Builder::class.java, entity, modification)
 //endregion

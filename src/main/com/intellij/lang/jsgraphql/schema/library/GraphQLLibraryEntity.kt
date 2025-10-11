@@ -62,7 +62,5 @@ interface GraphQLLibraryEntity : WorkspaceEntity {
 fun MutableEntityStorage.modifyGraphQLLibraryEntity(
   entity: GraphQLLibraryEntity,
   modification: GraphQLLibraryEntity.Builder.() -> Unit,
-): GraphQLLibraryEntity {
-  return modifyEntity(GraphQLLibraryEntity.Builder::class.java, entity, modification)
-}
+): GraphQLLibraryEntity = modifyEntity(GraphQLLibraryEntity.Builder::class.java, entity, modification)
 //endregion
