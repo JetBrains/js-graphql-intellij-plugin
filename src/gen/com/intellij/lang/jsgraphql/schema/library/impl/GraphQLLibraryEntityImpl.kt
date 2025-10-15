@@ -2,6 +2,7 @@ package com.intellij.lang.jsgraphql.schema.library.impl
 
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryAttachmentScope
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryEntity
+import com.intellij.lang.jsgraphql.schema.library.ModifiableGraphQLLibraryEntity
 import com.intellij.platform.workspace.storage.*
 import com.intellij.platform.workspace.storage.annotations.Default
 import com.intellij.platform.workspace.storage.impl.ModifiableWorkspaceEntityBase
@@ -68,7 +69,7 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
 
 
   internal class Builder(result: GraphQLLibraryEntityData?) : ModifiableWorkspaceEntityBase<GraphQLLibraryEntity, GraphQLLibraryEntityData>(
-    result), GraphQLLibraryEntity.Builder {
+    result), ModifiableGraphQLLibraryEntity {
     internal constructor() : this(GraphQLLibraryEntityData())
 
     override fun applyToBuilder(builder: MutableEntityStorage) {
@@ -216,7 +217,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
   internal fun isDisplayNameInitialized(): Boolean = ::displayName.isInitialized
   internal fun isRootsInitialized(): Boolean = ::roots.isInitialized
 
-  override fun wrapAsModifiable(diff: MutableEntityStorage): WorkspaceEntity.Builder<GraphQLLibraryEntity> {
+  override fun wrapAsModifiable(diff: MutableEntityStorage): ModifiableWorkspaceEntity<GraphQLLibraryEntity> {
     val modifiable = GraphQLLibraryEntityImpl.Builder(null)
     modifiable.diff = diff
     modifiable.id = createEntityId()
@@ -249,7 +250,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
     return GraphQLLibraryEntity::class.java
   }
 
-  override fun createDetachedEntity(parents: List<WorkspaceEntity.Builder<*>>): WorkspaceEntity.Builder<*> {
+  override fun createDetachedEntity(parents: List<ModifiableWorkspaceEntity<*>>): ModifiableWorkspaceEntity<*> {
     return GraphQLLibraryEntity(identifier, displayName, roots, entitySource) {
       this.description = this@GraphQLLibraryEntityData.description
       this.attachmentScope = this@GraphQLLibraryEntityData.attachmentScope

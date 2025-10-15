@@ -1,11 +1,13 @@
 package com.intellij.graphql.javascript.workspace.impl
 
 import com.intellij.graphql.javascript.workspace.GraphQLNodeModulesEntity
+import com.intellij.graphql.javascript.workspace.ModifiableGraphQLNodeModulesEntity
 import com.intellij.platform.workspace.storage.ConnectionId
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityType
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
 import com.intellij.platform.workspace.storage.GeneratedCodeImplVersion
+import com.intellij.platform.workspace.storage.ModifiableWorkspaceEntity
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.WorkspaceEntity
 import com.intellij.platform.workspace.storage.WorkspaceEntityInternalApi
@@ -51,7 +53,7 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
 
 
   internal class Builder(result: GraphQLNodeModulesEntityData?) : ModifiableWorkspaceEntityBase<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityData>(
-    result), GraphQLNodeModulesEntity.Builder {
+    result), ModifiableGraphQLNodeModulesEntity {
     internal constructor() : this(GraphQLNodeModulesEntityData())
 
     override fun applyToBuilder(builder: MutableEntityStorage) {
@@ -150,7 +152,7 @@ internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeMod
 
   internal fun isRootsInitialized(): Boolean = ::roots.isInitialized
 
-  override fun wrapAsModifiable(diff: MutableEntityStorage): WorkspaceEntity.Builder<GraphQLNodeModulesEntity> {
+  override fun wrapAsModifiable(diff: MutableEntityStorage): ModifiableWorkspaceEntity<GraphQLNodeModulesEntity> {
     val modifiable = GraphQLNodeModulesEntityImpl.Builder(null)
     modifiable.diff = diff
     modifiable.id = createEntityId()
@@ -183,7 +185,7 @@ internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeMod
     return GraphQLNodeModulesEntity::class.java
   }
 
-  override fun createDetachedEntity(parents: List<WorkspaceEntity.Builder<*>>): WorkspaceEntity.Builder<*> {
+  override fun createDetachedEntity(parents: List<ModifiableWorkspaceEntity<*>>): ModifiableWorkspaceEntity<*> {
     return GraphQLNodeModulesEntity(roots, entitySource) {
     }
   }
