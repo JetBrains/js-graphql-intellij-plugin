@@ -23,44 +23,4 @@ interface GraphQLLibraryEntity : WorkspaceEntity {
     @Default get() = GraphQLLibraryAttachmentScope.GLOBAL
 
   val roots: Set<VirtualFileUrl>
-
-  //region generated code
-  @GeneratedCodeApiVersion(3)
-  interface Builder : WorkspaceEntity.Builder<GraphQLLibraryEntity> {
-    override var entitySource: EntitySource
-    var identifier: String
-    var displayName: String
-    var description: String?
-    var attachmentScope: GraphQLLibraryAttachmentScope
-    var roots: MutableSet<VirtualFileUrl>
-  }
-
-  companion object : EntityType<GraphQLLibraryEntity, Builder>() {
-    @JvmOverloads
-    @JvmStatic
-    @JvmName("create")
-    operator fun invoke(
-      identifier: String,
-      displayName: String,
-      roots: Set<VirtualFileUrl>,
-      entitySource: EntitySource,
-      init: (Builder.() -> Unit)? = null,
-    ): Builder {
-      val builder = builder()
-      builder.identifier = identifier
-      builder.displayName = displayName
-      builder.roots = roots.toMutableWorkspaceSet()
-      builder.entitySource = entitySource
-      init?.invoke(builder)
-      return builder
-    }
-  }
-  //endregion
 }
-
-//region generated code
-fun MutableEntityStorage.modifyGraphQLLibraryEntity(
-  entity: GraphQLLibraryEntity,
-  modification: GraphQLLibraryEntity.Builder.() -> Unit,
-): GraphQLLibraryEntity = modifyEntity(GraphQLLibraryEntity.Builder::class.java, entity, modification)
-//endregion
