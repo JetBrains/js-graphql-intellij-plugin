@@ -2,9 +2,8 @@ package com.intellij.lang.jsgraphql.schema.library.impl
 
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryAttachmentScope
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryEntity
-import com.intellij.lang.jsgraphql.schema.library.ModifiableGraphQLLibraryEntity
+import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryEntityBuilder
 import com.intellij.platform.workspace.storage.*
-import com.intellij.platform.workspace.storage.annotations.Default
 import com.intellij.platform.workspace.storage.impl.ModifiableWorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityData
@@ -14,8 +13,6 @@ import com.intellij.platform.workspace.storage.instrumentation.EntityStorageInst
 import com.intellij.platform.workspace.storage.instrumentation.EntityStorageInstrumentationApi
 import com.intellij.platform.workspace.storage.metadata.model.EntityMetadata
 import com.intellij.platform.workspace.storage.url.VirtualFileUrl
-import org.jetbrains.annotations.Nls
-import org.jetbrains.annotations.NonNls
 
 @GeneratedCodeApiVersion(3)
 @GeneratedCodeImplVersion(7)
@@ -69,7 +66,7 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
 
 
   internal class Builder(result: GraphQLLibraryEntityData?) : ModifiableWorkspaceEntityBase<GraphQLLibraryEntity, GraphQLLibraryEntityData>(
-    result), ModifiableGraphQLLibraryEntity {
+    result), GraphQLLibraryEntityBuilder {
     internal constructor() : this(GraphQLLibraryEntityData())
 
     override fun applyToBuilder(builder: MutableEntityStorage) {
@@ -217,7 +214,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
   internal fun isDisplayNameInitialized(): Boolean = ::displayName.isInitialized
   internal fun isRootsInitialized(): Boolean = ::roots.isInitialized
 
-  override fun wrapAsModifiable(diff: MutableEntityStorage): ModifiableWorkspaceEntity<GraphQLLibraryEntity> {
+  override fun wrapAsModifiable(diff: MutableEntityStorage): WorkspaceEntityBuilder<GraphQLLibraryEntity> {
     val modifiable = GraphQLLibraryEntityImpl.Builder(null)
     modifiable.diff = diff
     modifiable.id = createEntityId()
@@ -250,7 +247,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
     return GraphQLLibraryEntity::class.java
   }
 
-  override fun createDetachedEntity(parents: List<ModifiableWorkspaceEntity<*>>): ModifiableWorkspaceEntity<*> {
+  override fun createDetachedEntity(parents: List<WorkspaceEntityBuilder<*>>): WorkspaceEntityBuilder<*> {
     return GraphQLLibraryEntity(identifier, displayName, roots, entitySource) {
       this.description = this@GraphQLLibraryEntityData.description
       this.attachmentScope = this@GraphQLLibraryEntityData.attachmentScope

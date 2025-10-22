@@ -1,27 +1,28 @@
+@file:JvmName("GraphQLNodeModulesEntityModifications")
+
 package com.intellij.graphql.javascript.workspace
 
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityType
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
-import com.intellij.platform.workspace.storage.ModifiableWorkspaceEntity
+import com.intellij.platform.workspace.storage.WorkspaceEntityBuilder
 import com.intellij.platform.workspace.storage.MutableEntityStorage
-import com.intellij.platform.workspace.storage.WorkspaceEntity
 import com.intellij.platform.workspace.storage.impl.containers.toMutableWorkspaceSet
 import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 
 @GeneratedCodeApiVersion(3)
-interface ModifiableGraphQLNodeModulesEntity : ModifiableWorkspaceEntity<GraphQLNodeModulesEntity> {
+interface GraphQLNodeModulesEntityBuilder : WorkspaceEntityBuilder<GraphQLNodeModulesEntity> {
   override var entitySource: EntitySource
   var roots: MutableSet<VirtualFileUrl>
 }
 
-internal object GraphQLNodeModulesEntityType : EntityType<GraphQLNodeModulesEntity, ModifiableGraphQLNodeModulesEntity>() {
+internal object GraphQLNodeModulesEntityType : EntityType<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityBuilder>() {
   override val entityClass: Class<GraphQLNodeModulesEntity> get() = GraphQLNodeModulesEntity::class.java
   operator fun invoke(
     roots: Set<VirtualFileUrl>,
     entitySource: EntitySource,
-    init: (ModifiableGraphQLNodeModulesEntity.() -> Unit)? = null,
-  ): ModifiableGraphQLNodeModulesEntity {
+    init: (GraphQLNodeModulesEntityBuilder.() -> Unit)? = null,
+  ): GraphQLNodeModulesEntityBuilder {
     val builder = builder()
     builder.roots = roots.toMutableWorkspaceSet()
     builder.entitySource = entitySource
@@ -32,13 +33,13 @@ internal object GraphQLNodeModulesEntityType : EntityType<GraphQLNodeModulesEnti
 
 fun MutableEntityStorage.modifyGraphQLNodeModulesEntity(
   entity: GraphQLNodeModulesEntity,
-  modification: ModifiableGraphQLNodeModulesEntity.() -> Unit,
-): GraphQLNodeModulesEntity = modifyEntity(ModifiableGraphQLNodeModulesEntity::class.java, entity, modification)
+  modification: GraphQLNodeModulesEntityBuilder.() -> Unit,
+): GraphQLNodeModulesEntity = modifyEntity(GraphQLNodeModulesEntityBuilder::class.java, entity, modification)
 
 @JvmOverloads
 @JvmName("createGraphQLNodeModulesEntity")
 fun GraphQLNodeModulesEntity(
   roots: Set<VirtualFileUrl>,
   entitySource: EntitySource,
-  init: (ModifiableGraphQLNodeModulesEntity.() -> Unit)? = null,
-): ModifiableGraphQLNodeModulesEntity = GraphQLNodeModulesEntityType(roots, entitySource, init)
+  init: (GraphQLNodeModulesEntityBuilder.() -> Unit)? = null,
+): GraphQLNodeModulesEntityBuilder = GraphQLNodeModulesEntityType(roots, entitySource, init)
