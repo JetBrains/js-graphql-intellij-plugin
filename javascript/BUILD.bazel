@@ -19,6 +19,7 @@ jvm_library(
     "@community//platform/platform-api:ide",
     "@community//platform/ide-core-impl",
     "@community//platform/platform-impl:ide-impl",
+    "@community//platform/execution",
     "@community//platform/lang-api:lang",
     "@community//platform/lang-impl",
     "@community//platform/core-impl",
