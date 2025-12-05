@@ -49,7 +49,7 @@
     <orderEntry type="module" module-name="intellij.graphql.javascript" scope="TEST" />
     <orderEntry type="module" module-name="intellij.graphql.langInjection" scope="TEST" />
     <orderEntry type="module" module-name="intellij.graphql.yaml" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="swingx" level="project" />
+    <orderEntry type="module" module-name="intellij.libraries.swingx" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.gson" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.commons.io" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.snakeyaml" scope="TEST" />
