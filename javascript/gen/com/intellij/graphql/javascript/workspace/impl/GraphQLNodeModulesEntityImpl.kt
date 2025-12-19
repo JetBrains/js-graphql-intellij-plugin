@@ -6,9 +6,9 @@ import com.intellij.platform.workspace.storage.ConnectionId
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
 import com.intellij.platform.workspace.storage.GeneratedCodeImplVersion
-import com.intellij.platform.workspace.storage.WorkspaceEntityBuilder
 import com.intellij.platform.workspace.storage.MutableEntityStorage
 import com.intellij.platform.workspace.storage.WorkspaceEntity
+import com.intellij.platform.workspace.storage.WorkspaceEntityBuilder
 import com.intellij.platform.workspace.storage.WorkspaceEntityInternalApi
 import com.intellij.platform.workspace.storage.impl.ModifiableWorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityBase
@@ -23,14 +23,12 @@ import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 @GeneratedCodeApiVersion(3)
 @GeneratedCodeImplVersion(7)
 @OptIn(WorkspaceEntityInternalApi::class)
-internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModulesEntityData) : GraphQLNodeModulesEntity, WorkspaceEntityBase(
-  dataSource) {
+internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModulesEntityData) : GraphQLNodeModulesEntity,
+                                                                                                    WorkspaceEntityBase(dataSource) {
 
   private companion object {
 
-
-    private val connections = listOf<ConnectionId>(
-    )
+    private val connections = listOf<ConnectionId>()
 
   }
 
@@ -51,8 +49,8 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
   }
 
 
-  internal class Builder(result: GraphQLNodeModulesEntityData?) : ModifiableWorkspaceEntityBase<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityData>(
-    result), GraphQLNodeModulesEntityBuilder {
+  internal class Builder(result: GraphQLNodeModulesEntityData?) :
+    ModifiableWorkspaceEntityBase<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityData>(result), GraphQLNodeModulesEntityBuilder {
     internal constructor() : this(GraphQLNodeModulesEntityData())
 
     override fun applyToBuilder(builder: MutableEntityStorage) {
@@ -65,16 +63,14 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
           error("Entity GraphQLNodeModulesEntity is already created in a different builder")
         }
       }
-
       this.diff = builder
       addToBuilder()
       this.id = getEntityData().createEntityId()
-      // After adding entity data to the builder, we need to unbind it and move the control over entity data to builder
-      // Builder may switch to snapshot at any moment and lock entity data to modification
+// After adding entity data to the builder, we need to unbind it and move the control over entity data to builder
+// Builder may switch to snapshot at any moment and lock entity data to modification
       this.currentEntityData = null
-
       index(this, "roots", this.roots)
-      // Process linked entities that are connected without a builder
+// Process linked entities that are connected without a builder
       processLinkedEntities(builder)
       checkInitialization() // TODO uncomment and check failed tests
     }
@@ -117,7 +113,6 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
         changedProperty.add("entitySource")
 
       }
-
     private val rootsUpdater: (value: Set<VirtualFileUrl>) -> Unit = { value ->
       val _diff = diff
       if (_diff != null) index(this, "roots", value)
@@ -143,6 +138,7 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
 
     override fun getEntityClass(): Class<GraphQLNodeModulesEntity> = GraphQLNodeModulesEntity::class.java
   }
+
 }
 
 @OptIn(WorkspaceEntityInternalApi::class)
@@ -185,8 +181,7 @@ internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeMod
   }
 
   override fun createDetachedEntity(parents: List<WorkspaceEntityBuilder<*>>): WorkspaceEntityBuilder<*> {
-    return GraphQLNodeModulesEntity(roots, entitySource) {
-    }
+    return GraphQLNodeModulesEntity(roots, entitySource)
   }
 
   override fun getRequiredParents(): List<Class<out WorkspaceEntity>> {
@@ -197,9 +192,7 @@ internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeMod
   override fun equals(other: Any?): Boolean {
     if (other == null) return false
     if (this.javaClass != other.javaClass) return false
-
     other as GraphQLNodeModulesEntityData
-
     if (this.entitySource != other.entitySource) return false
     if (this.roots != other.roots) return false
     return true
@@ -208,9 +201,7 @@ internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeMod
   override fun equalsIgnoringEntitySource(other: Any?): Boolean {
     if (other == null) return false
     if (this.javaClass != other.javaClass) return false
-
     other as GraphQLNodeModulesEntityData
-
     if (this.roots != other.roots) return false
     return true
   }
