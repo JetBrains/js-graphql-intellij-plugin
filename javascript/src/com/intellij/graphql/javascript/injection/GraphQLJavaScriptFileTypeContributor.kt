@@ -15,7 +15,7 @@ import com.intellij.openapi.fileTypes.FileType
 /**
  * Registers the various JavaScript languages to support GraphQL in tagged templates
  */
-private class GraphQLJavaScriptFileTypeContributor : GraphQLFileTypeContributor {
+internal class GraphQLJavaScriptFileTypeContributor : GraphQLFileTypeContributor {
   override fun getFileTypes(): Collection<FileType> {
     val fileTypeSet = mutableSetOf<FileType>()
     fileTypeSet.addAll(TypeScriptUtil.TYPESCRIPT_FILE_TYPES)
