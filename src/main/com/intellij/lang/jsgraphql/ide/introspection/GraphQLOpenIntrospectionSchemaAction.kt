@@ -21,10 +21,6 @@ class GraphQLOpenIntrospectionSchemaAction : AnAction(
   GraphQLBundle.messagePointer("graphql.action.open.introspection.schema.title"),
   AllIcons.Actions.MoveTo2,
 ) {
-  companion object {
-    const val ACTION_ID = "GraphQLOpenIntrospectionSchema"
-  }
-
   override fun update(e: AnActionEvent) {
     val editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE) ?: return
     val endpoint = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)?.selectedItem

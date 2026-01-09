@@ -19,10 +19,6 @@ class GraphQLRunIntrospectionQueryAction : AnAction(
   GraphQLBundle.messagePointer("graphql.action.run.introspection.query.title"),
   AllIcons.Actions.Refresh,
 ) {
-  companion object {
-    const val ACTION_ID = "GraphQLRunIntrospectionQuery"
-  }
-
   override fun update(e: AnActionEvent) {
     val editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE) ?: return
     val endpointsModel = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)
