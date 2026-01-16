@@ -235,7 +235,12 @@ public class GraphQLIntrospectionResultToSchema {
 
   private static @NotNull TypeDefinition<?> createScalar(@NotNull Map<String, Object> input) {
     String name = (String)input.get("name");
-    return ScalarTypeDefinition.newScalarTypeDefinition().name(name).description(getDescription(input)).build();
+    String specifiedByURL = (String)input.get("specifiedByURL");
+    return ScalarTypeDefinition.newScalarTypeDefinition()
+      .name(name)
+      .description(getDescription(input))
+      .specifiedByURL(specifiedByURL)
+      .build();
   }
 
   @SuppressWarnings("unchecked")

@@ -56,5 +56,7 @@
     <orderEntry type="module" module-name="intellij.libraries.guava" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.editor.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.libraries.http.client" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.javascript.plugin" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.vuejs.plugin" scope="TEST" />
   </component>
 </module>

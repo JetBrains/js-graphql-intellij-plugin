@@ -75,6 +75,8 @@ jvm_library(
     "@community//libraries/guava",
     "@community//platform/editor-ui-api:editor-ui",
     "@community//libraries/http-client",
+    "//plugins/JavaScriptLanguage:javascript-plugin",
+    "//contrib/vuejs/vuejs-plugin:plugin",
   ],
   runtime_deps = [":tests"]
 )

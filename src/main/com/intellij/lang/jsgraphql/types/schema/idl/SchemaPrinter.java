@@ -38,7 +38,10 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static com.intellij.lang.jsgraphql.types.Directives.DeprecatedDirective;
+import static com.intellij.lang.jsgraphql.types.Directives.SpecifiedByDirective;
+import static com.intellij.lang.jsgraphql.types.Scalars.GraphQLString;
 import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.*;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull.nonNull;
 import static com.intellij.lang.jsgraphql.types.schema.visibility.DefaultGraphqlFieldVisibility.DEFAULT_FIELD_VISIBILITY;
 import static com.intellij.lang.jsgraphql.types.util.EscapeUtil.escapeJsonString;
 import static java.util.Optional.ofNullable;
@@ -429,7 +432,8 @@ public class SchemaPrinter {
         }
         else {
           printComments(out, type, "");
-          out.format("scalar %s%s\n\n", type.getName(), directivesString(GraphQLScalarType.class, type.getDirectives()));
+          List<GraphQLDirective> directives = addSpecifiedByDirectiveIfNeeded(type.getSpecifiedByUrl(), type.getDirectives());
+          out.format("scalar %s%s\n\n", type.getName(), directivesString(GraphQLScalarType.class, directives));
         }
       }
     };
@@ -846,8 +850,8 @@ public class SchemaPrinter {
 
   String directivesString(Class<? extends GraphQLSchemaElement> parent, List<GraphQLDirective> directives) {
     directives = directives.stream()
-      // @deprecated is special - we always print it if something is deprecated
-      .filter(directive -> options.getIncludeDirective().test(directive) || isDeprecatedDirective(directive))
+      // @deprecated and @specifiedBy are special - we always print them
+      .filter(directive -> options.getIncludeDirective().test(directive) || isDeprecatedDirective(directive) || isSpecifiedByDirective(directive))
       .filter(options.getIncludeSchemaElement())
       .collect(toList());
 
@@ -884,8 +888,8 @@ public class SchemaPrinter {
       return "";
     }
     if (!options.getIncludeDirective().test(directive)) {
-      // @deprecated is special - we always print it if something is deprecated
-      if (!isDeprecatedDirective(directive)) {
+      // @deprecated and @specifiedBy are special - we always print them
+      if (!isDeprecatedDirective(directive) && !isSpecifiedByDirective(directive)) {
         return "";
       }
     }
@@ -930,20 +934,49 @@ public class SchemaPrinter {
     return sb.toString();
   }
 
-  private boolean isDeprecatedDirective(GraphQLDirective directive) {
+  private static boolean isDeprecatedDirective(GraphQLDirective directive) {
     return directive.getName().equals(DeprecatedDirective.getName());
   }
 
-  private boolean hasDeprecatedDirective(List<GraphQLDirective> directives) {
+  private static boolean isSpecifiedByDirective(GraphQLDirective directive) {
+    return directive.getName().equals(SpecifiedByDirective.getName());
+  }
+
+  private static boolean hasDeprecatedDirective(List<GraphQLDirective> directives) {
     return directives.stream()
-             .filter(this::isDeprecatedDirective)
+             .filter(SchemaPrinter::isDeprecatedDirective)
              .count() == 1;
   }
 
-  private List<GraphQLDirective> addDeprecatedDirectiveIfNeeded(List<GraphQLDirective> directives) {
+  private static boolean hasSpecifiedByDirective(List<GraphQLDirective> directives) {
+    return directives.stream()
+             .filter(SchemaPrinter::isSpecifiedByDirective)
+             .count() == 1;
+  }
+
+  private static List<GraphQLDirective> addDeprecatedDirectiveIfNeeded(List<GraphQLDirective> directives) {
     if (!hasDeprecatedDirective(directives)) {
       directives = new ArrayList<>(directives);
       directives.add(DeprecatedDirective4Printing);
+    }
+    return directives;
+  }
+
+  private static List<GraphQLDirective> addSpecifiedByDirectiveIfNeeded(String specifiedByUrl, List<GraphQLDirective> directives) {
+    if (specifiedByUrl != null && !specifiedByUrl.trim().isEmpty()) {
+      if (!hasSpecifiedByDirective(directives)) {
+        directives = new ArrayList<>(directives);
+        GraphQLDirective specifiedByDirective = GraphQLDirective.newDirective()
+          .name("specifiedBy")
+          .validLocations(SCALAR)
+          .argument(GraphQLArgument.newArgument()
+            .name("url")
+            .type(nonNull(GraphQLString))
+            .value(specifiedByUrl)
+            .build())
+          .build();
+        directives.add(specifiedByDirective);
+      }
     }
     return directives;
   }

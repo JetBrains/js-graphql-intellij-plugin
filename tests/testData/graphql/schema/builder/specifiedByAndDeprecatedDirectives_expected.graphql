@@ -3,6 +3,16 @@ type Query {
     name: String @deprecated(reason: "No longer supported")
 }
 
+type User {
+    id: ID
+}
+
 scalar A @specifiedBy
 
 scalar B @specifiedBy
+
+scalar CustomScalar
+
+scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time")
+
+scalar UUID @deprecated(reason: "Use UUIDv7 instead") @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")

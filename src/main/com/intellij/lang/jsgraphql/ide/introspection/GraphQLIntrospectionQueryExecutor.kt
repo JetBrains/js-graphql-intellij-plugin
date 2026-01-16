@@ -179,6 +179,9 @@ class GraphQLIntrospectionQueryExecutor(private val project: Project, private va
     if (directiveDefinition.hasField("isRepeatable")) {
       capabilities.add(DIRECTIVE_IS_REPEATABLE)
     }
+    if (typeDefinition.hasField("specifiedByURL")) {
+      capabilities.add(SPECIFIED_BY_URL)
+    }
     return capabilities
   }
 

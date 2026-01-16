@@ -3,10 +3,27 @@ type Query {
     name: String @deprecated(reason: )
 }
 
+# Test valid URL
+scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time")
+
+# Test scalar without specifiedBy
+scalar CustomScalar
+
+# Test empty URL (edge case)
 scalar A @specifiedBy(url: )
+# Test invalid URL (edge case)
 scalar B @specifiedBy(url: 2)
+
+# Test with extension
+scalar UUID @deprecated(reason: "Use UUIDv7 instead")
+extend scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+
+type User {
+    id: ID
+}
 
 query {
     id
     name
 }
+

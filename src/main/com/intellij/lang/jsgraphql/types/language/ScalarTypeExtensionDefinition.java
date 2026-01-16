@@ -37,18 +37,19 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
   @Internal
   protected ScalarTypeExtensionDefinition(String name,
                                           List<Directive> directives,
+                                          @Nullable String specifiedByURL,
                                           Description description,
                                           SourceLocation sourceLocation,
                                           List<Comment> comments,
                                           IgnoredChars ignoredChars,
                                           Map<String, String> additionalData,
                                           @Nullable List<? extends Node> sourceNodes) {
-    super(name, directives, description, sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
+    super(name, directives, specifiedByURL, description, sourceLocation, comments, ignoredChars, additionalData, sourceNodes);
   }
 
   @Override
   public ScalarTypeExtensionDefinition deepCopy() {
-    return new ScalarTypeExtensionDefinition(getName(), deepCopy(getDirectives()), getDescription(), getSourceLocation(), getComments(),
+    return new ScalarTypeExtensionDefinition(getName(), deepCopy(getDirectives()), getSpecifiedByURL(), getDescription(), getSourceLocation(), getComments(),
                                              getIgnoredChars(), getAdditionalData(), getSourceNodes());
   }
 
@@ -83,6 +84,7 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
     private String name;
     private Description description;
     private ImmutableList<Directive> directives = emptyList();
+    private @Nullable String specifiedByURL;
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
     private @Nullable List<? extends Node> sourceNodes;
@@ -96,6 +98,7 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
       this.name = existing.getName();
       this.description = existing.getDescription();
       this.directives = ImmutableList.copyOf(existing.getDirectives());
+      this.specifiedByURL = existing.getSpecifiedByURL();
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
       this.sourceNodes = existing.getSourceNodes();
@@ -121,6 +124,11 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
 
     public Builder description(Description description) {
       this.description = description;
+      return this;
+    }
+
+    public Builder specifiedByURL(@Nullable String specifiedByURL) {
+      this.specifiedByURL = specifiedByURL;
       return this;
     }
 
@@ -163,6 +171,7 @@ public class ScalarTypeExtensionDefinition extends ScalarTypeDefinition {
     public ScalarTypeExtensionDefinition build() {
       return new ScalarTypeExtensionDefinition(name,
                                                directives,
+                                               specifiedByURL,
                                                description,
                                                sourceLocation,
                                                comments,

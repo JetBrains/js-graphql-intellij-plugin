@@ -43,12 +43,14 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
 
   private final String name;
   private final ImmutableList<Directive> directives;
+  private final @Nullable String specifiedByURL;
 
   public static final String CHILD_DIRECTIVES = "directives";
 
   @Internal
   protected ScalarTypeDefinition(String name,
                                  List<Directive> directives,
+                                 @Nullable String specifiedByURL,
                                  Description description,
                                  SourceLocation sourceLocation,
                                  List<Comment> comments,
@@ -58,6 +60,7 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
     super(sourceLocation, comments, ignoredChars, additionalData, description, sourceNodes);
     this.name = name;
     this.directives = ImmutableList.copyOf(directives);
+    this.specifiedByURL = specifiedByURL;
   }
 
   /**
@@ -66,7 +69,7 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
    * @param name of the scalar
    */
   public ScalarTypeDefinition(String name) {
-    this(name, emptyList(), null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
+    this(name, emptyList(), null, null, null, emptyList(), IgnoredChars.EMPTY, emptyMap(), null);
   }
 
   @Override
@@ -77,6 +80,11 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
   @Override
   public String getName() {
     return name;
+  }
+
+  @Nullable
+  public String getSpecifiedByURL() {
+    return specifiedByURL;
   }
 
   @Override
@@ -114,7 +122,7 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
 
   @Override
   public ScalarTypeDefinition deepCopy() {
-    return new ScalarTypeDefinition(name, deepCopy(directives), description, getSourceLocation(), getComments(), getIgnoredChars(),
+    return new ScalarTypeDefinition(name, deepCopy(directives), specifiedByURL, description, getSourceLocation(), getComments(), getIgnoredChars(),
                                     getAdditionalData(), getSourceNodes());
   }
 
@@ -123,6 +131,7 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
     return "ScalarTypeDefinition{" +
            "name='" + name + '\'' +
            ", directives=" + directives +
+           ", specifiedByURL='" + specifiedByURL + '\'' +
            '}';
   }
 
@@ -147,6 +156,7 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
     private String name;
     private Description description;
     private ImmutableList<Directive> directives = emptyList();
+    private @Nullable String specifiedByURL;
     private IgnoredChars ignoredChars = IgnoredChars.EMPTY;
     private Map<String, String> additionalData = new LinkedHashMap<>();
     private @Nullable List<? extends Node> sourceNodes;
@@ -160,6 +170,7 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
       this.name = existing.getName();
       this.description = existing.getDescription();
       this.directives = ImmutableList.copyOf(existing.getDirectives());
+      this.specifiedByURL = existing.getSpecifiedByURL();
       this.ignoredChars = existing.getIgnoredChars();
       this.additionalData = new LinkedHashMap<>(existing.getAdditionalData());
       this.sourceNodes = existing.getSourceNodes();
@@ -185,6 +196,11 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
 
     public Builder description(Description description) {
       this.description = description;
+      return this;
+    }
+
+    public Builder specifiedByURL(@Nullable String specifiedByURL) {
+      this.specifiedByURL = specifiedByURL;
       return this;
     }
 
@@ -227,6 +243,7 @@ public class ScalarTypeDefinition extends AbstractDescribedNode<ScalarTypeDefini
     public ScalarTypeDefinition build() {
       return new ScalarTypeDefinition(name,
                                       directives,
+                                      specifiedByURL,
                                       description,
                                       sourceLocation,
                                       comments,

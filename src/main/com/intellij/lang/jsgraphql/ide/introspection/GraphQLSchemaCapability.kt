@@ -94,4 +94,22 @@ enum class GraphQLSchemaCapability {
    * ```
    */
   DIRECTIVE_IS_REPEATABLE,
+
+  /**
+   * Allows specifying a URL that provides the specification for a scalar type.
+   *
+   * For example, the following GraphQL schema:
+   *
+   * ```graphql
+   * scalar DateTime @specifiedBy(url: "https://scalars.graphql.org/andimarek/date-time")
+   * ```
+   *
+   * The introspection schema is defined like this:
+   * ```graphql
+   * type __Type {
+   *   specifiedByURL: String
+   * }
+   * ```
+   */
+  SPECIFIED_BY_URL,
 }

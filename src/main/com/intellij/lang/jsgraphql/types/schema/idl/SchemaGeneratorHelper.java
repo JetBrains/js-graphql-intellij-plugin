@@ -686,6 +686,21 @@ public class SchemaGeneratorHelper {
   }
 
   @Nullable String getSpecifiedByUrl(ScalarTypeDefinition scalarTypeDefinition, List<ScalarTypeExtensionDefinition> extensions) {
+    // First check the specifiedByURL field
+    String specifiedByUrl = scalarTypeDefinition.getSpecifiedByURL();
+    if (specifiedByUrl != null) {
+      return specifiedByUrl;
+    }
+    
+    // Check extensions
+    for (ScalarTypeExtensionDefinition extension : extensions) {
+      specifiedByUrl = extension.getSpecifiedByURL();
+      if (specifiedByUrl != null) {
+        return specifiedByUrl;
+      }
+    }
+    
+    // Fall back to directive extraction (backward compatibility)
     List<Directive> allDirectives = new ArrayList<>(scalarTypeDefinition.getDirectives());
     extensions.forEach(extension -> allDirectives.addAll(extension.getDirectives()));
     Optional<Directive> specifiedByDirective = FpKit.findOne(allDirectives,

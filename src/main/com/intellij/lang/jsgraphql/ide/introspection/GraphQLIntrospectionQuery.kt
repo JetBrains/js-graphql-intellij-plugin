@@ -65,6 +65,7 @@ fun buildIntrospectionQueryFromTemplate(capabilities: EnumSet<GraphQLSchemaCapab
     possibleTypes {
       ...TypeRef
     }
+    ${includeIf(capabilities, SPECIFIED_BY_URL, "specifiedByURL")}
   }
   
   fragment InputValue on __InputValue {
@@ -125,6 +126,7 @@ fun buildIntrospectionQueryFromTemplate(capabilities: EnumSet<GraphQLSchemaCapab
  * [INPUT_VALUE_DEPRECATION_REASON]    | __InputValue > fields[] > "name": "deprecationReason"
  * [INPUT_VALUE_DEFAULT_VALUE]         | __InputValue > fields[] > "name": "defaultValue"
  * [DIRECTIVE_IS_REPEATABLE]           |  __Directive > fields[] > "name": "isRepeatable"
+ * [SPECIFIED_BY_URL]                  | __Type > fields[] > "name": "specifiedByURL"
  */
 val INTROSPECTION_SCHEMA_CAPABILITIES_QUERY: String = """
   query IntrospectionCapabilitiesQuery {
