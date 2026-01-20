@@ -2,6 +2,7 @@
   <dependencies>
     <plugin id="com.intellij.modules.lang"/>
     <module name="intellij.platform.langInjection"/>
+    <plugin id="com.intellij.modules.ultimate"/>
     <plugin id="JavaScript"/>
   </dependencies>
 
