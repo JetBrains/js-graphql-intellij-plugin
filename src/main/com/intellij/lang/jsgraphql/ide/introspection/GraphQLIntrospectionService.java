@@ -47,25 +47,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.*;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil.*;
-import static com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService.setHeadersFromOptions;
 
 @Service(Service.Level.PROJECT)
 public final class GraphQLIntrospectionService implements Disposable {
@@ -173,16 +162,6 @@ public final class GraphQLIntrospectionService implements Disposable {
     return printIntrospectionAsGraphQL(project, GraphQLQueryClient.parseResponseJsonAsMap(introspectionJson));
   }
 
-  /**
-   * @deprecated Use {@link GraphQLQueryClient#createHttpClient(String, GraphQLConfigSecurity)} instead.
-   */
-  @Deprecated(forRemoval = true)
-  public @NotNull CloseableHttpClient createHttpClient(@NotNull String url, @Nullable GraphQLConfigSecurity sslConfig)
-    throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException, IOException, UnrecoverableKeyException,
-           CertificateException {
-    return GraphQLQueryClient.getInstance(myProject).createHttpClient(url, sslConfig);
-  }
-
   public static @NotNull String printIntrospectionAsGraphQL(@NotNull Project project, @NotNull Map<String, Object> introspection) {
     introspection = getIntrospectionSchemaDataFromParsedResponse(introspection);
 
@@ -237,19 +216,6 @@ public final class GraphQLIntrospectionService implements Disposable {
         throw e;
       }
     }
-  }
-
-  /**
-   * @deprecated use {@link GraphQLQueryClient#createRequest(GraphQLConfigEndpoint, String)} instead.
-   */
-  @Deprecated(forRemoval = true)
-  public static @NotNull HttpPost createRequest(@NotNull GraphQLConfigEndpoint endpoint,
-                                                @NotNull String url,
-                                                @NotNull String requestJson) {
-    HttpPost request = new HttpPost(url);
-    request.setEntity(new StringEntity(requestJson, ContentType.APPLICATION_JSON));
-    setHeadersFromOptions(endpoint, request);
-    return request;
   }
 
   enum IntrospectionOutputFormat {

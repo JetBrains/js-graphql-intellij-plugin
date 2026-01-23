@@ -23,7 +23,6 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.util.ObjectUtils
-import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.Nls
 import javax.net.ssl.SSLException
 
@@ -75,18 +74,6 @@ internal fun notifyAboutPossiblyInvalidIntrospectionSchema(notification: Notific
   if (e is GraphQLException) {
     notification.setContent(GraphQLBundle.message("graphql.notification.introspection.spec.error.body"))
   }
-}
-
-@ApiStatus.ScheduledForRemoval
-@Deprecated(message = "use handleGenericRequestError instead")
-fun showGraphQLRequestErrorNotification(
-  project: Project,
-  url: @NlsSafe String,
-  error: Exception,
-  notificationType: NotificationType,
-  @Suppress("unused") action: NotificationAction?,
-) {
-  handleGenericRequestError(project, url, error, notificationType, null)
 }
 
 @JvmOverloads

@@ -67,22 +67,6 @@ public class GraphQLSchema {
 
   private final List<GraphQLException> errors = new ArrayList<>();
 
-  /**
-   * @param queryType        the query type
-   * @param mutationType     the mutation type
-   * @param subscriptionType the subscription type
-   * @param additionalTypes  additional types
-   * @deprecated use the {@link #newSchema()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLSchema(GraphQLObjectType queryType,
-                       GraphQLObjectType mutationType,
-                       GraphQLObjectType subscriptionType,
-                       Set<GraphQLType> additionalTypes) {
-    this(newSchema().query(queryType).mutation(mutationType).subscription(subscriptionType).additionalTypes(additionalTypes), false);
-  }
-
   @Internal
   private GraphQLSchema(Builder builder, boolean afterTransform) {
     assertNotNull(builder.additionalTypes, () -> "additionalTypes can't be null");
@@ -239,18 +223,6 @@ public class GraphQLSchema {
   public Map<String, List<GraphQLDirective>> getAllDirectivesByName() {
     ProgressManager.checkCanceled();
     return directives.getAllDirectivesByName();
-  }
-
-  /**
-   * Returns a named directive that (for legacy reasons) will be only in the set of non repeatable directives
-   *
-   * @param directiveName the name of the directive to retrieve
-   * @return the directive or null if there is not one with that name
-   */
-  @Deprecated(forRemoval = true)
-  public GraphQLDirective getDirective(String directiveName) {
-    ProgressManager.checkCanceled();
-    return directives.getDirective(directiveName);
   }
 
   /**

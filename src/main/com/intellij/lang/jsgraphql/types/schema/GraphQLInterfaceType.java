@@ -367,13 +367,6 @@ public class GraphQLInterfaceType
       return this;
     }
 
-
-    @Deprecated(forRemoval = true)
-    public Builder typeResolver(TypeResolver typeResolver) {
-      this.typeResolver = typeResolver;
-      return this;
-    }
-
     public Builder withDirectives(GraphQLDirective... directives) {
       assertNotNull(directives, () -> "directives can't be null");
       this.directives.clear();
