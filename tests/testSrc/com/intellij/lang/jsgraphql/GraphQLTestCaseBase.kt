@@ -2,7 +2,20 @@ package com.intellij.lang.jsgraphql
 
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
-import com.intellij.lang.jsgraphql.ide.validation.inspections.*
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLDeprecatedSymbolsInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLDuplicateArgumentInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLDuplicateDirectiveInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLEmptyTypeInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalDirectiveArgumentInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLIllegalNameInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInterfaceImplementationInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInvalidDirectiveLocationInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMissingTypeInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLSchemaValidationInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLTypeRedefinitionInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnexpectedTypeInspection
+import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnresolvedReferenceInspection
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLNamedTypeExtension

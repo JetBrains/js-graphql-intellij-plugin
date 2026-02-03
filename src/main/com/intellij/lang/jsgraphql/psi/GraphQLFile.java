@@ -23,7 +23,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.MultiMap;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
+import javax.swing.Icon;
 import java.util.Collection;
 
 public class GraphQLFile extends PsiFileBase implements GraphQLElement {

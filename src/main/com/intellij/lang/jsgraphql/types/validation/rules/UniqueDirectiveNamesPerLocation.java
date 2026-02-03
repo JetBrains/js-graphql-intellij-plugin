@@ -19,7 +19,13 @@ package com.intellij.lang.jsgraphql.types.validation.rules;
 
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.Field;
+import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
+import com.intellij.lang.jsgraphql.types.language.FragmentSpread;
+import com.intellij.lang.jsgraphql.types.language.InlineFragment;
+import com.intellij.lang.jsgraphql.types.language.Node;
+import com.intellij.lang.jsgraphql.types.language.OperationDefinition;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
 import com.intellij.lang.jsgraphql.types.validation.AbstractRule;
 import com.intellij.lang.jsgraphql.types.validation.ValidationContext;

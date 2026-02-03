@@ -2,7 +2,31 @@ package com.intellij.lang.jsgraphql.ide.introspection;
 
 import com.intellij.lang.jsgraphql.psi.GraphQLElementFactory;
 import com.intellij.lang.jsgraphql.psi.GraphQLFile;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.Argument;
+import com.intellij.lang.jsgraphql.types.language.Description;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.DirectiveDefinition;
+import com.intellij.lang.jsgraphql.types.language.DirectiveLocation;
+import com.intellij.lang.jsgraphql.types.language.Document;
+import com.intellij.lang.jsgraphql.types.language.EnumTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.ListType;
+import com.intellij.lang.jsgraphql.types.language.NonNullType;
+import com.intellij.lang.jsgraphql.types.language.ObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.ScalarTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.SchemaDefinition;
+import com.intellij.lang.jsgraphql.types.language.SourceLocation;
+import com.intellij.lang.jsgraphql.types.language.StringValue;
+import com.intellij.lang.jsgraphql.types.language.Type;
+import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.TypeName;
+import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.Value;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -11,9 +35,15 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
-import static com.intellij.lang.jsgraphql.types.Assert.*;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
+import static com.intellij.lang.jsgraphql.types.Assert.assertTrue;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class GraphQLIntrospectionResultToSchema {

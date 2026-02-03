@@ -18,7 +18,11 @@
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.AstPrinter;
+import com.intellij.lang.jsgraphql.types.language.ListType;
+import com.intellij.lang.jsgraphql.types.language.NonNullType;
+import com.intellij.lang.jsgraphql.types.language.Type;
+import com.intellij.lang.jsgraphql.types.language.TypeName;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.util.containers.Stack;
 import org.jetbrains.annotations.NotNull;

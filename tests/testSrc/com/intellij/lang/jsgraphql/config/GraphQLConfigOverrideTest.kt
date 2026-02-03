@@ -7,10 +7,14 @@
  */
 package com.intellij.lang.jsgraphql.config
 
-import com.intellij.lang.jsgraphql.*
+import com.intellij.lang.jsgraphql.GraphQLConfigOverridePath
+import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.createOverrideConfigComment
+import com.intellij.lang.jsgraphql.createTestScratchFile
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
+import com.intellij.lang.jsgraphql.parseOverrideConfigComment
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.vfs.VirtualFile

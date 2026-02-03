@@ -11,7 +11,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.lang.jsgraphql.GraphqlIcons;
 import com.intellij.ui.LayeredIcon;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 public final class GraphQLIcons {
   public static final Icon FILE = GraphqlIcons.Graphql;

@@ -13,7 +13,10 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.lang.jsgraphql.GraphQLBundle;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigListener;
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider;
-import com.intellij.lang.jsgraphql.ide.config.model.*;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig;
+import com.intellij.lang.jsgraphql.ide.config.model.GraphQLSchemaPointer;
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.schema.GraphQLRegistryInfo;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo;
@@ -50,11 +53,19 @@ import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil.*;
+import static com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil.GRAPHQL_NOTIFICATION_GROUP_ID;
+import static com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil.handleIntrospectionError;
+import static com.intellij.lang.jsgraphql.ide.notifications.GraphQLNotificationUtil.showInvalidConfigurationNotification;
 
 @Service(Service.Level.PROJECT)
 public final class GraphQLIntrospectionService implements Disposable {

@@ -24,7 +24,9 @@ import com.intellij.lang.jsgraphql.types.language.Value;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull.nonNull;
-import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isList;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNonNull;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.unwrapOne;
 
 @Internal
 public class VariablesTypesMatcher {

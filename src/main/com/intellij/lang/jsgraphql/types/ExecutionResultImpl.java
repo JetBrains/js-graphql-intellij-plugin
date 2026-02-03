@@ -21,7 +21,11 @@ package com.intellij.lang.jsgraphql.types;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.collect.ImmutableKit;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;

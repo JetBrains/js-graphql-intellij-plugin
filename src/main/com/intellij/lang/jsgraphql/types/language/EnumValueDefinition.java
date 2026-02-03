@@ -33,7 +33,9 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
-import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.*;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.emptyList;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.emptyMap;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.nonNullCopyOf;
 import static com.intellij.lang.jsgraphql.types.language.NodeChildrenContainer.newNodeChildrenContainer;
 
 @PublicApi

@@ -19,13 +19,25 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.ObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.SchemaDefinition;
+import com.intellij.lang.jsgraphql.types.language.SchemaExtensionDefinition;
+import com.intellij.lang.jsgraphql.types.language.Type;
+import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.TypeName;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.MissingTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.OperationRedefinitionError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.OperationTypesMustBeObjects;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.QueryOperationMissingError;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 @Internal

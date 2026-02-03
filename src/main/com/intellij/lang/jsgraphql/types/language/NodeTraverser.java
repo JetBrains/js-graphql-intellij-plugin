@@ -18,7 +18,11 @@
 package com.intellij.lang.jsgraphql.types.language;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.lang.jsgraphql.types.util.*;
+import com.intellij.lang.jsgraphql.types.util.DefaultTraverserContext;
+import com.intellij.lang.jsgraphql.types.util.TraversalControl;
+import com.intellij.lang.jsgraphql.types.util.Traverser;
+import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.lang.jsgraphql.types.util.TraverserVisitor;
 
 import java.util.Collection;
 import java.util.Collections;

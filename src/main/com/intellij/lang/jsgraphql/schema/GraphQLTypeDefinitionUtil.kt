@@ -5,7 +5,16 @@ package com.intellij.lang.jsgraphql.schema
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.lang.jsgraphql.psi.GraphQLElement
 import com.intellij.lang.jsgraphql.types.GraphQLError
-import com.intellij.lang.jsgraphql.types.language.*
+import com.intellij.lang.jsgraphql.types.language.EnumTypeExtensionDefinition
+import com.intellij.lang.jsgraphql.types.language.InputObjectTypeExtensionDefinition
+import com.intellij.lang.jsgraphql.types.language.InterfaceTypeExtensionDefinition
+import com.intellij.lang.jsgraphql.types.language.Node
+import com.intellij.lang.jsgraphql.types.language.ObjectTypeExtensionDefinition
+import com.intellij.lang.jsgraphql.types.language.SDLDefinition
+import com.intellij.lang.jsgraphql.types.language.ScalarTypeExtensionDefinition
+import com.intellij.lang.jsgraphql.types.language.SchemaExtensionDefinition
+import com.intellij.lang.jsgraphql.types.language.SourceLocation
+import com.intellij.lang.jsgraphql.types.language.UnionTypeExtensionDefinition
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem

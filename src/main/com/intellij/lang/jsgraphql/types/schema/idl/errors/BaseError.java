@@ -17,7 +17,11 @@
  */
 package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 
-import com.intellij.lang.jsgraphql.types.*;
+import com.intellij.lang.jsgraphql.types.ErrorType;
+import com.intellij.lang.jsgraphql.types.GraphQLError;
+import com.intellij.lang.jsgraphql.types.GraphQLException;
+import com.intellij.lang.jsgraphql.types.GraphqlErrorHelper;
+import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Node;
 import com.intellij.lang.jsgraphql.types.language.SourceLocation;
 import com.intellij.openapi.util.text.StringUtil;

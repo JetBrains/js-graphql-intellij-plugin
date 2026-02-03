@@ -25,7 +25,14 @@ import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
 
 import static com.intellij.lang.jsgraphql.types.Scalars.GraphQLBoolean;
 import static com.intellij.lang.jsgraphql.types.Scalars.GraphQLString;
-import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.*;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.ARGUMENT_DEFINITION;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.ENUM_VALUE;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.FIELD;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.FIELD_DEFINITION;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.FRAGMENT_SPREAD;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.INLINE_FRAGMENT;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.INPUT_FIELD_DEFINITION;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.DirectiveLocation.SCALAR;
 import static com.intellij.lang.jsgraphql.types.language.DirectiveLocation.newDirectiveLocation;
 import static com.intellij.lang.jsgraphql.types.language.InputValueDefinition.newInputValueDefinition;
 import static com.intellij.lang.jsgraphql.types.language.NonNullType.newNonNullType;

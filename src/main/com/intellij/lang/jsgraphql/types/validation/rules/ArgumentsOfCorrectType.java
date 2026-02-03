@@ -22,7 +22,12 @@ import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLUnexpectedT
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Argument;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
-import com.intellij.lang.jsgraphql.types.validation.*;
+import com.intellij.lang.jsgraphql.types.validation.AbstractRule;
+import com.intellij.lang.jsgraphql.types.validation.ArgumentValidationUtil;
+import com.intellij.lang.jsgraphql.types.validation.ValidationContext;
+import com.intellij.lang.jsgraphql.types.validation.ValidationError;
+import com.intellij.lang.jsgraphql.types.validation.ValidationErrorCollector;
+import com.intellij.lang.jsgraphql.types.validation.ValidationErrorType;
 
 @Internal
 public class ArgumentsOfCorrectType extends AbstractRule {

@@ -1,7 +1,15 @@
 package com.intellij.lang.jsgraphql.resolve
 
 import com.intellij.lang.jsgraphql.GraphQLResolveTestCaseBase
-import com.intellij.lang.jsgraphql.psi.*
+import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumTypeDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumValueDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLInputObjectTypeDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLInterfaceTypeDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectTypeDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLScalarTypeDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLUnionTypeDefinition
 import com.intellij.openapi.progress.runBlockingCancellable
 
 class GraphQLSchemaResolveTest : GraphQLResolveTestCaseBase() {

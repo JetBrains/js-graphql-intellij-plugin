@@ -37,7 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static com.intellij.lang.jsgraphql.types.Assert.*;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
+import static com.intellij.lang.jsgraphql.types.Assert.assertValidName;
 import static com.intellij.lang.jsgraphql.types.schema.GraphQLEnumValueDefinition.newEnumValueDefinition;
 import static com.intellij.lang.jsgraphql.types.util.FpKit.getByName;
 import static java.util.Collections.emptyList;

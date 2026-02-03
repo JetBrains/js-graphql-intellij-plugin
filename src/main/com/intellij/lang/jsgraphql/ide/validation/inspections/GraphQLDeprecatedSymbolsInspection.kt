@@ -5,7 +5,14 @@ import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLResolveUtil
-import com.intellij.lang.jsgraphql.psi.*
+import com.intellij.lang.jsgraphql.psi.GraphQLArgument
+import com.intellij.lang.jsgraphql.psi.GraphQLDirectivesAware
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue
+import com.intellij.lang.jsgraphql.psi.GraphQLField
+import com.intellij.lang.jsgraphql.psi.GraphQLNamedElement
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectField
+import com.intellij.lang.jsgraphql.psi.GraphQLStringValue
+import com.intellij.lang.jsgraphql.psi.GraphQLVisitor
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.util.asSafely

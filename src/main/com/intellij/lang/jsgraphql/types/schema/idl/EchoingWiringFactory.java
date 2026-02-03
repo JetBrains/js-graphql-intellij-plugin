@@ -19,8 +19,16 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.Scalars;
-import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.language.BooleanValue;
+import com.intellij.lang.jsgraphql.types.language.FloatValue;
+import com.intellij.lang.jsgraphql.types.language.IntValue;
+import com.intellij.lang.jsgraphql.types.language.ScalarValue;
+import com.intellij.lang.jsgraphql.types.language.StringValue;
+import com.intellij.lang.jsgraphql.types.schema.Coercing;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLOutputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
+import com.intellij.lang.jsgraphql.types.schema.TypeResolver;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

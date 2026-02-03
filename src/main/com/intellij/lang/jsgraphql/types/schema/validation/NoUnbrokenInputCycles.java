@@ -18,14 +18,24 @@
 package com.intellij.lang.jsgraphql.types.schema.validation;
 
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLList;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isList;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNonNull;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.unwrapAll;
 
 /**
  * Schema validation rule ensuring no input type forms an unbroken non-nullable recursion,

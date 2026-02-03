@@ -19,11 +19,17 @@ package com.intellij.lang.jsgraphql.types.util;
 
 import com.intellij.lang.jsgraphql.types.Internal;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
-import static com.intellij.lang.jsgraphql.types.Assert.*;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
+import static com.intellij.lang.jsgraphql.types.Assert.assertTrue;
 import static com.intellij.lang.jsgraphql.types.util.TraversalControl.CONTINUE;
 import static com.intellij.lang.jsgraphql.types.util.TraversalControl.QUIT;
 

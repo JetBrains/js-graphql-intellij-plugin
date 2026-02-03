@@ -22,7 +22,11 @@ import com.intellij.lang.jsgraphql.types.PublicApi;
 
 import java.io.PrintWriter;
 import java.io.Writer;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertTrue;
 import static com.intellij.lang.jsgraphql.types.util.EscapeUtil.escapeJsonString;

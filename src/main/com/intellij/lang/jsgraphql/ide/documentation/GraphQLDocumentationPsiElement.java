@@ -13,7 +13,7 @@ import com.intellij.psi.impl.FakePsiElement;
 import kotlin.text.StringsKt;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 final class GraphQLDocumentationPsiElement extends FakePsiElement {
   private final PsiElement context;

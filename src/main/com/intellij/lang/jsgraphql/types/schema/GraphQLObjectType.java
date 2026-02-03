@@ -28,11 +28,17 @@ import com.intellij.lang.jsgraphql.types.util.FpKit;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
 import com.intellij.lang.jsgraphql.types.util.TraverserContext;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
-import static com.intellij.lang.jsgraphql.types.Assert.*;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
+import static com.intellij.lang.jsgraphql.types.Assert.assertValidName;
 import static com.intellij.lang.jsgraphql.types.schema.GraphqlTypeComparators.sortTypes;
 import static com.intellij.lang.jsgraphql.types.util.FpKit.getByName;
 import static com.intellij.lang.jsgraphql.types.util.FpKit.valuesToList;

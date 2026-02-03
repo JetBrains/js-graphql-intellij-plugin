@@ -18,7 +18,12 @@
 package com.intellij.lang.jsgraphql.types.language;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.lang.jsgraphql.types.util.*;
+import com.intellij.lang.jsgraphql.types.util.TraversalControl;
+import com.intellij.lang.jsgraphql.types.util.TraverserContext;
+import com.intellij.lang.jsgraphql.types.util.TraverserVisitor;
+import com.intellij.lang.jsgraphql.types.util.TraverserVisitorStub;
+import com.intellij.lang.jsgraphql.types.util.TreeParallelTransformer;
+import com.intellij.lang.jsgraphql.types.util.TreeTransformer;
 
 import java.util.concurrent.ForkJoinPool;
 

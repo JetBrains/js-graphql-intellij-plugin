@@ -8,13 +8,44 @@
 package com.intellij.lang.jsgraphql.icons;
 
 import com.intellij.ide.IconProvider;
-import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
+import com.intellij.lang.jsgraphql.psi.GraphQLElement;
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumTypeDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumValueDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLField;
+import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentSpread;
+import com.intellij.lang.jsgraphql.psi.GraphQLInlineFragment;
+import com.intellij.lang.jsgraphql.psi.GraphQLInputObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLInputObjectTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLInterfaceTypeDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLInterfaceTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectField;
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLOperationType;
+import com.intellij.lang.jsgraphql.psi.GraphQLScalarTypeDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLScalarTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLSelectionSetOperationDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeExtension;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypedOperationDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLUnionMembers;
+import com.intellij.lang.jsgraphql.psi.GraphQLUnionTypeDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLUnionTypeExtensionDefinition;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 public final class GraphQLIconProvider extends IconProvider {
   @Override

@@ -23,7 +23,11 @@ import com.intellij.lang.jsgraphql.types.language.Type;
 import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
 import com.intellij.lang.jsgraphql.types.schema.diff.reporting.DifferenceReporter;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Optional;
 
 /*
  * A helper class that represents diff state (eg visited types) as well as helpers

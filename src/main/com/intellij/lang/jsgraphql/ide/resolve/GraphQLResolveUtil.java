@@ -1,6 +1,12 @@
 package com.intellij.lang.jsgraphql.ide.resolve;
 
-import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.psi.GraphQLDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue;
+import com.intellij.lang.jsgraphql.psi.GraphQLFile;
+import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
+import com.intellij.lang.jsgraphql.psi.GraphQLNamedElement;
+import com.intellij.lang.jsgraphql.psi.GraphQLReferenceElement;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinition;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor;
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager;

@@ -20,7 +20,14 @@ package com.intellij.lang.jsgraphql.types.language;
 import com.intellij.lang.jsgraphql.types.AssertException;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.Scalars;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLList;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 
 import java.math.BigDecimal;

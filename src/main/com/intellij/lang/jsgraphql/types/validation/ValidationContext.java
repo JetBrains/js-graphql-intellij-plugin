@@ -22,7 +22,13 @@ import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Definition;
 import com.intellij.lang.jsgraphql.types.language.Document;
 import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLCompositeType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLOutputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 
 import java.util.LinkedHashMap;
 import java.util.List;

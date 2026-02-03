@@ -19,7 +19,15 @@ package com.intellij.lang.jsgraphql.types.util;
 
 import com.intellij.lang.jsgraphql.types.Internal;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;

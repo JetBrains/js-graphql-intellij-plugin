@@ -2,7 +2,11 @@ package com.intellij.lang.jsgraphql.ide.config.loader
 
 import com.google.gson.Gson
 import com.intellij.lang.jsgraphql.asSafely
-import com.intellij.lang.jsgraphql.ide.config.*
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQLCONFIG
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_RC
+import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigEvaluationStatus
+import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
+import com.intellij.lang.jsgraphql.ide.config.parseMap
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service

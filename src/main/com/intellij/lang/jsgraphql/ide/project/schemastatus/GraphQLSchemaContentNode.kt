@@ -14,7 +14,13 @@ import com.intellij.ide.util.gotoByName.SimpleChooseByNameModel
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.project.schemastatus.GraphQLTreeNodeNavigationUtil.openSourceLocation
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaInfo
-import com.intellij.lang.jsgraphql.types.language.*
+import com.intellij.lang.jsgraphql.types.language.AbstractNode
+import com.intellij.lang.jsgraphql.types.language.EnumTypeDefinition
+import com.intellij.lang.jsgraphql.types.language.InputObjectTypeDefinition
+import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition
+import com.intellij.lang.jsgraphql.types.language.NamedNode
+import com.intellij.lang.jsgraphql.types.language.ObjectTypeDefinition
+import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition
 import com.intellij.lang.jsgraphql.types.schema.idl.ScalarInfo
 import com.intellij.lang.jsgraphql.ui.GraphQLUICoroutineScope
 import com.intellij.openapi.application.ModalityState

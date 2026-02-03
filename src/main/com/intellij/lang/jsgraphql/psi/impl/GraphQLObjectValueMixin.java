@@ -8,7 +8,13 @@
 package com.intellij.lang.jsgraphql.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.psi.GraphQLArgument;
+import com.intellij.lang.jsgraphql.psi.GraphQLArrayValue;
+import com.intellij.lang.jsgraphql.psi.GraphQLDefaultValue;
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectField;
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectValue;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeScopeProvider;
+import com.intellij.lang.jsgraphql.psi.GraphQLVariableDefinition;
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaUtil;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLInputFieldsContainer;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;

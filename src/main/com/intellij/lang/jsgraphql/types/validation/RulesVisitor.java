@@ -20,9 +20,26 @@ package com.intellij.lang.jsgraphql.types.validation;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.Argument;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.Document;
+import com.intellij.lang.jsgraphql.types.language.Field;
+import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
+import com.intellij.lang.jsgraphql.types.language.FragmentSpread;
+import com.intellij.lang.jsgraphql.types.language.InlineFragment;
+import com.intellij.lang.jsgraphql.types.language.Node;
+import com.intellij.lang.jsgraphql.types.language.OperationDefinition;
+import com.intellij.lang.jsgraphql.types.language.SelectionSet;
+import com.intellij.lang.jsgraphql.types.language.TypeName;
+import com.intellij.lang.jsgraphql.types.language.VariableDefinition;
+import com.intellij.lang.jsgraphql.types.language.VariableReference;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Internal
 public class RulesVisitor implements DocumentVisitor {

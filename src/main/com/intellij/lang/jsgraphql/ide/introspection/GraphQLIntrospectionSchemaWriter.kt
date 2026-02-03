@@ -10,7 +10,11 @@ import com.intellij.lang.jsgraphql.ide.notifications.addShowQueryErrorDetailsAct
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
-import com.intellij.openapi.application.*
+import com.intellij.openapi.application.EDT
+import com.intellij.openapi.application.edtWriteAction
+import com.intellij.openapi.application.readAction
+import com.intellij.openapi.application.readAndEdtWriteAction
+import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.command.writeCommandAction
 import com.intellij.openapi.components.Service

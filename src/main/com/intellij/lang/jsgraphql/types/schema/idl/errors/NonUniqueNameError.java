@@ -20,7 +20,12 @@ package com.intellij.lang.jsgraphql.types.schema.idl.errors;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLInspection;
 import com.intellij.lang.jsgraphql.ide.validation.inspections.GraphQLMemberRedefinitionInspection;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
 import org.jetbrains.annotations.Nullable;
 
 import static java.lang.String.format;

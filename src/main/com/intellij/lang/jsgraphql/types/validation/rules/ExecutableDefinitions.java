@@ -18,7 +18,12 @@
 package com.intellij.lang.jsgraphql.types.validation.rules;
 
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.Definition;
+import com.intellij.lang.jsgraphql.types.language.Document;
+import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
+import com.intellij.lang.jsgraphql.types.language.OperationDefinition;
+import com.intellij.lang.jsgraphql.types.language.SchemaDefinition;
+import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
 import com.intellij.lang.jsgraphql.types.validation.AbstractRule;
 import com.intellij.lang.jsgraphql.types.validation.ValidationContext;
 import com.intellij.lang.jsgraphql.types.validation.ValidationErrorCollector;

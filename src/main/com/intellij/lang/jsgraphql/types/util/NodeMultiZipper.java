@@ -20,9 +20,18 @@ package com.intellij.lang.jsgraphql.types.util;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-import static com.intellij.lang.jsgraphql.types.Assert.*;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotEmpty;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static com.intellij.lang.jsgraphql.types.Assert.assertTrue;
 import static com.intellij.lang.jsgraphql.types.util.NodeZipper.ModificationType.REPLACE;
 
 @PublicApi

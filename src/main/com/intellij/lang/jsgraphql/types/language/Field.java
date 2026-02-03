@@ -35,7 +35,9 @@ import java.util.function.Consumer;
 
 import static com.google.common.collect.ImmutableMap.copyOf;
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
-import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.*;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.addToMap;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.emptyList;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.emptyMap;
 
 /*
  * This is provided to a DataFetcher, therefore it is a public API.

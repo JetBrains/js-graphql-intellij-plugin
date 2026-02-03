@@ -19,7 +19,12 @@ package com.intellij.lang.jsgraphql.types.validation.rules;
 
 
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.Argument;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.Field;
+import com.intellij.lang.jsgraphql.types.language.Node;
+import com.intellij.lang.jsgraphql.types.language.NullValue;
+import com.intellij.lang.jsgraphql.types.language.Value;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;

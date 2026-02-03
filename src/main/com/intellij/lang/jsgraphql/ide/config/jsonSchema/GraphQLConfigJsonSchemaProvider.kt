@@ -8,7 +8,14 @@
 package com.intellij.lang.jsgraphql.ide.config.jsonSchema
 
 import com.intellij.lang.jsgraphql.GraphQLBundle
-import com.intellij.lang.jsgraphql.ide.config.*
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQLCONFIG
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_CONFIG_JSON
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_CONFIG_YAML
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_CONFIG_YML
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_RC
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_RC_JSON
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_RC_YAML
+import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_RC_YML
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.util.NlsSafe

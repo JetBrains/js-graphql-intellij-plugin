@@ -11,7 +11,15 @@ import com.intellij.lang.cacheBuilder.WordsScanner
 import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.asSafely
-import com.intellij.lang.jsgraphql.psi.*
+import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLElement
+import com.intellij.lang.jsgraphql.psi.GraphQLEnumValue
+import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier
+import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLNamedElement
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinition
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import org.jetbrains.annotations.Nls

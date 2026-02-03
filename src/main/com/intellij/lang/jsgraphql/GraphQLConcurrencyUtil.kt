@@ -9,7 +9,12 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.util.ConcurrencyUtil
 import org.jetbrains.annotations.ApiStatus
-import java.util.concurrent.*
+import java.util.concurrent.CancellationException
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executor
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 private val LOG = fileLogger()
 

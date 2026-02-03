@@ -18,11 +18,35 @@
 package com.intellij.lang.jsgraphql.types.schema.diff;
 
 import com.intellij.lang.jsgraphql.types.PublicSpi;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.Argument;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.DirectivesContainer;
+import com.intellij.lang.jsgraphql.types.language.Document;
+import com.intellij.lang.jsgraphql.types.language.EnumTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.ObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.OperationTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.ScalarTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.SchemaDefinition;
+import com.intellij.lang.jsgraphql.types.language.Type;
+import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.TypeKind;
+import com.intellij.lang.jsgraphql.types.language.TypeName;
+import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.Value;
 import com.intellij.lang.jsgraphql.types.schema.diff.reporting.DifferenceReporter;
 import com.intellij.lang.jsgraphql.types.schema.idl.TypeInfo;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

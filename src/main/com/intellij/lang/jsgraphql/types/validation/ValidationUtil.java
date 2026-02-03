@@ -22,14 +22,37 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.language.ArrayValue;
+import com.intellij.lang.jsgraphql.types.language.ListType;
+import com.intellij.lang.jsgraphql.types.language.NonNullType;
+import com.intellij.lang.jsgraphql.types.language.NullValue;
+import com.intellij.lang.jsgraphql.types.language.ObjectField;
+import com.intellij.lang.jsgraphql.types.language.ObjectValue;
+import com.intellij.lang.jsgraphql.types.language.Type;
+import com.intellij.lang.jsgraphql.types.language.TypeName;
+import com.intellij.lang.jsgraphql.types.language.Value;
+import com.intellij.lang.jsgraphql.types.language.VariableReference;
+import com.intellij.lang.jsgraphql.types.schema.Coercing;
+import com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLList;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
 import com.intellij.lang.jsgraphql.types.schema.visibility.DefaultGraphqlFieldVisibility;
 import com.intellij.lang.jsgraphql.types.schema.visibility.GraphqlFieldVisibility;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isList;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNonNull;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.unwrapOne;
 
 @Internal
 public class ValidationUtil {

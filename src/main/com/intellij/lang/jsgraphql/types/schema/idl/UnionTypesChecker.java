@@ -19,7 +19,12 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.ObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.Type;
+import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.TypeName;
+import com.intellij.lang.jsgraphql.types.language.UnionTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.UnionTypeExtensionDefinition;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.EmptyUnionTypeError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.IllegalNameError;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.UnionMemberNotAnObjectTypeError;

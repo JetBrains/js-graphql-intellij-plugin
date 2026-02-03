@@ -20,7 +20,11 @@ package com.intellij.lang.jsgraphql.types.introspection;
 
 import com.intellij.lang.jsgraphql.schema.GraphQLKnownTypes;
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNamedType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 import com.intellij.openapi.progress.ProgressManager;
 
 import java.util.HashSet;

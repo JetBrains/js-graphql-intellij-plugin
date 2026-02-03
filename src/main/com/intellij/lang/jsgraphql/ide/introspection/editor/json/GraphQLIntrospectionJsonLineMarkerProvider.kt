@@ -9,7 +9,11 @@ package com.intellij.lang.jsgraphql.ide.introspection.editor.json
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
-import com.intellij.json.psi.*
+import com.intellij.json.psi.JsonArray
+import com.intellij.json.psi.JsonFile
+import com.intellij.json.psi.JsonObject
+import com.intellij.json.psi.JsonProperty
+import com.intellij.json.psi.JsonStringLiteral
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_NAMES
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLConfigKeys
 import com.intellij.lang.jsgraphql.ide.introspection.createIntrospectionLineMarker

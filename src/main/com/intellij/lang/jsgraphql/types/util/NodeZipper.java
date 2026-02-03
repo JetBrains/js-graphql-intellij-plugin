@@ -20,7 +20,11 @@ package com.intellij.lang.jsgraphql.types.util;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;

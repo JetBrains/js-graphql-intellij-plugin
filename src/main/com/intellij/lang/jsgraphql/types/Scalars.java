@@ -18,7 +18,15 @@
 package com.intellij.lang.jsgraphql.types;
 
 
-import com.intellij.lang.jsgraphql.types.scalar.*;
+import com.intellij.lang.jsgraphql.types.scalar.GraphqlBigDecimalCoercing;
+import com.intellij.lang.jsgraphql.types.scalar.GraphqlBigIntegerCoercing;
+import com.intellij.lang.jsgraphql.types.scalar.GraphqlBooleanCoercing;
+import com.intellij.lang.jsgraphql.types.scalar.GraphqlByteCoercing;
+import com.intellij.lang.jsgraphql.types.scalar.GraphqlFloatCoercing;
+import com.intellij.lang.jsgraphql.types.scalar.GraphqlIDCoercing;
+import com.intellij.lang.jsgraphql.types.scalar.GraphqlIntCoercing;
+import com.intellij.lang.jsgraphql.types.scalar.GraphqlShortCoercing;
+import com.intellij.lang.jsgraphql.types.scalar.GraphqlStringCoercing;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
 
 /**

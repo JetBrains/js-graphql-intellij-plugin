@@ -26,7 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.intellij.lang.jsgraphql.types.Assert.*;
+import static com.intellij.lang.jsgraphql.types.Assert.assertFalse;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNull;
+import static com.intellij.lang.jsgraphql.types.Assert.assertTrue;
 
 @Internal
 public class DefaultTraverserContext<T> implements TraverserContext<T> {

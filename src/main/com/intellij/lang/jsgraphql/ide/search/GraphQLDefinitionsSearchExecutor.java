@@ -7,7 +7,14 @@
  */
 package com.intellij.lang.jsgraphql.ide.search;
 
-import com.intellij.lang.jsgraphql.psi.*;
+import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
+import com.intellij.lang.jsgraphql.psi.GraphQLImplementsInterfaces;
+import com.intellij.lang.jsgraphql.psi.GraphQLInterfaceTypeDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLObjectTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeName;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeNameDefinition;
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeSystemDefinition;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Computable;

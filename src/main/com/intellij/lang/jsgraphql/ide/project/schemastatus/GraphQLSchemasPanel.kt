@@ -21,7 +21,11 @@ import com.intellij.lang.jsgraphql.schema.GraphQLSchemaCacheChangeListener
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentChangeListener
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaContentTracker
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.progress.ProcessCanceledException

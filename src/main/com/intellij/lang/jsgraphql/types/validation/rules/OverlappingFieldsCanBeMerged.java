@@ -20,15 +20,41 @@ package com.intellij.lang.jsgraphql.types.validation.rules;
 
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.execution.TypeFromAST;
-import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.language.Argument;
+import com.intellij.lang.jsgraphql.types.language.AstComparator;
+import com.intellij.lang.jsgraphql.types.language.Field;
+import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
+import com.intellij.lang.jsgraphql.types.language.FragmentSpread;
+import com.intellij.lang.jsgraphql.types.language.InlineFragment;
+import com.intellij.lang.jsgraphql.types.language.Selection;
+import com.intellij.lang.jsgraphql.types.language.SelectionSet;
+import com.intellij.lang.jsgraphql.types.language.Value;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLOutputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLUnmodifiedType;
 import com.intellij.lang.jsgraphql.types.validation.AbstractRule;
 import com.intellij.lang.jsgraphql.types.validation.ValidationContext;
 import com.intellij.lang.jsgraphql.types.validation.ValidationErrorCollector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isEnum;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isList;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNonNull;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNotWrapped;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNullable;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isScalar;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.simplePrint;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.unwrapAll;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.unwrapOne;
 import static com.intellij.lang.jsgraphql.types.validation.ValidationErrorType.FieldsConflict;
 import static java.lang.String.format;
 

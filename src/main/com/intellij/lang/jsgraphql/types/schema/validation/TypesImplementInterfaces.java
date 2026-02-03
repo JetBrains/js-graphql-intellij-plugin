@@ -19,7 +19,17 @@ package com.intellij.lang.jsgraphql.types.schema.validation;
 
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.language.Node;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLImplementingType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNamedOutputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLOutputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLUnionType;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 
 import java.util.HashMap;
@@ -29,7 +39,10 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
-import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isList;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNonNull;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.simplePrint;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.unwrapOne;
 import static com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidationErrorType.ObjectDoesNotImplementItsInterfaces;
 import static java.lang.String.format;
 

@@ -2,8 +2,15 @@
 
 package com.intellij.lang.jsgraphql.ide.introspection
 
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.*
-import java.util.*
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.DIRECTIVE_IS_REPEATABLE
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INCLUDE_DEPRECATED_DIRECTIVE_ARGS
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INCLUDE_DEPRECATED_FIELD_ARGS
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INCLUDE_DEPRECATED_INPUT_FIELDS
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INPUT_VALUE_DEFAULT_VALUE
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INPUT_VALUE_DEPRECATION_REASON
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INPUT_VALUE_IS_DEPRECATED
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.SPECIFIED_BY_URL
+import java.util.EnumSet
 
 private const val INCLUDE_DEPRECATED_PARAMS = "(includeDeprecated: true)"
 

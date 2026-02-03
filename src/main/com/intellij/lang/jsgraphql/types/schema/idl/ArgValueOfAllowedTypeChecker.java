@@ -19,7 +19,27 @@ package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.GraphQLError;
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.language.*;
+import com.intellij.lang.jsgraphql.types.language.Argument;
+import com.intellij.lang.jsgraphql.types.language.ArrayValue;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.EnumTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.EnumTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.types.language.EnumValue;
+import com.intellij.lang.jsgraphql.types.language.EnumValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputObjectTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputObjectTypeExtensionDefinition;
+import com.intellij.lang.jsgraphql.types.language.InputValueDefinition;
+import com.intellij.lang.jsgraphql.types.language.ListType;
+import com.intellij.lang.jsgraphql.types.language.Node;
+import com.intellij.lang.jsgraphql.types.language.NonNullType;
+import com.intellij.lang.jsgraphql.types.language.NullValue;
+import com.intellij.lang.jsgraphql.types.language.ObjectField;
+import com.intellij.lang.jsgraphql.types.language.ObjectValue;
+import com.intellij.lang.jsgraphql.types.language.ScalarTypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.Type;
+import com.intellij.lang.jsgraphql.types.language.TypeDefinition;
+import com.intellij.lang.jsgraphql.types.language.TypeName;
+import com.intellij.lang.jsgraphql.types.language.Value;
 import com.intellij.lang.jsgraphql.types.schema.CoercingParseLiteralException;
 import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
 import com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError;
@@ -32,9 +52,21 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.*;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.DUPLICATED_KEYS_MESSAGE;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.EXPECTED_ENUM_MESSAGE;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.EXPECTED_LIST_MESSAGE;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.EXPECTED_NON_NULL_MESSAGE;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.EXPECTED_OBJECT_MESSAGE;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.EXPECTED_SCALAR_MESSAGE;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.MISSING_REQUIRED_FIELD_MESSAGE;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.MUST_BE_VALID_ENUM_VALUE_MESSAGE;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.NOT_A_VALID_SCALAR_LITERAL_MESSAGE;
+import static com.intellij.lang.jsgraphql.types.schema.idl.errors.DirectiveIllegalArgumentTypeError.UNKNOWN_FIELDS_MESSAGE;
 import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * Class to check whether a given directive argument value

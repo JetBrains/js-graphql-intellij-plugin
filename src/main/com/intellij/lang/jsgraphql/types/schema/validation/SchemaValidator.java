@@ -18,7 +18,11 @@
 package com.intellij.lang.jsgraphql.types.schema.validation;
 
 import com.intellij.lang.jsgraphql.types.Internal;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNamedType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLOutputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

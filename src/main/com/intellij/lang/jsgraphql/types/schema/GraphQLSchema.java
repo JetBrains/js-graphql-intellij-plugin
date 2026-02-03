@@ -32,11 +32,20 @@ import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.intellij.lang.jsgraphql.types.Assert.*;
-import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.*;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static com.intellij.lang.jsgraphql.types.Assert.assertShouldNeverHappen;
+import static com.intellij.lang.jsgraphql.types.Assert.assertTrue;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.emptyList;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.map;
+import static com.intellij.lang.jsgraphql.types.collect.ImmutableKit.nonNullCopyOf;
 import static com.intellij.lang.jsgraphql.types.schema.GraphqlTypeComparators.byNameAsc;
 import static com.intellij.lang.jsgraphql.types.schema.GraphqlTypeComparators.sortTypes;
 

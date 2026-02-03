@@ -23,7 +23,12 @@ import com.intellij.lang.jsgraphql.types.language.Definition;
 import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
 import com.intellij.lang.jsgraphql.types.language.FragmentSpread;
 import com.intellij.lang.jsgraphql.types.language.Node;
-import com.intellij.lang.jsgraphql.types.validation.*;
+import com.intellij.lang.jsgraphql.types.validation.AbstractRule;
+import com.intellij.lang.jsgraphql.types.validation.DocumentVisitor;
+import com.intellij.lang.jsgraphql.types.validation.LanguageTraversal;
+import com.intellij.lang.jsgraphql.types.validation.ValidationContext;
+import com.intellij.lang.jsgraphql.types.validation.ValidationErrorCollector;
+import com.intellij.lang.jsgraphql.types.validation.ValidationErrorType;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

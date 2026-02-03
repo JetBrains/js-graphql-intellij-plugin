@@ -3,7 +3,32 @@ package com.intellij.lang.jsgraphql.psi;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.TokenSet;
 
-import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.*;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.BLOCK_STRING;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.CLOSING_QUOTE;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.CLOSING_TRIPLE_QUOTE;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.DIRECTIVE_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.ENUM_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.EOL_COMMENT;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.EXTEND_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.FLOAT;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.FRAGMENT_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.IMPLEMENTS_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.INPUT_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.INTERFACE_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.MUTATION_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.NUMBER;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.ON_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.OPEN_QUOTE;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.OPEN_TRIPLE_QUOTE;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.QUERY_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.QUOTED_STRING;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.REGULAR_STRING_PART;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.REPEATABLE_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.SCALAR_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.SCHEMA_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.SUBSCRIPTION_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.TYPE_KEYWORD;
+import static com.intellij.lang.jsgraphql.psi.GraphQLElementTypes.UNION_KEYWORD;
 
 public interface GraphQLExtendedElementTypes {
 

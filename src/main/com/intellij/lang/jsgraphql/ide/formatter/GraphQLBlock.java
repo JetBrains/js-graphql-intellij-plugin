@@ -8,7 +8,11 @@
 package com.intellij.lang.jsgraphql.ide.formatter;
 
 import com.google.common.collect.Sets;
-import com.intellij.formatting.*;
+import com.intellij.formatting.Alignment;
+import com.intellij.formatting.Block;
+import com.intellij.formatting.Indent;
+import com.intellij.formatting.Spacing;
+import com.intellij.formatting.Wrap;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
 import com.intellij.psi.TokenType;

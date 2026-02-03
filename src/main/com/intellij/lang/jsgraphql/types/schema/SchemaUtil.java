@@ -21,7 +21,12 @@ package com.intellij.lang.jsgraphql.types.schema;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.jsgraphql.types.Internal;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 @Internal
 public class SchemaUtil {

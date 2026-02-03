@@ -8,11 +8,32 @@
  */
 package com.intellij.lang.jsgraphql.schema
 
-import com.intellij.lang.jsgraphql.psi.*
-import com.intellij.lang.jsgraphql.types.language.*
-import com.intellij.lang.jsgraphql.types.schema.*
+import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
+import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier
+import com.intellij.lang.jsgraphql.psi.GraphQLListType
+import com.intellij.lang.jsgraphql.psi.GraphQLNonNullType
+import com.intellij.lang.jsgraphql.psi.GraphQLTypeOwner
+import com.intellij.lang.jsgraphql.types.language.ArrayValue
+import com.intellij.lang.jsgraphql.types.language.BooleanValue
+import com.intellij.lang.jsgraphql.types.language.EnumValue
+import com.intellij.lang.jsgraphql.types.language.FloatValue
+import com.intellij.lang.jsgraphql.types.language.IntValue
+import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition
+import com.intellij.lang.jsgraphql.types.language.NullValue
+import com.intellij.lang.jsgraphql.types.language.ObjectValue
+import com.intellij.lang.jsgraphql.types.language.StringValue
+import com.intellij.lang.jsgraphql.types.language.VariableReference
 import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType
+import com.intellij.lang.jsgraphql.types.schema.GraphQLList
+import com.intellij.lang.jsgraphql.types.schema.GraphQLModifiedType
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema
 import com.intellij.lang.jsgraphql.types.schema.GraphQLType
+import com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil
+import com.intellij.lang.jsgraphql.types.schema.GraphQLUnionType
+import com.intellij.lang.jsgraphql.types.schema.GraphQLUnmodifiedType
 import com.intellij.lang.jsgraphql.types.schema.idl.TypeDefinitionRegistry
 import com.intellij.openapi.diagnostic.fileLogger
 import com.intellij.psi.PsiElement

@@ -22,15 +22,46 @@ import com.intellij.lang.jsgraphql.types.Assert;
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
 import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.execution.TypeFromAST;
-import com.intellij.lang.jsgraphql.types.language.*;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.language.Argument;
+import com.intellij.lang.jsgraphql.types.language.ArrayValue;
+import com.intellij.lang.jsgraphql.types.language.Directive;
+import com.intellij.lang.jsgraphql.types.language.Field;
+import com.intellij.lang.jsgraphql.types.language.FragmentDefinition;
+import com.intellij.lang.jsgraphql.types.language.InlineFragment;
+import com.intellij.lang.jsgraphql.types.language.Node;
+import com.intellij.lang.jsgraphql.types.language.ObjectField;
+import com.intellij.lang.jsgraphql.types.language.OperationDefinition;
+import com.intellij.lang.jsgraphql.types.language.SelectionSet;
+import com.intellij.lang.jsgraphql.types.language.TypeName;
+import com.intellij.lang.jsgraphql.types.language.VariableDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLCompositeType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLDirective;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNullableType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLOutputType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLUnionType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLUnmodifiedType;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.intellij.lang.jsgraphql.types.introspection.Introspection.*;
-import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.*;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.SchemaMetaFieldDef;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.TypeMetaFieldDef;
+import static com.intellij.lang.jsgraphql.types.introspection.Introspection.TypeNameMetaFieldDef;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isList;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.isNonNull;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.unwrapAll;
+import static com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil.unwrapOne;
 
 @Internal
 public class TraversalContext implements DocumentVisitor {

@@ -18,7 +18,16 @@
 package com.intellij.lang.jsgraphql.types.schema.idl;
 
 import com.intellij.lang.jsgraphql.types.PublicApi;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumValueDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLUnionType;
 
 /**
  * A SchemaDirectiveWiring is responsible for enhancing a runtime element based on directives placed on that

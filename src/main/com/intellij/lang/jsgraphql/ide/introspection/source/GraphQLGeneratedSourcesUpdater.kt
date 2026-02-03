@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.ApiStatus
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.*
+import java.util.Collections
 import kotlin.time.Duration.Companion.milliseconds
 
 

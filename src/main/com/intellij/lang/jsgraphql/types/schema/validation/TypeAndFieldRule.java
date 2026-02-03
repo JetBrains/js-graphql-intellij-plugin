@@ -18,7 +18,21 @@
 package com.intellij.lang.jsgraphql.types.schema.validation;
 
 import com.intellij.lang.jsgraphql.types.language.Node;
-import com.intellij.lang.jsgraphql.types.schema.*;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLArgument;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLEnumValueDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldDefinition;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLFieldsContainer;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectField;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInputObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLInterfaceType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNamedType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLNonNull;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLObjectType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLScalarType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLSchema;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLType;
+import com.intellij.lang.jsgraphql.types.schema.GraphQLTypeUtil;
 import com.intellij.lang.jsgraphql.types.util.FpKit;
 
 import java.util.Collections;

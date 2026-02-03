@@ -7,7 +7,11 @@
  */
 package com.intellij.lang.jsgraphql.ide.indexing;
 
-import com.intellij.json.psi.*;
+import com.intellij.json.psi.JsonElement;
+import com.intellij.json.psi.JsonFile;
+import com.intellij.json.psi.JsonObject;
+import com.intellij.json.psi.JsonProperty;
+import com.intellij.json.psi.JsonStringLiteral;
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectionUtils;
 import com.intellij.lang.jsgraphql.ide.search.GraphQLFileTypesProvider;
 import com.intellij.lang.jsgraphql.psi.GraphQLIdentifier;
@@ -18,7 +22,11 @@ import com.intellij.psi.PsiLanguageInjectionHost;
 import com.intellij.psi.PsiRecursiveElementVisitor;
 import com.intellij.psi.text.BlockSupport;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.util.indexing.*;
+import com.intellij.util.indexing.DataIndexer;
+import com.intellij.util.indexing.FileBasedIndex;
+import com.intellij.util.indexing.FileBasedIndexExtension;
+import com.intellij.util.indexing.FileContent;
+import com.intellij.util.indexing.ID;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.EnumDataDescriptor;
 import com.intellij.util.io.EnumeratorStringDescriptor;

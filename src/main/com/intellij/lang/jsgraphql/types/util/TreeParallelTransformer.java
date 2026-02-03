@@ -19,14 +19,25 @@ package com.intellij.lang.jsgraphql.types.util;
 
 import com.intellij.lang.jsgraphql.types.Internal;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountedCompleter;
 import java.util.concurrent.ForkJoinPool;
 
-import static com.intellij.lang.jsgraphql.types.Assert.*;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotEmpty;
+import static com.intellij.lang.jsgraphql.types.Assert.assertNotNull;
+import static com.intellij.lang.jsgraphql.types.Assert.assertTrue;
 import static com.intellij.lang.jsgraphql.types.util.NodeZipper.ModificationType.REPLACE;
-import static com.intellij.lang.jsgraphql.types.util.TraversalControl.*;
+import static com.intellij.lang.jsgraphql.types.util.TraversalControl.ABORT;
+import static com.intellij.lang.jsgraphql.types.util.TraversalControl.CONTINUE;
+import static com.intellij.lang.jsgraphql.types.util.TraversalControl.QUIT;
 
 @Internal
 public class TreeParallelTransformer<T> {

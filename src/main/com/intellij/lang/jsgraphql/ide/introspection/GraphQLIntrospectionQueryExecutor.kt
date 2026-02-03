@@ -7,7 +7,14 @@ import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryClient.Companion.parseResponseJson
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLQueryClient.Companion.prepareQueryPayload
-import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.*
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.DIRECTIVE_IS_REPEATABLE
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INCLUDE_DEPRECATED_DIRECTIVE_ARGS
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INCLUDE_DEPRECATED_FIELD_ARGS
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INCLUDE_DEPRECATED_INPUT_FIELDS
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INPUT_VALUE_DEFAULT_VALUE
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INPUT_VALUE_DEPRECATION_REASON
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.INPUT_VALUE_IS_DEPRECATED
+import com.intellij.lang.jsgraphql.ide.introspection.GraphQLSchemaCapability.SPECIFIED_BY_URL
 import com.intellij.lang.jsgraphql.ide.notifications.handleIntrospectionError
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -27,7 +34,7 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.*
+import java.util.EnumSet
 import java.util.concurrent.CancellationException
 import kotlin.io.path.name
 
