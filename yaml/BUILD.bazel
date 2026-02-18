@@ -31,4 +31,28 @@ jvm_library(
     "//plugins/js-graphql:graphql",
   ]
 )
+
+jvm_library(
+  name = "yaml_test_lib",
+  module_name = "intellij.graphql.yaml",
+  visibility = ["//visibility:public"],
+  srcs = glob([], allow_empty = True),
+  runtime_deps = [
+    ":yaml",
+    "@community//platform/platform-api:ide_test_lib",
+    "@community//platform/ide-core-impl:ide-core-impl_test_lib",
+    "@community//platform/platform-impl:ide-impl_test_lib",
+    "@community//platform/lang-api:lang_test_lib",
+    "@community//platform/lang-impl:lang-impl_test_lib",
+    "@community//platform/core-impl:core-impl_test_lib",
+    "@community//platform/core-api:core_test_lib",
+    "@community//platform/platform-util-io:ide-util-io_test_lib",
+    "@community//platform/analysis-impl:analysis-impl_test_lib",
+    "@community//platform/projectModel-api:projectModel_test_lib",
+    "@community//platform/projectModel-impl:projectModel-impl_test_lib",
+    "@community//platform/backend/workspace:workspace_test_lib",
+    "@community//plugins/yaml:yaml_test_lib",
+    "//plugins/js-graphql:graphql_test_lib",
+  ]
+)
 ### auto-generated section `build intellij.graphql.yaml` end
