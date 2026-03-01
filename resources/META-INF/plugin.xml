@@ -32,9 +32,14 @@
   </description>
 
   <dependencies>
-    <plugin id="com.intellij.modules.lang"/>
-    <module name="intellij.spellchecker"/>
+    <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <module name="intellij.json.backend"/>
+    <module name="intellij.platform.vcs.impl"/>
+    <module name="intellij.spellchecker"/>
+    <module name="intellij.xml.impl"/>
+    <module name="intellij.xml.parser"/>
+    <module name="intellij.xml.psi"/>
+    <!-- endregion -->
   </dependencies>
 
   <content>
