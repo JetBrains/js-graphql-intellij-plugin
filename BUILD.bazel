@@ -57,6 +57,7 @@ jvm_library(
     "@ultimate_lib//:graphql-graphql-java-dataloader",
     "@community//xml/xml-psi-api:psi",
     "@ultimate_lib//:graphql-atlassian-commonmark",
+    "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
   ]
 )
 
@@ -105,6 +106,7 @@ jvm_library(
     "@community//libraries/guava:guava_test_lib",
     "@community//libraries/http-client:http-client_test_lib",
     "@community//xml/xml-psi-api:psi_test_lib",
+    "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
   ]
 )
 ### auto-generated section `build intellij.graphql` end
