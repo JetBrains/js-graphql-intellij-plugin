@@ -58,3 +58,9 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.graphql.langInjection` end
+
+### auto-generated section `iml intellij.graphql.langInjection` start
+exports_files([
+  "intellij.graphql.langInjection.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.graphql.langInjection` end

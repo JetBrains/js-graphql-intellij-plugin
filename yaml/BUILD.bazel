@@ -56,3 +56,9 @@ jvm_library(
   ]
 )
 ### auto-generated section `build intellij.graphql.yaml` end
+
+### auto-generated section `iml intellij.graphql.yaml` start
+exports_files([
+  "intellij.graphql.yaml.iml",
+], visibility = ["//visibility:public"])
+### auto-generated section `iml intellij.graphql.yaml` end
