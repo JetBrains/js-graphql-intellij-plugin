@@ -83,8 +83,6 @@ jvm_library(
     "//plugins/JavaScriptLanguage:javascript-backend_test_lib",
     "//plugins/JavaScriptLanguage/javascript-parser",
     "//plugins/JavaScriptLanguage/javascript-parser:javascript-parser_test_lib",
-    "//contrib/vuejs",
-    "//contrib/vuejs:vuejs_test_lib",
     "@community//plugins/IntelliLang:langInjection",
     "@community//plugins/IntelliLang:langInjection_test_lib",
     "@community//plugins/yaml",
