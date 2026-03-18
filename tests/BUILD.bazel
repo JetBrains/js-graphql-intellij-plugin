@@ -114,8 +114,8 @@ jvm_library(
     "@community//libraries/http-client:http-client_test_lib",
     "//plugins/JavaScriptLanguage:javascript-plugin",
     "//plugins/JavaScriptLanguage:javascript-plugin_test_lib",
-    "//contrib/vuejs/vuejs-plugin:plugin",
-    "//contrib/vuejs/vuejs-plugin:plugin_test_lib",
+    "//contrib/vuejs:vuejs-plugin",
+    "//contrib/vuejs:vuejs-plugin_test_lib",
   ],
   runtime_deps = [
     ":tests",
