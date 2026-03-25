@@ -28,6 +28,7 @@ jvm_library(
     "@community//platform/platform-api:ide",
     "@community//platform/platform-api:ide_test_lib",
     "@community//platform/ide-core-impl",
+    "@community//platform/ide-core",
     "@community//platform/platform-impl:ide-impl",
     "@community//platform/indexing-api:indexing",
     "@community//platform/indexing-api:indexing_test_lib",
@@ -110,6 +111,8 @@ jvm_library(
     "@community//libraries/guava:guava_test_lib",
     "@community//platform/editor-ui-api:editor-ui",
     "@community//platform/editor-ui-api:editor-ui_test_lib",
+    "@community//platform/util:util-ui",
+    "@community//platform/util:util-ui_test_lib",
     "@community//libraries/http-client",
     "@community//libraries/http-client:http-client_test_lib",
     "//plugins/JavaScriptLanguage:javascript-plugin",
@@ -120,6 +123,7 @@ jvm_library(
   runtime_deps = [
     ":tests",
     "@community//platform/ide-core-impl:ide-core-impl_test_lib",
+    "@community//platform/ide-core:ide-core_test_lib",
     "@community//platform/platform-impl:ide-impl_test_lib",
     "@community//platform/platform-util-io:ide-util-io_test_lib",
   ]
