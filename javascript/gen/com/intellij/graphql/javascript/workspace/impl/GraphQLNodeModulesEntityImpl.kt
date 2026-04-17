@@ -1,3 +1,5 @@
+@file:OptIn(EntityStorageInstrumentationApi::class)
+
 package com.intellij.graphql.javascript.workspace.impl
 
 import com.intellij.graphql.javascript.workspace.GraphQLNodeModulesEntity
@@ -154,7 +156,6 @@ internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeMod
     return modifiable
   }
 
-  @OptIn(EntityStorageInstrumentationApi::class)
   override fun createEntity(snapshot: EntityStorageInstrumentation): GraphQLNodeModulesEntity {
     val entityId = createEntityId()
     return snapshot.initializeEntity(entityId) {
