@@ -11,6 +11,7 @@ import com.intellij.codeInsight.editorActions.SimpleTokenSetQuoteHandler;
 import com.intellij.lang.jsgraphql.psi.GraphQLElementTypes;
 import com.intellij.lang.jsgraphql.psi.GraphQLExtendedElementTypes;
 import com.intellij.openapi.editor.highlighter.HighlighterIterator;
+import org.jetbrains.annotations.NotNull;
 
 public final class GraphQLQuoteHandler extends SimpleTokenSetQuoteHandler {
 
@@ -19,12 +20,12 @@ public final class GraphQLQuoteHandler extends SimpleTokenSetQuoteHandler {
   }
 
   @Override
-  public boolean isOpeningQuote(final HighlighterIterator iterator, final int offset) {
+  public boolean isOpeningQuote(final @NotNull HighlighterIterator iterator, final int offset) {
     return iterator.getTokenType() == GraphQLElementTypes.OPEN_QUOTE;
   }
 
   @Override
-  public boolean isClosingQuote(final HighlighterIterator iterator, final int offset) {
+  public boolean isClosingQuote(final @NotNull HighlighterIterator iterator, final int offset) {
     return iterator.getTokenType() == GraphQLElementTypes.CLOSING_QUOTE;
   }
 }
