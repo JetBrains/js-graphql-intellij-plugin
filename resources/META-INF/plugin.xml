@@ -35,6 +35,7 @@
     <!-- region Generated dependencies - run `Generate Product Layouts` to regenerate -->
     <module name="intellij.json.backend"/>
     <module name="intellij.platform.vcs.impl"/>
+    <module name="intellij.platform.webide.impl"/>
     <module name="intellij.spellchecker"/>
     <module name="intellij.xml.impl"/>
     <module name="intellij.xml.parser"/>
