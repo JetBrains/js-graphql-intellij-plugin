@@ -1,9 +1,18 @@
+@file:OptIn(EntityStorageInstrumentationApi::class)
+
 package com.intellij.lang.jsgraphql.schema.library.impl
 
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryAttachmentScope
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryEntity
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryEntityBuilder
-import com.intellij.platform.workspace.storage.*
+import com.intellij.platform.workspace.storage.ConnectionId
+import com.intellij.platform.workspace.storage.EntitySource
+import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
+import com.intellij.platform.workspace.storage.GeneratedCodeImplVersion
+import com.intellij.platform.workspace.storage.MutableEntityStorage
+import com.intellij.platform.workspace.storage.WorkspaceEntity
+import com.intellij.platform.workspace.storage.WorkspaceEntityBuilder
+import com.intellij.platform.workspace.storage.WorkspaceEntityInternalApi
 import com.intellij.platform.workspace.storage.impl.ModifiableWorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityBase
 import com.intellij.platform.workspace.storage.impl.WorkspaceEntityData
@@ -17,14 +26,12 @@ import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 @GeneratedCodeApiVersion(3)
 @GeneratedCodeImplVersion(7)
 @OptIn(WorkspaceEntityInternalApi::class)
-internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEntityData) : GraphQLLibraryEntity, WorkspaceEntityBase(
-  dataSource) {
+internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEntityData) : GraphQLLibraryEntity,
+                                                                                            WorkspaceEntityBase(dataSource) {
 
   private companion object {
 
-
-    private val connections = listOf<ConnectionId>(
-    )
+    private val connections = listOf<ConnectionId>()
 
   }
 
@@ -33,19 +40,16 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
       readField("identifier")
       return dataSource.identifier
     }
-
   override val displayName: String
     get() {
       readField("displayName")
       return dataSource.displayName
     }
-
   override val description: String?
     get() {
       readField("description")
       return dataSource.description
     }
-
   override var attachmentScope: GraphQLLibraryAttachmentScope = dataSource.attachmentScope
 
   override val roots: Set<VirtualFileUrl>
@@ -65,8 +69,8 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
   }
 
 
-  internal class Builder(result: GraphQLLibraryEntityData?) : ModifiableWorkspaceEntityBase<GraphQLLibraryEntity, GraphQLLibraryEntityData>(
-    result), GraphQLLibraryEntityBuilder {
+  internal class Builder(result: GraphQLLibraryEntityData?) :
+    ModifiableWorkspaceEntityBase<GraphQLLibraryEntity, GraphQLLibraryEntityData>(result), GraphQLLibraryEntityBuilder {
     internal constructor() : this(GraphQLLibraryEntityData())
 
     override fun applyToBuilder(builder: MutableEntityStorage) {
@@ -79,16 +83,14 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
           error("Entity GraphQLLibraryEntity is already created in a different builder")
         }
       }
-
       this.diff = builder
       addToBuilder()
       this.id = getEntityData().createEntityId()
-      // After adding entity data to the builder, we need to unbind it and move the control over entity data to builder
-      // Builder may switch to snapshot at any moment and lock entity data to modification
+// After adding entity data to the builder, we need to unbind it and move the control over entity data to builder
+// Builder may switch to snapshot at any moment and lock entity data to modification
       this.currentEntityData = null
-
       index(this, "roots", this.roots)
-      // Process linked entities that are connected without a builder
+// Process linked entities that are connected without a builder
       processLinkedEntities(builder)
       checkInitialization() // TODO uncomment and check failed tests
     }
@@ -141,7 +143,6 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
         changedProperty.add("entitySource")
 
       }
-
     override var identifier: String
       get() = getEntityData().identifier
       set(value) {
@@ -149,7 +150,6 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
         getEntityData(true).identifier = value
         changedProperty.add("identifier")
       }
-
     override var displayName: String
       get() = getEntityData().displayName
       set(value) {
@@ -157,7 +157,6 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
         getEntityData(true).displayName = value
         changedProperty.add("displayName")
       }
-
     override var description: String?
       get() = getEntityData().description
       set(value) {
@@ -165,7 +164,6 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
         getEntityData(true).description = value
         changedProperty.add("description")
       }
-
     override var attachmentScope: GraphQLLibraryAttachmentScope
       get() = getEntityData().attachmentScope
       set(value) {
@@ -174,7 +172,6 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
         changedProperty.add("attachmentScope")
 
       }
-
     private val rootsUpdater: (value: Set<VirtualFileUrl>) -> Unit = { value ->
       val _diff = diff
       if (_diff != null) index(this, "roots", value)
@@ -200,6 +197,7 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
 
     override fun getEntityClass(): Class<GraphQLLibraryEntity> = GraphQLLibraryEntity::class.java
   }
+
 }
 
 @OptIn(WorkspaceEntityInternalApi::class)
@@ -221,7 +219,6 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
     return modifiable
   }
 
-  @OptIn(EntityStorageInstrumentationApi::class)
   override fun createEntity(snapshot: EntityStorageInstrumentation): GraphQLLibraryEntity {
     val entityId = createEntityId()
     return snapshot.initializeEntity(entityId) {
@@ -262,9 +259,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
   override fun equals(other: Any?): Boolean {
     if (other == null) return false
     if (this.javaClass != other.javaClass) return false
-
     other as GraphQLLibraryEntityData
-
     if (this.entitySource != other.entitySource) return false
     if (this.identifier != other.identifier) return false
     if (this.displayName != other.displayName) return false
@@ -277,9 +272,7 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
   override fun equalsIgnoringEntitySource(other: Any?): Boolean {
     if (other == null) return false
     if (this.javaClass != other.javaClass) return false
-
     other as GraphQLLibraryEntityData
-
     if (this.identifier != other.identifier) return false
     if (this.displayName != other.displayName) return false
     if (this.description != other.description) return false
