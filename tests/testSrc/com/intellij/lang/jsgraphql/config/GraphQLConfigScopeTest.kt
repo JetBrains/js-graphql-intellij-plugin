@@ -200,7 +200,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
   ) {
     val actualFiles = smartReadAction(project) { getAllFiles(scope) }
     val expectedFiles = expected.mapTo(mutableSetOf()) {
-      val expandedPath = PathMacroManager.getInstance(project).expandPath(it)
+      val expandedPath = PathMacroManager.getInstance(project).expandPathNonNull(it)
       val file = myFixture.findFileInTempDir(expandedPath)
                  ?: LocalFileSystem.getInstance().findFileByPath(expandedPath)
       assertNotNull("expected file not found: $it", file)
