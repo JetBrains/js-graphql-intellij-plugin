@@ -1,18 +1,13 @@
 ### auto-generated section `build intellij.graphql` start
-load("@rules_jvm//:jvm.bzl", "jvm_library", "resourcegroup")
-
-resourcegroup(
-  name = "graphql_resources",
-  srcs = glob(["resources/**/*"]),
-  strip_prefix = "resources"
-)
+load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 jvm_library(
   name = "graphql",
   module_name = "intellij.graphql",
   visibility = ["//visibility:public"],
   srcs = glob(["src/main/**/*.kt", "src/main/**/*.java", "src/main/**/*.form", "gen/**/*.kt", "gen/**/*.java"], allow_empty = True),
-  resources = [":graphql_resources"],
+  resources = glob(["resources/**/*"]),
+  resource_strip_prefix = "resources",
   deps = [
     "@lib//:kotlin-stdlib",
     "@community//platform/analysis-api:analysis",
