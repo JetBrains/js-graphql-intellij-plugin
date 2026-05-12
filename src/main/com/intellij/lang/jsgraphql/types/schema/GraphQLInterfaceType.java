@@ -20,7 +20,6 @@ package com.intellij.lang.jsgraphql.types.schema;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.AssertException;
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
-import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.InterfaceTypeDefinition;
 import com.intellij.lang.jsgraphql.types.language.InterfaceTypeExtensionDefinition;
@@ -75,16 +74,14 @@ public class GraphQLInterfaceType
   public static final String CHILD_INTERFACES = "interfaces";
 
 
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLInterfaceType(String name,
-                              String description,
-                              List<GraphQLFieldDefinition> fieldDefinitions,
-                              TypeResolver typeResolver, List<GraphQLDirective> directives,
-                              InterfaceTypeDefinition definition,
-                              List<InterfaceTypeExtensionDefinition> extensionDefinitions,
-                              List<GraphQLNamedOutputType> interfaces,
-                              Comparator<? super GraphQLSchemaElement> interfaceComparator) {
+  private GraphQLInterfaceType(String name,
+                               String description,
+                               List<GraphQLFieldDefinition> fieldDefinitions,
+                               TypeResolver typeResolver, List<GraphQLDirective> directives,
+                               InterfaceTypeDefinition definition,
+                               List<InterfaceTypeExtensionDefinition> extensionDefinitions,
+                               List<GraphQLNamedOutputType> interfaces,
+                               Comparator<? super GraphQLSchemaElement> interfaceComparator) {
     assertValidName(name);
     assertNotNull(fieldDefinitions, () -> "fieldDefinitions can't null");
     assertNotNull(directives, () -> "directives cannot be null");

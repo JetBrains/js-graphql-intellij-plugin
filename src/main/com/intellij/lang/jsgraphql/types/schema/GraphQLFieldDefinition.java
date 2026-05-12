@@ -20,7 +20,6 @@ package com.intellij.lang.jsgraphql.types.schema;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.jsgraphql.types.DirectivesUtil;
-import com.intellij.lang.jsgraphql.types.Internal;
 import com.intellij.lang.jsgraphql.types.PublicApi;
 import com.intellij.lang.jsgraphql.types.language.FieldDefinition;
 import com.intellij.lang.jsgraphql.types.util.TraversalControl;
@@ -54,27 +53,13 @@ public class GraphQLFieldDefinition implements GraphQLNamedSchemaElement, GraphQ
   public static final String CHILD_DIRECTIVES = "directives";
   public static final String CHILD_TYPE = "type";
 
-
-  /**
-   * @param name               the name
-   * @param description        the description
-   * @param type               the field type
-   * @param dataFetcherFactory the field data fetcher factory
-   * @param arguments          the field arguments
-   * @param deprecationReason  the deprecation reason
-   * @param directives         the directives on this type element
-   * @param definition         the AST definition
-   * @deprecated use the {@link #newFieldDefinition()} builder pattern instead, as this constructor will be made private in a future version.
-   */
-  @Internal
-  @Deprecated(forRemoval = true)
-  public GraphQLFieldDefinition(String name,
-                                String description,
-                                GraphQLOutputType type,
-                                List<GraphQLArgument> arguments,
-                                String deprecationReason,
-                                List<GraphQLDirective> directives,
-                                FieldDefinition definition) {
+  private GraphQLFieldDefinition(String name,
+                                 String description,
+                                 GraphQLOutputType type,
+                                 List<GraphQLArgument> arguments,
+                                 String deprecationReason,
+                                 List<GraphQLDirective> directives,
+                                 FieldDefinition definition) {
     assertValidName(name);
     assertNotNull(type, () -> "type can't be null");
     assertNotNull(arguments, () -> "arguments can't be null");
