@@ -18,6 +18,7 @@ public final class GraphqlIcons {
   /** 16x16 */ public static final @NotNull Icon Enum = load("icons/newui/enum.svg", "icons/enum.svg", -1507385022, 1);
   /** 16x16 */ public static final @NotNull Icon Field = load("icons/newui/field.svg", "icons/field.svg", 475101788, 0);
   /** 16x16 */ public static final @NotNull Icon Fragment = load("icons/newui/fragment.svg", "icons/fragment.svg", 782471926, 0);
+  /** 16x16 */ public static final @NotNull Icon Graphql = load("icons/newui/graphql.svg", "icons/graphql.svg", 1304302522, 2);
   /** 16x16 */ public static final @NotNull Icon GraphqlConfig = load("icons/newui/graphqlConfig.svg", "icons/graphqlConfig.svg", 538985737, 2);
   /** 16x16 */ public static final @NotNull Icon GraphqlNode = load("icons/newui/graphqlNode.svg", "icons/graphqlNode.svg", -1189589913, 2);
   /** 16x16 */ public static final @NotNull Icon GraphqlSchema = load("icons/newui/graphqlSchema.svg", "icons/graphqlSchema.svg", 162747811, 2);
