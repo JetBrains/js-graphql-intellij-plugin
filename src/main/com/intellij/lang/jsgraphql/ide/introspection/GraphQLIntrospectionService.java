@@ -349,7 +349,7 @@ public final class GraphQLIntrospectionService implements Disposable {
               }
             });
 
-            VirtualFile schemaFile = ReadAction.compute(() -> LocalFileSystem.getInstance().findFileByPath(schemaPath));
+            VirtualFile schemaFile = ReadAction.computeBlocking(() -> LocalFileSystem.getInstance().findFileByPath(schemaPath));
             if (schemaFile != null) {
               introspect.addAction(new NotificationAction(GraphQLBundle.message("graphql.notification.content.open.schema.file")) {
                 @Override

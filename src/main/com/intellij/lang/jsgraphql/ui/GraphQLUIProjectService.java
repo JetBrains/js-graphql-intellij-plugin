@@ -218,18 +218,18 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
       if (myProject.isDisposed()) return;
       final FileEditorManager fileEditorManager = FileEditorManager.getInstance(myProject);
       final GraphQLConfigProvider configProvider = GraphQLConfigProvider.getInstance(myProject);
-      List<VirtualFile> files = ReadAction.compute(
+      List<VirtualFile> files = ReadAction.computeBlocking(
         () -> ContainerUtil.filter(fileEditorManager.getOpenFiles(), f -> GraphQLFileType.isGraphQLFile(f))
       );
       if (myProject.isDisposed()) return;
 
       for (VirtualFile file : files) {
-        List<GraphQLConfigEndpoint> endpoints = ReadAction.compute(() -> {
+        List<GraphQLConfigEndpoint> endpoints = ReadAction.computeBlocking(() -> {
           GraphQLProjectConfig config = configProvider.resolveProjectConfig(file);
           return config != null ? config.getEndpoints() : Collections.emptyList();
         });
 
-        ApplicationManager.getApplication().invokeLater(() -> ReadAction.run(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> ReadAction.runBlocking(() -> {
           for (FileEditor editor : fileEditorManager.getEditors(file)) {
             if (editor instanceof TextEditor) {
               final GraphQLEndpointsModel endpointsModel =
@@ -252,7 +252,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
     if (!isApplicableForToolbar(file)) {
       return;
     }
-    if (ReadAction.compute(() -> shouldSkipEditorHeaderCreation(file))) {
+    if (ReadAction.computeBlocking(() -> shouldSkipEditorHeaderCreation(file))) {
       return;
     }
 

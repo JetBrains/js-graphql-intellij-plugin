@@ -244,7 +244,7 @@ public class GraphQLIntrospectionResultToSchema {
 
   private @Nullable Value<?> valueFromAst(@NotNull String literal) {
     try {
-      Document doc = ReadAction.compute(() -> {
+      Document doc = ReadAction.computeBlocking(() -> {
         String text = "input X { x: String = " + literal + "}";
         GraphQLFile file = GraphQLElementFactory.createFile(myProject, text);
         return file.getDocument();
