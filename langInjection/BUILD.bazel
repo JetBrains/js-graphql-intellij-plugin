@@ -1,62 +1,80 @@
-### auto-generated section `build intellij.graphql.langInjection` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.graphql.langInjection` start
+
 jvm_library(
-  name = "langInjection",
-  module_name = "intellij.graphql.langInjection",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:kotlin-stdlib",
-    "@community//platform/platform-api:ide",
-    "@community//platform/ide-core-impl",
-    "@community//platform/platform-impl:ide-impl",
-    "@community//platform/lang-api:lang",
-    "@community//platform/lang-impl",
-    "@community//platform/core-impl",
-    "@community//platform/core-api:core",
-    "@community//platform/platform-util-io:ide-util-io",
-    "@community//platform/analysis-impl",
-    "@community//platform/projectModel-api:projectModel",
-    "@community//platform/projectModel-impl",
-    "@community//platform/backend/workspace",
-    "@community//plugins/IntelliLang:langInjection",
-    "//plugins/js-graphql:graphql",
-    "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
-  ]
+    name = "langInjection",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.graphql.langInjection",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@community//platform/platform-api:ide",
+        "@community//platform/ide-core-impl",
+        "@community//platform/platform-impl:ide-impl",
+        "@community//platform/lang-api:lang",
+        "@community//platform/lang-impl",
+        "@community//platform/core-impl",
+        "@community//platform/core-api:core",
+        "@community//platform/platform-util-io:ide-util-io",
+        "@community//platform/analysis-impl",
+        "@community//platform/projectModel-api:projectModel",
+        "@community//platform/projectModel-impl",
+        "@community//platform/backend/workspace",
+        "@community//plugins/IntelliLang:langInjection",
+        "//plugins/js-graphql:graphql",
+        "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+    ],
 )
 
 jvm_library(
-  name = "langInjection_test_lib",
-  testonly = True,
-  module_name = "intellij.graphql.langInjection",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":langInjection",
-    "@community//platform/platform-api:ide_test_lib",
-    "@community//platform/ide-core-impl:ide-core-impl_test_lib",
-    "@community//platform/platform-impl:ide-impl_test_lib",
-    "@community//platform/lang-api:lang_test_lib",
-    "@community//platform/lang-impl:lang-impl_test_lib",
-    "@community//platform/core-impl:core-impl_test_lib",
-    "@community//platform/core-api:core_test_lib",
-    "@community//platform/platform-util-io:ide-util-io_test_lib",
-    "@community//platform/analysis-impl:analysis-impl_test_lib",
-    "@community//platform/projectModel-api:projectModel_test_lib",
-    "@community//platform/projectModel-impl:projectModel-impl_test_lib",
-    "@community//platform/backend/workspace:workspace_test_lib",
-    "@community//plugins/IntelliLang:langInjection_test_lib",
-    "//plugins/js-graphql:graphql_test_lib",
-    "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
-  ]
+    name = "langInjection_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.graphql.langInjection",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":langInjection",
+        "@community//platform/platform-api:ide_test_lib",
+        "@community//platform/ide-core-impl:ide-core-impl_test_lib",
+        "@community//platform/platform-impl:ide-impl_test_lib",
+        "@community//platform/lang-api:lang_test_lib",
+        "@community//platform/lang-impl:lang-impl_test_lib",
+        "@community//platform/core-impl:core-impl_test_lib",
+        "@community//platform/core-api:core_test_lib",
+        "@community//platform/platform-util-io:ide-util-io_test_lib",
+        "@community//platform/analysis-impl:analysis-impl_test_lib",
+        "@community//platform/projectModel-api:projectModel_test_lib",
+        "@community//platform/projectModel-impl:projectModel-impl_test_lib",
+        "@community//platform/backend/workspace:workspace_test_lib",
+        "@community//plugins/IntelliLang:langInjection_test_lib",
+        "//plugins/js-graphql:graphql_test_lib",
+        "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.graphql.langInjection` end
 
 ### auto-generated section `iml intellij.graphql.langInjection` start
-exports_files([
-  "intellij.graphql.langInjection.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.graphql.langInjection.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.graphql.langInjection` end

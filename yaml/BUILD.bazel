@@ -1,60 +1,78 @@
-### auto-generated section `build intellij.graphql.yaml` start
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
+### auto-generated section `build intellij.graphql.yaml` start
+
 jvm_library(
-  name = "yaml",
-  module_name = "intellij.graphql.yaml",
-  visibility = ["//visibility:public"],
-  srcs = glob(["src/**/*.kt", "src/**/*.java", "src/**/*.form"], allow_empty = True),
-  resources = glob(["resources/**/*"]),
-  resource_strip_prefix = "resources",
-  deps = [
-    "@lib//:kotlin-stdlib",
-    "@community//platform/platform-api:ide",
-    "@community//platform/ide-core-impl",
-    "@community//platform/platform-impl:ide-impl",
-    "@community//platform/lang-api:lang",
-    "@community//platform/lang-impl",
-    "@community//platform/core-impl",
-    "@community//platform/core-api:core",
-    "@community//platform/platform-util-io:ide-util-io",
-    "@community//platform/analysis-impl",
-    "@community//platform/projectModel-api:projectModel",
-    "@community//platform/projectModel-impl",
-    "@community//platform/backend/workspace",
-    "@community//plugins/yaml",
-    "//plugins/js-graphql:graphql",
-  ]
+    name = "yaml",
+    srcs = glob(
+        [
+            "src/**/*.kt",
+            "src/**/*.java",
+            "src/**/*.form",
+        ],
+        allow_empty = True,
+    ),
+    module_name = "intellij.graphql.yaml",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@community//platform/platform-api:ide",
+        "@community//platform/ide-core-impl",
+        "@community//platform/platform-impl:ide-impl",
+        "@community//platform/lang-api:lang",
+        "@community//platform/lang-impl",
+        "@community//platform/core-impl",
+        "@community//platform/core-api:core",
+        "@community//platform/platform-util-io:ide-util-io",
+        "@community//platform/analysis-impl",
+        "@community//platform/projectModel-api:projectModel",
+        "@community//platform/projectModel-impl",
+        "@community//platform/backend/workspace",
+        "@community//plugins/yaml",
+        "//plugins/js-graphql:graphql",
+    ],
 )
 
 jvm_library(
-  name = "yaml_test_lib",
-  testonly = True,
-  module_name = "intellij.graphql.yaml",
-  visibility = ["//visibility:public"],
-  srcs = glob([], allow_empty = True),
-  runtime_deps = [
-    ":yaml",
-    "@community//platform/platform-api:ide_test_lib",
-    "@community//platform/ide-core-impl:ide-core-impl_test_lib",
-    "@community//platform/platform-impl:ide-impl_test_lib",
-    "@community//platform/lang-api:lang_test_lib",
-    "@community//platform/lang-impl:lang-impl_test_lib",
-    "@community//platform/core-impl:core-impl_test_lib",
-    "@community//platform/core-api:core_test_lib",
-    "@community//platform/platform-util-io:ide-util-io_test_lib",
-    "@community//platform/analysis-impl:analysis-impl_test_lib",
-    "@community//platform/projectModel-api:projectModel_test_lib",
-    "@community//platform/projectModel-impl:projectModel-impl_test_lib",
-    "@community//platform/backend/workspace:workspace_test_lib",
-    "@community//plugins/yaml:yaml_test_lib",
-    "//plugins/js-graphql:graphql_test_lib",
-  ]
+    name = "yaml_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.graphql.yaml",
+    visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        ":yaml",
+        "@community//platform/platform-api:ide_test_lib",
+        "@community//platform/ide-core-impl:ide-core-impl_test_lib",
+        "@community//platform/platform-impl:ide-impl_test_lib",
+        "@community//platform/lang-api:lang_test_lib",
+        "@community//platform/lang-impl:lang-impl_test_lib",
+        "@community//platform/core-impl:core-impl_test_lib",
+        "@community//platform/core-api:core_test_lib",
+        "@community//platform/platform-util-io:ide-util-io_test_lib",
+        "@community//platform/analysis-impl:analysis-impl_test_lib",
+        "@community//platform/projectModel-api:projectModel_test_lib",
+        "@community//platform/projectModel-impl:projectModel-impl_test_lib",
+        "@community//platform/backend/workspace:workspace_test_lib",
+        "@community//plugins/yaml:yaml_test_lib",
+        "//plugins/js-graphql:graphql_test_lib",
+    ],
 )
 ### auto-generated section `build intellij.graphql.yaml` end
 
 ### auto-generated section `iml intellij.graphql.yaml` start
-exports_files([
-  "intellij.graphql.yaml.iml",
-], visibility = ["//visibility:public"])
+exports_files(
+    [
+        "intellij.graphql.yaml.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
 ### auto-generated section `iml intellij.graphql.yaml` end
