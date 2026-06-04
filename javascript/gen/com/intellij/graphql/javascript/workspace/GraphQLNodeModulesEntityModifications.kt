@@ -2,6 +2,7 @@
 
 package com.intellij.graphql.javascript.workspace
 
+import com.intellij.graphql.javascript.workspace.impl.GraphQLNodeModulesEntityImpl
 import com.intellij.platform.workspace.storage.EntitySource
 import com.intellij.platform.workspace.storage.EntityType
 import com.intellij.platform.workspace.storage.GeneratedCodeApiVersion
@@ -18,6 +19,7 @@ interface GraphQLNodeModulesEntityBuilder : WorkspaceEntityBuilder<GraphQLNodeMo
 
 internal object GraphQLNodeModulesEntityType : EntityType<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityBuilder>() {
   override val entityClass: Class<GraphQLNodeModulesEntity> get() = GraphQLNodeModulesEntity::class.java
+  override val entityImplBuilderClass: Class<*> get() = GraphQLNodeModulesEntityImpl.Builder::class.java
   operator fun invoke(
     roots: Set<VirtualFileUrl>,
     entitySource: EntitySource,
