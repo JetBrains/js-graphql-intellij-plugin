@@ -57,11 +57,13 @@ internal class GraphQLEndpointsProvider<E : GraphQLElement> : EndpointsProvider<
     if (getGraphQLFiles(project).isNotEmpty()) EndpointsProvider.Status.HAS_ENDPOINTS
     else EndpointsProvider.Status.UNAVAILABLE
 
-  private fun getGraphQLFiles(project: Project): MutableCollection<VirtualFile> =
-    FileTypeIndex.getFiles(GraphQLFileType.INSTANCE, GlobalSearchScope.allScope(project))
+  private fun getGraphQLFiles(project: Project): Collection<VirtualFile> {
+    return FileTypeIndex.getFiles(GraphQLFileType.INSTANCE, GlobalSearchScope.allScope(project))
+  }
 
-  private fun getGraphQLFiles(module: Module): MutableCollection<VirtualFile> =
-    FileTypeIndex.getFiles(GraphQLFileType.INSTANCE, module.moduleScope)
+  private fun getGraphQLFiles(module: Module): Collection<VirtualFile> {
+    return FileTypeIndex.getFiles(GraphQLFileType.INSTANCE, module.moduleScope)
+  }
 
   override fun getEndpointGroups(project: Project, filter: EndpointsFilter): Iterable<GraphQLFile> {
     if (filter !is ModuleEndpointsFilter) return emptyList()
