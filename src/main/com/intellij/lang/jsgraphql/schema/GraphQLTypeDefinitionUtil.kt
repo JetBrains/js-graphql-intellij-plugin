@@ -64,7 +64,7 @@ private val GraphQLElement.locationOffset: Int
   get() = navigationElement.textRange.startOffset
 
 @RequiresReadLock
-fun Node<*>.findElement(project: Project): PsiElement? = sourceLocation.findElement(project)
+fun Node<*>.findElement(project: Project): PsiElement? = sourceLocation?.findElement(project)
 
 @RequiresReadLock
 fun SourceLocation.findElement(project: Project): PsiElement? {
