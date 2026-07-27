@@ -6,7 +6,21 @@
     <module name="intellij.javascript.analysis.impl"/>
     <module name="intellij.javascript.backend"/>
     <module name="intellij.javascript.psi.impl"/>
+    <module name="intellij.libraries.gson"/>
+    <module name="intellij.platform.analysis"/>
+    <module name="intellij.platform.analysis.impl"/>
+    <module name="intellij.platform.core"/>
+    <module name="intellij.platform.core.impl"/>
+    <module name="intellij.platform.editor.ui"/>
+    <module name="intellij.platform.execution"/>
+    <module name="intellij.platform.ide"/>
+    <module name="intellij.platform.ide.core"/>
+    <module name="intellij.platform.ide.impl"/>
+    <module name="intellij.platform.lang"/>
+    <module name="intellij.platform.lang.impl"/>
     <module name="intellij.platform.langInjection"/>
+    <module name="intellij.platform.projectModel"/>
+    <module name="intellij.platform.projectModel.impl"/>
     <module name="intellij.platform.webide.impl"/>
   </dependencies>
   <!-- endregion -->
