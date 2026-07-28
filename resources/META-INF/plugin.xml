@@ -72,7 +72,7 @@
     <!-- endregion -->
   </dependencies>
 
-  <content>
+  <content namespace="jetbrains">
     <module name="intellij.graphql.javascript"/>
     <module name="intellij.graphql.langInjection"/>
     <module name="intellij.graphql.yaml"/>
