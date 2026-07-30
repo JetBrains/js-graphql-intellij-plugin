@@ -73,7 +73,7 @@ public final class GraphQLSyntaxHighlighter extends SyntaxHighlighterBase {
   }
 
   @Override
-  public @NotNull TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
+  public @NotNull TextAttributesKey @NotNull [] getTokenHighlights(@NotNull IElementType tokenType) {
     if (tokenType.equals(GraphQLElementTypes.NAME)) {
       return IDENTIFIER_KEYS;
     }
