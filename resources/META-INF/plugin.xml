@@ -48,6 +48,11 @@
     <module name="intellij.graphql.javascript"/>
     <module name="intellij.graphql.langInjection"/>
     <module name="intellij.graphql.yaml"/>
+    <!-- Library wrapper module used only by this plugin. This <content> tag has no 'namespace' attribute, so the module
+         is registered in the plugin's implicit private namespace and cannot clash with another plugin's copy at runtime.
+         loading="embedded" because intellij.graphql is a plain main-jar module whose sources import these packages
+         directly, so the classes must be on the plugin's main classloader. -->
+    <module name="intellij.graphql.libraries" loading="embedded"/>
   </content>
 
   <resource-bundle>messages.GraphQLBundle</resource-bundle>

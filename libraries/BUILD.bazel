@@ -1,0 +1,59 @@
+load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+### auto-generated section `build intellij.graphql.libraries` start
+jvm_library(
+    name = "libraries",
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.graphql.libraries",
+    resource_strip_prefix = "resources",
+    resources = glob(
+        ["resources/**/*"],
+    ),
+    visibility = ["//visibility:public"],
+    exports = [
+        # do not sort,
+        "@ultimate_lib//:graphql-libraries-atlassian-commonmark",
+        "@ultimate_lib//:graphql-libraries-graphql-java-dataloader",
+        "@ultimate_lib//:graphql-libraries-io-github-cdimascio-dotenv-kotlin",
+        "@ultimate_lib//:graphql-libraries-reactivestreams-reactive-streams",
+    ],
+    runtime_deps = [
+        # do not sort,
+        "@ultimate_lib//:graphql-libraries-atlassian-commonmark",
+        "@ultimate_lib//:graphql-libraries-graphql-java-dataloader",
+        "@ultimate_lib//:graphql-libraries-io-github-cdimascio-dotenv-kotlin",
+        "@ultimate_lib//:graphql-libraries-reactivestreams-reactive-streams",
+    ],
+)
+
+jvm_library(
+    name = "libraries_test_lib",
+    testonly = True,
+    srcs = glob(
+        [],
+        allow_empty = True,
+    ),
+    module_name = "intellij.graphql.libraries",
+    visibility = ["//visibility:public"],
+    exports = [
+        # do not sort,
+        "@ultimate_lib//:graphql-libraries-atlassian-commonmark",
+        "@ultimate_lib//:graphql-libraries-graphql-java-dataloader",
+        "@ultimate_lib//:graphql-libraries-io-github-cdimascio-dotenv-kotlin",
+        "@ultimate_lib//:graphql-libraries-reactivestreams-reactive-streams",
+    ],
+    runtime_deps = [":libraries"],
+)
+### auto-generated section `build intellij.graphql.libraries` end
+
+### auto-generated section `iml intellij.graphql.libraries` start
+exports_files(
+    [
+        "intellij.graphql.libraries.iml",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `iml intellij.graphql.libraries` end

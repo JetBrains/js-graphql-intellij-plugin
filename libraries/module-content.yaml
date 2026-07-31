@@ -1,12 +1,5 @@
-- name: lib/graphql.jar
+- name: dist.all/lib/intellij.graphql.libraries.jar
   modules:
-  - name: intellij.graphql
-  contentModules:
-  - name: intellij.graphql.javascript
-  - name: intellij.graphql.langInjection
-  - name: intellij.graphql.yaml
-- name: lib/intellij.graphql.libraries.jar
-  contentModules:
   - name: intellij.graphql.libraries
     libraries:
       atlassian.commonmark:
