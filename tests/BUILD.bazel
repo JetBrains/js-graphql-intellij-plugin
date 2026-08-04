@@ -84,8 +84,6 @@ jvm_library(
         "@community//platform/vcs-impl:vcs-impl_test_lib",
         "@community//spellchecker",
         "@community//spellchecker:spellchecker_test_lib",
-        "//webcore/impl",
-        "//webcore/impl:impl_test_lib",
         "@community//platform/backend/workspace",
         "@community//platform/backend/workspace:workspace_test_lib",
         "@community//platform/workspace/storage",
