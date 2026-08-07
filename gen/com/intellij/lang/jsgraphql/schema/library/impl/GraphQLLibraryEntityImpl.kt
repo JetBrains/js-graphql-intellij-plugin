@@ -29,12 +29,6 @@ import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEntityData) : GraphQLLibraryEntity,
                                                                                             WorkspaceEntityBase(dataSource) {
 
-  private companion object {
-
-    private val connections = listOf<ConnectionId>()
-
-  }
-
   override val identifier: String
     get() {
       readField("identifier")
@@ -51,13 +45,11 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
       return dataSource.description
     }
   override var attachmentScope: GraphQLLibraryAttachmentScope = dataSource.attachmentScope
-
   override val roots: Set<VirtualFileUrl>
     get() {
       readField("roots")
       return dataSource.roots
     }
-
   override val entitySource: EntitySource
     get() {
       readField("entitySource")
@@ -65,9 +57,8 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
     }
 
   override fun connectionIdList(): List<ConnectionId> {
-    return connections
+    return emptyList()
   }
-
 
   internal class Builder(result: GraphQLLibraryEntityData?) :
     ModifiableWorkspaceEntityBase<GraphQLLibraryEntity, GraphQLLibraryEntityData>(result), GraphQLLibraryEntityBuilder {
@@ -92,7 +83,7 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
       index(this, "roots", this.roots)
 // Process linked entities that are connected without a builder
       processLinkedEntities(builder)
-      checkInitialization() // TODO uncomment and check failed tests
+      checkInitialization()
     }
 
     private fun checkInitialization() {
@@ -112,7 +103,7 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
     }
 
     override fun connectionIdList(): List<ConnectionId> {
-      return connections
+      return emptyList()
     }
 
     override fun afterModification() {
@@ -134,14 +125,12 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
       updateChildToParentReferences(parents)
     }
 
-
     override var entitySource: EntitySource
       get() = getEntityData().entitySource
       set(value) {
         checkModificationAllowed()
         getEntityData(true).entitySource = value
         changedProperty.add("entitySource")
-
       }
     override var identifier: String
       get() = getEntityData().identifier
@@ -170,7 +159,6 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
         checkModificationAllowed()
         getEntityData(true).attachmentScope = value
         changedProperty.add("attachmentScope")
-
       }
     private val rootsUpdater: (value: Set<VirtualFileUrl>) -> Unit = { value ->
       val _diff = diff
@@ -197,7 +185,6 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
 
     override fun getEntityClass(): Class<GraphQLLibraryEntity> = GraphQLLibraryEntity::class.java
   }
-
 }
 
 @OptIn(WorkspaceEntityInternalApi::class)
@@ -207,11 +194,9 @@ internal class GraphQLLibraryEntityData : WorkspaceEntityData<GraphQLLibraryEnti
   var description: String? = null
   var attachmentScope: GraphQLLibraryAttachmentScope = GraphQLLibraryAttachmentScope.GLOBAL
   lateinit var roots: MutableSet<VirtualFileUrl>
-
   internal fun isIdentifierInitialized(): Boolean = ::identifier.isInitialized
   internal fun isDisplayNameInitialized(): Boolean = ::displayName.isInitialized
   internal fun isRootsInitialized(): Boolean = ::roots.isInitialized
-
   override fun wrapAsModifiable(diff: MutableEntityStorage): WorkspaceEntityBuilder<GraphQLLibraryEntity> {
     val modifiable = GraphQLLibraryEntityImpl.Builder(null)
     modifiable.diff = diff

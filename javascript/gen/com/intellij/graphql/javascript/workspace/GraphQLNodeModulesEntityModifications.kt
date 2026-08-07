@@ -18,7 +18,7 @@ interface GraphQLNodeModulesEntityBuilder : WorkspaceEntityBuilder<GraphQLNodeMo
 }
 
 internal object GraphQLNodeModulesEntityType : EntityType<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityBuilder>() {
-  override val entityClass: Class<GraphQLNodeModulesEntity> get() = GraphQLNodeModulesEntity::class.java
+  override val entityImplClass: Class<*> get() = GraphQLNodeModulesEntityImpl::class.java
   override val entityImplBuilderClass: Class<*> get() = GraphQLNodeModulesEntityImpl.Builder::class.java
   operator fun invoke(
     roots: Set<VirtualFileUrl>,

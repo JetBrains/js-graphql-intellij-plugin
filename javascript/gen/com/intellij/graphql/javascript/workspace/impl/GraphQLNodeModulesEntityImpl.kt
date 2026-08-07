@@ -28,18 +28,11 @@ import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeModulesEntityData) : GraphQLNodeModulesEntity,
                                                                                                     WorkspaceEntityBase(dataSource) {
 
-  private companion object {
-
-    private val connections = listOf<ConnectionId>()
-
-  }
-
   override val roots: Set<VirtualFileUrl>
     get() {
       readField("roots")
       return dataSource.roots
     }
-
   override val entitySource: EntitySource
     get() {
       readField("entitySource")
@@ -47,9 +40,8 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
     }
 
   override fun connectionIdList(): List<ConnectionId> {
-    return connections
+    return emptyList()
   }
-
 
   internal class Builder(result: GraphQLNodeModulesEntityData?) :
     ModifiableWorkspaceEntityBase<GraphQLNodeModulesEntity, GraphQLNodeModulesEntityData>(result), GraphQLNodeModulesEntityBuilder {
@@ -74,7 +66,7 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
       index(this, "roots", this.roots)
 // Process linked entities that are connected without a builder
       processLinkedEntities(builder)
-      checkInitialization() // TODO uncomment and check failed tests
+      checkInitialization()
     }
 
     private fun checkInitialization() {
@@ -88,7 +80,7 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
     }
 
     override fun connectionIdList(): List<ConnectionId> {
-      return connections
+      return emptyList()
     }
 
     override fun afterModification() {
@@ -106,14 +98,12 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
       updateChildToParentReferences(parents)
     }
 
-
     override var entitySource: EntitySource
       get() = getEntityData().entitySource
       set(value) {
         checkModificationAllowed()
         getEntityData(true).entitySource = value
         changedProperty.add("entitySource")
-
       }
     private val rootsUpdater: (value: Set<VirtualFileUrl>) -> Unit = { value ->
       val _diff = diff
@@ -140,15 +130,12 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
 
     override fun getEntityClass(): Class<GraphQLNodeModulesEntity> = GraphQLNodeModulesEntity::class.java
   }
-
 }
 
 @OptIn(WorkspaceEntityInternalApi::class)
 internal class GraphQLNodeModulesEntityData : WorkspaceEntityData<GraphQLNodeModulesEntity>() {
   lateinit var roots: MutableSet<VirtualFileUrl>
-
   internal fun isRootsInitialized(): Boolean = ::roots.isInitialized
-
   override fun wrapAsModifiable(diff: MutableEntityStorage): WorkspaceEntityBuilder<GraphQLNodeModulesEntity> {
     val modifiable = GraphQLNodeModulesEntityImpl.Builder(null)
     modifiable.diff = diff

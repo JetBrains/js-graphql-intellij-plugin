@@ -12,9 +12,7 @@ import com.intellij.platform.workspace.storage.metadata.model.ValueTypeMetadata
 internal object MetadataStorageImpl : MetadataStorageBase() {
   override fun initializeMetadata() {
     val primitiveTypeSetNotNullable = ValueTypeMetadata.SimpleType.PrimitiveType(isNullable = false, type = "Set")
-
     var typeMetadata: StorageTypeMetadata
-
     typeMetadata = FinalClassMetadata.ObjectMetadata(fqName = "com.intellij.graphql.javascript.workspace.GraphQLNodeModulesEntitySource",
                                                      properties = listOf(OwnPropertyMetadata(isComputable = false,
                                                                                              isKey = false,
@@ -26,9 +24,7 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                                                  fqName = "com.intellij.platform.workspace.storage.url.VirtualFileUrl")),
                                                                                              withDefault = false)),
                                                      supertypes = listOf("com.intellij.platform.workspace.storage.EntitySource"))
-
     addMetadata(typeMetadata)
-
     typeMetadata = EntityMetadata(fqName = "com.intellij.graphql.javascript.workspace.GraphQLNodeModulesEntity",
                                   entityDataFqName = "com.intellij.graphql.javascript.workspace.impl.GraphQLNodeModulesEntityData",
                                   supertypes = listOf("com.intellij.platform.workspace.storage.WorkspaceEntity"),
@@ -52,7 +48,6 @@ internal object MetadataStorageImpl : MetadataStorageBase() {
                                                                           withDefault = false)),
                                   extProperties = listOf(),
                                   isAbstract = false)
-
     addMetadata(typeMetadata)
   }
 

@@ -22,7 +22,7 @@ interface GraphQLLibraryEntityBuilder : WorkspaceEntityBuilder<GraphQLLibraryEnt
 }
 
 internal object GraphQLLibraryEntityType : EntityType<GraphQLLibraryEntity, GraphQLLibraryEntityBuilder>() {
-  override val entityClass: Class<GraphQLLibraryEntity> get() = GraphQLLibraryEntity::class.java
+  override val entityImplClass: Class<*> get() = GraphQLLibraryEntityImpl::class.java
   override val entityImplBuilderClass: Class<*> get() = GraphQLLibraryEntityImpl.Builder::class.java
   operator fun invoke(
     identifier: String,
