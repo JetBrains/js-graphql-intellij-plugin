@@ -237,6 +237,7 @@
     <!-- Language -->
     <lang.psiStructureViewFactory language="GraphQL"
                                   implementationClass="com.intellij.lang.jsgraphql.ide.structureView.GraphQLPsiStructureViewFactory"/>
+    <navbar implementation="com.intellij.lang.jsgraphql.ide.navbar.GraphQLNavBarModelExtension"/>
 
     <!-- Error highlighting and annotations -->
     <daemon.changeLocalityDetector order="first"

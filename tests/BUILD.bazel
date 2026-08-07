@@ -56,6 +56,8 @@ jvm_library(
         "@community//platform/lang-core:lang-core_test_lib",
         "@community//platform/usageView",
         "@community//platform/usageView:usageView_test_lib",
+        "@community//platform/navbar/testFramework",
+        "@community//platform/navbar/testFramework:testFramework_test_lib",
         "@community//xml/xml-parser:parser",
         "@community//xml/xml-parser:parser_test_lib",
         "@community//platform/lang-api:lang",
