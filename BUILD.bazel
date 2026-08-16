@@ -130,6 +130,9 @@ exports_files(
     [
         "intellij.graphql.iml",
         "resources/META-INF/plugin.xml",
+        "resources/colorSchemes/GraphQLLanguageDarcula.xml",
+        "resources/colorSchemes/GraphQLLanguageDefault.xml",
+        "resources/colorSchemes/GraphQLLanguageMonokai.xml",
     ],
     visibility = ["//visibility:public"],
 )
