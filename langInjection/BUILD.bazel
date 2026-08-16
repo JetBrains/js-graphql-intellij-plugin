@@ -73,6 +73,7 @@ jvm_library(
 exports_files(
     [
         "intellij.graphql.langInjection.iml",
+        "resources/intellij.graphql.langInjection.xml",
     ],
     visibility = ["//visibility:public"],
 )

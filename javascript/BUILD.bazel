@@ -95,6 +95,7 @@ jvm_library(
 exports_files(
     [
         "intellij.graphql.javascript.iml",
+        "resources/intellij.graphql.javascript.xml",
     ],
     visibility = ["//visibility:public"],
 )
