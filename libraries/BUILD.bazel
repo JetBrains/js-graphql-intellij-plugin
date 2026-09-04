@@ -1,4 +1,3 @@
-load("@community//platform/build-scripts/bazel-rules:content_module_jar.bzl", "content_module_jar")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.graphql.libraries` start
@@ -30,17 +29,6 @@ jvm_library(
     ],
 )
 
-content_module_jar(
-    libraries = [
-        # do not sort,
-        "@ultimate_lib//:graphql-libraries-atlassian-commonmark",
-        "@ultimate_lib//:graphql-libraries-graphql-java-dataloader",
-        "@ultimate_lib//:graphql-libraries-io-github-cdimascio-dotenv-kotlin",
-        "@ultimate_lib//:graphql-libraries-reactivestreams-reactive-streams",
-    ],
-    module = ":libraries",
-)
-
 jvm_library(
     name = "libraries_test_lib",
     testonly = True,
@@ -66,7 +54,6 @@ exports_files(
     [
         "intellij.graphql.libraries.iml",
         "resources/intellij.graphql.libraries.xml",
-        "module-content.yaml",
     ],
     visibility = ["//visibility:public"],
 )

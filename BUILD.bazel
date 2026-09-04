@@ -1,5 +1,26 @@
 load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
+load("@jps_dynamic_deps_ultimate//:targets.bzl", "MODULE_TARGETS")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
+
+### auto-generated section `dev intellij.graphql` start
+dev_dist_plugin(
+    content_modules = [
+        # do not sort,
+        "intellij.graphql.javascript",
+        "intellij.graphql.langInjection",
+        "intellij.graphql.libraries",
+        "intellij.graphql.yaml",
+    ],
+    libraries = [
+        "@ultimate_lib//:graphql-libraries-atlassian-commonmark",
+        "@ultimate_lib//:graphql-libraries-graphql-java-dataloader",
+        "@ultimate_lib//:graphql-libraries-io-github-cdimascio-dotenv-kotlin",
+        "@ultimate_lib//:graphql-libraries-reactivestreams-reactive-streams",
+    ],
+    main_module = "intellij.graphql",
+    module_targets = MODULE_TARGETS,
+)
+### auto-generated section `dev intellij.graphql` end
 
 ### auto-generated section `build intellij.graphql` start
 jvm_library(
@@ -138,21 +159,3 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.graphql` end
-
-### auto-generated section `dev intellij.graphql` start
-dev_dist_plugin(
-    content_modules = [
-        "//plugins/js-graphql/javascript",
-        "//plugins/js-graphql/langInjection",
-        "//plugins/js-graphql/libraries",
-        "//plugins/js-graphql/yaml",
-    ],
-    descriptor_module = ":graphql",
-    libraries = [
-        "@ultimate_lib//:graphql-libraries-atlassian-commonmark",
-        "@ultimate_lib//:graphql-libraries-graphql-java-dataloader",
-        "@ultimate_lib//:graphql-libraries-io-github-cdimascio-dotenv-kotlin",
-        "@ultimate_lib//:graphql-libraries-reactivestreams-reactive-streams",
-    ],
-)
-### auto-generated section `dev intellij.graphql` end
