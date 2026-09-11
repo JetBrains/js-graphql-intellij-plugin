@@ -10,12 +10,12 @@ interface GraphQLGlobalResolveFilter {
     val EP_NAME: ExtensionPointName<GraphQLGlobalResolveFilter> =
       ExtensionPointName.create("com.intellij.lang.jsgraphql.globalResolveFilter")
 
-    @RequiresReadLock
+    @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
     fun isGlobalResolveForcedFor(context: PsiFile): Boolean {
       return EP_NAME.extensionList.any { it.isGlobalResolveFor(context) }
     }
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   fun isGlobalResolveFor(file: PsiFile): Boolean
 }

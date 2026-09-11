@@ -30,7 +30,7 @@ inline fun <reified T : Any> Any?.asSafely(): @kotlin.internal.NoInfer T? {
   return this as? T
 }
 
-@RequiresEdt
+@RequiresEdt(generateAssertion = false /* IJPL-115548 */)
 @JvmOverloads
 fun createScratchFromEndpoint(
   project: Project,
@@ -49,7 +49,7 @@ fun createScratchFromEndpoint(
   }
 }
 
-@RequiresEdt
+@RequiresEdt(generateAssertion = false /* IJPL-115548 */)
 fun createScratchFile(
   project: Project,
   path: String,

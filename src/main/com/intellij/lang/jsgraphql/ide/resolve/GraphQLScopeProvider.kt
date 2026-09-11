@@ -46,12 +46,12 @@ class GraphQLScopeProvider(private val project: Project) : Disposable {
   val globalScope: GlobalSearchScope
     get() = globalScopeCache.value
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   fun getResolveScope(element: PsiElement?): GlobalSearchScope {
     return getResolveScope(element, !isResolvedInNonStrictScope(element))
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   fun getResolveScope(element: PsiElement?, isStrict: Boolean): GlobalSearchScope {
     if (element == null || !GraphQLConfigProvider.getInstance(project).isInitialized) {
       return GlobalSearchScope.EMPTY_SCOPE

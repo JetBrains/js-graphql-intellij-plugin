@@ -36,7 +36,7 @@ fun isExtensionDefinition(definition: SDLDefinition<*>?): Boolean {
          definition is EnumTypeExtensionDefinition
 }
 
-@get:RequiresReadLock
+@get:RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 val GraphQLElement.sourceLocation: SourceLocation
   get() {
     val injectedLanguageManager = InjectedLanguageManager.getInstance(project)
@@ -63,10 +63,10 @@ val GraphQLElement.sourceLocation: SourceLocation
 private val GraphQLElement.locationOffset: Int
   get() = navigationElement.textRange.startOffset
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun Node<*>.findElement(project: Project): PsiElement? = sourceLocation?.findElement(project)
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun SourceLocation.findElement(project: Project): PsiElement? {
   if (line == -1 || column == -1 || sourceName.isNullOrEmpty()) return null
   val file = findVirtualFile()?.findPsiFile(project) ?: return null
@@ -83,7 +83,7 @@ fun SourceLocation.findElement(project: Project): PsiElement? {
   return element
 }
 
-@RequiresReadLock
+@RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
 fun GraphQLError.findElement(project: Project): PsiElement? =
   node?.findElement(project) ?: locations?.firstNotNullOfOrNull { it.findElement(project) }
 

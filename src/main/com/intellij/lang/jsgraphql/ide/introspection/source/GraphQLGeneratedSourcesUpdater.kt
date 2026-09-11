@@ -126,7 +126,7 @@ class GraphQLGeneratedSourcesUpdater(private val project: Project, coroutineScop
 
   @ApiStatus.Internal
   @VisibleForTesting
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   suspend fun runJsonSchemaFilesGeneration() {
     if (project.isDisposed) return
     updateCachedSchemas(findJsonSchemaCandidates())

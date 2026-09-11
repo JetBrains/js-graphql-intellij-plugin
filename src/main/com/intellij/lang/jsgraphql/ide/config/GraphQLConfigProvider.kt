@@ -157,7 +157,7 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
     }
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   fun resolveProjectConfig(context: PsiFile): GraphQLProjectConfig? {
     // shouldn't try resolving for the config file itself
     if (isConfigFile(context)) {
@@ -172,7 +172,7 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
     }
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   fun resolveProjectConfig(virtualFile: VirtualFile): GraphQLProjectConfig? =
     PsiManager.getInstance(project).findFile(virtualFile)?.let { resolveProjectConfig(it) }
 
@@ -264,7 +264,7 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
     }
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   fun findConfig(context: PsiFile): GraphQLConfigSearchResult? {
     return CachedValuesManager.getCachedValue(context, CONFIG_CLOSEST) {
       val overriddenConfig = findOverriddenConfig(context)
@@ -348,7 +348,7 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
     return configEntry.status != GraphQLConfigEvaluationStatus.SUCCESS
   }
 
-  @RequiresReadLock
+  @RequiresReadLock(generateAssertion = false /* IJPL-115548 */)
   fun findConfigFileInDirectory(dir: VirtualFile): VirtualFile? {
     if (!dir.isDirectory) return null
 
@@ -391,7 +391,7 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
     check(reloadRequests.tryEmit(Unit))
   }
 
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   suspend fun reload() {
     if (project.isDisposed) return
     checkCanceled()
@@ -529,7 +529,7 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
   /**
    * Cached inside of [configFiles], do not use directly.
    */
-  @RequiresBackgroundThread
+  @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
   private fun queryAllConfigFiles(): Set<VirtualFile> {
     val processor = CommonProcessors.CollectUniquesProcessor<VirtualFile>()
     FilenameIndex.processFilesByNames(
