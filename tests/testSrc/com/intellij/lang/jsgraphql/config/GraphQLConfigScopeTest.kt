@@ -16,7 +16,7 @@ import com.intellij.openapi.components.PathMacroManager
 import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
-import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
@@ -202,7 +202,7 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     val expectedFiles = expected.mapTo(mutableSetOf()) {
       val expandedPath = PathMacroManager.getInstance(project).expandPathNonNull(it)
       val file = myFixture.findFileInTempDir(expandedPath)
-                 ?: LocalFileSystem.getInstance().findFileByPath(expandedPath)
+                 ?: StandardFileSystems.local().findFileByPath(expandedPath)
       assertNotNull("expected file not found: $it", file)
       file!!
     }.sortedBy { it.name }.toSet()
