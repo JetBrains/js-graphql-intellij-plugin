@@ -3,6 +3,7 @@
   <dependencies>
     <plugin id="org.jetbrains.plugins.yaml"/>
     <module name="intellij.platform.analysis.impl"/>
+    <module name="intellij.platform.backend.workspace"/>
     <module name="intellij.platform.core"/>
     <module name="intellij.platform.core.impl"/>
     <module name="intellij.platform.ide"/>
