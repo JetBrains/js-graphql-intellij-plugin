@@ -1,5 +1,4 @@
-load("@community//platform/build-scripts/bazel-rules:dev_dist_plugin.bzl", "dev_dist_plugin")
-load("@jps_dynamic_deps_ultimate//:targets.bzl", "MODULE_TARGETS")
+load("@jps_dynamic_deps_ultimate//:targets.bzl", "dev_dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `dev intellij.graphql` start
@@ -8,17 +7,10 @@ dev_dist_plugin(
         # do not sort,
         "intellij.graphql.javascript",
         "intellij.graphql.langInjection",
-        "intellij.graphql.libraries",
         "intellij.graphql.yaml",
-    ],
-    libraries = [
-        "@ultimate_lib//:graphql-libraries-atlassian-commonmark",
-        "@ultimate_lib//:graphql-libraries-graphql-java-dataloader",
-        "@ultimate_lib//:graphql-libraries-io-github-cdimascio-dotenv-kotlin",
-        "@ultimate_lib//:graphql-libraries-reactivestreams-reactive-streams",
+        "intellij.graphql.libraries",
     ],
     main_module = "intellij.graphql",
-    module_targets = MODULE_TARGETS,
 )
 ### auto-generated section `dev intellij.graphql` end
 
