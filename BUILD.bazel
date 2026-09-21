@@ -10,6 +10,28 @@ dev_dist_plugin(
         "intellij.graphql.yaml",
         "intellij.graphql.libraries",
     ],
+    descriptor = "resources/META-INF/plugin.xml",
+    descriptor_modules = [
+        "intellij.graphql.javascript",
+        "intellij.graphql.langInjection",
+        "intellij.graphql.libraries",
+        "intellij.graphql.yaml",
+    ],
+    jars = {
+        "lib/graphql.jar": [
+            "intellij.graphql",
+            "intellij.graphql.javascript",
+            "intellij.graphql.langInjection",
+            "intellij.graphql.yaml",
+        ],
+        "lib/intellij.graphql.libraries.jar": [
+            "intellij.graphql.libraries",
+            "@ultimate_lib//:graphql-libraries-atlassian-commonmark",
+            "@ultimate_lib//:graphql-libraries-graphql-java-dataloader",
+            "@ultimate_lib//:graphql-libraries-io-github-cdimascio-dotenv-kotlin",
+            "@ultimate_lib//:graphql-libraries-reactivestreams-reactive-streams",
+        ],
+    },
     main_module = "intellij.graphql",
 )
 ### auto-generated section `dev intellij.graphql` end
