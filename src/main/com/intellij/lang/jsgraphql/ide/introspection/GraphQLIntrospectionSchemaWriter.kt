@@ -159,7 +159,7 @@ internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
     }
   }
 
-  @RequiresWriteLock(generateAssertion = false /* IJPL-115548 */)
+  @RequiresWriteLock
   @Throws(IOException::class)
   private fun createOrUpdateSchemaFile(project: Project, dir: VirtualFile, fileName: String): VirtualFile {
     var outputFile = dir.findFileByRelativePath(fileName)
