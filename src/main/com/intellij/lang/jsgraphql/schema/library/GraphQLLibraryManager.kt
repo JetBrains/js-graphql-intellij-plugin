@@ -69,7 +69,7 @@ class GraphQLLibraryManager(private val project: Project) {
    * @param library The external GraphQL library to register, containing its descriptor and set of root URLs.
    */
   @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
-  @RequiresReadLockAbsence(generateAssertion = false /* IJPL-115548 */)
+  @RequiresReadLockAbsence
   suspend fun registerExternalLibrary(library: GraphQLLibrary) {
     if (!shouldInitializeLibraries) {
       return
@@ -91,7 +91,7 @@ class GraphQLLibraryManager(private val project: Project) {
    * @param library The external GraphQL library to unregister, containing its descriptor and set of root URLs.
    */
   @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
-  @RequiresReadLockAbsence(generateAssertion = false /* IJPL-115548 */)
+  @RequiresReadLockAbsence
   suspend fun unregisterExternalLibrary(library: GraphQLLibrary) {
     if (!shouldInitializeLibraries) {
       return
@@ -119,7 +119,7 @@ class GraphQLLibraryManager(private val project: Project) {
    * @see updateLibrariesWorkspaceModel
    */
   @RequiresBackgroundThread(generateAssertion = false /* IJPL-115548 */)
-  @RequiresReadLockAbsence(generateAssertion = false /* IJPL-115548 */)
+  @RequiresReadLockAbsence
   suspend fun syncLibraries() {
     if (!shouldInitializeLibraries) {
       return
