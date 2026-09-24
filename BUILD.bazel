@@ -100,6 +100,7 @@ jvm_library(
         "//plugins/js-graphql/libraries",
         "@community//xml/xml-psi-api:psi",
         "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+        "@community//platform/execution-impl",
     ],
 )
 
@@ -157,6 +158,7 @@ jvm_library(
         "//plugins/js-graphql/libraries:libraries_test_lib",
         "@community//xml/xml-psi-api:psi_test_lib",
         "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable_test_lib",
+        "@community//platform/execution-impl:execution-impl_test_lib",
     ],
 )
 ### auto-generated section `build intellij.graphql` end
