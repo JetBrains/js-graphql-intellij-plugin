@@ -37,7 +37,7 @@ class GraphQLRunIntrospectionQueryAction : AnAction(
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
     val editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE) ?: return
-    val endpoint = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)?.selectedItem ?: return
+    val endpoint = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)?.selected ?: return
     GraphQLIntrospectionService.getInstance(project).performIntrospectionQuery(endpoint)
   }
 }

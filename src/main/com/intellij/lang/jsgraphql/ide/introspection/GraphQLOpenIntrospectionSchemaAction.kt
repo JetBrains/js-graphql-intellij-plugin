@@ -23,7 +23,7 @@ class GraphQLOpenIntrospectionSchemaAction : AnAction(
 ) {
   override fun update(e: AnActionEvent) {
     val editor = e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE) ?: return
-    val endpoint = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)?.selectedItem
+    val endpoint = editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)?.selected
     e.presentation.isEnabled = endpoint != null && endpoint.schemaPointer?.outputPath != null
   }
 
@@ -36,7 +36,7 @@ class GraphQLOpenIntrospectionSchemaAction : AnAction(
 
     e.getData(CommonDataKeys.EDITOR_EVEN_IF_INACTIVE)
       ?.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)
-      ?.selectedItem
+      ?.selected
       ?.schemaPointer
       ?.outputPath
       ?.let { StandardFileSystems.local().findFileByPath(it) }

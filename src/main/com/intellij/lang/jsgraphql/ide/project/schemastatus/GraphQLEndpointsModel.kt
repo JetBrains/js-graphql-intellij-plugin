@@ -9,14 +9,14 @@ package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
-import org.jdesktop.swingx.combobox.ListComboBoxModel
+import com.intellij.ui.CollectionComboBoxModel
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
 class GraphQLEndpointsModel(
   list: List<GraphQLConfigEndpoint>,
   propertiesComponent: PropertiesComponent,
-) : ListComboBoxModel<GraphQLConfigEndpoint>(
+) : CollectionComboBoxModel<GraphQLConfigEndpoint>(
   ArrayList(list)
 ) {
   init {
@@ -31,11 +31,11 @@ class GraphQLEndpointsModel(
       override fun intervalAdded(listDataEvent: ListDataEvent) {}
       override fun intervalRemoved(listDataEvent: ListDataEvent) {}
       override fun contentsChanged(listDataEvent: ListDataEvent) {
-        val selectedItem = selectedItem
+        val selectedItem = selected
         if (selectedItem != null) {
           propertiesComponent.setValue(
             INDEX_PROPERTY_NAME + configPathPersistenceKey,
-            data.indexOf(selectedItem),
+            internalList.indexOf(selectedItem),
             0
           )
         }
@@ -44,23 +44,24 @@ class GraphQLEndpointsModel(
   }
 
   fun reload(newEndpoints: List<GraphQLConfigEndpoint?>?) {
-    if (data != newEndpoints) {
-      data.clear()
+    val items = internalList
+    if (items != newEndpoints) {
+      items.clear()
       if (newEndpoints != null) {
-        data.addAll(newEndpoints)
+        items.addAll(newEndpoints)
       }
     }
-    val selectedItem = selectedItem
+    val selectedItem = selected
     if (selectedItem == null) {
       // default to the first endpoint if one is available
-      if (data.isNotEmpty()) {
-        setSelectedItem(data[0])
+      if (items.isNotEmpty()) {
+        setSelectedItem(items[0])
       }
     }
     else {
       // check that the selected endpoint is one of the available ones
-      if (!data.contains(selectedItem)) {
-        setSelectedItem(if (data.isEmpty()) null else data[0])
+      if (!items.contains(selectedItem)) {
+        setSelectedItem(if (items.isEmpty()) null else items[0])
       }
     }
 

@@ -381,7 +381,7 @@ public class GraphQLUIProjectService implements Disposable, FileEditorManagerLis
       return;
     }
     final GraphQLConfigEndpoint selectedEndpoint =
-      GraphQLIntrospectionUtil.promptForEnvVariables(myProject, endpointsModel.getSelectedItem());
+      GraphQLIntrospectionUtil.promptForEnvVariables(myProject, endpointsModel.getSelected());
     if (selectedEndpoint == null || selectedEndpoint.getUrl() == null) {
       return;
     }

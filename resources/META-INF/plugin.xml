@@ -40,7 +40,6 @@
     <module name="intellij.libraries.http.client"/>
     <module name="intellij.libraries.kotlinx.collections.immutable"/>
     <module name="intellij.libraries.snakeyaml"/>
-    <module name="intellij.libraries.swingx"/>
     <module name="intellij.platform.analysis"/>
     <module name="intellij.platform.analysis.impl"/>
     <module name="intellij.platform.backend.workspace"/>

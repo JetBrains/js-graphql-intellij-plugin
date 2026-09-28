@@ -126,8 +126,6 @@ jvm_library(
         "//plugins/js-graphql/langInjection:langInjection_test_lib",
         "//plugins/js-graphql/yaml",
         "//plugins/js-graphql/yaml:yaml_test_lib",
-        "@community//libraries/swingx",
-        "@community//libraries/swingx:swingx_test_lib",
         "@community//libraries/gson",
         "@community//libraries/gson:gson_test_lib",
         "@community//libraries/commons/io",
