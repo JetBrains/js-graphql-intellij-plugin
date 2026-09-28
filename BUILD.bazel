@@ -33,6 +33,13 @@ dev_dist_plugin(
         ],
     },
     main_module = "intellij.graphql",
+    mode_refused_content_modules = {
+        "frontend": [
+            "intellij.graphql.javascript",
+            "intellij.graphql.langInjection",
+            "intellij.graphql.yaml",
+        ],
+    },
 )
 ### auto-generated section `dev intellij.graphql` end
 
