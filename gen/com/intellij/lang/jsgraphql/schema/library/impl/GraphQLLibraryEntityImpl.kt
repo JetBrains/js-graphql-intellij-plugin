@@ -141,8 +141,9 @@ internal class GraphQLLibraryEntityImpl(private val dataSource: GraphQLLibraryEn
         changedProperty.add("attachmentScope")
       }
     private val rootsUpdater: (value: Set<VirtualFileUrl>) -> Unit = { value ->
-      val _diff = diff
-      if (_diff != null) index(this, "roots", value)
+      if (diff != null) {
+        index(this, "roots", value)
+      }
       changedProperty.add("roots")
     }
     override var roots: MutableSet<VirtualFileUrl>
