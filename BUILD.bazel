@@ -11,12 +11,6 @@ dev_dist_plugin(
         "intellij.graphql.libraries",
     ],
     descriptor = "resources/META-INF/plugin.xml",
-    descriptor_modules = [
-        "intellij.graphql.javascript",
-        "intellij.graphql.langInjection",
-        "intellij.graphql.libraries",
-        "intellij.graphql.yaml",
-    ],
     jars = {
         "lib/graphql.jar": [
             "intellij.graphql",
