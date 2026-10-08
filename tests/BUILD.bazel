@@ -18,7 +18,17 @@ jvm_library(
     ),
     module_name = "intellij.graphql.tests",
     visibility = ["//visibility:public"],
-    runtime_deps = ["@lib//:kotlin-stdlib"],
+    runtime_deps = [
+        # do not sort,
+        "@lib//:kotlin-stdlib",
+        "@community//platform/structure-view-impl/plugin",
+        "@community//platform/vcs/plugin",
+        "@community//xml/plugin",
+        "@community//platform/problemsView/plugin",
+        "@community//platform/testRunner/plugin",
+        "@community//aether-dependency-resolver/plugin",
+        "@community//platform/structuralsearch/plugin",
+    ],
 )
 
 jvm_library(
@@ -46,6 +56,13 @@ jvm_library(
         "@community//platform/ide-core:ide-core_test_lib",
         "@community//platform/platform-impl:ide-impl_test_lib",
         "@community//platform/platform-util-io:ide-util-io_test_lib",
+        "@community//platform/structure-view-impl/plugin:plugin_test_lib",
+        "@community//platform/vcs/plugin:plugin_test_lib",
+        "@community//xml/plugin:plugin_test_lib",
+        "@community//platform/problemsView/plugin:plugin_test_lib",
+        "@community//platform/testRunner/plugin:plugin_test_lib",
+        "@community//aether-dependency-resolver/plugin:plugin_test_lib",
+        "@community//platform/structuralsearch/plugin:plugin_test_lib",
     ],
     deps = [
         # do not sort,
