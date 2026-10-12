@@ -29,6 +29,7 @@ jvm_library(
         "@community//aether-dependency-resolver/plugin",
         "@community//platform/structuralsearch/plugin",
         "@community//idea/customization/plugin",
+        "//plugins/ultimate-plugin",
     ],
 )
 
@@ -65,6 +66,7 @@ jvm_library(
         "@community//aether-dependency-resolver/plugin:plugin_test_lib",
         "@community//platform/structuralsearch/plugin:plugin_test_lib",
         "@community//idea/customization/plugin:plugin_test_lib",
+        "//plugins/ultimate-plugin:ultimate-plugin_test_lib",
     ],
     deps = [
         # do not sort,
