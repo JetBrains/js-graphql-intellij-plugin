@@ -277,7 +277,7 @@ class GraphQLConfigEnvironment(private val project: Project) : ModificationTrack
     }
   }
 
-  @RequiresEdt(generateAssertion = false /* IJPL-115548 */)
+  @RequiresEdt
   private fun saveDocuments() {
     if (project.isDisposed || documentsToSave.isEmpty()) {
       return
