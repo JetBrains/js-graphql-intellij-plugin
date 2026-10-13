@@ -9,50 +9,67 @@ package com.intellij.lang.jsgraphql.parser
 
 import com.intellij.lang.jsgraphql.GraphQLParserDefinition
 import com.intellij.lang.jsgraphql.getTestDataPath
-import com.intellij.testFramework.ParsingTestCase
+import com.intellij.platform.testFramework.junit5.codeInsight.fixture.parsingFixture
+import com.intellij.testFramework.junit5.TestApplication
+import com.intellij.testFramework.junit5.fixture.projectFixture
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
-class GraphQLParserTest : ParsingTestCase("", "graphql", GraphQLParserDefinition()) {
+@TestApplication
+class GraphQLParserTest {
+  companion object {
+    private val projectFixture = projectFixture()
+  }
+
+  private val parsing by parsingFixture(projectFixture, getTestDataPath("parser"), "graphql", definitions = arrayOf(GraphQLParserDefinition()))
+
+  @BeforeEach
+  fun setUp() {
+    parsing.includeRanges = true
+  }
+
+  @Test
   fun testParsingTestData() {
-    doTest(true)
+    parsing.doTest(true)
   }
 
+  @Test
   fun testDirectives() {
-    doTest(true, true)
+    parsing.doTest(true, true)
   }
 
+  @Test
   fun testSchemaDescriptions() {
-    doTest(true, true)
+    parsing.doTest(true, true)
   }
 
+  @Test
   fun testSingleLineDescriptions() {
-    doTest(true, true)
+    parsing.doTest(true, true)
   }
 
+  @Test
   fun testMultilineDescriptions() {
-    doTest(true, true)
+    parsing.doTest(true, true)
   }
 
+  @Test
   fun testExtendSchema() {
-    doTest(true, true)
+    parsing.doTest(true, true)
   }
 
+  @Test
   fun testEmoji() {
-    doTest(true, true)
+    parsing.doTest(true, true)
   }
 
+  @Test
   fun testKeywordsAsIdentifiers() {
-    doTest(true, true)
+    parsing.doTest(true, true)
   }
 
+  @Test
   fun testDescriptionsForExecutableDefinitions() {
-    doTest(true, true)
-  }
-
-  override fun getTestDataPath(): String {
-    return getTestDataPath("parser")
-  }
-
-  override fun includeRanges(): Boolean {
-    return true
+    parsing.doTest(true, true)
   }
 }
