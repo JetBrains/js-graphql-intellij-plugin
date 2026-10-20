@@ -2,7 +2,7 @@
 
 package com.intellij.lang.jsgraphql
 
-import com.intellij.ide.scratch.ScratchRootType
+import com.intellij.ide.scratch.ScratchFileCreator
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_OVERRIDE_COMMENT
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_OVERRIDE_COMMENT_LEGACY
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_OVERRIDE_PROJECT_SEP
@@ -64,7 +64,7 @@ fun createScratchFile(
 
         }
         """.trimIndent()
-  return ScratchRootType.getInstance().createScratchFile(project, "scratch.graphql", GraphQLLanguage.INSTANCE, text)
+  return ScratchFileCreator.createScratchFile(project, "scratch.graphql", GraphQLLanguage.INSTANCE, text)
 }
 
 fun createOverrideConfigComment(
