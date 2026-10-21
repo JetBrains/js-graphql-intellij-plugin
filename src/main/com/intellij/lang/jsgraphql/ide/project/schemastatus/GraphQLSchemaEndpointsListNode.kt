@@ -8,6 +8,7 @@
 package com.intellij.lang.jsgraphql.ide.project.schemastatus
 
 import com.intellij.icons.AllIcons
+import com.intellij.ide.scratch.ScratchUtil
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.createScratchFromEndpoint
 import com.intellij.lang.jsgraphql.icons.GraphQLIcons
@@ -91,14 +92,16 @@ class GraphQLSchemaEndpointsListNode(
         }
       })
 
-      group.add(object : AnAction(
-        GraphQLBundle.messagePointer("graphql.toolwindow.action.create.scratch"),
-        GraphQLIcons.Files.GraphQLScratch,
-      ) {
-        override fun actionPerformed(e: AnActionEvent) {
-          createScratchFromEndpoint(myProject, endpoint, true)
-        }
-      })
+      if (ScratchUtil.findScratchesRootType() != null) {
+        group.add(object : AnAction(
+          GraphQLBundle.messagePointer("graphql.toolwindow.action.create.scratch"),
+          GraphQLIcons.Files.GraphQLScratch,
+        ) {
+          override fun actionPerformed(e: AnActionEvent) {
+            createScratchFromEndpoint(myProject, endpoint, true)
+          }
+        })
+      }
 
       val popupMenu =
         ActionManager.getInstance().createActionPopupMenu(GraphQLToolWindow.GRAPHQL_TOOL_WINDOW_POPUP, group)
