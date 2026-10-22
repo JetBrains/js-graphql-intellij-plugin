@@ -1,3 +1,4 @@
+load("@community//platform/build-scripts/bazel-rules:ij_plugin.bzl", "ij_plugin")
 load("@jps_dynamic_deps_ultimate//:targets.bzl", "dev_dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
@@ -106,6 +107,21 @@ jvm_library(
     ],
 )
 ### auto-generated section `build intellij.graphql` end
+
+### auto-generated section `plugin intellij.graphql` start
+ij_plugin(
+    name = "graphql_plugin",
+    descriptor_module = ":graphql",
+    content_modules = [
+        # do not sort,
+        "//plugins/js-graphql/javascript",
+        "//plugins/js-graphql/langInjection",
+        "//plugins/js-graphql/yaml",
+        "//plugins/js-graphql/libraries:libraries_plugin_module",
+    ],
+    visibility = ["//visibility:public"],
+)
+### auto-generated section `plugin intellij.graphql` end
 
 ### auto-generated section `iml intellij.graphql` start
 exports_files(
