@@ -1,1 +1,1 @@
-schema: /src/some/dir/schema.graphql
+schema: $TEMP_DIR$/some/dir/schema.graphql

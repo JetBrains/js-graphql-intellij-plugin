@@ -1,51 +1,59 @@
 package com.intellij.lang.jsgraphql.resolve
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.openapi.application.smartReadAction
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
 import com.intellij.util.CommonProcessors
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 
-class GraphQLPsiSearchTest : GraphQLTestCaseBase() {
-  override fun getBasePath(): String = "/resolve/search"
+@TestApplication
+class GraphQLPsiSearchTest {
+  private val graphQLFixture by graphQLTestFixture("/resolve/search")
 
-  fun testFragments() = runBlockingCancellable {
-    initTestProject()
-    val file = myFixture.configureFromTempProjectFile("fragments-in-js.js")
-    val actual = smartReadAction(project) {
-      val fragments = GraphQLPsiSearchHelper.getInstance(project).findFragmentDefinitions(file)
+  @Test
+  fun testFragments(): Unit = timeoutRunBlocking {
+    graphQLFixture.initTestProject()
+    val file = graphQLFixture.fixture.configureFromTempProjectFile("fragments-in-js.js")
+    val actual = smartReadAction(graphQLFixture.project) {
+      val fragments = GraphQLPsiSearchHelper.getInstance(graphQLFixture.project).findFragmentDefinitions(file)
       fragments.map { it.name }
     }
-    assertSameElements(actual, listOf("SomeFragmentInJs", "SomeFragmentInTs", "FragmentInVue"))
+    assertThat(actual).hasSameElementsAs(listOf("SomeFragmentInJs", "SomeFragmentInTs", "FragmentInVue"))
   }
 
-  fun testNamedElements() = runBlockingCancellable {
-    initTestProject()
+  @Test
+  fun testNamedElements(): Unit = timeoutRunBlocking {
+    graphQLFixture.initTestProject()
     val expectedNames = listOf("User", "userId", "userName", "UserInput", "newUserId", "newUserName", "UserRole", "ADMIN", "USER")
 
-    val actual = smartReadAction(project) {
-      val scope = GlobalSearchScope.projectScope(project)
+    val actual = smartReadAction(graphQLFixture.project) {
+      val scope = GlobalSearchScope.projectScope(graphQLFixture.project)
       val processor = CommonProcessors.CollectProcessor<PsiNamedElement>()
       for (expectedName in expectedNames) {
-        GraphQLPsiSearchHelper.getInstance(project).processNamedElements(project, expectedName, scope, processor)
+        GraphQLPsiSearchHelper.getInstance(graphQLFixture.project)
+          .processNamedElements(graphQLFixture.project, expectedName, scope, processor)
       }
       processor.results.map { it.name }
     }
 
-    assertSameElements(actual, expectedNames)
+    assertThat(actual).hasSameElementsAs(expectedNames)
   }
 
-  fun testInjections() = runBlockingCancellable {
-    initTestProject()
-    val actual = smartReadAction(project) {
-      val scope = GlobalSearchScope.projectScope(project)
+  @Test
+  fun testInjections(): Unit = timeoutRunBlocking {
+    graphQLFixture.initTestProject()
+    val actual = smartReadAction(graphQLFixture.project) {
+      val scope = GlobalSearchScope.projectScope(graphQLFixture.project)
       val processor = CommonProcessors.CollectProcessor<GraphQLFile>()
-      GraphQLPsiSearchHelper.getInstance(project).processInjectedGraphQLFiles(project, scope, processor)
+      GraphQLPsiSearchHelper.getInstance(graphQLFixture.project).processInjectedGraphQLFiles(graphQLFixture.project, scope, processor)
       processor.results.map { it.name }
     }
-    assertSameElements(actual, listOf("injections-in-js.js", "injections-in-ts.ts", "injections-in-vue.vue"))
+    assertThat(actual).hasSameElementsAs(listOf("injections-in-js.js", "injections-in-ts.ts", "injections-in-vue.vue"))
   }
 }

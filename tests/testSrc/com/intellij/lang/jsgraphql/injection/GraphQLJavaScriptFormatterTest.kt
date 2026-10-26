@@ -1,26 +1,27 @@
 package com.intellij.lang.jsgraphql.injection
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
-import com.intellij.openapi.application.EDT
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.openapi.command.writeCommandAction
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.codeStyle.CodeStyleManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLJavaScriptFormatterTest : GraphQLTestCaseBase() {
-  protected override fun getBasePath(): String = "/injection/formatter/js"
+@TestApplication
+class GraphQLJavaScriptFormatterTest {
+  private val graphQLFixture by graphQLTestFixture("/injection/formatter/js")
 
-  fun testInjections() = runBlockingCancellable {
+  @Test
+  fun testInjections(): Unit = timeoutRunBlocking {
     doTest()
   }
 
   private suspend fun doTest() {
-    myFixture.configureByFile("${getTestName(true)}.js")
-    withContext(Dispatchers.EDT) { myFixture.checkHighlighting() }  // is needed to force language injections
-    writeCommandAction(project, "") {
-      CodeStyleManager.getInstance(project).reformat(myFixture.getFile())
+    graphQLFixture.fixture.configureByFile("${graphQLFixture.getTestName(true)}.js")
+    graphQLFixture.fixture.checkHighlighting()  // is needed to force language injections
+    writeCommandAction(graphQLFixture.project, "") {
+      CodeStyleManager.getInstance(graphQLFixture.project).reformat(graphQLFixture.fixture.getFile())
     }
-    myFixture.checkResultByFile("${getTestName(true)}_after.js")
+    graphQLFixture.fixture.checkResultByFile("${graphQLFixture.getTestName(true)}_after.js")
   }
 }

@@ -7,196 +7,228 @@
  */
 package com.intellij.lang.jsgraphql.completion
 
-import com.intellij.lang.jsgraphql.GraphQLCompletionTestCaseBase
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.lang.jsgraphql.graphQLCompletionTestFixture
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
 
-class GraphQLSchemaCompletionTest : GraphQLCompletionTestCaseBase() {
-  override fun getBasePath(): String {
-    return "/completion/schema"
+@TestApplication
+class GraphQLSchemaCompletionTest {
+  private val completionFixture by graphQLCompletionTestFixture("/completion/schema")
+
+  @Test
+  fun testSchemaOperationTypes(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "CustomMutation", "ObjectType")
   }
 
-  fun testSchemaOperationTypes() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "CustomMutation", "ObjectType")
-  }
-
-  fun testExtendSchema() = runBlockingCancellable {
-    val lookupElements = doTest()
+  @Test
+  fun testExtendSchema(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
     assertNotNull(lookupElements)
-    assertEmpty(lookupElements!!)
+    assertThat(lookupElements!!).isEmpty()
   }
 
-  fun testExtendObjectType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "Mutation", "Organization",
-                       "OrganizationsListResponse", "Query", "TeamMember", "TeamMembersListResponse")
-    checkResult(lookupElements, "TeamMember")
+  @Test
+  fun testExtendObjectType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "Mutation", "Organization",
+                                         "OrganizationsListResponse", "Query", "TeamMember", "TeamMembersListResponse")
+    completionFixture.checkResult(lookupElements, "TeamMember")
   }
 
-  fun testExtendInterfaceType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "Entity", "NamedNode", "Node")
-    checkResult(lookupElements, "NamedNode")
+  @Test
+  fun testExtendInterfaceType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "Entity", "NamedNode", "Node")
+    completionFixture.checkResult(lookupElements, "NamedNode")
   }
 
-  fun testExtendUnionType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "Object", "ResponseTypes")
-    checkResult(lookupElements, "ResponseTypes")
+  @Test
+  fun testExtendUnionType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "Object", "ResponseTypes")
+    completionFixture.checkResult(lookupElements, "ResponseTypes")
   }
 
-  fun testExtendScalarType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "Boolean", "Date", "DateTime", "Float", "ID", "Int", "String")
-    checkResult(lookupElements, "DateTime")
+  @Test
+  fun testExtendScalarType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "Boolean", "Date", "DateTime", "Float", "ID", "Int", "String")
+    completionFixture.checkResult(lookupElements, "DateTime")
   }
 
-  fun testExtendInputType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements,
-                       "OrganizationInput", "OrganizationInputFilter", "TeamMemberInput", "TeamMemberInputFilter")
-    checkResult(lookupElements, "TeamMemberInput")
+  @Test
+  fun testExtendInputType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements,
+                                         "OrganizationInput", "OrganizationInputFilter", "TeamMemberInput", "TeamMemberInputFilter")
+    completionFixture.checkResult(lookupElements, "TeamMemberInput")
   }
 
-  fun testExtendEnumType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "SortOrder", "TeamMemberRole", "TeamMemberStatus")
-    checkResult(lookupElements, "TeamMemberRole")
+  @Test
+  fun testExtendEnumType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "SortOrder", "TeamMemberRole", "TeamMemberStatus")
+    completionFixture.checkResult(lookupElements, "TeamMemberRole")
   }
 
-  fun testFieldType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "AnotherKnownType", "Boolean", "Float", "Foo", "ID", "Int", "KnownInterface", "KnownType",
-                       "MyEnum", "MyUnion", "String")
+  @Test
+  fun testFieldType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "AnotherKnownType", "Boolean", "Float", "Foo", "ID", "Int", "KnownInterface",
+                                         "KnownType", "MyEnum", "MyUnion", "String")
   }
 
-  fun testFieldTypeListRequired() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "AnotherKnownType", "Boolean", "Float", "Foo", "ID", "Int", "KnownInterface", "KnownType",
-                       "MyEnum", "MyUnion", "String")
+  @Test
+  fun testFieldTypeListRequired(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "AnotherKnownType", "Boolean", "Float", "Foo", "ID", "Int", "KnownInterface",
+                                         "KnownType", "MyEnum", "MyUnion", "String")
   }
 
-  fun testUnionTypeMembers() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "OrganizationsListResponse", "TeamMember", "TeamMembersListResponse")
-    checkResult(lookupElements, "TeamMember")
+  @Test
+  fun testUnionTypeMembers(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "OrganizationsListResponse", "TeamMember", "TeamMembersListResponse")
+    completionFixture.checkResult(lookupElements, "TeamMember")
   }
 
-  fun testImplementsFirstInterface() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "KnownInterface1", "KnownInterface2")
-    checkResult(lookupElements, "KnownInterface1")
+  @Test
+  fun testImplementsFirstInterface(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "KnownInterface1", "KnownInterface2")
+    completionFixture.checkResult(lookupElements, "KnownInterface1")
   }
 
-  fun testImplementsSecondInterface() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "KnownInterface2")
-    checkResult(lookupElements, "KnownInterface2")
+  @Test
+  fun testImplementsSecondInterface(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "KnownInterface2")
+    completionFixture.checkResult(lookupElements, "KnownInterface2")
   }
 
-  fun testDirectiveLocations() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "ARGUMENT_DEFINITION", "ENUM", "ENUM_VALUE", "FIELD", "FIELD_DEFINITION", "FRAGMENT_DEFINITION",
-                       "FRAGMENT_SPREAD", "INLINE_FRAGMENT", "INPUT_FIELD_DEFINITION", "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT",
-                       "QUERY",
-                       "SCALAR", "SCHEMA", "SUBSCRIPTION", "UNION", "VARIABLE_DEFINITION")
+  @Test
+  fun testDirectiveLocations(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "ARGUMENT_DEFINITION", "ENUM", "ENUM_VALUE", "FIELD", "FIELD_DEFINITION",
+                                         "FRAGMENT_DEFINITION", "FRAGMENT_SPREAD", "INLINE_FRAGMENT", "INPUT_FIELD_DEFINITION",
+                                         "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT", "QUERY",
+                                         "SCALAR", "SCHEMA", "SUBSCRIPTION", "UNION", "VARIABLE_DEFINITION")
   }
 
-  fun testDirectiveLocations1() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "ENUM", "FIELD", "FIELD_DEFINITION", "FRAGMENT_DEFINITION", "FRAGMENT_SPREAD", "INLINE_FRAGMENT",
-                       "INPUT_FIELD_DEFINITION", "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT", "SCALAR", "SCHEMA", "SUBSCRIPTION",
-                       "UNION",
-                       "VARIABLE_DEFINITION")
+  @Test
+  fun testDirectiveLocations1(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "ENUM", "FIELD", "FIELD_DEFINITION", "FRAGMENT_DEFINITION", "FRAGMENT_SPREAD",
+                                         "INLINE_FRAGMENT", "INPUT_FIELD_DEFINITION", "INPUT_OBJECT", "INTERFACE", "MUTATION", "OBJECT",
+                                         "SCALAR", "SCHEMA", "SUBSCRIPTION", "UNION",
+                                         "VARIABLE_DEFINITION")
   }
 
-  fun testFieldOverride() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "fieldToImpl2(id: ID): Boolean", "fieldToImpl3: String")
-    checkResult(lookupElements, "fieldToImpl2(id: ID): Boolean")
+  @Test
+  fun testFieldOverride(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "fieldToImpl2(id: ID): Boolean", "fieldToImpl3: String")
+    completionFixture.checkResult(lookupElements, "fieldToImpl2(id: ID): Boolean")
   }
 
-  fun testFieldOverrideInterfaceExtension() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "createdAt: DateTime")
+  @Test
+  fun testFieldOverrideInterfaceExtension(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "createdAt: DateTime")
 
     // TODO: [vepanimas] currently ignores interface extensions
     // checkEqualsOrdered(lookupElements, "createdAt: DateTime", "updatedAt: DateTime");
   }
 
-  fun testInputFieldType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "Boolean", "Float", "ID", "Int", "MyCompletionInput", "MyEnum", "MyInput1", "String")
-    checkResult(lookupElements, "MyCompletionInput")
+  @Test
+  fun testInputFieldType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "Boolean", "Float", "ID", "Int", "MyCompletionInput", "MyEnum", "MyInput1",
+                                         "String")
+    completionFixture.checkResult(lookupElements, "MyCompletionInput")
   }
 
-  fun testArgumentType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String")
-    checkResult(lookupElements, "MyCompletionInputABC")
+  @Test
+  fun testArgumentType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String")
+    completionFixture.checkResult(lookupElements, "MyCompletionInputABC")
   }
 
-  fun testSecondArgumentType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String")
+  @Test
+  fun testSecondArgumentType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "Boolean", "Float", "ID", "Int", "MyCompletionInputABC", "MyEnum", "String")
   }
 
-  fun testDirectiveNames1() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "deprecated", "foo", "foo1")
-    checkResult(lookupElements, "foo")
+  @Test
+  fun testDirectiveNames1(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "deprecated", "foo", "foo1")
+    completionFixture.checkResult(lookupElements, "foo")
   }
 
-  fun testDirectiveNames2() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "deprecated", "foo")
-    checkResult(lookupElements, "deprecated")
+  @Test
+  fun testDirectiveNames2(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "deprecated", "foo")
+    completionFixture.checkResult(lookupElements, "deprecated")
   }
 
-  fun testDirectiveNamesScalar() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "specifiedBy")
-    checkResult(lookupElements, "specifiedBy")
+  @Test
+  fun testDirectiveNamesScalar(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "specifiedBy")
+    completionFixture.checkResult(lookupElements, "specifiedBy")
   }
 
-  fun testDirectiveNamesRequiredArgs() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "deprecated", "foo", "foo1")
-    checkResult(lookupElements, "foo1")
+  @Test
+  fun testDirectiveNamesRequiredArgs(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "deprecated", "foo", "foo1")
+    completionFixture.checkResult(lookupElements, "foo1")
   }
 
-  fun _testDirectiveNamesScalarBeforeItsDeclaration() = runBlockingCancellable {
+  fun _testDirectiveNamesScalarBeforeItsDeclaration(): Unit = timeoutRunBlocking {
     // TODO: [vepanimas] fix parser recovery for not completed top level definitions
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "specifiedBy", "required", "optional")
-    checkResult(lookupElements, "optional")
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "specifiedBy", "required", "optional")
+    completionFixture.checkResult(lookupElements, "optional")
   }
 
-  fun testDirectiveArguments() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "arg", "id", "s")
-    checkResult(lookupElements, "id")
+  @Test
+  fun testDirectiveArguments(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "arg", "id", "s")
+    completionFixture.checkResult(lookupElements, "id")
   }
 
-  fun _testDirectiveBooleanArgumentValues() = runBlockingCancellable {
+  fun _testDirectiveBooleanArgumentValues(): Unit = timeoutRunBlocking {
     // TODO: [vepanimas] currently not supported by the completion contributor
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "false", "true")
-    checkResult(lookupElements, "false")
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "false", "true")
+    completionFixture.checkResult(lookupElements, "false")
   }
 
-  fun testSchemaDirectives() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "DirSchema", "DirSchemaRepeatable")
+  @Test
+  fun testSchemaDirectives(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "DirSchema", "DirSchemaRepeatable")
   }
 
-  fun testSchemaExtensionDirectives() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "DirSchema", "DirSchemaRepeatable")
+  @Test
+  fun testSchemaExtensionDirectives(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "DirSchema", "DirSchemaRepeatable")
   }
 
-  fun testDefaultArgumentObjectValue() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "ASC", "DESC")
+  @Test
+  fun testDefaultArgumentObjectValue(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "ASC", "DESC")
   }
 }

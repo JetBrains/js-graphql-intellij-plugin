@@ -1,12 +1,16 @@
 package com.intellij.lang.jsgraphql.schema
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.types.schema.idl.SchemaPrinter
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.PsiFile
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 import java.util.function.UnaryOperator
 
-class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
+@TestApplication
+class GraphQLSchemaBuilderTest {
+  private val graphQLFixture by graphQLTestFixture("/schema/builder")
 
   companion object {
     private fun getOptions(optionsBuilder: UnaryOperator<SchemaPrinter.Options>?): SchemaPrinter.Options {
@@ -15,62 +19,71 @@ class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
     }
   }
 
-  override fun getBasePath() = "/schema/builder"
-
-  fun testObjects() = runBlockingCancellable {
+  @Test
+  fun testObjects() {
     doTest()
   }
 
-  fun testInterfaces() = runBlockingCancellable {
+  @Test
+  fun testInterfaces() {
     doTest()
   }
 
-  fun testUnions() = runBlockingCancellable {
+  @Test
+  fun testUnions() {
     doTest()
   }
 
-  fun testInputObjects() = runBlockingCancellable {
+  @Test
+  fun testInputObjects() {
     doTest()
   }
 
-  fun testScalars() = runBlockingCancellable {
+  @Test
+  fun testScalars() {
     doTest()
   }
 
-  fun testEnums() = runBlockingCancellable {
+  @Test
+  fun testEnums() {
     doTest()
   }
 
-  fun testDirectives() = runBlockingCancellable {
+  @Test
+  fun testDirectives() {
     doTest { it.includeDirectiveDefinitions(true) }
   }
 
-  fun testSchemas() = runBlockingCancellable {
+  @Test
+  fun testSchemas() {
     doTest()
   }
 
-  fun testSpecifiedByAndDeprecatedDirectives() = runBlockingCancellable {
+  @Test
+  fun testSpecifiedByAndDeprecatedDirectives() {
     doTest()
   }
 
-  fun testSchemaInInjections() = runBlockingCancellable {
+  @Test
+  fun testSchemaInInjections(): Unit = timeoutRunBlocking {
     doProjectTest("type1.graphql")
   }
 
-  fun testRecursiveDefaultObjectValues() = runBlockingCancellable {
+  @Test
+  fun testRecursiveDefaultObjectValues() {
     doTest()
   }
 
   private fun doTest(optionsBuilder: UnaryOperator<SchemaPrinter.Options>? = null) {
-    myFixture.configureByFile(getTestName(true) + ".graphql")
+    graphQLFixture.fixture.configureByFile(graphQLFixture.getTestName(true) + ".graphql")
 
-    val file = myFixture.file
+    val file = graphQLFixture.fixture.file
     checkByExpectedSchema(file, optionsBuilder)
   }
 
   private suspend fun doProjectTest(fileName: String, optionsBuilder: UnaryOperator<SchemaPrinter.Options>? = null) {
-    initTestProject()
-    val file = myFixture.configureFromTempProjectFile(fileName)!!
+    graphQLFixture.initTestProject()
+    val file = graphQLFixture.fixture.configureFromTempProjectFile(fileName)!!
     checkByExpectedSchema(file, optionsBuilder)
   }
 
@@ -78,9 +91,10 @@ class GraphQLSchemaBuilderTest : GraphQLTestCaseBase() {
     file: PsiFile?,
     optionsBuilder: UnaryOperator<SchemaPrinter.Options>?,
   ) {
-    val schemaProvider = GraphQLSchemaProvider.getInstance(myFixture.project)
+    val schemaProvider = GraphQLSchemaProvider.getInstance(graphQLFixture.project)
     val schema = schemaProvider.getSchemaInfo(file).schema
-    myFixture.configureByText("result.graphql", SchemaPrinter(project, getOptions(optionsBuilder)).print(schema))
-    myFixture.checkResultByFile("${getTestName(true)}_expected.graphql")
+    val text = SchemaPrinter(graphQLFixture.project, getOptions(optionsBuilder)).print(schema)
+    graphQLFixture.fixture.configureByText("result.graphql", text)
+    graphQLFixture.fixture.checkResultByFile("${graphQLFixture.getTestName(true)}_expected.graphql")
   }
 }

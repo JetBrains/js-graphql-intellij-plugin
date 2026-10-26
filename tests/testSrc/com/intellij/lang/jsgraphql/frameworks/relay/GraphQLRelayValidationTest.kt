@@ -1,16 +1,18 @@
 package com.intellij.lang.jsgraphql.frameworks.relay
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes
 import com.intellij.lang.jsgraphql.withLibrary
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLRelayValidationTest : GraphQLTestCaseBase() {
-  override fun getBasePath(): String {
-    return "/frameworks/relay/validation"
-  }
+@TestApplication
+class GraphQLRelayValidationTest {
+  private val graphQLFixture by graphQLTestFixture("/frameworks/relay/validation")
 
-  fun testSuppressedInspections() = runBlockingCancellable {
-    withLibrary(project, GraphQLBundledLibraryTypes.RELAY) { doHighlightingTest() }
+  @Test
+  fun testSuppressedInspections(): Unit = timeoutRunBlocking {
+    withLibrary(graphQLFixture.project, GraphQLBundledLibraryTypes.RELAY) { graphQLFixture.doHighlightingTest() }
   }
 }

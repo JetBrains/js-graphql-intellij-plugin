@@ -8,24 +8,21 @@
 package com.intellij.lang.jsgraphql.schema
 
 import com.intellij.codeInsight.completion.CompletionType
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
 import com.intellij.openapi.application.smartReadAction
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
 
-class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
-  override fun getBasePath() = "/schema/types"
+@TestApplication
+class GraphQLSchemaTypesTest {
+  private val graphQLFixture by graphQLTestFixture("/schema/types", enableAllInspections = true, initTestProject = true)
 
-  override fun setUp() {
-    super.setUp()
-
-    runBlockingCancellable {
-      initTestProject()
-      enableAllInspections()
-    }
-  }
-
-  fun testMultipleSchemasLegacy() = runBlockingCancellable {
+  @Test
+  fun testMultipleSchemasLegacy(): Unit = timeoutRunBlocking {
     // an explicit test for empty schema config
     doTest(
       "schema-one/query-one.graphql",
@@ -59,13 +56,15 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testExcludeLegacy() = runBlockingCancellable {
+  @Test
+  fun testExcludeLegacy(): Unit = timeoutRunBlocking {
     val fileName = "Types3.graphql"
     doTestTypeDefinitions(fileName, listOf("TheOnlyType"))
     doTestFragmentDefinitions(fileName, listOf("TheOnlyFragment"))
   }
 
-  fun testFragmentsInInjections() = runBlockingCancellable {
+  @Test
+  fun testFragmentsInInjections(): Unit = timeoutRunBlocking {
     doTest(
       "src/query2.js",
       listOf("FragmentOne", "FragmentTwo", "FragmentThree", "FragmentFour", "FragmentInSchema", "FragmentTested", "on"),
@@ -76,14 +75,16 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
     doTestHighlighting("src/query1.js", "src/index.html")
   }
 
-  fun testSchemaInJson() = runBlockingCancellable {
+  @Test
+  fun testSchemaInJson(): Unit = timeoutRunBlocking {
     val fileName = "client/query.graphql"
     doTestCompletion(fileName, listOf("localField", "Activity", "Character", "GenreCollection"), false)
     doTestTypeDefinitions(fileName, listOf("LocalType", "ThreadCommentLikeNotification", "ActivityMessageNotification", "ModAction"), false)
     doTestHighlighting("client/highlight.graphql")
   }
 
-  fun testSchemaInHtmlWithSOE() = runBlockingCancellable {
+  @Test
+  fun testSchemaInHtmlWithSOE(): Unit = timeoutRunBlocking {
     val fileName = "schema.graphql"
     doTestFragmentDefinitions(fileName, listOf("UserFragment"))
     doTestTypeDefinitions(fileName, listOf("User", "Query"))
@@ -102,47 +103,51 @@ class GraphQLSchemaTypesTest : GraphQLTestCaseBase() {
   }
 
   private fun doTestCompletion(fileName: String, expectedCompletions: List<String>, strict: Boolean = true) {
-    myFixture.configureFromTempProjectFile(fileName)
-    myFixture.complete(CompletionType.BASIC, 1)
-    val completions = myFixture.lookupElementStrings ?: emptyList()
+    graphQLFixture.fixture.configureFromTempProjectFile(fileName)
+    graphQLFixture.fixture.complete(CompletionType.BASIC, 1)
+    val completions = graphQLFixture.fixture.lookupElementStrings ?: emptyList()
     if (strict) {
-      assertSameElements(completions, expectedCompletions)
+      assertThat(completions).hasSameElementsAs(expectedCompletions)
     }
     else {
-      assertContainsElements(completions, expectedCompletions)
+      assertThat(completions).containsAll(expectedCompletions)
     }
   }
 
   private suspend fun doTestFragmentDefinitions(fileName: String, expectedFragments: List<String>, strict: Boolean = true) {
-    val file = myFixture.configureFromTempProjectFile(fileName)!!
-    val fragments = smartReadAction(project) { GraphQLPsiSearchHelper.getInstance(project).findFragmentDefinitions(file).map { it.name } }
+    val file = graphQLFixture.fixture.configureFromTempProjectFile(fileName)!!
+    val fragments = smartReadAction(graphQLFixture.project) {
+      GraphQLPsiSearchHelper.getInstance(graphQLFixture.project).findFragmentDefinitions(file).map { it.name }
+    }
     if (strict) {
-      assertSameElements(fragments, expectedFragments)
+      assertThat(fragments).hasSameElementsAs(expectedFragments)
     }
     else {
-      assertContainsElements(fragments, expectedFragments)
+      assertThat(fragments).containsAll(expectedFragments)
     }
   }
 
   private suspend fun doTestTypeDefinitions(fileName: String, expectedTypes: List<String>, strict: Boolean = true) {
-    val psiFile = myFixture.configureFromTempProjectFile(fileName)
+    val psiFile = graphQLFixture.fixture.configureFromTempProjectFile(fileName)
     assertNotNull(psiFile)
-    val registry = smartReadAction(project) { GraphQLSchemaProvider.getInstance(project).getSchemaInfo(psiFile).registry }
+    val registry = smartReadAction(graphQLFixture.project) {
+      GraphQLSchemaProvider.getInstance(graphQLFixture.project).getSchemaInfo(psiFile).registry
+    }
     val types = registry.types().values
       .map { it.name }
       .filter { !GraphQLKnownTypes.isIntrospectionType(it) }
     if (strict) {
-      assertSameElements(types, expectedTypes)
+      assertThat(types).hasSameElementsAs(expectedTypes)
     }
     else {
-      assertContainsElements(types, expectedTypes)
+      assertThat(types).containsAll(expectedTypes)
     }
   }
 
   private fun doTestHighlighting(vararg files: String) {
     files.forEach {
-      myFixture.configureFromTempProjectFile(it)
-      myFixture.checkHighlighting()
+      graphQLFixture.fixture.configureFromTempProjectFile(it)
+      graphQLFixture.fixture.checkHighlighting()
     }
   }
 }

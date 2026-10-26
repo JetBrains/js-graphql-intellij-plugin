@@ -1,18 +1,15 @@
 package com.intellij.lang.jsgraphql.validation
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.lang.jsgraphql.graphQLTestFixture
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLDeprecatedSymbolsInspectionTest : GraphQLTestCaseBase() {
+@TestApplication
+class GraphQLDeprecatedSymbolsInspectionTest {
+  private val graphQLFixture by graphQLTestFixture("/validation/deprecated", enableAllInspections = true)
 
-  override fun getBasePath(): String = "/validation/deprecated"
-
-  override fun setUp() {
-    super.setUp()
-    enableAllInspections()
-  }
-
-  fun testDeprecatedSymbols() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testDeprecatedSymbols() {
+    graphQLFixture.doHighlightingTest()
   }
 }

@@ -1,31 +1,30 @@
 package com.intellij.lang.jsgraphql.validation
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.lang.jsgraphql.graphQLTestFixture
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLSuppressTest : GraphQLTestCaseBase() {
-  override fun getBasePath(): String {
-    return "/validation/suppress"
+@TestApplication
+class GraphQLSuppressTest {
+  private val graphQLFixture by graphQLTestFixture("/validation/suppress", enableAllInspections = true)
+
+  @Test
+  fun testSuppressOnDefinition() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  override fun setUp() {
-    super.setUp()
-    enableAllInspections()
+  @Test
+  fun testSuppressOnFile() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testSuppressOnDefinition() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testSuppressOnStatementInjected() {
+    graphQLFixture.doHighlightingTest("js")
   }
 
-  fun testSuppressOnFile() = runBlockingCancellable {
-    doHighlightingTest()
-  }
-
-  fun testSuppressOnStatementInjected() = runBlockingCancellable {
-    doHighlightingTest("js")
-  }
-
-  fun testSuppressOnFileInjected() = runBlockingCancellable {
-    doHighlightingTest("js")
+  @Test
+  fun testSuppressOnFileInjected() {
+    graphQLFixture.doHighlightingTest("js")
   }
 }

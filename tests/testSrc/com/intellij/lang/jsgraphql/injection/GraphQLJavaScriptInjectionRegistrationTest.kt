@@ -9,150 +9,160 @@ package com.intellij.lang.jsgraphql.injection
 
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.lang.jsgraphql.GraphQLFileType
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.reloadGraphQLConfiguration
 import com.intellij.lang.jsgraphql.types.language.AstPrinter
-import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.smartReadAction
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
 import com.intellij.util.CommonProcessors
-import junit.framework.TestCase
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Test
 
-class GraphQLJavaScriptInjectionRegistrationTest : GraphQLTestCaseBase() {
-  override fun setUp() {
-    super.setUp()
-
-    enableAllInspections()
-  }
+@TestApplication
+class GraphQLJavaScriptInjectionRegistrationTest {
+  private val graphQLFixture by graphQLTestFixture("/injection/registration/js", enableAllInspections = true)
 
   private suspend fun initPredefinedSchema() {
-    edtWriteAction {
-      myFixture.configureByFiles(
-        "schema.graphql",
-        ".graphqlconfig",
-        "lines-1/.graphqlconfig",
-        "lines-2/.graphqlconfig"
-      )
-    }
+    graphQLFixture.fixture.configureByFiles(
+      "schema.graphql",
+      ".graphqlconfig",
+      "lines-1/.graphqlconfig",
+      "lines-2/.graphqlconfig"
+    )
 
-    myFixture.reloadGraphQLConfiguration()
+    graphQLFixture.fixture.reloadGraphQLConfiguration()
   }
 
-  override fun getBasePath(): String {
-    return "/injection/registration/js"
-  }
-
-  fun testErrorAnnotatorOnFragments() = runBlockingCancellable {
+  @Test
+  fun testErrorAnnotatorOnFragments(): Unit = timeoutRunBlocking {
     initPredefinedSchema()
-    edtWriteAction { myFixture.configureByFiles("injection-comment.js") }
-    myFixture.checkHighlighting()
-    val highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR)
-    TestCase.assertEquals("Expected just one error", 1, highlighting.size)
-    TestCase.assertEquals("Unknown fragment name should be the error",
-                          "OnlyTheUnknownFragmentShouldBeHighlightedAsError",
-                          highlighting[0]!!.text)
+    graphQLFixture.fixture.configureByFiles("injection-comment.js")
+    graphQLFixture.fixture.checkHighlighting()
+    val highlighting = graphQLFixture.fixture.doHighlighting(HighlightSeverity.ERROR)
+    assertEquals(1, highlighting.size, "Expected just one error")
+    assertEquals("OnlyTheUnknownFragmentShouldBeHighlightedAsError",
+                 highlighting[0]!!.text,
+                 "Unknown fragment name should be the error")
   }
 
-  fun testErrorAnnotatorSourceLines1() = runBlockingCancellable {
+  @Test
+  fun testErrorAnnotatorSourceLines1(): Unit = timeoutRunBlocking {
     initPredefinedSchema()
-    edtWriteAction { myFixture.configureByFiles("lines-1/injection-source-lines-1.js") }
-    myFixture.checkHighlighting()
-    val highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR)
-    TestCase.assertEquals("Expected just one error", 1, highlighting.size)
-    TestCase.assertEquals("Should mark ServerType with an error", "ServerType", highlighting[0]!!.getText())
-    TestCase.assertEquals("Should mark ServerType in the right injected position", 193, highlighting[0]!!.getStartOffset())
+    graphQLFixture.fixture.configureByFiles("lines-1/injection-source-lines-1.js")
+    graphQLFixture.fixture.checkHighlighting()
+    val highlighting = graphQLFixture.fixture.doHighlighting(HighlightSeverity.ERROR)
+    assertEquals(1, highlighting.size, "Expected just one error")
+    assertEquals("ServerType", highlighting[0]!!.getText(), "Should mark ServerType with an error")
+    assertEquals(193, highlighting[0]!!.getStartOffset(), "Should mark ServerType in the right injected position")
   }
 
-  fun testErrorAnnotatorSourceLines2() = runBlockingCancellable {
+  @Test
+  fun testErrorAnnotatorSourceLines2(): Unit = timeoutRunBlocking {
     initPredefinedSchema()
-    edtWriteAction { myFixture.configureByFiles("lines-2/injection-source-lines-2.js") }
-    myFixture.checkHighlighting()
-    val highlighting = myFixture.doHighlighting(HighlightSeverity.ERROR)
-    TestCase.assertEquals("Expected just one error", 1, highlighting.size)
-    TestCase.assertEquals("Should mark OutputType with an error", "OutputType", highlighting[0]!!.getText())
-    TestCase.assertEquals("Should mark OutputType in the right injected position", 201, highlighting[0]!!.getStartOffset())
+    graphQLFixture.fixture.configureByFiles("lines-2/injection-source-lines-2.js")
+    graphQLFixture.fixture.checkHighlighting()
+    val highlighting = graphQLFixture.fixture.doHighlighting(HighlightSeverity.ERROR)
+    assertEquals(1, highlighting.size, "Expected just one error")
+    assertEquals("OutputType", highlighting[0]!!.getText(), "Should mark OutputType with an error")
+    assertEquals(201, highlighting[0]!!.getStartOffset(), "Should mark OutputType in the right injected position")
   }
 
-  fun testInjectedTemplatesDontFail() = runBlockingCancellable {
+  @Test
+  fun testInjectedTemplatesDontFail(): Unit = timeoutRunBlocking {
     val injectedFile = doTestInjectedFile("injectedTemplates/injectedTemplates.js")
-    myFixture.configureByText(GraphQLFileType.INSTANCE, readAction { AstPrinter.printAst((injectedFile as GraphQLFile).document) })
-    myFixture.checkResultByFile("injectedTemplates/injectedTemplates_expected.graphql")
+    val text = readAction { AstPrinter.printAst((injectedFile as GraphQLFile).document) }
+    graphQLFixture.fixture.configureByText(GraphQLFileType.INSTANCE, text)
+    graphQLFixture.fixture.checkResultByFile("injectedTemplates/injectedTemplates_expected.graphql")
   }
 
-  fun testInjectedWithEOLComment() = runBlockingCancellable<Unit> {
+  @Test
+  fun testInjectedWithEOLComment(): Unit = timeoutRunBlocking {
     doTestInjectedFile("eolComment.js")
   }
 
-  fun testInjectedWithEOLComment1() = runBlockingCancellable<Unit> {
+  @Test
+  fun testInjectedWithEOLComment1(): Unit = timeoutRunBlocking {
     doTestInjectedFile("eolComment1.js")
   }
 
-  fun testInjectedWithEOLCommentInvalid() = runBlockingCancellable {
+  @Test
+  fun testInjectedWithEOLCommentInvalid(): Unit = timeoutRunBlocking {
     doTestNoInjections("eolCommentInvalid.js")
   }
 
-  fun testInjectedWithEOLCommentInvalid1() = runBlockingCancellable {
+  @Test
+  fun testInjectedWithEOLCommentInvalid1(): Unit = timeoutRunBlocking {
     doTestNoInjections("eolCommentInvalid1.js")
   }
 
-  fun testInjectedWithCStyleComment() = runBlockingCancellable<Unit> {
+  @Test
+  fun testInjectedWithCStyleComment(): Unit = timeoutRunBlocking {
     doTestInjectedFile("cStyleComment.js")
   }
 
-  fun testInjectedWithCStyleCommentTagged() = runBlockingCancellable<Unit> {
+  @Test
+  fun testInjectedWithCStyleCommentTagged(): Unit = timeoutRunBlocking {
     doTestInjectedFile("cStyleCommentTagged.js")
   }
 
-  fun testInjectedWithCStyleCommentMultipleVars() = runBlockingCancellable<Unit> {
+  @Test
+  fun testInjectedWithCStyleCommentMultipleVars(): Unit = timeoutRunBlocking {
     doTestInjectedFile("cStyleCommentMultipleVars.js")
   }
 
-  fun testInjectedInCallArgument() = runBlockingCancellable<Unit> {
+  @Test
+  fun testInjectedInCallArgument(): Unit = timeoutRunBlocking {
     doTestInjectedFile("callArgument.js")
   }
 
-  fun testInjectedInGqlCallArgument() = runBlockingCancellable<Unit> {
+  @Test
+  fun testInjectedInGqlCallArgument(): Unit = timeoutRunBlocking {
     doTestInjectedFile("gqlCallArgument.js")
   }
 
-  fun testInjectedWithCStyleCommentAsType() = runBlockingCancellable<Unit> {
+  @Test
+  fun testInjectedWithCStyleCommentAsType(): Unit = timeoutRunBlocking {
     doTestInjectedFile("cStyleCommentAsType.ts")
   }
 
-  fun testInjectedWithCStyleCommentAsTypeTagged() = runBlockingCancellable<Unit> {
+  @Test
+  fun testInjectedWithCStyleCommentAsTypeTagged(): Unit = timeoutRunBlocking {
     doTestInjectedFile("cStyleCommentAsTypeTagged.ts")
   }
 
   private suspend fun doTestInjectedFile(sourcePath: String): PsiFile {
-    edtWriteAction { myFixture.configureByFile(sourcePath) }
+    graphQLFixture.fixture.configureByFile(sourcePath)
     val psiFiles = readAction {
       mutableListOf<PsiFile>().also {
-        GraphQLPsiSearchHelper.getInstance(project).processInjectedGraphQLFiles(
-          project, GlobalSearchScope.allScope(project), CommonProcessors.CollectProcessor(it)
+        GraphQLPsiSearchHelper.getInstance(graphQLFixture.project).processInjectedGraphQLFiles(
+          graphQLFixture.project, GlobalSearchScope.allScope(graphQLFixture.project), CommonProcessors.CollectProcessor(it)
         )
       }
     }
-    assertSize(1, psiFiles)
+    assertThat(psiFiles).hasSize(1)
 
     val injectedFile = psiFiles.first()
-    assertInstanceOf(injectedFile, GraphQLFile::class.java)
+    assertInstanceOf(GraphQLFile::class.java, injectedFile)
 
     return injectedFile
   }
 
   private suspend fun doTestNoInjections(sourcePath: String) {
-    edtWriteAction { myFixture.configureByFile(sourcePath) }
-    val psiFiles = smartReadAction(project) {
+    graphQLFixture.fixture.configureByFile(sourcePath)
+    val psiFiles = smartReadAction(graphQLFixture.project) {
       mutableListOf<PsiFile>().also {
-        GraphQLPsiSearchHelper.getInstance(project).processInjectedGraphQLFiles(
-          project, GlobalSearchScope.allScope(project), CommonProcessors.CollectProcessor(it))
+        GraphQLPsiSearchHelper.getInstance(graphQLFixture.project).processInjectedGraphQLFiles(
+          graphQLFixture.project, GlobalSearchScope.allScope(graphQLFixture.project), CommonProcessors.CollectProcessor(it))
       }
     }
-    assertEmpty(psiFiles)
+    assertThat(psiFiles).isEmpty()
   }
 }

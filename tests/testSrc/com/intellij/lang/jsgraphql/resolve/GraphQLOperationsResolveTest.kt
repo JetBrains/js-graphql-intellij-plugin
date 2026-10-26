@@ -1,118 +1,142 @@
 package com.intellij.lang.jsgraphql.resolve
 
-import com.intellij.lang.jsgraphql.GraphQLResolveTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLResolveTestFixture
 import com.intellij.lang.jsgraphql.psi.GraphQLDirectiveDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLInputValueDefinition
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
-
+@TestApplication
+class GraphQLOperationsResolveTest {
   companion object {
     private const val GITHUB_SCHEMA = "GithubSchema.graphql"
   }
 
-  override fun getBasePath(): String {
-    return "/resolve/operations"
+  private val resolveFixture by graphQLResolveTestFixture("/resolve/operations")
+
+  @Test
+  fun testQueryFieldRoot(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
   }
 
-  fun testQueryFieldRoot() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
+  @Test
+  fun testCustomQueryFieldRoot(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
   }
 
-  fun testCustomQueryFieldRoot() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
+  @Test
+  fun testSelectionSetQueryFieldRoot(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
   }
 
-  fun testSelectionSetQueryFieldRoot() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
+  @Test
+  fun testMutationFieldRoot(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createUser")
   }
 
-  fun testMutationFieldRoot() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createUser")
+  @Test
+  fun testCustomMutationFieldRoot(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createUser")
   }
 
-  fun testCustomMutationFieldRoot() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createUser")
+  @Test
+  fun testSubscriptionFieldRoot(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "users")
   }
 
-  fun testSubscriptionFieldRoot() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "users")
+  @Test
+  fun testCustomSubscriptionFieldRoot(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "users")
   }
 
-  fun testCustomSubscriptionFieldRoot() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "users")
+  @Test
+  fun testFragmentName(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFragmentDefinition::class.java, "fragment1")
   }
 
-  fun testFragmentName() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFragmentDefinition::class.java, "fragment1")
+  @Test
+  fun testFragmentObjectField(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
   }
 
-  fun testFragmentObjectField() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "name")
+  @Test
+  fun testFragmentObjectFieldExtension(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "email")
   }
 
-  fun testFragmentObjectFieldExtension() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "email")
+  @Test
+  fun testFragmentInterfaceField(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "id")
   }
 
-  fun testFragmentInterfaceField() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "id")
+  @Test
+  fun testFragmentInterfaceFieldExtension(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createdAt")
   }
 
-  fun testFragmentInterfaceFieldExtension() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "createdAt")
+  @Test
+  fun testFragmentUnionField(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "language")
   }
 
-  fun testFragmentUnionField() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "language")
+  @Test
+  fun testFragmentUnionFieldExtension(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "someOtherField")
   }
 
-  fun testFragmentUnionFieldExtension() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "someOtherField")
+  @Test
+  fun testFragmentInlineAnonymous(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "id")
   }
 
-  fun testFragmentInlineAnonymous() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLFieldDefinition::class.java, "id")
+  @Test
+  fun testFieldArgument(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "after")
   }
 
-  fun testFieldArgument() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "after")
+  @Test
+  fun testDirectiveArgument(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "second")
   }
 
-  fun testDirectiveArgument() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "second")
+  @Test
+  fun testDirective(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLDirectiveDefinition::class.java, "someDir")
   }
 
-  fun testDirective() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLDirectiveDefinition::class.java, "someDir")
+  @Test
+  fun testInputValue(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "address")
   }
 
-  fun testInputValue() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "address")
+  @Test
+  fun testInputValueNested(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "zip")
   }
 
-  fun testInputValueNested() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "zip")
+  @Test
+  fun testInputValueDefinitionDefault(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "street")
   }
 
-  fun testInputValueDefinitionDefault() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "street")
+  @Test
+  fun testGithubQueries(): Unit = timeoutRunBlocking {
+    resolveFixture.fixture.copyFileToProject(GITHUB_SCHEMA)
+    resolveFixture.doHighlightingTest()
   }
 
-  fun testGithubQueries() = runBlockingCancellable {
-    myFixture.copyFileToProject(GITHUB_SCHEMA)
-    doHighlightingTest()
+  @Test
+  fun testUnresolvedReferences(): Unit = timeoutRunBlocking {
+    resolveFixture.fixture.copyFileToProject(GITHUB_SCHEMA)
+    resolveFixture.doHighlightingTest()
   }
 
-  fun testUnresolvedReferences() = runBlockingCancellable {
-    myFixture.copyFileToProject(GITHUB_SCHEMA)
-    doHighlightingTest()
-  }
-
-  fun testFragmentExplicitDocumentsGlob() = runBlockingCancellable<Unit> {
-    doProjectResolveTest(
+  @Test
+  fun testFragmentExplicitDocumentsGlob(): Unit = timeoutRunBlocking {
+    resolveFixture.doProjectResolveTest(
       "bar/bar.js",
       GraphQLFragmentDefinition::class.java,
       "UserFragment",
@@ -120,8 +144,9 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentFallbackToFirstNonStrictProject() = runBlockingCancellable<Unit> {
-    doProjectResolveTest(
+  @Test
+  fun testFragmentFallbackToFirstNonStrictProject(): Unit = timeoutRunBlocking {
+    resolveFixture.doProjectResolveTest(
       "bar/bar.js",
       GraphQLFragmentDefinition::class.java,
       "UserFragment",
@@ -129,8 +154,9 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentFallbackToFirstNonStrictProjectSkipInclude() = runBlockingCancellable<Unit> {
-    doProjectResolveTest(
+  @Test
+  fun testFragmentFallbackToFirstNonStrictProjectSkipInclude(): Unit = timeoutRunBlocking {
+    resolveFixture.doProjectResolveTest(
       "bar/bar.js",
       GraphQLFragmentDefinition::class.java,
       "UserFragment",
@@ -138,8 +164,9 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentMatchedBySchema() = runBlockingCancellable<Unit> {
-    doProjectResolveTest(
+  @Test
+  fun testFragmentMatchedBySchema(): Unit = timeoutRunBlocking {
+    resolveFixture.doProjectResolveTest(
       "bar/bar.js",
       GraphQLFragmentDefinition::class.java,
       "UserFragment",
@@ -147,8 +174,9 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentInjectedInHtml() = runBlockingCancellable<Unit> {
-    doProjectResolveTest(
+  @Test
+  fun testFragmentInjectedInHtml(): Unit = timeoutRunBlocking {
+    resolveFixture.doProjectResolveTest(
       "index.html",
       GraphQLFragmentDefinition::class.java,
       "UserFragment",
@@ -156,8 +184,9 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentInjectedResolvedToOtherInjection() = runBlockingCancellable<Unit> {
-    doProjectResolveTest(
+  @Test
+  fun testFragmentInjectedResolvedToOtherInjection(): Unit = timeoutRunBlocking {
+    resolveFixture.doProjectResolveTest(
       "index.html",
       GraphQLFragmentDefinition::class.java,
       "UserFragment",
@@ -165,8 +194,9 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentIncluded() = runBlockingCancellable<Unit> {
-    doProjectResolveTest(
+  @Test
+  fun testFragmentIncluded(): Unit = timeoutRunBlocking {
+    resolveFixture.doProjectResolveTest(
       "query.graphql",
       GraphQLFragmentDefinition::class.java,
       "UserFragment",
@@ -174,11 +204,13 @@ class GraphQLOperationsResolveTest : GraphQLResolveTestCaseBase() {
     )
   }
 
-  fun testFragmentExcluded() = runBlockingCancellable {
-    doProjectHighlighting("query.graphql")
+  @Test
+  fun testFragmentExcluded(): Unit = timeoutRunBlocking {
+    resolveFixture.doProjectHighlighting("query.graphql")
   }
 
-  fun testInputFieldAsVariableDefaultValue() = runBlockingCancellable<Unit> {
-    doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "direction")
+  @Test
+  fun testInputFieldAsVariableDefaultValue(): Unit = timeoutRunBlocking {
+    resolveFixture.doResolveWithOffsetTest(GraphQLInputValueDefinition::class.java, "direction")
   }
 }

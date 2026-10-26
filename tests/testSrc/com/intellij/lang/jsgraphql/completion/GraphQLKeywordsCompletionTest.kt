@@ -7,93 +7,108 @@
  */
 package com.intellij.lang.jsgraphql.completion
 
-import com.intellij.lang.jsgraphql.GraphQLCompletionTestCaseBase
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.lang.jsgraphql.graphQLCompletionTestFixture
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLKeywordsCompletionTest : GraphQLCompletionTestCaseBase() {
-  override fun getBasePath(): String {
-    return "/completion/keywords"
+@TestApplication
+class GraphQLKeywordsCompletionTest {
+  private val completionFixture by graphQLCompletionTestFixture("/completion/keywords")
+
+  @Test
+  fun testTopLevelKeywords(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
+                                         "input", "interface", "mutation", "query", "scalar",
+                                         "schema", "subscription", "type", "union")
+    completionFixture.checkResult(lookupElements, "input")
   }
 
-  fun testTopLevelKeywords() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
-                       "input", "interface", "mutation", "query", "scalar",
-                       "schema", "subscription", "type", "union")
-    checkResult(lookupElements, "input")
+  @Test
+  fun testTopLevelKeywordsOnlyAtLineStart(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkDoesNotContain(lookupElements, "directive", "enum", "extend", "fragment",
+                                          "input", "interface", "mutation", "query", "scalar",
+                                          "schema", "subscription", "type", "union")
   }
 
-  fun testTopLevelKeywordsOnlyAtLineStart() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkDoesNotContain(lookupElements, "directive", "enum", "extend", "fragment",
-                        "input", "interface", "mutation", "query", "scalar",
-                        "schema", "subscription", "type", "union")
+  @Test
+  fun testTopLevelKeywordsAfterComment(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
+                                         "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union")
   }
 
-  fun testTopLevelKeywordsAfterComment() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "directive", "enum", "extend", "fragment",
-                       "input", "interface", "mutation", "query", "scalar", "schema", "subscription", "type", "union")
+  @Test
+  fun testExtendKeywords(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "enum", "input", "interface", "scalar", "schema", "type", "union")
   }
 
-  fun testExtendKeywords() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "enum", "input", "interface", "scalar", "schema", "type", "union")
+  @Test
+  fun testDirectiveKeywords(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "on", "repeatable")
+    completionFixture.checkResult(lookupElements, "repeatable")
   }
 
-  fun testDirectiveKeywords() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "on", "repeatable")
-    checkResult(lookupElements, "repeatable")
+  @Test
+  fun testDirectiveKeywords1(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "on")
   }
 
-  fun testDirectiveKeywords1() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "on")
+  @Test
+  fun testImplementsKeyword1(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "implements")
+    completionFixture.checkResult(lookupElements, "implements")
   }
 
-  fun testImplementsKeyword1() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "implements")
-    checkResult(lookupElements, "implements")
+  @Test
+  fun testImplementsKeyword2(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "implements")
+    completionFixture.checkResult(lookupElements, "implements")
   }
 
-  fun testImplementsKeyword2() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "implements")
-    checkResult(lookupElements, "implements")
+  @Test
+  fun testImplementsKeywordExtendType(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "implements")
   }
 
-  fun testImplementsKeywordExtendType() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "implements")
+  @Test
+  fun testImplementsKeywordInterface(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "implements")
   }
 
-  fun testImplementsKeywordInterface() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "implements")
+  @Test
+  fun testImplementsKeywordExtendInterface(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "implements")
   }
 
-  fun testImplementsKeywordExtendInterface() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "implements")
+  @Test
+  fun testSchemaOperationNames(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "mutation", "subscription")
+    completionFixture.checkResult(lookupElements, "mutation")
   }
 
-  fun testSchemaOperationNames() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "mutation", "subscription")
-    checkResult(lookupElements, "mutation")
+  @Test
+  fun testFragmentInlineOnKeyword(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "on")
+    completionFixture.checkResult(lookupElements, "on")
   }
 
-  fun testFragmentInlineOnKeyword() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "on")
-    checkResult(lookupElements, "on")
-  }
-
-  fun testFragmentInlineOnKeywordWithSpace() = runBlockingCancellable {
-    val lookupElements = doTest()
-    checkEqualsOrdered(lookupElements, "on")
-    checkResult(lookupElements, "on")
+  @Test
+  fun testFragmentInlineOnKeywordWithSpace(): Unit = timeoutRunBlocking {
+    val lookupElements = completionFixture.doTest()
+    completionFixture.checkEqualsOrdered(lookupElements, "on")
+    completionFixture.checkResult(lookupElements, "on")
   }
 }

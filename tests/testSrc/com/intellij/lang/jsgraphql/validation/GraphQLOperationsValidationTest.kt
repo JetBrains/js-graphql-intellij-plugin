@@ -1,27 +1,25 @@
 package com.intellij.lang.jsgraphql.validation
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.lang.jsgraphql.graphQLTestFixture
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLOperationsValidationTest : GraphQLTestCaseBase() {
-  override fun getBasePath(): String {
-    return "/validation/operations"
+@TestApplication
+class GraphQLOperationsValidationTest {
+  private val graphQLFixture by graphQLTestFixture("/validation/operations", enableAllInspections = true)
+
+  @Test
+  fun testRepeatableDirectives() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  override fun setUp() {
-    super.setUp()
-    enableAllInspections()
+  @Test
+  fun testWrongTypes() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testRepeatableDirectives() = runBlockingCancellable {
-    doHighlightingTest()
-  }
-
-  fun testWrongTypes() = runBlockingCancellable {
-    doHighlightingTest()
-  }
-
-  fun testDuplicates() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testDuplicates() {
+    graphQLFixture.doHighlightingTest()
   }
 }

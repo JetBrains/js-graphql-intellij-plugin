@@ -1,38 +1,38 @@
 package com.intellij.lang.jsgraphql.frameworks.federation
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.schema.GraphQLSchemaProvider
 import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes
 import com.intellij.lang.jsgraphql.withLibrary
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
 
-class GraphQLFederationValidationTest : GraphQLTestCaseBase() {
+@TestApplication
+class GraphQLFederationValidationTest {
+  private val graphQLFixture by graphQLTestFixture("/frameworks/federation/validation", enableAllInspections = true)
 
-  @Throws(Exception::class)
-  override fun setUp() {
-    super.setUp()
-    enableAllInspections()
-  }
+  @Test
+  fun testQueryValidation(): Unit = timeoutRunBlocking {
+    withLibrary(graphQLFixture.project, GraphQLBundledLibraryTypes.FEDERATION) {
+      graphQLFixture.doHighlightingTest()
 
-  override fun getBasePath() = "/frameworks/federation/validation"
-
-  fun testQueryValidation() = runBlockingCancellable {
-    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION) {
-      doHighlightingTest()
-
-      val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(myFixture.file)
+      val schemaInfo = GraphQLSchemaProvider.getInstance(graphQLFixture.project).getSchemaInfo(graphQLFixture.fixture.file)
       assertNotNull(schemaInfo)
-      assertEmpty(schemaInfo.getErrors(project))
+      assertThat(schemaInfo.getErrors(graphQLFixture.project)).isEmpty()
     }
   }
 
-  fun testEmptySchemaValidation() = runBlockingCancellable {
-    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION) {
-      val globalScope = GraphQLScopeProvider.getInstance(project).globalScope
-      val schemaInfo = GraphQLSchemaProvider.getInstance(project).getSchemaInfo(globalScope)
+  @Test
+  fun testEmptySchemaValidation(): Unit = timeoutRunBlocking {
+    withLibrary(graphQLFixture.project, GraphQLBundledLibraryTypes.FEDERATION) {
+      val globalScope = GraphQLScopeProvider.getInstance(graphQLFixture.project).globalScope
+      val schemaInfo = GraphQLSchemaProvider.getInstance(graphQLFixture.project).getSchemaInfo(globalScope)
       assertNotNull(schemaInfo)
-      assertEmpty(schemaInfo.getErrors(project))
+      assertThat(schemaInfo.getErrors(graphQLFixture.project)).isEmpty()
     }
   }
 }

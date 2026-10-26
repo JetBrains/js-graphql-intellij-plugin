@@ -1,107 +1,125 @@
 package com.intellij.lang.jsgraphql.validation
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.lang.jsgraphql.graphQLTestFixture
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLSchemaValidationTest : GraphQLTestCaseBase() {
-  override fun getBasePath(): String {
-    return "/validation/schema"
+@TestApplication
+class GraphQLSchemaValidationTest {
+  private val graphQLFixture by graphQLTestFixture("/validation/schema", enableAllInspections = true)
+
+  @Test
+  fun testTypeRegistryRedefinitionErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  override fun setUp() {
-    super.setUp()
-    enableAllInspections()
+  @Test
+  fun testNotInputOutputTypesErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testTypeRegistryRedefinitionErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testSchemaValidatorErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testNotInputOutputTypesErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testRedefinitionErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testSchemaValidatorErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testBuiltInRedefinitionErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testRedefinitionErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testImplementingErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testBuiltInRedefinitionErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testImplementingArgumentsErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testImplementingErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testEnumErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testImplementingArgumentsErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testDirectiveErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testEnumErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testSchemaDirectiveErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testDirectiveErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testObjectSchemaTypeExtensionsErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testSchemaDirectiveErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testInterfaceSchemaTypeExtensionsErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testObjectSchemaTypeExtensionsErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testUnionSchemaTypeExtensionsErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testInterfaceSchemaTypeExtensionsErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testEnumSchemaTypeExtensionsErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testUnionSchemaTypeExtensionsErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testScalarSchemaTypeExtensionsErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testEnumSchemaTypeExtensionsErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testInputSchemaTypeExtensionsErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testScalarSchemaTypeExtensionsErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testRepeatableDirectivesErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testInputSchemaTypeExtensionsErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testExtendSchemaErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testRepeatableDirectivesErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testFieldDefinitionDirectiveErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testExtendSchemaErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testSchemaOperationTypeErrors() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testFieldDefinitionDirectiveErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testDeprecatedMembers() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testSchemaOperationTypeErrors() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testInterfaceImplementationWithFieldSubType() {
+    graphQLFixture.doHighlightingTest()
   }
 
-  fun testDeprecatedMembers() = runBlockingCancellable {
-    doHighlightingTest()
-  }
-
-  fun testInterfaceImplementationWithFieldSubType() = runBlockingCancellable {
-    doHighlightingTest()
-  }
-
-  fun testDuplicatedTypeWithDescription() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testDuplicatedTypeWithDescription() {
+    graphQLFixture.doHighlightingTest()
   }
 }

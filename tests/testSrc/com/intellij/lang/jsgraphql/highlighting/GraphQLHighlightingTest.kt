@@ -1,71 +1,85 @@
 package com.intellij.lang.jsgraphql.highlighting
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.lang.jsgraphql.graphQLTestFixture
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLHighlightingTest : GraphQLTestCaseBase() {
-  override fun getBasePath(): String {
-    return "/highlighting"
-  }
+@TestApplication
+class GraphQLHighlightingTest {
+  private val graphQLFixture by graphQLTestFixture("/highlighting")
 
-  fun testOperationDefinitions() = runBlockingCancellable {
+  @Test
+  fun testOperationDefinitions() {
     doTest()
   }
 
-  fun testFragmentDefinition() = runBlockingCancellable {
+  @Test
+  fun testFragmentDefinition() {
     doTest()
   }
 
-  fun testFragmentSpread() = runBlockingCancellable {
+  @Test
+  fun testFragmentSpread() {
     doTest()
   }
 
-  fun testTypeNameDefinitions() = runBlockingCancellable {
+  @Test
+  fun testTypeNameDefinitions() {
     doTest()
   }
 
-  fun testFields() = runBlockingCancellable {
+  @Test
+  fun testFields() {
     doTest()
   }
 
-  fun testFieldDefinitions() = runBlockingCancellable {
+  @Test
+  fun testFieldDefinitions() {
     doTest()
   }
 
-  fun testInputFieldDefinitions() = runBlockingCancellable {
+  @Test
+  fun testInputFieldDefinitions() {
     doTest()
   }
 
-  fun testArgumentDefinitions() = runBlockingCancellable {
+  @Test
+  fun testArgumentDefinitions() {
     doTest()
   }
 
-  fun testArguments() = runBlockingCancellable {
+  @Test
+  fun testArguments() {
     doTest()
   }
 
-  fun testVariables() = runBlockingCancellable {
+  @Test
+  fun testVariables() {
     doTest()
   }
 
-  fun testValues() = runBlockingCancellable {
+  @Test
+  fun testValues() {
     doTest()
   }
 
-  fun testDirectives() = runBlockingCancellable {
+  @Test
+  fun testDirectives() {
     doTest()
   }
 
-  fun testKeywordsAsIdentifiers() = runBlockingCancellable {
+  @Test
+  fun testKeywordsAsIdentifiers() {
     doTest()
   }
 
-  fun testSchemaDefinition() = runBlockingCancellable {
+  @Test
+  fun testSchemaDefinition() {
     doTest()
   }
 
-  private suspend fun doTest() {
-    val highlightTestInfo = myFixture.testFile(getTestName(false) + ".graphql")
+  private fun doTest() {
+    val highlightTestInfo = graphQLFixture.fixture.testFile(graphQLFixture.getTestName(false) + ".graphql")
     highlightTestInfo.checkSymbolNames()
     highlightTestInfo.test()
   }

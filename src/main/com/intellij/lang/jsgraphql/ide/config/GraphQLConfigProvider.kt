@@ -43,7 +43,6 @@ import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.StandardFileSystems
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.openapi.vfs.ex.temp.TempFileSystem
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
@@ -217,7 +216,7 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
     if (file is GraphQLFile && ScratchUtil.isScratch(file.virtualFile)) {
       val override = getContentDependentOverridePath(file)
       if (override != null) {
-        val virtualFile = findFileByPath(override.path)
+        val virtualFile = StandardFileSystems.local().findFileByPath(override.path)
         if (virtualFile != null) {
           return if (virtualFile.isDirectory) {
             findConfigFileInDirectory(virtualFile)?.let {
@@ -236,14 +235,6 @@ class GraphQLConfigProvider(private val project: Project, coroutineScope: Corout
     }
 
     return null
-  }
-
-  private fun findFileByPath(path: String): VirtualFile? {
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      return TempFileSystem.getInstance().findFileByPath(path)
-    }
-
-    return StandardFileSystems.local().findFileByPath(path)
   }
 
   private fun getContentDependentOverridePath(file: PsiFile): GraphQLConfigOverridePath? {

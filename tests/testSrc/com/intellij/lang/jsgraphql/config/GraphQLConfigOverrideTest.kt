@@ -8,30 +8,28 @@
 package com.intellij.lang.jsgraphql.config
 
 import com.intellij.lang.jsgraphql.GraphQLConfigOverridePath
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
 import com.intellij.lang.jsgraphql.createOverrideConfigComment
 import com.intellij.lang.jsgraphql.createTestScratchFile
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.parseOverrideConfigComment
 import com.intellij.openapi.application.smartReadAction
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
 import com.intellij.workspaceModel.ide.impl.WorkspaceEntityLifecycleSupporterUtils
-import junit.framework.TestCase
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
 
-class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
+@TestApplication
+class GraphQLConfigOverrideTest {
+  private val graphQLFixture by graphQLTestFixture("/config/override", enableAllInspections = true)
 
-  override fun getBasePath(): String = "/config/override"
-
-  override fun setUp() {
-    super.setUp()
-
-    enableAllInspections()
-  }
-
-  fun testOverrideComment() = runBlockingCancellable {
+  @Test
+  fun testOverrideComment() {
     val tests = listOf(
       null to "#    asdsafasf",
       null to "#",
@@ -83,15 +81,16 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     )
 
     tests.forEach {
-      assertEquals(it.second, it.first, parseOverrideConfigComment(it.second))
+      assertEquals(it.first, parseOverrideConfigComment(it.second), it.second)
     }
   }
 
-  fun testScratch() = runBlockingCancellable {
+  @Test
+  fun testScratch(): Unit = timeoutRunBlocking {
     doScratchTest(
-      "/src/child/.graphqlrc.yml",
+      "child/.graphqlrc.yml",
       GraphQLConfig.DEFAULT_PROJECT,
-      createOverrideConfigComment("/src/child/.graphqlrc.yml", null),
+      createOverrideConfigComment("${graphQLFixture.tempDir.path}/child/.graphqlrc.yml", null),
       """
             fragment InvalidScratchFragment on <error descr="Unknown type \"Node\"">Node</error> {
                 <error descr="Unknown field \"name\": The parent selection or operation does not resolve to a valid schema type">name</error>
@@ -118,11 +117,12 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testScratchWithProject() = runBlockingCancellable {
+  @Test
+  fun testScratchWithProject(): Unit = timeoutRunBlocking {
     doScratchTest(
-      "/src/.graphqlrc.yml",
+      ".graphqlrc.yml",
       "frontend",
-      createOverrideConfigComment("/src/.graphqlrc.yml", "frontend"),
+      createOverrideConfigComment("${graphQLFixture.tempDir.path}/.graphqlrc.yml", "frontend"),
       """
             fragment ScratchFragmentInvalid on <error descr="Unknown type \"Server\"">Server</error> {
                 <error descr="Unknown field \"name\": The parent selection or operation does not resolve to a valid schema type">name</error>
@@ -142,9 +142,10 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testScratchFallbackToRoot() = runBlockingCancellable {
+  @Test
+  fun testScratchFallbackToRoot(): Unit = timeoutRunBlocking {
     doScratchTest(
-      "/src/.graphqlrc.yml",
+      ".graphqlrc.yml",
       GraphQLConfig.DEFAULT_PROJECT,
       "",
       """
@@ -170,11 +171,12 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testScratchFallbackToRootIfUnknownPathProvided() = runBlockingCancellable {
+  @Test
+  fun testScratchFallbackToRootIfUnknownPathProvided(): Unit = timeoutRunBlocking {
     doScratchTest(
-      "/src/.graphqlrc.yml",
+      ".graphqlrc.yml",
       GraphQLConfig.DEFAULT_PROJECT,
-      createOverrideConfigComment("/src/does/not/exist/.graphqlrc.yml", null),
+      createOverrideConfigComment("${graphQLFixture.tempDir.path}/does/not/exist/.graphqlrc.yml", null),
       """
             query {
                 node {
@@ -194,22 +196,22 @@ class GraphQLConfigOverrideTest : GraphQLTestCaseBase() {
     comment: String,
     query: String,
   ) {
-    WorkspaceEntityLifecycleSupporterUtils.ensureAllEntitiesInWorkspaceAreAsProvidersDefined(project)
-    initTestProject()
-    val scratchFile = createTestScratchFile(myFixture, comment, query)!!
-    myFixture.configureFromExistingVirtualFile(scratchFile)
+    WorkspaceEntityLifecycleSupporterUtils.ensureAllEntitiesInWorkspaceAreAsProvidersDefined(graphQLFixture.project)
+    graphQLFixture.initTestProject()
+    val scratchFile = createTestScratchFile(graphQLFixture.fixture, comment, query)!!
+    graphQLFixture.fixture.configureFromExistingVirtualFile(scratchFile)
 
     val projectConfig = resolveConfig(scratchFile)
-    TestCase.assertEquals(expectedConfigPath, projectConfig.file?.path)
-    TestCase.assertEquals(expectedProject, projectConfig.name)
+    assertEquals(expectedConfigPath, graphQLFixture.getRelativePath(projectConfig.file))
+    assertEquals(expectedProject, projectConfig.name)
 
-    myFixture.checkHighlighting()
+    graphQLFixture.fixture.checkHighlighting()
   }
 
   private suspend fun resolveConfig(file: VirtualFile): GraphQLProjectConfig {
-    return smartReadAction(project) {
-      val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(file)
-      assertNotNull("config is not found", config)
+    return smartReadAction(graphQLFixture.project) {
+      val config = GraphQLConfigProvider.getInstance(graphQLFixture.project).resolveProjectConfig(file)
+      assertNotNull(config, "config is not found")
       config!!
     }
   }

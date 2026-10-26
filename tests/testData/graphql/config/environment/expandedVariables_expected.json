@@ -1,7 +1,7 @@
 {
   "name": "default",
-  "dir": "/src",
-  "file": "/src/graphql.config.yml",
+  "dir": "",
+  "file": "graphql.config.yml",
   "isDefault": true,
   "isLegacy": false,
   "isRootEmpty": false,

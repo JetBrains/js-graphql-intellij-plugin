@@ -1,23 +1,28 @@
 package com.intellij.lang.jsgraphql.config
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.ide.config.GRAPHQLCONFIG
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigFactory
 import com.intellij.lang.jsgraphql.ide.config.migration.GraphQLMigrateLegacyConfigAction
 import com.intellij.openapi.application.EDT
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.junit.jupiter.api.Test
 
-class GraphQLConfigMigrationTest : GraphQLTestCaseBase() {
-  override fun getBasePath(): String = "/config/migration"
+@TestApplication
+class GraphQLConfigMigrationTest {
+  private val graphQLFixture by graphQLTestFixture("/config/migration")
 
-  fun testMigrateLegacyConfig() = runBlockingCancellable {
+  @Test
+  fun testMigrateLegacyConfig(): Unit = timeoutRunBlocking {
     withContext(Dispatchers.EDT) {
-      myFixture.copyDirectoryToProject(getTestName(true), "")
-      myFixture.configureFromTempProjectFile(GRAPHQLCONFIG)
-      myFixture.performEditorAction(GraphQLMigrateLegacyConfigAction.ACTION_ID)
-      myFixture.checkResultByFile(GraphQLConfigFactory.PREFERRED_CONFIG, "${getTestName(true)}_expected.yml", true)
+      graphQLFixture.fixture.copyDirectoryToProject(graphQLFixture.getTestName(true), "")
     }
+    graphQLFixture.fixture.configureFromTempProjectFile(GRAPHQLCONFIG)
+    graphQLFixture.fixture.performEditorAction(GraphQLMigrateLegacyConfigAction.ACTION_ID)
+    val expectedFile = "${graphQLFixture.getTestName(true)}_expected.yml"
+    graphQLFixture.fixture.checkResultByFile(GraphQLConfigFactory.PREFERRED_CONFIG, expectedFile, true)
   }
 }

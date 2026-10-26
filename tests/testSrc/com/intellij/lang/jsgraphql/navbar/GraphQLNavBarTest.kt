@@ -1,15 +1,21 @@
 package com.intellij.lang.jsgraphql.navbar
 
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.editor.ex.EditorEx
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.platform.navbar.testFramework.contextNavBarPathStrings
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
 import org.intellij.lang.annotations.Language
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
-class GraphQLNavBarTest : GraphQLTestCaseBase() {
+@TestApplication
+class GraphQLNavBarTest {
+  private val graphQLFixture by graphQLTestFixture()
 
-  fun testNamedQuery() = doTest(
+  @Test
+  fun testNamedQuery(): Unit = doTest(
     """
       query MyQuery {
         us<caret>er
@@ -18,7 +24,8 @@ class GraphQLNavBarTest : GraphQLTestCaseBase() {
     "MyQuery", "user"
   )
 
-  fun testAnonymousQuery() = doTest(
+  @Test
+  fun testAnonymousQuery(): Unit = doTest(
     """
       {
         us<caret>er
@@ -27,7 +34,8 @@ class GraphQLNavBarTest : GraphQLTestCaseBase() {
     "anonymous query", "user"
   )
 
-  fun testNestedField() = doTest(
+  @Test
+  fun testNestedField(): Unit = doTest(
     """
       query MyQuery {
         user {
@@ -38,7 +46,8 @@ class GraphQLNavBarTest : GraphQLTestCaseBase() {
     "MyQuery", "user", "name"
   )
 
-  fun testFragmentDefinition() = doTest(
+  @Test
+  fun testFragmentDefinition(): Unit = doTest(
     """
       fragment MyFragment on User {
         na<caret>me
@@ -47,7 +56,8 @@ class GraphQLNavBarTest : GraphQLTestCaseBase() {
     "MyFragment", "name"
   )
 
-  fun testInlineFragment() = doTest(
+  @Test
+  fun testInlineFragment(): Unit = doTest(
     """
       query MyQuery {
         user {
@@ -60,7 +70,8 @@ class GraphQLNavBarTest : GraphQLTestCaseBase() {
     "MyQuery", "user", "... on User", "name"
   )
 
-  fun testObjectTypeDefinition() = doTest(
+  @Test
+  fun testObjectTypeDefinition(): Unit = doTest(
     """
       type User {
         na<caret>me: String
@@ -69,7 +80,8 @@ class GraphQLNavBarTest : GraphQLTestCaseBase() {
     "User", "name"
   )
 
-  fun testFieldArgumentDefinition() = doTest(
+  @Test
+  fun testFieldArgumentDefinition(): Unit = doTest(
     """
       type Query {
         user(i<caret>d: ID): User
@@ -78,7 +90,8 @@ class GraphQLNavBarTest : GraphQLTestCaseBase() {
     "Query", "user", "id"
   )
 
-  fun testEnumTypeDefinition() = doTest(
+  @Test
+  fun testEnumTypeDefinition(): Unit = doTest(
     """
       enum Color {
         RE<caret>D
@@ -88,7 +101,8 @@ class GraphQLNavBarTest : GraphQLTestCaseBase() {
     "Color", "RED"
   )
 
-  fun testFileRoot() = doTest(
+  @Test
+  fun testFileRoot(): Unit = doTest(
     """
       query MyQuery {
         user
@@ -97,10 +111,10 @@ class GraphQLNavBarTest : GraphQLTestCaseBase() {
     """.trimIndent()
   )
 
-  private fun doTest(@Language("GraphQL") text: String, vararg expectedItems: String) = runBlockingCancellable {
-    myFixture.configureByText("test.graphql", text)
-    val dataContext = (myFixture.editor as EditorEx).dataContext
+  private fun doTest(@Language("GraphQL") text: String, vararg expectedItems: String): Unit = timeoutRunBlocking {
+    graphQLFixture.fixture.configureByText("test.graphql", text)
+    val dataContext = (graphQLFixture.fixture.editor as EditorEx).dataContext
     val items = readAction { contextNavBarPathStrings(dataContext) }
-    assertOrderedEquals(items, "src", "test.graphql", *expectedItems)
+    assertEquals(listOf(graphQLFixture.tempDir.name, "test.graphql", *expectedItems), items)
   }
 }

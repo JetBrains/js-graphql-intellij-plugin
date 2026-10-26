@@ -4,14 +4,19 @@ import com.google.gson.GsonBuilder
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLProjectConfig
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLSchemaPointer
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.VirtualFile
 
-class GraphQLConfigTestPrinter(private val config: GraphQLProjectConfig) {
+/**
+ * Prints [config] as JSON. The paths of the config are relative to [rootDir].
+ */
+class GraphQLConfigTestPrinter(private val config: GraphQLProjectConfig, private val rootDir: VirtualFile) {
   private val root: MutableMap<String, Any?> = mutableMapOf()
 
   fun print(): String {
     root["name"] = config.name
-    root["dir"] = config.dir.path
-    root["file"] = config.file?.path.orEmpty()
+    root["dir"] = VfsUtilCore.getRelativePath(config.dir, rootDir)
+    root["file"] = config.file?.let { VfsUtilCore.getRelativePath(it, rootDir) }.orEmpty()
     root["isDefault"] = config.isDefault
     root["isLegacy"] = config.isLegacy
     root["isRootEmpty"] = config.isRootEmpty

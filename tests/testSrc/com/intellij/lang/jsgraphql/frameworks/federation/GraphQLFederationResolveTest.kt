@@ -1,38 +1,42 @@
 package com.intellij.lang.jsgraphql.frameworks.federation
 
-import com.intellij.lang.jsgraphql.GraphQLResolveTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLResolveTestFixture
 import com.intellij.lang.jsgraphql.psi.GraphQLFieldDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLObjectTypeDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLObjectTypeExtensionDefinition
 import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes
 import com.intellij.lang.jsgraphql.withLibrary
-import com.intellij.openapi.application.smartReadAction
-import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.junit.jupiter.api.Test
 
-class GraphQLFederationResolveTest : GraphQLResolveTestCaseBase() {
-  override fun getBasePath(): String {
-    return "/frameworks/federation/resolve"
-  }
+@TestApplication
+class GraphQLFederationResolveTest {
+  private val resolveFixture by graphQLResolveTestFixture("/frameworks/federation/resolve")
 
-  fun testQueryExtensionsService() = runBlockingCancellable {
-    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION) {
-      val target = doResolveAsTextTest(GraphQLFieldDefinition::class.java, "_service")
-      assertContainingDefinition(target, GraphQLObjectTypeExtensionDefinition::class.java, "Query")
+  @Test
+  fun testQueryExtensionsService(): Unit = timeoutRunBlocking {
+    withLibrary(resolveFixture.project, GraphQLBundledLibraryTypes.FEDERATION) {
+      val target = resolveFixture.doResolveAsTextTest(GraphQLFieldDefinition::class.java, "_service")
+      resolveFixture.assertContainingDefinition(target, GraphQLObjectTypeExtensionDefinition::class.java, "Query")
     }
   }
 
-  fun testQueryExtensionsServiceField() = runBlockingCancellable {
-    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION) {
-      val target =  doResolveAsTextTest(GraphQLFieldDefinition::class.java, "sdl")
-      assertContainingDefinition(target, GraphQLObjectTypeDefinition::class.java, "_Service")
+  @Test
+  fun testQueryExtensionsServiceField(): Unit = timeoutRunBlocking {
+    withLibrary(resolveFixture.project, GraphQLBundledLibraryTypes.FEDERATION) {
+      val target =  resolveFixture.doResolveAsTextTest(GraphQLFieldDefinition::class.java, "sdl")
+      resolveFixture.assertContainingDefinition(target, GraphQLObjectTypeDefinition::class.java, "_Service")
     }
   }
 
-  fun testQueryExtensionsOnlyOnRootLevel() = runBlockingCancellable {
-    withLibrary(project, GraphQLBundledLibraryTypes.FEDERATION) { doHighlightingTest() }
+  @Test
+  fun testQueryExtensionsOnlyOnRootLevel(): Unit = timeoutRunBlocking {
+    withLibrary(resolveFixture.project, GraphQLBundledLibraryTypes.FEDERATION) { resolveFixture.doHighlightingTest() }
   }
 
-  fun testNotResolvedIfDisabled() = runBlockingCancellable {
-    doHighlightingTest()
+  @Test
+  fun testNotResolvedIfDisabled(): Unit = timeoutRunBlocking {
+    resolveFixture.doHighlightingTest()
   }
 }

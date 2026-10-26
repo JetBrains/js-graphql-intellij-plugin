@@ -1,7 +1,7 @@
 package com.intellij.lang.jsgraphql.config
 
 import com.intellij.json.JsonFileType
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigContributor
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
@@ -13,149 +13,158 @@ import com.intellij.lang.jsgraphql.withCustomEnv
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
-import junit.framework.TestCase
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
 import org.jetbrains.yaml.YAMLFileType
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Test
 
-class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
+@TestApplication
+class GraphQLConfigResolveTest {
+  private val graphQLFixture by graphQLTestFixture("/config/resolve", initTestProject = true)
 
-  override fun getBasePath(): String = "/config/resolve"
-
-  override fun setUp() {
-    super.setUp()
-
-    runBlockingCancellable {
-      initTestProject()
-    }
-  }
-
-  fun testConfigRc() = runBlockingCancellable {
+  @Test
+  fun testConfigRc(): Unit = timeoutRunBlocking {
     val config = resolveConfig("dir/schema.graphql")
-    TestCase.assertEquals("/src/.graphqlrc", config.file?.path)
-    val fileType = readAction { PsiManager.getInstance(project).findFile(config.file!!)?.fileType }
+    assertEquals(".graphqlrc", graphQLFixture.getRelativePath(config.file))
+    val fileType = readAction { PsiManager.getInstance(graphQLFixture.project).findFile(config.file!!)?.fileType }
     assertEquals(YAMLFileType.YML, fileType)
     assertConfigContentsMatches(config)
   }
 
-  fun testConfigRcAsJson() = runBlockingCancellable {
+  @Test
+  fun testConfigRcAsJson(): Unit = timeoutRunBlocking {
     val config = resolveConfig("dir/schema.graphql")
-    TestCase.assertEquals("/src/.graphqlrc", config.file?.path)
-    val fileType = readAction { PsiManager.getInstance(project).findFile(config.file!!)?.fileType }
+    assertEquals(".graphqlrc", graphQLFixture.getRelativePath(config.file))
+    val fileType = readAction { PsiManager.getInstance(graphQLFixture.project).findFile(config.file!!)?.fileType }
     assertEquals(JsonFileType.INSTANCE, fileType)
     assertConfigContentsMatches(config)
   }
 
-  fun testDontSkipEmptyRootConfigs() = runBlockingCancellable {
+  @Test
+  fun testDontSkipEmptyRootConfigs(): Unit = timeoutRunBlocking {
     val config = resolveConfig("some/nested/dir/nested.graphql")
-    TestCase.assertEquals("/src/some/.graphqlrc.yml", config.file?.path)
+    assertEquals("some/.graphqlrc.yml", graphQLFixture.getRelativePath(config.file))
     assertConfigContentsMatches(config)
   }
 
-  fun testSchemaInEnvVariable() = runBlockingCancellable {
+  @Test
+  fun testSchemaInEnvVariable(): Unit = timeoutRunBlocking {
     val filename = "dir/schema.graphql"
 
-    withCustomEnv(project, mapOf("SCHEMA_PATH" to filename)) {
+    withCustomEnv(graphQLFixture.project, mapOf("SCHEMA_PATH" to filename)) {
       val config = resolveConfig(filename)
-      TestCase.assertEquals("/src/graphql.config.yml", config.file?.path)
-      TestCase.assertEquals(filename, config.schema.first().filePath)
+      assertEquals("graphql.config.yml", graphQLFixture.getRelativePath(config.file))
+      assertEquals(filename, config.schema.first().filePath)
       assertConfigContentsMatches(config)
     }
   }
 
-  fun testGlobAsPath() = runBlockingCancellable {
-    val config = GraphQLConfigProvider.getInstance(project).getAllConfigs().first()
+  @Test
+  fun testGlobAsPath(): Unit = timeoutRunBlocking {
+    val config = GraphQLConfigProvider.getInstance(graphQLFixture.project).getAllConfigs().first()
     val pointer = config.getDefault()?.schema?.first()!!
-    TestCase.assertEquals("src/**/*.graphql", pointer.globPath)
-    TestCase.assertEquals(null, pointer.filePath)
+    assertEquals("src/**/*.graphql", pointer.globPath)
+    assertEquals(null, pointer.filePath)
   }
 
-  fun testInjection() = runBlockingCancellable {
+  @Test
+  fun testInjection(): Unit = timeoutRunBlocking {
     val config = resolveConfig("dir/file.js")
-    TestCase.assertEquals("/src/.graphqlrc.yml", config.file?.path)
+    assertEquals(".graphqlrc.yml", graphQLFixture.getRelativePath(config.file))
   }
 
-  fun testJsonSchema() = runBlockingCancellable {
+  @Test
+  fun testJsonSchema(): Unit = timeoutRunBlocking {
     val config = resolveConfig("dir/remoteSchema.json")
-    TestCase.assertEquals("/src/.graphqlrc.yml", config.file?.path)
+    assertEquals(".graphqlrc.yml", graphQLFixture.getRelativePath(config.file))
 
     noConfig("dir2/otherSchema.json")
   }
 
-  fun testOverriddenScope() = runBlockingCancellable {
+  @Test
+  fun testOverriddenScope(): Unit = timeoutRunBlocking {
     GraphQLConfigContributor.EP_NAME.point.registerExtension(object : GraphQLConfigContributor {
       override fun contributeConfigs(project: Project): Collection<GraphQLConfig> {
         return listOf(
           GraphQLConfig(
             project,
-            myFixture.findFileInTempDir("main/graphql/servicea"),
+            graphQLFixture.fixture.findFileInTempDir("main/graphql/servicea"),
             null,
             GraphQLRawConfig.EMPTY,
           ),
           GraphQLConfig(
             project,
-            myFixture.findFileInTempDir("main/graphql/serviceb"),
+            graphQLFixture.fixture.findFileInTempDir("main/graphql/serviceb"),
             null,
             GraphQLRawConfig.EMPTY,
           ),
           GraphQLConfig(
             project,
-            myFixture.findFileInTempDir("main/graphql/servicec/schema"),
+            graphQLFixture.fixture.findFileInTempDir("main/graphql/servicec/schema"),
             null,
             GraphQLRawConfig.EMPTY,
           ),
         )
       }
-    }, testRootDisposable)
-    myFixture.reloadGraphQLConfiguration()
+    }, graphQLFixture.fixture.testRootDisposable)
+    graphQLFixture.fixture.reloadGraphQLConfiguration()
 
     val configA = resolveConfig("main/graphql/servicea/operations.graphql")
-    TestCase.assertEquals("/src/main/graphql/servicea", configA.dir.path)
+    assertEquals("main/graphql/servicea", graphQLFixture.getRelativePath(configA.dir))
 
     val configB = resolveConfig("main/graphql/serviceb/operations.graphql")
-    TestCase.assertEquals("/src/main/graphql/serviceb", configB.dir.path)
+    assertEquals("main/graphql/serviceb", graphQLFixture.getRelativePath(configB.dir))
 
     // a physical config file should take precedence over a contributed one
     val configC = resolveConfig("main/graphql/servicec/schema/operations.graphql")
-    TestCase.assertEquals("/src/main/graphql/servicec", configC.dir.path)
-    TestCase.assertEquals("/src/main/graphql/servicec/graphql.config.yml", configC.file?.path)
+    assertEquals("main/graphql/servicec", graphQLFixture.getRelativePath(configC.dir))
+    assertEquals("main/graphql/servicec/graphql.config.yml", graphQLFixture.getRelativePath(configC.file))
   }
 
-  fun testGlobStartingWithStar() = runBlockingCancellable {
+  @Test
+  fun testGlobStartingWithStar(): Unit = timeoutRunBlocking {
     assertConfigContentsMatches(
-      GraphQLConfigProvider.getInstance(project)
-        .getForConfigFile(myFixture.findFileInTempDir("graphql.config.yml")!!)!!
+      GraphQLConfigProvider.getInstance(graphQLFixture.project)
+        .getForConfigFile(graphQLFixture.fixture.findFileInTempDir("graphql.config.yml")!!)!!
     )
   }
 
-  fun testComplexConfig() = runBlockingCancellable {
+  @Test
+  fun testComplexConfig(): Unit = timeoutRunBlocking {
     assertConfigContentsMatches(
-      GraphQLConfigProvider.getInstance(project)
-        .getForConfigFile(myFixture.findFileInTempDir("graphql.config.yml")!!)!!
+      GraphQLConfigProvider.getInstance(graphQLFixture.project)
+        .getForConfigFile(graphQLFixture.fixture.findFileInTempDir("graphql.config.yml")!!)!!
     )
   }
 
-  fun testGatsby() = runBlockingCancellable {
-    assertEquals("/src/graphql.config.js", resolveConfig(".cache/typegen/schema.graphql").file?.path)
-    assertEquals("/src/graphql.config.js", resolveConfig("src/query.js").file?.path)
+  @Test
+  fun testGatsby(): Unit = timeoutRunBlocking {
+    assertEquals("graphql.config.js", graphQLFixture.getRelativePath(resolveConfig(".cache/typegen/schema.graphql").file))
+    assertEquals("graphql.config.js", graphQLFixture.getRelativePath(resolveConfig("src/query.js").file))
   }
 
   private suspend fun resolveConfig(filePath: String): GraphQLProjectConfig {
-    val context = myFixture.configureFromTempProjectFile(filePath)
-    assertNotNull("source file is not found", context)
-    val config = smartReadAction(project) { GraphQLConfigProvider.getInstance(project).resolveProjectConfig(context) }
-    assertNotNull("config is not resolved", config)
+    val context = graphQLFixture.fixture.configureFromTempProjectFile(filePath)
+    assertNotNull(context, "source file is not found")
+    val config = smartReadAction(graphQLFixture.project) {
+      GraphQLConfigProvider.getInstance(graphQLFixture.project).resolveProjectConfig(context)
+    }
+    assertNotNull(config, "config is not resolved")
     return config!!
   }
 
   private fun noConfig(filePath: String) {
-    val context = myFixture.configureFromTempProjectFile(filePath)
-    assertNotNull("source file is not found", context)
-    val config = GraphQLConfigProvider.getInstance(project).resolveProjectConfig(context)
-    assertNull("config should be null", config)
+    val context = graphQLFixture.fixture.configureFromTempProjectFile(filePath)
+    assertNotNull(context, "source file is not found")
+    val config = GraphQLConfigProvider.getInstance(graphQLFixture.project).resolveProjectConfig(context)
+    assertNull(config, "config should be null")
   }
 
   private suspend fun assertConfigContentsMatches(config: GraphQLProjectConfig) {
@@ -164,11 +173,13 @@ class GraphQLConfigResolveTest : GraphQLTestCaseBase() {
 
   private suspend fun assertConfigContentsMatches(config: GraphQLConfig) {
     val text = GraphQLConfigPrinter.toYml(config.rawData)!!
-    val file = readAction { PsiFileFactory.getInstance(project).createFileFromText("graphql.config.yml", YAMLFileType.YML, text) }
-    WriteCommandAction.runWriteCommandAction(project) {
-      CodeStyleManager.getInstance(project).reformat(file)
+    val file = readAction {
+      PsiFileFactory.getInstance(graphQLFixture.project).createFileFromText("graphql.config.yml", YAMLFileType.YML, text)
     }
-    myFixture.configureByText("config.content.yml", file.text)
-    myFixture.checkResultByFile("${getTestName(true)}_expected.yml")
+    WriteCommandAction.runWriteCommandAction(graphQLFixture.project) {
+      CodeStyleManager.getInstance(graphQLFixture.project).reformat(file)
+    }
+    graphQLFixture.fixture.configureByText("config.content.yml", file.text)
+    graphQLFixture.fixture.checkResultByFile("${graphQLFixture.getTestName(true)}_expected.yml")
   }
 }

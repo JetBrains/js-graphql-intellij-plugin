@@ -2,41 +2,43 @@ package com.intellij.lang.jsgraphql.config
 
 import com.intellij.idea.IJIgnore
 import com.intellij.lang.jsgraphql.GraphQLFileType
-import com.intellij.lang.jsgraphql.GraphQLTestCaseBase
+import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigContributor
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawConfig
 import com.intellij.lang.jsgraphql.ide.config.loader.GraphQLRawSchemaPointer
 import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfig
+import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.reloadGraphQLConfiguration
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
+import com.intellij.openapi.application.edtWriteAction
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.components.PathMacroManager
-import com.intellij.openapi.progress.runBlockingCancellable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.StandardFileSystems
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.TestDataPath
+import com.intellij.testFramework.common.timeoutRunBlocking
+import com.intellij.testFramework.junit5.TestApplication
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
 
-@TestDataPath($$"$CONTENT_ROOT/testData/graphql/config/scope")
-class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
+@TestDataPath($$"$PROJECT_ROOT/plugins/js-graphql/tests/testData/graphql/config/scope")
+@TestApplication
+class GraphQLConfigScopeTest {
+  private val graphQLFixture by graphQLTestFixture("/config/scope", initTestProject = true)
 
-  override fun getBasePath(): String = "/config/scope"
-
-  override fun setUp() {
-    super.setUp()
-
-    runBlockingCancellable {
-      initTestProject()
-    }
-  }
-
-  fun testRootProject() = runBlockingCancellable {
+  @Test
+  fun testRootProject(): Unit = timeoutRunBlocking {
     val expectedSchemas = setOf(
       "schema.graphql",
       "dir1/nested/other.graphql",
@@ -59,7 +61,8 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testRecursiveGlobIncludingCurrent() = runBlockingCancellable {
+  @Test
+  fun testRecursiveGlobIncludingCurrent(): Unit = timeoutRunBlocking {
     val expectedSchemas = setOf(
       "file.graphql",
       "file1.graphql",
@@ -73,7 +76,8 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testRecursiveGlobFromNestedDir() = runBlockingCancellable {
+  @Test
+  fun testRecursiveGlobFromNestedDir(): Unit = timeoutRunBlocking {
     val expectedSchemas = setOf(
       "dir2/file2.graphql",
       "dir2/dir3/file3.graphql",
@@ -88,10 +92,15 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testJsonSchema() = runBlockingCancellable {
+  @Test
+  fun testJsonSchema(): Unit = timeoutRunBlocking {
+    // The name of the generated SDL file is a hash of the source path, and the temp directory of the project changes in each run.
+    val sourceFile = graphQLFixture.fixture.findFileInTempDir("dir/remoteSchema.json")
+    val generatedFile = GraphQLGeneratedSourcesManager.getInstance(graphQLFixture.project).requestGeneratedFile(sourceFile)
+    assertNotNull(generatedFile, "the SDL file is not generated")
     val expectedSchemas = setOf(
       "dir/remoteSchema.json",
-      $$"$APPLICATION_CONFIG_DIR$/graphql/sdl/6833dafe39e404965a21449cbb58bc232e8b364ee5eb08fa1652f29fe081515c.graphql"
+      generatedFile!!.path,
     )
 
     val expectedDocuments = emptySet<String>()
@@ -99,7 +108,8 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest(".graphqlrc.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testExcludeNested() = runBlockingCancellable {
+  @Test
+  fun testExcludeNested(): Unit = timeoutRunBlocking {
     val expectedSchemas = setOf(
       "some/some.graphql",
       "some/nested/nested.graphql",
@@ -112,7 +122,16 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testAbsolutePath() = runBlockingCancellable {
+  @Test
+  fun testAbsolutePath(): Unit = timeoutRunBlocking {
+    // The schema path in the config is absolute, so the test puts the path of the temp directory into the config.
+    val configFile = graphQLFixture.fixture.findFileInTempDir("graphql.config.yml")!!
+    val tempDirPath = graphQLFixture.tempDir.path
+    edtWriteAction {
+      VfsUtil.saveText(configFile, VfsUtilCore.loadText(configFile).replace($$"$TEMP_DIR$", tempDirPath))
+    }
+    graphQLFixture.fixture.reloadGraphQLConfiguration()
+
     val expectedSchemas = setOf(
       "some/dir/schema.graphql",
     )
@@ -122,7 +141,8 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     doScopeTest("graphql.config.yml", expectedSchemas, expectedDocuments)
   }
 
-  fun testOverriddenScope() = runBlockingCancellable {
+  @Test
+  fun testOverriddenScope(): Unit = timeoutRunBlocking {
     GraphQLConfigContributor.EP_NAME.point.registerExtension(object : GraphQLConfigContributor {
       override fun contributeConfigs(project: Project): Collection<GraphQLConfig> {
         val customConfig = GraphQLRawConfig(
@@ -134,12 +154,12 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
           exclude = listOf("ignored.graphql")
         )
         return listOf(
-          GraphQLConfig(project, myFixture.findFileInTempDir("main/graphql/servicea/"), null, GraphQLRawConfig.EMPTY),
-          GraphQLConfig(project, myFixture.findFileInTempDir("main/graphql/serviceb/"), null, customConfig),
+          GraphQLConfig(project, graphQLFixture.fixture.findFileInTempDir("main/graphql/servicea/"), null, GraphQLRawConfig.EMPTY),
+          GraphQLConfig(project, graphQLFixture.fixture.findFileInTempDir("main/graphql/serviceb/"), null, customConfig),
         )
       }
-    }, testRootDisposable)
-    myFixture.reloadGraphQLConfiguration()
+    }, graphQLFixture.fixture.testRootDisposable)
+    graphQLFixture.fixture.reloadGraphQLConfiguration()
 
     doScopeTest(
       "main/graphql/servicea",
@@ -162,19 +182,22 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     )
   }
 
-  fun testShared() = runBlockingCancellable {
+  @Test
+  fun testShared(): Unit = timeoutRunBlocking {
     doScopeTest("graphql.config.yml", setOf("lib/common.graphql"), emptySet(), "lib")
     doScopeTest("graphql.config.yml", setOf("lib/common.graphql", "one/one.graphql"), emptySet(), "one")
     doScopeTest("graphql.config.yml", setOf("lib/common.graphql", "two/two.graphql"), emptySet(), "two")
   }
 
-  fun testRelativePath() = runBlockingCancellable {
+  @Test
+  fun testRelativePath(): Unit = timeoutRunBlocking {
     doScopeTest("frontend1/graphql.config.yml", setOf("backend/schema.graphql"), setOf("frontend1/query1.graphql"))
     doScopeTest("frontend2/graphql.config.yml", setOf("backend/schema.graphql"), setOf("frontend2/query2.graphql"))
   }
 
   @IJIgnore(issue = "WEB-74030")
-  fun testSchemaInNodeModules() = runBlockingCancellable {
+  @Test
+  fun testSchemaInNodeModules(): Unit = timeoutRunBlocking {
     doScopeTest("graphql.config.yml", setOf("node_modules/@octokit/graphql-schema/schema.graphql"), emptySet())
   }
 
@@ -198,38 +221,38 @@ class GraphQLConfigScopeTest : GraphQLTestCaseBase() {
     scope: GlobalSearchScope,
     expected: Set<String>,
   ) {
-    val actualFiles = smartReadAction(project) { getAllFiles(scope) }
+    val actualFiles = smartReadAction(graphQLFixture.project) { getAllFiles(scope) }
     val expectedFiles = expected.mapTo(mutableSetOf()) {
-      val expandedPath = PathMacroManager.getInstance(project).expandPathNonNull(it)
-      val file = myFixture.findFileInTempDir(expandedPath)
-                 ?: StandardFileSystems.local().findFileByPath(expandedPath)
-      assertNotNull("expected file not found: $it", file)
+      val expandedPath = PathMacroManager.getInstance(graphQLFixture.project).expandPathNonNull(it)
+      val file = if (FileUtil.isAbsolute(expandedPath)) StandardFileSystems.local().findFileByPath(expandedPath)
+      else graphQLFixture.fixture.findFileInTempDir(expandedPath)
+      assertNotNull(file, "expected file not found: $it")
       file!!
     }.sortedBy { it.name }.toSet()
-    assertSameElements(message, actualFiles, expectedFiles)
+    assertThat(actualFiles).describedAs(message).hasSameElementsAs(expectedFiles)
   }
 
   private fun loadConfig(configPath: String): GraphQLConfig {
-    val file = myFixture.findFileInTempDir(configPath)!!
-    val config = GraphQLConfigProvider.getInstance(project).getForConfigFile(file)
+    val file = graphQLFixture.fixture.findFileInTempDir(configPath)!!
+    val config = GraphQLConfigProvider.getInstance(graphQLFixture.project).getForConfigFile(file)
     assertNotNull(config)
     return config!!
   }
 
   private fun getAllFiles(scope: GlobalSearchScope): Set<VirtualFile> {
-    IndexingTestUtil.waitUntilIndexesAreReady(project)
+    IndexingTestUtil.waitUntilIndexesAreReady(graphQLFixture.project)
     val result = mutableSetOf<VirtualFile>()
     // need to include files outside of content root, which are processed by ProjectFileIndex
     result.addAll(FileTypeIndex.getFiles(GraphQLFileType.INSTANCE, scope))
 
-    ProjectFileIndex.getInstance(project).iterateContent({
+    ProjectFileIndex.getInstance(graphQLFixture.project).iterateContent({
                                                            result.add(it)
                                                            true
                                                          }) {
       scope.contains(it)
     }
 
-    val libraryManager = GraphQLLibraryManager.getInstance(project)
+    val libraryManager = GraphQLLibraryManager.getInstance(graphQLFixture.project)
     return result
       .filterNot { libraryManager.isLibraryRoot(it) }
       .sortedBy { it.path }
