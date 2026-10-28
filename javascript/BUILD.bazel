@@ -49,46 +49,6 @@ jvm_library(
         "//plugins/JavaScriptLanguage/js-analysis-impl:javascript-analysis-impl",
     ],
 )
-
-jvm_library(
-    name = "javascript_test_lib",
-    testonly = True,
-    srcs = glob(
-        [],
-        allow_empty = True,
-    ),
-    module_name = "intellij.graphql.javascript",
-    visibility = ["//visibility:public"],
-    runtime_deps = [
-        # do not sort,
-        ":javascript",
-        "@community//platform/analysis-api:analysis_test_lib",
-        "@community//platform/platform-api:ide_test_lib",
-        "@community//platform/ide-core-impl:ide-core-impl_test_lib",
-        "@community//platform/ide-core:ide-core_test_lib",
-        "@community//platform/platform-impl:ide-impl_test_lib",
-        "@community//platform/execution:execution_test_lib",
-        "@community//platform/lang-api:lang_test_lib",
-        "@community//platform/lang-impl:lang-impl_test_lib",
-        "@community//platform/core-impl:core-impl_test_lib",
-        "@community//platform/core-api:core_test_lib",
-        "@community//platform/platform-util-io:ide-util-io_test_lib",
-        "@community//platform/analysis-impl:analysis-impl_test_lib",
-        "@community//platform/projectModel-api:projectModel_test_lib",
-        "@community//platform/projectModel-impl:projectModel-impl_test_lib",
-        "@community//platform/backend/workspace:workspace_test_lib",
-        "//plugins/JavaScriptLanguage/javascript-backend:javascript-backend_test_lib",
-        "//plugins/JavaScriptLanguage/javascript-parser:javascript-parser_test_lib",
-        "@community//plugins/IntelliLang:langInjection_test_lib",
-        "@community//platform/editor-ui-api:editor-ui_test_lib",
-        "//plugins/js-graphql:graphql_test_lib",
-        "@community//platform/workspace/storage:storage_test_lib",
-        "@community//libraries/gson:gson_test_lib",
-        "//plugins/JavaScriptLanguage/javascript-common:javascript-common_test_lib",
-        "//plugins/JavaScriptLanguage/javascript-psi-impl:javascript-psi-impl_test_lib",
-        "//plugins/JavaScriptLanguage/js-analysis-impl:javascript-analysis-impl_test_lib",
-    ],
-)
 ### auto-generated section `build intellij.graphql.javascript` end
 
 ### auto-generated section `iml intellij.graphql.javascript` start
