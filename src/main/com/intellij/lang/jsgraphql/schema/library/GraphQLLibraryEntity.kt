@@ -23,6 +23,5 @@ interface GraphQLLibraryEntity : WorkspaceEntity {
   val attachmentScope: GraphQLLibraryAttachmentScope
     @Default get() = GraphQLLibraryAttachmentScope.GLOBAL
 
-  @IndexVfu
   val roots: Set<VirtualFileUrl>
 }

@@ -8,6 +8,5 @@ import com.intellij.platform.workspace.storage.url.VirtualFileUrl
 internal object GraphQLNodeModulesEntitySource : EntitySource
 
 interface GraphQLNodeModulesEntity : WorkspaceEntity {
-  @IndexVfu
   val roots: Set<VirtualFileUrl>
 }

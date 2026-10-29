@@ -74,10 +74,6 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
       updateChildToParentReferences(parents)
     }
 
-    override fun index() {
-      index(this, "roots", this.roots)
-    }
-
     override var entitySource: EntitySource
       get() = getEntityData().entitySource
       set(value) {
@@ -86,9 +82,6 @@ internal class GraphQLNodeModulesEntityImpl(private val dataSource: GraphQLNodeM
         changedProperty.add("entitySource")
       }
     private val rootsUpdater: (value: Set<VirtualFileUrl>) -> Unit = { value ->
-      if (diff != null) {
-        index(this, "roots", value)
-      }
       changedProperty.add("roots")
     }
     override var roots: MutableSet<VirtualFileUrl>
