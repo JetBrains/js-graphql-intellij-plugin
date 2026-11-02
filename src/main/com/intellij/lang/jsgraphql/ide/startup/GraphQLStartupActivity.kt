@@ -30,10 +30,8 @@ class GraphQLStartupActivity : ProjectActivity {
     val configProvider = project.serviceAsync<GraphQLConfigProvider>()
     val libraryManager = GraphQLLibraryManager.getInstanceAsync(project)
 
-    if (!ApplicationManager.getApplication().isUnitTestMode) {
-      configProvider.scheduleConfigurationReload()
-      libraryManager.syncLibraries()
-    }
+    configProvider.requestReload()
+    libraryManager.syncLibraries()
 
     if (!ApplicationManager.getApplication().isHeadlessEnvironment) {
       project.serviceAsync<GraphQLUIProjectService>().projectOpened()

@@ -61,7 +61,7 @@ public final class GraphQLSchemaAnnotator implements Annotator {
     Project project = psiElement.getProject();
 
     if (GraphQLInspection.isEditorInspectionHighlightingDisabled(project, file) ||
-        !GraphQLConfigProvider.getInstance(project).isInitialized()) {
+        !GraphQLConfigProvider.getInstance(project).ensureInitialized()) {
       return;
     }
 

@@ -1,0 +1,25 @@
+type Query {
+  user(id: ID!): User
+  users(role: Role): [User!]!
+}
+
+type User implements Node {
+  id: ID!
+  name: String
+  role: Role
+  friends: [User!]!
+}
+
+interface Node {
+  id: ID!
+}
+
+enum Role {
+  ADMIN
+  GUEST
+}
+
+input UserFilter {
+  name: String
+  role: Role = GUEST
+}

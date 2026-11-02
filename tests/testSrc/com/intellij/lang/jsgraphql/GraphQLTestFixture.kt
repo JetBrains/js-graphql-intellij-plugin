@@ -33,6 +33,7 @@ import com.intellij.platform.testFramework.junit5.codeInsight.fixture.codeInsigh
 import com.intellij.platform.testFramework.junit5.codeInsight.fixture.codeInsightProjectFixture
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
+import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.junit5.fixture.TestFixture
@@ -49,14 +50,17 @@ import org.junit.jupiter.api.Assertions.assertNotNull
  * [basePath] replaces an override of `GraphQLTestCaseBase.getBasePath()`. The test data path is [getTestDataPath] of [basePath].
  * [initTestProject] calls [GraphQLTestFixture.initTestProject] in the setup.
  * [enableAllInspections] calls [GraphQLTestFixture.enableAllInspections] in the setup, after [initTestProject].
+ * [loadConfiguration] `false` skips the explicit GraphQL configuration reload of the setup and of [GraphQLTestFixture.initTestProject],
+ * so that a test can check how the configuration is loaded on demand.
  */
 @TestOnly
 fun graphQLTestFixture(
   basePath: String = "",
   enableAllInspections: Boolean = false,
   initTestProject: Boolean = false,
+  loadConfiguration: Boolean = true,
 ): TestFixture<GraphQLTestFixture> =
-  graphQLTestFixture("graphQLTestFixture", basePath, enableAllInspections, initTestProject, ::GraphQLTestFixture)
+  graphQLTestFixture("graphQLTestFixture", basePath, enableAllInspections, initTestProject, ::GraphQLTestFixture, loadConfiguration)
 
 /**
  * Creates a fixture of the [GraphQLTestFixture] chain. Each sub-fixture factory calls it, so that the setup of each level runs once.
@@ -68,10 +72,12 @@ internal fun <T : GraphQLTestFixture> graphQLTestFixture(
   enableAllInspections: Boolean,
   initTestProject: Boolean,
   create: (CodeInsightTestFixture, String) -> T,
+  loadConfiguration: Boolean = true,
 ): TestFixture<T> = testFixture(debugString) { context ->
   val fixture = codeInsightFixture(codeInsightProjectFixture()).init()
   fixture.testDataPath = getTestDataPath(basePath)
   val result = create(fixture, context.extensionContext.requiredTestMethod.name)
+  result.loadConfiguration = loadConfiguration
   result.setUp()
   if (initTestProject) {
     result.initTestProject()
@@ -112,12 +118,19 @@ open class GraphQLTestFixture internal constructor(
   fun getTestName(lowercaseFirstLetter: Boolean): String = PlatformTestUtil.getTestName(testMethodName, lowercaseFirstLetter)
 
   /**
+   * `false` skips the explicit GraphQL configuration reload of [setUp] and [initTestProject]. The fixture factory sets it before [setUp].
+   */
+  internal var loadConfiguration: Boolean = true
+
+  /**
    * Enables the GraphQL libraries and loads the GraphQL configuration. It is the `setUp()` of `GraphQLTestCaseBase`.
    */
   internal open suspend fun setUp() {
     val libraryManager = GraphQLLibraryManager.getInstance(project)
     libraryManager.enableLibraries(true)
-    reloadGraphQLConfiguration(project)
+    if (loadConfiguration) {
+      reloadGraphQLConfiguration(project)
+    }
     Disposer.register(testRootDisposable) {
       libraryManager.enableLibraries(false)
     }
@@ -125,11 +138,17 @@ open class GraphQLTestFixture internal constructor(
 
   /**
    * Copies the test data directory of the test to the project, and loads the GraphQL configuration again.
+   * When [loadConfiguration] is `false`, it only waits for the indexes.
    * Returns the copied directory.
    */
   suspend fun initTestProject(lowerCaseFirstLetter: Boolean = true): VirtualFile {
     val dir = edtWriteAction { fixture.copyDirectoryToProject(getTestName(lowerCaseFirstLetter), "") }
-    fixture.reloadGraphQLConfiguration()
+    if (loadConfiguration) {
+      fixture.reloadGraphQLConfiguration()
+    }
+    else {
+      IndexingTestUtil.waitUntilIndexesAreReady(project)
+    }
     return dir
   }
 

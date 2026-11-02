@@ -7,15 +7,14 @@
  */
 package com.intellij.lang.jsgraphql.schema
 
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.lang.jsgraphql.GraphQLExecutionMode
+import com.intellij.lang.jsgraphql.ide.highlighting.GraphQLHighlightingRestarter
 import com.intellij.lang.jsgraphql.ide.injection.GraphQLInjectedLanguage
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.psi.GraphQLFile
 import com.intellij.lang.jsgraphql.psi.GraphQLFragmentDefinition
 import com.intellij.lang.jsgraphql.psi.GraphQLOperationDefinition
-import com.intellij.lang.jsgraphql.skipInTests
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.logger
@@ -62,7 +61,7 @@ class GraphQLSchemaContentTracker(private val project: Project, coroutineScope: 
   init {
     PsiManager.getInstance(project).addPsiTreeChangeListener(PsiChangeListener(), this)
 
-    skipInTests {
+    if (!GraphQLExecutionMode.isSynchronous) {
       coroutineScope.launch {
         changeNotificationsFlow.debounce(EVENT_PUBLISH_TIMEOUT.milliseconds).collect {
           notifySchemaContentChanged()
@@ -71,11 +70,16 @@ class GraphQLSchemaContentTracker(private val project: Project, coroutineScope: 
     }
   }
 
+  /**
+   * Synchronous mode: bumps the stamp and publishes [GraphQLSchemaContentChangeListener] at once, with no highlighting restart
+   * (the next schema access rebuilds inline).
+   * Asynchronous mode: the debounced collector does it later and also restarts the highlighting.
+   */
   fun update() {
     LOG.traceThrowable { Throwable("GraphQL schema cache invalidated") }
 
-    if (ApplicationManager.getApplication().isUnitTestMode) {
-      updateModificationTracker()
+    if (GraphQLExecutionMode.isSynchronous) {
+      publishSchemaContentChanged()
       return
     }
 
@@ -83,9 +87,13 @@ class GraphQLSchemaContentTracker(private val project: Project, coroutineScope: 
   }
 
   private fun notifySchemaContentChanged() {
+    publishSchemaContentChanged()
+    GraphQLHighlightingRestarter.getInstance(project).restart("GraphQLSchemaContentTracker.notifySchemaContentChanged")
+  }
+
+  private fun publishSchemaContentChanged() {
     updateModificationTracker()
     project.messageBus.syncPublisher(GraphQLSchemaContentChangeListener.TOPIC).onSchemaChanged()
-    DaemonCodeAnalyzer.getInstance(project).restart(this)
   }
 
   private fun updateModificationTracker() {

@@ -51,7 +51,7 @@ internal class GraphQLConfigFileListener(private val project: Project) : AsyncFi
 
     return if (configurationsChanged) object : AsyncFileListener.ChangeApplier {
       override fun afterVfsChange() {
-        GraphQLConfigProvider.getInstance(project).scheduleConfigurationReload()
+        GraphQLConfigProvider.getInstance(project).requestReload()
       }
     }
     else null

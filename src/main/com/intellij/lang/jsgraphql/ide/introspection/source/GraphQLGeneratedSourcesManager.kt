@@ -1,12 +1,12 @@
 package com.intellij.lang.jsgraphql.ide.introspection.source
 
 import com.google.common.hash.Hashing
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.json.JsonFileType
 import com.intellij.lang.jsgraphql.GRAPHQL_CACHE_DIR_NAME
 import com.intellij.lang.jsgraphql.GraphQLBundle
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.ide.config.CONFIG_NAMES
+import com.intellij.lang.jsgraphql.ide.highlighting.GraphQLHighlightingRestarter
 import com.intellij.lang.jsgraphql.ide.introspection.GraphQLIntrospectionService
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeDependency
 import com.intellij.lang.jsgraphql.isCancellation
@@ -333,7 +333,7 @@ class GraphQLGeneratedSourcesManager(
       PsiManager.getInstance(project).dropPsiCaches()
       EditorNotifications.getInstance(project).updateAllNotifications()
     }
-    DaemonCodeAnalyzer.getInstance(project).restart(this)
+    GraphQLHighlightingRestarter.getInstance(project).restart("GraphQLGeneratedSourcesManager.notifySourcesChanged")
   }
 
   private fun updateModificationTrackers() {
