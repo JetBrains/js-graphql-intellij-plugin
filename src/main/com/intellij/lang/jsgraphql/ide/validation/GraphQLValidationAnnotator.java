@@ -71,7 +71,7 @@ public final class GraphQLValidationAnnotator implements Annotator {
     Project project = psiElement.getProject();
     PsiFile file = annotationHolder.getCurrentAnnotationSession().getFile();
     if (GraphQLInspection.isEditorInspectionHighlightingDisabled(project, file) ||
-        !GraphQLConfigProvider.getInstance(project).isInitialized()) {
+        !GraphQLConfigProvider.getInstance(project).ensureInitialized()) {
       return;
     }
 

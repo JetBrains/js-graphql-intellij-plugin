@@ -7,10 +7,13 @@ import com.intellij.lang.jsgraphql.ide.config.GRAPHQL_RC
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigEvaluationStatus
 import com.intellij.lang.jsgraphql.ide.config.isLegacyConfig
 import com.intellij.lang.jsgraphql.ide.config.parseMap
+import com.intellij.lang.jsgraphql.isCancellation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.diagnostic.ControlFlowException
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -33,6 +36,8 @@ class GraphQLConfigLoader(private val project: Project) {
       readData(file)
     }
               catch (e: Throwable) {
+                // a cancelled load must not be cached as an evaluation error
+                if (e is ControlFlowException || e is IndexNotReadyException || isCancellation(e)) throw e
                 LOG.info("Unable to load config: ${file.path}", e)
                 return Result(null, GraphQLConfigEvaluationStatus.ERROR, e)
               } ?: return Result(null, GraphQLConfigEvaluationStatus.EMPTY)

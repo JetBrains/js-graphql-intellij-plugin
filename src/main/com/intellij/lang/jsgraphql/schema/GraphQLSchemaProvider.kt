@@ -7,9 +7,11 @@
  */
 package com.intellij.lang.jsgraphql.schema
 
-import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.diagnostic.rethrowControlFlowException
+import com.intellij.lang.jsgraphql.GraphQLExecutionMode
 import com.intellij.lang.jsgraphql.GraphQLFileType
 import com.intellij.lang.jsgraphql.awaitFuture
+import com.intellij.lang.jsgraphql.ide.highlighting.GraphQLHighlightingRestarter
 import com.intellij.lang.jsgraphql.ide.resolve.GraphQLScopeProvider
 import com.intellij.lang.jsgraphql.ide.search.GraphQLPsiSearchHelper
 import com.intellij.lang.jsgraphql.schema.builder.GraphQLCompositeRegistry
@@ -21,8 +23,8 @@ import com.intellij.lang.jsgraphql.types.schema.idl.UnExecutableSchemaGenerator
 import com.intellij.lang.jsgraphql.types.schema.validation.InvalidSchemaException
 import com.intellij.lang.jsgraphql.types.schema.validation.SchemaValidator
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.application.runReadActionBlocking
 import com.intellij.openapi.application.smartReadAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -30,7 +32,9 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.diagnostic.trace
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.checkCanceled
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
@@ -38,6 +42,7 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.resolve.ResolveCache
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.concurrency.annotations.RequiresReadLock
 import com.intellij.util.containers.ContainerUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -51,11 +56,15 @@ import kotlin.time.measureTimedValue
 private const val BUILD_TIMEOUT_MS = 500L
 
 /**
- * GitHub schema evaluation takes approximately 1 second in total for both type definitions and the schema combined.
- * If it exceeds the specified time limit, it indicates a serious issue with the code and not the timeout itself.
+ * Builds and caches the GraphQL schema of a scope. The cache entry is valid while the [GraphQLSchemaContentTracker] stamp is the same.
+ *
+ * In the synchronous mode ([GraphQLExecutionMode.isSynchronous]) a cache miss builds the schema inline under the read action of the caller:
+ * there is no background job, no timeout, no fallback schema and no daemon restart.
+ * Concurrent builds of one scope are allowed: they build equal schemas, and the cache keeps the entry with the newest stamp.
+ *
+ * In the asynchronous mode a cache miss starts a background job, waits for it up to `graphql.schema.build.timeout` ms,
+ * and returns the previous or the empty schema when the job is not done yet. The job restarts the daemon when the schema is built.
  */
-private const val BUILD_TIMEOUT_TESTS_MS = 3000L
-
 @Service(Service.Level.PROJECT)
 class GraphQLSchemaProvider(private val project: Project, private val coroutineScope: CoroutineScope) : Disposable {
 
@@ -84,7 +93,7 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   }
 
   fun getSchemaInfo(scope: GlobalSearchScope): GraphQLSchemaInfo {
-    return getFromCacheOrSchedule(scope)
+    return if (GraphQLExecutionMode.isSynchronous) getOrComputeInline(scope) else getFromCacheOrSchedule(scope)
   }
 
   fun getCachedSchemaInfo(context: PsiElement?): GraphQLSchemaInfo {
@@ -93,7 +102,38 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   }
 
   fun getCachedSchemaInfo(scope: GlobalSearchScope): GraphQLSchemaInfo {
-    return getFromCacheOrSchedule(scope, wait = false)
+    return if (GraphQLExecutionMode.isSynchronous) getOrComputeInline(scope) else getFromCacheOrSchedule(scope, wait = false)
+  }
+
+  /**
+   * Returns the cached schema of [scope], or builds it under the read action of the caller.
+   * A read action is taken when the caller has none; it is reentrant.
+   */
+  @RequiresReadLock(generateAssertion = false)
+  private fun getOrComputeInline(scope: GlobalSearchScope): GraphQLSchemaInfo {
+    val currentModificationStamp = GraphQLSchemaContentTracker.getInstance(project).modificationCount
+
+    val currentSchemaEntry = scopeToSchemaCache[scope]
+    if (currentSchemaEntry?.modificationStamp == currentModificationStamp) {
+      if (LOG.isTraceEnabled) {
+        LOG.trace { "Schema from cache returned (scope=${scope.scopeId}, stamp=$currentModificationStamp)" }
+      }
+      return currentSchemaEntry.schemaInfo
+    }
+
+    val schemaEntry = runReadActionBlocking {
+      val documentsProcessor = processSchemaDocuments(scope)
+      ProgressManager.checkCanceled()
+      buildSchemaEntry(scope, currentModificationStamp, documentsProcessor)
+    }
+
+    val storedEntry = scopeToSchemaCache.merge(scope, schemaEntry) { old, new ->
+      if (old.modificationStamp >= new.modificationStamp) old else new
+    }
+    if (storedEntry === schemaEntry) {
+      project.messageBus.syncPublisher(GraphQLSchemaCacheChangeListener.TOPIC).onSchemaCacheChanged()
+    }
+    return (storedEntry ?: schemaEntry).schemaInfo
   }
 
   private fun getFromCacheOrSchedule(scope: GlobalSearchScope, wait: Boolean = true): GraphQLSchemaInfo {
@@ -126,13 +166,7 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   }
 
   private val buildTimeout: Long
-    get() {
-      if (ApplicationManager.getApplication().isUnitTestMode) {
-        return BUILD_TIMEOUT_TESTS_MS
-      }
-
-      return Registry.intValue("graphql.schema.build.timeout", BUILD_TIMEOUT_MS.toInt()).toLong()
-    }
+    get() = Registry.intValue("graphql.schema.build.timeout", BUILD_TIMEOUT_MS.toInt()).toLong()
 
   private fun scheduleComputationIfNeeded(scope: GlobalSearchScope, currentModificationStamp: Long): SchemaComputation {
     var computation = scopeToTask[scope]
@@ -177,7 +211,20 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   private suspend fun computeSchema(scope: GlobalSearchScope, modificationStamp: Long): SchemaEntry {
     checkCanceled()
 
-    val registryInfo = getRegistryInfo(scope, modificationStamp)
+    val documentsProcessor = smartReadAction(project) { processSchemaDocuments(scope) }
+    checkCanceled()
+    return buildSchemaEntry(scope, modificationStamp, documentsProcessor)
+  }
+
+  /**
+   * Builds the registry and the schema from the documents of [documentsProcessor]. It is CPU work only: it needs no read action.
+   */
+  private fun buildSchemaEntry(
+    scope: GlobalSearchScope,
+    modificationStamp: Long,
+    documentsProcessor: GraphQLSchemaDocumentProcessor,
+  ): SchemaEntry {
+    val registryInfo = buildRegistryInfo(scope, modificationStamp, documentsProcessor)
     val schemaInfo = try {
       LOG.debug { "Schema build started (scope=${scope.scopeId}, stamp=$modificationStamp)" }
       val (schema, duration) = measureTimedValue {
@@ -196,7 +243,11 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
       LOG.info("Schema build cancelled (scope=${scope.scopeId}, stamp=$modificationStamp)")
       throw e
     }
-    catch (e: Exception) {
+    catch (e: Throwable) {
+      rethrowControlFlowException(e)
+      if (e is IndexNotReadyException) {
+        throw e
+      }
       LOG.error("Schema build error (scope=${scope.scopeId}, stamp=$modificationStamp): ", e) // should never happen
 
       GraphQLSchemaInfo(
@@ -216,16 +267,18 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
   @Suppress("unused")
   private suspend fun getRegistryInfo(context: PsiElement?): GraphQLRegistryInfo {
     val currentModificationStamp = GraphQLSchemaContentTracker.getInstance(project).modificationCount
-    return getRegistryInfo(GraphQLScopeProvider.getInstance(project).getResolveScope(context, true), currentModificationStamp)
+    val scope = smartReadAction(project) { GraphQLScopeProvider.getInstance(project).getResolveScope(context, true) }
+    val documentsProcessor = smartReadAction(project) { processSchemaDocuments(scope) }
+    return buildRegistryInfo(scope, currentModificationStamp, documentsProcessor)
   }
 
-  private suspend fun getRegistryInfo(scope: GlobalSearchScope, modificationStamp: Long): GraphQLRegistryInfo {
-    checkCanceled()
-
+  private fun buildRegistryInfo(
+    scope: GlobalSearchScope,
+    modificationStamp: Long,
+    documentsProcessor: GraphQLSchemaDocumentProcessor,
+  ): GraphQLRegistryInfo {
     LOG.debug { "Registry build started (scope=${scope.scopeId}, stamp=$modificationStamp)" }
     val (registry, duration) = measureTimedValue {
-      val documentsProcessor = smartReadAction(project) { processSchemaDocuments(scope) }
-
       val compositeRegistry = GraphQLCompositeRegistry()
       documentsProcessor.documents.forEach {
         compositeRegistry.addFromDocument(it)
@@ -276,9 +329,7 @@ class GraphQLSchemaProvider(private val project: Project, private val coroutineS
             scopeToTask.remove(scope, this@SchemaComputation)
 
             ResolveCache.getInstance(project).clearCache(true)
-            if (!ApplicationManager.getApplication().isUnitTestMode) {
-              DaemonCodeAnalyzer.getInstance(project).restart("GraphQLSchemaProvider.SchemaComputation.ensureStarted")
-            }
+            GraphQLHighlightingRestarter.getInstance(project).restart("GraphQLSchemaProvider.SchemaComputation.ensureStarted")
             project.messageBus.syncPublisher(GraphQLSchemaCacheChangeListener.TOPIC).onSchemaCacheChanged()
           }
         }

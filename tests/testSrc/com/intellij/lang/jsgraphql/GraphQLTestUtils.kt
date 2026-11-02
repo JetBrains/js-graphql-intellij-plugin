@@ -7,12 +7,14 @@ import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.lang.jsgraphql.GraphQLSettings.GraphQLSettingsState
 import com.intellij.lang.jsgraphql.ide.config.GraphQLConfigProvider
 import com.intellij.lang.jsgraphql.ide.config.env.GraphQLConfigEnvironment
+import com.intellij.lang.jsgraphql.ide.highlighting.GraphQLHighlightingRestarter
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesManager
 import com.intellij.lang.jsgraphql.ide.introspection.source.GraphQLGeneratedSourcesUpdater
 import com.intellij.lang.jsgraphql.schema.library.GraphQLBundledLibraryTypes
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibrary
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryDescriptor
 import com.intellij.lang.jsgraphql.schema.library.GraphQLLibraryManager
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.project.Project
@@ -22,9 +24,11 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.IndexingTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Function
 
 const val GRAPHQL_TEST_RELATIVE_PATH = "tests/testData/graphql"
@@ -152,4 +156,23 @@ internal suspend fun reloadConfig(project: Project) {
 internal suspend fun convertJsonSchemasToSdl(project: Project) {
   GraphQLGeneratedSourcesUpdater.getInstance(project).runJsonSchemaFilesGeneration()
   GraphQLGeneratedSourcesManager.getInstance(project).awaitPendingTasks()
+}
+
+/**
+ * Counts the highlighting restarts of a [GraphQLHighlightingRestarter] installed by [installCountingRestarter].
+ * The restarter is a final light service, so this class observes it instead of extending it.
+ */
+class CountingHighlightingRestarter {
+  val count: AtomicInteger = AtomicInteger()
+}
+
+/**
+ * Replaces the [GraphQLHighlightingRestarter] of [project] with one that counts the restarts instead of restarting the daemon,
+ * until [disposable] is disposed.
+ */
+fun installCountingRestarter(project: Project, disposable: Disposable): CountingHighlightingRestarter {
+  val counter = CountingHighlightingRestarter()
+  val restarter = GraphQLHighlightingRestarter.createForTests(project) { counter.count.incrementAndGet() }
+  project.replaceService(GraphQLHighlightingRestarter::class.java, restarter, disposable)
+  return counter
 }
