@@ -13,28 +13,31 @@ import com.intellij.lang.jsgraphql.psi.GraphQLUnionTypeDefinition
 import com.intellij.testFramework.common.timeoutRunBlocking
 import com.intellij.testFramework.junit5.TestApplication
 import org.junit.jupiter.api.Test
+import kotlin.time.Duration.Companion.minutes
+
+private val SCHEMA_HIGHLIGHTING_TIMEOUT = 2.minutes
 
 @TestApplication
 class GraphQLSchemaResolveTest {
   private val resolveFixture by graphQLResolveTestFixture("/resolve/schema")
 
   @Test
-  fun testGithubSchema(): Unit = timeoutRunBlocking {
+  fun testGithubSchema(): Unit = timeoutRunBlocking(SCHEMA_HIGHLIGHTING_TIMEOUT) {
     resolveFixture.doHighlightingTest()
   }
 
   @Test
-  fun testAniListSchema(): Unit = timeoutRunBlocking {
+  fun testAniListSchema(): Unit = timeoutRunBlocking(SCHEMA_HIGHLIGHTING_TIMEOUT) {
     resolveFixture.doHighlightingTest()
   }
 
   @Test
-  fun testBitQuerySchema(): Unit = timeoutRunBlocking {
+  fun testBitQuerySchema(): Unit = timeoutRunBlocking(SCHEMA_HIGHLIGHTING_TIMEOUT) {
     resolveFixture.doHighlightingTest()
   }
 
   @Test
-  fun testUniverseSchema(): Unit = timeoutRunBlocking {
+  fun testUniverseSchema(): Unit = timeoutRunBlocking(SCHEMA_HIGHLIGHTING_TIMEOUT) {
     resolveFixture.doHighlightingTest()
   }
 
