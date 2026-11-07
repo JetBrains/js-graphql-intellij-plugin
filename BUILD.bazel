@@ -59,6 +59,11 @@ jvm_library(
         exclude = ["resources/**/icon-robots.txt"],
     ),
     visibility = ["//visibility:public"],
+    runtime_deps = [
+        # do not sort,
+        "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
+        "@community//platform/execution-impl",
+    ],
     deps = [
         # do not sort,
         "@lib//:kotlin-stdlib",
@@ -102,8 +107,6 @@ jvm_library(
         "@community//libraries/http-client",
         "//plugins/js-graphql/libraries",
         "@community//xml/xml-psi-api:psi",
-        "@community//libraries/kotlinx/collections-immutable:libraries-kotlinx-collections-immutable",
-        "@community//platform/execution-impl",
     ],
 )
 ### auto-generated section `build intellij.graphql` end
