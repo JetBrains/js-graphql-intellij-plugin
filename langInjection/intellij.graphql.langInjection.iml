@@ -8,21 +8,21 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="kotlin-stdlib" level="project" />
+    <orderEntry type="library" scope="RUNTIME" name="kotlin-stdlib" level="project" />
     <orderEntry type="module" module-name="intellij.platform.ide" />
-    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" />
+    <orderEntry type="module" module-name="intellij.platform.ide.core.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.ide.impl" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
     <orderEntry type="module" module-name="intellij.platform.lang.impl" />
-    <orderEntry type="module" module-name="intellij.platform.core.impl" />
+    <orderEntry type="module" module-name="intellij.platform.core.impl" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.core" />
-    <orderEntry type="module" module-name="intellij.platform.ide.util.io" />
-    <orderEntry type="module" module-name="intellij.platform.analysis.impl" />
-    <orderEntry type="module" module-name="intellij.platform.projectModel" />
-    <orderEntry type="module" module-name="intellij.platform.projectModel.impl" />
-    <orderEntry type="module" module-name="intellij.platform.backend.workspace" />
+    <orderEntry type="module" module-name="intellij.platform.ide.util.io" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.analysis.impl" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.projectModel" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.projectModel.impl" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.platform.backend.workspace" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.platform.langInjection" />
     <orderEntry type="module" module-name="intellij.graphql" />
-    <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" />
+    <orderEntry type="module" module-name="intellij.libraries.kotlinx.collections.immutable" scope="RUNTIME" />
   </component>
 </module>
