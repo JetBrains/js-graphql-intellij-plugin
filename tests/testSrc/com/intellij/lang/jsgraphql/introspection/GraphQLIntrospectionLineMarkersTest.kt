@@ -5,6 +5,7 @@ import com.intellij.lang.jsgraphql.graphQLTestFixture
 import com.intellij.lang.jsgraphql.reloadGraphQLConfiguration
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.edtWriteAction
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.testFramework.common.timeoutRunBlocking
 import com.intellij.testFramework.junit5.TestApplication
@@ -65,19 +66,19 @@ class GraphQLIntrospectionLineMarkersTest {
       graphQLFixture.fixture.configureFromTempProjectFile(name)
     }
     graphQLFixture.fixture.reloadGraphQLConfiguration()
-    withContext(Dispatchers.EDT) {
-      val allGutters = graphQLFixture.fixture.findAllGutters()
-      assertEquals(expectedGutterOffsets.size, allGutters.size, "total gutters count")
-      expectedGutterOffsets.forEach {
+    val allGutters = graphQLFixture.fixture.findAllGutters()
+    assertEquals(expectedGutterOffsets.size, allGutters.size, "total gutters count")
+    expectedGutterOffsets.forEach {
+      withContext(Dispatchers.EDT) {
         graphQLFixture.fixture.editor.caretModel.moveToLogicalPosition(LogicalPosition(it, 0))
-        val gutters = graphQLFixture.fixture.findGuttersAtCaret()
-        assertEquals(1, gutters.size, "invalid gutters count at line $it")
-        assertEquals(
-          GraphQLBundle.message("graphql.introspection.run.query"),
-          gutters[0].tooltipText,
-          "invalid gutter tooltip at line $it",
-        )
       }
+      val gutters = graphQLFixture.fixture.findGuttersAtCaret()
+      assertEquals(1, gutters.size, "invalid gutters count at line $it")
+      assertEquals(
+        GraphQLBundle.message("graphql.introspection.run.query"),
+        readAction { gutters[0].tooltipText },
+        "invalid gutter tooltip at line $it",
+      )
     }
   }
 }
