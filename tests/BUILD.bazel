@@ -76,7 +76,7 @@ jvm_library(
         "@community//json/backend",
         "@community//platform/testFramework",
         "//plugins/JavaScriptLanguage/testFramework",
-        "@community//java/testFramework",
+        "@community//java/openapi:java",
         "//ultimate/ultimate-resources:idea-ultimate-customization",
         "//plugins/JavaScriptLanguage/javascript-backend",
         "//plugins/JavaScriptLanguage/javascript-parser",
@@ -100,7 +100,6 @@ jvm_library(
         "@community//platform/testFramework/junit5/codeInsight",
         "@community//libraries/junit6",
         "@community//libraries/assertj-core",
-        "@community//libraries/junit4",
         "@community//platform/scratch/plugin",
     ],
 )
