@@ -36,6 +36,7 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.editor.markup.RangeHighlighter;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.openapi.util.TextRange;
@@ -355,11 +356,15 @@ public final class GraphQLQueryContextHighlightVisitor {
             else if (operationOrNull.getNameIdentifier() != null) {
               navigationTarget = operationOrNull.getNameIdentifier();
             }
+            int offset = navigationTarget.getTextOffset();
             FileEditorManager fileEditorManager = FileEditorManager.getInstance(project);
-            fileEditorManager.openFile(psiFile.getVirtualFile(), true, true);
-            editor.getSelectionModel().removeSelection();
-            editor.getCaretModel().moveToOffset(navigationTarget.getTextOffset());
-            editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
+            fileEditorManager.requestOpenFile(psiFile.getVirtualFile(), FileEditorOpenRequest.withFocus(true).withReuseOpen(true))
+              .thenRun(() -> {
+                if (editor.isDisposed() || offset > editor.getDocument().getTextLength()) return;
+                editor.getSelectionModel().removeSelection();
+                editor.getCaretModel().moveToOffset(offset);
+                editor.getScrollingModel().scrollToCaret(ScrollType.CENTER);
+              });
           }
           return;
         }

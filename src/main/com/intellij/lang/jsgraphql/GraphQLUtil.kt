@@ -11,6 +11,7 @@ import com.intellij.lang.jsgraphql.ide.config.model.GraphQLConfigEndpoint
 import com.intellij.lang.jsgraphql.ui.GraphQLUIProjectService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
@@ -39,11 +40,12 @@ fun createScratchFromEndpoint(
 ) {
   val scratchFile = createScratchFile(project, endpoint.file?.path ?: endpoint.dir.path, endpoint.projectName)
   if (openInEditor && scratchFile != null) {
-    val fileEditors = FileEditorManager.getInstance(project).openFile(scratchFile, true)
-    for (editor in fileEditors) {
-      if (editor is TextEditor) {
-        val endpointsModel = editor.editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)
-        endpointsModel?.selectedItem = endpoint
+    FileEditorManager.getInstance(project).requestOpenFile(scratchFile, FileEditorOpenRequest.withFocus(true)).thenAccept { composite ->
+      for (editor in composite.allEditors) {
+        if (editor is TextEditor) {
+          val endpointsModel = editor.editor.getUserData(GraphQLUIProjectService.GRAPH_QL_ENDPOINTS_MODEL)
+          endpointsModel?.selectedItem = endpoint
+        }
       }
     }
   }

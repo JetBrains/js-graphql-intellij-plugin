@@ -18,6 +18,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.codeStyle.CodeStyleManager
@@ -108,7 +109,7 @@ class GraphQLMigrateLegacyConfigAction : AnAction() {
       psiDocumentManager.commitDocument(document)
       CodeStyleManager.getInstance(project).reformat(psiFile)
 
-      FileEditorManager.getInstance(project).openFile(newFile, true)
+      FileEditorManager.getInstance(project).requestOpenFile(newFile, FileEditorOpenRequest.withFocus(true))
     })
   }
 }

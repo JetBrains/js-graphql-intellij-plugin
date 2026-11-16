@@ -18,6 +18,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
@@ -66,7 +67,7 @@ class GraphQLConfigFactory(private val project: Project) {
               CodeStyleManager.getInstance(project).reformat(psiFile)
             }
             if (openEditor) {
-              FileEditorManager.getInstance(project).openFile(configFile, true, true)
+              FileEditorManager.getInstance(project).requestOpenFile(configFile, FileEditorOpenRequest.withFocus(true).withReuseOpen(true))
             }
             invokeLater {
               ApplicationManager.getApplication().saveAll()

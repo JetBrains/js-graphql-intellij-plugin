@@ -39,6 +39,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest;
 import com.intellij.openapi.options.advanced.AdvancedSettings;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
@@ -355,7 +356,7 @@ public final class GraphQLIntrospectionService implements Disposable {
                 @Override
                 public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
                   if (schemaFile.isValid()) {
-                    FileEditorManager.getInstance(myProject).openFile(schemaFile, true);
+                    FileEditorManager.getInstance(myProject).requestOpenFile(schemaFile, FileEditorOpenRequest.withFocus(true));
                   }
                   else {
                     notification.expire();

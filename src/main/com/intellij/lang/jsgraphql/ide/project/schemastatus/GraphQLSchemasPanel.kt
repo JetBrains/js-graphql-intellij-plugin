@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
@@ -219,7 +220,7 @@ internal class GraphQLSchemasPanel(private val project: Project, private val too
         if (selectedSchemaNode != null) {
           val configFile = selectedSchemaNode.configFile
           if (configFile != null) {
-            FileEditorManager.getInstance(project).openFile(configFile, true)
+            FileEditorManager.getInstance(project).requestOpenFile(configFile, FileEditorOpenRequest.withFocus(true))
           }
         }
       }

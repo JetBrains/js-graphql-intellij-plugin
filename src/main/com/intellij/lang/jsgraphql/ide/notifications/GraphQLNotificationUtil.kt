@@ -15,6 +15,7 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.fileLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import com.intellij.openapi.project.Project
@@ -43,7 +44,7 @@ fun showInvalidConfigurationNotification(
     notification.addAction(
       object : NotificationAction(GraphQLBundle.message("graphql.notification.open.file", configFile.name)) {
         override fun actionPerformed(e: AnActionEvent, notification: Notification) {
-          FileEditorManager.getInstance(project).openFile(configFile, true)
+          FileEditorManager.getInstance(project).requestOpenFile(configFile, FileEditorOpenRequest.withFocus(true))
         }
       })
   }

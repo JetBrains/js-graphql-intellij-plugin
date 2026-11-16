@@ -24,6 +24,7 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -151,8 +152,9 @@ internal class GraphQLIntrospectionSchemaWriter(private val project: Project) {
     }
 
     withContext(Dispatchers.EDT) {
-      val fileEditors = project.serviceAsync<FileEditorManager>().openFile(file, true, true)
-      val textEditor = fileEditors.firstOrNull() as? TextEditor
+      val composite = project.serviceAsync<FileEditorManager>()
+        .openFile(file, FileEditorOpenRequest.withFocus(true).withReuseOpen(true))
+      val textEditor = composite.allEditors.firstOrNull() as? TextEditor
       if (textEditor == null) {
         showUnableToOpenEditorNotification(file)
       }

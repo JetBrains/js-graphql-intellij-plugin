@@ -8,6 +8,7 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.EditorHeaderComponent
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider
 import com.intellij.openapi.project.DumbAware
@@ -95,7 +96,7 @@ class GraphQLToolWindow : ToolWindowFactory, DumbAware {
             val queryFile = VirtualFileManager.getInstance().findFileByUrl(fileUrl)
             if (queryFile != null) {
               val fileEditorManager = FileEditorManager.getInstance(project)
-              fileEditorManager.openFile(queryFile, true, true)
+              fileEditorManager.requestOpenFile(queryFile, FileEditorOpenRequest.withFocus(true).withReuseOpen(true))
             }
           }
         }

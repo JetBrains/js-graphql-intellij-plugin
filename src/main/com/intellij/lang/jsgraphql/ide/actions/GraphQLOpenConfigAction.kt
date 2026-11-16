@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorOpenRequest
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.ui.ComboBox
@@ -56,7 +57,7 @@ class GraphQLOpenConfigAction : AnAction(
     val configFile = config?.file ?: provider.findConfig(psiFile)?.config?.file
     if (configFile != null) {
       val fileEditorManager = FileEditorManager.getInstance(project)
-      fileEditorManager.openFile(configFile, true, true)
+      fileEditorManager.requestOpenFile(configFile, FileEditorOpenRequest.withFocus(true).withReuseOpen(true))
     }
     else if (config != null) {
       // TODO: create and show in-memory config
