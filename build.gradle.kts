@@ -85,7 +85,7 @@ tasks {
             """
             ${changelog.renderItem(changelog.get(pluginVersion), Changelog.OutputType.HTML)}
             <br />
-            See the <a href="https://github.com/jimkyndemeyer/js-graphql-intellij-plugin/blob/master/CHANGELOG.md">CHANGELOG</a> for more details and history.
+            See the <a href="https://github.com/JetBrains/js-graphql-intellij-plugin/blob/master/CHANGELOG.md">CHANGELOG</a> for more details and history.
             """.trimIndent()
         )
     }
