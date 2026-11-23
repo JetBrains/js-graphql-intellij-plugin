@@ -107,6 +107,7 @@ jvm_library(
         "@community//libraries/http-client",
         "//plugins/js-graphql/libraries",
         "@community//xml/xml-psi-api:psi",
+        "@community//platform/workspace/jps",
     ],
 )
 ### auto-generated section `build intellij.graphql` end

@@ -1,7 +1,6 @@
 package com.intellij.lang.jsgraphql.ide.resolve.scope
 
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
@@ -15,7 +14,7 @@ class GraphQLModuleLibrariesScope private constructor(project: Project, baseScop
   private val fileIndex = ProjectRootManager.getInstance(project).fileIndex
 
   override fun contains(file: VirtualFile): Boolean =
-    super.contains(file) && fileIndex.getOrderEntriesForFile(file).any { it is LibraryOrderEntry }
+    super.contains(file) && fileIndex.findContainingLibraries(file).isNotEmpty()
 
   companion object {
     internal const val REGISTRY_KEY = "graphql.config.scope.module.libraries"
