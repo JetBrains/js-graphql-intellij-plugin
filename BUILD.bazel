@@ -35,12 +35,6 @@ dist_plugin(
             "intellij.graphql.yaml",
         ],
     },
-    module_descriptors = [
-        "//plugins/js-graphql/javascript:resources/intellij.graphql.javascript.xml",
-        "//plugins/js-graphql/langInjection:resources/intellij.graphql.langInjection.xml",
-        "//plugins/js-graphql/libraries:resources/intellij.graphql.libraries.xml",
-        "//plugins/js-graphql/yaml:resources/intellij.graphql.yaml.xml",
-    ],
     module_labels = {"intellij.graphql": "//plugins/js-graphql:graphql"},
 )
 ### auto-generated section `dev intellij.graphql` end
