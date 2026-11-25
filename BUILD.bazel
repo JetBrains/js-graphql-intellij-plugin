@@ -1,5 +1,6 @@
+load("@community//build:jps_module.bzl", "jps_module")
+load("@community//platform/build-scripts/bazel-rules:dist_plugin.bzl", "dist_plugin")
 load("@community//platform/build-scripts/bazel-rules:ij_plugin.bzl", "ij_plugin")
-load("@jps_dynamic_deps_ultimate//:targets.bzl", "dist_plugin")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `dev intellij.graphql` start
@@ -12,6 +13,12 @@ dist_plugin(
         "intellij.graphql.libraries",
     ],
     descriptor = "resources/META-INF/plugin.xml",
+    descriptors = {
+        "//plugins/js-graphql/javascript:resources/intellij.graphql.javascript.xml": "intellij.graphql.javascript.xml",
+        "//plugins/js-graphql/langInjection:resources/intellij.graphql.langInjection.xml": "intellij.graphql.langInjection.xml",
+        "//plugins/js-graphql/libraries:resources/intellij.graphql.libraries.xml": "intellij.graphql.libraries.xml",
+        "//plugins/js-graphql/yaml:resources/intellij.graphql.yaml.xml": "intellij.graphql.yaml.xml",
+    },
     jars = {
         "lib/graphql.jar": [
             "intellij.graphql",
@@ -34,6 +41,13 @@ dist_plugin(
             "intellij.graphql.langInjection",
             "intellij.graphql.yaml",
         ],
+    },
+    module_labels = {
+        "intellij.graphql": "//plugins/js-graphql:graphql",
+        "intellij.graphql.javascript": "//plugins/js-graphql/javascript:javascript",
+        "intellij.graphql.langInjection": "//plugins/js-graphql/langInjection:langInjection",
+        "intellij.graphql.libraries": "//plugins/js-graphql/libraries:libraries",
+        "intellij.graphql.yaml": "//plugins/js-graphql/yaml:yaml",
     },
 )
 ### auto-generated section `dev intellij.graphql` end
@@ -128,14 +142,15 @@ ij_plugin(
 ### auto-generated section `plugin intellij.graphql` end
 
 ### auto-generated section `iml intellij.graphql` start
-exports_files(
-    [
-        "intellij.graphql.iml",
-        "resources/META-INF/plugin.xml",
+jps_module(
+    name = "intellij.graphql",
+    descriptors = ["resources/META-INF/plugin.xml"],
+    plugin = True,
+    target = "graphql",
+    exports = [
         "resources/colorSchemes/GraphQLLanguageDarcula.xml",
         "resources/colorSchemes/GraphQLLanguageDefault.xml",
         "resources/colorSchemes/GraphQLLanguageMonokai.xml",
     ],
-    visibility = ["//visibility:public"],
 )
 ### auto-generated section `iml intellij.graphql` end

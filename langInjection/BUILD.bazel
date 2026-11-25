@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@rules_jvm//:jvm.bzl", "jvm_library")
 
 ### auto-generated section `build intellij.graphql.langInjection` start
@@ -43,11 +44,9 @@ jvm_library(
 ### auto-generated section `build intellij.graphql.langInjection` end
 
 ### auto-generated section `iml intellij.graphql.langInjection` start
-exports_files(
-    [
-        "intellij.graphql.langInjection.iml",
-        "resources/intellij.graphql.langInjection.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.graphql.langInjection",
+    descriptors = ["resources/intellij.graphql.langInjection.xml"],
+    target = "langInjection",
 )
 ### auto-generated section `iml intellij.graphql.langInjection` end

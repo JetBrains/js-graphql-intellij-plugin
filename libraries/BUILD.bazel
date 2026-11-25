@@ -1,3 +1,4 @@
+load("@community//build:jps_module.bzl", "jps_module")
 load("@community//platform/build-scripts/bazel-rules:ij_plugin_module.bzl", "ij_plugin_module")
 
 ### auto-generated section `build intellij.graphql.libraries` start
@@ -38,11 +39,9 @@ ij_plugin_module(
 ### auto-generated section `build intellij.graphql.libraries` end
 
 ### auto-generated section `iml intellij.graphql.libraries` start
-exports_files(
-    [
-        "intellij.graphql.libraries.iml",
-        "resources/intellij.graphql.libraries.xml",
-    ],
-    visibility = ["//visibility:public"],
+jps_module(
+    name = "intellij.graphql.libraries",
+    descriptors = ["resources/intellij.graphql.libraries.xml"],
+    target = "libraries",
 )
 ### auto-generated section `iml intellij.graphql.libraries` end
